@@ -1,5 +1,5 @@
 % genrates trim struct
-function trim = generate_trim(model, trim_input, dt)
+function trim = generate_trim(model, trim_input)
     
     % BicycleModel
     if model.nu == 2

@@ -1,21 +1,28 @@
 classdef BicycleModel < VehicleModel
-    %UNTITLED5 Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties
         Lf
         Lr
+        W
     end
     
     methods
         function obj = BicycleModel(Lf, Lr)
-            %UNTITLED5 Construct an instance of this class
-            %   Detailed explanation goes here
+            % noe state vector
             obj.nx = 5;
+            
+            % noe input vector
             obj.nu = 2;
-            obj.ny = 2;
+            
+            % noe properties model
+            obj.ny = 3;
+            
+            % lengths from mid of model
             obj.Lf = Lf;
             obj.Lr = Lr;
+            
+            % width
+            obj.W = 1.8;
         end
         
         

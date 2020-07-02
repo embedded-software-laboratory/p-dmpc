@@ -36,7 +36,7 @@ classdef MotionGraph
             end 
             
             for i = 1:n_trims
-                obj.trims(i) = generate_trim(model, trim_inputs(i,:), dt);
+                obj.trims(i) = generate_trim(model, trim_inputs(i,:));
             end
             
             
