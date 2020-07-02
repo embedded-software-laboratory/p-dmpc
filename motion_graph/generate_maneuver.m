@@ -14,13 +14,14 @@ function maneuver = generate_maneuver(model, trim1, trim2, dt)
     acceleration = velocity_change/dt;
     
     steering_angle_change = trim2.steering - trim1.steering;
-    steering_derivate = steering_angle_change/dt;
+    steering_derivative = steering_angle_change/dt;
     
     % maneuver state changes in local coordinates
     %  TODO -- not sure if steering_angle_change or new steering_angle here --
     x0 = zeros(model.nx, 1);
     x0(4) = trim1.velocity;
-    [t, x] = ode45(@(t, x) model.ode(x, [trim2.steering,acceleration]), ...
+    x0(5) = trim1.steering;
+    [t, x] = ode45(@(t, x) model.ode(x, [steering_derivative,acceleration]), ...
                    [0 dt], ...
                    x0, ...
                    odeset('RelTol',1e-8,'AbsTol',1e-8));
