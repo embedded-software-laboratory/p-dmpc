@@ -1,6 +1,6 @@
 function maneuver_area = calculate_maneuver_area(model,maneuver)
     
-    hw = model.W;
+    hw = model.W/2;
     
     % collision offset
     offset = 0.1;
@@ -28,7 +28,10 @@ function maneuver_area = calculate_maneuver_area(model,maneuver)
     
     maneuver_area = [   x_rec(1) x_rec(2) x_rec_new(3) x_rec_new(4) lastX; ...
                         y_rec(1) y_rec(2) y_rec_new(3) y_rec_new(4) lastY   ];
+                    
+    % --- HINT ---
+    % for maneuver polygon
+    % pgon = convhull(polyshape(maneuver_area(1,:),maneuver_area(2,:));
     
-   
 end
 

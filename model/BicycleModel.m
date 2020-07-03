@@ -17,7 +17,7 @@ classdef BicycleModel < VehicleModel
             % noe properties model
             obj.ny = 3;
             
-            % lengths from mid of model
+            % lengths from center of gravity
             obj.Lf = Lf;
             obj.Lr = Lr;
             
