@@ -1,6 +1,7 @@
 % genrates maneuver struct
 function maneuver = generate_maneuver(model, trim1, trim2, dt)
     
+    % length of vehicle
     L = model.Lr+model.Lf;
     
     % save trims connected by this maneuver

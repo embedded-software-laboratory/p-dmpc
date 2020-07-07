@@ -1,6 +1,5 @@
 classdef MotionGraph
-    %UNTITLED3 Summary of this class goes here
-    %   Detailed explanation goes here
+    % Class for MotionGraph
     
     % trim
     %   u
@@ -11,16 +10,16 @@ classdef MotionGraph
     %   area
     
     properties
-        trims               % struct array
+        trims               % struct array (not necessary ??)
         maneuvers           % Cell/struct matrix (nTrims x nTrims)
-        transition_matrix   % Matrix      (nTrims x nTrims)
+        transition_matrix   % Matrix      (nTrims x nTrims) (not necessary ??)
     end
     
     methods
         
         function obj = MotionGraph(model, trim_inputs, trim_adjacency, dt)
-            %UNTITLED3 Construct an instance of this class
-            %   Detailed explanation goes here
+            % Constructor
+            
             obj.transition_matrix = trim_adjacency;
                        
             n_trims = length(trim_inputs);

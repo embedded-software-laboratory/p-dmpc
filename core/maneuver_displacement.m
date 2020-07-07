@@ -25,4 +25,3 @@ function [x_next, y_next, yaw_next] = maneuver_displacement(model, x_init, y_ini
     yaw_next = x(last,3);
 
 end
-

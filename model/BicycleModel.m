@@ -57,4 +57,3 @@ classdef BicycleModel < VehicleModel
         end
     end
 end
-

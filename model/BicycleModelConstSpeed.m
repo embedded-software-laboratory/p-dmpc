@@ -42,4 +42,3 @@ classdef BicycleModelConstSpeed < VehicleModel
         end
     end
 end
-
