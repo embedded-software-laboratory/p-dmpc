@@ -10,7 +10,7 @@ classdef MotionGraph
     %   area
     
     properties
-        trims               % struct array (not necessary ??)
+        trims               % struct array
         maneuvers           % Cell/struct matrix (nTrims x nTrims)
         transition_matrix   % Matrix      (nTrims x nTrims) (not necessary ??)
     end

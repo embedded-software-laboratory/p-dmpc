@@ -37,9 +37,10 @@ trim_adjacency = trim_adjacency'+triu(trim_adjacency,1);
 % Generate graph for two vehicles
 motionGraph1 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
 motionGraph2 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
+motionGraph3 = MotionGraph(model, u_trims(1:8,:), trim_adjacency, primitive_dt);
 
 % make motionGraph Tupel
-motionGraphList = [motionGraph1 , motionGraph2];
+motionGraphList = [motionGraph1 , motionGraph2 , motionGraph3];
 
 % Combine graphs
 combinedGraph = combine_graphs(motionGraphList);
