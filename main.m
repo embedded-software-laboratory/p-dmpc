@@ -9,6 +9,9 @@ addpath(genpath(pwd));
 % Vehicles
 % Initial position
 % Goal
+nVeh = 4;
+scenario = Scenario(2*pi/nVeh*(1:nVeh));
+plot(scenario);
 
 %% Define motion graph
 % Choose Model
