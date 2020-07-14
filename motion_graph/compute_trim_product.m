@@ -2,37 +2,17 @@ function productTrims = compute_trim_product(motionGraphList)
 
     nGraphs = length(motionGraphList);
     
-    %% trim product as index tuple
-    maxTrims = 0;
-    % find max length of trims
+    % iterate through all motionGraphs
     for i = 1 : nGraphs
         
-        % find maximal length of trims for preallocating
-        if length(motionGraphList(i).trims) > maxTrims
-            
-            maxTrims = length(motionGraphList(i).trims)
-            
-        end
+        % save trim indices (1 to n_trims)
+        trimIndexList{i} = [1:length(motionGraphList(i).trims)];
     
     end
     
-        
-    % preallocate
-    trimProd = ones(maxTrims,nGraphs);          % for testing, should be zeros(...)
-
-    % fill "tuple" matrix
-    % --- TODO: Schleifenschachtelungs-Tiefe unbekannt (?) ---
-    for i = 1 : nGraphs
-        
-        for j = 1 : length(motionGraphList(i).trims)
-        
-            % --- TODO ---
-            
-        end
+    % cartesian product for all combinations of trims;
+    trimProd = cartprod(trimIndexList{:});
     
-    end
-
-    %% return
     productTrims = trimProd;
 
 end

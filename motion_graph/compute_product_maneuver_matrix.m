@@ -6,6 +6,7 @@ function maneuverMatrix = compute_product_maneuver_matrix(trimProduct,motionGrap
     % preallocate
     maneuverMatrix = zeros(nTrims,nTrims);
     
+    % iterate through trim product list to get all combinations of trim products
     for i = 1 : nTrims
         
         startTrimTuple = trimProduct(i,:);
@@ -14,6 +15,7 @@ function maneuverMatrix = compute_product_maneuver_matrix(trimProduct,motionGrap
             
             endTrimTuple = trimProduct(j,:);
             
+            % check if every transition has a maneuver
             for k = 1 : nGraphs
             
                 maneuvers = motionGraphList(k).maneuvers;
