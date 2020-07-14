@@ -23,6 +23,7 @@ function maneuverMatrix = compute_product_maneuver_matrix(trimProduct,motionGrap
                 startTrimIndex = startTrimTuple(k);
                 endTrimIndex = endTrimTuple(k);
                 
+                % lookup maneuver matrix if entry is empty
                 if isequal(maneuvers{startTrimIndex,endTrimIndex} , [])
                     
                     maneuverMatrix(i,j) = 0;
