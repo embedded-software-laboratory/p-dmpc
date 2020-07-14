@@ -43,7 +43,7 @@ motionGraph3 = MotionGraph(model, u_trims(1:8,:), trim_adjacency, primitive_dt);
 motionGraphList = [motionGraph1 , motionGraph2 , motionGraph3];
 
 % Combine graphs
-combinedGraph = combine_graphs(motionGraphList);
+combinedGraph = CombinedGraph(motionGraphList);
 %% Graph search
 % Choose search algorithm
 
