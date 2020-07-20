@@ -5,28 +5,31 @@
 % maneuver refers to the matrix of maneuvers
 % depth specifies the depth of the created search tree
 % dt specifies the time of our 
-function search_tree = generate_tree(init_state, target, trim, maneuver, depth, dt)
+function search_tree = generate_tree(init_state, target, trim, maneuver, search_depth, dt)
     
 
     %% Import tree class
-    matlab_tree = '../matlab-tree/';
-    assert(logical(exist(matlab_tree, 'dir')));
-    addpath(matlab_tree);
+    % matlab_tree = '../matlab-tree/';
+    % assert(logical(exist(matlab_tree, 'dir')));
+    % addpath(matlab_tree);
 
     %% Initialize tree
+    cur_state = init_state;
+    cur_node = node(1, 0, 0, trim, cur_state);
     
-    % sample node
-    sample_node = node(1, 0, 0, 0, [0, 0, 0]);
+    search_tree = tree(cur_node);
     
-    search_tree = tree(sample_node);
-    
-    
-
-    [search_tree node1] = search_tree.addnode(1, sample_node);
-    
+    next_index = 1; 
     %% expand search tree until target or trim is reached (TODO)
-    for i = 1:2
-        [search_tree node1] = search_tree.addnode(node1, sample_node);
+    while depth(search_tree) < search_depth
+        
+        next_state.x = cur_state.x + maneuver{1, 1}.dx;  
+        next_state.y = cur_state.y + maneuver{1, 1}.dy;  
+        next_state.yaw = cur_state.yaw + maneuver{1, 1}.dyaw;  
+        next_node = node(2, 1, 0, trim, next_state);
+        cur_state = next_state;
+        
+        [search_tree, next_index] = search_tree.addnode(next_index, next_node);
     end
     
     disp(search_tree.tostring)
