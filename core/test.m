@@ -15,7 +15,7 @@ target.yaw = 0;
 init_trim = 1;
 
 primitive_dt = 1;
-depth = 2;
+depth = 3;
 
 load('trim_inputs');
 
