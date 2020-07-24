@@ -1,6 +1,3 @@
-% Add modules to path
-addpath(genpath(pwd));
-
 % Choose Model
 model = BicycleModel(2.2,2.2);
 
@@ -15,7 +12,7 @@ target.yaw = 0;
 init_trim = 1;
 
 primitive_dt = 1;
-depth = 3;
+depth = 30;
 
 load('trim_inputs');
 
@@ -32,4 +29,4 @@ trim_adjacency = trim_adjacency'+triu(trim_adjacency,1);
 
 motionGraph = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
 
-search_tree = generate_tree(init_state, target, init_trim, motionGraph.maneuvers, depth, primitive_dt)
+search_tree = generate_tree(init_state, target, init_trim, motionGraph.maneuvers, depth);
