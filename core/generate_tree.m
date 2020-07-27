@@ -73,7 +73,9 @@ function search_graph = generate_tree(init_pose, target_pose, trim_index, maneuv
                 cur_pose.x = x;
                 cur_pose.y = y;
                 cur_pose.yaw = yaw;
-                value = euclidean_distance(cur_pose, target_pose);
+                
+                % A* heuristic f(n) = g(n) + h(n)
+                value = euclidean_distance(init_pose, cur_pose) + euclidean_distance(cur_pose, target_pose);
           
                 % Add node to existing new graph and connect parent to it
                 node = table(id, value, trim, x, y, yaw);
