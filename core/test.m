@@ -1,15 +1,15 @@
 % Choose Model
 model = BicycleModel(2.2,2.2);
 
-init_state.x = 0;
-init_state.y = 0;
-init_state.yaw = 0;
+init_pose.x = 0;
+init_pose.y = 0;
+init_pose.yaw = 0;
 
-target.x = 10;
-target.y = 10;
-target.yaw = 0;
+target_pose.x = 10;
+target_pose.y = 10;
+target_pose.yaw = 0;
 
-init_trim = 1;
+trim_index = 1;
 
 primitive_dt = 1;
 depth = 30;
@@ -29,4 +29,4 @@ trim_adjacency = trim_adjacency'+triu(trim_adjacency,1);
 
 motionGraph = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
 
-search_tree = generate_tree(init_state, target, init_trim, motionGraph.maneuvers, depth);
+search_graph = generate_tree(init_pose, target_pose, trim_index, motionGraph.maneuvers, depth);
