@@ -13,6 +13,7 @@ function search_graph = generate_tree(init_pose, target_pose, trim_index, maneuv
     x = init_pose.x;
     y = init_pose.y;
     yaw = init_pose.yaw;
+    distance = euclidean_distance(init_pose, target_pose);
     
     % Safe length of trim vector and parent index for node expansion
     trim_size = length(maneuvers(1,:));
@@ -20,7 +21,7 @@ function search_graph = generate_tree(init_pose, target_pose, trim_index, maneuv
     
     % Create digraph with root node
     search_graph = digraph;
-    node = table(id, value, trim, x, y, yaw);
+    node = table(id, value, trim, x, y, yaw, distance);
     search_graph = addnode(search_graph, node);
     
     % Array storing ids of nodes that may be expanded
@@ -28,8 +29,8 @@ function search_graph = generate_tree(init_pose, target_pose, trim_index, maneuv
     
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
-    while (length(dfsearch(search_graph, 1)) < search_depth) ...
-            && (euclidean_distance(node, target_pose) > 1 ...
+    while (length(shortestpath(search_graph, 1, id)) < search_depth) ...
+            && (euclidean_distance(node, target_pose) > 2 ...
             && ~isempty(leaf_nodes))
         
         % Advance tree expansion to next node by choosing closest leaf to
@@ -82,9 +83,11 @@ function search_graph = generate_tree(init_pose, target_pose, trim_index, maneuv
                 
                 % A* heuristic f(n) = g(n) + h(n)
                 value = euclidean_distance(init_pose, cur_pose) + euclidean_distance(cur_pose, target_pose);
-          
+                distance = euclidean_distance(cur_pose, target_pose);
+                
+                
                 % Add node to existing new graph and connect parent to it
-                node = table(id, value, trim, x, y, yaw);
+                node = table(id, value, trim, x, y, yaw, distance);
                 search_graph = addnode(search_graph, node);
                 search_graph = addedge(search_graph, parent, id);
                 

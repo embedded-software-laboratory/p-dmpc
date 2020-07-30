@@ -12,7 +12,7 @@ target_pose.yaw = 0;
 trim_index = 1;
 
 primitive_dt = 1;
-depth = 30;
+depth = 5;
 
 load('trim_inputs');
 
