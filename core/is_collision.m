@@ -8,7 +8,7 @@ function collision = is_collision(shapes)
         
         shape1 = shapes{i};
         
-        for j = i : number_of_vehicles
+        for j = i : nShapes
             
             shape2 = shapes{j};
             

@@ -9,32 +9,45 @@ function search_graph = generate_tree(init_poses, target_poses, trim_indices, co
     nVeh = length(combined_graph.motionGraphList);
 
     % Initialize node table values
-    ids =  ones(nVeh,1);
+    ids =  ones(nVeh,1).';
     id = 1;
     
-    driven = zeros(nVeh,1);
+    driven = zeros(nVeh,1).';
     
     goal = zeros(nVeh,1);
     
     % high but should be unnecessary
-    values = 10000 * ones(nVeh,1)
+    values = 10000 * ones(nVeh,1).';
     
-    trims = trim_indices.';
+    trims = trim_indices;
     
-    xs = [init_poses(1:nVeh).x].';
-    ys = [init_poses(1:nVeh).y].';
-    yaws = [init_poses(1:nVeh).yaw].';
+    xs = [init_poses(1:nVeh).x];
+    ys = [init_poses(1:nVeh).y];
+    yaws = [init_poses(1:nVeh).yaw];
     
     cur_poses = init_poses;
     
     parent = 0;
     
+    cur_poses = [];
+        
+    for i = 1 : nVeh
+
+        cur_pose.x = xs(i);
+        cur_pose.y = ys(i);
+
+        cur_poses = [cur_poses, cur_pose];
+
+    end
+    
+    isgoals = is_goal(cur_poses, target_poses, [1,1]);
+    
     % Create digraph with root node
     search_graph = digraph;
-    
-    % --- TODO: vector in tables result in two nodes ---
     node = table(ids, values, trims, xs, ys, yaws, driven);
     search_graph = addnode(search_graph, node);
+    
+    plot(search_graph)
     
     % Array storing ids of nodes that may be expanded
     leaf_nodes = [node.ids(1)];
@@ -42,11 +55,15 @@ function search_graph = generate_tree(init_poses, target_poses, trim_indices, co
     % Array storing ids of nodes that were visited
     visited_nodes = [node.ids(1)];
     
+    tf1 = (length(shortestpath(search_graph, 1, id)) < search_depth);
+    tf2 = (sum(isgoals) == nVeh);
+    tf3 = isempty(leaf_nodes);
+    
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
-    while (length(shortestpath(search_graph, 1, id)) < search_depth) ...
-            && ~is_goal(cur_poses,target_poses,2) ...
-            && ~isempty(leaf_nodes)
+    while tf1 ...
+            && ~tf2 ...
+            && ~tf3
         
         % get next node for expansion
         parent = get_next_node_astar(search_graph, leaf_nodes);
@@ -54,25 +71,15 @@ function search_graph = generate_tree(init_poses, target_poses, trim_indices, co
         % Delete chosen entry from list of expandable nodes
         leaf_nodes(leaf_nodes == parent) = [];
         
-        [leaf_nodes, search_graph] = expand_tree(leaf_nodes, search_graph, parent, combined_graph, target_poses, visited_nodes);
+        [leaf_nodes, search_graph, id, isgoals] = expand_tree(leaf_nodes, search_graph, parent, combined_graph, target_poses, visited_nodes, id, isgoals);
         
-        visited = [visited, parent];
+        visited_nodes = [visited_nodes, parent];
         
-        % Reset parent 
         parent = NaN;
-        
-        id = length(leaf_nodes);
-        
-        cur_poses = [];
-        
-        for i = 1 : nVeh
-        
-            cur_pose.x = search_graph.Nodes{id, 4}(i);
-            cur_pose.y = search_graph.Nodes{id, 5}(i);
-            
-            cur_poses = [cur_poses, cur_pose];
-        
-        end
+
+    tf1 = (length(shortestpath(search_graph, 1, id)) < search_depth);
+    tf2 = (sum(isgoals) == nVeh);
+    tf3 = isempty(leaf_nodes);
 
     end
     

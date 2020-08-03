@@ -1,5 +1,7 @@
 addpath(genpath(pwd));
 
+warning('off','MATLAB:polyshape:repairedBySimplify')
+
 % Choose Model
 model = BicycleModel(2.2,2.2);
 
@@ -27,14 +29,14 @@ target_poses = [target_poses, target_pose];
 
 target_pose.x = 0;
 target_pose.y = 0;
-target_pose.yaw = pi;
+target_pose.yaw = 0;
 
 target_poses = [target_poses, target_pose];
 
 trim_indices = [1,1];
 
 primitive_dt = 1;
-depth = 5;
+depth = 10;
 
 load('trim_inputs');
 

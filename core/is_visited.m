@@ -3,6 +3,8 @@ function visited = is_visited(state,search_graph,visit_list,offset)
     nVeh = length(state.xs);
     nNodes = length(visit_list);
     
+    visited = false;
+    
     for i = 1 : nNodes
     
         node_id = visit_list(i);
@@ -12,7 +14,7 @@ function visited = is_visited(state,search_graph,visit_list,offset)
         ys = search_graph.Nodes{node_id, 5};
         yaws = search_graph.Nodes{node_id, 6};
         
-        same_trims = (state.trims == trims);
+        same_trims = isequal(state.trims, trims);
         
         for j = 1 : nVeh
 
