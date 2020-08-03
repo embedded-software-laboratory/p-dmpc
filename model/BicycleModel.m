@@ -1,21 +1,28 @@
 classdef BicycleModel < VehicleModel
-    %UNTITLED5 Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties
         Lf
         Lr
+        W
     end
     
     methods
         function obj = BicycleModel(Lf, Lr)
-            %UNTITLED5 Construct an instance of this class
-            %   Detailed explanation goes here
-            obj.nx = 4;
+            % noe state vector
+            obj.nx = 5;
+            
+            % noe input vector
             obj.nu = 2;
-            obj.ny = 2;
+            
+            % noe properties model
+            obj.ny = 3;
+            
+            % lengths from center of gravity
             obj.Lf = Lf;
             obj.Lr = Lr;
+            
+            % width
+            obj.W = 1.8;
         end
         
         
@@ -26,8 +33,9 @@ classdef BicycleModel < VehicleModel
             %       y position
             %       yaw
             %       speed
-            %   u is
             %       steering
+            %   u is
+            %       steering derivative
             %       acceleration
             % From Vehicle Dynamics and Control, Rajesh Rajamani, p. 24
             
@@ -35,7 +43,8 @@ classdef BicycleModel < VehicleModel
             R = obj.Lr/L;
             psi = x(3);
             v_center = x(4);
-            delta = u(1);
+            delta = x(5);
+            steering_derivative = u(1);
             acceleration = u(2);
             beta = atan(R*tan(delta));
 
@@ -44,7 +53,7 @@ classdef BicycleModel < VehicleModel
             dx(2) = v_center*sin(psi+beta);
             dx(3) = v_center/L*tan(delta)*cos(beta);
             dx(4) = acceleration;
+            dx(5) = steering_derivative;
         end
     end
 end
-

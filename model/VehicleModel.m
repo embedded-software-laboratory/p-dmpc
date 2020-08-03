@@ -12,4 +12,3 @@ classdef VehicleModel
         dx = ode(x,u)
     end
 end
-

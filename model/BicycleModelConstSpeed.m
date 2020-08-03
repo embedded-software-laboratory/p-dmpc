@@ -8,7 +8,7 @@ classdef BicycleModelConstSpeed < VehicleModel
     end
     
     methods
-        function obj = BicycleModel(Lf, Lr)
+        function obj = BicycleModelConstSpeed(Lf, Lr)
             %UNTITLED5 Construct an instance of this class
             %   Detailed explanation goes here
             obj.nx = 4;
@@ -42,4 +42,3 @@ classdef BicycleModelConstSpeed < VehicleModel
         end
     end
 end
-
