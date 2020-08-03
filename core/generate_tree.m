@@ -68,8 +68,8 @@ function search_graph = generate_tree(init_pose, target_pose, trim_index, maneuv
                 trim = i;
                 
                 % calculate/translate new position 
-                newYaw = yaw + maneuvers{parent_trim, i}.dyaw;
-                [newX, newY] = translate_global(yaw, x, y, maneuvers{parent_trim, i}.dx, maneuvers{parent_trim, i}.dy);
+                newYaw = search_graph.Nodes{parent, 6} + maneuvers{parent_trim, i}.dyaw;
+                [newX, newY] = translate_global(search_graph.Nodes{parent, 6}, x, y, maneuvers{parent_trim, i}.dx, maneuvers{parent_trim, i}.dy);
 
                 % assign new values
                 x = newX;
