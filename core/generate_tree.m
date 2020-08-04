@@ -4,7 +4,7 @@
 % trim refers to the index of the initial trim
 % maneuvers refers to the matrix of maneuvers of a motion graph
 % search_depth specifies the depth of the created search tree
-function search_graph = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth)
+function search_graph = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF)
     
     nVeh = length(combined_graph.motionGraphList);
 
@@ -66,12 +66,12 @@ function search_graph = generate_tree(init_poses, target_poses, trim_indices, co
             && ~tf3
         
         % get next node for expansion
-        parent = get_next_node_astar(search_graph, leaf_nodes);
+        parent = graph_searchF(search_graph, leaf_nodes);
         
         % Delete chosen entry from list of expandable nodes
         leaf_nodes(leaf_nodes == parent) = [];
         
-        [leaf_nodes, search_graph, id, isgoals] = expand_tree(leaf_nodes, search_graph, parent, combined_graph, target_poses, visited_nodes, id, isgoals);
+        [leaf_nodes, search_graph, id, isgoals] = expand_tree(leaf_nodes, search_graph, parent, combined_graph, target_poses, visited_nodes, id, isgoals, is_collisionF);
         
         visited_nodes = [visited_nodes, parent];
         
