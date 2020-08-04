@@ -83,7 +83,7 @@ function search_graph = generate_tree(init_poses, target_poses, trim_indices, co
 
     end
     
-    h = plot(search_graph, 'Layout','layered');q
+    h = plot(search_graph, 'Layout','layered');
     
 end
 
