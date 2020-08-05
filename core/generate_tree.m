@@ -4,105 +4,86 @@
 % trim refers to the index of the initial trim
 % maneuvers refers to the matrix of maneuvers of a motion graph
 % search_depth specifies the depth of the created search tree
-function search_graph = generate_tree(init_pose, target_pose, trim_index, maneuvers, search_depth)
+function search_graph = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth)
     
+    nVeh = length(combined_graph.motionGraphList);
+
     % Initialize node table values
-    id =  1;
-    value = euclidean_distance(init_pose, target_pose);
-    trim = trim_index;
-    x = init_pose.x;
-    y = init_pose.y;
-    yaw = init_pose.yaw;
-    distance = euclidean_distance(init_pose, target_pose);
+    ids =  ones(nVeh,1).';
+    id = 1;
     
-    % Safe length of trim vector and parent index for node expansion
-    trim_size = length(maneuvers(1,:));
+    driven = zeros(nVeh,1).';
+    
+    goal = zeros(nVeh,1);
+    
+    % high but should be unnecessary
+    values = 10000 * ones(nVeh,1).';
+    
+    trims = trim_indices;
+    
+    xs = [init_poses(1:nVeh).x];
+    ys = [init_poses(1:nVeh).y];
+    yaws = [init_poses(1:nVeh).yaw];
+    
+    cur_poses = init_poses;
+    
     parent = 0;
+    
+    cur_poses = [];
+        
+    for i = 1 : nVeh
+
+        cur_pose.x = xs(i);
+        cur_pose.y = ys(i);
+
+        cur_poses = [cur_poses, cur_pose];
+
+    end
+    
+    isgoals = is_goal(cur_poses, target_poses, [1,1]);
     
     % Create digraph with root node
     search_graph = digraph;
-    node = table(id, value, trim, x, y, yaw, distance);
+    node = table(ids, values, trims, xs, ys, yaws, driven);
     search_graph = addnode(search_graph, node);
     
+    plot(search_graph)
+    
     % Array storing ids of nodes that may be expanded
-    leaf_nodes = [node.id];
+    leaf_nodes = [node.ids(1)];
+    
+    % Array storing ids of nodes that were visited
+    visited_nodes = [node.ids(1)];
+    
+    tf1 = (length(shortestpath(search_graph, 1, id)) < search_depth);
+    tf2 = (sum(isgoals) == nVeh);
+    tf3 = isempty(leaf_nodes);
     
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
-    while (length(shortestpath(search_graph, 1, id)) < search_depth) ...
-            && (euclidean_distance(node, target_pose) > 2 ...
-            && ~isempty(leaf_nodes))
+    while tf1 ...
+            && ~tf2 ...
+            && ~tf3
         
-        % Advance tree expansion to next node by choosing closest leaf to
-        % target 
-        if (length(leaf_nodes) > 1)
-            
-            min_value = search_graph.Nodes{leaf_nodes(1), 2};
-            parent = leaf_nodes(1);
-            
-            for i = 2:length(leaf_nodes)
-                
-                if min_value > search_graph.Nodes{leaf_nodes(i), 2}
-                    min_value = search_graph.Nodes{leaf_nodes(i), 2};
-                    parent = leaf_nodes(i);
-                end
-                
-            end
-            
-            % Delete chosen entry from list of expandable nodes
-            leaf_nodes(leaf_nodes == parent) = [];
-            
-        else
-            parent = leaf_nodes(1);
-            leaf_nodes(1) = [];
-        end
+        % get next node for expansion
+        parent = get_next_node_astar(search_graph, leaf_nodes);
         
-        parent_trim = search_graph.Nodes{parent, 3};
-               
-        for i = 1:trim_size
-            
-            if (~isempty(maneuvers{parent_trim, i}))
-              
-                % Update node table values
-                id = id + 1;
-                trim = i;
-                
-                % calculate/translate new position 
-                newYaw = search_graph.Nodes{parent, 6} + maneuvers{parent_trim, i}.dyaw;
-                [newX, newY] = translate_global(search_graph.Nodes{parent, 6}, x, y, maneuvers{parent_trim, i}.dx, maneuvers{parent_trim, i}.dy);
-
-                % assign new values
-                x = newX;
-                y = newY;
-                yaw = newYaw;
-                
-                % Update pose for value calculation
-                cur_pose.x = x;
-                cur_pose.y = y;
-                cur_pose.yaw = yaw;
-                
-                % A* heuristic f(n) = g(n) + h(n)
-                value = euclidean_distance(init_pose, cur_pose) + euclidean_distance(cur_pose, target_pose);
-                distance = euclidean_distance(cur_pose, target_pose);
-                
-                
-                % Add node to existing new graph and connect parent to it
-                node = table(id, value, trim, x, y, yaw, distance);
-                search_graph = addnode(search_graph, node);
-                search_graph = addedge(search_graph, parent, id);
-                
-                % Update new leaves to be expanded 
-                leaf_nodes = [leaf_nodes node.id];
-                
-            end
-            
-        end
+        % Delete chosen entry from list of expandable nodes
+        leaf_nodes(leaf_nodes == parent) = [];
         
-        % Reset parent 
+        [leaf_nodes, search_graph, id, isgoals] = expand_tree(leaf_nodes, search_graph, parent, combined_graph, target_poses, visited_nodes, id, isgoals);
+        
+        visited_nodes = [visited_nodes, parent];
+        
         parent = NaN;
-     
+
+    tf1 = (length(shortestpath(search_graph, 1, id)) < search_depth);
+    tf2 = (sum(isgoals) == nVeh);
+    tf3 = isempty(leaf_nodes);
+
     end
     
-    h = plot(search_graph);
+    h = plot(search_graph, 'Layout','layered');
+    
 end
 
