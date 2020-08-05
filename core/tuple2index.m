@@ -3,15 +3,18 @@ function entry = tuple2index(trim)
 
     dim = length(trim);
 
-    entry = 0;
+    entry = trim(1);
+    
+    if dim == 1
+        
+        return;
+        
+    end
 
-    for i = 1:dim
+    for i = 2:dim
 
-        entry = entry + trim(i) * 10 ^ i;
+        entry = entry + (trim(i)-1) * 10^(i-1);
 
     end
 
 end
-
-
-
