@@ -40,7 +40,9 @@ function search_graph = generate_tree(init_poses, target_poses, trim_indices, co
 
     end
     
-    isgoals = is_goal(cur_poses, target_poses, [1,1]);
+    offset = ones(1, nVeh);
+    
+    isgoals = is_goal(cur_poses, target_poses, offset);
     
     % Create digraph with root node
     search_graph = digraph;
