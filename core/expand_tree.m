@@ -144,8 +144,10 @@ function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, sea
             cur_poses = [cur_poses, cur_pose];
 
         end
+        
+        offset = ones(1, nVeh);
 
-        isgoals = is_goal(cur_poses,target_poses, [1,1]);
+        isgoals = is_goal(cur_poses, target_poses, offset);
         
         if sum(isgoals) == nVeh
         
