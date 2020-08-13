@@ -1,18 +1,60 @@
+% Import tree class
+matlab_tree = '../matlab-tree/';
+assert(logical(exist(matlab_tree, 'dir')));
+addpath(matlab_tree);
+
+
+addpath(genpath(pwd));
+
+warning('off','MATLAB:polyshape:repairedBySimplify')
+
 % Choose Model
 model = BicycleModel(2.2,2.2);
+
+init_poses = [];
 
 init_pose.x = 0;
 init_pose.y = 0;
 init_pose.yaw = 0;
 
-target_pose.x = 10;
-target_pose.y = 10;
+init_poses = [init_poses, init_pose];
+
+init_pose.x = 15;
+init_pose.y = 15;
+init_pose.yaw = pi;
+
+init_poses = [init_poses, init_pose];
+
+init_pose.x = 15;
+init_pose.y = 0;
+init_pose.yaw = pi;
+
+init_poses = [init_poses, init_pose];
+
+target_poses = [];
+
+target_pose.x = 15;
+target_pose.y = 15;
 target_pose.yaw = 0;
 
-trim_index = 1;
+target_poses = [target_poses, target_pose];
+
+target_pose.x = 0;
+target_pose.y = 0;
+target_pose.yaw = 0;
+
+target_poses = [target_poses, target_pose];
+
+target_pose.x = 0;
+target_pose.y = 15;
+target_pose.yaw = 0;
+
+target_poses = [target_poses, target_pose];
+
+trim_indices = [2,2,2];
 
 primitive_dt = 1;
-depth = 5;
+depth = 10;
 
 load('trim_inputs');
 
@@ -27,14 +69,14 @@ end
 % Mirror to make symmetric
 trim_adjacency = trim_adjacency'+triu(trim_adjacency,1);
 
-
-% Generate graph for one vehicle
-motionGraph = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
+motionGraph1 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
+motionGraph2 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
+motionGraph3 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
 
 % make motionGraph Tupel
-motionGraphList = [motionGraph];
+motionGraphList = [motionGraph1 , motionGraph2, motionGraph3];
 
 % Combine graphs
 combinedGraph = CombinedGraph(motionGraphList);
 
-search_graph = generate_tree(init_pose, target_pose, trim_index, combinedGraph, depth);
+search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth);

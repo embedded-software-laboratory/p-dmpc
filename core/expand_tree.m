@@ -1,15 +1,15 @@
-function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, search_graph, id, motion_graph, target_poses, visited, counter, isgoals)
+function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, search_tree, parent, motion_graph, target_poses, visited, counter, isgoals)
     
     cur_id = counter;
 
     nVeh = length(motion_graph.motionGraphList);
     
-    parent_trims = search_graph.Nodes{id, 3};
-    parent_values = search_graph.Nodes{id, 2};
-    parent_xs = search_graph.Nodes{id, 4};
-    parent_ys = search_graph.Nodes{id, 5};
-    parent_yaws = search_graph.Nodes{id, 6};
-    parent_driven = search_graph.Nodes{id, 7};
+    parent_trims = search_tree.get(parent).trims;
+    parent_values = search_tree.get(parent).values;
+    parent_xs = search_tree.get(parent).xs;
+    parent_ys = search_tree.get(parent).ys;
+    parent_yaws = search_tree.get(parent).yaws;
+    parent_driven = search_tree.get(parent).driven;
     
     trim_tuple = motion_graph.trimTuple;
     trim_tuple_size = length(motion_graph.trimTuple);
@@ -105,7 +105,7 @@ function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, sea
         next_state.trims = next_trims;
         
         % if node was already visited -> skip
-        if is_visited(next_state, search_graph, visited, 0.1)
+        if is_visited(next_state, search_tree, visited, 0.1)
         
             continue;
         
@@ -113,9 +113,7 @@ function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, sea
         
         cur_id = cur_id + 1;
         
-        next_ids = cur_id * ones(nVeh,1).';
-        
-        ids = next_ids;
+        id = cur_id;
         values = next_values;
         trims = next_trims;
         xs = next_xs;
@@ -126,12 +124,11 @@ function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, sea
         
         % create new node
         % Add node to existing new graph and connect parent to it
-        node = table(ids, values, trims, xs, ys, yaws, driven);
-        search_graph = addnode(search_graph, node);
-        search_graph = addedge(search_graph, id, cur_id);
+        node1 = node(id, parent, values, trims, xs, ys, yaws, driven);
+        [search_tree new_node_id] = search_tree.addnode(parent, node1);
 
         % Update new leaves to be expanded 
-        node_list = [node_list, node.ids(1)];
+        node_list = [node_list, node1.id];
         
         
         cur_poses = [];
