@@ -27,6 +27,14 @@ end
 % Mirror to make symmetric
 trim_adjacency = trim_adjacency'+triu(trim_adjacency,1);
 
+
+% Generate graph for one vehicle
 motionGraph = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
 
-search_graph = generate_tree(init_pose, target_pose, trim_index, motionGraph.maneuvers, depth);
+% make motionGraph Tupel
+motionGraphList = [motionGraph];
+
+% Combine graphs
+combinedGraph = CombinedGraph(motionGraphList);
+
+search_graph = generate_tree(init_pose, target_pose, trim_index, combinedGraph, depth);

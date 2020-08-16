@@ -14,7 +14,7 @@ function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, sea
     trim_tuple = motion_graph.trimTuple;
     trim_tuple_size = length(motion_graph.trimTuple);
     
-    [tf1, parent_trim_id] = ismember(parent_trims,trim_tuple,'rows');
+    parent_trim_id = tuple2index(parent_trims);
     
     for i = 1 : trim_tuple_size
         
@@ -29,7 +29,7 @@ function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, sea
         
         next_trims = trim_tuple(i,:);
         
-        [tf2, cur_trim_id] = ismember(next_trims,trim_tuple,'rows');
+        cur_trim_id = tuple2index(next_trims);
         
         % check if maneuver connecting trim tuples exists
         existsManeuver = (motion_graph.transitionMatrix(parent_trim_id,cur_trim_id) == 1);
@@ -144,8 +144,10 @@ function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, sea
             cur_poses = [cur_poses, cur_pose];
 
         end
+        
+        offset = ones(1, nVeh);
 
-        isgoals = is_goal(cur_poses,target_poses, [1,1]);
+        isgoals = is_goal(cur_poses, target_poses, offset);
         
         if sum(isgoals) == nVeh
         
