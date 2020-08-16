@@ -1,4 +1,4 @@
-function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, search_graph, id, motion_graph, target_poses, visited, counter, isgoals)
+function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, search_graph, id, motion_graph, target_poses, visited, counter, isgoals, is_collisionF)
     
     cur_id = counter;
 
@@ -93,7 +93,7 @@ function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, sea
         end
         
         % if node has vehicle collision -> skip
-        if is_collision(node_shapes)
+        if is_collisionF(node_shapes)
         
             continue;
         
