@@ -21,11 +21,9 @@ function visited = is_visited(state,search_tree,visit_list,offset)
             
         end
         
-        values = comp_node.values;
         xs = comp_node.xs;
         ys = comp_node.ys;
         yaws = comp_node.yaws;
-        driven = comp_node.driven;
         
         for j = 1 : nVeh
 
