@@ -11,7 +11,7 @@ function node = get_next_node_astar(search_tree, leaf_nodes)
 
         for i = 2:length(leaf_nodes)
             
-            if leaf_nodes(i) == [];
+            if leaf_nodes(i) == []
             
                 continue;
             

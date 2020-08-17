@@ -4,8 +4,6 @@
 % @boolean is true if pose 1 is in this square
 function isequal = is_equal_pose(x1,y1,yaw1,x2,y2,yaw2,offset)
     
-    isequal = false;
-    
     isequal = ((x1 >= (x2 - offset) && x1 <= (x2 + offset)) && (y1 >= (y2 - offset) && y1 <= (y2 + offset)) && (yaw1 >= (yaw2 - offset) && yaw1 <= (yaw2 + offset)));
 
 end

@@ -1,4 +1,4 @@
-function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, search_graph, id, motion_graph, target_poses, visited, counter, isgoals, is_collisionF)
+function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, search_tree, parent, motion_graph, target_poses, visited, counter, isgoals, is_collisionF)
     
     cur_id = counter;
 
@@ -129,7 +129,7 @@ function [node_list, search_graph, cur_id, isgoals] = expand_tree(node_list, sea
 
         end
         
-        offset = ones(1, nVeh).*3;
+        offset = ones(1, nVeh);
 
         isgoals = is_goal(cur_poses, target_poses, offset);
         

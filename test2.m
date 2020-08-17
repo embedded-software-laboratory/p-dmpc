@@ -45,7 +45,6 @@ primitive_dt = 1;
 depth = 10;
 
 load('trim_inputs');
-load('trimadj2');
 n_trims = length(u_trims);
 
 % Transitions (maneuver)
@@ -53,7 +52,6 @@ trim_adjacency = eye(n_trims);
 for i = 1:n_trims-1
     trim_adjacency(i,i+1) = 1;
 end
-% trim_adjacency = trimadj;
 
 % Mirror to make symmetric
 trim_adjacency = trim_adjacency'+triu(trim_adjacency,1);
@@ -66,4 +64,4 @@ motionGraphList = [motionGraph1, motionGraph1];
 % Combine graphs
 combinedGraph = CombinedGraph(motionGraphList);
 
-search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth);
+search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_astar);

@@ -2,10 +2,12 @@ function visited = is_visited(state,search_tree,visit_list,offset)
 
     nVeh = length(state.xs);
     nNodes = length(visit_list);
-    
+
     visited = false;
     
     for i = 1 : nNodes
+        
+        visited = false;
     
         id = visit_list(i);
         
@@ -39,6 +41,12 @@ function visited = is_visited(state,search_tree,visit_list,offset)
                 visited = true;
                 
             end
+        
+        end
+        
+        if visited
+        
+            return;
         
         end
     

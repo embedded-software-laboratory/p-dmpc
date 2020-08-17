@@ -57,7 +57,6 @@ primitive_dt = 1;
 depth = 10;
 
 load('trim_inputs');
-load('trimadj2');
 n_trims = length(u_trims);
 
 % Transitions (maneuver)
@@ -65,14 +64,11 @@ trim_adjacency = eye(n_trims);
 for i = 1:n_trims-1
     trim_adjacency(i,i+1) = 1;
 end
-% trim_adjacency = trimadj;
 
 % Mirror to make symmetric
 trim_adjacency = trim_adjacency'+triu(trim_adjacency,1);
 
 motionGraph1 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
-% motionGraph2 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
-% motionGraph3 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
 
 % make motionGraph Tupel
 motionGraphList = [motionGraph1, motionGraph1, motionGraph1];
