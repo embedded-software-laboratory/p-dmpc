@@ -4,15 +4,17 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
 
     nVeh = length(motion_graph.motionGraphList);
     
-    parent_trims = search_tree.get(parent).trims;
-    parent_values = search_tree.get(parent).values;
-    parent_xs = search_tree.get(parent).xs;
-    parent_ys = search_tree.get(parent).ys;
-    parent_yaws = search_tree.get(parent).yaws;
-    parent_driven = search_tree.get(parent).driven;
+    parent_node = search_tree.get(parent);
+    
+    parent_trims = parent_node.trims;
+    parent_values = parent_node.values;
+    parent_xs = parent_node.xs;
+    parent_ys = parent_node.ys;
+    parent_yaws = parent_node.yaws;
+    parent_driven = parent_node.driven;
     
     trim_tuple = motion_graph.trimTuple;
-    trim_tuple_size = length(motion_graph.trimTuple);
+    trim_tuple_size = length(trim_tuple);
     
     parent_trim_id = tuple2index(parent_trims);
     
@@ -45,24 +47,17 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
             
             if isgoals(j)
                 
-                x = parent_xs(j);
-                y = parent_ys(j);
-                yaw = parent_yaws(j);
-                
                 % --- TODO: which shape? ---
-                [shape_x, shape_y] = translate_global(yaw, x, y, [-2.2 2.2 -2.2 2.2],[-0.9 -0.9 0.9 0.9]);
+                [shape_x, shape_y] = translate_global(parent_yaws(j), parent_xs(j), parent_ys(j), [-2.2 2.2 -2.2 2.2],[-0.9 -0.9 0.9 0.9]);
                 
-                shape = convhull(polyshape(shape_x,shape_y));
+                shape = polyshape(shape_x,shape_y,'Simplify',false);
             
                 node_shapes{j} = shape;
                 continue;
                 
             end
-        
-            trim1 = parent_trims(j);
-            trim2 = next_trims(j);
             
-            maneuver = motion_graph.motionGraphList(j).maneuvers{trim1, trim2};
+            maneuver = motion_graph.motionGraphList(j).maneuvers{parent_trims(j), next_trims(j)};
             
             x = parent_xs(j);
             y = parent_ys(j);
@@ -86,7 +81,7 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
             
             [shape_x, shape_y] = translate_global(yaw, x, y, maneuver.area(1,:), maneuver.area(2,:));
             
-            shape = convhull(polyshape(shape_x,shape_y));
+            shape = polyshape(shape_x,shape_y,'Simplify',false);
             
             node_shapes{j} = shape;
             
@@ -112,19 +107,11 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
         end
         
         cur_id = cur_id + 1;
-        
-        id = cur_id;
-        values = next_values;
-        trims = next_trims;
-        xs = next_xs;
-        ys = next_ys;
-        yaws = next_yaws;
-        driven = next_driven;
 
         
         % create new node
         % Add node to existing new graph and connect parent to it
-        node1 = node(id, parent, values, trims, xs, ys, yaws, driven);
+        node1 = node(cur_id, parent, next_values, next_trims, next_xs, next_ys, next_yaws, next_driven);
         [search_tree new_node_id] = search_tree.addnode(parent, node1);
 
         % Update new leaves to be expanded 
@@ -135,20 +122,20 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
         
         for i = 1 : nVeh
 
-            cur_pose.x = xs(i);
-            cur_pose.y = ys(i);
+            cur_pose.x = next_xs(i);
+            cur_pose.y = next_ys(i);
 
             cur_poses = [cur_poses, cur_pose];
 
         end
         
-        offset = ones(1, nVeh);
+        offset = ones(1, nVeh).*3;
 
         isgoals = is_goal(cur_poses, target_poses, offset);
         
         if sum(isgoals) == nVeh
         
-            return
+            return;
         
         end
         

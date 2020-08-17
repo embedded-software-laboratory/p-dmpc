@@ -8,10 +8,12 @@ function visited = is_visited(state,search_tree,visit_list,offset)
     for i = 1 : nNodes
     
         id = visit_list(i);
-            
-        trims = search_tree.get(id).trims;
         
-        same_trims = isequal(state.trims, trims);
+        comp_node = search_tree.get(id);
+            
+        trims = comp_node.trims;
+        
+        same_trims = state.trims == trims;
         
         if ~same_trims
            
@@ -19,20 +21,24 @@ function visited = is_visited(state,search_tree,visit_list,offset)
             
         end
         
-        values = search_tree.get(id).values;
-        xs = search_tree.get(id).xs;
-        ys = search_tree.get(id).ys;
-        yaws = search_tree.get(id).yaws;
-        driven = search_tree.get(id).driven;
+        values = comp_node.values;
+        xs = comp_node.xs;
+        ys = comp_node.ys;
+        yaws = comp_node.yaws;
+        driven = comp_node.driven;
         
         for j = 1 : nVeh
 
             equal_pose = is_equal_pose(state.xs(j),state.ys(j),state.yaws(j),xs(j),ys(j),yaws(j),offset);
             
-            if same_trims && equal_pose
+            if ~equal_pose
+                
+                visited = false;
+                break;
+                
+            else
                 
                 visited = true;
-                return;
                 
             end
         

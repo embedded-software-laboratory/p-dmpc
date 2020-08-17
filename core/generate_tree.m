@@ -74,11 +74,11 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         
         parent = NaN;
 
-    %tf1 = (search_tree.depth() < search_depth);
-    tf2 = (sum(isgoals) == nVeh);
-    tf3 = isempty(leaf_nodes);
+        %tf1 = (search_tree.depth() < search_depth);
+        tf2 = (sum(isgoals) == nVeh);
+        tf3 = isempty(leaf_nodes);
     
-    assignin('base','sg',search_tree)
+        %assignin('base','sg',search_tree)
 
     end
     

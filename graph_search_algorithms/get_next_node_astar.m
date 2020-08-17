@@ -11,6 +11,12 @@ function node = get_next_node_astar(search_tree, leaf_nodes)
 
         for i = 2:length(leaf_nodes)
             
+            if leaf_nodes(i) == [];
+            
+                continue;
+            
+            end
+            
             curr_values = search_tree.get(leaf_nodes(i)).values;
             curr_value = sum(curr_values);
 

@@ -10,12 +10,18 @@ function collision = is_collision(shapes)
         
         for j = i : nShapes
             
+            if i == j
+            
+                continue;
+            
+            end
+            
             shape2 = shapes{j};
             
             % area of overlapping shapes
-            intersection = boundary(intersect(shape1, shape2));
+            intersection = intersect(shape1, shape2);
             
-            if i ~= j && ~isempty(intersection)     
+            if intersection.NumRegions ~= 0   
                 collision = true;
                 return;
             end
