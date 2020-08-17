@@ -80,4 +80,4 @@ motionGraphList = [motionGraph1, motionGraph1, motionGraph1];
 % Combine graphs
 combinedGraph = CombinedGraph(motionGraphList);
 
-search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth);
+search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_astar);
