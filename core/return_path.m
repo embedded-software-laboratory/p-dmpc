@@ -20,8 +20,6 @@ function search_paths = return_path(search_tree)
         
     end
     
-    search_paths = [];
-    
     max_length_path = 0;
     for i = 1:nVeh
         path = findpath(search_tree, 1, min_id(i));
@@ -29,10 +27,12 @@ function search_paths = return_path(search_tree)
         max_length_path = max(max_length_path, cur_length_path);
     end
     
+    search_paths = zeros(max_length_path, 4, nVeh);
+    
     for i = 1:nVeh
         
     path = findpath(search_tree, 1, min_id(i));
-    search_path = [];  
+    search_path = zeros(max_length_path, 4);  
     
         for j = 1:max_length_path
             
@@ -42,15 +42,9 @@ function search_paths = return_path(search_tree)
             x = search_tree.Node{path(k), 1}.xs(i);
             y = search_tree.Node{path(k), 1}.ys(i);
             yaw = search_tree.Node{path(k), 1}.yaws(i);
+            trim = search_tree.Node{path(k), 1}.trims(i);
 
-            % If there is a succesor in path add its trim else default to 0
-            if (k + 1) <= length(path)
-                next_trim = search_tree.Node{path(k + 1), 1}.trims(i);
-            else
-                next_trim = 0;
-            end
-
-            search_path = [search_path; x y yaw next_trim];
+            search_path(j,:) = [x, y, yaw, trim];
 
         end
         
