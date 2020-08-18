@@ -1,31 +1,52 @@
-function visited = is_visited(state,search_graph,visit_list,offset)
+function visited = is_visited(state,search_tree,visit_list,offset)
 
     nVeh = length(state.xs);
     nNodes = length(visit_list);
-    
+
     visited = false;
     
     for i = 1 : nNodes
+        
+        visited = false;
     
-        node_id = visit_list(i);
+        id = visit_list(i);
         
-        trims = search_graph.Nodes{node_id, 3};
-        xs = search_graph.Nodes{node_id, 4};
-        ys = search_graph.Nodes{node_id, 5};
-        yaws = search_graph.Nodes{node_id, 6};
+        comp_node = search_tree.get(id);
+            
+        trims = comp_node.trims;
         
-        same_trims = isequal(state.trims, trims);
+        same_trims = state.trims == trims;
+        
+        if ~same_trims
+           
+            continue;
+            
+        end
+        
+        xs = comp_node.xs;
+        ys = comp_node.ys;
+        yaws = comp_node.yaws;
         
         for j = 1 : nVeh
 
             equal_pose = is_equal_pose(state.xs(j),state.ys(j),state.yaws(j),xs(j),ys(j),yaws(j),offset);
             
-            if same_trims && equal_pose
+            if ~equal_pose
+                
+                visited = false;
+                break;
+                
+            else
                 
                 visited = true;
-                return;
                 
             end
+        
+        end
+        
+        if visited
+        
+            return;
         
         end
     
