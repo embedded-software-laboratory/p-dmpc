@@ -1,38 +1,63 @@
-function search_path = return_path(search_graph)
+function search_paths = return_path(search_tree)
 %RETURN_PATH returns the path to the closest node
-
-    search_path = [];
-
-    min_value = inf;
-    min_id = 0;
     
-    % Find the node closest to the target
-    for i = 1:height(search_graph.Nodes)
-
-        if search_graph.Nodes{i, 7} < min_value
-            min_value = search_graph.Nodes{i, 7};
-            min_id = i;
+    nVeh = length(search_tree.Node{1, 1}.values);
+    
+    min_value = Inf(1, nVeh);
+    min_id = zeros(1, nVeh);
+    
+    % Find the node closest to the target for every vehicle
+    for i = 1:nVeh
+        
+        for j = 1:length(search_tree.Node)
+            
+            if search_tree.Node{j, 1}.values(i) < min_value(i)
+                min_value(i) = search_tree.Node{j, 1}.values(i);
+                min_id(i) = j;
+            end
+            
         end
+        
     end
-   
-    path = shortestpath(search_graph,1,min_id);
-   
-    for i = 1:length(path)
+    
+    search_paths = [];
+    
+    max_length_path = 0;
+    for i = 1:nVeh
+        path = findpath(search_tree, 1, min_id(i));
+        cur_length_path = length(path); 
+        max_length_path = max(max_length_path, cur_length_path);
+    end
+    
+    for i = 1:nVeh
+        
+    path = findpath(search_tree, 1, min_id(i));
+    search_path = [];  
+    
+        for j = 1:max_length_path
+            
+            cur_length_path = length(path); 
+            k = min(j, cur_length_path);
+            
+            x = search_tree.Node{path(k), 1}.xs(i);
+            y = search_tree.Node{path(k), 1}.ys(i);
+            yaw = search_tree.Node{path(k), 1}.yaws(i);
 
-        x = search_graph.Nodes{path(i), 4};
-        y = search_graph.Nodes{path(i), 5};
-        yaw = search_graph.Nodes{path(i), 6};
+            % If there is a succesor in path add its trim else default to 0
+            if (k + 1) <= length(path)
+                next_trim = search_tree.Node{path(k + 1), 1}.trims(i);
+            else
+                next_trim = 0;
+            end
 
-        % If there is a succesor in path add its trim else default to 0
-        if (i + 1) <= length(path)
-            next_trim = search_graph.Nodes{path(i + 1), 3};
-        else
-            next_trim = 0;
+            search_path = [search_path; x y yaw next_trim];
+
         end
-
-        search_path = [search_path; x y yaw next_trim];
-
+        
+        search_paths(:,:,i) = search_path;
+        
     end
 
 end
+
 
