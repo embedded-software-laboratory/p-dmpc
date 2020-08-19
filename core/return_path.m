@@ -11,8 +11,10 @@ function search_paths = return_path(search_tree)
         
         for j = 1:length(search_tree.Node)
             
-            if search_tree.Node{j, 1}.values(i) < min_value(i)
-                min_value(i) = search_tree.Node{j, 1}.values(i);
+            cur_node = search_tree.get(j);
+            
+            if cur_node.values(i) < min_value(i)
+                min_value(i) = cur_node.values(i);
                 min_id(i) = j;
             end
             
@@ -39,10 +41,12 @@ function search_paths = return_path(search_tree)
             cur_length_path = length(path); 
             k = min(j, cur_length_path);
             
-            x = search_tree.Node{path(k), 1}.xs(i);
-            y = search_tree.Node{path(k), 1}.ys(i);
-            yaw = search_tree.Node{path(k), 1}.yaws(i);
-            trim = search_tree.Node{path(k), 1}.trims(i);
+            cur_node = search_tree.get(path(k));
+            
+            x = cur_node.xs(i);
+            y = cur_node.ys(i);
+            yaw = cur_node.yaws(i);
+            trim = cur_node.trims(i);
 
             search_path(j,:) = [x, y, yaw, trim];
 
