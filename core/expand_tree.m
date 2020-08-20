@@ -1,4 +1,4 @@
-function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, search_tree, parent, motion_graph, target_poses, visited, counter, isgoals, is_collisionF)
+function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, search_tree, parent, motion_graph, trim_length, target_poses, visited, counter, isgoals, is_collisionF)
     
     cur_id = counter;
 
@@ -16,7 +16,7 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
     trim_tuple = motion_graph.trimTuple;
     trim_tuple_size = length(trim_tuple);
     
-    parent_trim_id = tuple2index(parent_trims);
+    parent_trim_id = tuple2index(parent_trims,trim_length);
     
     for i = 1 : trim_tuple_size
         
@@ -31,7 +31,7 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
         
         next_trims = trim_tuple(i,:);
         
-        cur_trim_id = tuple2index(next_trims);
+        cur_trim_id = tuple2index(next_trims,trim_length);
         
         % check if maneuver connecting trim tuples exists
         existsManeuver = (motion_graph.transitionMatrix(parent_trim_id,cur_trim_id) == 1);

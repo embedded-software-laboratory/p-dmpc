@@ -7,6 +7,16 @@
 function search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF)
     
     nVeh = length(combined_graph.motionGraphList);
+    
+    trim_length = [];
+    
+    for i = 1 : nVeh
+    
+        tmp_length = length(combined_graph.motionGraphList(i).trims);
+        
+        trim_length = [trim_length, tmp_length];
+    
+    end
 
     % Initialize node table values
     id = 1;
@@ -69,7 +79,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         % Delete chosen entry from list of expandable nodes
         leaf_nodes(leaf_nodes == parent) = [];
         
-        [leaf_nodes, search_tree, id, isgoals] = expand_tree(leaf_nodes, search_tree, parent, combined_graph, target_poses, visited_nodes, id, isgoals, is_collisionF);
+        [leaf_nodes, search_tree, id, isgoals] = expand_tree(leaf_nodes, search_tree, parent, combined_graph, trim_length, target_poses, visited_nodes, id, isgoals, is_collisionF);
         
         visited_nodes = [visited_nodes, parent];
         
