@@ -1,4 +1,4 @@
-function entry = tuple2index(trim)
+function entry = tuple2index(trim,trim_length)
 %TUPLE2INDEX Calculate index in trim list according to trim tuple
 
     dim = length(trim);
@@ -13,7 +13,7 @@ function entry = tuple2index(trim)
 
     for i = 2:dim
 
-        entry = entry + (trim(i)-1) * 10^(i-1);
+        entry = entry + (trim(i)-1) * trim_length(i)^(i-1);
 
     end
 
