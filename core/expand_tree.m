@@ -7,11 +7,11 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
     parent_node = search_tree.get(parent);
     
     parent_trims = parent_node.trims;
-    parent_values = parent_node.values;
     parent_xs = parent_node.xs;
     parent_ys = parent_node.ys;
     parent_yaws = parent_node.yaws;
-    parent_driven = parent_node.driven;
+    parent_gvalues = parent_node.gvalues;
+    parent_hvalues = parent_node.hvalues;
     
     trim_tuple = motion_graph.trimTuple;
     trim_tuple_size = length(trim_tuple);
@@ -21,11 +21,11 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
     for i = 1 : trim_tuple_size
         
         next_trims = parent_trims;
-        next_values = parent_values;
         next_xs = parent_xs;
         next_ys = parent_ys;
         next_yaws = parent_yaws;
-        next_driven = parent_driven;
+        next_gvalues = parent_gvalues;
+        next_hvalues = parent_hvalues;
         
         node_shapes = {};
         
@@ -73,11 +73,13 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
             next_pose.x = newX;
             next_pose.y = newY;
             
-            man_driven = sqrt( (newX - x)^2 + (newY - y)^2 );
+            last_pose.x = x;
+            last_pose.y = y;
             
-            next_driven(j) = parent_driven(j) + man_driven;
+            [gvalue, hvalue] = calculate_next_values_time(parent_gvalues(j), 3, next_pose, target_poses(j));
             
-            next_values(j) = next_driven(j) + euclidean_distance(next_pose, target_poses(j));
+            next_gvalues(j) = gvalue;
+            next_hvalues(j) = hvalue;
             
             [shape_x, shape_y] = translate_global(yaw, x, y, maneuver.area(1,:), maneuver.area(2,:));
             
@@ -111,7 +113,7 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
         
         % create new node
         % Add node to existing new graph and connect parent to it
-        node1 = node(cur_id, parent, next_values, next_trims, next_xs, next_ys, next_yaws, next_driven);
+        node1 = node(cur_id, parent, next_trims, next_xs, next_ys, next_yaws, next_gvalues, next_hvalues);
         [search_tree new_node_id] = search_tree.addnode(parent, node1);
 
         % Update new leaves to be expanded 

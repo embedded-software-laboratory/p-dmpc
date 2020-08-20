@@ -1,13 +1,17 @@
-function node = get_next_node_astar(search_tree, leaf_nodes)
+function node = get_next_node_weighted_astar(search_tree, leaf_nodes)
 
     % Advance tree expansion to next node by choosing closest leaf to
     % target 
+    
+    h_weight = 2;
+    
+    g_weight = 1;
     
     if (length(leaf_nodes) > 1)
         
         curr_node = search_tree.get(leaf_nodes(1));
             
-        curr_values = curr_node.gvalues + curr_node.hvalues;
+        curr_values = g_weight*curr_node.gvalues + h_weight*curr_node.hvalues;
         min_value = sum(curr_values);
         
         node = leaf_nodes(1);
@@ -22,7 +26,7 @@ function node = get_next_node_astar(search_tree, leaf_nodes)
             
             curr_node = search_tree.get(leaf_nodes(i));
             
-            curr_values = curr_node.gvalues + curr_node.hvalues;
+            curr_values = g_weight*curr_node.gvalues + h_weight*curr_node.hvalues;
             curr_value = sum(curr_values);
 
             if min_value > curr_value

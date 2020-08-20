@@ -11,12 +11,12 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     % Initialize node table values
     id = 1;
     
-    driven = zeros(nVeh,1).';
+    gvalues = zeros(nVeh,1).';
     
     goal = zeros(nVeh,1);
     
     % high but should be unnecessary
-    values = 10000 * ones(nVeh,1).';
+    hvalues = 10000 * ones(nVeh,1).';
     
     trims = trim_indices;
     
@@ -44,7 +44,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     isgoals = is_goal(cur_poses, target_poses, offset);
     
     % Create digraph with root node
-    node1 = node(id, 0, values, trims, xs, ys, yaws, driven);
+    node1 = node(id, 0, trims, xs, ys, yaws, gvalues, hvalues);
     search_tree = tree(node1);
     
     % Array storing ids of nodes that may be expanded
