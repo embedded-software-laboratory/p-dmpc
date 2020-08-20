@@ -15,7 +15,7 @@ function visited = is_visited(state,search_tree,visit_list,offset)
             
         trims = comp_node.trims;
         
-        same_trims = state.trims == trims;
+        same_trims = isequal(state.trims,trims);
         
         if ~same_trims
            
