@@ -1,7 +1,7 @@
 function search_paths = return_path(search_tree)
 %RETURN_PATH returns the path to the closest node
     
-    nVeh = length(search_tree.Node{1, 1}.values);
+    nVeh = length(search_tree.Node{1, 1}.trims);
     
     end_node = search_tree.nnodes();
     
