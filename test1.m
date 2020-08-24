@@ -15,7 +15,7 @@ init_poses = [];
 
 init_pose.x = 0;
 init_pose.y = 0;
-init_pose.yaw = 0;
+init_pose.yaw = 0.25*pi;
 
 init_poses = [init_poses, init_pose];
 
@@ -27,22 +27,14 @@ target_pose.yaw = 0;
 
 target_poses = [target_poses, target_pose];
 
-trim_indices = [1];
+trim_indices = [5];
 
 primitive_dt = 1;
 depth = 10;
 
-load('trim_inputs');
+load('trim_inputs_6');
+load('trim_adjacency_6_1');
 n_trims = length(u_trims);
-
-% Transitions (maneuver)
-trim_adjacency = eye(n_trims);
-for i = 1:n_trims-1
-    trim_adjacency(i,i+1) = 1;
-end
-
-% Mirror to make symmetric
-trim_adjacency = trim_adjacency'+triu(trim_adjacency,1);
 
 motionGraph1 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
 
