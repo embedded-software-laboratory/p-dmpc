@@ -4,7 +4,7 @@
 % trim refers to the index of the initial trim
 % maneuvers refers to the matrix of maneuvers of a motion graph
 % search_depth specifies the depth of the created search tree
-function search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF)
+function search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF, fig, size)
     
     nVeh = length(combined_graph.motionGraphList);
     
@@ -69,8 +69,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     
     
     % --- begin of visualization ---
-    vis = figure();
-    assignin('base','vis',vis);
+    assignin('base','vis',fig);
     % --- end of visualizaiton ---
     
     
@@ -95,22 +94,22 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         
         col = 'mcg';
 
-        figure(vis);
+        figure(fig);
         for i = 1 : nVeh
            plot(parent_node.xs(i), parent_node.ys(i), 'o','Color', col(i));
            hold on
-           axis([-10 40 -10 40]);
+           axis(size);
         end
 
         pause(0.2);
         
         if sum(isgoals) == nVeh
             end_node = search_tree.Node{end};
-            figure(vis)
+            figure(fig)
             for i = 1 : nVeh
                 plot(end_node.xs(i), end_node.ys(i), 'o','Color', col(i));
                 hold on
-                axis([-10 40 -10 40]);
+                axis(size);
             end
         end
         % --- end of visualization ---
@@ -122,15 +121,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         tf2 = (sum(isgoals) == nVeh);
         tf3 = isempty(leaf_nodes);
 
-    end
-    
-    
-    % --- begin of for visualization ---
-    figure();
-    % --- end of for visualization ---
-    
-    
-    h = plot(search_tree);
+    end 
     
 end
 

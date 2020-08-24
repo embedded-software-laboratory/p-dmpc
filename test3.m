@@ -68,8 +68,9 @@ motionGraphList = [motionGraph1, motionGraph1, motionGraph1];
 
 % Combine graphs
 combinedGraph = CombinedGraph(motionGraphList);
-
-search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar);
+fig = figure('Name','Trajectories','NumberTitle','off');
+axis_size = [-10 40 -10 40];
+search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar, fig, axis_size);
 
 
 % --- begin of visualization ---
@@ -83,6 +84,9 @@ figure(vis);
 for i = 1 : nVeh
     plot(path(:,1,i), path(:,2,i), '--','Color', col(i));
     hold on
-    axis([-10 40 -10 40]);
+    axis(axis_size);
 end
+
+figure('Name','Search Tree','NumberTitle','off');
+plot(search_tree);
 % --- end of visualization ---

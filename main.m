@@ -1,17 +1,46 @@
 %% Add modules to path
+% Import tree class
+matlab_tree = './matlab-tree/';
+assert(logical(exist(matlab_tree, 'dir')));
+addpath(matlab_tree);
+
 addpath(genpath(pwd));
 
-
+warning('off','MATLAB:polyshape:repairedBySimplify')
 
 %% Define scenario
 % Obstacles
 
 % Vehicles
-% Initial position
-% Goal
-nVeh = 4;
+nVeh = 3;
 scenario = Scenario(2*pi/nVeh*(1:nVeh));
-plot(scenario);
+
+% Initial position
+init_poses = [];
+trim_indices = 5 * ones(1, nVeh);
+
+for i = 1:nVeh
+    init_pose.x = scenario.vehicles(i).x_start;
+    init_pose.y = scenario.vehicles(i).y_start;
+    init_pose.yaw = scenario.vehicles(i).heading;
+    init_poses = [init_poses, init_pose];
+end
+    
+
+
+% Goal
+target_poses = [];
+step = floor(nVeh / 2);
+
+for i = 1:nVeh
+    
+    k = mod(i + step, nVeh) + 1;
+    
+    target_pose.x = scenario.vehicles(k).x_start;
+    target_pose.y = scenario.vehicles(k).y_start;
+    target_pose.yaw = scenario.vehicles(k).heading;
+    target_poses = [target_poses, target_pose];
+end
 
 %% Define motion graph
 % Choose Model
@@ -21,35 +50,37 @@ model = BicycleModel(2.2,2.2);
 primitive_dt = 1;
 
 % Trims
-nTrims = 5; % useless (?)
 velocity = 3;
 
 % trims left to right
-load('trim_inputs');
+load('trim_inputs_6');
+load('trim_adjacency_6_1');
 n_trims = length(u_trims);
 
-% Transitions (maneuver)
-trim_adjacency = eye(n_trims);
-for i = 1:n_trims-1
-    trim_adjacency(i,i+1) = 1;
+% Generate graph motion graphs
+motionGraphList = [];
+for i = 1:nVeh
+
+   motionGraph = MotionGraph(model, u_trims, trim_adjacency, primitive_dt); 
+   motionGraphList = [motionGraphList, motionGraph];
+   
 end
-
-% --Mirror to make symmetric
-trim_adjacency = trim_adjacency'+triu(trim_adjacency,1);
-
-% Generate graph for two vehicles
-motionGraph1 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
-motionGraph2 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
-motionGraph3 = MotionGraph(model, u_trims(1:8,:), trim_adjacency, primitive_dt);
-
-% make motionGraph Tupel
-motionGraphList = [motionGraph1 , motionGraph2 , motionGraph3];
 
 % Combine graphs
 combinedGraph = CombinedGraph(motionGraphList);
 %% Graph search
 % Choose search algorithm
+depth = 20;
+fig = figure('Name','Trajectories','NumberTitle','off');
+axis_size = [-30 30 -30 30];
+search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_astar, fig, axis_size);
 
 % Search
+search_paths = return_path(search_tree);
 
 %% Visualize
+plot(scenario, fig);
+vis_trajectory(search_paths, target_poses, axis_size, fig);
+
+figure('Name','Search Tree','NumberTitle','off');
+plot(search_tree);
