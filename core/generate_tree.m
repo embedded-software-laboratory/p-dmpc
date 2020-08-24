@@ -67,6 +67,13 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     tf2 = (sum(isgoals) == nVeh);
     tf3 = isempty(leaf_nodes);
     
+    
+    % --- begin of visualization ---
+    vis = figure();
+    assignin('base','vis',vis);
+    % --- end of visualizaiton ---
+    
+    
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
     while   tf1 ...
@@ -83,6 +90,32 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         
         visited_nodes = [visited_nodes, parent];
         
+        % --- begin of visualization ---
+        parent_node = search_tree.get(parent);
+        
+        col = 'mcg';
+
+        figure(vis);
+        for i = 1 : nVeh
+           plot(parent_node.xs(i), parent_node.ys(i), 'o','Color', col(i));
+           hold on
+           axis([-10 40 -10 40]);
+        end
+
+        pause(0.2);
+        
+        if sum(isgoals) == nVeh
+            end_node = search_tree.Node{end};
+            figure(vis)
+            for i = 1 : nVeh
+                plot(end_node.xs(i), end_node.ys(i), 'o','Color', col(i));
+                hold on
+                axis([-10 40 -10 40]);
+            end
+        end
+        % --- end of visualization ---
+        
+        
         parent = NaN;
 
         tf1 = (search_tree.depth() < search_depth);
@@ -90,6 +123,12 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         tf3 = isempty(leaf_nodes);
 
     end
+    
+    
+    % --- begin of for visualization ---
+    figure();
+    % --- end of for visualization ---
+    
     
     h = plot(search_tree);
     

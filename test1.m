@@ -45,3 +45,19 @@ motionGraphList = [motionGraph1];
 combinedGraph = CombinedGraph(motionGraphList);
 
 search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar);
+
+
+% --- begin of visualization ---
+nVeh = 1;
+
+path = return_path(search_tree);
+
+col = 'mcg';
+
+figure(vis);
+for i = 1 : nVeh
+    plot(path(:,1,i), path(:,2,i), '--','Color', col(i));
+    hold on
+    axis([-10 40 -10 40]);
+end
+% --- end of visualization ---
