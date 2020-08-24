@@ -4,7 +4,7 @@
 % trim refers to the index of the initial trim
 % maneuvers refers to the matrix of maneuvers of a motion graph
 % search_depth specifies the depth of the created search tree
-function search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF, fig, size)
+function search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF, fig, axis_size)
     
     nVeh = length(combined_graph.motionGraphList);
     
@@ -98,7 +98,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         for i = 1 : nVeh
            plot(parent_node.xs(i), parent_node.ys(i), 'o','Color', col(i));
            hold on
-           axis(size);
+           axis(axis_size);
         end
 
         pause(0.2);
@@ -109,7 +109,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
             for i = 1 : nVeh
                 plot(end_node.xs(i), end_node.ys(i), 'o','Color', col(i));
                 hold on
-                axis(size);
+                axis(axis_size);
             end
         end
         % --- end of visualization ---
