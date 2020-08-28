@@ -91,7 +91,5 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
 
     end
     
-    h = plot(search_tree);
-    
 end
 

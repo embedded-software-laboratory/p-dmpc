@@ -57,3 +57,29 @@ motionGraphList = [motionGraph1, motionGraph1];
 combinedGraph = CombinedGraph(motionGraphList);
 
 search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar);
+
+%% Visualize
+fig = figure('Name','Search Tree');
+h = plot(search_tree);
+
+%% Log workspace to subfolder 
+st = dbstack;
+namestr = st.name;
+sub_folder = './logs/' + string(st.name);
+file_name = fullfile(sub_folder,'data');
+fig_name = fullfile(sub_folder,'fig');
+
+if ~exist(sub_folder, 'dir')
+    mkdir(sub_folder)
+end
+
+% Get a list of all variables
+allvars = whos;
+
+% Identify the variables that ARE NOT graphics handles. This uses a regular
+% expression on the class of each variable to check if it's a graphics object
+tosave = cellfun(@isempty, regexp({allvars.class}, '^matlab\.(ui|graphics)\.'));
+
+% Pass these variable names to save
+save(file_name, allvars(tosave).name)
+savefig(fig_name);
