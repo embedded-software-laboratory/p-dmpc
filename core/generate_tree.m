@@ -122,6 +122,6 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         tf3 = isempty(leaf_nodes);
 
     end 
-    
+
 end
 

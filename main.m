@@ -17,13 +17,10 @@ while(~isempty(answer))
 
     if(answer{1} == '1')
         test1;
-        answer = inputdlg(prompt);
     elseif (answer{1} == '2') 
         test2;
-        answer = inputdlg(prompt);
     elseif (answer{1} == '3')
         test3;
-        answer = inputdlg(prompt);
     else
         %% Define scenario
         % Obstacles
@@ -101,7 +98,30 @@ while(~isempty(answer))
 
         figure('Name','Search Tree','NumberTitle','off');
         plot(search_tree);
+        
+        %% Log workspace to subfolder 
+        st = dbstack;
+        namestr = st(1).name;
+        sub_folder = './logs/' + string(namestr);
+        file_name = fullfile(sub_folder,'data');
+        fig_name = fullfile(sub_folder,'fig');
 
-        answer = inputdlg(prompt);
+        if ~exist(sub_folder, 'dir')
+            mkdir(sub_folder)
+        end
+
+        % Get a list of all variables
+        allvars = whos;
+
+        % Identify the variables that ARE NOT graphics handles. This uses a regular
+        % expression on the class of each variable to check if it's a graphics object
+        tosave = cellfun(@isempty, regexp({allvars.class}, '^matlab\.(ui|graphics)\.'));
+
+        % Pass these variable names to save
+        save(file_name, allvars(tosave).name)
+        savefig(fig_name);
     end
+    
+    answer = inputdlg(prompt);
+    
 end
