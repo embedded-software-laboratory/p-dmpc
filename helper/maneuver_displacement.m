@@ -1,4 +1,4 @@
-function [x_next, y_next, yaw_next] = maneuver_displacement(model, x_init, y_init, yaw_init, v_init, delta_init, steering_angle_change, velocity_change, dt)
+function [xs, ys, yaws] = maneuver_displacement(model, x_init, y_init, yaw_init, v_init, delta_init, steering_angle_change, velocity_change, dt)
     
     steering_derivative = steering_angle_change/dt;
     acceleration = velocity_change/dt;
@@ -15,13 +15,10 @@ function [x_next, y_next, yaw_next] = maneuver_displacement(model, x_init, y_ini
                    [0 dt], ...
                    x0, ...
                    odeset('RelTol',1e-8,'AbsTol',1e-8));
-   
-    % get index of last iteration of ode
-    last = length(x);
-    
+     
     % assign values to struct 
-    x_next = x(last,1);
-    y_next = x(last,2);
-    yaw_next = x(last,3);
+    xs = x(:,1);
+    ys = x(:,2);
+    yaws = x(:,3);
 
 end

@@ -6,11 +6,11 @@
 % search_depth specifies the depth of the created search tree
 function search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF, fig, axis_size)
     
-    nVeh = length(combined_graph.motionGraphList);
+    n_veh = length(combined_graph.motionGraphList);
     
     trim_length = [];
     
-    for i = 1 : nVeh
+    for i = 1 : n_veh
     
         tmp_length = length(combined_graph.motionGraphList(i).trims);
         
@@ -21,18 +21,18 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     % Initialize node table values
     id = 1;
     
-    gvalues = zeros(nVeh,1).';
+    gvalues = zeros(1, n_veh);
     
-    goal = zeros(nVeh,1);
+    goal = zeros(n_veh, 1);
     
     % high but should be unnecessary
-    hvalues = Inf(nVeh,1).';
+    hvalues = Inf(1,n_veh);
     
     trims = trim_indices;
     
-    xs = [init_poses(1:nVeh).x];
-    ys = [init_poses(1:nVeh).y];
-    yaws = [init_poses(1:nVeh).yaw];
+    xs = [init_poses(1:n_veh).x];
+    ys = [init_poses(1:n_veh).y];
+    yaws = [init_poses(1:n_veh).yaw];
     
     cur_poses = init_poses;
     
@@ -40,7 +40,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     
     cur_poses = [];
         
-    for i = 1 : nVeh
+    for i = 1 : n_veh
 
         cur_pose.x = xs(i);
         cur_pose.y = ys(i);
@@ -49,7 +49,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
 
     end
     
-    offset = ones(1, nVeh);
+    offset = ones(1, n_veh);
     
     isgoals = is_goal(cur_poses, target_poses, offset);
     
@@ -64,7 +64,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     visited_nodes = [];
     
     tf1 = (search_tree.depth() < search_depth);
-    tf2 = (sum(isgoals) == nVeh);
+    tf2 = (sum(isgoals) == n_veh);
     tf3 = isempty(leaf_nodes);
     
     
@@ -95,7 +95,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         col = 'mcg';
 
         figure(fig);
-        for i = 1 : nVeh
+        for i = 1 : n_veh
            plot(parent_node.xs(i), parent_node.ys(i), 'o','Color', col(i));
            hold on
            axis(axis_size);
@@ -103,10 +103,10 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
 
         pause(0.2);
         
-        if sum(isgoals) == nVeh
+        if sum(isgoals) == n_veh
             end_node = search_tree.Node{end};
             figure(fig)
-            for i = 1 : nVeh
+            for i = 1 : n_veh
                 plot(end_node.xs(i), end_node.ys(i), 'o','Color', col(i));
                 hold on
                 axis(axis_size);
@@ -118,7 +118,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         parent = NaN;
 
         tf1 = (search_tree.depth() < search_depth);
-        tf2 = (sum(isgoals) == nVeh);
+        tf2 = (sum(isgoals) == n_veh);
         tf3 = isempty(leaf_nodes);
 
     end 

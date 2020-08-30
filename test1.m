@@ -49,14 +49,14 @@ search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGrap
 
 
 % --- begin of visualization ---
-nVeh = 1;
+n_veh = 1;
 
-path = return_path(search_tree);
+path = return_path(search_tree, combinedGraph);
 
 col = 'mcg';
 
 
-for i = 1 : nVeh
+for i = 1 : n_veh
     plot(path(:,1,i), path(:,2,i), '--','Color', col(i));
     hold on
     axis(axis_size);

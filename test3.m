@@ -76,7 +76,7 @@ search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGrap
 % --- begin of visualization ---
 nVeh = 3;
 
-path = return_path(search_tree);
+path = return_path(search_tree, combinedGraph);
 
 col = 'mcg';
 

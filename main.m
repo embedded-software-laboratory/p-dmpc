@@ -93,7 +93,7 @@ while(~isempty(answer))
         search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_astar, fig, axis_size);
 
         % Search
-        search_paths = return_path(search_tree);
+        search_paths = return_path(search_tree, combinedGraph);
 
         %% Visualize
         plot(scenario, fig);
@@ -102,6 +102,6 @@ while(~isempty(answer))
         figure('Name','Search Tree','NumberTitle','off');
         plot(search_tree);
 
-        answer = inputdlg(prompt)
+        answer = inputdlg(prompt);
     end
 end
