@@ -43,28 +43,11 @@ motionGraphList = [motionGraph1];
 
 % Combine graphs
 combinedGraph = CombinedGraph(motionGraphList);
-fig = figure('Name','Trajectories','NumberTitle','off');
-axis_size = [-10 40 -10 40];
-search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar, fig, axis_size);
+axis_size = [-10 20 -10 20];
+[search_tree, parents] = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar);
 
+vis_trajectory(search_tree, parents, combinedGraph, target_poses, axis_size);
 
-% --- begin of visualization ---
-n_veh = 1;
-
-path = return_path(search_tree, combinedGraph);
-
-col = 'mcg';
-
-
-for i = 1 : n_veh
-    plot(path(:,1,i), path(:,2,i), '--','Color', col(i));
-    hold on
-    axis(axis_size);
-end
-
-figure('Name','Search Tree','NumberTitle','off');
-plot(search_tree);
-% --- end of visualization ---
 
 %% Log workspace to subfolder 
 st = dbstack;

@@ -85,19 +85,10 @@ while(~isempty(answer))
         %% Graph search
         % Choose search algorithm
         depth = 20;
-        fig = figure('Name','Trajectories','NumberTitle','off');
-        axis_size = [-30 30 -30 30];
-        search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_astar, fig, axis_size);
+        axis_size = [-35 20 -30 30];
+        [search_tree, parents] = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar);
 
-        % Search
-        search_paths = return_path(search_tree, combinedGraph);
-
-        %% Visualize
-        plot(scenario, fig);
-        vis_trajectory(search_paths, target_poses, axis_size, fig);
-
-        figure('Name','Search Tree','NumberTitle','off');
-        plot(search_tree);
+        vis_trajectory(search_tree, parents, combinedGraph, target_poses, axis_size);
         
         %% Log workspace to subfolder 
         st = dbstack;
