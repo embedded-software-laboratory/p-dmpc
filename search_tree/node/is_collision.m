@@ -1,14 +1,14 @@
 function collision = is_collision(shapes)
 
-    nShapes = length(shapes);
+    n_shapes = length(shapes);
     
     collision = false;
     
-    for i = 1 : nShapes
+    for i = 1 : n_shapes
         
         shape1 = shapes{i};
         
-        for j = i : nShapes
+        for j = i : n_shapes
             
             if i == j
             

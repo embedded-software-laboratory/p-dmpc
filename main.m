@@ -75,33 +75,25 @@ while(~isempty(answer))
         n_trims = length(u_trims);
 
         % Generate graph motion graphs
-        motionGraphList = [];
+        motion_graph_list = [];
         for i = 1:nVeh
 
-           motionGraph = MotionGraph(model, u_trims, trim_adjacency, primitive_dt); 
-           motionGraphList = [motionGraphList, motionGraph];
+           motion_graph = MotionGraph(model, u_trims, trim_adjacency, primitive_dt); 
+           motion_graph_list = [motion_graph_list, motion_graph];
 
         end
 
         % Combine graphs
-        combinedGraph = CombinedGraph(motionGraphList);
+        combined_graph = CombinedGraph(motion_graph_list);
         %% Graph search
         % Choose search algorithm
         depth = 20;
-        fig = figure('Name','Trajectories','NumberTitle','off');
-        axis_size = [-30 30 -30 30];
-        search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_astar, fig, axis_size);
+        
+        search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, depth, @is_collision, @get_next_node_weighted_astar);
 
         % Search
         search_paths = return_path(search_tree);
-
-        %% Visualize
-        plot(scenario, fig);
-        vis_trajectory(search_paths, target_poses, axis_size, fig);
-
-        figure('Name','Search Tree','NumberTitle','off');
-        plot(search_tree);
-
+        
         answer = inputdlg(prompt)
     end
 end

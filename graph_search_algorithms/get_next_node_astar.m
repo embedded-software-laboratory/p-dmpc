@@ -7,7 +7,7 @@ function node = get_next_node_astar(search_tree, leaf_nodes)
         
         curr_node = search_tree.get(leaf_nodes(1));
             
-        curr_values = curr_node.gvalues + curr_node.hvalues;
+        curr_values = curr_node.g_values + curr_node.h_values;
         min_value = sum(curr_values);
         
         node = leaf_nodes(1);
@@ -22,7 +22,7 @@ function node = get_next_node_astar(search_tree, leaf_nodes)
             
             curr_node = search_tree.get(leaf_nodes(i));
             
-            curr_values = curr_node.gvalues + curr_node.hvalues;
+            curr_values = curr_node.g_values + curr_node.h_values;
             curr_value = sum(curr_values);
 
             if min_value > curr_value

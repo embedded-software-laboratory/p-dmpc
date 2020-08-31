@@ -31,7 +31,7 @@ classdef MotionGraph
                 
             % BicycleModelConstSpeed
             elseif model.nu == 1
-                    obj.trims == struct('steering',0);
+                obj.trims = struct('steering',0);
             end 
             
             for i = 1:n_trims

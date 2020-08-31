@@ -32,8 +32,7 @@ trim_indices = [5];
 primitive_dt = 1;
 depth = 10;
 
-load('trim_inputs_6');
-load('trim_adjacency_6_1');
+load('trim_set_6_1');
 n_trims = length(u_trims);
 
 motionGraph1 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
@@ -43,25 +42,7 @@ motionGraphList = [motionGraph1];
 
 % Combine graphs
 combinedGraph = CombinedGraph(motionGraphList);
-fig = figure('Name','Trajectories','NumberTitle','off');
-axis_size = [-10 40 -10 40];
-search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar, fig, axis_size);
 
+search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar);
 
-% --- begin of visualization ---
-nVeh = 1;
-
-path = return_path(search_tree);
-
-col = 'mcg';
-
-
-for i = 1 : nVeh
-    plot(path(:,1,i), path(:,2,i), '--','Color', col(i));
-    hold on
-    axis(axis_size);
-end
-
-figure('Name','Search Tree','NumberTitle','off');
-plot(search_tree);
-% --- end of visualization ---
+search_paths = return_path(search_tree);

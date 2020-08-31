@@ -1,10 +1,10 @@
-function [gvalue, hvalue] = calculate_next_values_time(parent_gvalue, max_velocity, next_pose, target_pose)
+function [g_value, h_value] = calculate_next_values_time(parent_g_value, max_velocity, next_pose, target_pose)
 
-    gvalue_change = 1;
+    g_value_change = 1;
             
-    gvalue = parent_gvalue + gvalue_change;
+    g_value = parent_g_value + g_value_change;
 
-    hvalue = euclidean_distance(next_pose, target_pose)/max_velocity;
+    h_value = euclidean_distance(next_pose, target_pose)/max_velocity;
     
 end
 

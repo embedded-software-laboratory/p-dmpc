@@ -1,10 +1,10 @@
-function [gvalue, hvalue] = calculate_next_values_distance(parent_gvalue, last_pose, next_pose, target_pose)
+function [g_value, h_value] = calculate_next_values_distance(parent_g_value, last_pose, next_pose, target_pose)
 
-    gvalue_change = euclidean_distance(last_pose,next_pose);
+    g_value_change = euclidean_distance(last_pose,next_pose);
             
-    gvalue = parent_gvalue + gvalue_change;
+    g_value = parent_g_value + g_value_change;
 
-    hvalue = euclidean_distance(next_pose, target_pose);
+    h_value = euclidean_distance(next_pose, target_pose);
     
 end
 

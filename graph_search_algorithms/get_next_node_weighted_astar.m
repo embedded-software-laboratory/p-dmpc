@@ -11,7 +11,7 @@ function node = get_next_node_weighted_astar(search_tree, leaf_nodes)
         
         curr_node = search_tree.get(leaf_nodes(1));
             
-        curr_values = g_weight*curr_node.gvalues + h_weight*curr_node.hvalues;
+        curr_values = g_weight*curr_node.g_values + h_weight*curr_node.h_values;
         min_value = sum(curr_values);
         
         node = leaf_nodes(1);
@@ -26,7 +26,7 @@ function node = get_next_node_weighted_astar(search_tree, leaf_nodes)
             
             curr_node = search_tree.get(leaf_nodes(i));
             
-            curr_values = g_weight*curr_node.gvalues + h_weight*curr_node.hvalues;
+            curr_values = g_weight*curr_node.g_values + h_weight*curr_node.h_values;
             curr_value = sum(curr_values);
 
             if min_value > curr_value
