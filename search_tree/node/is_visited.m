@@ -1,11 +1,11 @@
 function visited = is_visited(state,search_tree,visit_list,offset)
 
-    nVeh = length(state.xs);
-    nNodes = length(visit_list);
+    n_veh = length(state.xs);
+    n_nodes = length(visit_list);
 
     visited = false;
     
-    for i = 1 : nNodes
+    for i = 1 : n_nodes
         
         visited = false;
     
@@ -27,7 +27,7 @@ function visited = is_visited(state,search_tree,visit_list,offset)
         ys = comp_node.ys;
         yaws = comp_node.yaws;
         
-        for j = 1 : nVeh
+        for j = 1 : n_veh
 
             equal_pose = is_equal_pose(state.xs(j),state.ys(j),state.yaws(j),xs(j),ys(j),yaws(j),offset);
             

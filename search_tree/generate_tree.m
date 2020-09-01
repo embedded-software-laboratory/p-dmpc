@@ -5,6 +5,7 @@
 % maneuvers refers to the matrix of maneuvers of a motion graph
 % search_depth specifies the depth of the created search tree
 function [search_tree, parents] = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF)
+
     
     n_veh = length(combined_graph.motionGraphList);
     
@@ -21,12 +22,12 @@ function [search_tree, parents] = generate_tree(init_poses, target_poses, trim_i
     % Initialize node table values
     id = 1;
     
-    gvalues = zeros(1, n_veh);
+    g_values = zeros(n_veh,1).';
     
-    goal = zeros(n_veh, 1);
+    goal = zeros(n_veh,1);
     
     % high but should be unnecessary
-    hvalues = Inf(1,n_veh);
+    hvalues = Inf(n_veh,1).';
     
     trims = trim_indices;
     
@@ -52,10 +53,10 @@ function [search_tree, parents] = generate_tree(init_poses, target_poses, trim_i
     
     offset = ones(1, n_veh);
     
-    isgoals = is_goal(cur_poses, target_poses, offset);
+    is_goals = is_goal(cur_poses, target_poses, offset);
     
     % Create digraph with root node
-    node1 = node(id, 0, trims, xs, ys, yaws, gvalues, hvalues);
+    node1 = node(id, 0, trims, xs, ys, yaws, g_values, hvalues);
     search_tree = tree(node1);
     
     % Array storing ids of nodes that may be expanded
@@ -64,15 +65,17 @@ function [search_tree, parents] = generate_tree(init_poses, target_poses, trim_i
     % Array storing ids of nodes that were visited
     visited_nodes = [];
     
+    % loop condition
     tf1 = (search_tree.depth() < search_depth);
-    tf2 = (sum(isgoals) == n_veh);
-    tf3 = isempty(leaf_nodes);   
+
+    tf2 = (sum(is_goals) == n_veh);
+    tf3 = isempty(leaf_nodes);
+    
+    loop = tf1 && ~tf2 && ~tf3;
     
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
-    while   tf1 ...
-            && ~tf2 ...
-            && ~tf3
+    while loop
         
         % get next node for expansion
         parent = graph_searchF(search_tree, leaf_nodes);
@@ -81,16 +84,19 @@ function [search_tree, parents] = generate_tree(init_poses, target_poses, trim_i
         % Delete chosen entry from list of expandable nodes
         leaf_nodes(leaf_nodes == parent) = [];
         
-        [leaf_nodes, search_tree, id, isgoals] = expand_tree(leaf_nodes, search_tree, parent, combined_graph, trim_length, target_poses, visited_nodes, id, isgoals, is_collisionF);
+        [leaf_nodes, search_tree, id, is_goals] = expand_tree(leaf_nodes, search_tree, parent, combined_graph, trim_length, target_poses, visited_nodes, id, is_goals, is_collisionF);
         
         visited_nodes = [visited_nodes, parent];
         
         parent = NaN;
 
+        % loop condition
         tf1 = (search_tree.depth() < search_depth);
-        tf2 = (sum(isgoals) == n_veh);
+        tf2 = (sum(is_goals) == n_veh);
         tf3 = isempty(leaf_nodes);
 
+        loop = tf1 && ~tf2 && ~tf3;
+        
     end 
 
 end

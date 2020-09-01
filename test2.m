@@ -3,7 +3,6 @@ matlab_tree = './matlab-tree/';
 assert(logical(exist(matlab_tree, 'dir')));
 addpath(matlab_tree);
 
-
 addpath(genpath(pwd));
 
 warning('off','MATLAB:polyshape:repairedBySimplify')
@@ -44,8 +43,7 @@ trim_indices = [5,5];
 primitive_dt = 1;
 depth = 10;
 
-load('trim_inputs_6');
-load('trim_adjacency_6_1');
+load('trim_set_6_1');
 n_trims = length(u_trims);
 
 motionGraph1 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
@@ -54,11 +52,11 @@ motionGraph1 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
 motionGraphList = [motionGraph1, motionGraph1];
 
 % Combine graphs
-combinedGraph = CombinedGraph(motionGraphList);
+combined_graph = CombinedGraph(motionGraphList);
 axis_size = [-10 20 -10 20];
-[search_tree, parents] = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar);
+[search_tree, parents] = generate_tree(init_poses, target_poses, trim_indices, combined_graph, depth, @is_collision, @get_next_node_weighted_astar);
 
-vis_trajectory(search_tree, parents, combinedGraph, target_poses, axis_size);
+vis_trajectory(search_tree, parents, combined_graph, target_poses, axis_size);
 
 
 %% Log workspace to subfolder 
