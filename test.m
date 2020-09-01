@@ -46,8 +46,6 @@ motion_graph = CombinedGraph(motion_graph_list);
 
 %% find path
 
-depth_on = false;
-
-search_tree = generate_tree(init_poses, target_poses, trim_indices, motion_graph, depth_on, depth, @is_collision, @get_next_node_weighted_astar);
+search_tree = generate_tree(init_poses, target_poses, trim_indices, motion_graph, depth, @is_collision, @get_next_node_weighted_astar);
 
 search_paths = return_path(search_tree);

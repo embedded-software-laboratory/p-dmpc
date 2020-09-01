@@ -70,8 +70,7 @@ while(~isempty(answer))
         velocity = 3;
 
         % trims left to right
-        load('trim_inputs_6');
-        load('trim_adjacency_6_1');
+        load('trim_set_6_1');
         n_trims = length(u_trims);
 
         % Generate graph motion graphs

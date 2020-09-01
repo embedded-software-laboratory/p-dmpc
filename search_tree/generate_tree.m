@@ -4,7 +4,7 @@
 % trim refers to the index of the initial trim
 % maneuvers refers to the matrix of maneuvers of a motion graph
 % search_depth specifies the depth of the created search tree
-function search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, depth_on, search_depth, is_collisionF, graph_searchF)
+function search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF)
     
     n_veh = length(combined_graph.motionGraphList);
     
@@ -63,18 +63,12 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     % Array storing ids of nodes that were visited
     visited_nodes = [];
     
-    if depth_on
-        tf1 = (search_tree.depth() < search_depth);
-        tf2 = (sum(is_goals) == n_veh);
-        tf3 = isempty(leaf_nodes);
-        
-        loop = tf1 && ~tf2 && ~tf3;
-    else
-        tf2 = (sum(is_goals) == n_veh);
-        tf3 = isempty(leaf_nodes);
-        
-        loop = ~tf2 && ~tf3;
-    end
+    % loop condition
+    tf1 = (search_tree.depth() < search_depth);
+    tf2 = (sum(is_goals) == n_veh);
+    tf3 = isempty(leaf_nodes);
+    
+    loop = tf1 && ~tf2 && ~tf3;
     
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
@@ -92,18 +86,12 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         
         parent = NaN;
 
-        if depth_on
-            tf1 = (search_tree.depth() < search_depth);
-            tf2 = (sum(is_goals) == n_veh);
-            tf3 = isempty(leaf_nodes);
+        % loop condition
+        tf1 = (search_tree.depth() < search_depth);
+        tf2 = (sum(is_goals) == n_veh);
+        tf3 = isempty(leaf_nodes);
 
-            loop = tf1 && ~tf2 && ~tf3;
-        else
-            tf2 = (sum(is_goals) == n_veh);
-            tf3 = isempty(leaf_nodes);
-            
-            loop = ~tf2 && ~tf3;
-        end
+        loop = tf1 && ~tf2 && ~tf3;
         
     end 
     
