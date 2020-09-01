@@ -30,8 +30,8 @@ classdef Vehicle
                 color = varargin{2};
             end
             figure(fig);
-            vehiclePolygon = transformedRectangle(obj.x_start,obj.y_start, obj.heading, obj.Length, obj.Width);
-            fill(vehiclePolygon(1,:),vehiclePolygon(2,:),color);
+            vehicle_polygon = transformedRectangle(obj.x_start,obj.y_start, obj.heading, obj.Length, obj.Width);
+            fill(vehicle_polygon(1,:),vehicle_polygon(2,:),color);
         end
     end
 end

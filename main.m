@@ -1,55 +1,98 @@
 %% Add modules to path
+% Import tree class
+matlab_tree = './matlab-tree/';
+assert(logical(exist(matlab_tree, 'dir')));
+addpath(matlab_tree);
+
 addpath(genpath(pwd));
 
+warning('off','MATLAB:polyshape:repairedBySimplify')
+
+prompt = {'Enter Scenario:'};
+dlgtitle = 'Input';
+
+answer = inputdlg(prompt);
+
+while(~isempty(answer))
+
+    if(answer{1} == '1')
+        test1;
+        answer = inputdlg(prompt);
+    elseif (answer{1} == '2') 
+        test2;
+        answer = inputdlg(prompt);
+    elseif (answer{1} == '3')
+        test3;
+        answer = inputdlg(prompt);
+    else
+        %% Define scenario
+        % Obstacles
+
+        % Vehicles
+        nVeh = 3;
+        scenario = Scenario(2*pi/nVeh*(1:nVeh));
+
+        % Initial position
+        init_poses = [];
+        trim_indices = 5 * ones(1, nVeh);
+
+        for i = 1:nVeh
+            init_pose.x = scenario.vehicles(i).x_start;
+            init_pose.y = scenario.vehicles(i).y_start;
+            init_pose.yaw = scenario.vehicles(i).heading;
+            init_poses = [init_poses, init_pose];
+        end
 
 
-%% Define scenario
-% Obstacles
 
-% Vehicles
-% Initial position
-% Goal
-nVeh = 4;
-scenario = Scenario(2*pi/nVeh*(1:nVeh));
-plot(scenario);
+        % Goal
+        target_poses = [];
+        step = floor(nVeh / 2);
 
-%% Define motion graph
-% Choose Model
-model = BicycleModel(2.2,2.2);
+        for i = 1:nVeh
 
-% Primitive duration
-primitive_dt = 1;
+            k = mod(i + step, nVeh) + 1;
 
-% Trims
-nTrims = 5; % useless (?)
-velocity = 3;
+            target_pose.x = scenario.vehicles(k).x_start;
+            target_pose.y = scenario.vehicles(k).y_start;
+            target_pose.yaw = scenario.vehicles(k).heading;
+            target_poses = [target_poses, target_pose];
+        end
 
-% trims left to right
-load('trim_inputs');
-n_trims = length(u_trims);
+        %% Define motion graph
+        % Choose Model
+        model = BicycleModel(2.2,2.2);
 
-% Transitions (maneuver)
-trim_adjacency = eye(n_trims);
-for i = 1:n_trims-1
-    trim_adjacency(i,i+1) = 1;
+        % Primitive duration
+        primitive_dt = 1;
+
+        % Trims
+        velocity = 3;
+
+        % trims left to right
+        load('trim_set_6_1');
+        n_trims = length(u_trims);
+
+        % Generate graph motion graphs
+        motion_graph_list = [];
+        for i = 1:nVeh
+
+           motion_graph = MotionGraph(model, u_trims, trim_adjacency, primitive_dt); 
+           motion_graph_list = [motion_graph_list, motion_graph];
+
+        end
+
+        % Combine graphs
+        combined_graph = CombinedGraph(motion_graph_list);
+        %% Graph search
+        % Choose search algorithm
+        depth = 20;
+        
+        search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, depth, @is_collision, @get_next_node_weighted_astar);
+
+        % Search
+        search_paths = return_path(search_tree);
+        
+        answer = inputdlg(prompt)
+    end
 end
-
-% --Mirror to make symmetric
-trim_adjacency = trim_adjacency'+triu(trim_adjacency,1);
-
-% Generate graph for two vehicles
-motionGraph1 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
-motionGraph2 = MotionGraph(model, u_trims, trim_adjacency, primitive_dt);
-motionGraph3 = MotionGraph(model, u_trims(1:8,:), trim_adjacency, primitive_dt);
-
-% make motionGraph Tupel
-motionGraphList = [motionGraph1 , motionGraph2 , motionGraph3];
-
-% Combine graphs
-combinedGraph = CombinedGraph(motionGraphList);
-%% Graph search
-% Choose search algorithm
-
-% Search
-
-%% Visualize

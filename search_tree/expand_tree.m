@@ -1,8 +1,8 @@
-function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, search_tree, parent, motion_graph, trim_length, target_poses, visited, counter, isgoals, is_collisionF)
+function [node_list, search_tree, cur_id, is_goals] = expand_tree(node_list, search_tree, parent, motion_graph, trim_length, target_poses, visited, counter, is_goals, is_collisionF)
     
     cur_id = counter;
 
-    nVeh = length(motion_graph.motionGraphList);
+    n_veh = length(motion_graph.motionGraphList);
     
     parent_node = search_tree.get(parent);
     
@@ -10,8 +10,8 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
     parent_xs = parent_node.xs;
     parent_ys = parent_node.ys;
     parent_yaws = parent_node.yaws;
-    parent_gvalues = parent_node.gvalues;
-    parent_hvalues = parent_node.hvalues;
+    parent_g_values = parent_node.g_values;
+    parent_h_values = parent_node.h_values;
     
     trim_tuple = motion_graph.trimTuple;
     trim_tuple_size = length(trim_tuple);
@@ -24,8 +24,8 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
         next_xs = parent_xs;
         next_ys = parent_ys;
         next_yaws = parent_yaws;
-        next_gvalues = parent_gvalues;
-        next_hvalues = parent_hvalues;
+        next_g_values = parent_g_values;
+        next_h_values = parent_h_values;
         
         node_shapes = {};
         
@@ -43,9 +43,9 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
         
         end
         
-        for j = 1 : nVeh
+        for j = 1 : n_veh
             
-            if isgoals(j)
+            if is_goals(j)
                 
                 % --- TODO: which shape? ---
                 [shape_x, shape_y] = translate_global(parent_yaws(j), parent_xs(j), parent_ys(j), [-2.2 2.2 -2.2 2.2],[-0.9 -0.9 0.9 0.9]);
@@ -63,23 +63,23 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
             y = parent_ys(j);
             yaw = parent_yaws(j);
             
-            newYaw = yaw + maneuver.dyaw;
-            [newX, newY] = translate_global(yaw, x, y, maneuver.dx, maneuver.dy);
+            new_yaw = yaw + maneuver.dyaw;
+            [new_x, new_y] = translate_global(yaw, x, y, maneuver.dx, maneuver.dy);
 
-            next_xs(j) = newX;
-            next_ys(j) = newY;
-            next_yaws(j) = newYaw;
+            next_xs(j) = new_x;
+            next_ys(j) = new_y;
+            next_yaws(j) = new_yaw;
             
-            next_pose.x = newX;
-            next_pose.y = newY;
+            next_pose.x = new_x;
+            next_pose.y = new_y;
             
             last_pose.x = x;
             last_pose.y = y;
             
-            [gvalue, hvalue] = calculate_next_values_time(parent_gvalues(j), 3, next_pose, target_poses(j));
+            [gvalue, hvalue] = calculate_next_values_time(parent_g_values(j), 3, next_pose, target_poses(j));
             
-            next_gvalues(j) = gvalue;
-            next_hvalues(j) = hvalue;
+            next_g_values(j) = gvalue;
+            next_h_values(j) = hvalue;
             
             [shape_x, shape_y] = translate_global(yaw, x, y, maneuver.area(1,:), maneuver.area(2,:));
             
@@ -113,7 +113,7 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
         
         % create new node
         % Add node to existing new graph and connect parent to it
-        node1 = node(cur_id, parent, next_trims, next_xs, next_ys, next_yaws, next_gvalues, next_hvalues);
+        node1 = node(cur_id, parent, next_trims, next_xs, next_ys, next_yaws, next_g_values, next_h_values);
         [search_tree new_node_id] = search_tree.addnode(parent, node1);
 
         % Update new leaves to be expanded 
@@ -122,7 +122,7 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
         
         cur_poses = [];
         
-        for i = 1 : nVeh
+        for i = 1 : n_veh
 
             cur_pose.x = next_xs(i);
             cur_pose.y = next_ys(i);
@@ -131,11 +131,11 @@ function [node_list, search_tree, cur_id, isgoals] = expand_tree(node_list, sear
 
         end
         
-        offset = ones(1, nVeh);
+        offset = ones(1, n_veh);
 
-        isgoals = is_goal(cur_poses, target_poses, offset);
+        is_goals = is_goal(cur_poses, target_poses, offset);
         
-        if sum(isgoals) == nVeh
+        if sum(is_goals) == n_veh
         
             return;
         

@@ -6,11 +6,11 @@
 % search_depth specifies the depth of the created search tree
 function search_tree = generate_tree(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF)
     
-    nVeh = length(combined_graph.motionGraphList);
+    n_veh = length(combined_graph.motionGraphList);
     
     trim_length = [];
     
-    for i = 1 : nVeh
+    for i = 1 : n_veh
     
         tmp_length = length(combined_graph.motionGraphList(i).trims);
         
@@ -21,18 +21,18 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     % Initialize node table values
     id = 1;
     
-    gvalues = zeros(nVeh,1).';
+    g_values = zeros(n_veh,1).';
     
-    goal = zeros(nVeh,1);
+    goal = zeros(n_veh,1);
     
     % high but should be unnecessary
-    hvalues = Inf(nVeh,1).';
+    hvalues = Inf(n_veh,1).';
     
     trims = trim_indices;
     
-    xs = [init_poses(1:nVeh).x];
-    ys = [init_poses(1:nVeh).y];
-    yaws = [init_poses(1:nVeh).yaw];
+    xs = [init_poses(1:n_veh).x];
+    ys = [init_poses(1:n_veh).y];
+    yaws = [init_poses(1:n_veh).yaw];
     
     cur_poses = init_poses;
     
@@ -40,7 +40,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     
     cur_poses = [];
         
-    for i = 1 : nVeh
+    for i = 1 : n_veh
 
         cur_pose.x = xs(i);
         cur_pose.y = ys(i);
@@ -49,12 +49,12 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
 
     end
     
-    offset = ones(1, nVeh);
+    offset = ones(1, n_veh);
     
-    isgoals = is_goal(cur_poses, target_poses, offset);
+    is_goals = is_goal(cur_poses, target_poses, offset);
     
     % Create digraph with root node
-    node1 = node(id, 0, trims, xs, ys, yaws, gvalues, hvalues);
+    node1 = node(id, 0, trims, xs, ys, yaws, g_values, hvalues);
     search_tree = tree(node1);
     
     % Array storing ids of nodes that may be expanded
@@ -63,15 +63,16 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     % Array storing ids of nodes that were visited
     visited_nodes = [];
     
+    % loop condition
     tf1 = (search_tree.depth() < search_depth);
-    tf2 = (sum(isgoals) == nVeh);
+    tf2 = (sum(is_goals) == n_veh);
     tf3 = isempty(leaf_nodes);
+    
+    loop = tf1 && ~tf2 && ~tf3;
     
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
-    while   tf1 ...
-            && ~tf2 ...
-            && ~tf3
+    while loop
         
         % get next node for expansion
         parent = graph_searchF(search_tree, leaf_nodes);
@@ -79,19 +80,20 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
         % Delete chosen entry from list of expandable nodes
         leaf_nodes(leaf_nodes == parent) = [];
         
-        [leaf_nodes, search_tree, id, isgoals] = expand_tree(leaf_nodes, search_tree, parent, combined_graph, trim_length, target_poses, visited_nodes, id, isgoals, is_collisionF);
+        [leaf_nodes, search_tree, id, is_goals] = expand_tree(leaf_nodes, search_tree, parent, combined_graph, trim_length, target_poses, visited_nodes, id, is_goals, is_collisionF);
         
         visited_nodes = [visited_nodes, parent];
         
         parent = NaN;
 
+        % loop condition
         tf1 = (search_tree.depth() < search_depth);
-        tf2 = (sum(isgoals) == nVeh);
+        tf2 = (sum(is_goals) == n_veh);
         tf3 = isempty(leaf_nodes);
 
-    end
-    
-    h = plot(search_tree);
+        loop = tf1 && ~tf2 && ~tf3;
+        
+    end 
     
 end
 

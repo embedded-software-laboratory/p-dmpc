@@ -1,37 +1,37 @@
-function maneuverMatrix = compute_product_maneuver_matrix(trimProduct,motionGraphList)
+function maneuver_matrix = compute_product_maneuver_matrix(trim_product,motion_graph_list)
 
-    nGraphs = length(motionGraphList);
-    [nTrims,nGraphs2] = size(trimProduct);
+    n_graphs = length(motion_graph_list);
+    [n_trims,n_graphs2] = size(trim_product);
     
     % preallocate
-    maneuverMatrix = zeros(nTrims,nTrims);
+    maneuver_matrix = zeros(n_trims,n_trims);
     
     % iterate through trim product list to get all combinations of trim products
-    for i = 1 : nTrims
+    for i = 1 : n_trims
         
-        startTrimTuple = trimProduct(i,:);
+        start_trim_tuple = trim_product(i,:);
         
-        for j = 1 : nTrims
+        for j = 1 : n_trims
             
-            endTrimTuple = trimProduct(j,:);
+            end_trim_tuple = trim_product(j,:);
             
             % check if every transition has a maneuver
-            for k = 1 : nGraphs
+            for k = 1 : n_graphs
             
-                maneuvers = motionGraphList(k).maneuvers;
+                maneuvers = motion_graph_list(k).maneuvers;
                 
-                startTrimIndex = startTrimTuple(k);
-                endTrimIndex = endTrimTuple(k);
+                start_trim_index = start_trim_tuple(k);
+                end_trim_index = end_trim_tuple(k);
                 
                 % lookup maneuver matrix if entry is empty
-                if isequal(maneuvers{startTrimIndex,endTrimIndex} , [])
+                if isequal(maneuvers{start_trim_index,end_trim_index} , [])
                     
-                    maneuverMatrix(i,j) = 0;
+                    maneuver_matrix(i,j) = 0;
                     break;
                 
                 else
                     
-                    maneuverMatrix(i,j) = 1;
+                    maneuver_matrix(i,j) = 1;
                     
                 end
                 

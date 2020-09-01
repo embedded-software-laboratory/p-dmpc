@@ -1,18 +1,18 @@
-function productTrims = compute_trim_product(motionGraphList)
+function product_trims = compute_trim_product(motion_graph_list)
 
-    nGraphs = length(motionGraphList);
+    n_graphs = length(motion_graph_list);
     
-    % iterate through all motionGraphs
-    for i = 1 : nGraphs
+    % iterate through all motion_graphs
+    for i = 1 : n_graphs
         
         % save trim indices (1 to n_trims)
-        trimIndexList{i} = [1:length(motionGraphList(i).trims)];
+        trim_index_list{i} = [1:length(motion_graph_list(i).trims)];
     
     end
     
     % cartesian product for all combinations of trims;
-    trimProd = cartprod(trimIndexList{:});
+    trim_prod = cartprod(trim_index_list{:});
     
-    productTrims = trimProd;
+    product_trims = trim_prod;
 
 end
