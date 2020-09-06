@@ -1,7 +1,9 @@
-function search_paths = path_between(cur_node,next_node, search_tree, motion_graph)
-%PATH_BETWEEN Return path between two nodes
+function search_path = path_between(cur_node,next_node, search_tree, motion_graph)
+%PATH_BETWEEN Return path as a cell array between two nodes
 
     n_veh = length(search_tree.Node{1, 1}.trims);
+    search_path = cell(1, n_veh);
+
         
     for i = 1:n_veh
                          
@@ -28,7 +30,7 @@ function search_paths = path_between(cur_node,next_node, search_tree, motion_gra
             xs = xs.';
             ys = ys.';
 
-            search_paths(:,:,i) = [xs, ys, yaws, trims];
+            search_path(i) = {[xs, ys, yaws, trims]};
 
     end
 
