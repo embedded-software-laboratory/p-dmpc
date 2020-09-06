@@ -2,7 +2,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,linux,windows,matlab,visualstudiocode
 
 # Ignore logs
-.logs/
+logs/
 
 ### Linux ###
 *~
