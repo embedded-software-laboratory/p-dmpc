@@ -26,7 +26,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     goal = zeros(n_veh,1);
     
     % high but should be unnecessary
-    hvalues = Inf(n_veh,1).';
+    h_values = Inf(n_veh,1).';
     
     trims = trim_indices;
     
@@ -54,7 +54,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     is_goals = is_goal(cur_poses, target_poses, offset);
     
     % Create digraph with root node
-    node1 = node(id, 0, trims, xs, ys, yaws, g_values, hvalues);
+    node1 = node(id, 0, trims, xs, ys, yaws, g_values, h_values);
     search_tree = tree(node1);
     
     % Array storing ids of nodes that may be expanded
