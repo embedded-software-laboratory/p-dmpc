@@ -1,9 +1,9 @@
 function vis_trajectory(search_tree, parents, motion_graph, target_poses, axis_size)
 
-    paths = return_path(search_tree, motion_graph);
+    paths_cell = return_path(search_tree, motion_graph);
     figure('units','normalized','outerposition',[0.125 0.125 0.75 0.75])
     pbaspect([1 1 1]);
-    n_veh = length(paths);
+    n_veh = length(paths_cell);
     vehColors = [0.8941    0.1020    0.1098;...
                  0.2157    0.4941    0.7216;...
                  0.3020    0.6863    0.2902;...
@@ -24,6 +24,11 @@ function vis_trajectory(search_tree, parents, motion_graph, target_poses, axis_s
         position = [center - radius, 2*radius, 2*radius];
         rectangle('Position',position,'Curvature',[1 1], 'EdgeColor', cur_color);
         text(center(1)+radius,center(2)+0.5*radius,'DestVeh:' + string(i));
+        paths = paths_cell{i};
+        pose.x = paths(1,1);
+        pose.y = paths(1,2);
+        pose.yaw = paths(1,3);
+        vis_car(pose, cur_color);
     end
     drawnow;
     
@@ -38,7 +43,7 @@ function vis_trajectory(search_tree, parents, motion_graph, target_poses, axis_s
             for j = 1 : n_veh
                 cur_color = vehColors(mod(j-1,size(vehColors,1))+1,:);
                 path = path_cell{j};
-                if(ismember(path,paths{j}))
+                if(ismember(path,paths_cell{j}))
                     plots(j) = plot(path(:,1), path(:,2), '--','Color', cur_color);
                     descriptions(j) = 'Trajectory Vehicle: ' + string(j);
                 end
