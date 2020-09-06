@@ -3,6 +3,7 @@ function search_path = path_between(cur_node,next_node, search_tree, motion_grap
 
     n_veh = length(search_tree.Node{1, 1}.trims);
     search_path = cell(1, n_veh);
+
         
     for i = 1:n_veh
                          
