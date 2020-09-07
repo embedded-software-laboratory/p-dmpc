@@ -60,8 +60,9 @@ function vis_trajectory(search_tree, parents, motion_graph, target_poses, axis_s
         pause(0.2);
     end
     
+    
     end_node = search_tree.Node{end};
-    pred = end_node.parent;
+    pred = search_tree.Parent(end);
     pred_node = search_tree.get(pred);
     path_cell = path_between(pred_node, end_node, search_tree, motion_graph);
     for i = 1 : n_veh

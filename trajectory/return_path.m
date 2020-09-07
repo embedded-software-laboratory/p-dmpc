@@ -11,7 +11,7 @@ function search_paths = return_path(search_tree, motion_graph)
     for j = 1 : (path_length - 1)
         cur_node = search_tree.get(path(j));
         next_node  = search_tree.get(path(j + 1));
-        search_path = path_between(cur_node,next_node, search_tree, motion_graph);
+        search_path = path_between(cur_node, next_node, search_tree, motion_graph);
         
         for i = 1:n_veh
             search_paths(i) = {[search_paths{i}; search_path{i}]};
