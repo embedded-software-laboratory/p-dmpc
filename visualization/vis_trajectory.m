@@ -35,10 +35,10 @@ function vis_trajectory(search_tree, parents, motion_graph, target_poses, axis_s
     length_parents = length(parents);
     for i = 1 : length_parents
         hold on
-        parent_node = search_tree.get(parents(i));  
+        parent_node = search_tree.Node{parents(i)};  
         if(i > 1)
-            pred = parent_node.parent;
-            pred_node = search_tree.get(pred);   
+            pred = search_tree.Parent(parents(i));
+            pred_node = search_tree.Node{pred};   
             path_cell = path_between(pred_node, parent_node, search_tree, motion_graph);
             for j = 1 : n_veh
                 cur_color = vehColors(mod(j-1,size(vehColors,1))+1,:);

@@ -30,7 +30,7 @@ target_poses = [target_poses, target_pose];
 trim_indices = [5];
 
 primitive_dt = 1;
-depth = 5;
+depth = 3;
 
 load('trim_set_6_1');
 n_trims = length(u_trims);
@@ -43,9 +43,10 @@ motionGraphList = [motionGraph1];
 % Combine graphs
 combined_graph = CombinedGraph(motionGraphList);
 axis_size = [-10 20 -10 20];
-[search_tree, parents] = combine_trees(init_poses, target_poses, trim_indices, combined_graph, depth, @is_collision, @get_next_node_weighted_astar);
+[search_tree, parents] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, depth, @is_collision, @get_next_node_weighted_astar);
 
 vis_trajectory(search_tree, parents, combined_graph, target_poses, axis_size);
+
 
 %% Log workspace to subfolder 
 st = dbstack;

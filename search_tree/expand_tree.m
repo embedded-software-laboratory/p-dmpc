@@ -1,10 +1,10 @@
-function [node_list, search_tree, cur_id, is_goals] = expand_tree(node_list, search_tree, parent, motion_graph, trim_length, target_poses, visited, counter, is_goals, is_collisionF)
+function [node_list, search_tree, cur_id, is_goals] = expand_tree(node_list, search_tree, next_node_id, motion_graph, trim_length, target_poses, visited, counter, is_goals, is_collisionF)
     
     cur_id = counter;
 
     n_veh = length(motion_graph.motionGraphList);
     
-    parent_node = search_tree.get(parent);
+    parent_node = search_tree.Node{next_node_id};
     
     parent_trims = parent_node.trims;
     parent_xs = parent_node.xs;
@@ -92,7 +92,7 @@ function [node_list, search_tree, cur_id, is_goals] = expand_tree(node_list, sea
         % if node has vehicle collision -> skip
         if is_collisionF(node_shapes)
         
-            continue;
+           continue;
         
         end
         
@@ -113,11 +113,12 @@ function [node_list, search_tree, cur_id, is_goals] = expand_tree(node_list, sea
         
         % create new node
         % Add node to existing new graph and connect parent to it
-        node1 = node(cur_id, parent, next_trims, next_xs, next_ys, next_yaws, next_g_values, next_h_values);
-        [search_tree new_node_id] = search_tree.addnode(parent, node1);
+        depth = parent_node.depth + 1;
+        node1 = node(depth, next_trims, next_xs, next_ys, next_yaws, next_g_values, next_h_values);
+        [search_tree new_node_id] = search_tree.addnode(next_node_id, node1);
 
         % Update new leaves to be expanded 
-        node_list = [node_list, node1.id];
+        node_list = [node_list, cur_id];
         
         
         cur_poses = [];
