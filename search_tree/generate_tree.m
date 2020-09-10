@@ -36,7 +36,8 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     
     cur_poses = init_poses;
     
-    parent = 0;
+    next_node_id = 0;
+    depth = 0;
     
     cur_poses = [];
         
@@ -54,17 +55,17 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     is_goals = is_goal(cur_poses, target_poses, offset);
     
     % Create digraph with root node
-    node1 = node(id, 0, trims, xs, ys, yaws, g_values, h_values);
+    node1 = node(depth, trims, xs, ys, yaws, g_values, h_values);
     search_tree = tree(node1);
     
     % Array storing ids of nodes that may be expanded
-    leaf_nodes = [node1.id];
+    leaf_nodes = [id];
     
     % Array storing ids of nodes that were visited
     visited_nodes = [];
     
     % loop condition
-    tf1 = (search_tree.depth() < search_depth);
+    tf1 = (search_tree.Node{id}.depth < search_depth);
     tf2 = (sum(is_goals) == n_veh);
     tf3 = isempty(leaf_nodes);
     
@@ -75,17 +76,15 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     while loop
         
         % get next node for expansion
-        parent = graph_searchF(search_tree, leaf_nodes);
+        next_node_id = graph_searchF(search_tree, leaf_nodes);
         
         % Delete chosen entry from list of expandable nodes
-        leaf_nodes(leaf_nodes == parent) = [];
+        leaf_nodes(leaf_nodes == next_node_id) = [];
         
-        [leaf_nodes, search_tree, id, is_goals] = expand_tree(leaf_nodes, search_tree, parent, combined_graph, trim_length, target_poses, visited_nodes, id, is_goals, is_collisionF);
+        [leaf_nodes, search_tree, id, is_goals] = expand_tree(leaf_nodes, search_tree, next_node_id, combined_graph, trim_length, target_poses, visited_nodes, id, is_goals, is_collisionF);
         
-        visited_nodes = [visited_nodes, parent];
+        visited_nodes = [visited_nodes, next_node_id];
         
-        parent = NaN;
-
         % loop condition
         tf1 = (search_tree.depth() < search_depth);
         tf2 = (sum(is_goals) == n_veh);
