@@ -26,7 +26,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     goal = zeros(n_veh,1);
     
     % high but should be unnecessary
-    hvalues = Inf(n_veh,1).';
+    h_values = Inf(n_veh,1).';
     
     trims = trim_indices;
     
