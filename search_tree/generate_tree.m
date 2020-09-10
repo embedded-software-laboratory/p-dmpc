@@ -55,7 +55,7 @@ function search_tree = generate_tree(init_poses, target_poses, trim_indices, com
     is_goals = is_goal(cur_poses, target_poses, offset);
     
     % Create digraph with root node
-    node1 = node(depth, trims, xs, ys, yaws, g_values, hvalues);
+    node1 = node(depth, trims, xs, ys, yaws, g_values, h_values);
     search_tree = tree(node1);
     
     % Array storing ids of nodes that may be expanded
