@@ -65,7 +65,7 @@ motionGraphList = [motionGraph1, motionGraph1, motionGraph1];
 
 % Combine graphs
 combinedGraph = CombinedGraph(motionGraphList);
-
+tic
 search_tree = generate_tree(init_poses, target_poses, trim_indices, combinedGraph, depth, @is_collision, @get_next_node_weighted_astar);
-
+toc
 search_paths = return_path(search_tree);

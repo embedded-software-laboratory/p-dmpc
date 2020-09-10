@@ -3,8 +3,7 @@ classdef node
     %   Detailed explanation goes here
     
     properties
-        id
-        parent
+        depth
         trims
         xs
         ys
@@ -14,11 +13,10 @@ classdef node
     end
     
     methods
-        function obj = node(id, parent, trims, xs, ys, yaws, g_values, h_values)
+        function obj = node(depth, trims, xs, ys, yaws, g_values, h_values)
             %NODE Construct an instance of this class
             %   Detailed explanation goes here
-            obj.id = id;
-            obj.parent = parent;
+            obj.depth = depth;
             obj.trims = trims;
             obj.xs = xs;
             obj.ys = ys;
