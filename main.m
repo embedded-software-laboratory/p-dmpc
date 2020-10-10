@@ -22,9 +22,6 @@ while(~isempty(answer))
     elseif (answer{1} == '3')
         test3;
     else
-        %% Define scenario
-        % Obstacles
-
         % Vehicles
         nVeh = 3;
         scenario = Scenario(2*pi/nVeh*(1:nVeh));

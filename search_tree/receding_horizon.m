@@ -27,7 +27,7 @@ search_tree = search_tree.addnode(cur_depth, search_window.Node{next_node_id});
 cur_depth = cur_depth + 1;
 
 % Check if the vehicle reached the destination
-offset = 2 * ones(1, n_veh);
+offset = ones(1, n_veh);
 is_goals = is_goal(poses, target_poses, offset);
 while(sum(is_goals) ~= n_veh)
     
@@ -45,8 +45,12 @@ while(sum(is_goals) ~= n_veh)
     
     is_goals = is_goal(poses, target_poses, offset); 
     if(sum(is_goals) == n_veh)
-        length_tree = length(search_tree.Node);
-        search_tree = search_tree.graft(length_tree, search_window);
+        search_path = findpath(search_window, 1, length(search_window.Node));
+        length_path = length(search_path);
+        for i = 2:length_path
+            search_tree = search_tree.addnode(cur_depth, search_window.Node{search_path(i)});
+            cur_depth = cur_depth + 1;
+        end
         break;
     end
     
