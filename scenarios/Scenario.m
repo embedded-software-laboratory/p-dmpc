@@ -14,7 +14,7 @@ classdef Scenario
                 veh.x_start = -c*radius;
                 veh.y_start = -s*radius;
                 veh.heading = the_angle;
-                veh.trim_config = 1;
+                veh.trim_config = 5;
                 veh.referenceTrajectory = [-c*radius -s*radius;c*radius s*radius]; 
                 obj.vehicles = [obj.vehicles, veh];
             end

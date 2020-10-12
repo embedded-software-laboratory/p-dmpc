@@ -1,4 +1,4 @@
-function [search_tree, parents] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF)
+function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF)
 %RECEDING_HORIZON Explore path to target using a receding horizon 
 
 % Initial search
@@ -26,6 +26,9 @@ trims = search_window.Node{next_node_id}.trims;
 search_tree = search_tree.addnode(cur_depth, search_window.Node{next_node_id});
 cur_depth = cur_depth + 1;
 
+% Visualize
+visualize_step(search_tree, cur_depth, combined_graph);
+
 % Check if the vehicle reached the destination
 offset = ones(1, n_veh);
 is_goals = is_goal(poses, target_poses, offset);
@@ -50,7 +53,11 @@ while(sum(is_goals) ~= n_veh)
         for i = 2:length_path
             search_tree = search_tree.addnode(cur_depth, search_window.Node{search_path(i)});
             cur_depth = cur_depth + 1;
+            
+            % Visualize
+            visualize_step(search_tree, cur_depth, combined_graph);
         end
+        
         break;
     end
     
@@ -69,11 +76,14 @@ while(sum(is_goals) ~= n_veh)
     search_tree = search_tree.addnode(cur_depth, search_window.Node{next_node_id});
     cur_depth = cur_depth + 1;
     
+    % Visualize
+    visualize_step(search_tree, cur_depth, combined_graph);
+    
     % Update our loop condition
     is_goals = is_goal(poses, target_poses, offset);
 end
 
-parents = search_tree.Parent(2:end);
+
 
 end
 

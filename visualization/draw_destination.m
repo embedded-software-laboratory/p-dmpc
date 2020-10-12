@@ -1,0 +1,23 @@
+function draw_destination(target_poses)
+%DRAW_DESTINATION Plots a circle at the target positions
+    n_veh = length(target_poses);
+    vehColors = [0.8941    0.1020    0.1098;...
+                 0.2157    0.4941    0.7216;...
+                 0.3020    0.6863    0.2902;...
+                 0.5961    0.3059    0.6392;...
+                 1.0000    0.4980    0     ;...
+                 1.0000    1.0000    0.2000;...
+                 0.6510    0.3373    0.1569;...
+                 0.9686    0.5059    0.7490];
+                        
+    for i = 1 : n_veh
+        hold on
+        cur_color = vehColors(mod(i-1,size(vehColors,1))+1,:);
+        radius = 1;
+        center = [target_poses(i).x, target_poses(i).y];
+        position = [center - radius, 2*radius, 2*radius];
+        rectangle('Position',position,'Curvature',[1 1], 'EdgeColor', cur_color);
+        text(center(1)+radius,center(2)+0.5*radius,'DestVeh:' + string(i));
+    end
+end
+

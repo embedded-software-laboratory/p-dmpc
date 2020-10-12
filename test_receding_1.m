@@ -43,9 +43,7 @@ motionGraphList = [motionGraph1];
 % Combine graphs
 combined_graph = CombinedGraph(motionGraphList);
 axis_size = [-10 20 -10 20];
-[search_tree, parents] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, depth, @is_collision, @get_next_node_weighted_astar);
-
-vis_trajectory(search_tree, parents, combined_graph, target_poses, axis_size);
+search_tree = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, depth, @is_collision, @get_next_node_weighted_astar);
 
 
 %% Log workspace to subfolder 

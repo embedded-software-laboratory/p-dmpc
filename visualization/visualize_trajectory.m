@@ -1,7 +1,6 @@
-function vis_trajectory(search_tree, parents, motion_graph, target_poses, axis_size)
-
+function visualize_trajectory(search_tree, parents, motion_graph)
+   
     paths_cell = return_path(search_tree, motion_graph);
-    figure('units','normalized','outerposition',[0.125 0.125 0.75 0.75])
     pbaspect([1 1 1]);
     n_veh = length(paths_cell);
     vehColors = [0.8941    0.1020    0.1098;...
@@ -14,23 +13,6 @@ function vis_trajectory(search_tree, parents, motion_graph, target_poses, axis_s
                  0.9686    0.5059    0.7490];
     plots = gobjects(1, 2*n_veh);
     descriptions = strings(1, 2*n_veh); 
-    axis(axis_size);
-                        
-    for i = 1 : n_veh
-        hold on
-        cur_color = vehColors(mod(i-1,size(vehColors,1))+1,:);
-        radius = 1;
-        center = [target_poses(i).x, target_poses(i).y];
-        position = [center - radius, 2*radius, 2*radius];
-        rectangle('Position',position,'Curvature',[1 1], 'EdgeColor', cur_color);
-        text(center(1)+radius,center(2)+0.5*radius,'DestVeh:' + string(i));
-        paths = paths_cell{i};
-        pose.x = paths(1,1);
-        pose.y = paths(1,2);
-        pose.yaw = paths(1,3);
-        vis_car(pose, cur_color);
-    end
-    drawnow;
     
     length_parents = length(parents);
     for i = 1 : length_parents
@@ -60,7 +42,6 @@ function vis_trajectory(search_tree, parents, motion_graph, target_poses, axis_s
         pause(0.2);
     end
     
-    
     end_node = search_tree.Node{end};
     pred = search_tree.Parent(end);
     pred_node = search_tree.get(pred);
@@ -72,7 +53,5 @@ function vis_trajectory(search_tree, parents, motion_graph, target_poses, axis_s
         plot(path(:,1), path(:,2), '--','Color', cur_color);
         plot(end_node.xs(i), end_node.ys(i), 'o','Color', cur_color);
     end
-    
-    legend(plots, descriptions);
-    
+        
 end
