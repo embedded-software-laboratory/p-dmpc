@@ -1,5 +1,5 @@
 function visualize_step(search_tree, parent, motion_graph)
-
+    
     pbaspect([1 1 1]);
     n_veh = length(search_tree.Node{1, 1}.trims);
     vehColors = [0.8941    0.1020    0.1098;...
@@ -22,5 +22,5 @@ function visualize_step(search_tree, parent, motion_graph)
         plot(path(:,1), path(:,2), '--','Color', cur_color);
         plot(parent_node.xs(j), parent_node.ys(j), 'o','Color', cur_color);
     end   
-    pause(0.2);
+    pause(0.01);
 end

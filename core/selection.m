@@ -1,4 +1,4 @@
-function scenario = selection
+function options = selection
     %% Choose scenario type
     types = {'Circle'};
 
@@ -6,7 +6,6 @@ function scenario = selection
             scenario_selection = 1;
     end
 
-    dlgtitle = 'Input';
     [scenario_selection,ok] = listdlg(...
             'ListString', types, ...
             'SelectionMode', 'single', ...
@@ -43,6 +42,7 @@ function scenario = selection
         error('Canceled');
     end
     
-    scenario = scenarios{(scenario_selection - 1) * 8 + vehicle_amount,2};
+    options.angles = scenarios{(scenario_selection - 1) * 8 + vehicle_amount,2};
+    options.amount = vehicle_amount;
 end
 
