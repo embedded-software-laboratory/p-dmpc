@@ -89,13 +89,6 @@ function [node_list, search_tree, cur_id, is_goals] = expand_tree(node_list, sea
             
         end
         
-        % if node has vehicle collision -> skip
-        if is_collisionF(node_shapes)
-        
-           continue;
-        
-        end
-        
         next_state.xs = next_xs;
         next_state.ys = next_ys;
         next_state.yaws = next_yaws;
@@ -105,6 +98,13 @@ function [node_list, search_tree, cur_id, is_goals] = expand_tree(node_list, sea
         if is_visited(next_state, search_tree, visited, 0.1)
         
             continue;
+        
+        end
+        
+        % if node has vehicle collision -> skip
+        if is_collisionF(node_shapes)
+        
+           continue;
         
         end
         

@@ -1,7 +1,6 @@
-function visualize_step(search_tree, parent, motion_graph)
+function visualize_step(search_tree, parent, motion_graph, time_elapsed)
     
-    
-    title("Iteration: " + parent);
+    title("Iteration: " + parent + ", Time: " + time_elapsed);
     n_veh = length(search_tree.Node{1, 1}.trims);
     vehColors = [0.8941    0.1020    0.1098;...
                  0.2157    0.4941    0.7216;...
