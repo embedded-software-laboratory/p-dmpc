@@ -3,14 +3,16 @@ function scenario = run_simulation(options)
     [init_poses, target_poses] = create_poses(scenario);
     
     depth = 3;
-    trim_indices = 5 * ones(options.amount);
+    trim_indices = 4 * ones(1, options.amount);
 
     % make motionGraph Tupel
-    motionGraphList = create_motion_graph_list('trim_set_6_1', options.amount);
+    motionGraphList = create_motion_graph_list('trim_set_4_1', options.amount);
 
     % Set figure
     figure('units','normalized','outerposition',[0.125 0.125 0.75 0.75]);
-    axis([-30 30 -30 30]);
+    pbaspect([1 1 1]);
+    axis([-35 35 -35 35]);
+    title("Iteration: 0");
     draw_destination(target_poses);
     draw_cars(init_poses);
     

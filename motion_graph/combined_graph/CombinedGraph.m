@@ -17,7 +17,7 @@ classdef CombinedGraph
             obj.trimTuple = compute_trim_product(obj.motionGraphList);
             
             % compute maneuver matrix for trimProduct
-            obj.transitionMatrix = compute_product_maneuver_matrix(obj.trimTuple, obj.motionGraphList);
+            obj.transitionMatrix = compute_product_maneuver_matrix(obj.motionGraphList);
             
         end
    

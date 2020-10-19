@@ -87,7 +87,7 @@ function [search_tree, leaf_nodes] = generate_tree(init_poses, target_poses, tri
         visited_nodes = [visited_nodes, next_node_id];
         
         % loop condition
-        tf1 = (search_tree.depth() < search_depth);
+        tf1 = (search_tree.Node{id}.depth < search_depth);
         tf2 = (sum(is_goals) == n_veh);
         tf3 = isempty(leaf_nodes);
 
