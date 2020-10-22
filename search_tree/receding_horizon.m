@@ -10,7 +10,7 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
     time = 0;
 
     % Check if the vehicle reached the destination
-    offset = ones(1, n_veh);
+    offset = 2*ones(1, n_veh);
     is_goals = is_goal(init_poses, target_poses, offset);
     while(sum(is_goals) ~= n_veh)
 
