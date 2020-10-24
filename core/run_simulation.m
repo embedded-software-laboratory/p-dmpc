@@ -2,12 +2,11 @@ function scenario = run_simulation(options)
     scenario = Scenario(options.angles);
     [init_poses, target_poses] = create_poses(scenario);
     
-    depth = 4;
-    trim_indices = 2 * ones(1, options.amount);
+    depth = 3;
+    trim_indices = 4 * ones(1, options.amount);
 
     % make motionGraph Tupel
-    trim_set = 'trim_set_3_1';
-    motionGraphList = create_motion_graph_list(trim_set, options.amount);
+    motionGraphList = create_motion_graph_list('trim_set_4_1', options.amount);
 
     % Set figure
     figure('units','normalized','outerposition',[0.125 0.125 0.75 0.75]);
@@ -24,7 +23,7 @@ function scenario = run_simulation(options)
     %% Log workspace to subfolder 
     st = dbstack;
     namestr = st(1).name;
-    sub_folder = './logs/' + string(namestr) + '_' + trim_set + '_circle_' + string(options.amount) + '_depth_' + string(depth);
+    sub_folder = './logs/' + string(namestr) + '_circle_' + string(options.amount) + '_depth_' + string(depth);
     file_name = fullfile(sub_folder,'data');
     fig_name = fullfile(sub_folder,'fig');
 
