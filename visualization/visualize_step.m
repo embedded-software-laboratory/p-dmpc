@@ -21,13 +21,10 @@ function visualize_step(search_tree, parent, motion_graph, time_elapsed)
         for j = 1 : n_veh
             cur_color = vehColors(mod(j-1,size(vehColors,1))+1,:);
             path = path_cell{j};
-            plot(path(:,1), path(:,2), '--','Color', cur_color);
-            plot(parent_node.xs(j), parent_node.ys(j), 'o','Color', cur_color);
-        end   
-    else
-        for j = 1 : n_veh
-            cur_color = vehColors(mod(j-1,size(vehColors,1))+1,:);
-            plot(parent_node.xs(j), parent_node.ys(j), 'o','Color', cur_color);
+            if(~isempty(path))
+                plot(path(:,1), path(:,2), '-','Color', cur_color); 
+                plot(parent_node.xs(j), parent_node.ys(j), 'o','Color', cur_color, 'MarkerSize',3,'MarkerFaceColor', cur_color);
+            end
         end   
     end
     pause(0.01);

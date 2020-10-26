@@ -3,16 +3,10 @@ function search_path = path_between(cur_node,next_node, search_tree, motion_grap
 
     n_veh = length(search_tree.Node{1, 1}.trims);
     search_path = cell(1, n_veh);
-
-        
-    for i = 1:n_veh
-                         
-            cur_trim = cur_node.trims(i);
-            next_trim = next_node.trims(i);
-            
-            maneuver = motion_graph.motionGraphList(i).maneuvers{cur_trim, next_trim};
-            
-            assert(~isempty(maneuver),'manuevers{%d, %d} is empty.',cur_trim, next_trim);
+    for i = 1:n_veh        
+        if(cur_node.xs(i) ~= next_node.xs(i) || cur_node.ys(i) ~= next_node.ys(i))
+            maneuver = motion_graph.motionGraphList(i).maneuvers{cur_node.trims(i), next_node.trims(i)};
+            assert(~isempty(maneuver),'manuevers{%d, %d} is empty.',cur_node.trims(i), next_node.trims(i));
             
             x = cur_node.xs(i);
             y = cur_node.ys(i);
@@ -23,7 +17,7 @@ function search_path = path_between(cur_node,next_node, search_tree, motion_grap
             yaws = maneuver.yaws + yaw;       
             
             length_maneuver = length(xs);
-            trims = cur_trim * ones(length_maneuver, 1);
+            trims = cur_node.trims(i) * ones(length_maneuver, 1);
             
             [xs, ys] = translate_global(yaw, x, y, xs, ys);
             
@@ -31,8 +25,7 @@ function search_path = path_between(cur_node,next_node, search_tree, motion_grap
             ys = ys.';
 
             search_path(i) = {[xs, ys, yaws, trims]};
-
+        end
     end
-
 end
 

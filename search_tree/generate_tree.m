@@ -22,12 +22,12 @@ function [search_tree, leaf_nodes] = generate_tree(init_poses, target_poses, tri
     % Initialize node table values
     id = 1;
     
-    g_values = zeros(n_veh,1).';
+    g_values = zeros(1,n_veh);
     
     goal = zeros(n_veh,1);
     
     % high but should be unnecessary
-    hvalues = Inf(n_veh,1).';
+    hvalues = Inf(1,n_veh);
     
     trims = trim_indices;
     

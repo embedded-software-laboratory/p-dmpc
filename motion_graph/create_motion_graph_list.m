@@ -1,6 +1,6 @@
 function motionGraphList = create_motion_graph_list(trim_set, vehicle_amount)
     model = BicycleModel(2.2,2.2);
-    primitive_dt = 1;
+    primitive_dt = 0.4;
     load(trim_set);
 
     motionGraphList = [];

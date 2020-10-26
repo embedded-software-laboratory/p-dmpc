@@ -2,12 +2,12 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
 %RECEDING_HORIZON Explore path to target using a receding horizon 
 
     % Initialize
-    search_tree = tree();
-    cur_depth = 0;
+    n_veh = length(combined_graph.motionGraphList);
+    cur_depth = 1;
+    time = 0;
+    search_tree = tree(node(0, trim_indices, [init_poses(1:end).x], [init_poses(1:end).y], [init_poses(1:end).yaw], zeros(1,n_veh), Inf(1,n_veh)));
     poses = init_poses;
     trims = trim_indices;
-    n_veh = length(combined_graph.motionGraphList);
-    time = 0;
 
     % Check if the vehicle reached the destination
     offset = ones(1, n_veh);
@@ -36,8 +36,7 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
             search_path = findpath(search_window, 1, length(search_window.Node));
             length_path = length(search_path);
             for i = 2:length_path
-                search_tree = search_tree.addnode(cur_depth, search_window.Node{search_path(i)});
-                cur_depth = cur_depth + 1;
+                [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{search_path(i)});
 
                 % Visualize
                 time_elapsed = toc(timer);
@@ -59,8 +58,7 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
         trims = search_window.Node{next_node_id}.trims;
 
         % Add node to tree
-        search_tree = search_tree.addnode(cur_depth, search_window.Node{next_node_id});
-        cur_depth = cur_depth + 1;
+        [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{next_node_id});
         
         % Visualize
         time_elapsed = toc(timer);
