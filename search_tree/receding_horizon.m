@@ -15,7 +15,6 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
     while(sum(is_goals) ~= n_veh)
 
         % Continue receding horizon search
-        timer = tic;
         [search_window, leaf_nodes] = generate_tree(poses, target_poses, trims, combined_graph, search_depth, is_collisionF, graph_searchF);
         if(~isempty(leaf_nodes))
             node_id = get_next_node_weighted_astar(search_window, leaf_nodes);
@@ -39,9 +38,7 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
                 [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{search_path(i)});
 
                 % Visualize
-                time_elapsed = toc(timer);
-                time = time + time_elapsed;
-                visualize_step(search_tree, cur_depth, combined_graph, time);
+                visualize_step(search_tree, cur_depth, combined_graph);
             end
             return
         end
@@ -61,9 +58,7 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
         [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{next_node_id});
         
         % Visualize
-        time_elapsed = toc(timer);
-        time = time + time_elapsed;
-        visualize_step(search_tree, cur_depth, combined_graph, time);
+        visualize_step(search_tree, cur_depth, combined_graph);
 
         % Update our loop condition
         is_goals = is_goal(poses, target_poses, offset);
