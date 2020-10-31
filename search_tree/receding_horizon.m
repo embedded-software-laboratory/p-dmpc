@@ -3,8 +3,11 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
 
     % Initialize
     n_veh = length(combined_graph.motionGraphList);
+    p = gobjects(1, n_veh);
+    for i = 1:n_veh
+        p(i) = plot(init_poses(i).x, init_poses(i).y);
+    end
     cur_depth = 1;
-    time = 0;
     search_tree = tree(node(0, trim_indices, [init_poses(1:end).x], [init_poses(1:end).y], [init_poses(1:end).yaw], zeros(1,n_veh), Inf(1,n_veh)));
     poses = init_poses;
     trims = trim_indices;
@@ -13,7 +16,6 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
     offset = ones(1, n_veh);
     is_goals = is_goal(init_poses, target_poses, offset);
     while(sum(is_goals) ~= n_veh)
-
         % Continue receding horizon search
         [search_window, leaf_nodes] = generate_tree(poses, target_poses, trims, combined_graph, search_depth, is_collisionF, graph_searchF);
         if(~isempty(leaf_nodes))
@@ -38,6 +40,13 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
                 [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{search_path(i)});
 
                 % Visualize
+                path_cell = return_path_to(node_id, search_window, combined_graph);
+                for i = 1:n_veh
+                    path = path_cell{i};
+                    p(i).XData = path(:,1);
+                    p(i).YData = path(:,2);
+                end
+                drawnow;
                 visualize_step(search_tree, cur_depth, combined_graph);
             end
             return
@@ -58,11 +67,17 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
         [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{next_node_id});
         
         % Visualize
+        path_cell = return_path_to(node_id, search_window, combined_graph);
+        for i = 1:n_veh
+            path = path_cell{i};
+            p(i).XData = path(:,1);
+            p(i).YData = path(:,2);
+        end
+        drawnow;
         visualize_step(search_tree, cur_depth, combined_graph);
 
         % Update our loop condition
         is_goals = is_goal(poses, target_poses, offset);
-        
     end
 end
 

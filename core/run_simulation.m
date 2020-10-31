@@ -11,8 +11,8 @@ function scenario = run_simulation(options)
 
     % Set figure
     figure('units','normalized','outerposition',[0.125 0.125 0.75 0.75]);
-    pbaspect([1 1 1]);
     axis([-35 35 -35 35]);
+    pbaspect([1 1 1]);
     title("Iteration: 0, Time: 0");
     draw_destination(target_poses);
     draw_cars(init_poses);
