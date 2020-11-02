@@ -76,7 +76,7 @@ function [node_list, search_tree, cur_id, is_goals] = expand_tree(node_list, sea
             last_pose.x = x;
             last_pose.y = y;
             
-            [gvalue, hvalue] = calculate_next_values_time(parent_g_values(j), 3, next_pose, target_poses(j));
+            [gvalue, hvalue] = calculate_next_values_time(parent_g_values(j), next_pose, target_poses(j));
             
             next_g_values(j) = gvalue;
             next_h_values(j) = hvalue;
@@ -134,7 +134,7 @@ function [node_list, search_tree, cur_id, is_goals] = expand_tree(node_list, sea
         
         offset = ones(1, n_veh);
 
-        is_goals = is_goal(cur_poses, target_poses, offset);
+        is_goals = is_goal(cur_poses, target_poses);
         
         if sum(is_goals) == n_veh
         

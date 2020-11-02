@@ -3,7 +3,7 @@ function scenario = run_simulation(options)
     [init_poses, target_poses] = create_poses(scenario);
     
     depth = 3;
-    trim_indices = 2 * ones(1, options.amount);
+    trim_indices = ones(1, options.amount);
 
     % make motionGraph Tupel
     trim_set = 'trim_set_3_1';
@@ -19,7 +19,7 @@ function scenario = run_simulation(options)
     
     % Combine graphs
     combined_graph = CombinedGraph(motionGraphList);
-    search_tree = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, depth, @is_collision, @get_next_node_weighted_astar);
+    search_tree = receding_horizon(init_poses, target_poses, trim_indices, combined_graph);
     
     %% Log workspace to subfolder 
     st = dbstack;

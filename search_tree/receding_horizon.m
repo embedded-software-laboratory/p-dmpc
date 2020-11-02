@@ -1,4 +1,4 @@
-function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, search_depth, is_collisionF, graph_searchF)
+function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph)
 %RECEDING_HORIZON Explore path to target using a receding horizon 
 
     % Initialize
@@ -13,11 +13,10 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
     trims = trim_indices;
 
     % Check if the vehicle reached the destination
-    offset = ones(1, n_veh);
-    is_goals = is_goal(init_poses, target_poses, offset);
+    is_goals = is_goal(init_poses, target_poses);
     while(sum(is_goals) ~= n_veh)
         % Continue receding horizon search
-        [search_window, leaf_nodes] = generate_tree(poses, target_poses, trims, combined_graph, search_depth, is_collisionF, graph_searchF);
+        [search_window, leaf_nodes] = generate_horizon(poses, target_poses, trims, combined_graph);
         if(~isempty(leaf_nodes))
             node_id = get_next_node_weighted_astar(search_window, leaf_nodes);
         else
@@ -32,7 +31,7 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
             poses(i).yaw = final_node.yaws(i);
         end
 
-        is_goals = is_goal(poses, target_poses, offset); 
+        is_goals = is_goal(poses, target_poses); 
         if(sum(is_goals) == n_veh)
             search_path = findpath(search_window, 1, length(search_window.Node));
             length_path = length(search_path);
@@ -77,7 +76,7 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
         visualize_step(search_tree, cur_depth, combined_graph);
 
         % Update our loop condition
-        is_goals = is_goal(poses, target_poses, offset);
+        is_goals = is_goal(poses, target_poses);
     end
 end
 
