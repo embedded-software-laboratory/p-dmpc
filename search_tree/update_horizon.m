@@ -1,5 +1,9 @@
-function [search_tree, leaf_nodes, success] = update_horizon(leaf_nodes, node_id, search_tree, motion_graph, target_poses)
+function [leaf_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, search_tree, next_id, motion_graph, target_poses, visited_nodes, max_id, is_goals)
         
+    n_veh = length(motion_graph.motionGraphList);
+    next_poses = node2poses(cur_node);
+    visited = true;
+    
     for j = 1 : n_veh
             
         if is_goals(j)
@@ -22,14 +26,21 @@ function [search_tree, leaf_nodes, success] = update_horizon(leaf_nodes, node_id
         [shape_x, shape_y] = translate_global(next_node.yaws(j), next_node.xs(j), next_node.ys(j), maneuver.area(1,:), maneuver.area(2,:));
         shape = polyshape(shape_x,shape_y,'Simplify',false);
         node_shapes{j} = shape;
+        
+        % Check if similar state was visited until difference occurs
+        if visited
+            visited = has_visited(j, next_node, search_tree, visited_nodes, 0.1);
+        end
+        
+        % Abort update if collision is detected
+        if collision_with(j, node_shapes)
+                    return
+        end
     end
-
-    if is_visited(next_node, search_tree, visited, 0.1)
+    
+    % Similar state was already explored
+    if visited
         return
-    end
-
-    if is_collision(node_shapes)
-       return
     end
 
     next_node.depth = cur_node.depth + 1;
