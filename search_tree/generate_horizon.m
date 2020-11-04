@@ -27,8 +27,7 @@ function [search_tree, leaf_nodes] = generate_horizon(init_poses, target_poses, 
     % Array storing ids of nodes that were visited
     visited_nodes = [];
     
-    % Initialize 
-    offset = ones(1, n_veh);
+    % Initialize
     is_goals = is_goal(init_poses, target_poses);
     
     % Expand leaves of tree until depth or target is reached or until there 
@@ -37,17 +36,12 @@ function [search_tree, leaf_nodes] = generate_horizon(init_poses, target_poses, 
                
         % Delete chosen entry from list of expandable nodes
         leaf_nodes(leaf_nodes == next_node_id) = [];
-        [leaf_nodes, search_tree, id, is_goals] = expand_tree(leaf_nodes, search_tree, next_node_id, combined_graph, ...
-                                                              trim_length, target_poses, visited_nodes, id, is_goals, ...
-                                                              @is_collision);
+        [leaf_nodes, search_tree, id, is_goals] = expand_horizon(leaf_nodes, search_tree, next_node_id, combined_graph, ...
+                                                              trim_length, target_poses, visited_nodes, id, is_goals);
         
         visited_nodes = [visited_nodes, next_node_id];       
         
         % get next node for expansion
         next_node_id = get_next_node_weighted_astar(search_tree, leaf_nodes);
     end 
-    
-    if ~(sum(is_goals) == n_veh)
-        [search_tree, leaf_nodes] = extend_horizon(leaf_nodes, search_tree, combined_graph, target_poses);
-    end
 end
