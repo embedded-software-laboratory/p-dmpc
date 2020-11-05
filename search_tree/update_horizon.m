@@ -27,14 +27,14 @@ function [leaf_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, 
         shape = polyshape(shape_x,shape_y,'Simplify',false);
         node_shapes{j} = shape;
         
-        % Check if similar state was visited until difference occurs
-        if visited
-            visited = has_visited(j, next_node, search_tree, visited_nodes, 0.1);
-        end
-        
         % Abort update if collision is detected
         if collision_with(j, node_shapes)
                     return
+        end
+        
+        % Check if similar state was visited until difference occurs
+        if visited
+            visited = has_visited(j, next_node, search_tree, visited_nodes, 0.1);
         end
     end
     

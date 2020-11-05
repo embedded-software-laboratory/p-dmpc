@@ -39,7 +39,7 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
                 [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{search_path(i)});
 
                 % Visualize
-                path_cell = return_path_to(node_id, search_window, combined_graph);
+                path_cell = return_path(search_window, combined_graph);
                 for i = 1:n_veh
                     path = path_cell{i};
                     p(i).XData = path(:,1);
