@@ -15,13 +15,27 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
     % Check if the vehicle reached the destination
     is_goals = is_goal(init_poses, target_poses);
     while(sum(is_goals) ~= n_veh)
+               
         % Continue receding horizon search
         [search_window, leaf_nodes] = generate_horizon(poses, target_poses, trims, combined_graph);
+               
         if(~isempty(leaf_nodes))
             node_id = get_next_node_weighted_astar(search_window, leaf_nodes);
         else
             return
         end
+        
+        % Visualize Horizon
+        path_cell = return_path_to(node_id, search_window, combined_graph);
+        for i = 1:n_veh
+            path = path_cell{i};
+            p(i).XData = path(:,1);
+            p(i).YData = path(:,2);
+        end
+        drawnow;
+        
+        % Visualize Path before addition to properly display horizon
+        visualize_step(search_tree, cur_depth, combined_graph);
 
         % Check if we already reached our destination
         final_node = search_window.Node{end};
@@ -35,15 +49,15 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
         if(sum(is_goals) == n_veh)
             search_path = findpath(search_window, 1, length(search_window.Node));
             length_path = length(search_path);
-            for i = 2:length_path
+            for i = 1:length_path
                 [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{search_path(i)});
 
                 % Visualize
                 path_cell = return_path(search_window, combined_graph);
-                for i = 1:n_veh
-                    path = path_cell{i};
-                    p(i).XData = path(:,1);
-                    p(i).YData = path(:,2);
+                for j = 1:n_veh
+                    path = path_cell{j};
+                    p(j).XData = path(:,1);
+                    p(j).YData = path(:,2);
                 end
                 drawnow;
                 visualize_step(search_tree, cur_depth, combined_graph);
@@ -64,19 +78,8 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
 
         % Add node to tree
         [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{next_node_id});
-        
-        % Visualize
-        path_cell = return_path_to(node_id, search_window, combined_graph);
-        for i = 1:n_veh
-            path = path_cell{i};
-            p(i).XData = path(:,1);
-            p(i).YData = path(:,2);
-        end
-        drawnow;
-        visualize_step(search_tree, cur_depth, combined_graph);
 
         % Update our loop condition
         is_goals = is_goal(poses, target_poses);
     end
 end
-
