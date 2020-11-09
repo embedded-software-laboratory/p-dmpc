@@ -1,4 +1,4 @@
-function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph)
+function video = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, video)
 %RECEDING_HORIZON Explore path to target using a receding horizon 
 
     % Initialize
@@ -36,6 +36,8 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
         
         % Visualize Path before addition to properly display horizon
         visualize_step(search_tree, cur_depth, combined_graph);
+        frame = getframe(gcf);
+        writeVideo(video, frame);
 
         % Check if we already reached our destination
         final_node = search_window.Node{end};
@@ -61,6 +63,8 @@ function [search_tree] = receding_horizon(init_poses, target_poses, trim_indices
                 end
                 drawnow;
                 visualize_step(search_tree, cur_depth, combined_graph);
+                frame = getframe(gcf);
+                writeVideo(video, frame);
             end
             return
         end

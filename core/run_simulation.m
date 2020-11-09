@@ -17,14 +17,27 @@ function scenario = run_simulation(options)
     draw_destination(target_poses);
     draw_cars(init_poses);
     
-    % Combine graphs
-    combined_graph = CombinedGraph(motionGraphList);
-    search_tree = receding_horizon(init_poses, target_poses, trim_indices, combined_graph);
-    
-    %% Log workspace to subfolder 
+    % Create log folder
     st = dbstack;
     namestr = st(1).name;
-    sub_folder = './logs/' + string(namestr) + '_' + trim_set + '_circle_' + string(options.amount) + '_depth_' + string(depth);
+    sub_folder = './logs/' + string(namestr) + '_' + string(trim_set) + '_circle_' + string(options.amount) + '_depth_' + string(depth);
+    
+    if ~exist(sub_folder, 'dir')
+        mkdir(sub_folder)
+    end
+    
+    % Initialize video
+    video_name = fullfile(sub_folder,'video');
+    video = VideoWriter(video_name);
+    video.FrameRate = 5;
+    open(video)
+
+    % Combine graphs
+    combined_graph = CombinedGraph(motionGraphList);
+    video = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, video);
+    close(video);
+    
+    % Log workspace to subfolder 
     file_name = fullfile(sub_folder,'data');
     fig_name = fullfile(sub_folder,'fig');
 
