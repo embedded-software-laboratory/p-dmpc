@@ -1,23 +1,13 @@
-function [search_tree, leaf_nodes] = generate_horizon(init_poses, target_poses, trim_indices, combined_graph)
+function [search_tree, leaf_nodes] = generate_horizon(init_poses, target_poses, cur_node, trim_indices, combined_graph)
 
     n_veh = length(combined_graph.motionGraphList);
     trim_length = zeros(1, n_veh);
     for i = 1 : n_veh
         trim_length(i) = length(combined_graph.motionGraphList(i).trims);
     end
-
-    % Initialize node table values
-    g_values = zeros(1,n_veh);
-    hvalues = Inf(1,n_veh);
-    trims = trim_indices;
-    xs = [init_poses(1:n_veh).x];
-    ys = [init_poses(1:n_veh).y];
-    yaws = [init_poses(1:n_veh).yaw];
-    depth = 0;
     
     % Create tree with root node
-    node1 = node(depth, trims, xs, ys, yaws, g_values, hvalues);
-    search_tree = tree(node1);
+    search_tree = tree(node(0, trim_indices, cur_node.xs, cur_node.ys, cur_node.yaws, cur_node.g_values, cur_node.h_values));
     
     % Array storing ids of nodes that may be expanded
     id = 1;
@@ -28,7 +18,8 @@ function [search_tree, leaf_nodes] = generate_horizon(init_poses, target_poses, 
     visited_nodes = [];
     
     % Initialize
-    is_goals = is_goal(init_poses, target_poses);
+    cur_poses = node2poses(cur_node);
+    is_goals = is_goal(cur_poses, target_poses);
     
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
@@ -37,11 +28,11 @@ function [search_tree, leaf_nodes] = generate_horizon(init_poses, target_poses, 
         % Delete chosen entry from list of expandable nodes
         leaf_nodes(leaf_nodes == next_node_id) = [];
         [leaf_nodes, search_tree, id, is_goals] = expand_horizon(leaf_nodes, search_tree, next_node_id, combined_graph, ...
-                                                              trim_length, target_poses, visited_nodes, id, is_goals);
+                                                              trim_length, init_poses, target_poses, visited_nodes, id, is_goals);
         
         visited_nodes = [visited_nodes, next_node_id];       
         
         % get next node for expansion
-        next_node_id = get_next_node_weighted_astar(search_tree, leaf_nodes);
+        next_node_id = get_next_node(search_tree, leaf_nodes);
     end 
 end

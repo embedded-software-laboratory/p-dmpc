@@ -1,4 +1,4 @@
-function [leaf_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, search_tree, next_id, motion_graph, target_poses, visited_nodes, max_id, is_goals)
+function [leaf_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, search_tree, next_id, motion_graph, init_poses, target_poses, visited_nodes, max_id, is_goals)
         
     n_veh = length(motion_graph.motionGraphList);
     next_poses = node2poses(cur_node);
@@ -21,7 +21,7 @@ function [leaf_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, 
         next_poses(j).x = next_node.xs(j);
         next_poses(j).y = next_node.ys(j);
 
-        [next_node.g_values(j), next_node.h_values(j)] = calculate_next_values_time(cur_node.g_values(j), next_poses(j), target_poses(j));
+        [next_node.g_values(j), next_node.h_values(j)] = calculate_next_values_reference(cur_node.g_values(j), init_poses(j), target_poses(j), next_poses(j));
 
         [shape_x, shape_y] = translate_global(next_node.yaws(j), next_node.xs(j), next_node.ys(j), maneuver.area(1,:), maneuver.area(2,:));
         shape = polyshape(shape_x,shape_y,'Simplify',false);
