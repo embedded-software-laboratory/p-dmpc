@@ -8,7 +8,7 @@ function video = receding_horizon(init_poses, target_poses, trim_indices, combin
         p(i) = plot(init_poses(i).x, init_poses(i).y);
     end
     cur_depth = 1;
-    cur_node = node(0, trim_indices, [init_poses(1:end).x], [init_poses(1:end).y], [init_poses(1:end).yaw], zeros(1,n_veh), Inf(1,n_veh));
+    cur_node = node(0, trim_indices, [init_poses(1:end).x], [init_poses(1:end).y], [init_poses(1:end).yaw], zeros(1,n_veh), zeros(1,n_veh));
     search_tree = tree(cur_node);
     cur_poses = init_poses;
     trims = trim_indices;
@@ -73,17 +73,16 @@ function video = receding_horizon(init_poses, target_poses, trim_indices, combin
         % Determine next node
         search_path = findpath(search_window, 1, node_id);
         next_node_id = search_path(2);
-        next_node = search_window.Node{next_node_id};
-        cur_node = next_node;
+        cur_node = search_window.Node{next_node_id};
         for i = 1:n_veh
-            cur_poses(i).x = next_node.xs(i);
-            cur_poses(i).y = next_node.ys(i);
-            cur_poses(i).yaw = next_node.yaws(i);
+            cur_poses(i).x = cur_node.xs(i);
+            cur_poses(i).y = cur_node.ys(i);
+            cur_poses(i).yaw = cur_node.yaws(i);
         end
         trims = search_window.Node{next_node_id}.trims;
 
         % Add node to tree
-        [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{next_node_id});
+        [search_tree, cur_depth] = search_tree.addnode(cur_depth, cur_node);
 
         % Update our loop condition
         is_goals = is_goal(cur_poses, target_poses);
