@@ -4,8 +4,13 @@ function video = receding_horizon(init_poses, target_poses, trim_indices, combin
     % Initialize
     n_veh = length(combined_graph.motionGraphList);
     p = gobjects(1, n_veh);
+    g = gobjects(1, n_veh);
     for i = 1:n_veh
-        p(i) = plot(init_poses(i).x, init_poses(i).y);
+        cur_color = vehColor(i);
+        p(i) = plot(init_poses(i).x, init_poses(i).y, '-','Color', cur_color);
+        p(i).Color(4) = 0.5;
+        g(i) = plot(init_poses(i).x, init_poses(i).y, 'o','Color', cur_color, 'MarkerSize',3,'MarkerFaceColor', cur_color);
+        g(i).Color(4) = 0.5;
     end
     cur_depth = 1;
     search_tree = tree(node(0, trim_indices, [init_poses(1:end).x], [init_poses(1:end).y], [init_poses(1:end).yaw], zeros(1,n_veh), Inf(1,n_veh)));
