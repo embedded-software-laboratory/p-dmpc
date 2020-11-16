@@ -31,5 +31,3 @@ function [leaf_nodes, search_tree, max_id, is_goals] = expand_horizon(leaf_nodes
         [leaf_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, search_tree, next_id, motion_graph, init_poses, target_poses, visited_nodes, max_id, is_goals);
     end
 end
-
-
