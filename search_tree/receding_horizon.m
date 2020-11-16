@@ -13,8 +13,9 @@ function video = receding_horizon(init_poses, target_poses, trim_indices, combin
         g(i).Color(4) = 0.5;
     end
     cur_depth = 1;
-    search_tree = tree(node(0, trim_indices, [init_poses(1:end).x], [init_poses(1:end).y], [init_poses(1:end).yaw], zeros(1,n_veh), Inf(1,n_veh)));
-    poses = init_poses;
+    cur_node = node(0, trim_indices, [init_poses(1:end).x], [init_poses(1:end).y], [init_poses(1:end).yaw], zeros(1,n_veh), zeros(1,n_veh));
+    search_tree = tree(cur_node);
+    cur_poses = init_poses;
     trims = trim_indices;
 
     % Check if the vehicle reached the destination
@@ -22,10 +23,10 @@ function video = receding_horizon(init_poses, target_poses, trim_indices, combin
     while(sum(is_goals) ~= n_veh)
                
         % Continue receding horizon search
-        [search_window, leaf_nodes] = generate_horizon(poses, target_poses, trims, combined_graph);
+        [search_window, leaf_nodes] = generate_horizon(init_poses, target_poses, cur_node, trims, combined_graph);
                
         if(~isempty(leaf_nodes))
-            node_id = get_next_node_weighted_astar(search_window, leaf_nodes);
+            node_id = get_next_node(search_window, leaf_nodes);
         else
             return
         end
@@ -47,12 +48,12 @@ function video = receding_horizon(init_poses, target_poses, trim_indices, combin
         % Check if we already reached our destination
         final_node = search_window.Node{end};
         for i = 1:n_veh
-            poses(i).x = final_node.xs(i);
-            poses(i).y = final_node.ys(i);
-            poses(i).yaw = final_node.yaws(i);
+            cur_poses(i).x = final_node.xs(i);
+            cur_poses(i).y = final_node.ys(i);
+            cur_poses(i).yaw = final_node.yaws(i);
         end
 
-        is_goals = is_goal(poses, target_poses); 
+        is_goals = is_goal(cur_poses, target_poses); 
         if(sum(is_goals) == n_veh)
             search_path = findpath(search_window, 1, length(search_window.Node));
             length_path = length(search_path);
@@ -77,18 +78,18 @@ function video = receding_horizon(init_poses, target_poses, trim_indices, combin
         % Determine next node
         search_path = findpath(search_window, 1, node_id);
         next_node_id = search_path(2);
-        next_node = search_window.Node{next_node_id};
+        cur_node = search_window.Node{next_node_id};
         for i = 1:n_veh
-            poses(i).x = next_node.xs(i);
-            poses(i).y = next_node.ys(i);
-            poses(i).yaw = next_node.yaws(i);
+            cur_poses(i).x = cur_node.xs(i);
+            cur_poses(i).y = cur_node.ys(i);
+            cur_poses(i).yaw = cur_node.yaws(i);
         end
         trims = search_window.Node{next_node_id}.trims;
 
         % Add node to tree
-        [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{next_node_id});
+        [search_tree, cur_depth] = search_tree.addnode(cur_depth, cur_node);
 
         % Update our loop condition
-        is_goals = is_goal(poses, target_poses);
+        is_goals = is_goal(cur_poses, target_poses);
     end
 end
