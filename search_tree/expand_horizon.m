@@ -2,11 +2,9 @@ function [leaf_nodes, search_tree, max_id, is_goals] = expand_horizon(leaf_nodes
     
     n_veh = length(motion_graph.motionGraphList);
     cur_node = search_tree.Node{next_id};
-    next_poses = node2poses(cur_node);
     trim_tuple = motion_graph.trimTuple;
     trim_tuple_size = length(trim_tuple);
     cur_trim_id = tuple2index(cur_node.trims,trim_length);
-    node_shapes = {};
     
     if cur_node.depth < h_u
         for i = 1 : trim_tuple_size

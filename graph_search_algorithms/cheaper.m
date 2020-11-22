@@ -6,7 +6,5 @@ function cond = cheaper(node1,node2)
     if value1 < value2
         cond = true;
     end
-    
-    return
 end
 

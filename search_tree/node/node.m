@@ -8,6 +8,7 @@ classdef node
         xs
         ys
         yaws
+        shapes
         g_values
         h_values
     end
@@ -21,6 +22,10 @@ classdef node
             obj.xs = xs;
             obj.ys = ys;
             obj.yaws = yaws;
+            for i = 1:length(yaws)
+                [shape_x, shape_y] = translate_global(yaws(i), xs(i), ys(i), [-2.2 2.2 -2.2 2.2],[-0.9 -0.9 0.9 0.9]);
+                obj.shapes = [obj.shapes; polyshape(shape_x,shape_y,'Simplify',false)];
+            end
             obj.g_values = g_values;
             obj.h_values = h_values;
         end
