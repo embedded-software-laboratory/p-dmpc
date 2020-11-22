@@ -23,7 +23,7 @@ function video = receding_horizon(init_poses, target_poses, trim_indices, combin
     while(sum(is_goals) ~= n_veh)
                
         % Continue receding horizon search
-        [search_window, leaf_nodes] = generate_horizon(init_poses, target_poses, cur_node, trims, combined_graph);
+        [search_window, leaf_nodes] = generate_horizon(init_poses, target_poses, cur_node, trims, combined_graph, video);
                
         if(~isempty(leaf_nodes))
             node_id = get_next_node(search_window, leaf_nodes);
