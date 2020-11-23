@@ -35,8 +35,10 @@ function video = receding_horizon(init_poses, target_poses, trim_indices, combin
         path_cell = return_path_to(node_id, search_window, combined_graph);
         for i = 1:n_veh
             path = path_cell{i};
-            p(i).XData = path(:,1);
-            p(i).YData = path(:,2);
+            if ~isempty(path)
+                p(i).XData = path(:,1);
+                p(i).YData = path(:,2);
+            end
         end
         drawnow;
         
@@ -64,8 +66,10 @@ function video = receding_horizon(init_poses, target_poses, trim_indices, combin
                 path_cell = return_path(search_window, combined_graph);
                 for j = 1:n_veh
                     path = path_cell{j};
-                    p(j).XData = path(:,1);
-                    p(j).YData = path(:,2);
+                    if ~isempty(path)
+                        p(j).XData = path(:,1);
+                        p(j).YData = path(:,2);
+                    end
                 end
                 drawnow;
                 visualize_step(search_tree, cur_depth, combined_graph);

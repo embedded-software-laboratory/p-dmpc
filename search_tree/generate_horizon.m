@@ -31,8 +31,8 @@ function [search_window, leaf_nodes] = generate_horizon(init_poses, target_poses
     
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
-    while (((search_window.Node{id}.depth < h_u) && ~(sum(is_goals) == n_veh) && ~isempty(leaf_nodes))...
-            || (cheaper(search_window.Node{next_node_id}, search_window.Node{id}) && (search_window.Node{next_node_id}.depth < h_u)))
+    while (((search_window.Node{id}.depth < h_p) && ~(sum(is_goals) == n_veh) && ~isempty(leaf_nodes))...
+            || (cheaper(search_window.Node{next_node_id}, search_window.Node{id}) && (search_window.Node{next_node_id}.depth < h_p)))
                
         % Delete chosen entry from list of expandable nodes
         leaf_nodes(leaf_nodes == next_node_id) = [];

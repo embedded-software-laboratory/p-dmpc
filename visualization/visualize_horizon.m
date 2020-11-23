@@ -1,10 +1,10 @@
 function horizon = visualize_horizon(search_window, motion_graph, horizon, index)
     
     n_veh = length(motion_graph.motionGraphList);
-    if index < 2
+    if index == 1
         node = search_window.Node{index};
         for i = 1:n_veh
-            horizon(i) = plot(node.xs(i), node.ys(i), 'o','Color', 'black', 'MarkerSize',3,'MarkerFaceColor', 'black');
+            horizon(i) = plot(node.xs(i), node.ys(i), 'o', 'Color', 'black', 'MarkerSize', 3, 'MarkerFaceColor', 'black');
             horizon(i).Color(4) = 0.5;
         end
     else

@@ -27,9 +27,14 @@ function scenario = run_simulation(options)
     end
     
     % Initialize video
-    video_name = fullfile(sub_folder,'video');
+    i = 1;
+    video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
+    while isfile(video_name+ ".avi")
+        i = i + 1;
+        video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
+    end
     video = VideoWriter(video_name);
-    video.FrameRate = 5;
+    video.FrameRate = 60;
     open(video)
 
     % Combine graphs
