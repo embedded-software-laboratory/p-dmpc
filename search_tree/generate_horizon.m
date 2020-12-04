@@ -7,7 +7,10 @@ function [search_window, leaf_nodes] = generate_horizon(init_poses, target_poses
     end
     
     % Reset horizon plot 
-    horizon = gobjects(1, n_veh);
+    horizon = cell(1, 3);
+    horizon{1} = gobjects(1, n_veh);
+    horizon{2} = [gobjects(1, n_veh)];
+    horizon{3} = [gobjects(1, n_veh)];
     
     % Create tree with root node
     search_window = tree(node(0, trim_indices, cur_node.xs, cur_node.ys, cur_node.yaws, cur_node.g_values, cur_node.h_values));
@@ -49,6 +52,8 @@ function [search_window, leaf_nodes] = generate_horizon(init_poses, target_poses
     end 
     
     if ~(sum(is_goals) == n_veh)
-        delete(horizon);
+        delete(horizon{1});
+        delete(horizon{2}(1, 1));
+        delete(horizon{2});
     end
 end

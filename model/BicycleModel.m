@@ -22,7 +22,7 @@ classdef BicycleModel < VehicleModel
             obj.Lr = Lr;
             
             % width
-            obj.W = 1.8;
+            obj.W = 0.88;
         end
         
         

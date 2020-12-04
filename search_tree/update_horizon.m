@@ -19,13 +19,14 @@ function [leaf_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, 
         next_poses(i).x = next_node.xs(i);
         next_poses(i).y = next_node.ys(i);
 
-        [next_node.g_values(i), next_node.h_values(i)] = calculate_next_values_reference(next_node.depth, cur_node.g_values(i), init_poses(i), target_poses(i), next_poses(i));
+        [next_node.g_values(i), next_node.h_values(i)] = calculate_next_values_reference(cur_node.g_values(i), init_poses(i), target_poses(i), next_poses(i));
 
         [shape_x, shape_y] = translate_global(next_node.yaws(i), next_node.xs(i), next_node.ys(i), maneuver.area(1,:), maneuver.area(2,:));
         next_node.shapes(i) = polyshape(shape_x,shape_y,'Simplify',false);
         
         % Abort update if collision is detected
         if collision_with(i, next_node.shapes)
+            plot(next_node.shapes);
             return
         end
         

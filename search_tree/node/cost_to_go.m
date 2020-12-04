@@ -6,6 +6,5 @@ function cost = cost_to_go(init_pose, target_pose, next_pose)
         remaining_cost = remaining_cost - 1.6;
         cost = cost + remaining_cost;
     end
-    cost = cost + remaining_cost;
 end
 
