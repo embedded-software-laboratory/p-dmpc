@@ -28,12 +28,13 @@ function scenario = run_simulation(options)
     end
     
     % Initialize video
-    i = 1;
-    video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
-    while isfile(video_name+ ".avi")
-        i = i + 1;
-        video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
-    end
+    % i = 1;
+    % video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
+    % while isfile(video_name+ ".avi")
+    %     i = i + 1;
+    %     video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
+    % end
+    video_name = fullfile(sub_folder,"video");
     video = VideoWriter(video_name);
     video.FrameRate = 60;
     open(video)

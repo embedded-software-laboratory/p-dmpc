@@ -23,28 +23,30 @@ function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_
     while(sum(is_goals) ~= n_veh)
                
         % Continue receding horizon search
-        [search_window, leaf_nodes, final_nodes, horizon] = generate_horizon(init_poses, target_poses, cur_node, trims, combined_graph, horizon, video);
+        [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_horizon(init_poses, target_poses, cur_node, trims, combined_graph, horizon, video);
               
         % Check if we already reached our destination
         last_id = length(search_window.Node);
-        final_node = search_window.Node{end};
-        is_goals = is_goal(final_node, target_poses);
         if(sum(is_goals) == n_veh)
-            search_path = findpath(search_window, 1, length(search_window.Node));
+            search_path = findpath(search_window, 1, last_id);
             length_path = length(search_path);
+            
+            % Visualize path before addition to properly display horizon
+            visualize_step(search_tree, cur_depth, combined_graph);
+            frame = getframe(gcf);
+            writeVideo(video, frame);
+            
+            % Visualize horizon
+            path_cell = return_path(search_window, combined_graph);
+            for i = 1:n_veh
+                path = path_cell{i};
+                p(i).XData = path(:,1);
+                p(i).YData = path(:,2);
+            end
+            
+            % Visualize steps
             for i = 1:length_path
                 [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{search_path(i)});
-
-                % Visualize
-                path_cell = return_path(search_window, combined_graph);
-                for j = 1:n_veh
-                    path = path_cell{j};
-                    if ~isempty(path)
-                        p(j).XData = path(:,1);
-                        p(j).YData = path(:,2);
-                    end
-                end
-                drawnow;
                 visualize_step(search_tree, cur_depth, combined_graph);
                 frame = getframe(gcf);
                 writeVideo(video, frame);
@@ -55,7 +57,7 @@ function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_
         if(~isempty(final_nodes))
             node_id = get_next_node(search_window, final_nodes);
         else
-            node_id = last_id;
+            return
         end
         
         % Visualize horizon

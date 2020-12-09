@@ -1,4 +1,4 @@
-function [search_window, leaf_nodes, final_nodes, horizon] = generate_horizon(init_poses, target_poses, cur_node, trim_indices, motion_graph, horizon, video)
+function [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_horizon(init_poses, target_poses, cur_node, trim_indices, motion_graph, horizon, video)
 
     n_veh = length(motion_graph.motionGraphList);
     trim_length = zeros(1, n_veh);
