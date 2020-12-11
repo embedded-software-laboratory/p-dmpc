@@ -1,4 +1,4 @@
-function [leaf_nodes, search_tree, max_id, is_goals] = expand_horizon(leaf_nodes, search_tree, next_id, motion_graph, trim_length, init_poses, target_poses, visited_nodes, max_id, is_goals)
+function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = expand_horizon(leaf_nodes, final_nodes, search_tree, next_id, motion_graph, trim_length, init_poses, target_poses, visited_nodes, max_id, is_goals)
     
     n_veh = length(motion_graph.motionGraphList);
     cur_node = search_tree.Node{next_id};
@@ -18,7 +18,7 @@ function [leaf_nodes, search_tree, max_id, is_goals] = expand_horizon(leaf_nodes
                 continue;
             end
 
-            [leaf_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, search_tree, next_id, motion_graph, init_poses, target_poses, visited_nodes, max_id, is_goals);
+            [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, final_nodes, search_tree, next_id, motion_graph, init_poses, target_poses, visited_nodes, max_id, is_goals);
 
             if sum(is_goals) == n_veh
                 return;
@@ -26,6 +26,6 @@ function [leaf_nodes, search_tree, max_id, is_goals] = expand_horizon(leaf_nodes
         end
     elseif cur_node.depth < h_p
         next_node = cur_node;
-        [leaf_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, search_tree, next_id, motion_graph, init_poses, target_poses, visited_nodes, max_id, is_goals);
+        [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, final_nodes, search_tree, next_id, motion_graph, init_poses, target_poses, visited_nodes, max_id, is_goals);
     end
 end

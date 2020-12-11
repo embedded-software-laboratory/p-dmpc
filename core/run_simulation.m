@@ -10,7 +10,8 @@ function scenario = run_simulation(options)
     motionGraphList = create_motion_graph_list(trim_set, options.amount);
 
     % Set figure
-    figure('units','normalized','outerposition',[0.125 0.125 0.75 0.75]);
+    f = figure('units','normalized','outerposition',[0 0 1 1]);
+    f.WindowState = 'maximized';
     axis([-35 35 -35 35]);
     pbaspect([1 1 1]);
     title("Iteration: 0, Time: 0");
@@ -27,19 +28,20 @@ function scenario = run_simulation(options)
     end
     
     % Initialize video
-    i = 1;
-    video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
-    while isfile(video_name+ ".avi")
-        i = i + 1;
-        video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
-    end
+    % i = 1;
+    % video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
+    % while isfile(video_name+ ".avi")
+    %     i = i + 1;
+    %     video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
+    % end
+    video_name = fullfile(sub_folder,"video");
     video = VideoWriter(video_name);
     video.FrameRate = 60;
     open(video)
 
     % Combine graphs
     combined_graph = CombinedGraph(motionGraphList);
-    video = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, video);
+    [video, search_tree] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, video);
     close(video);
     
     % Log workspace to subfolder 
