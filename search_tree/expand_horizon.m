@@ -3,14 +3,14 @@ function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = expand_horiz
     n_veh = length(motion_graph.motionGraphList);
     cur_node = search_tree.Node{next_id};
     trim_tuple = motion_graph.trimTuple;
-    trim_tuple_size = length(trim_tuple);
-    cur_trim_id = tuple2index(cur_node.trims,trim_length);
     
+    cur_trim_id = tuple2index(cur_node.trims,trim_length);
+    successor_trim_ids = find(motion_graph.transitionMatrix(cur_trim_id, :));
     if cur_node.depth < h_u
-        for i = 1 : trim_tuple_size
+        for id = successor_trim_ids
 
             next_node = cur_node;
-            next_node.trims = trim_tuple(i,:);
+            next_node.trims = trim_tuple(id,:);
             next_trim_id = tuple2index(next_node.trims,trim_length);
 
             existsManeuver = (motion_graph.transitionMatrix(cur_trim_id,next_trim_id) == 1);
