@@ -16,7 +16,7 @@ function visualize_step(search_tree, parent, motion_graph)
             if(~isempty(path))
                 plot(path(:,1), path(:,2), '-','Color', cur_color); 
                 plot(parent_node.xs(j), parent_node.ys(j), 'o','Color', cur_color, 'MarkerSize',3,'MarkerFaceColor', cur_color);
-                text(parent_node.xs(j) - 0.1, parent_node.ys(j) - 0.1, num2str(parent), 'FontSize', 6);
+                % text(parent_node.xs(j) - 0.1, parent_node.ys(j) - 0.1, num2str(parent), 'FontSize', 6);
             end
         end   
     end

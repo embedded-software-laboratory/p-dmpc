@@ -5,9 +5,12 @@ function scenario = run_simulation(options)
     depth = 3;
     trim_indices = ones(1, options.amount);
 
-    % make motionGraph Tupel
+    % Make motionGraph Tupel
     trim_set = 'trim_set_3_1';
     motionGraphList = create_motion_graph_list(trim_set, options.amount);
+    
+    % Load costs for A*-Star
+    load('situation_costs', 'situation_costs');
 
     % Set figure
     f = figure('units','normalized','outerposition',[0 0 1 1]);
@@ -41,7 +44,7 @@ function scenario = run_simulation(options)
 
     % Combine graphs
     combined_graph = CombinedGraph(motionGraphList);
-    [video, search_tree] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, video);
+    [video, search_tree] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, situation_costs, video);
     close(video);
     
     % Log workspace to subfolder 

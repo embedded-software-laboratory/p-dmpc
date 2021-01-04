@@ -4,5 +4,6 @@ function reference_poses = reference_pose(init_pose, target_pose, cur_node)
     solutions = [init_pose.xs; init_pose.ys] + t .* [target_pose.xs; target_pose.ys];
     reference_poses.xs = solutions(1,:);
     reference_poses.ys = solutions(2,:);
+    reference_poses.yaws = init_pose.yaws;
 end
 

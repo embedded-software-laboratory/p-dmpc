@@ -1,4 +1,4 @@
-function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, video)
+function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, situation_costs, video)
 %RECEDING_HORIZON Explore path to target using a receding horizon 
 
     % Initialize
@@ -23,7 +23,7 @@ function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_
     while(sum(is_goals) ~= n_veh)
                
         % Continue receding horizon search
-        [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_horizon(init_poses, target_poses, cur_node, trims, combined_graph, horizon, video);
+        [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_horizon(init_poses, target_poses, cur_node, trims, combined_graph, situation_costs, horizon, video);
               
         % Check if we already reached our destination
         last_id = length(search_window.Node);

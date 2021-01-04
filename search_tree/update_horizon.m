@@ -1,4 +1,4 @@
-function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, final_nodes, search_tree, next_id, motion_graph, init_poses, target_poses, visited_nodes, max_id, is_goals)
+function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, final_nodes, search_tree, next_id, motion_graph, situation_costs, init_poses, target_poses, visited_nodes, max_id, is_goals)
         
     n_veh = length(motion_graph.motionGraphList);
     visited = true;
@@ -34,7 +34,7 @@ function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horiz
         return
     end
 
-    [next_node.g_values, next_node.h_values] = calculate_next_values_reference(cur_node.g_values, init_poses, target_poses, next_node);
+    [next_node.g_values, next_node.h_values] = calculate_next_values_reference(cur_node.g_values, situation_costs, init_poses, target_poses, next_node);
     [search_tree, max_id] = search_tree.addnode(next_id, next_node);
     
     if next_node.depth < h_p

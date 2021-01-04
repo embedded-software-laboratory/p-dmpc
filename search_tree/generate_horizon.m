@@ -1,4 +1,4 @@
-function [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_horizon(init_poses, target_poses, cur_node, trim_indices, motion_graph, horizon, video)
+function [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_horizon(init_poses, target_poses, init_node, trim_indices, motion_graph, situation_costs, horizon, video)
 
     n_veh = length(motion_graph.motionGraphList);
     trim_length = zeros(1, n_veh);
@@ -7,13 +7,12 @@ function [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_
     end
     
     % Create tree with root node
-    search_window = tree(node(0, trim_indices, cur_node.xs, cur_node.ys, cur_node.yaws, cur_node.g_values, cur_node.h_values));
+    search_window = tree(node(0, trim_indices, init_node.xs, init_node.ys, init_node.yaws, init_node.g_values, init_node.h_values));
     
     % Array storing ids of nodes that may be expanded
     max_id = 1;
     leaf_nodes = [max_id];
     final_nodes = [];
-    next_node_id = max_id;
     min_value = Inf;
     cur_value = Inf;
     candidate_found = false;
@@ -22,28 +21,28 @@ function [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_
     visited_nodes = [];
     
     % Initialize
-    is_goals = is_goal(cur_node, target_poses);
+    is_goals = is_goal(init_node, target_poses);
     
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
     while (~isempty(leaf_nodes) ...
-           && (~candidate_found || (next_value < min_value && (next_node.depth < h_p))) ...
+           && (~candidate_found || (cur_value < min_value && (cur_node.depth < h_p))) ...
            && ~(sum(is_goals) == n_veh))
                
         % get next node for expansion
-        next_node_id = get_next_node(search_window, leaf_nodes);
-        leaf_nodes(leaf_nodes == next_node_id) = [];   
+        cur_node_id = get_next_node(search_window, leaf_nodes);
+        leaf_nodes(leaf_nodes == cur_node_id) = [];   
         
         % Delete chosen entry from list of expandable nodes
-        [leaf_nodes, final_nodes, search_window, max_id, is_goals] = expand_horizon(leaf_nodes, final_nodes, search_window, next_node_id, motion_graph, ...
-                                                              trim_length, init_poses, target_poses, visited_nodes, max_id, is_goals);        
+        [leaf_nodes, final_nodes, search_window, max_id, is_goals] = expand_horizon(leaf_nodes, final_nodes, search_window, cur_node_id, motion_graph, ...
+                                                              situation_costs, trim_length, init_poses, target_poses, visited_nodes, max_id, is_goals);        
                                                                                    
-        visited_nodes = [visited_nodes, next_node_id];  
+        visited_nodes = [visited_nodes, cur_node_id];  
         
-        next_node = search_window.Node{next_node_id};   
-        next_value = sum(next_node.g_values + next_node.h_values);
-        if next_value < min_value
-            min_value = next_value;
+        cur_node = search_window.Node{cur_node_id};   
+        cur_value = sum(cur_node.g_values + cur_node.h_values);
+        if cur_value < min_value
+            min_value = cur_value;
         end
 
         if ~candidate_found && search_window.Node{max_id}.depth == h_p
