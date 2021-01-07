@@ -14,7 +14,7 @@ function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_
         g(i).Color(4) = 0.5;
     end
     cur_depth = 1;
-    cur_node = node(0, trim_indices, init_poses.xs, init_poses.ys, init_poses.yaws, zeros(1,n_veh), zeros(1,n_veh));
+    cur_node = node(1, 0, trim_indices, init_poses.xs, init_poses.ys, init_poses.yaws, zeros(1,n_veh), zeros(1,n_veh));
     search_tree = tree(cur_node);
     trims = trim_indices;
 

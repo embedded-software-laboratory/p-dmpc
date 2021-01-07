@@ -7,7 +7,7 @@ function [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_
     end
     
     % Create tree with root node
-    search_window = tree(node(0, trim_indices, init_node.xs, init_node.ys, init_node.yaws, init_node.g_values, init_node.h_values));
+    search_window = tree(node(1, 0, trim_indices, init_node.xs, init_node.ys, init_node.yaws, init_node.g_values, init_node.h_values));
     
     % Array storing ids of nodes that may be expanded
     max_id = 1;

@@ -35,6 +35,7 @@ function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horiz
     end
 
     [next_node.g_values, next_node.h_values] = calculate_next_values_reference(cur_node.g_values, situation_costs, init_poses, target_poses, next_node);
+    next_node.id = max_id + 1;
     [search_tree, max_id] = search_tree.addnode(next_id, next_node);
     
     if next_node.depth < h_p

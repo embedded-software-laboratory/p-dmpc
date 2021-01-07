@@ -1,8 +1,7 @@
 classdef node
-    %NODE Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties
+        id
         depth
         trims
         xs
@@ -14,9 +13,8 @@ classdef node
     end
     
     methods
-        function obj = node(depth, trims, xs, ys, yaws, g_values, h_values)
-            %NODE Construct an instance of this class
-            %   Detailed explanation goes here
+        function obj = node(id, depth, trims, xs, ys, yaws, g_values, h_values)
+            obj.id = id;
             obj.depth = depth;
             obj.trims = trims;
             obj.xs = xs;
@@ -30,4 +28,5 @@ classdef node
             obj.h_values = h_values;
         end
     end
+    
 end
