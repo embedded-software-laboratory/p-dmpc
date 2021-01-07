@@ -15,7 +15,7 @@ function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horiz
         next_node.yaws(i) = cur_node.yaws(i) + maneuver.dyaw;
         [next_node.xs(i), next_node.ys(i)] = translate_global(cur_node.yaws(i), cur_node.xs(i), cur_node.ys(i), maneuver.dx, maneuver.dy);
 
-        [shape_x, shape_y] = translate_global(next_node.yaws(i), next_node.xs(i), next_node.ys(i), maneuver.area(1,:), maneuver.area(2,:));
+        [shape_x, shape_y] = translate_global(cur_node.yaws(i), cur_node.xs(i), cur_node.ys(i), maneuver.area(1,:), maneuver.area(2,:));
         next_node.shapes(i) = polyshape(shape_x,shape_y,'Simplify',false);
         
         % Abort update if collision is detected
