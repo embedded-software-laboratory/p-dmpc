@@ -8,7 +8,9 @@ function costs = cost_to_go(situation_costs, init_poses, target_poses, next_node
     costs = remaining_costs;
     if(next_node.depth < h_u)
         for i = 1:n_veh
-            [value, index] = min(abs(situation_costs.angle - yaws(i)));
+            diff_values = situation_costs.angle - yaws(i);
+            diff_values(diff_values > 0) = -inf;
+            [~, index] = max(diff_values);
             yaws(i) = situation_costs.angle(index);
 
             if remaining_costs(i) > abs(situation_costs.dy(index))
