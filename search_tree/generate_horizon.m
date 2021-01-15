@@ -49,13 +49,4 @@ function [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_
             candidate_found = true;
         end
     end 
-      
-    % Reset horizon plot 
-    delete(horizon{1});
-    delete(horizon{2});
-    horizon{1} = gobjects(1, n_veh);
-    horizon{2} = [gobjects(1, n_veh)];
-    horizon = visualize_horizon(search_window, motion_graph, horizon);
-    frame = getframe(gcf);
-    writeVideo(video, frame);
 end

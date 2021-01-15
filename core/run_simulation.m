@@ -13,10 +13,12 @@ function scenario = run_simulation(options)
     load('situation_costs', 'situation_costs');
 
     % Set figure
-    f = figure('units','normalized','outerposition',[0 0 1 1]);
+    f = figure;
     f.WindowState = 'maximized';
-    axis([-35 35 -35 35]);
+    box on;
+    axis([-36, 36, -36, 36]);
     pbaspect([1 1 1]);
+    set(gca, 'ytick', [-3 3]);
     title("Iteration: 0, Time: 0");
     draw_destination(target_poses);
     draw_cars(init_poses);

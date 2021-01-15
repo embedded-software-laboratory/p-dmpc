@@ -9,7 +9,6 @@ function draw_destination(target_poses)
         center = [target_poses.xs(i), target_poses.ys(i)];
         position = [center - radius, 2*radius, 2*radius];
         rectangle('Position',position,'Curvature',[1 1], 'FaceColor', [cur_color, 0.3], 'EdgeColor', 'no');
-        text(center(1)+radius,center(2)+0.5*radius,'DestVeh:' + string(i));
     end
 end
 
