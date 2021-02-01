@@ -1,4 +1,4 @@
-function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, final_nodes, search_tree, next_id, motion_graph, situation_costs, init_poses, target_poses, visited_nodes, max_id, is_goals)
+function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, final_nodes, search_tree, next_id, obstacles, motion_graph, situation_costs, init_poses, target_poses, visited_nodes, max_id, is_goals)
         
     n_veh = length(motion_graph.motionGraphList);
     visited = true;
@@ -19,7 +19,7 @@ function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horiz
         next_node.shapes(i) = polyshape(shape_x,shape_y,'Simplify',false);
         
         % Abort update if collision is detected
-        if collision_with(i, next_node.shapes)
+        if collision_with(i, next_node.shapes, obstacles)
             return
         end
         

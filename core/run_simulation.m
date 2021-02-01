@@ -17,11 +17,14 @@ function scenario = run_simulation(options)
     f.WindowState = 'maximized';
     box on;
     axis([-36, 36, -36, 36]);
+    %set(gca, 'ytick', [-36 36]);
     pbaspect([1 1 1]);
-    set(gca, 'ytick', [-3 3]);
     title("Iteration: 0, Time: 0");
     draw_destination(target_poses);
     draw_cars(init_poses);
+    obstacles = [];
+    %obstacles = polyshape([-2 -2 2 2],[4 -4 -4 4]);
+    %plot(obstacles);
     
     % Create log folder
     st = dbstack;
@@ -46,7 +49,7 @@ function scenario = run_simulation(options)
 
     % Combine graphs
     combined_graph = CombinedGraph(motionGraphList);
-    [video, search_tree] = receding_horizon(init_poses, target_poses, trim_indices, combined_graph, situation_costs, video);
+    [video, search_tree] = receding_horizon(init_poses, target_poses, trim_indices, obstacles, combined_graph, situation_costs, video);
     close(video);
     
     % Log workspace to subfolder 
