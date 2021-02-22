@@ -15,6 +15,12 @@ function scenario = run_simulation(options)
     % Set figure
     f = figure;
     f.WindowState = 'maximized';
+    set(f,'color','w');
+    set(gca, 'FontSize', 35);
+    set(gca,'TickLabelInterpreter','latex');
+    set(gca,'Box','on')
+    xlabel('$x$ [m]', 'Interpreter','Latex')
+    ylabel('$y$ [m]', 'Interpreter','Latex')
     box on;
     axis([-36, 36, -36, 36]);
     %set(gca, 'ytick', [-36 36]);
@@ -24,7 +30,7 @@ function scenario = run_simulation(options)
     draw_cars(init_poses);
     obstacles = [];
     %obstacles = polyshape([-2 -2 2 2],[4 -4 -4 4]);
-    %plot(obstacles);
+    %plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
     
     % Create log folder
     st = dbstack;
