@@ -6,7 +6,7 @@ classdef Scenario
     
     methods
         function obj = Scenario(angles)
-            radius = 30;
+            radius = 15;
             for the_angle=angles
                 s = sin(the_angle);
                 c = cos(the_angle);

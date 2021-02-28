@@ -22,7 +22,7 @@ function scenario = run_simulation(options)
     xlabel('$x$ [m]', 'Interpreter','Latex')
     ylabel('$y$ [m]', 'Interpreter','Latex')
     box on;
-    axis([-36, 36, -36, 36]);
+    axis([-18, 18, -18, 18]);
     %set(gca, 'ytick', [-36 36]);
     pbaspect([1 1 1]);
     title("Iteration: 0, Time: 0");
