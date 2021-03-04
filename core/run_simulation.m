@@ -6,7 +6,7 @@ function scenario = run_simulation(options)
     trim_indices = ones(1, options.amount);
 
     % Make motionGraph Tupel
-    trim_set = 'trim_set_4_1';
+    trim_set = 'trim_set_3_1';
     motionGraphList = create_motion_graph_list(trim_set, options.amount);
     
     % Load costs for A*-Star

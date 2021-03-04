@@ -1,5 +1,5 @@
 function result = h_p
-result = 8;
+result = 4;
 end
 
 

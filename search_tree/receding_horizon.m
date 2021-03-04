@@ -28,7 +28,6 @@ function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_
         if ~isnan(final_node_id)
             node_id = final_node_id;
         else
-            visualize_trajectory(prev_search_window, prev_node_id, combined_graph);
             return
         end
         
@@ -69,10 +68,6 @@ function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_
             frame = getframe(gcf);
             writeVideo(video, frame);
             return
-        end
-        
-        prev_search_window = search_window;
-        prev_node_id = node_id;
-        
+        end        
     end
 end
