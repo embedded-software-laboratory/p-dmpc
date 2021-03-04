@@ -1,4 +1,4 @@
-function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horizon(cur_node, next_node, leaf_nodes, final_nodes, search_tree, next_id, obstacles, motion_graph, situation_costs, init_poses, target_poses, visited_nodes, max_id, is_goals)
+function [leaf_nodes, candidates, search_tree, max_id] = update_horizon(cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, obstacles, motion_graph, situation_costs, init_poses, target_poses, visited_nodes, max_id, is_goals)
         
     n_veh = length(motion_graph.motionGraphList);
     visited = true;
@@ -24,27 +24,27 @@ function [leaf_nodes, final_nodes, search_tree, max_id, is_goals] = update_horiz
         end
         
         % Check if similar state was visited until difference occurs
-        if visited
-            visited = has_visited(i, next_node, search_tree, visited_nodes, 0.1);
-        end
+        % if visited
+        %     visited = has_visited(i, next_node, search_tree, visited_nodes, 0.1);
+        % end
     end
     
     % Similar state was already explored
-    if visited
-        return
-    end
+    %if visited
+    %    return
+    %end
 
     [next_node.g_values, next_node.h_values] = calculate_next_values_reference(cur_node.g_values, situation_costs, init_poses, target_poses, next_node, motion_graph);
     next_node.id = max_id + 1;
     [search_tree, max_id] = search_tree.addnode(next_id, next_node);
     
-    if next_node.depth < h_p
+    is_goals = is_goal(next_node, target_poses);
+    if next_node.depth < h_p && ~all(is_goals)
         leaf_nodes = [leaf_nodes, max_id];
     else
-        final_nodes = [final_nodes, max_id];
+        candidates = [candidates, max_id];
     end
 
-    is_goals = max(is_goals, is_goal(next_node, target_poses));
 end
 
 

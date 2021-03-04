@@ -20,43 +20,15 @@ function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_
 
     % Check if the vehicle reached the destination
     is_goals = is_goal(init_poses, target_poses);
-    while(sum(is_goals) ~= n_veh)
+    while true
                
         % Continue receding horizon search
-        [search_window, leaf_nodes, final_nodes, horizon, is_goals] = generate_horizon(init_poses, target_poses, cur_node, trims, obstacles, combined_graph, situation_costs, horizon, video);
+        [search_window, leaf_nodes, final_node_id, horizon] = generate_horizon(init_poses, target_poses, cur_node, trims, obstacles, combined_graph, situation_costs, horizon, video);
               
-        % Check if we already reached our destination
-        last_id = length(search_window.Node);
-        if(sum(is_goals) == n_veh)
-            search_path = findpath(search_window, 1, last_id);
-            length_path = length(search_path);
-            
-            % Visualize path before addition to properly display horizon
-            visualize_step(search_tree, cur_depth, combined_graph);
-            frame = getframe(gcf);
-            writeVideo(video, frame);
-            
-            % Visualize horizon
-            path_cell = return_path(search_window, combined_graph);
-            for i = 1:n_veh
-                path = path_cell{i};
-                p(i).XData = path(:,1);
-                p(i).YData = path(:,2);
-            end
-            
-            % Visualize steps
-            for i = 1:length_path
-                [search_tree, cur_depth] = search_tree.addnode(cur_depth, search_window.Node{search_path(i)});
-                visualize_step(search_tree, cur_depth, combined_graph);
-                frame = getframe(gcf);
-                writeVideo(video, frame);
-            end
-            return
-        end
-        
-        if(~isempty(final_nodes))
-            node_id = get_next_node(search_window, final_nodes);
+        if ~isnan(final_node_id)
+            node_id = final_node_id;
         else
+            visualize_trajectory(prev_search_window, prev_node_id, combined_graph);
             return
         end
         
@@ -71,6 +43,7 @@ function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_
         end
         drawnow;
         
+        
         % Visualize path before addition to properly display horizon
         visualize_step(search_tree, cur_depth, combined_graph);
         frame = getframe(gcf);
@@ -78,14 +51,28 @@ function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_
 
         % Determine next node
         search_path = findpath(search_window, 1, node_id);
-        next_node_id = search_path(2);
+        if length(search_path) > 1
+            next_node_id = search_path(2);
+        else
+            return
+        end
         cur_node = search_window.Node{next_node_id};
         trims = cur_node.trims;
 
         % Add node to tree
         [search_tree, cur_depth] = search_tree.addnode(cur_depth, cur_node);
 
-        % Update our loop condition
+        % Check if we already reached our destination
         is_goals = is_goal(cur_node, target_poses);
+        if(sum(is_goals) == n_veh)
+            visualize_step(search_tree, cur_depth, combined_graph);
+            frame = getframe(gcf);
+            writeVideo(video, frame);
+            return
+        end
+        
+        prev_search_window = search_window;
+        prev_node_id = node_id;
+        
     end
 end

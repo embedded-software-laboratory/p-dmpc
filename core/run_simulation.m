@@ -6,7 +6,7 @@ function scenario = run_simulation(options)
     trim_indices = ones(1, options.amount);
 
     % Make motionGraph Tupel
-    trim_set = 'trim_set_3_1';
+    trim_set = 'trim_set_4_1';
     motionGraphList = create_motion_graph_list(trim_set, options.amount);
     
     % Load costs for A*-Star
@@ -29,8 +29,8 @@ function scenario = run_simulation(options)
     draw_destination(target_poses);
     draw_cars(init_poses);
     obstacles = [];
-    %obstacles = polyshape([-2 -2 2 2],[4 -4 -4 4]);
-    %plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
+    obstacles = polyshape([-2 -2 2 2],[4 -4 -4 4]);
+    plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
     
     % Create log folder
     st = dbstack;
@@ -50,7 +50,7 @@ function scenario = run_simulation(options)
     % end
     video_name = fullfile(sub_folder,"video");
     video = VideoWriter(video_name);
-    video.FrameRate = 60;
+    video.FrameRate = 1;
     open(video)
 
     % Combine graphs
