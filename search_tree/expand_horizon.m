@@ -11,6 +11,7 @@ function [leaf_nodes, candidates, search_tree, max_id] = expand_horizon(leaf_nod
     next_node = cur_node;
     if cur_node.depth < h_u
         for id = successor_trim_ids
+            next_node.trims = trim_tuple(id,:);
             [leaf_nodes, candidates, search_tree, max_id] = update_horizon(cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, ...
                                                                         obstacles, motion_graph, situation_costs, init_poses, target_poses, visited_nodes, max_id, is_goals);
         end
