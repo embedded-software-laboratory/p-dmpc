@@ -7,7 +7,7 @@ function [leaf_nodes, candidates, search_tree, max_id] = expand_horizon(leaf_nod
     is_goals = is_goal(cur_node, target_poses);
     
     cur_trim_id = tuple2index(cur_node.trims,trim_length);
-    successor_trim_ids = find(motion_graph.transitionMatrix(cur_trim_id, 1:length(trim_tuple) - 1));
+    successor_trim_ids = find(motion_graph.transitionMatrix(cur_trim_id, :));
     next_node = cur_node;
     if cur_node.depth < h_u
         for id = successor_trim_ids
