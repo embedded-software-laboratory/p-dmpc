@@ -13,14 +13,14 @@ function visualize_step(search_tree, parent, motion_graph)
             path = path_cell{j};
             if(~isempty(path))
                 plot(path(:,1), path(:,2), '-','Color', cur_color, 'LineWidth', 2); 
-                plot(parent_node.xs, parent_node.ys, 'o','Color', cur_color, 'MarkerSize',6,'MarkerFaceColor', cur_color);
+                plot(parent_node.xs(j), parent_node.ys(j), 'o','Color', cur_color, 'MarkerSize',6,'MarkerFaceColor', cur_color);
                 % text(parent_node.xs(j) - 0.1, parent_node.ys(j) - 0.1, num2str(parent), 'FontSize', 6);
             end
         end  
     else
         for j = 1 : n_veh
             cur_color = vehColor(j);
-            plot(parent_node.xs, parent_node.ys, 'o','Color', cur_color, 'MarkerSize',6,'MarkerFaceColor', cur_color);
+            plot(parent_node.xs(j), parent_node.ys(j), 'o','Color', cur_color, 'MarkerSize',6,'MarkerFaceColor', cur_color);
             % text(parent_node.xs(j) - 0.1, parent_node.ys(j) - 0.1, num2str(parent), 'FontSize', 6);
         end  
     end

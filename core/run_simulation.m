@@ -23,14 +23,14 @@ function scenario = run_simulation(options)
     ylabel('$y$ [m]', 'Interpreter','Latex')
     box on;
     axis([-18, 18, -18, 18]);
-    %set(gca, 'ytick', [-36 36]);
+    %set(gca, 'ytick', [-9 9]);
     pbaspect([1 1 1]);
     title("Iteration: 0, Time: 0");
     draw_destination(target_poses);
     draw_cars(init_poses);
     obstacles = [];
-    obstacles = polyshape([-2 -2 2 2],[4 -4 -4 4]);
-    plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
+    %obstacles = polyshape([-2 -2 2 2],[4 -4 -4 4]);
+    %plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
     
     % Create log folder
     st = dbstack;
