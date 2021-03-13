@@ -1,7 +1,8 @@
-function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_indices, obstacles, combined_graph, situation_costs, video)
+function [video, search_tree, n_vertices] = receding_horizon(init_poses, target_poses, trim_indices, obstacles, combined_graph, situation_costs, video)
 %RECEDING_HORIZON Explore path to target using a receding horizon 
 
     % Initialize
+    n_vertices = 0;
     n_veh = length(combined_graph.motionGraphList);
     horizon = cell(1, 3);
     p = gobjects(1, n_veh);
@@ -25,6 +26,8 @@ function [video, search_tree] = receding_horizon(init_poses, target_poses, trim_
         % Continue receding horizon search
         [search_window, leaf_nodes, final_node_id, horizon] = generate_horizon(init_poses, target_poses, cur_node, trims, obstacles, combined_graph, situation_costs, horizon, video);
               
+        n_vertices = n_vertices + length(search_window.Node);
+        
         if ~isnan(final_node_id)
             node_id = final_node_id;
         else
