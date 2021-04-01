@@ -1,17 +1,14 @@
 classdef MotionGraph
-    % Class for MotionGraph
-    
-    % trim
-    %   u
-    % maneuver
-    %   dx
-    %   dy
-    %   dyaw
-    %   area
-    
+% MotionGraph Represents a maneuver automaton    
     properties
-        trims               % struct array
-        maneuvers           % Cell/struct matrix (nTrims x nTrims)
+        % trims - A struct array of the specified trim_inputs
+        trims
+        % maneuvers - Cell/struct matrix (nTrims x nTrims)
+        %   dx
+        %   dy
+        %   dyaw
+        %   area
+        maneuvers
         transition_matrix   % Matrix      (nTrims x nTrims) (not necessary ??)
     end
     
@@ -19,6 +16,8 @@ classdef MotionGraph
         
         function obj = MotionGraph(model, trim_inputs, trim_adjacency, dt)
             % Constructor
+            % trim_adjacency is a matrix of size (nTrims x nTrims), 
+            % read as: rows are start trims and columns are end trims
             
             obj.transition_matrix = trim_adjacency;
                        

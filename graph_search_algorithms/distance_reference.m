@@ -7,6 +7,7 @@ function result = distance_reference(init_poses, target_poses, cur_node)
     % B = [init_pose.x - cur_pose.x;
     %      init_pose.y - cur_pose.y];
     % X = linsolve(A, B);
+    % TODO delete function
     t = (cur_node.xs .* target_poses.xs + cur_node.ys .* target_poses.ys - init_poses.xs .* target_poses.xs - init_poses.ys .* target_poses.ys) ...
         ./(target_poses.xs .^2 + target_poses.ys .^2);
     solutions = [init_poses.xs; init_poses.ys] + t .* [target_poses.xs; target_poses.ys];

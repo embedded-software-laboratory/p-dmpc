@@ -9,10 +9,10 @@ function [init_poses, target_poses] = create_poses(scenario)
     for i = 1:n_veh
         init_poses.xs(i) = scenario.vehicles(i).referenceTrajectory(1,1);
         init_poses.ys(i) = scenario.vehicles(i).referenceTrajectory(1,2);
-        init_poses.yaws(i) = scenario.vehicles(i).heading;
+        init_poses.yaws(i) = scenario.vehicles(i).yaw;
         target_poses.xs(i) = scenario.vehicles(i).referenceTrajectory(2,1);
         target_poses.ys(i) = scenario.vehicles(i).referenceTrajectory(2,2);
-        target_poses.yaws(i) = scenario.vehicles(i).heading;
+        target_poses.yaws(i) = scenario.vehicles(i).yaw;
     end
 end
 

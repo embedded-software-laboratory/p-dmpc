@@ -1,6 +1,23 @@
-function [video, search_tree, n_vertices] = receding_horizon(init_poses, target_poses, trim_indices, obstacles, combined_graph, situation_costs, video)
+function [video, search_tree, n_vertices] = receding_horizon(scenario, obstacles, combined_graph, situation_costs, video)
 %RECEDING_HORIZON Explore path to target using a receding horizon 
-
+% TODO Make prettier
+n_veh = scenario.nVeh;
+init_poses.xs = zeros(1, n_veh);
+init_poses.ys = zeros(1, n_veh);
+init_poses.yaws = zeros(1, n_veh);
+target_poses.xs = zeros(1, n_veh);
+target_poses.ys = zeros(1, n_veh);
+target_poses.yaws = zeros(1, n_veh);
+trim_indices = zeros(1, n_veh);
+for i = 1:n_veh
+    init_poses.xs(i) = scenario.vehicles(i).referenceTrajectory(1,1);
+    init_poses.ys(i) = scenario.vehicles(i).referenceTrajectory(1,2);
+    init_poses.yaws(i) = scenario.vehicles(i).yaw;
+    target_poses.xs(i) = scenario.vehicles(i).referenceTrajectory(2,1);
+    target_poses.ys(i) = scenario.vehicles(i).referenceTrajectory(2,2);
+    target_poses.yaws(i) = scenario.vehicles(i).yaw;
+    trim_indices(i) = scenario.vehicles(i).trim_config;
+end
     % Initialize
     n_vertices = 0;
     n_veh = length(combined_graph.motionGraphList);
@@ -22,9 +39,16 @@ function [video, search_tree, n_vertices] = receding_horizon(init_poses, target_
     % Check if the vehicle reached the destination
     is_goals = is_goal(init_poses, target_poses);
     while true
-               
+        % TODO Measure
+        speeds = zeros(1, n_veh);
+        for iVeh=1:n_veh
+            speeds(iVeh) = combined_graph.motionGraphList(iVeh).trims(cur_node.trims(iVeh)).velocity;
+        end
+        x0 = [cur_node.xs', cur_node.ys', cur_node.yaws', speeds'];
+        % Sample reference trajectory
+        iter = rhc_init(scenario,x0);
         % Continue receding horizon search
-        [search_window, leaf_nodes, final_node_id, horizon] = generate_horizon(init_poses, target_poses, cur_node, trims, obstacles, combined_graph, situation_costs, horizon, video);
+        [search_window, leaf_nodes, final_node_id, horizon] = generate_horizon(iter, init_poses, target_poses, cur_node, trims, obstacles, combined_graph, situation_costs, horizon, video);
               
         n_vertices = n_vertices + length(search_window.Node);
         

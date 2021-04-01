@@ -1,7 +1,11 @@
-classdef Scenario
+classdef Scenario < handle
     properties
-        vehicles = []; % vehicles
+        vehicles = [];  % vehicles
+        nVeh = 0;
         name = 'UnnamedScenario';
+        dt   = 0.4;     % RHC sample time [s]
+        Hp   = 5;
+        Hu   = 5;
     end
     
     methods
@@ -11,13 +15,14 @@ classdef Scenario
                 s = sin(the_angle);
                 c = cos(the_angle);
                 veh = Vehicle();
-                veh.x_start = -c*radius;
-                veh.y_start = -s*radius;
-                veh.heading = the_angle;
-                veh.trim_config = 5;
+                veh.x = -c*radius;
+                veh.y = -s*radius;
+                veh.yaw = the_angle;
+                veh.trim_config = 1;
                 veh.referenceTrajectory = [-c*radius -s*radius;c*radius s*radius]; 
                 obj.vehicles = [obj.vehicles, veh];
             end
+            obj.nVeh = numel(angles);
             obj.name = sprintf("%i-circle", numel(angles));
         end
         

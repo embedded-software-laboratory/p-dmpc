@@ -1,4 +1,4 @@
-function [leaf_nodes, candidates, search_tree, max_id] = update_horizon(cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, obstacles, motion_graph, situation_costs, init_poses, target_poses, visited_nodes, max_id, is_goals)
+function [leaf_nodes, candidates, search_tree, max_id] = update_horizon(iter, cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, obstacles, motion_graph, situation_costs, init_poses, target_poses, visited_nodes, max_id, is_goals)
         
     n_veh = length(motion_graph.motionGraphList);
     visited = true;
@@ -34,7 +34,7 @@ function [leaf_nodes, candidates, search_tree, max_id] = update_horizon(cur_node
     %    return
     %end
 
-    [next_node.g_values, next_node.h_values] = calculate_next_values_reference(cur_node.g_values, situation_costs, init_poses, target_poses, next_node, motion_graph);
+    [next_node.g_values, next_node.h_values] = calculate_next_values_reference(iter, cur_node, situation_costs, init_poses, target_poses, next_node, motion_graph);
     next_node.id = max_id + 1;
     [search_tree, max_id] = search_tree.addnode(next_id, next_node);
     
