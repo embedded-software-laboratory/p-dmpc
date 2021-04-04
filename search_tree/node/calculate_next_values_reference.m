@@ -1,4 +1,4 @@
-function [g_values, h_values] = calculate_next_values_reference(iter, cur_node, situation_costs, next_node, motion_graph)
+function [g_values, h_values] = calculate_next_values_reference(scenario, iter, cur_node, situation_costs, next_node)
     
     nVeh = numel(next_node.xs);
     g_values = cur_node.g_values;

@@ -1,4 +1,4 @@
-function [leaf_nodes, candidates, search_tree, max_id] = update_horizon(scenario, iter, cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, obstacles, motion_graph, situation_costs, visited_nodes, max_id, is_goals)
+function [leaf_nodes, candidates, search_tree, max_id] = eval_child(scenario, iter, cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, obstacles, situation_costs, visited_nodes, max_id, is_goals)
 
     visited = true;
   
@@ -8,7 +8,7 @@ function [leaf_nodes, candidates, search_tree, max_id] = update_horizon(scenario
             continue
         end
 
-        maneuver = motion_graph.motionGraphList(i).maneuvers{cur_node.trims(i), next_node.trims(i)};
+        maneuver = scenario.combined_graph.motionGraphList(i).maneuvers{cur_node.trims(i), next_node.trims(i)};
 
         next_node.depth = cur_node.depth + 1;
         next_node.yaws(i) = cur_node.yaws(i) + maneuver.dyaw;
@@ -33,7 +33,7 @@ function [leaf_nodes, candidates, search_tree, max_id] = update_horizon(scenario
     %    return
     %end
 
-    [next_node.g_values, next_node.h_values] = calculate_next_values_reference(iter, cur_node, situation_costs, next_node, motion_graph);
+    [next_node.g_values, next_node.h_values] = calculate_next_values_reference(scenario, iter, cur_node, situation_costs, next_node);
     next_node.id = max_id + 1;
     [search_tree, max_id] = search_tree.addnode(next_id, next_node);
     

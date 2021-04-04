@@ -14,6 +14,7 @@ classdef node
     
     methods
         function obj = node(id, depth, trims, xs, ys, yaws, g_values, h_values)
+            % TODO remove ID
             obj.id = id;
             obj.depth = depth;
             obj.trims = trims;

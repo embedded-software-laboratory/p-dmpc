@@ -11,13 +11,9 @@ clc
 
 options = selection();
 
-scenario = Scenario(options.angles);
+scenario = Scenario(options);
 
-trim_indices = ones(1, options.amount);
 
-% Make motionGraph Tupel
-trim_set = 'trim_set_3_1';
-motionGraphList = create_motion_graph_list(trim_set, options.amount);
 
 % Load costs for A*-Star
 load('situation_costs', 'situation_costs');
@@ -45,7 +41,7 @@ obstacles = [];
 % Create log folder
 st = dbstack;
 namestr = st(1).name;
-sub_folder = './logs/' + string(namestr) + '_' + string(trim_set) + '_circle_' + string(options.amount) + '_' + string(h_u) + '_' + string(h_p);
+sub_folder = './logs/' + string(namestr) + '_' + string(scenario.trim_set) + '_circle_' + string(options.amount) + '_' + string(h_u) + '_' + string(h_p);
 
 if ~exist(sub_folder, 'dir')
     mkdir(sub_folder)
@@ -63,25 +59,112 @@ video = VideoWriter(video_name);
 video.FrameRate = 1;
 open(video)
 
-% Combine graphs
-combined_graph = CombinedGraph(motionGraphList);
 
 
+trim_indices = [scenario.vehicles(:).trim_config];
+% Initialize
+n_vertices = 0;
+horizon = cell(1, 3);
+p = gobjects(1, scenario.nVeh);
+g = gobjects(1, scenario.nVeh);
+for i = 1:scenario.nVeh
+    cur_color = vehColor(i);
+    p(i) = plot(scenario.vehicles(i).x_start, scenario.vehicles(i).y_start, '-','Color', cur_color, 'LineWidth', 2);
+    p(i).Color(4) = 0.5;
+    g(i) = plot(scenario.vehicles(i).x_start, scenario.vehicles(i).y_start, 'o','Color', cur_color, 'MarkerSize',3,'MarkerFaceColor', cur_color);
+    g(i).Color(4) = 0.5;
+end
+cur_depth = 1;
+cur_node = node(1, 0, trim_indices, [scenario.vehicles(:).x_start], [scenario.vehicles(:).y_start], [scenario.vehicles(:).yaw_start], zeros(1,scenario.nVeh), zeros(1,scenario.nVeh));
+search_tree = tree(cur_node);
+
+
+controller = @(scenario, iter, prev_info)...
+    graph_search(scenario, iter, prev_info);
 %% Execute
 
 % Main control loop
 finished = false;
+prev_info = struct;
+prev_info.trim_indices = trim_indices;
 while ~finished
     % Measurement
+    % -------------------------------------------------------------------------
+    % TODO no real measurement in trajectory following.
+    % Coud use vehicles' predicted mpc traj.
+    speeds = zeros(1, scenario.nVeh);
+    for iVeh=1:scenario.nVeh
+        speeds(iVeh) = scenario.combined_graph.motionGraphList(iVeh).trims(cur_node.trims(iVeh)).velocity;
+    end
+    x0 = [cur_node.xs', cur_node.ys', cur_node.yaws', speeds'];
+    % Sample reference trajectory
+    iter = rhc_init(scenario,x0);
     
     
     % Control 
-    % u = receding_horizon(scenario, controller)
+    % -------------------------------------------------------------------------
+    [u, y_pred, info] = controller(scenario, iter, prev_info);
+    % [search_window, leaf_nodes, final_node_id, horizon] = generate_horizon(scenario, iter, cur_node, trims, obstacles, combined_graph, situation_costs, horizon, video);
+            
+    n_vertices = n_vertices + length(search_window.Node);
+    
+    % 
+    if ~isnan(final_node_id)
+        node_id = final_node_id;
+    else
+        finished = true;
+    end
+    
+    % Visualization
+    % -------------------------------------------------------------------------
+    % Visualize horizon
+    % TODO substitute with y_pred
+    path_cell = return_path_to(node_id, search_window, scenario.combined_graph);
+    for i = 1:scenario.nVeh
+        path = path_cell{i};
+        if ~isempty(path)
+            p(i).XData = path(:,1);
+            p(i).YData = path(:,2);
+        end
+    end
+    drawnow;
+    
+    
+    % Visualize path before addition to properly display horizon
+    visualize_step(search_tree, cur_depth, scenario.combined_graph);
+    frame = getframe(gcf);
+    writeVideo(video, frame);
+
+    % Determine next node
+    % TODO Substitute with measure / simulate
+    % TODO pathtoroot instead of findpath
+    search_path = findpath(search_window, 1, node_id);
+    if length(search_path) > 1
+        next_node_id = search_path(2);
+    else
+        finished = true;
+    end
+    cur_node = search_window.Node{next_node_id};
+
+    % Add node to tree
+    [search_tree, cur_depth] = search_tree.addnode(cur_depth, cur_node);
+
+    % Check if we already reached our destination
+    is_goals = is_goal(cur_node, scenario);
+    if(sum(is_goals) == scenario.nVeh)
+        visualize_step(search_tree, cur_depth, scenario.combined_graph);
+        frame = getframe(gcf);
+        writeVideo(video, frame);
+        return
+    end
     
     % Simulation
-    finished = true;
+    % -------------------------------------------------------------------------
+
+
+
+    prev_info = info;
 end
-[video, search_tree, n_vertices] = receding_horizon(scenario, obstacles, combined_graph, situation_costs, video);
 close(video);
 
 

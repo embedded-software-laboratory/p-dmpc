@@ -6,12 +6,14 @@ classdef Scenario < handle
         dt   = 0.4;     % RHC sample time [s]
         Hp   = 6;
         Hu   = 6;
+        combined_graph;
+        trim_set = 'trim_set_3_1';
     end
     
     methods
-        function obj = Scenario(angles)
+        function obj = Scenario(options)
             radius = 15;
-            for the_angle=angles
+            for the_angle=options.angles
                 s = sin(the_angle);
                 c = cos(the_angle);
                 veh = Vehicle();
@@ -25,10 +27,17 @@ classdef Scenario < handle
                 veh.referenceTrajectory = [-c*radius -s*radius;c*radius s*radius]; 
                 obj.vehicles = [obj.vehicles, veh];
             end
-            obj.nVeh = numel(angles);
-            obj.name = sprintf("%i-circle", numel(angles));
+            obj.nVeh = options.amount;
+            obj.name = sprintf("%i-circle", options.amount);
             obj.Hp = h_p;
             obj.Hu = h_u;
+
+
+            
+            % Make motionGraph Tupel
+            motionGraphList = create_motion_graph_list(obj.trim_set, options.amount);
+            % Combine graphs
+            obj.combined_graph = CombinedGraph(motionGraphList);
         end
         
         function plot(obj, varargin)

@@ -1,18 +1,20 @@
-function iter = rhc_init(scenario, x0)
+function iter = rhc_init(scenario, x_measured, trim_indices)
 % Preprocessing step for RHC controller
 
     iter = struct;
     idx = indices();
 
     iter.referenceTrajectoryPoints = zeros(scenario.Hp,2,scenario.nVeh);
+    iter.x0 = x_measured;
     for v=1:scenario.nVeh
         % Find equidistant points on the reference trajectory.
         iter.referenceTrajectoryPoints(:,:,v) = sampleReferenceTrajectory(...
             scenario.Hp, ... % number of prediction steps
             scenario.vehicles(v).referenceTrajectory, ...
-            x0(v,idx.x), ... % vehicle position x
-            x0(v,idx.y), ... % vehicle position y
-            x0(v,idx.speed)*scenario.dt);  % distance traveled in one timestep
+            iter.x0(v,idx.x), ... % vehicle position x
+            iter.x0(v,idx.y), ... % vehicle position y
+            iter.x0(v,idx.speed)*scenario.dt...  % distance traveled in one timestep
+        );
     end
     
    

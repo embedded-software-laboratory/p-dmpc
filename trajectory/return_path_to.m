@@ -2,7 +2,8 @@ function search_paths = return_path_to(node_id, search_tree, motion_graph)
 %RETURN_PATH returns the path as cell array to the closest node
     
     n_veh = length(search_tree.Node{1, 1}.trims);
-    path = findpath(search_tree, 1, node_id);
+    path = pathtoroot(search_tree, node_id);
+    path = fliplr(path);
     path_length = length(path);
     search_paths = cell(1, n_veh);
     
