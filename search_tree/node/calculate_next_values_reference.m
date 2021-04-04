@@ -1,18 +1,16 @@
-function [g_values, h_values] = calculate_next_values_reference(iter, cur_node, situation_costs, init_poses, target_poses, next_node, motion_graph)
-    g_values = cur_node.g_values;
-    % iter.reference is of size (scenario.Hp,2,scenario.nVeh)
-    x_ref_now = squeeze(iter.referenceTrajectoryPoints(next_node.depth,1,:))';
-    y_ref_now = squeeze(iter.referenceTrajectoryPoints(next_node.depth,2,:))';
-    % Distance to reference trajectory points squared
-%     d = sum((next_node.xs-x_ref_now).^2 + (next_node.ys-y_ref_now).^2);
-    % TODO multiple vehicles
+function [g_values, h_values] = calculate_next_values_reference(iter, cur_node, situation_costs, next_node, motion_graph)
     
     nVeh = numel(next_node.xs);
-    for iVeh = 1:nVeh
-        g_values(iVeh) = g_values(iVeh)...
-            + norm( [next_node.xs(iVeh)-x_ref_now(iVeh); ...
-                     next_node.ys(iVeh)-y_ref_now(iVeh)] );
-    end
+    g_values = cur_node.g_values;
+    % iter.reference is of size (scenario.Hp,2,scenario.nVeh)
+    x_ref_now = reshape(iter.referenceTrajectoryPoints(next_node.depth,1,:),1,nVeh);
+    y_ref_now = reshape(iter.referenceTrajectoryPoints(next_node.depth,2,:),1,nVeh);
+    % Distance to reference trajectory points squared
+    g_values = g_values + euclidean_distance(...
+        next_node.xs, next_node.ys,...
+        x_ref_now, y_ref_now...
+    );
+    
 %     h_values = (1 + (next_node.depth == 14)) * cost_to_go(situation_costs, init_poses, target_poses, next_node, motion_graph);
     % TODO adjust ctg
     if (next_node.depth < h_p)
@@ -26,6 +24,7 @@ function [g_values, h_values] = calculate_next_values_reference(iter, cur_node, 
         h_values = zeros(1,nVeh);
         for iVeh = 1:nVeh
             for i_t = 1:time_steps_to_go
+                % TODO Use euclidean distance
                 h_values(iVeh) = h_values(iVeh) ...
                     + norm( [next_node.xs(iVeh)-x_ref(i_t,iVeh);...
                              next_node.ys(iVeh)-y_ref(i_t,iVeh)] ) ...

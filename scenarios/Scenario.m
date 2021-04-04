@@ -4,8 +4,8 @@ classdef Scenario < handle
         nVeh = 0;
         name = 'UnnamedScenario';
         dt   = 0.4;     % RHC sample time [s]
-        Hp   = 5;
-        Hu   = 5;
+        Hp   = 6;
+        Hu   = 6;
     end
     
     methods
@@ -15,15 +15,20 @@ classdef Scenario < handle
                 s = sin(the_angle);
                 c = cos(the_angle);
                 veh = Vehicle();
-                veh.x = -c*radius;
-                veh.y = -s*radius;
-                veh.yaw = the_angle;
+                veh.x_start = -c*radius;
+                veh.y_start = -s*radius;
+                veh.yaw_start = the_angle;
+                veh.x_goal = c*radius;
+                veh.y_goal = s*radius;
+                veh.yaw_goal = the_angle;
                 veh.trim_config = 1;
                 veh.referenceTrajectory = [-c*radius -s*radius;c*radius s*radius]; 
                 obj.vehicles = [obj.vehicles, veh];
             end
             obj.nVeh = numel(angles);
             obj.name = sprintf("%i-circle", numel(angles));
+            obj.Hp = h_p;
+            obj.Hu = h_u;
         end
         
         function plot(obj, varargin)

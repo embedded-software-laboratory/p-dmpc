@@ -1,10 +1,8 @@
-function [leaf_nodes, candidates, search_tree, max_id] = expand_horizon(iter, leaf_nodes, search_tree, next_id, obstacles, motion_graph, situation_costs, trim_length, init_poses, target_poses, visited_nodes, max_id)
-    
-    n_veh = length(motion_graph.motionGraphList);
+function [leaf_nodes, candidates, search_tree, max_id] = expand_horizon(scenario, iter, leaf_nodes, search_tree, next_id, obstacles, motion_graph, situation_costs, trim_length, visited_nodes, max_id)
     cur_node = search_tree.Node{next_id};
     trim_tuple = motion_graph.trimTuple;
     candidates = [];
-    is_goals = is_goal(cur_node, target_poses);
+    is_goals = is_goal(cur_node, scenario);
     
     cur_trim_id = tuple2index(cur_node.trims,trim_length);
     successor_trim_ids = find(motion_graph.transitionMatrix(cur_trim_id, :));
@@ -12,11 +10,11 @@ function [leaf_nodes, candidates, search_tree, max_id] = expand_horizon(iter, le
     if cur_node.depth < h_u
         for id = successor_trim_ids
             next_node.trims = trim_tuple(id,:);
-            [leaf_nodes, candidates, search_tree, max_id] = update_horizon(iter, cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, ...
-                                                                        obstacles, motion_graph, situation_costs, init_poses, target_poses, visited_nodes, max_id, is_goals);
+            [leaf_nodes, candidates, search_tree, max_id] = update_horizon(scenario, iter, cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, ...
+                                                                        obstacles, motion_graph, situation_costs, visited_nodes, max_id, is_goals);
         end
     elseif cur_node.depth < h_p
-        [leaf_nodes, candidates, search_tree, max_id] = update_horizon(iter, cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, ...
-                                                                    obstacles, motion_graph, situation_costs, init_poses, target_poses, visited_nodes, max_id, is_goals);
+        [leaf_nodes, candidates, search_tree, max_id] = update_horizon(scenario, iter, cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, ...
+                                                                    obstacles, motion_graph, situation_costs, visited_nodes, max_id, is_goals);
     end
 end

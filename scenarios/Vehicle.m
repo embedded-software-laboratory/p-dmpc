@@ -4,9 +4,12 @@ classdef Vehicle < handle
     
     properties
         trim_config = 1; % initial trim configuration
-        x = 0; % [m]
-        y = 0; % [m]
-        yaw = 0; % [radians]
+        x_start = 0; % [m]
+        y_start = 0; % [m]
+        yaw_start = 0; % [radians]
+        x_goal = 0; % [m]
+        y_goal = 0; % [m]
+        yaw_goal = 0; % [radians]
         referenceTrajectory = [0 0; 1 0; 3 1]; 
         Length = .98; % Vehicle length (bumper to bumper)[m]
         Width = .88; % Vehicle width [m]
@@ -30,7 +33,7 @@ classdef Vehicle < handle
                 color = varargin{2};
             end
             figure(fig);
-            vehicle_polygon = transformedRectangle(obj.x,obj.y, obj.yaw, obj.Length, obj.Width);
+            vehicle_polygon = transformedRectangle(obj.x_start,obj.y_start, obj.yaw_start, obj.Length, obj.Width);
             fill(vehicle_polygon(1,:),vehicle_polygon(2,:),color);
         end
     end

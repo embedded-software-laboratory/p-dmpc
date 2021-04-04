@@ -1,4 +1,4 @@
 function result = h_u
-result = 4;
+result = 6;
 end
 

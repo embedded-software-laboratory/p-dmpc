@@ -2,14 +2,16 @@
 % Add modules to path
 % Import tree class
 assert(logical(exist('./matlab-tree/', 'dir')));
-addpath('./matlab-tree/');
 addpath(genpath(pwd));
 % warning('off','MATLAB:polyshape:repairedBySimplify')
+
+close all
+clear
+clc
 
 options = selection();
 
 scenario = Scenario(options.angles);
-[init_poses, target_poses] = create_poses(scenario);
 
 trim_indices = ones(1, options.amount);
 
@@ -34,8 +36,8 @@ axis([-18, 18, -18, 18]);
 %set(gca, 'ytick', [-9 9]);
 pbaspect([1 1 1]);
 title("Iteration: 0, Time: 0");
-draw_destination(target_poses);
-draw_cars(init_poses);
+draw_destination(scenario);
+draw_cars(scenario);
 obstacles = [];
 %obstacles = polyshape([-2 -2 2 2],[4 -4 -4 4]);
 %plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
