@@ -1,10 +1,10 @@
-function [g_values, h_values] = calculate_next_values_reference(scenario, iter, cur_node, situation_costs, next_node)
+function [g_values, h_values] = calculate_next_values_reference(scenario, iter, cur_node, next_node)
     
     nVeh = numel(next_node.xs);
     g_values = cur_node.g_values;
     % iter.reference is of size (scenario.Hp,2,scenario.nVeh)
-    x_ref_now = reshape(iter.referenceTrajectoryPoints(next_node.depth,1,:),1,nVeh);
-    y_ref_now = reshape(iter.referenceTrajectoryPoints(next_node.depth,2,:),1,nVeh);
+    x_ref_now = reshape(iter.referenceTrajectoryPoints(next_node.depth,1,:),nVeh,1);
+    y_ref_now = reshape(iter.referenceTrajectoryPoints(next_node.depth,2,:),nVeh,1);
     % Distance to reference trajectory points squared
     g_values = g_values + euclidean_distance(...
         next_node.xs, next_node.ys,...
@@ -20,8 +20,7 @@ function [g_values, h_values] = calculate_next_values_reference(scenario, iter, 
         x_ref = reshape(iter.referenceTrajectoryPoints(next_node.depth+1:h_p,1,:), time_steps_to_go, nVeh);
         y_ref = reshape(iter.referenceTrajectoryPoints(next_node.depth+1:h_p,2,:), time_steps_to_go, nVeh);
         d_traveled_per_step = dt*v_max;
-        total_steps = nVeh * time_steps_to_go*(time_steps_to_go+1)/2;
-        h_values = zeros(1,nVeh);
+        h_values = zeros(nVeh,1);
         for iVeh = 1:nVeh
             for i_t = 1:time_steps_to_go
                 % TODO Use euclidean distance

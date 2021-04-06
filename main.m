@@ -75,7 +75,7 @@ for i = 1:scenario.nVeh
     g(i).Color(4) = 0.5;
 end
 cur_depth = 1;
-cur_node = node(1, 0, trim_indices, [scenario.vehicles(:).x_start], [scenario.vehicles(:).y_start], [scenario.vehicles(:).yaw_start], zeros(1,scenario.nVeh), zeros(1,scenario.nVeh));
+cur_node = node(1, 0, trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
 search_tree = tree(cur_node);
 
 
@@ -92,11 +92,11 @@ while ~finished
     % -------------------------------------------------------------------------
     % TODO no real measurement in trajectory following.
     % Coud use vehicles' predicted mpc traj.
-    speeds = zeros(1, scenario.nVeh);
+    speeds = zeros(scenario.nVeh, 1);
     for iVeh=1:scenario.nVeh
         speeds(iVeh) = scenario.combined_graph.motionGraphList(iVeh).trims(cur_node.trims(iVeh)).velocity;
     end
-    x0 = [cur_node.xs', cur_node.ys', cur_node.yaws', speeds'];
+    x0 = [cur_node.xs, cur_node.ys, cur_node.yaws, speeds];
     % Sample reference trajectory
     iter = rhc_init(scenario,x0);
     
@@ -104,24 +104,14 @@ while ~finished
     % Control 
     % -------------------------------------------------------------------------
     [u, y_pred, info] = controller(scenario, iter, prev_info);
-    % [search_window, leaf_nodes, final_node_id, horizon] = generate_horizon(scenario, iter, cur_node, trims, obstacles, combined_graph, situation_costs, horizon, video);
             
-    n_vertices = n_vertices + length(search_window.Node);
-    
-    % 
-    if ~isnan(final_node_id)
-        node_id = final_node_id;
-    else
-        finished = true;
-    end
+    n_vertices = n_vertices + length(info.tree.Node);
     
     % Visualization
     % -------------------------------------------------------------------------
     % Visualize horizon
-    % TODO substitute with y_pred
-    path_cell = return_path_to(node_id, search_window, scenario.combined_graph);
     for i = 1:scenario.nVeh
-        path = path_cell{i};
+        path = y_pred{i};
         if ~isempty(path)
             p(i).XData = path(:,1);
             p(i).YData = path(:,2);
@@ -137,14 +127,8 @@ while ~finished
 
     % Determine next node
     % TODO Substitute with measure / simulate
-    % TODO pathtoroot instead of findpath
-    search_path = findpath(search_window, 1, node_id);
-    if length(search_path) > 1
-        next_node_id = search_path(2);
-    else
-        finished = true;
-    end
-    cur_node = search_window.Node{next_node_id};
+    assert(numel(info.tree_path)>1);
+    cur_node = info.tree.Node{info.tree_path(2)};
 
     % Add node to tree
     [search_tree, cur_depth] = search_tree.addnode(cur_depth, cur_node);
@@ -155,7 +139,7 @@ while ~finished
         visualize_step(search_tree, cur_depth, scenario.combined_graph);
         frame = getframe(gcf);
         writeVideo(video, frame);
-        return
+        finished = true;
     end
     
     % Simulation

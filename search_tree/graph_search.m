@@ -41,8 +41,8 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
         % Delete chosen entry from list of expandable nodes
 
         % Expand chosen node
-        [leaf_nodes, candidates, info.tree, max_id] = expand_node(scenario, iter, leaf_nodes, info.tree, cur_node_id, obstacles, ...
-                                                              situation_costs, trim_length, visited_nodes, max_id);        
+        [leaf_nodes, candidates, info.tree, max_id] = expand_node(scenario, iter, leaf_nodes, info.tree, cur_node_id, ...
+                                                              trim_length, visited_nodes, max_id);        
                                                                                    
         % visited_nodes = [visited_nodes, cur_node_id];  
         
@@ -56,7 +56,8 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
                 % TODO u
                 u = 0;
                 p = pathtoroot(info.tree, final_node_id);
-                info.trim_indices = info.tree.Node{p(end-1)}.trims;
+                info.tree_path = fliplr(p);
+                info.trim_indices = info.tree.Node{info.tree_path(2)}.trims;
             end
         end
         

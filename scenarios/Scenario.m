@@ -1,6 +1,7 @@
 classdef Scenario < handle
     properties
-        vehicles = [];  % vehicles
+        vehicles = [];  % array of Vehicle objects
+        obstacles = [];
         nVeh = 0;
         name = 'UnnamedScenario';
         dt   = 0.4;     % RHC sample time [s]

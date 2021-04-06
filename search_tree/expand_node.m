@@ -1,4 +1,4 @@
-function [leaf_nodes, candidates, search_tree, max_id] = expand_node(scenario, iter, leaf_nodes, search_tree, next_id, obstacles, situation_costs, trim_length, visited_nodes, max_id)
+function [leaf_nodes, candidates, search_tree, max_id] = expand_node(scenario, iter, leaf_nodes, search_tree, next_id, trim_length, visited_nodes, max_id)
     cur_node = search_tree.Node{next_id};
     trim_tuple = scenario.combined_graph.trimTuple;
     candidates = [];
@@ -15,6 +15,6 @@ function [leaf_nodes, candidates, search_tree, max_id] = expand_node(scenario, i
     for id = successor_trim_ids
         next_node.trims = trim_tuple(id,:);
         [leaf_nodes, candidates, search_tree, max_id] = eval_child(scenario, iter, cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, ...
-                                                                    obstacles, situation_costs, visited_nodes, max_id, is_goals);
+                                                                    visited_nodes, max_id, is_goals);
     end
 end

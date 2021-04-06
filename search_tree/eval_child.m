@@ -1,4 +1,4 @@
-function [leaf_nodes, candidates, search_tree, max_id] = eval_child(scenario, iter, cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, obstacles, situation_costs, visited_nodes, max_id, is_goals)
+function [leaf_nodes, candidates, search_tree, max_id] = eval_child(scenario, iter, cur_node, next_node, leaf_nodes, candidates, search_tree, next_id, visited_nodes, max_id, is_goals)
 
     visited = true;
   
@@ -18,7 +18,7 @@ function [leaf_nodes, candidates, search_tree, max_id] = eval_child(scenario, it
         next_node.shapes(i) = polyshape(shape_x,shape_y,'Simplify',false);
         
         % Abort update if collision is detected
-        if collision_with(i, next_node.shapes, obstacles)
+        if collision_with(i, next_node.shapes, scenario.obstacles)
             return
         end
         
@@ -33,7 +33,7 @@ function [leaf_nodes, candidates, search_tree, max_id] = eval_child(scenario, it
     %    return
     %end
 
-    [next_node.g_values, next_node.h_values] = calculate_next_values_reference(scenario, iter, cur_node, situation_costs, next_node);
+    [next_node.g_values, next_node.h_values] = calculate_next_values_reference(scenario, iter, cur_node, next_node);
     next_node.id = max_id + 1;
     [search_tree, max_id] = search_tree.addnode(next_id, next_node);
     
