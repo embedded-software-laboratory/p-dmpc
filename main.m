@@ -74,9 +74,10 @@ for i = 1:scenario.nVeh
     g(i) = plot(scenario.vehicles(i).x_start, scenario.vehicles(i).y_start, 'o','Color', cur_color, 'MarkerSize',3,'MarkerFaceColor', cur_color);
     g(i).Color(4) = 0.5;
 end
-cur_depth = 1;
-cur_node = node(1, 0, trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
+cur_depth = 0;
+cur_node = node(cur_depth, trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
 search_tree = tree(cur_node);
+cur_depth = cur_depth + 1;
 
 
 controller = @(scenario, iter, prev_info)...
@@ -87,7 +88,20 @@ controller = @(scenario, iter, prev_info)...
 finished = false;
 prev_info = struct;
 prev_info.trim_indices = trim_indices;
-while ~finished
+
+
+
+for iVeh = 1:scenario.nVeh
+    c = vehColor(iVeh);
+    prev_info.plot.openNodes(iVeh) = scatter(0, 0 ...
+        ,'LineWidth', 3 ...
+        ,'MarkerEdgeColor', c ...
+        ,'MarkerFaceColor', c ...
+        ,'MarkerEdgeAlpha', 0.4 ...
+        ,'MarkerFaceAlpha', 0.4 ...
+    );
+end
+while ~finished || cur_depth > 50
     % Measurement
     % -------------------------------------------------------------------------
     % TODO no real measurement in trajectory following.

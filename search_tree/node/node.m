@@ -1,7 +1,6 @@
 classdef node
     
     properties
-        id
         depth
         trims
         xs
@@ -10,12 +9,11 @@ classdef node
         shapes
         g_values
         h_values
+        exact_eval = false;
     end
     
     methods
-        function obj = node(id, depth, trims, xs, ys, yaws, g_values, h_values)
-            % TODO remove ID
-            obj.id = id;
+        function obj = node(depth, trims, xs, ys, yaws, g_values, h_values)
             obj.depth = depth;
             obj.trims = trims;
             obj.xs = xs;

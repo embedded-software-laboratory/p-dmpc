@@ -1,25 +1,19 @@
-function id = get_next_node(search_tree, leaf_nodes)    
+function [idx_tree, idx_nodes] = get_next_node(search_tree, open_nodes)
+    assert(~isempty(open_nodes));
     
     h_weight = 2;
     g_weight = 1;
-    if (length(leaf_nodes) > 1)
-        cur_node = search_tree.Node{leaf_nodes(1)};
-        values = g_weight * cur_node.g_values + h_weight * cur_node.h_values;
-        min_value = sum(values);
-        id = leaf_nodes(1);
-        
-        for i = 2:length(leaf_nodes)
-            cur_node = search_tree.Node{leaf_nodes(i)};
-            values = g_weight * cur_node.g_values + h_weight * cur_node.h_values;
-            cur_value = sum(values);
-            
-            if min_value > cur_value
-                min_value = cur_value;
-                id = leaf_nodes(i);
-            end
+    min_value = inf;
+    
+    for iNode = 1:length(open_nodes)
+        values = g_weight * search_tree.Node{open_nodes(iNode)}.g_values ...
+               + h_weight * search_tree.Node{open_nodes(iNode)}.h_values;
+        cur_value = sum(values);
+        if cur_value < min_value
+            min_value = cur_value;
+            idx_tree = open_nodes(iNode);
+            idx_nodes = iNode;
         end
-    else
-        id = leaf_nodes(1);
     end
 end
 
