@@ -1,4 +1,5 @@
 function [idx_tree, idx_nodes] = get_next_node(search_tree, open_nodes)
+    % TODO delete function
     assert(~isempty(open_nodes));
     
     h_weight = 2;
