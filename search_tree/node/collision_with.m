@@ -19,10 +19,8 @@ function collision = collision_with(index, shapes, displacement, midpoint, obsta
     for i = (index - 1) : -1 : 1
         % Area of overlapping shapes
         if collision_candidate(midpoint(:,index),midpoint(:,i),displacement(index),displacement(i),offset1,offset2)
-            %real collisioon check
-            tmp_shape = polyshape(shapes{i}(1,:),shapes{i}(2,:),'Simplify',false);
-            intersection = intersect(shape, tmp_shape);
-            if intersection.NumRegions ~= 0   
+            % check if polygons intersect
+            if collide_sat(shapes{i},shapes{index})
                 collision = true;
                 return;
             end
