@@ -15,10 +15,13 @@ function [theTree, open_nodes, open_values, search_finished] = eval_path_exact(s
                     maneuver.area(1,:),...
                     maneuver.area(2,:)...
                 );
-                theTree.Node{p(iNode)}.shapes(iVeh) = polyshape(shape_x,shape_y,'Simplify',false);
+                theTree.Node{p(iNode)}.shapes{iVeh} = [shape_x;shape_y];
+                displacements(iVeh) = sqrt(maneuver.dx^2+maneuver.dy^2);
+                % (1,idx) for x; (2,idx) for y
+                midpoints(:,iVeh) = [node_parent.xs(iVeh)+maneuver.dx/2,node_parent.ys(iVeh)+maneuver.dy/2];
                 
                 % If collision, chop node and subtree
-                if collision_with(iVeh, theTree.Node{p(iNode)}.shapes, scenario.obstacles)
+                if collision_with(iVeh, theTree.Node{p(iNode)}.shapes, displacements, midpoints, scenario.obstacles)
                     % Chop parent if last sibling
                     iChop = iNode;
                     while (numel(getsiblings(theTree,p(iChop))) == 1)
