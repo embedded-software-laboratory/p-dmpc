@@ -76,7 +76,7 @@ for i = 1:scenario.nVeh
 end
 cur_depth = 0;
 cur_node = node(cur_depth, trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
-search_tree = tree(cur_node);
+search_tree = tree2(cur_node);
 cur_depth = cur_depth + 1;
 
 
