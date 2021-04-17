@@ -132,6 +132,33 @@ classdef tree2
         
         end
         
+        function [obj, IDs] = addnnodes(obj, parents, datas)
+            %% ADDNODE attach a multiple new nodes to a parent node
+            % not a standard function
+            
+            np = numel(parents);
+            
+            if np == 1
+                obj.addnode(parents,datas);
+                return
+            end
+            
+            newlast = obj.last + np;
+            
+            if newlast >= numel(obj.Node)
+                obj.Node(end+1:end+2000,1) = cell(2000,1);
+            end
+       
+            
+            obj.Node(obj.last+1:obj.last+np,1) = datas;
+            
+            obj.Parent(end+1:end+np) = parents;
+            
+            IDs = obj.last+1:newlast;
+            
+            obj.last = newlast;  
+        end
+        
         function flag = isleaf(obj, ID)
            %% ISLEAF  Return true if given ID matches a leaf node.
            % A leaf node is a node that has no children.
