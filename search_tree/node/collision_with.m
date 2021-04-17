@@ -3,8 +3,8 @@ function collision = collision_with(index, shapes, displacement, midpoint, obsta
     
     shape = polyshape(shapes{index}(1,:),shapes{index}(2,:),'Simplify',false);
     
-    offset1 = 2.3;
-    offset2 = 2.3;
+    offset1 = 4;
+    offset2 = 4;
     
     % how to solve the problem with obstacles? non-convex?
     % how are they stored?
