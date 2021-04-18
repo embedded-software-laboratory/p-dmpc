@@ -1,4 +1,4 @@
-classdef tree2
+classdef tree3
 %% TREE  A class implementing a tree data structure.
 %
 % This class implements a simple tree data structure. Each node can only
@@ -35,7 +35,7 @@ classdef tree2
         
         % CONSTRUCTOR
         
-        function [obj, root_ID] = tree2(content, val)
+        function [obj, root_ID] = tree3(content, val)
             %% TREE  Construct a new tree
             %
             % t = TREE(another_tree) is the copy-constructor for this
