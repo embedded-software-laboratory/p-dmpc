@@ -1,7 +1,8 @@
 classdef Scenario < handle
     properties
         vehicles = [];  % array of Vehicle objects
-        obstacles = [];
+        % obstacles = {[xs;ys],...}
+        obstacles = {};
         nVeh = 0;
         name = 'UnnamedScenario';
         dt   = 0.4;     % RHC sample time [s]
@@ -9,6 +10,7 @@ classdef Scenario < handle
         Hu   = 6;
         combined_graph;
         trim_set = 'trim_set_3_1';
+        offset = 0;
     end
     
     methods
@@ -36,9 +38,11 @@ classdef Scenario < handle
 
             
             % Make motionGraph Tupel
-            motionGraphList = create_motion_graph_list(obj.trim_set, options.amount);
+            [motionGraphList,model] = create_motion_graph_list(obj.trim_set, options.amount);
             % Combine graphs
             obj.combined_graph = CombinedGraph(motionGraphList);
+            % offset for hierarchical collision check
+            obj.offset = ceil(sqrt(max(model.Lf,model.Lr)^2+(model.W/2)^2)) + 0.1;
         end
         
         function plot(obj, varargin)

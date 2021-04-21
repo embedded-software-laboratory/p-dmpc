@@ -1,4 +1,4 @@
-function motionGraphList = create_motion_graph_list(trim_set, vehicle_amount)
+function [motionGraphList,model] = create_motion_graph_list(trim_set, vehicle_amount)
     model = BicycleModel(2.2,2.2);
     load(trim_set);
 
