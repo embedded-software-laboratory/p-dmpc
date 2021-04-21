@@ -1,26 +1,21 @@
-function collision = collision_with(index, shapes, displacement, midpoint, obstacles)
+function collision = collision_with(index, shapes, displacement, midpoint, obstacles, offset)
     collision = false;
-    
-    shape = polyshape(shapes{index}(1,:),shapes{index}(2,:),'Simplify',false);
-    
-    offset1 = 4;
-    offset2 = 4;
-    
-    % how to solve the problem with obstacles? non-convex?
-    % how are they stored?
-    if(~isempty(obstacles))
-        intersection = intersect(shape, obstacles);
-        if intersection.NumRegions ~= 0   
-            collision = true;
-            return;
+        
+    nobs = numel(obstacles);
+    if(nobs ~= 0)
+        for i = 1:nobs
+            if intersect_sat(shapes{index},obstacles{i}) 
+                collision = true;
+                return;
+            end
         end
     end
     
     for i = (index - 1) : -1 : 1
         % Area of overlapping shapes
-        if collision_candidate(midpoint(:,index),midpoint(:,i),displacement(index),displacement(i),offset1,offset2)
+        if collision_candidate(midpoint(:,index),midpoint(:,i),displacement(index),displacement(i),offset,offset)
             % check if polygons intersect
-            if collide_sat(shapes{i},shapes{index})
+            if intersect_sat(shapes{i},shapes{index})
                 collision = true;
                 return;
             end

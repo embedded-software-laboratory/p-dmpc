@@ -34,9 +34,12 @@ pbaspect([1 1 1]);
 title("Iteration: 0, Time: 0");
 draw_destination(scenario);
 draw_cars(scenario);
-obstacles = [];
-%obstacles = polyshape([-2 -2 2 2],[4 -4 -4 4]);
-%plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
+if numel(scenario.obstacles) ~= 0
+    for i = 1:numel(scenario.obstacles)
+        obstacles = polyshape(scenario.obstacles{i}(1,:),scenario.obstacles{i}(2,:));
+        plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
+    end
+end
 
 % Create log folder
 st = dbstack;
