@@ -14,7 +14,7 @@ classdef MotionGraph
     
     methods
         
-        function obj = MotionGraph(model, trim_inputs, trim_adjacency, dt)
+        function obj = MotionGraph(model, trim_inputs, trim_adjacency, offset, dt)
             % Constructor
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
             % read as: rows are start trims and columns are end trims
@@ -42,7 +42,7 @@ classdef MotionGraph
             for i = 1:n_trims
                 for j = 1:n_trims
                     if obj.transition_matrix(i,j)
-                        obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), dt);
+                        obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), offset, dt);
                     end
                 end
             end

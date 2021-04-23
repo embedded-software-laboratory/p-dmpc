@@ -1,10 +1,7 @@
-function maneuver_area = calculate_maneuver_area(model,maneuver)
+function maneuver_area = calculate_maneuver_area(model,maneuver,offset)
     
     % half width
     hw = model.W/2;
-    
-    % collision offset
-    offset = 0.1;
     
     % local rectangel of bycicle model [coordinates clockwise from lower left corner]
     x_rec = [-model.Lr-offset -model.Lr-offset model.Lf+offset model.Lf+offset]; 

@@ -22,7 +22,7 @@ function [theTree, open_nodes, open_values, search_finished] = eval_path_exact(s
                                         node_parent.ys(iVeh)+(maneuver.dx*sin(node_parent.yaws(iVeh))+maneuver.dy*cos(node_parent.yaws(iVeh)))/2];
                 
                 % If collision, chop node and subtree
-                if collision_with(iVeh, theTree.Node{p(iNode)}.shapes, displacements, midpoints, scenario.obstacles, scenario.offset)
+                if collision_with(iVeh, theTree.Node{p(iNode)}.shapes, displacements, midpoints, scenario)
                     % Chop parent if last sibling
                     iChop = iNode;
                     while (numel(getsiblings(theTree,p(iChop))) == 1)
