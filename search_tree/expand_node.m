@@ -3,6 +3,8 @@ function [expanded_nodes, search_tree] = expand_node(scenario, iter, search_tree
     trim_tuple = scenario.combined_graph.trimTuple;
     % is_goals = is_goal(cur_node, scenario);
     expanded_nodes = [];
+    parents = [];
+    expand_tmp = {};
     trim_length = zeros(1, scenario.nVeh);
     for i = 1 : scenario.nVeh
         trim_length(i) = length(scenario.combined_graph.motionGraphList(i).trims);
@@ -42,7 +44,8 @@ function [expanded_nodes, search_tree] = expand_node(scenario, iter, search_tree
         %end
 
         [expanded_node.g_values, expanded_node.h_values] = calculate_next_values_reference(scenario, iter, cur_node, expanded_node);
-        [search_tree, new_node_id] = search_tree.addnode(node_id, expanded_node);
-        expanded_nodes = [expanded_nodes, new_node_id];
+        expand_tmp{end+1} = expanded_node;
     end
+    parents = ones(1,numel(expand_tmp))*node_id;
+    [search_tree, expanded_nodes] = search_tree.addnnodes(parents, expand_tmp);
 end
