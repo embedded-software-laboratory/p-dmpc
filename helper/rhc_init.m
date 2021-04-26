@@ -6,14 +6,16 @@ function iter = rhc_init(scenario, x_measured, trim_indices)
 
     iter.referenceTrajectoryPoints = zeros(scenario.Hp,2,scenario.nVeh);
     iter.x0 = x_measured;
-    for v=1:scenario.nVeh
+    
+    iter.vRef = get_max_speeds(scenario.combined_graph);
+    for iVeh=1:scenario.nVeh
         % Find equidistant points on the reference trajectory.
-        iter.referenceTrajectoryPoints(:,:,v) = sampleReferenceTrajectory(...
+        iter.referenceTrajectoryPoints(:,:,iVeh) = sampleReferenceTrajectory(...
             scenario.Hp, ... % number of prediction steps
-            scenario.vehicles(v).referenceTrajectory, ...
-            iter.x0(v,idx.x), ... % vehicle position x
-            iter.x0(v,idx.y), ... % vehicle position y
-            iter.x0(v,idx.speed)*scenario.dt...  % distance traveled in one timestep
+            scenario.vehicles(iVeh).referenceTrajectory, ...
+            iter.x0(iVeh,idx.x), ... % vehicle position x
+            iter.x0(iVeh,idx.y), ... % vehicle position y
+            iter.vRef(iVeh)*scenario.dt...  % distance traveled in one timestep
         );
     end
     

@@ -32,6 +32,9 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
     while true
         % Choose cheapest node for expansion
         % [cur_node_id, open_id] = get_next_node(info.tree, open_nodes);
+        if numel(open_nodes) == 0
+            error('No more open nodes to explore');
+        end
         [open_nodes, open_values] = sort_open_list(open_nodes, open_values);
         cur_node_id = open_nodes(1);
         cur_node = info.tree.Node{cur_node_id};

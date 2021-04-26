@@ -1,7 +1,5 @@
 %% Setup
 % Add modules to path
-% Import tree class
-assert(logical(exist('./matlab-tree/', 'dir')));
 addpath(genpath(pwd));
 % warning('off','MATLAB:polyshape:repairedBySimplify')
 
@@ -67,15 +65,18 @@ open(video)
 trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
 n_vertices = 0;
-horizon = cell(1, 3);
-p = gobjects(1, scenario.nVeh);
-g = gobjects(1, scenario.nVeh);
-for i = 1:scenario.nVeh
-    cur_color = vehColor(i);
-    p(i) = plot(scenario.vehicles(i).x_start, scenario.vehicles(i).y_start, '-','Color', cur_color, 'LineWidth', 2);
-    p(i).Color(4) = 0.5;
-    g(i) = plot(scenario.vehicles(i).x_start, scenario.vehicles(i).y_start, 'o','Color', cur_color, 'MarkerSize',3,'MarkerFaceColor', cur_color);
-    g(i).Color(4) = 0.5;
+
+% Visualize
+vis = struct;
+vis.p = gobjects(1, scenario.nVeh);
+vis.g = gobjects(1, scenario.nVeh);
+for iVeh = 1:scenario.nVeh
+    cur_color = vehColor(iVeh);
+    vis.p(iVeh) = plot(scenario.vehicles(iVeh).x_start, scenario.vehicles(iVeh).y_start, '-','Color', cur_color, 'LineWidth', 2);
+    vis.p(iVeh).Color(4) = 0.5;
+    vis.g(iVeh) = plot(scenario.vehicles(iVeh).x_start, scenario.vehicles(iVeh).y_start, 'o','Color', cur_color, 'MarkerSize',3,'MarkerFaceColor', cur_color);
+    vis.g(iVeh).Color(4) = 0.5;
+    vis.search(iVeh) = scatter3(0, 0, 0);
 end
 cur_depth = 0;
 cur_node = node(cur_depth, trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
@@ -94,16 +95,6 @@ prev_info.trim_indices = trim_indices;
 
 
 
-% for iVeh = 1:scenario.nVeh
-%     c = vehColor(iVeh);
-%     prev_info.plot.openNodes(iVeh) = scatter(0, 0 ...
-%         ,'LineWidth', 3 ...
-%         ,'MarkerEdgeColor', c ...
-%         ,'MarkerFaceColor', c ...
-%         ,'MarkerEdgeAlpha', 0.4 ...
-%         ,'MarkerFaceAlpha', 0.4 ...
-%     );
-% end
 while ~finished || cur_depth > 50
     % Measurement
     % -------------------------------------------------------------------------
@@ -126,14 +117,18 @@ while ~finished || cur_depth > 50
     
     % Visualization
     % -------------------------------------------------------------------------
-    % Visualize horizon
-    for i = 1:scenario.nVeh
-        path = y_pred{i};
+    for iVeh = 1:scenario.nVeh
+        % Visualize horizon
+        path = y_pred{iVeh};
         if ~isempty(path)
-            p(i).XData = path(:,1);
-            p(i).YData = path(:,2);
+            vis.p(iVeh).XData = path(:,1);
+            vis.p(iVeh).YData = path(:,2);
         end
     end
+    % Visualize exploration
+%     vis = visualize_exploration(scenario, info.tree, vis);
+
+
     drawnow;
     
     

@@ -8,4 +8,3 @@ function [motionGraphList,model] = create_motion_graph_list(trim_set, vehicle_am
         motionGraphList = [motionGraphList, motionGraph];
     end
 end
-

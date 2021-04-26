@@ -25,7 +25,8 @@ function [theTree, open_nodes, open_values, search_finished] = eval_path_exact(s
                 if collision_with(iVeh, theTree.Node{p(iNode)}.shapes, displacements, midpoints, scenario)
                     % Chop parent if last sibling
                     iChop = iNode;
-                    while (numel(getsiblings(theTree,p(iChop))) == 1)
+                    while ((numel(getsiblings(theTree,p(iChop))) == 1) ...
+                            && iChop ~= 1)
                         iChop = iChop - 1;
                     end
                     choppedNodes = depthfirstiterator(theTree, p(iChop));

@@ -1,4 +1,3 @@
 function result = h_u
-result = 6;
+result = h_p;
 end
-

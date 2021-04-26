@@ -20,7 +20,15 @@ classdef CombinedGraph
             obj.transitionMatrix = compute_product_maneuver_matrix(obj.motionGraphList);
             
         end
-   
+    
+        function max_speeds = get_max_speeds(obj)
+            % returns maximum speed per vehicle (nVeh x 1)
+            nVeh = numel(obj.motionGraphList);
+            max_speeds = zeros(nVeh, 1);
+            for iVeh = 1:nVeh
+                max_speeds(iVeh) = max([obj.motionGraphList(iVeh).trims(:).velocity]);
+            end
+        end
     end
 end
 

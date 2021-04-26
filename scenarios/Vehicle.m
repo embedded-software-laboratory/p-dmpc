@@ -1,4 +1,4 @@
-classdef Vehicle < handle
+classdef Vehicle
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
     
