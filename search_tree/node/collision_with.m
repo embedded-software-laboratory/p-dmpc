@@ -1,20 +1,31 @@
-function collision = collision_with(index, shapes, obstacles)
+function collision = collision_with(index, shapes, displacement, midpoint, scenario)
     collision = false;
     
-    if(~isempty(obstacles))
-        intersection = intersect(shapes(index), obstacles);
-        if intersection.NumRegions ~= 0   
-            collision = true;
-            return;
+    obstacles = scenario.obstacles;
+    
+    % vehicle-dependent offset added to circular manuever approximation
+    veh_offset = scenario.model.max_dist_cg+scenario.offset;
+        
+    nobs = numel(obstacles);
+    if(nobs ~= 0)
+        for i = 1:nobs
+            if intersect_sat(shapes{index},obstacles{i}) 
+                collision = true;
+                return;
+            end
         end
     end
     
     for i = (index - 1) : -1 : 1
         % Area of overlapping shapes
-        intersection = intersect(shapes(index), shapes(i));
-        if intersection.NumRegions ~= 0   
-            collision = true;
-            return;
+        if collision_candidate(midpoint(:,index),midpoint(:,i),displacement(index),displacement(i),veh_offset,veh_offset)
+            % check if polygons intersect
+            if intersect_sat(shapes{i},shapes{index})
+                collision = true;
+                return;
+            end
+        else
+            continue;
         end
     end
 end

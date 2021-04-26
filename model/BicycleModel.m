@@ -4,6 +4,7 @@ classdef BicycleModel < VehicleModel
         Lf
         Lr
         W
+        max_dist_cg
     end
     
     methods
@@ -23,6 +24,9 @@ classdef BicycleModel < VehicleModel
             
             % width
             obj.W = 0.88;
+            
+            % maximum distance from the vehicles center of gravity to its outline
+            obj.max_dist_cg = sqrt(max(obj.Lf,obj.Lr)^2+(obj.W/2)^2);
         end
         
         

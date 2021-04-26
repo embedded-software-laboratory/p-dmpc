@@ -1,5 +1,5 @@
 % genrates maneuver struct
-function maneuver = generate_maneuver(model, trim1, trim2, dt)
+function maneuver = generate_maneuver(model, trim1, trim2, offset, dt)
     
     % length of vehicle
     L = model.Lr+model.Lf;
@@ -31,7 +31,7 @@ function maneuver = generate_maneuver(model, trim1, trim2, dt)
     maneuver.ys = ys;
     maneuver.yaws = yaws;
    
-    area = calculate_maneuver_area(model,maneuver);
+    area = calculate_maneuver_area(model,maneuver,offset);
     
     maneuver.area = area;
     

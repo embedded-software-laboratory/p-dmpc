@@ -1,7 +1,8 @@
 classdef Scenario < handle
     properties
         vehicles = [];  % array of Vehicle objects
-        obstacles = [];
+        % obstacles = {[xs;ys],...}
+        obstacles = {};
         nVeh = 0;
         name = 'UnnamedScenario';
         dt   = 0.4;     % RHC sample time [s]
@@ -9,6 +10,8 @@ classdef Scenario < handle
         Hu   = 6;
         combined_graph;
         trim_set = 'trim_set_3_1';
+        offset = 0.1;           % offset for collision checks
+        model = [];
     end
     
     methods
@@ -32,11 +35,9 @@ classdef Scenario < handle
             obj.name = sprintf("%i-circle", options.amount);
             obj.Hp = h_p;
             obj.Hu = h_u;
-
-
             
             % Make motionGraph Tupel
-            motionGraphList = create_motion_graph_list(obj.trim_set, options.amount);
+            [motionGraphList,obj.model] = create_motion_graph_list(obj.trim_set, options.amount, obj.offset);
             % Combine graphs
             obj.combined_graph = CombinedGraph(motionGraphList);
         end
