@@ -80,9 +80,12 @@ cur_node = node(cur_depth, trim_indices, [scenario.vehicles(:).x_start]', [scena
 search_tree = tree(cur_node);
 cur_depth = cur_depth + 1;
 
-
 controller = @(scenario, iter, prev_info)...
     graph_search(scenario, iter, prev_info);
+
+% init result struct
+result = get_result_struct(scenario,50);
+
 %% Execute
 
 % Main control loop
@@ -90,9 +93,8 @@ finished = false;
 prev_info = struct;
 prev_info.trim_indices = trim_indices;
 
-
-
 while ~finished || cur_depth > 50
+    result.step_timer = tic;
     % Measurement
     % -------------------------------------------------------------------------
     % TODO no real measurement in trajectory following.
@@ -104,11 +106,16 @@ while ~finished || cur_depth > 50
     x0 = [cur_node.xs, cur_node.ys, cur_node.yaws, speeds];
     % Sample reference trajectory
     iter = rhc_init(scenario,x0);
-    
+    result.iteration_structs{cur_depth} = iter;
     
     % Control 
     % -------------------------------------------------------------------------
-    [u, y_pred, info] = controller(scenario, iter, prev_info);
+    controller_timer = tic;
+        [u, y_pred, info] = controller(scenario, iter, prev_info);
+    result.controller_runtime(cur_depth) = toc(controller_timer);
+    % save controller outputs in resultstruct
+    result.trajectory_predictions(:,cur_depth) = y_pred;
+    result.controller_outputs{cur_depth} = u;
             
     n_vertices = n_vertices + length(info.tree.Node);
     
@@ -155,10 +162,16 @@ while ~finished || cur_depth > 50
     % -------------------------------------------------------------------------
 
 
-
+    
     prev_info = info;
+    result.step_time(cur_depth) = toc(result.step_timer);
 end
 close(video);
+
+% store vehicles path in higher resolution
+for nn=1:numel(search_tree.Node)-1
+    result.vehicle_path_fullres(:,nn) = path_between(search_tree.Node{nn},search_tree.Node{nn+1},search_tree,scenario.combined_graph);
+end
 
 
 
