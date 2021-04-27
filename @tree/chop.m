@@ -1,4 +1,4 @@
-function obj = chop(obj, node)
+function [obj, iterator] = chop(obj, node)
 %% CHOP  Remove the target node and all subnodes from the given tree.
 %
 %

@@ -1,13 +1,18 @@
 function [theTree, open_nodes, open_values, search_finished] = eval_path_exact(scenario, theTree, open_nodes, open_values, cur_node_id)
     % Collision check on path from root
     p = fliplr(pathtoroot(theTree, cur_node_id));
+    nNodes = numel(p);
     % maneuver shapes correspond to movement TO node, so start from 2
-    for iNode = 2:numel(p)
+    for iNode = 2:nNodes
         % Check if exact evaluation needs to be done
+        displacements = zeros(1,scenario.nVeh);
+        midpoints = zeros(2,scenario.nVeh);
         if ~theTree.Node{p(iNode)}.exact_eval
             node_parent = theTree.Node{p(iNode-1)};
             for iVeh = 1 : scenario.nVeh
-                maneuver = scenario.combined_graph.motionGraphList(iVeh).maneuvers{node_parent.trims(iVeh), theTree.Node{p(iNode)}.trims(iVeh)};
+                t1 = node_parent.trims(iVeh);
+                t2 = theTree.Node{p(iNode)}.trims(iVeh);
+                maneuver = scenario.combined_graph.motionGraphList(iVeh).maneuvers{t1,t2};
                 [shape_x, shape_y] = translate_global(...
                     node_parent.yaws(iVeh),...
                     node_parent.xs(iVeh),...
@@ -29,7 +34,7 @@ function [theTree, open_nodes, open_values, search_finished] = eval_path_exact(s
                             && iChop ~= 1)
                         iChop = iChop - 1;
                     end
-                    choppedNodes = depthfirstiterator(theTree, p(iChop));
+                    [theTree, choppedNodes] = chop(theTree,p(iChop));
                     list_indices_to_del = [];
                     for cNode = choppedNodes
                         list_indices_to_del = [list_indices_to_del, find(open_nodes==cNode,1)];
@@ -41,7 +46,6 @@ function [theTree, open_nodes, open_values, search_finished] = eval_path_exact(s
                     % open_nodes = findleaves(theTree);
                     open_nodes(list_indices_to_del) = [];
                     open_values(list_indices_to_del) = [];
-                    theTree = chop(theTree,p(iChop));
                     search_finished = false;
                     return
                 end
