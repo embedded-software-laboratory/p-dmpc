@@ -1,5 +1,5 @@
 function costs = cost_to_go(situation_costs, init_poses, target_poses, next_node, motion_graph)
-    
+    % TODO delete
     ref_poses = reference_pose(init_poses, target_poses, next_node);
     yaws = wrapToHalfPi(next_node.yaws) - wrapToHalfPi(ref_poses.yaws);
     n_veh = length(yaws);

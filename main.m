@@ -13,9 +13,6 @@ scenario = Scenario(options);
 
 
 
-% Load costs for A*-Star
-load('situation_costs', 'situation_costs');
-
 % Set figure
 f = figure;
 f.WindowState = 'maximized';

@@ -19,7 +19,9 @@ classdef node
             obj.xs = xs;
             obj.ys = ys;
             obj.yaws = yaws;
-            for i = 1:length(yaws)
+            nVeh = length(yaws);
+            obj.shapes = cell(nVeh,1);
+            for i = 1:nVeh
                 [shape_x, shape_y] = translate_global(yaws(i), xs(i), ys(i), [-2.2 2.2 -2.2 2.2],[-0.9 -0.9 0.9 0.9]);
                 obj.shapes{i} = [shape_x;shape_y];
             end
