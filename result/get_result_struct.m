@@ -1,7 +1,4 @@
 function result = get_result_struct(scenario, depth)
-    
-    ticks = 1e3;
-
     result = struct;
     
     result.scenario = scenario;
