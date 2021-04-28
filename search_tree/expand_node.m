@@ -26,7 +26,7 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node)
             [expanded_node.xs(iVeh), expanded_node.ys(iVeh)] = translate_global(cur_node.yaws(iVeh), cur_node.xs(iVeh), cur_node.ys(iVeh), maneuver.dx, maneuver.dy);
         end
 
-        [expanded_node.g_values, expanded_node.h_values, expanded_node.f_value] = calculate_next_values_reference(scenario, iter, cur_node, expanded_node);
+        [expanded_node.g_values, expanded_node.h_values] = calculate_next_values_reference(scenario, iter, cur_node, expanded_node);
         expanded_nodes{iTrim} = expanded_node;
     end
 end

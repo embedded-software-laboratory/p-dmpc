@@ -9,7 +9,6 @@ classdef node
 %         shapes
         g_values
         h_values
-        f_value
         exact_eval = false
     end
     properties (Dependent)
@@ -33,7 +32,6 @@ classdef node
 %             end
             obj.g_values = g_values;
             obj.h_values = h_values;
-            obj.f_value = sum(g_values + h_values);
         end
     end
     
