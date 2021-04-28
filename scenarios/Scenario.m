@@ -12,6 +12,7 @@ classdef Scenario
         trim_set = 'trim_set_3_1';
         offset = 0.1;           % offset for collision checks
         model = [];
+        r_goal = 0.5; % goal circle
     end
     
     methods
@@ -33,14 +34,14 @@ classdef Scenario
             end
             obj.nVeh = options.amount;
             obj.name = sprintf("%i-circle", options.amount);
-            obj.Hp = h_p;
-            obj.Hu = h_u;
-            obj.dt = dt;
+            obj.Hp = 6;
+            obj.Hu = obj.Hp;
+            obj.dt = 0.4;
 
 
             
             % Make motionGraph Tupel
-            [motionGraphList,obj.model] = create_motion_graph_list(obj.trim_set, options.amount, obj.offset);
+            [motionGraphList,obj.model] = create_motion_graph_list(obj.trim_set, options.amount, obj.offset, obj.dt);
             % Combine graphs
             obj.combined_graph = CombinedGraph(motionGraphList);
         end

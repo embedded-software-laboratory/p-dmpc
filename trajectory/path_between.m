@@ -21,10 +21,7 @@ function search_path = path_between(cur_node,next_node, search_tree, motion_grap
             
             [xs, ys] = translate_global(yaw, x, y, xs, ys);
             
-            xs = xs.';
-            ys = ys.';
-
-            search_path(i) = {[xs, ys, yaws, trims]};
+            search_path(i) = {[xs', ys', yaws', trims]};
         end
     end
 end

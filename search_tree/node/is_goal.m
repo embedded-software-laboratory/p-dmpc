@@ -7,6 +7,6 @@ function result = is_goal(cur_node, scenario)
         [scenario.vehicles(:).x_goal]',...
         [scenario.vehicles(:).y_goal]'...
     );
-    result = (d < offset);
+    result = (d < scenario.r_goal);
 end
 

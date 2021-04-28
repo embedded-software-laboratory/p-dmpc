@@ -1,13 +1,19 @@
+function main(varargin)
 %% Setup
 % Add modules to path
 addpath(genpath(pwd));
 % warning('off','MATLAB:polyshape:repairedBySimplify')
 
 close all
-clear
+clear -regex ^(?!varargin$).*$
 clc
 
-options = selection();
+
+if nargin==1
+    options = varargin{1};
+else
+    options = selection();
+end
 
 scenario = Scenario(options);
 
@@ -37,13 +43,13 @@ if numel(scenario.obstacles) ~= 0
 end
 
 % Create log folder
-st = dbstack;
-namestr = st(1).name;
-sub_folder = './logs/' + string(namestr) + '_' + string(scenario.trim_set) + '_circle_' + string(options.amount) + '_' + string(h_u) + '_' + string(h_p);
-
-if ~exist(sub_folder, 'dir')
-    mkdir(sub_folder)
-end
+% st = dbstack;
+% namestr = st(1).name;
+% sub_folder = './logs/' + string(namestr) + '_' + string(scenario.trim_set) + '_circle_' + string(options.amount) + '_' + string(h_u) + '_' + string(h_p);
+% 
+% if ~exist(sub_folder, 'dir')
+%     mkdir(sub_folder)
+% end
 
 % Initialize video
 % i = 1;
@@ -52,10 +58,10 @@ end
 %     i = i + 1;
 %     video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
 % end
-video_name = fullfile(sub_folder,"video");
-video = VideoWriter(video_name);
-video.FrameRate = 1;
-open(video)
+% video_name = fullfile(sub_folder,"video");
+% video = VideoWriter(video_name);
+% video.FrameRate = 1;
+% open(video)
 
 
 
@@ -137,9 +143,9 @@ while ~finished || cur_depth > 50
     
     
     % Visualize path before addition to properly display horizon
-    visualize_step(search_tree, cur_depth, scenario.combined_graph);
-    frame = getframe(gcf);
-    writeVideo(video, frame);
+    visualize_step(scenario, search_tree, cur_depth, scenario.combined_graph);
+%     frame = getframe(gcf);
+%     writeVideo(video, frame);
 
     % Determine next node
     % TODO Substitute with measure / simulate
@@ -152,9 +158,9 @@ while ~finished || cur_depth > 50
     % Check if we already reached our destination
     is_goals = is_goal(cur_node, scenario);
     if(sum(is_goals) == scenario.nVeh)
-        visualize_step(search_tree, cur_depth, scenario.combined_graph);
-        frame = getframe(gcf);
-        writeVideo(video, frame);
+        visualize_step(scenario, search_tree, cur_depth, scenario.combined_graph);
+%         frame = getframe(gcf);
+%         writeVideo(video, frame);
         finished = true;
     end
     
@@ -166,7 +172,7 @@ while ~finished || cur_depth > 50
     prev_info = info;
     result.step_time(cur_depth) = toc(result.step_timer);
 end
-close(video);
+% close(video);
 
 % store vehicles path in higher resolution
 for nn=1:numel(search_tree.Node)-1
@@ -176,21 +182,22 @@ end
 
 
 %% Log and visualize
-% Log workspace to subfolder 
-file_name = fullfile(sub_folder,'data');
-fig_name = fullfile(sub_folder,'fig');
-
-if ~exist(sub_folder, 'dir')
-    mkdir(sub_folder)
+% % Log workspace to subfolder 
+% file_name = fullfile(sub_folder,'data');
+% fig_name = fullfile(sub_folder,'fig');
+% 
+% if ~exist(sub_folder, 'dir')
+%     mkdir(sub_folder)
+% end
+% 
+% % Get a list of all variables
+% allvars = whos;
+% 
+% % Identify the variables that ARE NOT graphics handles. This uses a regular
+% % expression on the class of each variable to check if it's a graphics object
+% tosave = cellfun(@isempty, regexp({allvars.class}, '^matlab\.(ui|graphics)\.'));
+% 
+% % Pass these variable names to save
+% save(file_name, allvars(tosave).name)
+% savefig(fig_name);
 end
-
-% Get a list of all variables
-allvars = whos;
-
-% Identify the variables that ARE NOT graphics handles. This uses a regular
-% expression on the class of each variable to check if it's a graphics object
-tosave = cellfun(@isempty, regexp({allvars.class}, '^matlab\.(ui|graphics)\.'));
-
-% Pass these variable names to save
-save(file_name, allvars(tosave).name)
-savefig(fig_name);

@@ -12,7 +12,7 @@ function plotInfo = visualize_exploration(scenario, theTree, plotInfo)
             plotInfo.search(iVeh).XData(iNode) = theTree.Node{iNode}.xs(iVeh);
             plotInfo.search(iVeh).YData(iNode) = theTree.Node{iNode}.ys(iVeh);
             plotInfo.search(iVeh).ZData(iNode) = ...
-                theTree.Node{iNode}.g_values(iVeh) + theTree.Node{iNode}.h_values(iVeh);
+                theTree.Node{iNode}.f_value;
         end
     end
 end

@@ -1,7 +1,7 @@
-function visualize_step(search_tree, parent, motion_graph)
+function visualize_step(scenario, search_tree, parent, motion_graph)
 
     hold on
-    title("Iteration: " + parent + ", Time: " + (parent * dt));
+    title("Iteration: " + parent + ", Time: " + (parent * scenario.dt));
     n_veh = length(search_tree.Node{1, 1}.trims);
     parent_node = search_tree.Node{parent};  
     if(parent > 1)
