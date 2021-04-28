@@ -37,7 +37,7 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
         cur_node = info.tree.Node{cur_node_id};
         
         % Eval edges if it is a final candidate
-        if cur_node.depth == scenario.Hp
+        if cur_node(1,info.tree.idx.depth) == scenario.Hp
             root_to_node = fliplr(pathtoroot(info.tree, cur_node_id));
             [iChop, evaluated_nodes, search_finished] = eval_path_exact(scenario, info.tree, root_to_node);
             % open_values = sum_values(info.tree,open_nodes);
@@ -46,11 +46,11 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
                 % TODO u
                 u = 0;
                 info.tree_path = fliplr(pathtoroot(info.tree, cur_node_id));
-                info.trim_indices = info.tree.Node{info.tree_path(2)}.trims;
+                info.trim_indices = info.tree.Node{info.tree_path(2)}(:,info.tree.idx.trim);
                 break
             else
                 for iNode = root_to_node(evaluated_nodes)
-                    info.tree.Node{iNode}.exact_eval = true;
+                    info.tree.Node{iNode}(:,info.tree.idx.exactEval) = 1;
                 end
                 [info.tree, choppedNodes] = chop(info.tree,root_to_node(iChop));
                 list_indices_to_del = [];
@@ -58,8 +58,8 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
                     list_indices_to_del = [list_indices_to_del, find(open_nodes==cNode,1)];
                 end
                 choppedNodes = sort(choppedNodes,'descend');
-                for idx = choppedNodes
-                    open_nodes(open_nodes>idx) = open_nodes(open_nodes>idx)-1;
+                for iChopped = choppedNodes
+                    open_nodes(open_nodes>iChopped) = open_nodes(open_nodes>iChopped)-1;
                 end
                 % open_nodes = findleaves(theTree);
                 open_nodes(list_indices_to_del) = [];
@@ -71,6 +71,7 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
                 scenario...
                 ,iter...
                 ,cur_node...
+                ,info.tree.idx...
             );
             parents = cur_node_id*ones(1,numel(expanded_nodes));
             [info.tree, new_open_nodes] = info.tree.addnnodes(parents, expanded_nodes);

@@ -1,4 +1,4 @@
-function main(varargin)
+function result = main(varargin)
 %% Setup
 % Add modules to path
 addpath(genpath(pwd));
@@ -84,6 +84,7 @@ end
 cur_depth = 0;
 cur_node = node(cur_depth, trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
 search_tree = tree(cur_node);
+idx = tree.nodeCols();
 cur_depth = cur_depth + 1;
 
 controller = @(scenario, iter, prev_info)...
@@ -107,9 +108,9 @@ while ~finished || cur_depth > 50
     % Coud use vehicles' predicted mpc traj.
     speeds = zeros(scenario.nVeh, 1);
     for iVeh=1:scenario.nVeh
-        speeds(iVeh) = scenario.combined_graph.motionGraphList(iVeh).trims(cur_node.trims(iVeh)).velocity;
+        speeds(iVeh) = scenario.combined_graph.motionGraphList(iVeh).trims(cur_node(iVeh,idx.trim)).velocity;
     end
-    x0 = [cur_node.xs, cur_node.ys, cur_node.yaws, speeds];
+    x0 = [cur_node(:,idx.x), cur_node(:,idx.y), cur_node(:,idx.yaw), speeds];
     % Sample reference trajectory
     iter = rhc_init(scenario,x0);
     result.iteration_structs{cur_depth} = iter;

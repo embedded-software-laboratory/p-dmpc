@@ -1,5 +1,4 @@
 function plotInfo = visualize_exploration(scenario, theTree, plotInfo)
-    
     nNodes = theTree.nnodes;
     for iVeh = 1:scenario.nVeh
         plotInfo.search(iVeh).XData = zeros(1,nNodes);
@@ -9,8 +8,8 @@ function plotInfo = visualize_exploration(scenario, theTree, plotInfo)
     
     for iNode = theTree.depthfirstiterator
         for iVeh = 1:scenario.nVeh
-            plotInfo.search(iVeh).XData(iNode) = theTree.Node{iNode}.xs(iVeh);
-            plotInfo.search(iVeh).YData(iNode) = theTree.Node{iNode}.ys(iVeh);
+            plotInfo.search(iVeh).XData(iNode) = theTree.Node{iNode}(iVeh,theTree.idx.x);
+            plotInfo.search(iVeh).YData(iNode) = theTree.Node{iNode}(iVeh,theTree.idx.y);
             plotInfo.search(iVeh).ZData(iNode) = ...
                 theTree.Node{iNode}.f_value;
         end

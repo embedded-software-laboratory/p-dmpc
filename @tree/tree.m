@@ -28,6 +28,7 @@ classdef tree
     
     properties (SetAccess = public)
         Node = { [] }; % Hold the data at each node
+        idx;
     end
     
     methods
@@ -52,7 +53,7 @@ classdef tree
             % t = TREE(root_content) where 'root_content' is not a tree,
             % initialize a new tree with only the root node, and set its
             % content to be 'root_content'.
-           
+            obj.idx = obj.nodeCols();
             if nargin < 1
                 root_ID = 1;
                 return
@@ -231,6 +232,7 @@ classdef tree
     % STATIC METHODS
     
     methods (Static)
+        idx = nodeCols()
         
         hl = decorateplots(ha)
         
