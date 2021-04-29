@@ -17,8 +17,8 @@ function [xs, ys, yaws] = maneuver_displacement(model, x_init, y_init, yaw_init,
                    odeset('RelTol',1e-8,'AbsTol',1e-8));
      
     % assign values to struct 
-    xs = x(:,1);
-    ys = x(:,2);
-    yaws = x(:,3);
+    xs = x(:,1)';
+    ys = x(:,2)';
+    yaws = x(:,3)';
 
 end

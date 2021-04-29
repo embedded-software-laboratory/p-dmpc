@@ -4,7 +4,7 @@ function horizon = visualize_horizon(search_window, motion_graph, horizon)
     
     node = search_window.Node{1};
     for i = 1:n_veh
-        horizon{1}(i) = plot(node.xs(i), node.ys(i), 'o', 'Color', 'black', 'MarkerSize', 3, 'MarkerFaceColor', 'black');
+        horizon{1}(i) = plot(node(iVeh,idx.x), node(iVeh,idx.y), 'o', 'Color', 'black', 'MarkerSize', 3, 'MarkerFaceColor', 'black');
         horizon{1}(i).Color(4) = 0.5;
     end
 

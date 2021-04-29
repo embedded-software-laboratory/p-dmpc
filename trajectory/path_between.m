@@ -1,30 +1,26 @@
 function search_path = path_between(cur_node,next_node, search_tree, motion_graph)
 %PATH_BETWEEN Return path as a cell array between two nodes
-
-    n_veh = length(search_tree.Node{1, 1}.trims);
+    n_veh = length(search_tree.Node{1, 1}(:,search_tree.idx.trim));
     search_path = cell(1, n_veh);
-    for i = 1:n_veh        
-        if(cur_node.xs(i) ~= next_node.xs(i) || cur_node.ys(i) ~= next_node.ys(i))
-            maneuver = motion_graph.motionGraphList(i).maneuvers{cur_node.trims(i), next_node.trims(i)};
-            assert(~isempty(maneuver),'manuevers{%d, %d} is empty.',cur_node.trims(i), next_node.trims(i));
+    for iVeh = 1:n_veh        
+        if(cur_node(iVeh,search_tree.idx.x) ~= next_node(iVeh,search_tree.idx.x) || cur_node(iVeh,search_tree.idx.y) ~= next_node(iVeh,search_tree.idx.y))
+            maneuver = motion_graph.motionGraphList(iVeh).maneuvers{cur_node(iVeh,search_tree.idx.trim), next_node(iVeh,search_tree.idx.trim)};
+            assert(~isempty(maneuver),'manuevers{%d, %d} is empty.',cur_node(iVeh,search_tree.idx.trim), next_node(iVeh,search_tree.idx.trim));
             
-            x = cur_node.xs(i);
-            y = cur_node.ys(i);
-            yaw = cur_node.yaws(i);
+            x = cur_node(iVeh,search_tree.idx.x);
+            y = cur_node(iVeh,search_tree.idx.y);
+            yaw = cur_node(iVeh,search_tree.idx.yaw);
             
             xs = maneuver.xs;
             ys = maneuver.ys;
             yaws = maneuver.yaws + yaw;       
             
             length_maneuver = length(xs);
-            trims = cur_node.trims(i) * ones(length_maneuver, 1);
+            trims = cur_node(iVeh,search_tree.idx.trim) * ones(length_maneuver, 1);
             
             [xs, ys] = translate_global(yaw, x, y, xs, ys);
             
-            xs = xs.';
-            ys = ys.';
-
-            search_path(i) = {[xs, ys, yaws, trims]};
+            search_path(iVeh) = {[xs', ys', yaws', trims]};
         end
     end
 end

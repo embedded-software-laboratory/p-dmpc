@@ -28,8 +28,8 @@ function costs = cost_to_go(situation_costs, init_poses, target_poses, next_node
     else
         for depth = next_node.depth : (h_p - 1)
             for i = 1:n_veh
-                maneuver = motion_graph.motionGraphList(i).maneuvers{next_node.trims(i), next_node.trims(i)};
-                [next_node.xs(i), next_node.ys(i)] = translate_global(next_node.yaws(i), next_node.xs(i), next_node.ys(i), maneuver.dx, maneuver.dy);
+                maneuver = motion_graph.motionGraphList(i).maneuvers{next_node(iVeh,idx.trim), next_node(iVeh,idx.trim)};
+                [next_node(iVeh,idx.x), next_node(iVeh,idx.y)] = translate_global(next_node(iVeh,idx.yaw), next_node(iVeh,idx.x), next_node(iVeh,idx.y), maneuver.dx, maneuver.dy);
             end
             ref_poses = reference_pose(init_poses, target_poses, next_node);
             remaining_costs = euclidean_distance(ref_poses, next_node);
