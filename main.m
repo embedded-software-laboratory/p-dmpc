@@ -10,7 +10,7 @@ clc
 
 
 if nargin==1
-    options = varargin{1};
+    options = selection(varargin{1});
 else
     options = selection();
 end
