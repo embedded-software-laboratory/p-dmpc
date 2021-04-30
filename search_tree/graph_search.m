@@ -32,39 +32,27 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
         if numel(open_nodes) == 0
             error('No more open nodes to explore');
         end
-        [open_nodes, open_values] = sort_open_list(open_nodes, open_values);
+        
         cur_node_id = open_nodes(1);
         cur_node = info.tree.Node{cur_node_id};
         
-        % Eval edges if it is a final candidate
+        % remove parent node
+        open_nodes(1) = [];
+        open_values(1) = [];
+
+        % Eval edge 
+        is_valid = eval_edge_exact(scenario, info.tree, cur_node_id);
+        if ~is_valid
+            % could remove node from tree here
+            continue
+        end
         if cur_node(1,info.tree.idx.depth) == scenario.Hp
-            root_to_node = fliplr(pathtoroot(info.tree, cur_node_id));
-            [iChop, evaluated_nodes, search_finished] = eval_path_exact(scenario, info.tree, root_to_node);
-            % open_values = sum_values(info.tree,open_nodes);
-            if search_finished
-                y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
-                % TODO u
-                u = 0;
-                info.tree_path = fliplr(pathtoroot(info.tree, cur_node_id));
-                info.trim_indices = info.tree.Node{info.tree_path(2)}(:,info.tree.idx.trim);
-                break
-            else
-                for iNode = root_to_node(evaluated_nodes)
-                    info.tree.Node{iNode}(:,info.tree.idx.exactEval) = 1;
-                end
-                [info.tree, choppedNodes] = chop(info.tree,root_to_node(iChop));
-                list_indices_to_del = [];
-                for cNode = choppedNodes
-                    list_indices_to_del = [list_indices_to_del, find(open_nodes==cNode,1)];
-                end
-                choppedNodes = sort(choppedNodes,'descend');
-                for iChopped = choppedNodes
-                    open_nodes(open_nodes>iChopped) = open_nodes(open_nodes>iChopped)-1;
-                end
-                % open_nodes = findleaves(theTree);
-                open_nodes(list_indices_to_del) = [];
-                open_values(list_indices_to_del) = [];
-            end
+            y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
+            % TODO u
+            u = 0;
+            info.tree_path = fliplr(pathtoroot(info.tree, cur_node_id));
+            info.trim_indices = info.tree.Node{info.tree_path(2)}(:,info.tree.idx.trim);
+            break
         else
             % Expand chosen node
             expanded_nodes = expand_node(...
@@ -78,12 +66,10 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
             % add child nodes
             open_nodes = [open_nodes, new_open_nodes];
             open_values = [open_values, sum_values(info.tree, new_open_nodes)];
-            % remove expanded parent node
-            open_nodes(1) = [];
-            open_values(1) = [];
+            [open_nodes, open_values] = sort_open_list(open_nodes, open_values);
 
             % plot exploration
 %             info.plot = visualize_exploration(scenario, info.tree, info.plot);
         end
-    end 
+    end
 end

@@ -12,7 +12,7 @@ classdef Scenario
         trim_set = 'trim_set_3_1';
         offset = 0.1;           % offset for collision checks
         model = [];
-        r_goal = 0.5; % goal circle
+        r_goal = 1; % goal circle
     end
     
     methods

@@ -1,5 +1,7 @@
-function [iChop, evaluated_nodes, search_finished] = eval_path_exact(scenario, theTree, root_to_node)
-    search_finished = false;
+function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, theTree, root_to_node)
+    % TODO use eval_edge_exact
+    % TODO use in graph search or delete
+    is_valid = false;
     iChop = -1;
     evaluated_nodes = false(size(root_to_node));
     % Collision check on path from root
@@ -42,5 +44,5 @@ function [iChop, evaluated_nodes, search_finished] = eval_path_exact(scenario, t
             evaluated_nodes(iNode) = true;
         end
     end
-    search_finished = true;
+    is_valid = true;
 end
