@@ -15,7 +15,7 @@ function [iChop, evaluated_nodes, search_finished] = eval_path_exact(scenario, t
             for iVeh = 1 : scenario.nVeh
                 t1 = node_parent(iVeh,theTree.idx.trim);
                 t2 = theTree.Node{root_to_node(iNode)}(iVeh,theTree.idx.trim);
-                maneuver = scenario.combined_graph.motionGraphList(iVeh).maneuvers{t1,t2};
+                maneuver = scenario.mpa.maneuvers{t1,t2};
                 c = cos(node_parent(iVeh,theTree.idx.yaw));
                 s = sin(node_parent(iVeh,theTree.idx.yaw));
                 
