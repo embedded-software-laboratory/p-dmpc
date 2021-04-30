@@ -49,13 +49,15 @@ function IDs = depthfirstiterator(obj, startNode, sorted)
         showWarning=0;
 
         val = node;
-        if obj.isleaf(node)
+        %inline isleaf
+        if ~any( obj.Parent == node )
             return
         else
-            
-           children = obj.getchildren(node);
+            % inline getchildren
+            children = find( obj.Parent == node );
+            children = children';
            
-           if sorted && numel(children) > 1
+            if sorted && numel(children) > 1
                
                contents = obj.Node(children);
                try
