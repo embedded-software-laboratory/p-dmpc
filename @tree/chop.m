@@ -7,6 +7,7 @@ function [obj, iterator] = chop(obj, node)
 % myTree.chop(nodeIndex)
 
     iterator = obj.depthfirstiterator(node);
+    iterator = sort(iterator,'descend');
     
     % Build new parent array
     np = obj.Parent;
@@ -17,8 +18,8 @@ function [obj, iterator] = chop(obj, node)
     % Shift parent value: if a parent were after some nodes we removed, we
     % need to shift its value by an amount equal to the number of parent we
     % removed, and that were BEFORE the target parent
-    for ii = 1 : numel(np)
-        np(ii) = np(ii) - sum(np(ii) > iterator);
+    for ii = iterator
+        np(np > ii) = np(np > ii) - 1;
     end
     
     obj.Parent = np;
