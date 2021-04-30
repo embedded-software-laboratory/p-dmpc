@@ -42,7 +42,7 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
             [iChop, evaluated_nodes, search_finished] = eval_path_exact(scenario, info.tree, root_to_node);
             % open_values = sum_values(info.tree,open_nodes);
             if search_finished
-                y_pred = return_path_to(cur_node_id, info.tree, scenario.combined_graph);
+                y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
                 % TODO u
                 u = 0;
                 info.tree_path = fliplr(pathtoroot(info.tree, cur_node_id));

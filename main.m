@@ -108,7 +108,7 @@ while ~finished || cur_depth > 50
     % Coud use vehicles' predicted mpc traj.
     speeds = zeros(scenario.nVeh, 1);
     for iVeh=1:scenario.nVeh
-        speeds(iVeh) = scenario.combined_graph.motionGraphList(iVeh).trims(cur_node(iVeh,idx.trim)).velocity;
+        speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,idx.trim)).velocity;
     end
     x0 = [cur_node(:,idx.x), cur_node(:,idx.y), cur_node(:,idx.yaw), speeds];
     % Sample reference trajectory
@@ -144,7 +144,7 @@ while ~finished || cur_depth > 50
     
     
     % Visualize path before addition to properly display horizon
-    visualize_step(scenario, search_tree, cur_depth, scenario.combined_graph);
+    visualize_step(scenario, search_tree, cur_depth, scenario.mpa);
 %     frame = getframe(gcf);
 %     writeVideo(video, frame);
 
@@ -159,7 +159,7 @@ while ~finished || cur_depth > 50
     % Check if we already reached our destination
     is_goals = is_goal(cur_node, scenario);
     if(sum(is_goals) == scenario.nVeh)
-        visualize_step(scenario, search_tree, cur_depth, scenario.combined_graph);
+        visualize_step(scenario, search_tree, cur_depth, scenario.mpa);
 %         frame = getframe(gcf);
 %         writeVideo(video, frame);
         finished = true;
@@ -177,7 +177,7 @@ end
 
 % store vehicles path in higher resolution
 for nn=1:numel(search_tree.Node)-1
-    result.vehicle_path_fullres(:,nn) = path_between(search_tree.Node{nn},search_tree.Node{nn+1},search_tree,scenario.combined_graph);
+    result.vehicle_path_fullres(:,nn) = path_between(search_tree.Node{nn},search_tree.Node{nn+1},search_tree,scenario.mpa);
 end
 
 

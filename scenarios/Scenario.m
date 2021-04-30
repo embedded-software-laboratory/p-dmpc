@@ -8,7 +8,7 @@ classdef Scenario
         dt;     % RHC sample time [s]
         Hp;
         Hu;
-        combined_graph;
+        mpa;
         trim_set = 'trim_set_3_1';
         offset = 0.1;           % offset for collision checks
         model = [];
@@ -41,9 +41,10 @@ classdef Scenario
 
             
             % Make motionGraph Tupel
-            [motionGraphList,obj.model] = create_motion_graph_list(obj.trim_set, options.amount, obj.offset, obj.dt);
+            obj.model = BicycleModel(2.2,2.2);
+            load(obj.trim_set); % loads u_trims and trim_adjacency
             % Combine graphs
-            obj.combined_graph = CombinedGraph(motionGraphList);
+            obj.mpa = MotionPrimitiveAutomaton(obj.model, u_trims, trim_adjacency, obj.offset, obj.dt, options.amount);
         end
         
         function plot(obj, varargin)

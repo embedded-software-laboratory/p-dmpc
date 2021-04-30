@@ -1,25 +1,25 @@
 function [expanded_nodes] = expand_node(scenario, iter, cur_node, idx)
-    trim_tuple = scenario.combined_graph.trimTuple;
-    trim_length = zeros(1, scenario.nVeh);
-    for i = 1 : scenario.nVeh
-        trim_length(i) = length(scenario.combined_graph.motionGraphList(i).trims);
-    end
+    trim_tuple = scenario.mpa.trim_tuple;
+    trim_length = length(scenario.mpa.trims)*ones(1, scenario.nVeh);
     cur_trim_id = tuple2index(cur_node(:,idx.trim),trim_length);
     if cur_node(1,idx.depth) < scenario.Hp
-        successor_trim_ids = find(scenario.combined_graph.transitionMatrix(cur_trim_id, :));
+        successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :));
     else % h_u <= cur_node.depth < h_p
         successor_trim_ids = cur_trim_id;
     end
     
     nTrims = numel(successor_trim_ids);
     expanded_nodes = cell(1, nTrims);
+    % Preallocate maneuver
     for iTrim = 1:nTrims
         id = successor_trim_ids(iTrim);
         expanded_node = cur_node;
         expanded_node(:,idx.depth) = cur_node(:,idx.depth) + 1;
         expanded_node(:,idx.trim) = trim_tuple(id,:);
         for iVeh = 1 : scenario.nVeh
-            maneuver = scenario.combined_graph.motionGraphList(iVeh).maneuvers{cur_node(iVeh,idx.trim), expanded_node(iVeh,idx.trim)};
+            itrim1 = cur_node(iVeh,idx.trim);
+            itrim2 = expanded_node(iVeh,idx.trim);
+            maneuver = scenario.mpa.maneuvers{itrim1, itrim2};
             c = cos(cur_node(iVeh,idx.yaw));
             s = sin(cur_node(iVeh,idx.yaw));
 
@@ -45,7 +45,7 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node, idx)
             % subtract squared distance traveled for every timestep and vehicle
             time_steps_to_go = scenario.Hp - expanded_node(1,idx.depth);
             for iVeh = 1:scenario.nVeh
-                d_traveled_per_step = scenario.dt*iter.vRef(iVeh);
+                d_traveled_per_step = scenario.dt*iter.vRef;
                 for i_t = 1:time_steps_to_go
                     expanded_node(iVeh,idx.h) = expanded_node(iVeh,idx.h)...
                         + norm( [expanded_node(iVeh,idx.x)-iter.referenceTrajectoryPoints(iVeh,expanded_node(1,idx.depth)+i_t,1);...

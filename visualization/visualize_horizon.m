@@ -1,6 +1,6 @@
-function horizon = visualize_horizon(search_window, motion_graph, horizon)
+function horizon = visualize_horizon(search_window, mpa, horizon)
     
-    n_veh = length(motion_graph.motionGraphList);
+    n_veh = length(mpa.trims);
     
     node = search_window.Node{1};
     for i = 1:n_veh

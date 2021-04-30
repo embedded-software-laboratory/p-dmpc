@@ -1,29 +1,23 @@
-classdef MotionGraph
-% MotionGraph Represents a maneuver automaton    
+classdef MotionPrimitiveAutomaton
     properties
-        % trims - A struct array of the specified trim_inputs
-        trims
-        % maneuvers - Cell/struct matrix (nTrims x nTrims)
-        %   dx
-        %   dy
-        %   dyaw
-        %   area
-        maneuvers
-        transition_matrix   % Matrix      (nTrims x nTrims) (not necessary ??)
+        maneuvers % cell(n_trims, n_trims)
+        trims % A struct array of the specified trim_inputs
+        transition_matrix_single % Matrix (nTrims x nTrims)
+        trim_tuple               % Matrix with trim indices ((nTrims1*nTrims2*...) x nVehicles)
+        transition_matrix        % binary Matrix (if maneuverTuple exist according to trims) (nTrimTuples x nTrimTuples)
         distance_to_equilibrium % Distance in graph from current state to equilibrium state (nTrims x 1)
     end
     
     methods
-        
-        function obj = MotionGraph(model, trim_inputs, trim_adjacency, offset, dt)
+        function obj = MotionPrimitiveAutomaton(model, trim_inputs, trim_adjacency, offset, dt, nveh)
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
             %   read as: rows are start trims and columns are end trims
-            
-            obj.transition_matrix = trim_adjacency;
                        
             n_trims = length(trim_inputs);
+            
+            obj.transition_matrix_single = trim_adjacency;
             
             % trim struct array
             % BicycleModel
@@ -42,7 +36,7 @@ classdef MotionGraph
             % maneuver cell/struct matrix
             for i = 1:n_trims
                 for j = 1:n_trims
-                    if obj.transition_matrix(i,j)
+                    if obj.transition_matrix_single(i,j)
                         obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), offset, dt);
                     end
                 end
@@ -56,7 +50,22 @@ classdef MotionGraph
                 visited_states = iTrim;
                 [obj.distance_to_equilibrium(iTrim),~] = obj.comp_dist_to_eq_state(iTrim, dist_to_eq_state, visited_states, eq_states);
             end
+
+            % compute trim tuple (vertices)
+            trim_index_list = cell(nveh,1);
+            [trim_index_list{:}] = deal(1:n_trims);
+            obj.trim_tuple = cartprod(trim_index_list{:});
+            
+            % compute maneuver matrix for trimProduct
+            obj.transition_matrix = compute_product_maneuver_matrix(obj,nveh);
+            
         end
+    
+        function max_speed = get_max_speed(obj)
+            % returns maximum speed per vehicle (nVeh x 1)
+            max_speed = max([obj.trims(:).velocity]);
+        end
+
         
         function [dist_to_eq_state, visited_states] = comp_dist_to_eq_state(obj, state, dist_to_eq_state, visited_states,eq_states)
             if ismember(state, eq_states)
@@ -64,7 +73,7 @@ classdef MotionGraph
             else
                 dist_to_eq_state = dist_to_eq_state + 1;
                 min_dist = Inf;
-                for s = find(obj.transition_matrix(state,:))
+                for s = find(obj.transition_matrix_single(state,:))
                     if (ismember(s, visited_states))
                         next_dist = Inf;
                     else
@@ -78,7 +87,17 @@ classdef MotionGraph
                 dist_to_eq_state = min_dist;
             end
         end
-        
-        
+
+        function maneuver_matrix = compute_product_maneuver_matrix(obj,nveh)
+
+            % initialize product maneuver_matrix
+            maneuver_matrix = obj.transition_matrix_single;            
+            % compute tensor product iteratively
+            for i = 2 : nveh
+                maneuver_matrix = kron(maneuver_matrix,obj.transition_matrix_single);
+            end
+            
+        end
     end
 end
+
