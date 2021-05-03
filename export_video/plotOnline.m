@@ -24,8 +24,8 @@ function plotOnline(result,step_idx,tick_now)
     xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
     ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
 
-    xlim([-22,22]);
-    ylim([-7,7]);
+    xlim(result.plot_limits(1,:));
+    ylim(result.plot_limits(2,:));
     
 
     % Sampled trajectory points
@@ -45,16 +45,6 @@ function plotOnline(result,step_idx,tick_now)
         vehiclePolygon = transformedRectangle(x(1),x(2),x(3), scenario.model.Lr+scenario.model.Lf,scenario.model.W);
         fill(vehiclePolygon(1,:),vehiclePolygon(2,:),vehColor(v));
     end
-
-%     % Vehicle safety circles
-%     for v=1:nVeh
-%         x = vehiclePositions(:,v);
-%         phi = linspace(0,2*pi);
-%         c=cos(phi);
-%         s=sin(phi);
-%         r=scenario.RVeh(v);
-%         plot(x(idx.x)+r*c,x(idx.y)+r*s,'Color',colorVeh(v,:));
-%     end
     
     % Obstacle rectangles
     for i = 1:nObst        
@@ -69,54 +59,19 @@ function plotOnline(result,step_idx,tick_now)
     end
     
     scenarioName = scenario.name;
-    optimizer = 'optimizer';
-    strategy = 'rhc';
-%     [scenarioName, optimizer, strategy] = rename_scenario_optimizer_strategy(result.scenario.Name, result.scenario.controllerName);
+    optimizer = 'Graph Search';
+    strategy = scenario.controller_name;
     
     t=title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs',...
         scenarioName,...
         optimizer,...
         strategy,...
         step_idx,...
-        (step_idx-1)*0.4 + (tick_now-1) * 0.4/49),'Interpreter','LaTex');
+        (step_idx-1)*scenario.dt + (tick_now-1) * scenario.time_per_tick),'Interpreter','LaTex');
 
     set(t,'HorizontalAlignment', 'center');
     
     drawnow
-end
-
-function [scenarioName, optimizer, strategy]=rename_scenario_optimizer_strategy(scenarioName, controllerName)
-
-controllerParts = strsplit(controllerName,' ');
-assert(length(controllerParts)==2);
-optimizer=controllerParts{1};
-
-if strcmp(controllerParts{2},'PB')
-    strategy = 'PB-Non-Coop. DMPC';
-elseif strcmp(controllerParts{2},'Centralized')
-    strategy = 'Centralized MPC';
-else
-    strategy = controllerParts{2};
-end
-
-[n, count] = sscanf(scenarioName, 'Parallel %i');
-if count
-    scenarioName = sprintf('%i-Parallel',n);
-    return
-end
-
-[n, count] = sscanf(scenarioName, 'Circle %i');
-if count
-    scenarioName = sprintf('%i-Circle',n);
-    return
-end
-
-if strcmp(scenarioName, '2-way collision (NCD Oscillation)')
-    scenarioName = '2-Circle';    
-elseif strcmp(scenarioName, 'Crossing PB Example')
-    scenarioName = 'Crossing';    
-end
-
 end
 
 

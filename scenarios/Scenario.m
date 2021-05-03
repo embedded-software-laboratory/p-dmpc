@@ -5,6 +5,7 @@ classdef Scenario
         obstacles = {};
         nVeh = 0;
         name = 'UnnamedScenario';
+        controller_name = 'RHC';
         dt;     % RHC sample time [s]
         Hp;
         Hu;
@@ -13,6 +14,8 @@ classdef Scenario
         offset = 0.1;           % offset for collision checks
         model = [];
         r_goal = 1; % goal circle
+        time_per_tick;
+        tick_per_step;
     end
     
     methods
@@ -36,7 +39,10 @@ classdef Scenario
             obj.name = sprintf("%i-circle", options.amount);
             obj.Hp = 6;
             obj.Hu = obj.Hp;
+            
             obj.dt = 0.4;
+            obj.time_per_tick = 0.01;
+            obj.tick_per_step = obj.dt/obj.time_per_tick;
 
 
             
