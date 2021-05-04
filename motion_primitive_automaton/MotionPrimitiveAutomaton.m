@@ -22,7 +22,7 @@ classdef MotionPrimitiveAutomaton
             % trim struct array
             % BicycleModel
             if model.nu == 2
-                obj.trims = struct('steering',0,'velocity',0); 
+                obj.trims = struct('steering',0,'speed',0); 
             % BicycleModelConstSpeed
             elseif model.nu == 1
                 obj.trims = struct('steering',0);
@@ -63,7 +63,7 @@ classdef MotionPrimitiveAutomaton
     
         function max_speed = get_max_speed(obj)
             % returns maximum speed per vehicle (nVeh x 1)
-            max_speed = max([obj.trims(:).velocity]);
+            max_speed = max([obj.trims(:).speed]);
         end
 
         
@@ -91,7 +91,7 @@ classdef MotionPrimitiveAutomaton
         function maneuver_matrix = compute_product_maneuver_matrix(obj,nveh)
 
             % initialize product maneuver_matrix
-            maneuver_matrix = obj.transition_matrix_single;            
+            maneuver_matrix = obj.transition_matrix_single;
             % compute tensor product iteratively
             for i = 2 : nveh
                 maneuver_matrix = kron(maneuver_matrix,obj.transition_matrix_single);

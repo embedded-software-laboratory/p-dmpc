@@ -3,18 +3,18 @@ classdef Vehicle
     %   Detailed explanation goes here
     
     properties
-        trim_config = 1; % initial trim configuration
-        x_start = 0; % [m]
-        y_start = 0; % [m]
-        yaw_start = 0; % [radians]
-        x_goal = 0; % [m]
-        y_goal = 0; % [m]
-        yaw_goal = 0; % [radians]
-        referenceTrajectory = [0 0; 1 0; 3 1]; 
-        Length = .98; % Vehicle length (bumper to bumper)[m]
-        Width = .88; % Vehicle width [m]
-        Lf = .34; % Distance between vehicle center and front axle center [m]
-        Lr = .34; % Distance between vehicle center and rear axle center [m]
+        trim_config         = 1;     % initial trim configuration
+        x_start             = 0;     % [m]
+        y_start             = 0;     % [m]
+        yaw_start           = 0;     % [radians]
+        x_goal              = 0;     % [m]
+        y_goal              = 0;     % [m]
+        yaw_goal            = 0;     % [radians]
+        referenceTrajectory = [0 0; 1 0; 3 1];
+        Length              = 4.29;  % Vehicle length (bumper to bumper)[m]
+        Width               = 1.79;  % Vehicle width [m]
+        Lf                  = 1.315; % Distance between vehicle center and front axle center [m]
+        Lr                  = 1.315; % Distance between vehicle center and rear axle center [m]
     end
     
     methods

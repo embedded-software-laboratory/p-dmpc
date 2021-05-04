@@ -1,38 +1,61 @@
 % genrates maneuver struct
 function maneuver = generate_maneuver(model, trim1, trim2, offset, dt)
+    % TODO make independent from model, currently only works for BicycleModel
+    %% calculate displacement
     
-    % length of vehicle
-    L = model.Lr+model.Lf;
+    steering_derivative = (trim2.steering - trim1.steering) / dt;
+    acceleration = (trim2.speed - trim1.speed) / dt;
     
-    % save trims connected by this maneuver
-    maneuver.start_trim = trim1;
-    maneuver.end_trim = trim2;
+    % maneuver state changes in local coordinates
+    x0 = zeros(model.nx, 1);
+    x0(4) = trim1.speed;
+    if model.nx > 4
+        x0(5) = trim1.steering;
+    end
     
-    % calculate displacement
-    velocity_change = trim2.velocity -  trim1.velocity;
-    
-    steering_angle_change = trim2.steering - trim1.steering;
-    
-    % module to calculate displacement
-    [xs,ys,yaws] = maneuver_displacement(model, 0, 0, 0, trim1.velocity, trim1.steering, steering_angle_change, velocity_change, dt);
-    
-    last = length(xs);
-    
+    [~, x] = ode45(@(t, x) model.ode(x, [steering_derivative,acceleration]), ...
+                   [0 dt], ...
+                   x0, ...
+                   odeset('RelTol',1e-8,'AbsTol',1e-8)...
+    );
+     
     % assign values to struct 
-    x_next = xs(last);
-    y_next = ys(last);
-    yaw_next = yaws(last);
+    maneuver.xs = x(:,1)';
+    maneuver.ys = x(:,2)';
+    maneuver.yaws = x(:,3)';
+
+    maneuver.dx = maneuver.xs(end);
+    maneuver.dy = maneuver.ys(end);
+    maneuver.dyaw = maneuver.yaws(end);
     
-    maneuver.dx = x_next;
-    maneuver.dy = y_next;
-    maneuver.dyaw = yaw_next;
     
-    maneuver.xs = xs;
-    maneuver.ys = ys;
-    maneuver.yaws = yaws;
-   
-    area = calculate_maneuver_area(model,maneuver,offset);
+    %% Area
+    % local rectangle of bycicle model [coordinates clockwise from lower left corner]
+    veh = Vehicle();
+    x_rec1 = [-1, -1,  1,  1] * (veh.Length/2+offset);
+    y_rec1 = [-1,  1,  1, -1] * (veh.Width/2+offset);
+        
+    % calculate displacement of model shape
+    [x_rec2, y_rec2] = translate_global(maneuver.dyaw, maneuver.dx, maneuver.dy, x_rec1, y_rec1);
     
-    maneuver.area = area;
+    signum = sign(maneuver.dyaw);
+    
+    switch signum
+        case 0
+            maneuver_area = [   x_rec1(1) x_rec1(2) x_rec2(3) x_rec2(4); ...
+                                y_rec1(1) y_rec1(2) y_rec2(3) y_rec2(4)   ];
+        case 1
+            lastX = x_rec2(4);
+            lastY = y_rec1(4);
+            maneuver_area = [   x_rec1(1) x_rec1(2) x_rec2(3) x_rec2(4) lastX; ...
+                                y_rec1(1) y_rec1(2) y_rec2(3) y_rec2(4) lastY   ];
+        case -1
+            lastX = x_rec2(3);
+            lastY = y_rec1(3);
+            maneuver_area = [   x_rec1(1) x_rec1(2) lastX x_rec2(3) x_rec2(4); ...
+                                y_rec1(1) y_rec1(2) lastY y_rec2(3) y_rec2(4)   ];
+    end
+    
+    maneuver.area = maneuver_area;
     
 end
