@@ -108,7 +108,7 @@ while ~finished || cur_depth > 50
     % Coud use vehicles' predicted mpc traj.
     speeds = zeros(scenario.nVeh, 1);
     for iVeh=1:scenario.nVeh
-        speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,idx.trim)).velocity;
+        speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,idx.trim)).speed;
     end
     x0 = [cur_node(:,idx.x), cur_node(:,idx.y), cur_node(:,idx.yaw), speeds];
     % Sample reference trajectory

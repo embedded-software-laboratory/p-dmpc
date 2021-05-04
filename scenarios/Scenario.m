@@ -40,11 +40,11 @@ classdef Scenario
 
 
             
-            % Make motionGraph Tupel
-            obj.model = BicycleModel(2.2,2.2);
-            load(obj.trim_set); % loads u_trims and trim_adjacency
-            % Combine graphs
-            obj.mpa = MotionPrimitiveAutomaton(obj.model, u_trims, trim_adjacency, obj.offset, obj.dt, options.amount);
+            veh = Vehicle();
+            obj.model = BicycleModel(veh.Lf,veh.Lr);
+
+            load(obj.trim_set); % loads trim_inputs and trim_adjacency
+            obj.mpa = MotionPrimitiveAutomaton(obj.model, trim_inputs, trim_adjacency, obj.offset, obj.dt, options.amount);
         end
         
         function plot(obj, varargin)

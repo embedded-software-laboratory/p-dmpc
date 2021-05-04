@@ -3,8 +3,6 @@ classdef BicycleModel < VehicleModel
     properties
         Lf
         Lr
-        W
-        max_dist_cg
     end
     
     methods
@@ -17,16 +15,10 @@ classdef BicycleModel < VehicleModel
             
             % noe properties model
             obj.ny = 3;
-            
+
             % lengths from center of gravity
             obj.Lf = Lf;
             obj.Lr = Lr;
-            
-            % width
-            obj.W = 0.88;
-            
-            % maximum distance from the vehicles center of gravity to its outline
-            obj.max_dist_cg = sqrt(max(obj.Lf,obj.Lr)^2+(obj.W/2)^2);
         end
         
         
