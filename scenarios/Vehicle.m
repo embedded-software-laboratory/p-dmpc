@@ -11,10 +11,10 @@ classdef Vehicle
         y_goal              = 0;     % [m]
         yaw_goal            = 0;     % [radians]
         referenceTrajectory = [0 0; 1 0; 3 1];
-        Length              = 4.29;  % Vehicle length (bumper to bumper)[m]
-        Width               = 1.79;  % Vehicle width [m]
-        Lf                  = 1.315; % Distance between vehicle center and front axle center [m]
-        Lr                  = 1.315; % Distance between vehicle center and rear axle center [m]
+        Length              = 0.22;  % Vehicle length (bumper to bumper)[m]
+        Width               = 0.1;   % Vehicle width [m]
+        Lf                  = 0.1;   % Distance between vehicle center and front axle center [m]
+        Lr                  = 0.1;   % Distance between vehicle center and rear axle center [m]
     end
     
     methods

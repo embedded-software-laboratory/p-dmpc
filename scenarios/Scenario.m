@@ -1,23 +1,22 @@
 classdef Scenario
     properties
         vehicles = [];  % array of Vehicle objects
-        % obstacles = {[xs;ys],...}
-        obstacles = {};
+        obstacles = {}; % obstacles = {[xs;ys],...}
         nVeh = 0;
         name = 'UnnamedScenario';
-        dt;     % RHC sample time [s]
+        dt;             % RHC sample time [s]
         Hp;
         Hu;
         mpa;
-        trim_set = 'trim_set_3_1';
-        offset = 0.1;           % offset for collision checks
+        trim_set = 1;
+        offset = 0.03;  % offset for collision checks
         model = [];
-        r_goal = 1; % goal circle
+        r_goal = 0.3;   % goal circle
     end
     
     methods
         function obj = Scenario(options)
-            radius = 15;
+            radius = 2;
             for the_angle=options.angles
                 s = sin(the_angle);
                 c = cos(the_angle);
@@ -43,8 +42,7 @@ classdef Scenario
             veh = Vehicle();
             obj.model = BicycleModel(veh.Lf,veh.Lr);
 
-            load(obj.trim_set); % loads trim_inputs and trim_adjacency
-            obj.mpa = MotionPrimitiveAutomaton(obj.model, trim_inputs, trim_adjacency, obj.offset, obj.dt, options.amount);
+            obj.mpa = MotionPrimitiveAutomaton(obj.model, obj.trim_set, obj.offset, obj.dt, options.amount);
         end
         
         function plot(obj, varargin)

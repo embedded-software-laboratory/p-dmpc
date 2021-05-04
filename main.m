@@ -15,6 +15,7 @@ else
     options = selection();
 end
 
+% Setup scenario
 scenario = Scenario(options);
 
 
