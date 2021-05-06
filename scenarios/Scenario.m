@@ -8,10 +8,10 @@ classdef Scenario
         Hp;
         Hu;
         mpa;
-        trim_set = 1;
+        trim_set = 3;
         offset = 0.03;  % offset for collision checks
         model = [];
-        r_goal = 0.3;   % goal circle
+        r_goal = 0.1;   % goal circle
     end
     
     methods
@@ -45,13 +45,7 @@ classdef Scenario
             obj.mpa = MotionPrimitiveAutomaton(obj.model, obj.trim_set, obj.offset, obj.dt, options.amount);
         end
         
-        function plot(obj, varargin)
-            if nargin==1
-                fig = figure;
-            else
-                fig = varargin{1};
-            end
-            figure(fig);
+        function plot(obj)
             veh_colors = [  0.8941    0.1020    0.1098  ;...
                             0.2157    0.4941    0.7216  ;...
                             0.3020    0.6863    0.2902  ;...
@@ -61,13 +55,10 @@ classdef Scenario
                             0.6510    0.3373    0.1569  ;...
                             0.9686    0.5059    0.7490  ];
             for iVeh = 1:numel(obj.vehicles)
-                hold on
                 % vehicle rectangle
                 veh = obj.vehicles(iVeh);
-                veh.plot(fig, veh_colors(mod(iVeh-1,size(veh_colors,1))+1,:));
-                hold off
+                veh.plot(veh_colors(mod(iVeh-1,size(veh_colors,1))+1,:));
             end
-            axis equal
         end
     end
     

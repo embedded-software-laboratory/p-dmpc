@@ -1,5 +1,5 @@
-function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
-    info = prev_info;
+function [u, y_pred, info] = graph_search(scenario, iter)
+    info = struct;
 
     % Create tree with root node
     % TODO Choose trim_indices depending on measurement
@@ -8,7 +8,7 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
     h_values = zeros(scenario.nVeh,1);
     cur_node = node(...
         init_depth, ...
-        prev_info.trim_indices, ...
+        iter.trim_indices, ...
         iter.x0(:,1), ...
         iter.x0(:,2), ...
         iter.x0(:,3), ...
@@ -52,6 +52,8 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
             u = 0;
             info.tree_path = fliplr(pathtoroot(info.tree, cur_node_id));
             info.trim_indices = info.tree.Node{info.tree_path(2)}(:,info.tree.idx.trim);
+            info.open_nodes = open_nodes;
+            info.open_values = open_values;
             break
         else
             % Expand chosen node
@@ -61,15 +63,15 @@ function [u, y_pred, info] = graph_search(scenario, iter, prev_info)
                 ,cur_node...
                 ,info.tree.idx...
             );
-            parents = cur_node_id*ones(1,numel(expanded_nodes));
+            parents = cur_node_id*ones(numel(expanded_nodes),1);
             [info.tree, new_open_nodes] = info.tree.addnnodes(parents, expanded_nodes);
             % add child nodes
-            open_nodes = [open_nodes, new_open_nodes];
-            open_values = [open_values, sum_values(info.tree, new_open_nodes)];
+            open_nodes = [open_nodes; new_open_nodes];
+            open_values = [open_values; sum_values(info.tree, new_open_nodes)];
             [open_nodes, open_values] = sort_open_list(open_nodes, open_values);
 
-            % plot exploration
-%             info.plot = visualize_exploration(scenario, info.tree, info.plot);
+            % % plot exploration
+            % info.plot = visualize_exploration(scenario, info.tree, info.plot);
         end
     end
 end

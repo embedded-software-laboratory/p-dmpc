@@ -23,16 +23,7 @@ classdef Vehicle
             %   Detailed explanation goes here
         end
         
-        function plot(obj, varargin)
-            if nargin==1
-                fig = figure;
-                axis equal;
-                color = 'b';
-            else
-                fig = varargin{1};
-                color = varargin{2};
-            end
-            figure(fig);
+        function plot(obj, color)
             vehicle_polygon = transformedRectangle(obj.x_start,obj.y_start, obj.yaw_start, obj.Length, obj.Width);
             fill(vehicle_polygon(1,:),vehicle_polygon(2,:),color);
         end

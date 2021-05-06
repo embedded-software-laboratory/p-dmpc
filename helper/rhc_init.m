@@ -7,6 +7,7 @@ function iter = rhc_init(scenario, x_measured, trim_indices)
 
     iter.referenceTrajectoryPoints = zeros(scenario.nVeh,scenario.Hp,2);
     iter.x0 = x_measured;
+    iter.trim_indices = trim_indices;
     
     iter.vRef = get_max_speed(scenario.mpa);
     for iVeh=1:scenario.nVeh
