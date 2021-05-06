@@ -46,10 +46,14 @@ classdef Scenario
             obj.Hu = obj.Hp;
             obj.dt = 0.4;
 
+%             obj.obstacles{1} = [-0.1  0.1  0.1 -0.1
+%                                 -0.2 -0.2  0.2  0.2] ...
+%                              + [2; 2];
+
             veh = Vehicle();
             obj.model = BicycleModel(veh.Lf,veh.Lr);
 
-            obj.mpa = MotionPrimitiveAutomaton(obj.model, obj.trim_set, obj.offset, obj.dt, options.amount);
+            obj.mpa = MotionPrimitiveAutomaton(obj.model, obj.trim_set, obj.offset, obj.dt, options.amount, obj.Hp);
         end
         
         function plot(obj)
