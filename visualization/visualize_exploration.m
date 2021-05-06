@@ -16,7 +16,7 @@ function plotInfo = visualize_exploration(scenario, info, plotInfo)
     % end
 
     t = [info.tree.Node{:}];
-    t = reshape(t,2,8,[]);
+    t = reshape(t,scenario.nVeh,8,[]);
     leaf_idcs = find(t(1,info.tree.idx.depth,:)==6);
     leaves = t(:,:,leaf_idcs);
     t(:,:,leaf_idcs) = [];
