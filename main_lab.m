@@ -10,19 +10,19 @@ clear -regex ^(?!varargin$).*$
 clc
 
 %% Read input
-vehicle_ids = cell2mat(varargin{1});
+vehicle_ids = [varargin{1:end-1}];
 assert(issorted(vehicle_ids));
 
 %% Initialize data readers/writers...
 % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
 common_cpm_functions_path = fullfile( ...
-    '../../lab/software', 'dev/software/high_level_controller/examples/matlab' ...
+    '../examples/matlab' ...
 );
 assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
 addpath(common_cpm_functions_path);
 
 matlabDomainId = 1;
-[matlabParticipant, reader_vehicleStateList, ~, writer_vehicleCommandTrajectory, reader_systemTrigger, writer_readyStatus, trigger_stop] = init_script(matlabDomainId);
+[matlabParticipant, reader_vehicleStateList, writer_vehicleCommandTrajectory, ~, reader_systemTrigger, writer_readyStatus, trigger_stop] = init_script(matlabDomainId);
 
 % Set reader properties
 reader_vehicleStateList.WaitSet = true;
@@ -38,11 +38,7 @@ clear -regex ^(?!varargin$).*$
 clc
 
 % Determine options
-if nargin==1
-    options = selection(varargin{1});
-else
-    options = selection();
-end
+options = selection(varargin{end});
 
 % Setup scenario
 scenario = Scenario(options);
@@ -108,10 +104,11 @@ while (~got_stop)
     if controller_init == false
         t_start_nanos = sample(end).t_now;
         x0 = zeros(scenario.nVeh,4);
-        x0(:,1) = sample(end).state_list(:).pose.x;
-        x0(:,2) = sample(end).state_list(:).pose.y;
-        x0(:,3) = sample(end).state_list(:).pose.yaw;
-        x0(:,4) = sample(end).state_list(:).speed;
+        pose = [sample(end).state_list.pose];
+        x0(:,1) = [pose.x];
+        x0(:,2) = [pose.y];
+        x0(:,3) = [pose.yaw];
+        x0(:,4) = [sample(end).state_list.speed];
         controller_init = true;
     else
         % take last planned state as new actual state
@@ -136,42 +133,57 @@ while (~got_stop)
             
     % Apply control action f/e veh
     % -------------------------------------------------------------------------
-    for iVeh = 1:nVeh
-        nPrimitives = numel(info.tree_path);
+    out_of_map_limits = false(scenario.nVeh,1);
+    for iVeh = 1:scenario.nVeh
+        n_traj_pts = numel(info.tree_path)-1;
         n_predicted_points = size(y_pred{iVeh},1);
-        idx_predicted_points = 1:n_predicted_points/nPrimitives:n_predicted_points;
-        assert(numel(idx_predicted_points)==nPrimitives);
-        for iPrimitive = 1:nPrimitives
-            i_predicted_points = idx_predicted_points(iPrimitive);
-            the_trajectory_point = TrajectoryPoint;
-            the_trajectory_point.t.nanoseconds = ...
-                uint64(sample.t_now + iPrimitive*dt_period_nanos);
-            the_trajectory_point.px = y_pred{iVeh}(i_predicted_points,1);
-            the_trajectory_point.py = y_pred{iVeh}(i_predicted_points,2);
+        idx_predicted_points = 1:n_predicted_points/n_traj_pts:n_predicted_points;
+        trajectory_points(1:n_traj_pts) = TrajectoryPoint;
+        for i_traj_pt = 1:n_traj_pts
+            i_predicted_points = idx_predicted_points(i_traj_pt);
+            trajectory_points(i_traj_pt).t.nanoseconds = ...
+                uint64(sample(end).t_now + i_traj_pt*dt_period_nanos);
+            trajectory_points(i_traj_pt).px = y_pred{iVeh}(i_predicted_points,1);
+            trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points,2);
             yaw = y_pred{iVeh}(i_predicted_points,3);
             speed = scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
-            the_trajectory_point.vx = cos(yaw)*speed;
-            the_trajectory_point.vy = sin(yaw)*speed;
-            trajectory_points = [trajectory_points the_trajectory_point];
+            trajectory_points(i_traj_pt).vx = cos(yaw)*speed;
+            trajectory_points(i_traj_pt).vy = sin(yaw)*speed;
         end
+        out_of_map_limits(iVeh) = is_veh_at_map_border(trajectory_points);
         vehicle_command_trajectory = VehicleCommandTrajectory;
         vehicle_command_trajectory.vehicle_id = uint8(vehicle_ids(iVeh));
         vehicle_command_trajectory.trajectory_points = trajectory_points;
         vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
-            uint64(sample.t_now);
+            uint64(sample(end).t_now);
         vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
-            uint64(sample.t_now + dt_period_nanos);
+            uint64(sample(end).t_now + dt_period_nanos);
         writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
     end
 
     % Check for stop signal
     % -------------------------------------------------------------------------
     [~, got_stop] = read_system_trigger(reader_systemTrigger, trigger_stop);
-    if (t_rel>=t_end)
+    if any(out_of_map_limits)
         got_stop = true;
     end
+
 
     cur_depth = cur_depth + 1;
 end
 
+end
+
+
+function stop_experiment = is_veh_at_map_border(trajectory_points)
+    % Vehicle command timeout is 1000 ms after the last valid_after_stamp,
+    % so vehicle initiates stop between third and fourth trajectory point
+    x_min = 0;
+    x_max = 4.5;
+    y_min = 0;
+    y_max = 4.0;
+    px = trajectory_points(5).px;
+    py = trajectory_points(5).py;
+    stop_experiment = x_min>px || px>x_max ...
+                   || y_min>py || py>y_max;
 end

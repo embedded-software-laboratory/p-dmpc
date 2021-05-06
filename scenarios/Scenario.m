@@ -28,17 +28,24 @@ classdef Scenario
                 veh.y_goal = s*radius;
                 veh.yaw_goal = the_angle;
                 veh.trim_config = 1;
-                veh.referenceTrajectory = [-c*radius -s*radius;c*radius s*radius]; 
+                veh.referenceTrajectory = [-c*radius -s*radius;c*radius s*radius];
+                
+                % Lab: translate by center
+                center_x = 2.25;
+                center_y = 2;
+                veh.x_start = -c*radius + center_x;
+                veh.y_start = -s*radius + center_y;
+                veh.x_goal = c*radius + center_x;
+                veh.y_goal = s*radius + center_y;
+                veh.referenceTrajectory = veh.referenceTrajectory + [center_x, center_y];
                 obj.vehicles = [obj.vehicles, veh];
             end
             obj.nVeh = options.amount;
             obj.name = sprintf("%i-circle", options.amount);
-            obj.Hp = 6;
+            obj.Hp = 5;
             obj.Hu = obj.Hp;
             obj.dt = 0.4;
 
-
-            
             veh = Vehicle();
             obj.model = BicycleModel(veh.Lf,veh.Lr);
 

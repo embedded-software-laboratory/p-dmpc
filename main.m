@@ -45,7 +45,7 @@ set(gca,'TickLabelInterpreter','latex');
 set(gca,'Box','on')
 xlabel('$x$ [m]', 'Interpreter','Latex')
 ylabel('$y$ [m]', 'Interpreter','Latex')
-axis([-1, 1, -1, 1]*2.5);
+axis([-1, 1, -1, 1]*2.5+2.5);
 %set(gca, 'ytick', [-9 9]);
 pbaspect([1 1 1]);
 title("Iteration: 0, Time: 0");
