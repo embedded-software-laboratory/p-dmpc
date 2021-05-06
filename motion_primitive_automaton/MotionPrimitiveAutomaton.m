@@ -9,12 +9,13 @@ classdef MotionPrimitiveAutomaton
     end
     
     methods
-        function obj = MotionPrimitiveAutomaton(model, trim_inputs, trim_adjacency, offset, dt, nveh)
+        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh)
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
             %   read as: rows are start trims and columns are end trims
-                       
+
+            [trim_inputs, trim_adjacency] = choose_trims(trim_set);
             n_trims = length(trim_inputs);
             
             obj.transition_matrix_single = trim_adjacency;
@@ -89,15 +90,13 @@ classdef MotionPrimitiveAutomaton
         end
 
         function maneuver_matrix = compute_product_maneuver_matrix(obj,nveh)
-
             % initialize product maneuver_matrix
             maneuver_matrix = obj.transition_matrix_single;
             % compute tensor product iteratively
             for i = 2 : nveh
                 maneuver_matrix = kron(maneuver_matrix,obj.transition_matrix_single);
             end
-            
         end
+
     end
 end
-

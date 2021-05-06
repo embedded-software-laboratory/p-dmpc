@@ -8,19 +8,36 @@ close all
 clear -regex ^(?!varargin$).*$
 clc
 
-
+% Determine options
 if nargin==1
     options = selection(varargin{1});
 else
     options = selection();
 end
 
+% Setup scenario
 scenario = Scenario(options);
 
+% Setup controller
+info = struct;
+info.trim_indices = [scenario.vehicles(:).trim_config];
+% Initialize
+n_vertices = 0;
+cur_depth = 0;
+cur_node = node(cur_depth, info.trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
+search_tree = tree(cur_node);
+idx = tree.nodeCols();
+cur_depth = cur_depth + 1;
 
+controller = @(scenario, iter)...
+    graph_search(scenario, iter);
 
-% Set figure
+% init result struct
+result = get_result_struct(scenario,50);
+
+% Visualize
 f = figure;
+hold on
 f.WindowState = 'maximized';
 set(f,'color','w');
 set(gca, 'FontSize', 35);
@@ -28,18 +45,29 @@ set(gca,'TickLabelInterpreter','latex');
 set(gca,'Box','on')
 xlabel('$x$ [m]', 'Interpreter','Latex')
 ylabel('$y$ [m]', 'Interpreter','Latex')
-box on;
-axis([-18, 18, -18, 18]);
+axis([-1, 1, -1, 1]*2.5+2.5);
 %set(gca, 'ytick', [-9 9]);
 pbaspect([1 1 1]);
 title("Iteration: 0, Time: 0");
 draw_destination(scenario);
-draw_cars(scenario);
-if numel(scenario.obstacles) ~= 0
-    for i = 1:numel(scenario.obstacles)
-        obstacles = polyshape(scenario.obstacles{i}(1,:),scenario.obstacles{i}(2,:));
-        plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
-    end
+plot(scenario);
+for i = 1:numel(scenario.obstacles)
+    obstacles = polyshape(scenario.obstacles{i}(1,:),scenario.obstacles{i}(2,:));
+    plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
+end
+% init graphic objects
+vis = struct;
+vis.p = gobjects(1, scenario.nVeh);
+vis.g = gobjects(1, scenario.nVeh);
+for iVeh = 1:scenario.nVeh
+    cur_color = vehColor(iVeh);
+    vis.p(iVeh) = plot(scenario.vehicles(iVeh).x_start, scenario.vehicles(iVeh).y_start, '-','Color', cur_color, 'LineWidth', 2);
+    vis.p(iVeh).Color(4) = 0.5;
+    vis.g(iVeh) = plot(scenario.vehicles(iVeh).x_start, scenario.vehicles(iVeh).y_start, 'o','Color', cur_color, 'MarkerSize',3,'MarkerFaceColor', cur_color);
+    vis.g(iVeh).Color(4) = 0.5;
+%     vis.search(iVeh) = scatter3(0, 0, 0);
+    vis.open = line(NaN,NaN,NaN, 'Marker', 'o', 'MarkerSize',6,'LineStyle','none');
+    vis.open_leaves = line(NaN,NaN,NaN, 'Marker', '+', 'MarkerSize',6,'LineStyle','none');
 end
 
 % Create log folder
@@ -65,40 +93,11 @@ end
 
 
 
-trim_indices = [scenario.vehicles(:).trim_config];
-% Initialize
-n_vertices = 0;
-
-% Visualize
-vis = struct;
-vis.p = gobjects(1, scenario.nVeh);
-vis.g = gobjects(1, scenario.nVeh);
-for iVeh = 1:scenario.nVeh
-    cur_color = vehColor(iVeh);
-    vis.p(iVeh) = plot(scenario.vehicles(iVeh).x_start, scenario.vehicles(iVeh).y_start, '-','Color', cur_color, 'LineWidth', 2);
-    vis.p(iVeh).Color(4) = 0.5;
-    vis.g(iVeh) = plot(scenario.vehicles(iVeh).x_start, scenario.vehicles(iVeh).y_start, 'o','Color', cur_color, 'MarkerSize',3,'MarkerFaceColor', cur_color);
-    vis.g(iVeh).Color(4) = 0.5;
-    vis.search(iVeh) = scatter3(0, 0, 0);
-end
-cur_depth = 0;
-cur_node = node(cur_depth, trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
-search_tree = tree(cur_node);
-idx = tree.nodeCols();
-cur_depth = cur_depth + 1;
-
-controller = @(scenario, iter, prev_info)...
-    graph_search(scenario, iter, prev_info);
-
-% init result struct
-result = get_result_struct(scenario,50);
 
 %% Execute
 
 % Main control loop
 finished = false;
-prev_info = struct;
-prev_info.trim_indices = trim_indices;
 
 while ~finished || cur_depth > 50
     result.step_timer = tic;
@@ -111,14 +110,14 @@ while ~finished || cur_depth > 50
         speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,idx.trim)).speed;
     end
     x0 = [cur_node(:,idx.x), cur_node(:,idx.y), cur_node(:,idx.yaw), speeds];
-    % Sample reference trajectory
-    iter = rhc_init(scenario,x0);
-    result.iteration_structs{cur_depth} = iter;
     
     % Control 
     % -------------------------------------------------------------------------
+    % Sample reference trajectory
+    iter = rhc_init(scenario,x0,info.trim_indices);
+    result.iteration_structs{cur_depth} = iter;
     controller_timer = tic;
-        [u, y_pred, info] = controller(scenario, iter, prev_info);
+        [u, y_pred, info] = controller(scenario, iter);
     result.controller_runtime(cur_depth) = toc(controller_timer);
     % save controller outputs in resultstruct
     result.trajectory_predictions(:,cur_depth) = y_pred;
@@ -137,7 +136,7 @@ while ~finished || cur_depth > 50
         end
     end
     % Visualize exploration
-%     vis = visualize_exploration(scenario, info.tree, vis);
+    vis = visualize_exploration(scenario, info, vis);
 
 
     drawnow;
@@ -168,9 +167,6 @@ while ~finished || cur_depth > 50
     % Simulation
     % -------------------------------------------------------------------------
 
-
-    
-    prev_info = info;
     result.step_time(cur_depth) = toc(result.step_timer);
 end
 % close(video);
