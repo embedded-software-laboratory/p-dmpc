@@ -66,8 +66,8 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             parents = cur_node_id*ones(numel(expanded_nodes),1);
             [info.tree, new_open_nodes] = info.tree.addnnodes(parents, expanded_nodes);
             % add child nodes
-            open_nodes = [open_nodes; new_open_nodes];
-            open_values = [open_values; sum_values(info.tree, new_open_nodes)];
+            open_nodes = [open_nodes, new_open_nodes];
+            open_values = [open_values, sum_values(info.tree, new_open_nodes)];
             [open_nodes, open_values] = sort_open_list(open_nodes, open_values);
 
             % % plot exploration
