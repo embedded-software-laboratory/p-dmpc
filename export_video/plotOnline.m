@@ -35,6 +35,7 @@ function plotOnline(result,step_idx,tick_now)
 
     % predicted trajectory
     for v=1:nVeh
+        plot( result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],1),result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],2),'|','MarkerFaceColor',vehColor(v),'MarkerEdgeColor',vehColor(v),'MarkerSize',3 );
         plot( result.trajectory_predictions{v,step_idx}(:,1),result.trajectory_predictions{v,step_idx}(:,2),'Color',vehColor(v) );
     end
 

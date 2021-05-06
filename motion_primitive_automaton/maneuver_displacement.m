@@ -3,6 +3,9 @@ function [xs, ys, yaws] = maneuver_displacement(model, x_init, y_init, yaw_init,
     steering_derivative = steering_angle_change/dt;
     acceleration = velocity_change/dt;
     
+    % TODO: parameter stored in scenario
+    tick_per_step = 40;
+    
     % maneuver state changes in local coordinates
     x0 = zeros(model.nx, 1);
     x0(1) = x_init;
@@ -12,7 +15,7 @@ function [xs, ys, yaws] = maneuver_displacement(model, x_init, y_init, yaw_init,
     x0(5) = delta_init;
     
     [t, x] = ode45(@(t, x) model.ode(x, [steering_derivative,acceleration]), ...
-                   linspace(0,dt,40+1), ...
+                   linspace(0,dt,tick_per_step+1), ...
                    x0, ...
                    odeset('RelTol',1e-8,'AbsTol',1e-8));
      
