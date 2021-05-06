@@ -22,7 +22,7 @@ function [ ReferencePoints ] = sampleReferenceTrajectory(nSamples, referenceTraj
 %       nSamples: number of points created
 %       referenceTrajectory: piecewise linear curve [x1 y1; x2 y2; ...]
 %       vehicle_x,vehicle_y: start point
-%       stepSize: Distance between points
+%       stepSize: Distance between points [d1; d2; ...]
 % Returns: points [x1 y1; x2 y2; ...]
 
     ReferencePoints = zeros(nSamples,2);
@@ -36,18 +36,18 @@ function [ ReferencePoints ] = sampleReferenceTrajectory(nSamples, referenceTraj
     % become necessary to have short line-segments this algorithm needs to
     % be changed.
     for i=1:nLinePieces-1
-        assert(norm(referenceTrajectory(i+1,:)-referenceTrajectory(i,:),2)>stepSize);
+        assert(norm(referenceTrajectory(i+1,:)-referenceTrajectory(i,:),2)>max(stepSize));
     end
     
     for i=1:nSamples
         % make a step
         remainingLength = norm(currentPoint-referenceTrajectory(TrajectoryIndex,:),2);
-        if remainingLength > stepSize || TrajectoryIndex == nLinePieces
-            currentPoint = currentPoint + stepSize*normalize(referenceTrajectory(TrajectoryIndex,:)-referenceTrajectory(TrajectoryIndex-1,:));
+        if remainingLength > stepSize(i) || TrajectoryIndex == nLinePieces
+            currentPoint = currentPoint + stepSize(i)*normalize(referenceTrajectory(TrajectoryIndex,:)-referenceTrajectory(TrajectoryIndex-1,:));
         else
             currentPoint = referenceTrajectory(TrajectoryIndex,:);            
             TrajectoryIndex = min(TrajectoryIndex+1, nLinePieces);            
-            currentPoint = currentPoint + (stepSize-remainingLength)*normalize(referenceTrajectory(TrajectoryIndex,:)-referenceTrajectory(TrajectoryIndex-1,:));
+            currentPoint = currentPoint + (stepSize(i)-remainingLength)*normalize(referenceTrajectory(TrajectoryIndex,:)-referenceTrajectory(TrajectoryIndex-1,:));
         end
         
         % record step
