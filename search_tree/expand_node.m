@@ -2,11 +2,9 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node, idx)
     trim_tuple = scenario.mpa.trim_tuple;
     trim_length = length(scenario.mpa.trims)*ones(1, scenario.nVeh);
     cur_trim_id = tuple2index(cur_node(:,idx.trim),trim_length);
-    if cur_node(1,idx.depth) < scenario.Hp
-        successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :));
-    else % h_u <= cur_node.depth < h_p
-        successor_trim_ids = cur_trim_id;
-    end
+    k_cur = cur_node(1,idx.depth);
+    k_exp = k_cur + 1;
+    successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
     
     nTrims = numel(successor_trim_ids);
     expanded_nodes = cell(1, nTrims);
@@ -14,7 +12,7 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node, idx)
     for iTrim = 1:nTrims
         id = successor_trim_ids(iTrim);
         expanded_node = cur_node;
-        expanded_node(:,idx.depth) = cur_node(:,idx.depth) + 1;
+        expanded_node(:,idx.depth) = k_exp;
         expanded_node(:,idx.trim) = trim_tuple(id,:);
         for iVeh = 1 : scenario.nVeh
             itrim1 = cur_node(iVeh,idx.trim);
@@ -34,27 +32,30 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node, idx)
         % Distance to reference trajectory points squared
         for iVeh = 1:scenario.nVeh
             expanded_node(iVeh,idx.g) = expanded_node(iVeh,idx.g) ...
-                + norm( [expanded_node(iVeh,idx.x) - iter.referenceTrajectoryPoints(iVeh,expanded_node(1,idx.depth),1);...
-                        expanded_node(iVeh,idx.y) - iter.referenceTrajectoryPoints(iVeh,expanded_node(1,idx.depth),2)] );                     
+                + norm(...
+                    [expanded_node(iVeh,idx.x)...
+                        - iter.referenceTrajectoryPoints(iVeh,k_exp,1);...
+                     expanded_node(iVeh,idx.y)...
+                        - iter.referenceTrajectoryPoints(iVeh,k_exp,2)]...
+                )^2;
         end
         
         % Cost to go
         expanded_node(:,idx.h) = 0;
-        if (expanded_node(1,idx.depth) < scenario.Hp)
-            % Distance to every reference trajectory point squared
-            % subtract squared distance traveled for every timestep and vehicle
-            time_steps_to_go = scenario.Hp - expanded_node(1,idx.depth);
-            for iVeh = 1:scenario.nVeh
-                d_traveled_per_step = scenario.dt*iter.vRef;
-                for i_t = 1:time_steps_to_go
-                    expanded_node(iVeh,idx.h) = expanded_node(iVeh,idx.h)...
-                        + norm( [expanded_node(iVeh,idx.x)-iter.referenceTrajectoryPoints(iVeh,expanded_node(1,idx.depth)+i_t,1);...
-                                expanded_node(iVeh,idx.y)-iter.referenceTrajectoryPoints(iVeh,expanded_node(1,idx.depth)+i_t,2)] ) ...
-                        - d_traveled_per_step * i_t;
-                end
+        % Distance to every reference trajectory point squared
+        % subtract squared distance traveled for every timestep and vehicle
+        time_steps_to_go = scenario.Hp - k_exp;
+        for iVeh = 1:scenario.nVeh
+            d_traveled_max = 0;
+            for i_t = 1:time_steps_to_go
+                d_traveled_max = d_traveled_max...
+                    + scenario.dt*iter.vRef(iVeh,k_exp+i_t);
+                expanded_node(iVeh,idx.h) = expanded_node(iVeh,idx.h)...
+                    + (norm( [expanded_node(iVeh,idx.x)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,1);...
+                              expanded_node(iVeh,idx.y)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,2)] ) ...
+                        - d_traveled_max)^2;
             end
         end
-
 
         expanded_nodes{iTrim} = expanded_node;
     end

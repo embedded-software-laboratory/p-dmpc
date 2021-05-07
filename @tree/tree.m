@@ -129,15 +129,14 @@ classdef tree
             np = numel(parents);
             
             if np == 1
-                obj.addnode(parents,datas);
-                return
+                [obj, IDs] = obj.addnode(parents,datas{1});
+            else
+                IDs = (numel(obj.Node)+1:numel(obj.Node)+np);
+
+                obj.Node(IDs,1) = datas;
+
+                obj.Parent(IDs,1) = parents;
             end
-            
-            IDs = numel(obj.Node)+1:numel(obj.Node)+np;
-            
-            obj.Node(IDs,1) = datas;
-            
-            obj.Parent(IDs) = parents;
         end
         
         function flag = isleaf(obj, ID)
