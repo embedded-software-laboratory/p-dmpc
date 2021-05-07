@@ -1,13 +1,10 @@
 % genrates maneuver struct
-function maneuver = generate_maneuver(model, trim1, trim2, offset, dt)
+function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
     % TODO make independent from model, currently only works for BicycleModel
     %% calculate displacement
     
     steering_derivative = (trim2.steering - trim1.steering) / dt;
     acceleration = (trim2.speed - trim1.speed) / dt;
-
-    % TODO: parameter stored in scenario
-    tick_per_step = 40;
     
     % maneuver state changes in local coordinates
     x0 = zeros(model.nx, 1);
@@ -16,8 +13,9 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt)
         x0(5) = trim1.steering;
     end
     
+    % 1 tick more per step cause first values are the same as last ones in preceeding step
     [~, x] = ode45(@(t, x) model.ode(x, [steering_derivative,acceleration]), ...
-                   linspace(0,dt,tick_per_step+1), ...
+                   linspace(0,dt,nTicks+1), ...
                    x0, ...
                    odeset('RelTol',1e-8,'AbsTol',1e-8)...
     );

@@ -9,7 +9,7 @@ classdef MotionPrimitiveAutomaton
     end
     
     methods
-        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N)
+        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N, nTicks)
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
@@ -40,7 +40,7 @@ classdef MotionPrimitiveAutomaton
             for i = 1:n_trims
                 for j = 1:n_trims
                     if obj.transition_matrix_single(i,j,1)
-                        obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), offset, dt);
+                        obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), offset, dt, nTicks);
                     end
                 end
             end

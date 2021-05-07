@@ -59,7 +59,7 @@ classdef Scenario
             veh = Vehicle();
             obj.model = BicycleModel(veh.Lf,veh.Lr);
 
-            obj.mpa = MotionPrimitiveAutomaton(obj.model, obj.trim_set, obj.offset, obj.dt, options.amount, obj.Hp);
+            obj.mpa = MotionPrimitiveAutomaton(obj.model, obj.trim_set, obj.offset, obj.dt, options.amount, obj.Hp, obj.tick_per_step);
         end
         
         function plot(obj)
