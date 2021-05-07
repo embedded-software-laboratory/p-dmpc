@@ -35,15 +35,16 @@ function plotOnline(result,step_idx,tick_now)
 
     % predicted trajectory
     for v=1:nVeh
-        plot( result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],1),result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],2),'|','MarkerFaceColor',vehColor(v),'MarkerEdgeColor',vehColor(v),'MarkerSize',3 );
+        plot( result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],1),result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],2),'|','MarkerFaceColor',vehColor(v),'MarkerEdgeColor',vehColor(v),'MarkerSize', 2);
         plot( result.trajectory_predictions{v,step_idx}(:,1),result.trajectory_predictions{v,step_idx}(:,2),'Color',vehColor(v) );
     end
 
     % Vehicle rectangles
     for v=1:nVeh
+        veh = scenario.vehicles(v);
         pos_step = result.vehicle_path_fullres{v,step_idx};
         x = pos_step(tick_now,:);
-        vehiclePolygon = transformedRectangle(x(1),x(2),x(3), scenario.model.Lr+scenario.model.Lf,scenario.model.W);
+        vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
         fill(vehiclePolygon(1,:),vehiclePolygon(2,:),vehColor(v));
     end
     
