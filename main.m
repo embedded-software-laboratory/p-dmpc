@@ -33,7 +33,7 @@ controller = @(scenario, iter)...
     graph_search(scenario, iter);
 
 % init result struct
-result = get_result_struct(scenario,50);
+result = get_result_struct(scenario);
 
 % Visualize
 f = figure;

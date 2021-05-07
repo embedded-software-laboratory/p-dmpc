@@ -56,7 +56,7 @@ controller = @(scenario, iter)...
 
 
 % init result struct
-result = get_result_struct(scenario,50);
+result = get_result_struct(scenario);
 controller_init = false;
 % times
 t             = zeros(1,0);

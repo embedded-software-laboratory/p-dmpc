@@ -1,13 +1,13 @@
-function result = get_result_struct(scenario, depth)
+function result = get_result_struct(scenario)
     result = struct;
     
     result.scenario = scenario;
-    result.controller_outputs = cell(depth,1);
-    result.iteration_structs = cell(depth,1);
-    result.vehicle_path_fullres = cell(scenario.nVeh,depth);
-    result.trajectory_predictions = cell(scenario.nVeh,depth);
-    result.controller_runtime = zeros(depth,1);
-    result.step_time = zeros(depth,1);
+    result.controller_outputs = cell(0,1);
+    result.iteration_structs = cell(0,1);
+    result.vehicle_path_fullres = cell(scenario.nVeh,0);
+    result.trajectory_predictions = cell(scenario.nVeh,0);
+    result.controller_runtime = zeros(0,1);
+    result.step_time = zeros(0,1);
     
     % create output directory
     directory_name = strrep([result.scenario.name, '_', result.scenario.controller_name],' ','_');
