@@ -98,7 +98,7 @@ end
 % Main control loop
 finished = false;
 
-while ~finished || cur_depth > 50
+while ~finished && cur_depth < 50
     result.step_timer = tic;
     % Measurement
     % -------------------------------------------------------------------------
