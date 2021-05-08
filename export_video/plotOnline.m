@@ -30,13 +30,19 @@ function plotOnline(result,step_idx,tick_now)
 
     % Sampled trajectory points
     for v=1:nVeh
-        plot( iter.referenceTrajectoryPoints(v,:,1),iter.referenceTrajectoryPoints(v,:,2),'o','MarkerFaceColor',vehColor(v),'MarkerEdgeColor',vehColor(v),'MarkerSize',3 )
+        line(   iter.referenceTrajectoryPoints(v,:,1), ...
+                iter.referenceTrajectoryPoints(v,:,2), ...
+                'Color',vehColor(v),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(v),'MarkerSize',3 );
     end
 
     % predicted trajectory
     for v=1:nVeh
-        plot( result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],1),result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],2),'|','MarkerFaceColor',vehColor(v),'MarkerEdgeColor',vehColor(v),'MarkerSize', 2);
-        plot( result.trajectory_predictions{v,step_idx}(:,1),result.trajectory_predictions{v,step_idx}(:,2),'Color',vehColor(v) );
+        line(   result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],1), ...
+                result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],2), ...
+                'Color',vehColor(v),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(v),'MarkerSize', 2 );
+        line(   result.trajectory_predictions{v,step_idx}(:,1), ...
+                result.trajectory_predictions{v,step_idx}(:,2), ...
+                'Color',vehColor(v),'LineWidth',1 );
     end
 
     % Vehicle rectangles
@@ -48,16 +54,9 @@ function plotOnline(result,step_idx,tick_now)
         fill(vehiclePolygon(1,:),vehiclePolygon(2,:),vehColor(v));
     end
     
-    % Obstacle rectangles
-    for i = 1:nObst        
-        obstaclePolygon = transformedRectangle(...
-            obstaclePositions(i,idx.x),...
-            obstaclePositions(i,idx.y),...
-            scenario.obstacles(i,idx.heading),...
-            scenario.obstacles(i,idx.length),...
-            scenario.obstacles(i,idx.width));
-        %fill(obstaclePolygon(1,:),obstaclePolygon(2,:),colorObst(min(i,size(colorObst,1)),:));
-        fill(obstaclePolygon(1,:),obstaclePolygon(2,:),[0 0 0]);
+    % Obstacle rectangle
+    for obs = 1:nObst
+        patch( scenario.obstacles{obs}(1,:),scenario.obstacles{obs}(2,:), vehColor(nVeh+obs), 'LineWidth', 1 );
     end
     
     scenarioName = scenario.name;
