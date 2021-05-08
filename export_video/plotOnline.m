@@ -1,7 +1,10 @@
-function plotOnline(result,step_idx,tick_now)
+function plotOnline(result,step_idx,tick_now,exploration)
     iter = result.iteration_structs{step_idx};
     if nargin < 3
         tick_now = 1;
+    end
+    if isempty(exploration)
+        exploration.doExploration = false;
     end
 
     scenario = result.scenario;
@@ -26,6 +29,10 @@ function plotOnline(result,step_idx,tick_now)
 
     xlim(result.plot_limits(1,:));
     ylim(result.plot_limits(2,:));
+    
+    if exploration.doExploration
+        plot_exploration_nodes(exploration,scenario);
+    end
     
 
     % Sampled trajectory points

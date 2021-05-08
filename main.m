@@ -36,38 +36,13 @@ controller = @(scenario, iter)...
 result = get_result_struct(scenario);
 
 % Visualize
-f = figure;
+resolution = [1920 1080];
+framerate = 30;
+frame_per_step = framerate*scenario.dt;
+ticks = round(linspace(2,scenario.tick_per_step+1,frame_per_step));
+figure('Visible','On','Color',[1 1 1],'units','pixel','OuterPosition',[100 100 resolution(1)/2 resolution(2)/2]);
 hold on
-f.WindowState = 'maximized';
-set(f,'color','w');
-set(gca, 'FontSize', 35);
-set(gca,'TickLabelInterpreter','latex');
-set(gca,'Box','on')
-xlabel('$x$ [m]', 'Interpreter','Latex')
-ylabel('$y$ [m]', 'Interpreter','Latex')
-axis([-0.25, 4.75, -0.5, 4.5]);
-pbaspect([1 1 1]);
-title("Iteration: 0, Time: 0");
-draw_destination(scenario);
-plot(scenario);
-for i = 1:numel(scenario.obstacles)
-    obstacles = polyshape(scenario.obstacles{i}(1,:),scenario.obstacles{i}(2,:));
-    plot(obstacles, 'EdgeColor', 'blue', 'LineWidth', 2);
-end
-% init graphic objects
-vis = struct;
-vis.p = gobjects(1, scenario.nVeh);
-vis.g = gobjects(1, scenario.nVeh);
-for iVeh = 1:scenario.nVeh
-    cur_color = vehColor(iVeh);
-    vis.p(iVeh) = plot(scenario.vehicles(iVeh).x_start, scenario.vehicles(iVeh).y_start, '-','Color', cur_color, 'LineWidth', 2);
-    vis.p(iVeh).Color(4) = 0.5;
-    vis.g(iVeh) = plot(scenario.vehicles(iVeh).x_start, scenario.vehicles(iVeh).y_start, 'o','Color', cur_color, 'MarkerSize',3,'MarkerFaceColor', cur_color);
-    vis.g(iVeh).Color(4) = 0.5;
-%     vis.search(iVeh) = scatter3(0, 0, 0);
-    vis.open = line(NaN,NaN,NaN, 'Marker', 'o', 'MarkerSize',6,'LineStyle','none');
-    vis.open_leaves = line(NaN,NaN,NaN, 'Marker', '+', 'MarkerSize',6,'LineStyle','none');
-end
+exploration = false;
 
 % Create log folder
 % st = dbstack;
@@ -77,21 +52,6 @@ end
 % if ~exist(sub_folder, 'dir')
 %     mkdir(sub_folder)
 % end
-
-% Initialize video
-% i = 1;
-% video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
-% while isfile(video_name+ ".avi")
-%     i = i + 1;
-%     video_name = fullfile(sub_folder,"video" + "(" + string(i) + ")");
-% end
-% video_name = fullfile(sub_folder,"video");
-% video = VideoWriter(video_name);
-% video.FrameRate = 1;
-% open(video)
-
-
-
 
 %% Execute
 
@@ -118,34 +78,18 @@ while ~finished && cur_depth < 50
     controller_timer = tic;
         [u, y_pred, info] = controller(scenario, iter);
     result.controller_runtime(cur_depth) = toc(controller_timer);
-    % save controller outputs in resultstruct
+    % save controller outputs in result struct
     result.trajectory_predictions(:,cur_depth) = y_pred;
     result.controller_outputs{cur_depth} = u;
-            
-    n_vertices = n_vertices + length(info.tree.Node);
-    
-    % Visualization
-    % -------------------------------------------------------------------------
-    for iVeh = 1:scenario.nVeh
-        % Visualize horizon
-        path = y_pred{iVeh};
-        if ~isempty(path)
-            vis.p(iVeh).XData = path(:,1);
-            vis.p(iVeh).YData = path(:,2);
-        end
+
+    % init struct for exploration plot
+    if exploration
+        exploration_struct.doExploration = true;
+        exploration_struct.info = info;
+    else
+        exploration_struct = [];
     end
-    % Visualize exploration
-    vis = visualize_exploration(scenario, info, vis);
-
-
-    drawnow;
     
-    
-    % Visualize path before addition to properly display horizon
-    visualize_step(scenario, search_tree, cur_depth, scenario.mpa);
-%     frame = getframe(gcf);
-%     writeVideo(video, frame);
-
     % Determine next node
     % TODO Substitute with measure / simulate
     assert(numel(info.tree_path)>1);
@@ -157,25 +101,32 @@ while ~finished && cur_depth < 50
     % Check if we already reached our destination
     is_goals = is_goal(cur_node, scenario);
     if(sum(is_goals) == scenario.nVeh)
-        visualize_step(scenario, search_tree, cur_depth, scenario.mpa);
-%         frame = getframe(gcf);
-%         writeVideo(video, frame);
         finished = true;
     end
+    
+    % store vehicles path in higher resolution
+    result.vehicle_path_fullres(:,cur_depth-1) = path_between(search_tree.Node{end-1},search_tree.Node{end},search_tree,scenario.mpa);
+    
+    n_vertices = n_vertices + length(info.tree.Node);
+    % Visualization
+    % -------------------------------------------------------------------------
+    % tune resolution
+    if cur_depth == 2
+        plotOnline(result,1,1,[]);
+    end
+    
+    % visualize time step
+    for tick = ticks
+        plotOnline(result,cur_depth-1,tick,exploration_struct);
+    end
+    
+    drawnow;
     
     % Simulation
     % -------------------------------------------------------------------------
 
     result.step_time(cur_depth) = toc(result.step_timer);
 end
-% close(video);
-
-% store vehicles path in higher resolution
-for nn=1:numel(search_tree.Node)-1
-    result.vehicle_path_fullres(:,nn) = path_between(search_tree.Node{nn},search_tree.Node{nn+1},search_tree,scenario.mpa);
-end
-
-
 
 %% Log and visualize
 % % Log workspace to subfolder 

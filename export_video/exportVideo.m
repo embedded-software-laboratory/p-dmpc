@@ -13,7 +13,7 @@ frame_ticks = round(linspace(2,scenario.tick_per_step+1,frame_per_step));
 figure('Visible','Off','Color',[1 1 1],'units','pixel','OuterPosition',[100 100 resolution(1)/2 resolution(2)/2]);
 
 % tune resolution
-plotOnline(result,1,1);
+plotOnline(result,1,1,[]);
 frame = export_fig(gcf, '-nocrop', '-a4', '-m2');
 set(gcf,'OuterPosition',[100 100 resolution(1)-size(frame,2)/2 resolution(2)-size(frame,1)/2]);
 
@@ -36,7 +36,7 @@ startTimer = tic;
 for step_idx = 1:nSteps
     for frame_idx = frame_ticks
         clf
-        plotOnline(result,step_idx,frame_idx);
+        plotOnline(result,step_idx,frame_idx,[]);
         frame = export_fig(gcf, '-nocrop', '-a4', '-m2');
         writeVideo(v,frame);
         clc;
