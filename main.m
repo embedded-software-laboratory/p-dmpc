@@ -12,7 +12,11 @@ clc
 if nargin==2
     options = selection(varargin{1},varargin{2});
 else
-    options = selection();
+    if nargin==1
+        options = selection(varargin{1},2);
+    else
+        options = selection();
+    end
 end
 
 % Setup scenario
