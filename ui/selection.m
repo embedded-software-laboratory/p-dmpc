@@ -1,4 +1,4 @@
-function options = selection(vehicle_amount)
+function options = selection(vehicle_amount,plot_option)
 
 %% Specify amount of vehicles
 scenarios = {
@@ -10,10 +10,20 @@ scenarios = {
     '6', 2*pi/6*(1:6); ...
     '7', 2*pi/7*(1:7); ...
     '8', 2*pi/8*(1:8); ...
-    };    
+    };
+
+possPlots = {
+    '1', 'no visualization',                    [false,false]; ...
+    '2', 'vehicle visualization',               [true,false]; ...
+    '3', 'visualization + node exploration',    [true,true]; ...
+    };
+
 if nargin < 1
     if ~exist('vehicle_amount','var')
         vehicle_amount = 1;
+    end
+    if ~exist('plot_option','var')
+        plot_option = 1;
     end
 
     [vehicle_amount,ok] = listdlg(...
@@ -25,9 +35,21 @@ if nargin < 1
     if(~ok)
         error('Canceled');
     end
+    
+    [plot_option,ok] = listdlg(...
+        'ListString',possPlots(:,2), ...
+        'SelectionMode', 'single', ...
+        'InitialValue', plot_option, ...
+        'PromptString', 'Choose the type of visualization during simulation');
+
+    if(~ok)
+        error('Canceled');
+    end
+    
 end
 
 options.angles = scenarios{vehicle_amount,2};
 options.amount = vehicle_amount;
+options.visu = possPlots{plot_option,3};
 end
 

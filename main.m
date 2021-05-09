@@ -9,8 +9,8 @@ clear -regex ^(?!varargin$).*$
 clc
 
 % Determine options
-if nargin==1
-    options = selection(varargin{1});
+if nargin==2
+    options = selection(varargin{1},varargin{2});
 else
     options = selection();
 end
@@ -36,13 +36,17 @@ controller = @(scenario, iter)...
 result = get_result_struct(scenario);
 
 % Visualize
-resolution = [1920 1080];
-framerate = 30;
-frame_per_step = framerate*scenario.dt;
-ticks = round(linspace(2,scenario.tick_per_step+1,frame_per_step));
-figure('Visible','On','Color',[1 1 1],'units','pixel','OuterPosition',[100 100 resolution(1)/2 resolution(2)/2]);
-hold on
-exploration = false;
+doExploration = false;
+doOnlinePlot = options.visu(1);
+if doOnlinePlot
+    resolution = [1920 1080];
+    framerate = 30;
+    frame_per_step = framerate*scenario.dt;
+    ticks = round(linspace(2,scenario.tick_per_step+1,frame_per_step));
+    figure('Visible','On','Color',[1 1 1],'units','pixel','OuterPosition',[100 100 resolution(1)/2 resolution(2)/2]);
+    hold on
+    doExploration = options.visu(2);
+end
 
 % Create log folder
 % st = dbstack;
@@ -83,7 +87,7 @@ while ~finished && cur_depth < 50
     result.controller_outputs{cur_depth} = u;
 
     % init struct for exploration plot
-    if exploration
+    if doExploration
         exploration_struct.doExploration = true;
         exploration_struct.info = info;
     else
@@ -111,16 +115,18 @@ while ~finished && cur_depth < 50
     % Visualization
     % -------------------------------------------------------------------------
     % tune resolution
-    if cur_depth == 2
+    if doOnlinePlot && cur_depth == 2
         plotOnline(result,1,1,[]);
+        drawnow;
     end
     
-    % visualize time step
-    for tick = ticks
-        plotOnline(result,cur_depth-1,tick,exploration_struct);
+    if doOnlinePlot
+        % visualize time step
+        for tick = ticks
+            plotOnline(result,cur_depth-1,tick,exploration_struct);
+        end
+        drawnow;
     end
-    
-    drawnow;
     
     % Simulation
     % -------------------------------------------------------------------------
