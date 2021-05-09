@@ -31,7 +31,7 @@ function plotOnline(result,step_idx,tick_now,exploration)
     ylim(result.plot_limits(2,:));
     
     if exploration.doExploration
-        plot_exploration_nodes(exploration,scenario);
+        visualize_exploration(exploration,scenario);
     end
     
 
