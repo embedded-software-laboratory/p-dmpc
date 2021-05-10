@@ -1,5 +1,5 @@
-function dist = euclidean_distance(ref, target)
-%EUCLIDEAN_DISTANCE Computes euclidean distance of two given poses
-dist = sqrt((ref.x - target.x)^2 + (ref.y - target.y)^2);
+function dist = euclidean_distance(x1,y1,x2,y2)
+%EUCLIDEAN_DISTANCE Computes euclidean distance in 2D elementwise, result is vector
+dist = sqrt( (x1-x2).^2 + (y1-y2).^2);
 end
 

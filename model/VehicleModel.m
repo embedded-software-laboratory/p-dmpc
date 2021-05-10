@@ -9,6 +9,6 @@ classdef VehicleModel
     end
     
     methods(Abstract)
-        dx = ode(x,u)
+        dx = ode(obj,x,u)
     end
 end
