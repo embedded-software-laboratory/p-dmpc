@@ -4,13 +4,16 @@ classdef Scenario
         obstacles = {}; % obstacles = {[xs;ys],...}
         nVeh = 0;
         name = 'UnnamedScenario';
-        dt;             % RHC sample time [s]
+        controller_name = 'RHC';
+        dt;     % RHC sample time [s]
         Hp;
         Hu;
         mpa;
         trim_set = 3;
         offset = 0.03;  % offset for collision checks
         model = [];
+        time_per_tick;
+        tick_per_step;
         r_goal = 0.1;   % goal circle
     end
     
@@ -44,7 +47,10 @@ classdef Scenario
             obj.name = sprintf("%i-circle", options.amount);
             obj.Hp = 5;
             obj.Hu = obj.Hp;
+            
             obj.dt = 0.4;
+            obj.time_per_tick = 0.01;
+            obj.tick_per_step = obj.dt/obj.time_per_tick;
 
 %             obj.obstacles{1} = [-0.1  0.1  0.1 -0.1
 %                                 -0.2 -0.2  0.2  0.2] ...
@@ -53,7 +59,7 @@ classdef Scenario
             veh = Vehicle();
             obj.model = BicycleModel(veh.Lf,veh.Lr);
 
-            obj.mpa = MotionPrimitiveAutomaton(obj.model, obj.trim_set, obj.offset, obj.dt, options.amount, obj.Hp);
+            obj.mpa = MotionPrimitiveAutomaton(obj.model, obj.trim_set, obj.offset, obj.dt, options.amount, obj.Hp, obj.tick_per_step);
         end
         
         function plot(obj)
