@@ -4,12 +4,10 @@ function collision = collision_with(index, shapes, scenario)
     obstacles = scenario.obstacles;
             
     nobs = numel(obstacles);
-    if(nobs ~= 0)
-        for i = 1:nobs
-            if intersect_sat(shapes{index},obstacles{i}) 
-                collision = true;
-                return;
-            end
+    for i = 1:nobs
+        if intersect_sat(shapes{index},obstacles{i}) 
+            collision = true;
+            return;
         end
     end
     

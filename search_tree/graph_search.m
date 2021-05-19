@@ -30,7 +30,10 @@ function [u, y_pred, info] = graph_search(scenario, iter)
     while true
         % Choose cheapest node for expansion
         if numel(open_nodes) == 0
-            error('No more open nodes to explore');
+            ME = MException('graph_search:tree_exhausted' ...
+                ,'No more open nodes to explore' ...
+            );
+            throw(ME);
         end
         
         cur_node_id = open_nodes(1);

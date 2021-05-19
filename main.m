@@ -2,7 +2,6 @@ function result = main(varargin)
 %% Setup
 % Add modules to path
 addpath(genpath(pwd));
-% warning('off','MATLAB:polyshape:repairedBySimplify')
 
 close all
 clear -regex ^(?!varargin$).*$
@@ -33,6 +32,11 @@ search_tree = tree(cur_node);
 idx = tree.nodeCols();
 cur_depth = cur_depth + 1;
 
+trim_pred_mat = zeros(scenario.Hp+1,(scenario.Hp+1)*8);
+for k = 1:scenario.Hp+1
+    trim_pred_mat(k,(k-1)*8+idx.trim) = 1;
+end
+
 controller = @(scenario, iter)...
     graph_search(scenario, iter);
 
@@ -42,24 +46,28 @@ result = get_result_struct(scenario);
 % Visualize
 doExploration = false;
 doOnlinePlot = options.visu(1);
+% Plot controls: SPACE to pause, ESC to abort.
+paused = false;
+abort = false;
+function keyPressCallback(~,eventdata)
+    if strcmp(eventdata.Key, 'escape')
+        abort = true;
+    elseif strcmp(eventdata.Key, 'space')
+        paused = ~paused;
+    end
+end
 if doOnlinePlot
     resolution = [1920 1080];
     framerate = 30;
     frame_per_step = framerate*scenario.dt;
     ticks = round(linspace(2,scenario.tick_per_step+1,frame_per_step));
+    
     figure('Visible','On','Color',[1 1 1],'units','pixel','OuterPosition',[100 100 resolution(1)/2 resolution(2)/2]);
+    set(gcf,'WindowKeyPressFcn',@keyPressCallback);
     hold on
     doExploration = options.visu(2);
 end
 
-% Create log folder
-% st = dbstack;
-% namestr = st(1).name;
-% sub_folder = './logs/' + string(namestr) + '_' + string(scenario.trim_set) + '_circle_' + string(options.amount) + '_' + string(h_u) + '_' + string(h_p);
-% 
-% if ~exist(sub_folder, 'dir')
-%     mkdir(sub_folder)
-% end
 
 %% Execute
 
@@ -80,81 +88,97 @@ while ~finished && cur_depth < 50
     
     % Control 
     % -------------------------------------------------------------------------
-    % Sample reference trajectory
-    iter = rhc_init(scenario,x0,info.trim_indices);
-    result.iteration_structs{cur_depth} = iter;
-    controller_timer = tic;
-        [u, y_pred, info] = controller(scenario, iter);
-    result.controller_runtime(cur_depth) = toc(controller_timer);
-    % save controller outputs in result struct
-    result.trajectory_predictions(:,cur_depth) = y_pred;
-    result.controller_outputs{cur_depth} = u;
+    try
+        % Sample reference trajectory
+        iter = rhc_init(scenario,x0,info.trim_indices);
+        result.iteration_structs{cur_depth} = iter;
+        controller_timer = tic;
+            [u, y_pred, info] = controller(scenario, iter);
+        result.controller_runtime(cur_depth) = toc(controller_timer);
+        % save controller outputs in result struct
+        result.trajectory_predictions(:,cur_depth) = y_pred;
+        result.controller_outputs{cur_depth} = u;
 
-    % init struct for exploration plot
-    if doExploration
-        exploration_struct.doExploration = true;
-        exploration_struct.info = info;
-    else
-        exploration_struct = [];
+        % Trims
+        trim_pred = trim_pred_mat*[info.tree.Node{info.tree_path}]';
+
+        % init struct for exploration plot
+        if doExploration
+            exploration_struct.doExploration = true;
+            exploration_struct.info = info;
+        else
+            exploration_struct = [];
+        end
+
+        % Determine next node
+        % TODO Substitute with measure / simulate
+        assert(numel(info.tree_path)>1);
+        cur_node = info.tree.Node{info.tree_path(2)};
+
+        % Add node to tree
+        [search_tree, cur_depth] = search_tree.addnode(cur_depth, cur_node);
+
+        % Check if we already reached our destination
+        is_goals = is_goal(cur_node, scenario);
+        if(sum(is_goals) == scenario.nVeh)
+            finished = true;
+        end
+
+        % store vehicles path in higher resolution
+        result.vehicle_path_fullres(:,cur_depth-1) = path_between(search_tree.Node{end-1},search_tree.Node{end},search_tree,scenario.mpa);
+
+        n_vertices = n_vertices + length(info.tree.Node);
+        % Visualization
+        % -------------------------------------------------------------------------
+        % tune resolution
+        if doOnlinePlot && cur_depth == 2
+            plotOnline(result,1,1,[]);
+            drawnow;
+        end
+
+        if doOnlinePlot
+            % visualize time step
+            for tick = ticks
+                plotOnline(result,cur_depth-1,tick,exploration_struct);
+            end
+            drawnow;
+        end
+    catch ME
+        switch ME.identifier
+        case 'graph_search:tree_exhausted'
+            warning([ME.message, ', ending search...']);
+            finished = true;
+        otherwise
+            rethrow(ME)
+        end
     end
     
-    % Determine next node
-    % TODO Substitute with measure / simulate
-    assert(numel(info.tree_path)>1);
-    cur_node = info.tree.Node{info.tree_path(2)};
-
-    % Add node to tree
-    [search_tree, cur_depth] = search_tree.addnode(cur_depth, cur_node);
-
-    % Check if we already reached our destination
-    is_goals = is_goal(cur_node, scenario);
-    if(sum(is_goals) == scenario.nVeh)
+    % idle while paused, and check if we should stop early
+    while paused
+        pause(0.1);
+        if abort
+            close all;
+            disp('Aborted.');
+            diary off
+            finished = true;
+            break;
+        end
+    end
+    if abort
+        close all;
+        disp('Aborted.');
+        diary off
         finished = true;
     end
-    
-    % store vehicles path in higher resolution
-    result.vehicle_path_fullres(:,cur_depth-1) = path_between(search_tree.Node{end-1},search_tree.Node{end},search_tree,scenario.mpa);
-    
-    n_vertices = n_vertices + length(info.tree.Node);
-    % Visualization
-    % -------------------------------------------------------------------------
-    % tune resolution
-    if doOnlinePlot && cur_depth == 2
-        plotOnline(result,1,1,[]);
-        drawnow;
-    end
-    
-    if doOnlinePlot
-        % visualize time step
-        for tick = ticks
-            plotOnline(result,cur_depth-1,tick,exploration_struct);
-        end
-        drawnow;
-    end
-    
+
     % Simulation
     % -------------------------------------------------------------------------
 
     result.step_time(cur_depth) = toc(result.step_timer);
 end
 
-%% Log and visualize
-% % Log workspace to subfolder 
-% file_name = fullfile(sub_folder,'data');
-% fig_name = fullfile(sub_folder,'fig');
-% 
-% if ~exist(sub_folder, 'dir')
-%     mkdir(sub_folder)
-% end
-% 
-% % Get a list of all variables
-% allvars = whos;
-% 
-% % Identify the variables that ARE NOT graphics handles. This uses a regular
-% % expression on the class of each variable to check if it's a graphics object
-% tosave = cellfun(@isempty, regexp({allvars.class}, '^matlab\.(ui|graphics)\.'));
-% 
-% % Pass these variable names to save
-% save(file_name, allvars(tosave).name)
-% savefig(fig_name);
+
+%% save results
+save(fullfile(result.output_path,'data.mat'),'result');
+
 end

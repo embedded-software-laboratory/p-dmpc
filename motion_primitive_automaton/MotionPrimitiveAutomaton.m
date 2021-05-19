@@ -6,16 +6,18 @@ classdef MotionPrimitiveAutomaton
         trim_tuple               % Matrix with trim indices ((nTrims1*nTrims2*...) x nVehicles)
         transition_matrix        % binary Matrix (if maneuverTuple exist according to trims) (nTrimTuples x nTrimTuples x horizon_length)
         distance_to_equilibrium  % Distance in graph from current state to equilibrium state (nTrims x 1)
+        recursive_feasibility;
     end
     
     methods
-        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N, nTicks)
+        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N, nTicks, recursive_feasibility)
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
             %   read as: rows are start trims and columns are end trims
             % N is the horizon length
-
+            obj.recursive_feasibility = recursive_feasibility;
+                        
             [trim_inputs, trim_adjacency] = choose_trims(trim_set);
             n_trims = length(trim_inputs);
             
@@ -59,7 +61,9 @@ classdef MotionPrimitiveAutomaton
             [trim_index_list{:}] = deal(1:n_trims);
             obj.trim_tuple = cartprod(trim_index_list{:});
             
-            obj.transition_matrix_single = compute_time_varying_transition_matrix(obj);
+            if recursive_feasibility
+                obj.transition_matrix_single = compute_time_varying_transition_matrix(obj);
+            end
 
             % compute maneuver matrix for trimProduct
             obj.transition_matrix = compute_product_maneuver_matrix(obj,nveh,N);

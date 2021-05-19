@@ -1,8 +1,8 @@
 function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
     switch trim_set
     case 1
-        %% Six speeds (0 to 1.5 m/s), one steering (0 deg)
-        speeds = (0:0.3:1.5) / 3.6;
+        %% Three speeds (0 to 1.5 m/s), one steering (0 deg)
+        speeds = 0:0.75:1.5;
         ntrims = numel(speeds);
         trim_inputs = zeros(ntrims,2);
         trim_inputs(:,2) = speeds;
