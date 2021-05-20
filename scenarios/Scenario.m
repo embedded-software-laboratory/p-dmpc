@@ -9,7 +9,7 @@ classdef Scenario
         Hp = 5;
         Hu;
         mpa;
-        trim_set = 1;
+        trim_set = 3;
         offset = 0.03;  % offset for collision checks
         model = [];
         time_per_tick = 0.01;

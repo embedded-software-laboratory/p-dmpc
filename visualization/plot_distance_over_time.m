@@ -44,8 +44,8 @@ x_max = result(1).scenario.obstacles{1}(1,1)...
 line( t, x_max*ones(size(t)), 'Color', [0.5 0.5 0.5] );
 
 % labels
-xlabel("Time [$s$]");
-ylabel("Distance [$m$]");
+xlabel("Time [s]");
+ylabel("Distance [m]");
 
 % export
 filetype = 'pdf';

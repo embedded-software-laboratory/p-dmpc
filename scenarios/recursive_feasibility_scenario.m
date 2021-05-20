@@ -16,6 +16,7 @@ scenario.vehicles = veh;
 scenario.nVeh = 1;
 scenario.Hp = 2;
 scenario.Hu = 2;
+scenario.trim_set = 1;
 
 scenario.model = BicycleModel(veh.Lf,veh.Lr);
 

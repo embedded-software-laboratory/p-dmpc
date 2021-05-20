@@ -1,11 +1,13 @@
-function set_figure_properties(figHandle, preset)
+function set_figure_properties(figHandle, preset, paperheight_in)
 
     switch lower(preset)
-    case 'paper'
+    case 'paper' % \the\linewidth=252.0pt, 1pt=0.3515mm --> 88.578mm
         disp('Preset: paper.');
         fontsize    = 9;
         paperwidth  = 8;    % picture width in cm
         paperheight = 4;    % picture height in cm
+%         paperwidth  = 8.8;    % picture width in cm
+%         paperheight = 4.4;    % picture height in cm
         linewidth=0.5;
         fontname    = 'CMU Serif';
         units       = 'centimeters';
@@ -37,6 +39,9 @@ function set_figure_properties(figHandle, preset)
     
     otherwise % default
         error('No valid preset selected.')
+    end
+    if nargin == 3
+        paperheight = paperheight_in;
     end
     
     % beauty corrections
@@ -123,7 +128,7 @@ function set_figure_properties(figHandle, preset)
         ti = ax.TightInset; 
         left = outerpos(1) + ti(1);
         bottom = outerpos(2) + ti(2);
-        ax_width = outerpos(3) - ti(1) - ti(3);
+        ax_width = outerpos(3) - ti(1) - ti(3) - 2e-3; %box was sometimes cut off
         ax_height = outerpos(4) - ti(2) - ti(4);
         ax.Position = [left bottom ax_width ax_height];
         set(figHandle,'PaperUnits',units)

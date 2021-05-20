@@ -1,4 +1,4 @@
-function result = main_lab(varargin)
+function result = run_experiment(varargin)
 %MAIN_MPC Summary of this function goes here
 %   Detailed explanation goes here
 %% Setup
