@@ -13,6 +13,8 @@ else
     end
 end
 
+options.isPB = true;
+
 % Setup scenario
 scenario = Scenario(options);
 

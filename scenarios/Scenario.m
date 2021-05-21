@@ -15,6 +15,8 @@ classdef Scenario
         time_per_tick = 0.01;
         tick_per_step;
         r_goal = 0.1;   % goal circle
+        coupling_adjacency = [];
+        dynamic_obstacles;
     end
     
     methods
@@ -58,11 +60,17 @@ classdef Scenario
                     , obj.trim_set...
                     , obj.offset...
                     , obj.dt...
-                    , options.amount...
+                    , (~options.isPB)*(options.amount-1)+1 ...
                     , obj.Hp...
                     , obj.tick_per_step...
                     , recursive_feasibility...
                 );
+            end
+            if options.isPB
+               obj.coupling_adjacency = triu(ones(options.amount))-eye(options.amount);
+               obj.controller_name = strcat(obj.controller_name, '-PB');
+            else
+                obj.controller_name = strcat(obj.controller_name, '-Centralized');
             end
         end
         

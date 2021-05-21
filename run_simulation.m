@@ -6,7 +6,6 @@ info.trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
 cur_depth = 0;
 cur_node = node(cur_depth, info.trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
-search_tree = tree(cur_node);
 idx = tree.nodeCols();
 cur_depth = cur_depth + 1;
 
@@ -16,7 +15,7 @@ for k = 1:scenario.Hp+1
 end
 
 controller = @(scenario, iter)...
-    graph_search(scenario, iter);
+    pb_controller(scenario, iter);
 
 % init result struct
 result = get_result_struct(scenario);
@@ -51,10 +50,7 @@ end
 
 %% Execute
 
-% Main control loop
-finished = false;
-
-while ~finished && cur_depth <= 15
+while cur_depth <= 15
     result.step_timer = tic;
     % Measurement
     % -------------------------------------------------------------------------
@@ -70,7 +66,7 @@ while ~finished && cur_depth <= 15
     % -------------------------------------------------------------------------
     try
         % Sample reference trajectory
-        iter = rhc_init(scenario,x0,info.trim_indices);
+        iter = rhc_init(scenario,x0,cur_node(:,idx.trim));
         result.iteration_structs{cur_depth} = iter;
         controller_timer = tic;
             [u, y_pred, info] = controller(scenario, iter);
@@ -80,7 +76,7 @@ while ~finished && cur_depth <= 15
         result.controller_outputs{cur_depth} = u;
 
         % Trims
-        trim_pred = trim_pred_mat*[info.tree.Node{info.tree_path}]';
+%         trim_pred = trim_pred_mat*[info.tree.Node{info.tree_path}]';
 
         % init struct for exploration plot
         if doPlotExploration
@@ -92,22 +88,14 @@ while ~finished && cur_depth <= 15
 
         % Determine next node
         % TODO Substitute with measure / simulate
-        assert(numel(info.tree_path)>1);
-        cur_node = info.tree.Node{info.tree_path(2)};
-
-        % Add node to tree
-        [search_tree, cur_depth] = search_tree.addnode(cur_depth, cur_node);
-
-        % Check if we already reached our destination
-        is_goals = is_goal(cur_node, scenario);
-        if(sum(is_goals) == scenario.nVeh)
-            finished = true;
-        end
+        cur_node = get_cur_node(info,scenario);
 
         % store vehicles path in higher resolution
-        result.vehicle_path_fullres(:,cur_depth-1) = path_between(search_tree.Node{end-1},search_tree.Node{end},search_tree,scenario.mpa);
+        result.vehicle_path_fullres(:,cur_depth) = get_fullres_path(info,scenario);
+        
+        cur_depth = cur_depth+1;
 
-        result.n_expanded = result.n_expanded + numel(info.tree.Node);
+        %result.n_expanded(:) = result.n_expanded(:) + numel(info.tree{:}.Node);
         % Visualization
         % -------------------------------------------------------------------------
         % tune resolution

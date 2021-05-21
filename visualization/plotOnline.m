@@ -11,7 +11,6 @@ function plotOnline(result,step_idx,tick_now,exploration)
 
     nVeh = scenario.nVeh;
     nObst = size( scenario.obstacles,1);
-    Hp = scenario.Hp;
     
     set(0,'DefaultTextFontname', 'Verdana');
     set(0,'DefaultAxesFontName', 'Verdana');
