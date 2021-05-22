@@ -15,7 +15,7 @@ for k = 1:scenario.Hp+1
 end
 
 controller = @(scenario, iter)...
-    pb_controller(scenario, iter);
+    scenario.controller(scenario, iter);
 
 % init result struct
 result = get_result_struct(scenario);

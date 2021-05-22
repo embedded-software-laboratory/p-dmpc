@@ -5,6 +5,7 @@ classdef Scenario
         nVeh = 0;
         name = 'UnnamedScenario';
         controller_name = 'RHC';
+        controller;
         dt = 0.4;     % RHC sample time [s]
         Hp = 5;
         Hu;
@@ -69,8 +70,10 @@ classdef Scenario
             if options.isPB
                obj.coupling_adjacency = triu(ones(options.amount))-eye(options.amount);
                obj.controller_name = strcat(obj.controller_name, '-PB');
+               obj.controller = @(s,i) pb_controller(s,i);
             else
                 obj.controller_name = strcat(obj.controller_name, '-Centralized');
+                obj.controller = @(s,i) centralized_controller(s,i);
             end
         end
         

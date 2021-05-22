@@ -1,4 +1,4 @@
-function options = selection(vehicle_amount,plot_option)
+function options = selection(vehicle_amount,plot_option,strat_option)
 
 %% Specify amount of vehicles
 scenarios = {
@@ -18,12 +18,20 @@ possPlots = {
     '3', 'visualization + node exploration',    [true,true]; ...
     };
 
+possStrats = {
+    '1', 'centralized'; ...
+    '2', 'pb non-coop'; ...
+    };
+
 if nargin < 1
     if ~exist('vehicle_amount','var')
         vehicle_amount = 1;
     end
     if ~exist('plot_option','var')
         plot_option = 1;
+    end
+    if ~exist('strat_option','var')
+        strat_option = 1;
     end
 
     [vehicle_amount,ok] = listdlg(...
@@ -46,8 +54,19 @@ if nargin < 1
         error('Canceled');
     end
     
+    [strat_option,ok] = listdlg(...
+        'ListString',possStrats(:,2), ...
+        'SelectionMode', 'single', ...
+        'InitialValue', strat_option, ...
+        'PromptString', 'Choose the control strategy');
+
+    if(~ok)
+        error('Canceled');
+    end
+    
 end
 
+options.isPB = (strat_option == 2);
 options.angles = scenarios{vehicle_amount,2};
 options.amount = vehicle_amount;
 options.visu = possPlots{plot_option,3};
