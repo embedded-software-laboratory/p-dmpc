@@ -35,7 +35,7 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
             v2o_filter(self_index) = false;
 
             % add predicted trajecotries as obstacle
-            [scenario_v, iter_v] = vehicles_as_obstacles(scenario_filtered, iter_filtered, v2o_filter, y_pred(priority_filter));
+            [scenario_v, iter_v] = vehicles_as_obstacles(scenario_filtered, iter_filtered, v2o_filter, info(priority_filter,1));
     
             % execute sub controller for 1-veh scenario
             [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);

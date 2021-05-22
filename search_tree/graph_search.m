@@ -1,6 +1,6 @@
 function [u, y_pred, info] = graph_search(scenario, iter)
     info = struct;
-
+    shapes_tmp = cell(scenario.nVeh,0);
     % Create tree with root node
     % TODO Choose trim_indices depending on measurement
     init_depth = 0;
@@ -44,15 +44,17 @@ function [u, y_pred, info] = graph_search(scenario, iter)
         open_values(1) = [];
 
         % Eval edge 
-        is_valid = eval_edge_exact(scenario, info.tree, cur_node_id);
+        [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id);
         if ~is_valid
             % could remove node from tree here
             continue
         end
+        shapes_tmp(:,cur_node_id) = shapes;
         if cur_node(1,info.tree.idx.depth) == scenario.Hp
             y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
             % TODO u
             u = 0;
+            info.shapes = return_occupied_area(shapes_tmp, info.tree, cur_node_id);
             info.tree_path = fliplr(pathtoroot(info.tree, cur_node_id));
             info.trim_indices = info.tree.Node{info.tree_path(2)}(:,info.tree.idx.trim);
             info.open_nodes = open_nodes;

@@ -1,7 +1,7 @@
-function one_node = get_cur_node(info,scenario)
+function cur_node = get_cur_node(info,scenario)
     if numel(info) == 1
         assert(numel(info.tree_path)>1);
-        one_node = info.tree.Node{info.tree_path(2)};
+        cur_node = info.tree.Node{info.tree_path(2)};
         return
     end
     trim_indices = [];
@@ -18,7 +18,7 @@ function one_node = get_cur_node(info,scenario)
     init_depth = 0;
     g_values = zeros(scenario.nVeh,1);
     h_values = zeros(scenario.nVeh,1);
-    one_node = node( ...
+    cur_node = node( ...
         init_depth, ...
         trim_indices, ...
         x, ...
