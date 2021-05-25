@@ -9,11 +9,6 @@ cur_node = node(cur_depth, info.trim_indices, [scenario.vehicles(:).x_start]', [
 idx = tree.nodeCols();
 cur_depth = cur_depth + 1;
 
-trim_pred_mat = zeros(scenario.Hp+1,(scenario.Hp+1)*8);
-for k = 1:scenario.Hp+1
-    trim_pred_mat(k,(k-1)*8+idx.trim) = 1;
-end
-
 controller = @(scenario, iter)...
     scenario.controller(scenario, iter);
 
@@ -75,10 +70,6 @@ while cur_depth <= 15
         result.trajectory_predictions(:,cur_depth) = y_pred;
         result.controller_outputs{cur_depth} = u;
         result.subcontroller_runtime(:,cur_depth) = get_subcontroller_runtime(info,scenario);
-
-        % Trims
-        % TODO: Wofür wird das gebraucht? Funktioniert nicht mit pbnc
-%         trim_pred = trim_pred_mat*[info.tree.Node{info.tree_path}]';
 
         % init struct for exploration plot
         if doPlotExploration
