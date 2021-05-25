@@ -1,12 +1,12 @@
-function [ subcontroller_runtime ] = get_subcontroller_runtime(info,scenario)
+function [ subcontroller_runtime ] = get_subcontroller_runtime(info)
 
-    if numel(info) == 1
-        subcontroller_runtime = info.subcontroller_runtime*ones(scenario.nVeh,1);
-        return
+    if isstruct(info)
+        info = {info};
     end
-    subcontroller_runtime = zeros(scenario.nVeh,1);
-    for i = 1:scenario.nVeh
-        subcontroller_runtime(i) = info{i}.subcontroller_runtime;
-    end
+
+    % Array Of Structs
+    info_aos = [info{:}];
+    
+    subcontroller_runtime = [info_aos(:).subcontroller_runtime]';
     
 end

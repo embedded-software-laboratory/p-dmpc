@@ -69,7 +69,7 @@ while cur_depth <= 15
         % save controller outputs in result struct
         result.trajectory_predictions(:,cur_depth) = y_pred;
         result.controller_outputs{cur_depth} = u;
-        result.subcontroller_runtime(:,cur_depth) = get_subcontroller_runtime(info,scenario);
+        result.subcontroller_runtime(:,cur_depth) = get_subcontroller_runtime(info);
 
         % init struct for exploration plot
         if doPlotExploration

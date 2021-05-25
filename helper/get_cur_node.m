@@ -1,9 +1,10 @@
 function cur_node = get_cur_node(info,scenario)
-    if numel(info) == 1
+    if isstruct(info)
         assert(numel(info.tree_path)>1);
         cur_node = info.tree.Node{info.tree_path(2)};
         return
     end
+
     trim_indices = [];
     x = [];
     y = [];

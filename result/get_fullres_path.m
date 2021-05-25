@@ -1,6 +1,6 @@
 function [ fullres_path ] = get_fullres_path(info,scenario)
 
-    if numel(info) == 1
+    if isstruct(info)
         fullres_path = path_between(info.tree.Node{info.tree_path(1)},info.tree.Node{info.tree_path(2)},info.tree,scenario.mpa);
         return
     end
