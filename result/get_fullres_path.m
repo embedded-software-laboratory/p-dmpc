@@ -9,6 +9,5 @@ function [ fullres_path ] = get_fullres_path(info,scenario)
         fullres_path(i) = path_between(info{i}.tree.Node{info{i}.tree_path(1)},info{i}.tree.Node{info{i}.tree_path(2)},info{i}.tree,scenario.mpa);
     end
     
-    
 end
 

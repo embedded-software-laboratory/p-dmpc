@@ -20,9 +20,10 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
     for grp_idx = 1:length(groups)
         group = groups(grp_idx);
         for grp_member_idx = 1:length(group.members) 
+            subcontroller_timer = tic;
             vehicle_idx = group.members(grp_member_idx);
 
-
+            
             % Filter out vehicles with lower or same priority.
             priority_filter = false(1,scenario.nVeh);
             priority_filter(group.predecessors) = true; % keep all with higher priority
@@ -39,7 +40,9 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
     
             % execute sub controller for 1-veh scenario
             [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
-
+            
+            info_v.subcontroller_runtime = toc(subcontroller_timer);
+            
             y_pred{vehicle_idx,1} = y_pred_v{:};
             u{vehicle_idx,1} = u_v;
             info{vehicle_idx,1} = info_v;

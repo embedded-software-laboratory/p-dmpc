@@ -8,6 +8,9 @@ function result = get_result_struct(scenario)
     result.trajectory_predictions = cell(scenario.nVeh,0);
     result.controller_runtime = zeros(0,1);
     result.step_time = zeros(0,1);
+    if ~isempty(scenario.coupling_adjacency)
+        result.subcontroller_runtime = zeros(scenario.nVeh,0);
+    end
     result.n_expanded = zeros(scenario.nVeh,1);
     
     % create output directory

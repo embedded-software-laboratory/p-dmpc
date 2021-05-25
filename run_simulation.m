@@ -74,8 +74,10 @@ while cur_depth <= 15
         % save controller outputs in result struct
         result.trajectory_predictions(:,cur_depth) = y_pred;
         result.controller_outputs{cur_depth} = u;
+        result.subcontroller_runtime(:,cur_depth) = get_subcontroller_runtime(info,scenario);
 
         % Trims
+        % TODO: Wofür wird das gebraucht? Funktioniert nicht mit pbnc
 %         trim_pred = trim_pred_mat*[info.tree.Node{info.tree_path}]';
 
         % init struct for exploration plot
