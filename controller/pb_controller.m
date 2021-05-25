@@ -1,10 +1,14 @@
 function [u, y_pred, info] = pb_controller(scenario, iter)
 
     assert(~isempty(scenario.coupling_adjacency));
-
-    [isDAG, topo_groups] = kahn(scenario.coupling_adjacency);
-
-    assert( isDAG, 'Coupling matrix is not a DAG' );
+    
+    if scenario.use_coloring
+        groups = PB_predecessor_groups_coloring(scenario.coupling_adjacency);
+    else
+        [isDAG, topo_groups] = kahn(scenario.coupling_adjacency);
+        assert( isDAG, 'Coupling matrix is not a DAG' );
+        groups = PB_predecessor_groups(topo_groups);
+    end
 
     % add 'self-connections'.
     scenario.coupling_adjacency = scenario.coupling_adjacency + eye(scenario.nVeh) > 0;
@@ -16,7 +20,6 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
     sub_controller = @(scenario, iter)...
         graph_search(scenario, iter);
     
-    groups = PB_predecessor_groups(topo_groups);
     for grp_idx = 1:length(groups)
         group = groups(grp_idx);
         for grp_member_idx = 1:length(group.members) 

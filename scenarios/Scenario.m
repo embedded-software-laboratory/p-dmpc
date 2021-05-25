@@ -18,6 +18,7 @@ classdef Scenario
         r_goal = 0.1;   % goal circle
         coupling_adjacency = [];
         dynamic_obstacles;
+        use_coloring = false;
     end
     
     methods
@@ -68,7 +69,11 @@ classdef Scenario
                 );
             end
             if options.isPB
-               obj.coupling_adjacency = triu(ones(options.amount))-eye(options.amount);
+               if obj.use_coloring
+                obj.coupling_adjacency = ~eye(options.amount);%triu(ones(options.amount))-eye(options.amount);
+               else
+                   obj.coupling_adjacency = triu(ones(options.amount))-eye(options.amount);
+               end
                obj.controller_name = strcat(obj.controller_name, '-PB');
                obj.controller = @(s,i) pb_controller(s,i);
             else
