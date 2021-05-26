@@ -112,8 +112,10 @@ while (~got_stop)
     % save controller outputs in resultstruct
     result.trajectory_predictions(:,cur_depth) = y_pred;
     result.controller_outputs{cur_depth} = u;
+    % store vehicles path in higher resolution
+    result.vehicle_path_fullres(:,cur_depth) = path_between(info.tree.Node{1},info.tree.Node{2},info.tree,scenario.mpa);
             
-    n_vertices = n_vertices + length(info.tree.Node);
+    result.n_expanded = result.n_expanded + numel(info.tree.Node);
             
     % Apply control action f/e veh
     % -------------------------------------------------------------------------
@@ -144,6 +146,8 @@ while (~got_stop)
             uint64(sample(end).t_now + dt_period_nanos);
         writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
     end
+
+
 
     % Check for stop signal
     % -------------------------------------------------------------------------
