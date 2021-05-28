@@ -82,8 +82,6 @@ while cur_depth <= 15
 
         % store vehicles path in higher resolution
         result.vehicle_path_fullres(:,cur_depth) = get_fullres_path(info,scenario);
-        
-        cur_depth = cur_depth+1;
 
         %result.n_expanded(:) = result.n_expanded(:) + numel(info.tree{:}.Node);
         % Visualization
@@ -91,7 +89,7 @@ while cur_depth <= 15
 
         if doOnlinePlot
             % visualize time step
-            plotOnline(result,cur_depth-1,1,exploration_struct);
+            plotOnline(result,cur_depth,1,exploration_struct);
             drawnow;
         end
     catch ME
@@ -121,12 +119,14 @@ while cur_depth <= 15
     % Simulation
     % -------------------------------------------------------------------------
     
-    result.step_time(cur_depth-1) = toc(result.step_timer);
+    result.step_time(cur_depth) = toc(result.step_timer);
     
     % wait to simulate realtime plotting
     if doOnlinePlot
-        pause(scenario.dt-result.step_time(cur_depth-1))
+        pause(scenario.dt-result.step_time(cur_depth))
     end
+    
+    cur_depth = cur_depth+1;
 end
 
 
