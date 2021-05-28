@@ -2,7 +2,7 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
 
     assert(~isempty(scenario.coupling_adjacency));
     
-    if scenario.use_coloring
+    if scenario.assignPrios
         groups = PB_predecessor_groups_coloring(scenario.coupling_adjacency);
     else
         [isDAG, topo_groups] = kahn(scenario.coupling_adjacency);
