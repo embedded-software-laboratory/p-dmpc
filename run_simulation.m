@@ -34,9 +34,6 @@ function keyPressCallback(~,eventdata)
 end
 if doOnlinePlot
     resolution = [1920 1080];
-    framerate = 30;
-    frame_per_step = framerate*scenario.dt;
-    ticks = round(linspace(2,scenario.tick_per_step+1,frame_per_step));
     
     fig = figure(...
         'Visible','On'...
@@ -110,17 +107,10 @@ while ~finished && cur_depth <= 15
         result.n_expanded = result.n_expanded + numel(info.tree.Node);
         % Visualization
         % -------------------------------------------------------------------------
-        % tune resolution
-        if doOnlinePlot && cur_depth == 2
-            plotOnline(result,1,1,[]);
-            drawnow;
-        end
 
         if doOnlinePlot
             % visualize time step
-            for tick = ticks
-                plotOnline(result,cur_depth-1,tick,exploration_struct);
-            end
+            plotOnline(result,cur_depth-1,1,exploration_struct);
             drawnow;
         end
     catch ME
@@ -149,8 +139,13 @@ while ~finished && cur_depth <= 15
 
     % Simulation
     % -------------------------------------------------------------------------
-
-    result.step_time(cur_depth) = toc(result.step_timer);
+    
+    result.step_time(cur_depth-1) = toc(result.step_timer);
+    
+    % wait to simulate realtime plotting
+    if doOnlinePlot
+        pause(scenario.dt-result.step_time(cur_depth-1))
+    end
 end
 
 
