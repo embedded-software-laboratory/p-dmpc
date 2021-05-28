@@ -2,12 +2,6 @@ function result = run_experiment(varargin)
 %MAIN_MPC Summary of this function goes here
 %   Detailed explanation goes here
 %% Setup
-% Add modules to path
-addpath(genpath(pwd));
-
-close all
-clear -regex ^(?!varargin$).*$
-clc
 
 %% Read input
 vehicle_ids = [varargin{1:end-1}];
@@ -29,19 +23,9 @@ reader_vehicleStateList.WaitSet = true;
 reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
 %% Setup the HLC
-% Add modules to path
-addpath(genpath(pwd));
-% warning('off','MATLAB:polyshape:repairedBySimplify')
-
-close all
-clear -regex ^(?!varargin$).*$
-clc
-
-% Determine options
-options = selection(varargin{end});
 
 % Setup scenario
-scenario = Scenario(options);
+scenario = varargin{end};
 
 % Setup controller
 info = struct;
@@ -128,8 +112,15 @@ while (~got_stop)
     % save controller outputs in resultstruct
     result.trajectory_predictions(:,cur_depth) = y_pred;
     result.controller_outputs{cur_depth} = u;
+    % store vehicles path in higher resolution
+    result.vehicle_path_fullres(:,cur_depth) = path_between(...
+        info.tree.Node{info.tree_path(1)}...
+        ,info.tree.Node{info.tree_path(2)}...
+        ,info.tree...
+        ,scenario.mpa...
+    );
             
-    n_vertices = n_vertices + length(info.tree.Node);
+    result.n_expanded = result.n_expanded + numel(info.tree.Node);
             
     % Apply control action f/e veh
     % -------------------------------------------------------------------------
@@ -161,6 +152,8 @@ while (~got_stop)
         writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
     end
 
+
+
     % Check for stop signal
     % -------------------------------------------------------------------------
     [~, got_stop] = read_system_trigger(reader_systemTrigger, trigger_stop);
@@ -172,18 +165,24 @@ while (~got_stop)
     cur_depth = cur_depth + 1;
 end
 
+
+%% save results
+save(fullfile(result.output_path,'data.mat'),'result');
+
+
 end
 
 
 function stop_experiment = is_veh_at_map_border(trajectory_points)
     % Vehicle command timeout is 1000 ms after the last valid_after_stamp,
     % so vehicle initiates stop between third and fourth trajectory point
-    x_min = 0;
-    x_max = 4.5;
-    y_min = 0;
-    y_max = 4.0;
-    px = trajectory_points(5).px;
-    py = trajectory_points(5).py;
+    vhlength = 0.25;
+    x_min =  vhlength + 0;
+    x_max = -vhlength + 4.5;
+    y_min =  vhlength + 0;
+    y_max = -vhlength + 4.0;
+    px = trajectory_points(4).px;
+    py = trajectory_points(4).py;
     stop_experiment = x_min>px || px>x_max ...
                    || y_min>py || py>y_max;
 end

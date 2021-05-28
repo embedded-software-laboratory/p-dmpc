@@ -1,6 +1,11 @@
 function startup()
+if ispc % windows
+    splitchar = ';';
+else
+    splitchar = ':';
+end
 % Add modules to path
-dirs = strsplit(genpath(pwd),';');
+dirs = strsplit(genpath(pwd),splitchar);
 ignore_dirs = ...
     {'output'...
     ,'.git'...
