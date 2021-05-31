@@ -70,7 +70,7 @@ classdef Scenario
             end
             if options.isPB
                if obj.assignPrios
-                obj.coupling_adjacency = ~eye(options.amount);%triu(ones(options.amount))-eye(options.amount);
+                obj.coupling_adjacency = triu(ones(options.amount))-eye(options.amount);
                else
                    obj.coupling_adjacency = triu(ones(options.amount))-eye(options.amount);
                end
