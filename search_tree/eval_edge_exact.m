@@ -24,8 +24,10 @@ function is_valid = eval_edge_exact(scenario, search_tree, node_id)
         % midpoints(:,iVeh) = [   node_parent(iVeh,search_tree.idx.x)+(maneuver.dx*cos(node_parent(iVeh,search_tree.idx.yaw))-maneuver.dy*sin(node_parent(iVeh,search_tree.idx.yaw)))/2,...
         %                         node_parent(iVeh,search_tree.idx.y)+(maneuver.dx*sin(node_parent(iVeh,search_tree.idx.yaw))+maneuver.dy*cos(node_parent(iVeh,search_tree.idx.yaw)))/2];
         
+        iStep = node_child(1,search_tree.idx.depth);
+        
         % If collision, chop node and subtree
-        if collision_with(iVeh, shapes, scenario)
+        if collision_with(iVeh, shapes, scenario, iStep)
             is_valid = false;
             return;
         end

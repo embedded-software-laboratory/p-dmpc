@@ -28,6 +28,6 @@ function result = get_result_struct(scenario)
         max_y = max([veh.referenceTrajectory(:,2)+pad;max_y]);
         min_y = min([veh.referenceTrajectory(:,2)-pad;min_y]);
     end
-    result.plot_limits = [min_x,max_x;min_y,max_y];
+    result.plot_limits = [-5,5;-2.5,2.5];
 end
 

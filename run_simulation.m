@@ -51,7 +51,7 @@ end
 % Main control loop
 finished = false;
 
-while ~finished && cur_depth <= 15
+while ~finished && cur_depth <= 35
     result.step_timer = tic;
     % Measurement
     % -------------------------------------------------------------------------
@@ -62,6 +62,7 @@ while ~finished && cur_depth <= 15
         speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,idx.trim)).speed;
     end
     x0 = [cur_node(:,idx.x), cur_node(:,idx.y), cur_node(:,idx.yaw), speeds];
+    scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, cur_depth);
     
     % Control 
     % -------------------------------------------------------------------------
@@ -70,7 +71,7 @@ while ~finished && cur_depth <= 15
         iter = rhc_init(scenario,x0,info.trim_indices);
         result.iteration_structs{cur_depth} = iter;
         controller_timer = tic;
-            [u, y_pred, info] = controller(scenario, iter);
+            [u, y_pred, info] = controller(scenario_tmp, iter);
         result.controller_runtime(cur_depth) = toc(controller_timer);
         % save controller outputs in result struct
         result.trajectory_predictions(:,cur_depth) = y_pred;

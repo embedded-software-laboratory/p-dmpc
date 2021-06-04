@@ -11,6 +11,7 @@ function plotOnline(result,step_idx,tick_now,exploration)
 
     nVeh = scenario.nVeh;
     nObst = size(scenario.obstacles,2);
+    nDynObst = size(scenario.dynamic_obstacle_fullres,1);
     
     set(0,'DefaultTextFontname', 'Verdana');
     set(0,'DefaultAxesFontName', 'Verdana');
@@ -72,6 +73,19 @@ function plotOnline(result,step_idx,tick_now,exploration)
                 ,'LineWidth', 1 ...
         );
     end
+    
+    % dynamic obstacles
+    for obs = 1:nDynObst
+        pos_step = scenario.dynamic_obstacle_fullres{obs,step_idx};
+        x = pos_step(tick_now,:);
+        obstaclePolygon = transformedRectangle(x(1),x(2),pi/2, scenario.dynamic_obstacle_shape(1),scenario.dynamic_obstacle_shape(2));
+        patch(   obstaclePolygon(1,:)...
+                ,obstaclePolygon(2,:)...
+                ,[0.5 0.5 0.5]...
+                ,'LineWidth', 1 ...
+        );
+    end
+        
     
     scenarioName = scenario.name;
     optimizer = 'Graph Search';

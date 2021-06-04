@@ -15,6 +15,9 @@ classdef Scenario
         time_per_tick = 0.01;
         tick_per_step;
         r_goal = 0.1;   % goal circle
+        dynamic_obstacle_area;
+        dynamic_obstacle_shape;
+        dynamic_obstacle_fullres;
     end
     
     methods
