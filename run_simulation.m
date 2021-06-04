@@ -105,14 +105,6 @@ while ~finished && cur_depth <= 15
         result.vehicle_path_fullres(:,cur_depth-1) = path_between(search_tree.Node{end-1},search_tree.Node{end},search_tree,scenario.mpa);
 
         result.n_expanded = result.n_expanded + numel(info.tree.Node);
-        % Visualization
-        % -------------------------------------------------------------------------
-
-        if doOnlinePlot
-            % visualize time step
-            plotOnline(result,cur_depth-1,1,exploration_struct);
-            drawnow;
-        end
     catch ME
         switch ME.identifier
         case 'graph_search:tree_exhausted'
@@ -142,9 +134,14 @@ while ~finished && cur_depth <= 15
     
     result.step_time(cur_depth-1) = toc(result.step_timer);
     
-    % wait to simulate realtime plotting
+    % Visualization
+    % -------------------------------------------------------------------------
     if doOnlinePlot
+        % wait to simulate realtime plotting
         pause(scenario.dt-result.step_time(cur_depth-1))
+        
+        % visualize time step
+        plotOnline(result,cur_depth-1,1,exploration_struct);
     end
 end
 
