@@ -27,8 +27,8 @@ function plotOnline(result,step_idx,tick_now,exploration)
     xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
     ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
 
-    xlim(result.plot_limits(1,:));
-    ylim(result.plot_limits(2,:));
+    xlim(scenario.plot_limits(1,:));
+    ylim(scenario.plot_limits(2,:));
     
     if exploration.doExploration
         visualize_exploration(exploration,scenario);

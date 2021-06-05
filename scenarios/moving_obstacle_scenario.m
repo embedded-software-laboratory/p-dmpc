@@ -20,6 +20,8 @@ function scenario = moving_obstacle_scenario()
     
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     
+    scenario.plot_limits = [-5,5;-2.5,2.5];
+    
     recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(...
         scenario.model...

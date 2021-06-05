@@ -17,17 +17,5 @@ function result = get_result_struct(scenario)
     if ~isfolder(output_path)
         mkdir(output_path);
     end
-    
-    % set plot limits based on min and max values of reference trajectory
-    % of all involved vehicles + padding in all direction
-    pad = 0.5;
-    [max_x,max_y,min_x,min_y] = deal([]);
-    for veh = scenario.vehicles
-        max_x = max([veh.referenceTrajectory(:,1)+pad;max_x]);
-        min_x = min([veh.referenceTrajectory(:,1)-pad;min_x]);
-        max_y = max([veh.referenceTrajectory(:,2)+pad;max_y]);
-        min_y = min([veh.referenceTrajectory(:,2)-pad;min_y]);
-    end
-    result.plot_limits = [-5,5;-2.5,2.5];
 end
 
