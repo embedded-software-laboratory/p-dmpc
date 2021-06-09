@@ -2,7 +2,7 @@ function overviewPlot( result, step_indices )
 close all
 scenario = result.scenario;
 assert(scenario.nVeh<=2)
-assert(length(step_indices)==4)
+% assert(length(step_indices)==4)
 
 scenario = result.scenario;
 
@@ -10,13 +10,13 @@ nVeh = scenario.nVeh;
 nObst = size(scenario.obstacles,2);
 nDynObst = size(scenario.dynamic_obstacle_fullres,1);
 
-figure('visible','off','position',[100 100 600 630],'color',[1 1 1]);
+fig = figure('visible','on','position',[100 100 600 630],'color',[1 1 1]);
 
 
 % show predictions for multiple timesteps
-for step = 1:4
+for step = 1:numel(step_indices)
     step_idx = step_indices(step);
-    subplot(4,2,step);
+    subplot(numel(step_indices),1,step);
     hold on
     box on
     % Obstacle rectangle
@@ -50,7 +50,7 @@ for step = 1:4
     for v=1:nVeh
         line(   result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],1), ...
                 result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],2), ...
-                'Color',vehColor(v),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(v),'MarkerSize', 2 );
+                'Color',vehColor(v),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(v),'MarkerSize', 1 );
         line(   result.trajectory_predictions{v,step_idx}(:,1), ...
                 result.trajectory_predictions{v,step_idx}(:,2), ...
                 'Color',vehColor(v),'LineWidth',1 );
@@ -70,17 +70,15 @@ for step = 1:4
     daspect([1 1 1]);
     xlim(scenario.plot_limits(1,:));
     ylim(scenario.plot_limits(2,:));
-    if step == 3 || step == 4
-        xlabel('$x\ [m]$','Interpreter','LaTex')
+    if step == numel(step_indices)
+        xlabel('$x$ [m]','Interpreter','LaTex')
     end
-    if step == 1 || step == 3
-        ylabel('$y\ [m]$','Interpreter','LaTex')
-    end
-    
+    ylabel('$y$ [m]','Interpreter','LaTex')
+        
     title(['Step ' num2str(step_idx)],'Interpreter','LaTex');
 end
 
-
+set_figure_properties(fig, 'paper', 12);
 export_fig(['output/overviewPlot_' scenario.name '.pdf'],'-painters');    
 
 end

@@ -105,7 +105,7 @@ while ~finished && cur_depth <= 35
         % store vehicles path in higher resolution
         result.vehicle_path_fullres(:,cur_depth-1) = path_between(search_tree.Node{end-1},search_tree.Node{end},search_tree,scenario.mpa);
 
-        result.n_expanded = result.n_expanded + numel(info.tree.Node);
+        result.n_expanded(cur_depth-1) = numel(info.tree.Node);
     catch ME
         switch ME.identifier
         case 'graph_search:tree_exhausted'

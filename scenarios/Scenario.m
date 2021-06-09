@@ -18,7 +18,7 @@ classdef Scenario
         dynamic_obstacle_area;
         dynamic_obstacle_shape;
         dynamic_obstacle_fullres;
-        plot_limits = [-10,10-10,10]; % default fallback if not defined
+        plot_limits = [-10,10;-10,10]; % default fallback if not defined
     end
     
     methods
@@ -50,7 +50,7 @@ classdef Scenario
                     veh.referenceTrajectory = veh.referenceTrajectory + [center_x, center_y];
                     obj.vehicles = [obj.vehicles, veh];
                 end
-                
+                obj.plot_limits = [-0.5,5;1.5,2.5];
                 obj.nVeh = options.amount;
                 obj.name = sprintf('%i-circle', options.amount);
 
