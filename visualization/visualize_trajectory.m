@@ -1,7 +1,7 @@
-function visualize_trajectory(search_tree, dest_id, mpa)
-    path = findpath(search_tree, 1, dest_id);
+function visualize_trajectory(tree, dest_id, mpa)
+    path = findpath(tree, 1, dest_id);
     
     for node = path
-        visualize_step(scenario, search_tree, node, mpa);
+        visualize_step(scenario, tree, node, mpa);
     end
 end
