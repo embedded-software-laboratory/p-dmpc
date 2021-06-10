@@ -3,7 +3,7 @@ function n = node(depth, trims, xs, ys, yaws, g_values, h_values)
         return;
     end
     nVeh = numel(yaws);
-    idx = tree.nodeCols();
+    idx = Tree.nodeCols();
     nCols = numel(fieldnames(idx));
     n = zeros(nVeh,nCols);
     n(:,idx.depth) = depth;

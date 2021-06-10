@@ -1,17 +1,17 @@
-classdef tree
-%% TREE  A class implementing a tree data structure.
+classdef Tree
+%% TREE  A class implementing a Tree data structure.
 %
-% This class implements a simple tree data structure. Each node can only
-% have one parent, and store any kind of data. The root of the tree is a
+% This class implements a simple Tree data structure. Each node can only
+% have one parent, and store any kind of data. The root of the Tree is a
 % privilieged node that has no parents and no siblings.
 %
 % Nodes are mainly accessed through their index. The index of a node is
-% returned when it is added to the tree, and actually corresponds to the
+% returned when it is added to the Tree, and actually corresponds to the
 % order of addition.
 %
 % Basic methods to tarverse and manipulate trees are implemented. Most of
 % them take advantage of the ability to create _coordinated_ trees: If
-% a tree is duplicated and only the new tree data content is modified
+% a Tree is duplicated and only the new Tree data content is modified
 % (i.e., no nodes are added or deleted), then the iteration order and the
 % node indices will be the same for the two trees.
 %
@@ -21,7 +21,7 @@ classdef tree
 % Jean-Yves Tinevez <tinevez@pasteur.fr> March 2012
     
     properties (SetAccess = private)
-        % Index of the parent node. The root of the tree as a parent index
+        % Index of the parent node. The root of the Tree as a parent index
         % equal to 0.
         Parent = [ 0 ]; %#ok<NBRAK>
     end
@@ -35,23 +35,23 @@ classdef tree
         
         % CONSTRUCTOR
         
-        function [obj, root_ID] = tree(content, val)
-            %% TREE  Construct a new tree
+        function [obj, root_ID] = Tree(content, val)
+            %% TREE  Construct a new Tree
             %
             % t = TREE(another_tree) is the copy-constructor for this
-            % class. It returns a new tree where the node order and content
-            % is duplicated from the tree argument.
+            % class. It returns a new Tree where the node order and content
+            % is duplicated from the Tree argument.
             % 
             % t = TREE(another_tree, 'clear') generate a new copy of the
-            % tree, but does not copy the node content. The empty array is
+            % Tree, but does not copy the node content. The empty array is
             % put at each node.
             %
             % t = TREE(another_tree, val) generate a new copy of the
-            % tree, and set the value of each node of the new tree to be
+            % Tree, and set the value of each node of the new Tree to be
             % 'val'.
             %
-            % t = TREE(root_content) where 'root_content' is not a tree,
-            % initialize a new tree with only the root node, and set its
+            % t = TREE(root_content) where 'root_content' is not a Tree,
+            % initialize a new Tree with only the root node, and set its
             % content to be 'root_content'.
             obj.idx = obj.nodeCols();
             if nargin < 1
@@ -59,7 +59,7 @@ classdef tree
                 return
             end
             
-            if isa(content, 'tree')
+            if isa(content, 'Tree')
                 % Copy constructor
                 obj.Parent = content.Parent;
                 if nargin > 1 
@@ -91,20 +91,20 @@ classdef tree
         function [obj, ID] = addnode(obj, parent, data)
             %% ADDNODE attach a new node to a parent node
             % 
-            % tree = tree.ADDNODE(parent_index, data) create a new node
+            % Tree = Tree.ADDNODE(parent_index, data) create a new node
             % with content 'data', and attach it as a child of the node
-            % with index 'parent_index'. Return the modified tree.
+            % with index 'parent_index'. Return the modified Tree.
             % 
-            % [ tree ID ] = tree.ADDNODE(...) returns the modified tree and
+            % [ Tree ID ] = Tree.ADDNODE(...) returns the modified Tree and
             % the index of the newly created node.
             
             if parent < 0 || parent > numel(obj.Parent)
-                error('MATLAB:tree:addnode', ...
+                error('MATLAB:Tree:addnode', ...
                     'Cannot add to unknown parent with index %d.\n', parent)
             end
             
             if parent == 0
-                % Replace the whole tree by overiding the root.
+                % Replace the whole Tree by overiding the root.
                 obj.Node = { data };
                 obj.Parent = 0;
                 ID = 1;
@@ -143,7 +143,7 @@ classdef tree
            %% ISLEAF  Return true if given ID matches a leaf node.
            % A leaf node is a node that has no children.
            if ID < 1 || ID > numel(obj.Parent)
-                error('MATLAB:tree:isleaf', ...
+                error('MATLAB:Tree:isleaf', ...
                     'No node with ID %d.', ID)
            end
            
@@ -153,7 +153,7 @@ classdef tree
         end
         
         function IDs = findleaves(obj,inBranch)
-           %% FINDLEAVES  Return the IDs of all the leaves of the tree.
+           %% FINDLEAVES  Return the IDs of all the leaves of the Tree.
            %% if inBranch is a node index, then return only the leaves that include this node
            if nargin<2
                 inBranch=[];
@@ -180,7 +180,7 @@ classdef tree
         end
 
         function obj = set(obj, ID, content)
-            %% SET  Set the content of given node ID and return the modifed tree.
+            %% SET  Set the content of given node ID and return the modifed Tree.
             obj.Node{ID} = content;
         end
 
@@ -196,7 +196,7 @@ classdef tree
         function ID = getparent(obj, ID)
         %% GETPARENT  Return the ID of the parent of the given node.
             if ID < 1 || ID > numel(obj.Parent)
-                error('MATLAB:tree:getparent', ...
+                error('MATLAB:Tree:getparent', ...
                     'No node with ID %d.', ID)
             end
             ID = obj.Parent(ID);
@@ -207,7 +207,7 @@ classdef tree
             % given node ID, including itself.
             % The list is returned as a column vector.
             if ID < 1 || ID > numel(obj.Parent)
-                error('MATLAB:tree:getsiblings', ...
+                error('MATLAB:Tree:getsiblings', ...
                     'No node with ID %d.', ID)
             end
             
@@ -221,7 +221,7 @@ classdef tree
         end
         
         function n = nnodes(obj)
-            %% NNODES  Return the number of nodes in the tree. 
+            %% NNODES  Return the number of nodes in the Tree. 
             n = numel(obj.Parent);
         end
         
@@ -237,7 +237,7 @@ classdef tree
         
         function [lineage, duration] = example
             
-            lineage_AB = tree('AB');
+            lineage_AB = Tree('AB');
             [lineage_AB, id_ABa] = lineage_AB.addnode(1, 'AB.a');
             [lineage_AB, id_ABp] = lineage_AB.addnode(1, 'AB.p');
             
@@ -255,7 +255,7 @@ classdef tree
             [lineage_AB, id_ABpra] = lineage_AB.addnode(id_ABpr, 'AB.pra');
             [lineage_AB, id_ABprp] = lineage_AB.addnode(id_ABpr, 'AB.prp');
             
-            lineage_P1 = tree('P1');
+            lineage_P1 = Tree('P1');
             [lineage_P1, id_P2] = lineage_P1.addnode(1, 'P2');
             [lineage_P1, id_EMS] = lineage_P1.addnode(1, 'EMS');
             [lineage_P1, id_P3] = lineage_P1.addnode(id_P2, 'P3');
@@ -287,12 +287,12 @@ classdef tree
             
             [lineage_P1, id_D] = lineage_P1.addnode(id_P3, 'D');
             
-            lineage = tree('Zygote');
+            lineage = Tree('Zygote');
             lineage = lineage.graft(1, lineage_AB);
             lineage = lineage.graft(1, lineage_P1);
 
             
-            duration = tree(lineage, 'clear');
+            duration = Tree(lineage, 'clear');
             iterator = duration.depthfirstiterator;
             for i = iterator
                duration = duration.set(i, round(20*rand)); 

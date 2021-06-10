@@ -6,8 +6,8 @@ info.trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
 cur_depth = 0;
 cur_node = node(cur_depth, info.trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
-search_tree = tree(cur_node);
-idx = tree.nodeCols();
+search_tree = Tree(cur_node);
+idx = Tree.nodeCols();
 cur_depth = cur_depth + 1;
 
 trim_pred_mat = zeros(scenario.Hp+1,(scenario.Hp+1)*8);
@@ -92,7 +92,7 @@ while ~finished && cur_depth <= 15
         assert(numel(info.tree_path)>1);
         cur_node = info.tree.Node{info.tree_path(2)};
 
-        % Add node to tree
+        % Add node to Tree
         [search_tree, cur_depth] = search_tree.addnode(cur_depth, cur_node);
 
         % Check if we already reached our destination

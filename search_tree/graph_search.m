@@ -15,7 +15,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
         g_values, ...
         h_values...
     );
-    info.tree = tree(cur_node);
+    info.tree = Tree(cur_node);
     
     % Array storing ids of nodes that may be expanded
     % TODO Preallocate

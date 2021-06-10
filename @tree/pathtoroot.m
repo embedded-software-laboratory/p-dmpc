@@ -1,10 +1,10 @@
 function path = pathtoroot(obj, n)
-%% PATHTOROOT  Path from node "n" to the tree root. 
+%% PATHTOROOT  Path from node "n" to the Tree root. 
 %
-% This is a special case of findpath(), which simply needs to follow a tree back 
+% This is a special case of findpath(), which simply needs to follow a Tree back 
 % by looking at node's parent. Since a node can only have one parent, this is 
 % trivial. It's about 50 times faster than calling findpath(1,myNode), since we don't need 
-% to exhaustively search the tree for the fastest path.
+% to exhaustively search the Tree for the fastest path.
 %
 
 
