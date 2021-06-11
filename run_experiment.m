@@ -32,7 +32,6 @@ info = struct;
 info.trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
 n_vertices = 0;
-idx = Tree.nodeCols();
 cur_depth = 1;
 
 controller = @(scenario, iter)...
@@ -99,9 +98,9 @@ while (~got_stop)
         planned_node = info.Tree.node{info.tree_path(2)};
         speeds = zeros(scenario.nVeh,1);
         for iVeh=1:scenario.nVeh
-            speeds(iVeh) = scenario.mpa.trims(planned_node(iVeh,idx.trim)).speed;
+            speeds(iVeh) = scenario.mpa.trims(planned_node(iVeh,NodeInfo.trim)).speed;
         end
-        x0 = [planned_node(:,idx.x), planned_node(:,idx.y), planned_node(:,idx.yaw), speeds];
+        x0 = [planned_node(:,NodeInfo.x), planned_node(:,NodeInfo.y), planned_node(:,NodeInfo.yaw), speeds];
     end
     % Sample reference trajectory
     iter = rhc_init(scenario,x0,info.trim_indices);

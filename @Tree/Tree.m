@@ -28,7 +28,6 @@ classdef Tree
     
     properties (SetAccess = public)
         node = { [] }; % Hold the data at each node
-        idx;
     end
     
     methods
@@ -45,7 +44,6 @@ classdef Tree
             % t = TREE(root_content) where 'root_content' is not a Tree,
             % initialize a new Tree with only the root node, and set its
             % content to be 'root_content'.
-            obj.idx = obj.nodeCols();
             if nargin < 1
                 root_ID = 1;
                 return
@@ -205,12 +203,5 @@ classdef Tree
         
         end
     end
-    
-    % STATIC METHODS
-    
-    methods (Static)
-        idx = nodeCols()
-    end
-    
 end
 

@@ -49,12 +49,12 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             % could remove node from tree here
             continue
         end
-        if cur_node(1,info.tree.idx.depth) == scenario.Hp
+        if cur_node(1,NodeInfo.depth) == scenario.Hp
             y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
             % TODO u
             u = 0;
             info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
-            info.trim_indices = info.tree.node{info.tree_path(2)}(:,info.tree.idx.trim);
+            info.trim_indices = info.tree.node{info.tree_path(2)}(:,NodeInfo.trim);
             info.open_nodes = open_nodes;
             info.open_values = open_values;
             break
@@ -64,7 +64,6 @@ function [u, y_pred, info] = graph_search(scenario, iter)
                 scenario...
                 ,iter...
                 ,cur_node...
-                ,info.tree.idx...
             );
             parents = cur_node_id*ones(numel(expanded_nodes),1);
             [info.tree, new_open_nodes] = info.tree.addnnodes(parents, expanded_nodes);

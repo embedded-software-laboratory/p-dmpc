@@ -7,12 +7,11 @@ info.trim_indices = [scenario.vehicles(:).trim_config];
 cur_depth = 0;
 cur_node = node(cur_depth, info.trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
 tree = Tree(cur_node);
-idx = Tree.nodeCols();
 cur_depth = cur_depth + 1;
 
 trim_pred_mat = zeros(scenario.Hp+1,(scenario.Hp+1)*8);
 for k = 1:scenario.Hp+1
-    trim_pred_mat(k,(k-1)*8+idx.trim) = 1;
+    trim_pred_mat(k,(k-1)*8+NodeInfo.trim) = 1;
 end
 
 controller = @(scenario, iter)...
@@ -59,9 +58,9 @@ while ~finished && cur_depth <= 15
     % Coud use vehicles' predicted mpc traj.
     speeds = zeros(scenario.nVeh, 1);
     for iVeh=1:scenario.nVeh
-        speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,idx.trim)).speed;
+        speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,NodeInfo.trim)).speed;
     end
-    x0 = [cur_node(:,idx.x), cur_node(:,idx.y), cur_node(:,idx.yaw), speeds];
+    x0 = [cur_node(:,NodeInfo.x), cur_node(:,NodeInfo.y), cur_node(:,NodeInfo.yaw), speeds];
     
     % Control 
     % -------------------------------------------------------------------------
