@@ -2,7 +2,7 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node)
     trim_tuple = scenario.mpa.trim_tuple;
     trim_length = length(scenario.mpa.trims)*ones(1, scenario.nVeh);
     cur_trim_id = tuple2index(cur_node(:,NodeInfo.trim),trim_length);
-    k_cur = cur_node(1,NodeInfo.depth);
+    k_cur = cur_node(1,NodeInfo.k);
     k_exp = k_cur + 1;
     successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
     
@@ -12,7 +12,7 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node)
     for iTrim = 1:nTrims
         id = successor_trim_ids(iTrim);
         expanded_node = cur_node;
-        expanded_node(:,NodeInfo.depth) = k_exp;
+        expanded_node(:,NodeInfo.k) = k_exp;
         expanded_node(:,NodeInfo.trim) = trim_tuple(id,:);
         for iVeh = 1 : scenario.nVeh
             itrim1 = cur_node(iVeh,NodeInfo.trim);

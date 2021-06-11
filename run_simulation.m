@@ -4,15 +4,10 @@ function result = run_simulation(scenario, doOnlinePlot, doPlotExploration)
 info = struct;
 info.trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
-cur_depth = 0;
-cur_node = node(cur_depth, info.trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
+k = 0;
+cur_node = node(k, info.trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
 tree = Tree(cur_node);
-cur_depth = cur_depth + 1;
-
-trim_pred_mat = zeros(scenario.Hp+1,(scenario.Hp+1)*8);
-for k = 1:scenario.Hp+1
-    trim_pred_mat(k,(k-1)*8+NodeInfo.trim) = 1;
-end
+k = k + 1;
 
 controller = @(scenario, iter)...
     graph_search(scenario, iter);
@@ -50,7 +45,7 @@ end
 % Main control loop
 finished = false;
 
-while ~finished && cur_depth <= 35
+while ~finished && k <= 35
     result.step_timer = tic;
     % Measurement
     % -------------------------------------------------------------------------
@@ -62,23 +57,20 @@ while ~finished && cur_depth <= 35
     end
     
     x0 = [cur_node(:,NodeInfo.x), cur_node(:,NodeInfo.y), cur_node(:,NodeInfo.yaw), speeds];
-    scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, cur_depth);
+    scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, k);
     
     % Control 
     % -------------------------------------------------------------------------
     try
         % Sample reference trajectory
         iter = rhc_init(scenario,x0,info.trim_indices);
-        result.iteration_structs{cur_depth} = iter;
+        result.iteration_structs{k} = iter;
         controller_timer = tic;
             [u, y_pred, info] = controller(scenario_tmp, iter);
-        result.controller_runtime(cur_depth) = toc(controller_timer);
+        result.controller_runtime(k) = toc(controller_timer);
         % save controller outputs in result struct
-        result.trajectory_predictions(:,cur_depth) = y_pred;
-        result.controller_outputs{cur_depth} = u;
-
-        % Trims
-        trim_pred = trim_pred_mat*[info.tree.node{info.tree_path}]';
+        result.trajectory_predictions(:,k) = y_pred;
+        result.controller_outputs{k} = u;
 
         % init struct for exploration plot
         if doPlotExploration
@@ -94,7 +86,7 @@ while ~finished && cur_depth <= 35
         cur_node = info.tree.node{info.tree_path(2)};
 
         % Add node to Tree
-        [tree, cur_depth] = tree.add_nodes(cur_depth, {cur_node});
+        tree = tree.add_nodes(k, {cur_node});
 
         % Check if we already reached our destination
         is_goals = is_goal(cur_node, scenario);
@@ -103,9 +95,9 @@ while ~finished && cur_depth <= 35
         end
 
         % store vehicles path in higher resolution
-        result.vehicle_path_fullres(:,cur_depth-1) = path_between(tree.node{end-1},tree.node{end},tree,scenario.mpa);
+        result.vehicle_path_fullres(:,k) = path_between(tree.node{end-1},tree.node{end},tree,scenario.mpa);
 
-        result.n_expanded(cur_depth-1) = numel(info.tree.node);
+        result.n_expanded(k) = numel(info.tree.node);
     catch ME
         switch ME.identifier
         case 'graph_search:tree_exhausted'
@@ -133,17 +125,19 @@ while ~finished && cur_depth <= 35
     % Simulation
     % -------------------------------------------------------------------------
     
-    result.step_time(cur_depth-1) = toc(result.step_timer);
+    result.step_time(k) = toc(result.step_timer);
     
     % Visualization
     % -------------------------------------------------------------------------
     if doOnlinePlot
         % wait to simulate realtime plotting
-        pause(scenario.dt-result.step_time(cur_depth-1))
+        pause(scenario.dt-result.step_time(k))
         
         % visualize time step
-        plotOnline(result,cur_depth-1,1,exploration_struct);
+        plotOnline(result,k,1,exploration_struct);
     end
+
+    k = k+1;
 end
 
 

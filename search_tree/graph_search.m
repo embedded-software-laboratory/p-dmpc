@@ -50,7 +50,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             % could remove node from tree here
             continue
         end
-        if cur_node(1,NodeInfo.depth) == scenario.Hp
+        if cur_node(1,NodeInfo.k) == scenario.Hp
             y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
             % TODO u
             u = 0;

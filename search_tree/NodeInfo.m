@@ -6,7 +6,7 @@ classdef NodeInfo
         trim = 4;
         g = 5;
         h = 6;
-        depth = 7;
+        k = 7;
         exactEval = 8;
         n_cols = 8;
     end
