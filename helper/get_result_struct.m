@@ -12,7 +12,7 @@ function result = get_result_struct(scenario)
     
     % create output directory
     directory_name = strrep(strcat(result.scenario.name, '_', result.scenario.controller_name),' ','_');
-    output_path = fullfile('output', directory_name);
+    output_path = fullfile('results', directory_name);
     result.output_path = output_path;
     if ~isfolder(output_path)
         mkdir(output_path);
