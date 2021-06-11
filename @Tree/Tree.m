@@ -35,20 +35,12 @@ classdef Tree
         
         % CONSTRUCTOR
         
-        function [obj, root_ID] = Tree(content, val)
+        function [obj, root_ID] = Tree(content)
             %% TREE  Construct a new Tree
             %
             % t = TREE(another_tree) is the copy-constructor for this
             % class. It returns a new Tree where the node order and content
             % is duplicated from the Tree argument.
-            % 
-            % t = TREE(another_tree, 'clear') generate a new copy of the
-            % Tree, but does not copy the node content. The empty array is
-            % put at each node.
-            %
-            % t = TREE(another_tree, val) generate a new copy of the
-            % Tree, and set the value of each node of the new Tree to be
-            % 'val'.
             %
             % t = TREE(root_content) where 'root_content' is not a Tree,
             % initialize a new Tree with only the root node, and set its
@@ -61,24 +53,9 @@ classdef Tree
             
             if isa(content, 'Tree')
                 % Copy constructor
-                obj.parent = content.parent;
-                if nargin > 1 
-                    if strcmpi(val, 'clear')
-                        obj.node = cell(numel(obj.parent), 1);
-                    else
-                        cellval = cell(numel(obj.parent), 1);
-                        for i = 1 : numel(obj.parent)
-                            cellval{i} = val;
-                        end
-                        obj.node = cellval;
-                    end
-                else
-                    obj.node = content.node;
-                end
-                
+                obj = content;
             else
                 % New object with only root content
-                
                 obj.node = { content };
                 root_ID = 1;
             end
@@ -95,20 +72,12 @@ classdef Tree
             % with content 'data', and attach it as a child of the node
             % with index 'parent_index'. Return the modified Tree.
             % 
-            % [ Tree ID ] = Tree.ADDNODE(...) returns the modified Tree and
+            % [ Tree, ID ] = Tree.ADDNODE(...) returns the modified Tree and
             % the index of the newly created node.
             
             if parent < 0 || parent > numel(obj.parent)
                 error('MATLAB:Tree:addnode', ...
                     'Cannot add to unknown parent with index %d.\n', parent)
-            end
-            
-            if parent == 0
-                % Replace the whole Tree by overiding the root.
-                obj.node = { data };
-                obj.parent = 0;
-                ID = 1;
-                return
             end
             
             % Expand the cell by
@@ -139,11 +108,11 @@ classdef Tree
             end
         end
         
-        function flag = isleaf(obj, ID)
-           %% ISLEAF  Return true if given ID matches a leaf node.
+        function flag = is_leaf(obj, ID)
+           %% IS_LEAF  Return true if given ID matches a leaf node.
            % A leaf node is a node that has no children.
            if ID < 1 || ID > numel(obj.parent)
-                error('MATLAB:Tree:isleaf', ...
+                error('MATLAB:Tree:is_leaf', ...
                     'No node with ID %d.', ID)
            end
            
@@ -152,8 +121,8 @@ classdef Tree
            
         end
         
-        function IDs = findleaves(obj,inBranch)
-           %% FINDLEAVES  Return the IDs of all the leaves of the Tree.
+        function IDs = find_leaves(obj,inBranch)
+           %% FIND_LEAVES  Return the IDs of all the leaves of the Tree.
            %% if inBranch is a node index, then return only the leaves that include this node
            if nargin<2
                 inBranch=[];
@@ -185,29 +154,29 @@ classdef Tree
         end
 
         
-        function IDs = getchildren(obj, ID)
-        %% GETCHILDREN  Return the list of ID of the children of the given node ID.
+        function IDs = get_children(obj, ID)
+        %% GET_CHILDREN  Return the list of ID of the children of the given node ID.
         % The list is returned as a line vector.
             parent = obj.parent;
             IDs = find( parent == ID );
             IDs = IDs';
         end
         
-        function ID = getparent(obj, ID)
-        %% GETPARENT  Return the ID of the parent of the given node.
+        function ID = get_parent(obj, ID)
+        %% GET_PARENT  Return the ID of the parent of the given node.
             if ID < 1 || ID > numel(obj.parent)
-                error('MATLAB:Tree:getparent', ...
+                error('MATLAB:Tree:get_parent', ...
                     'No node with ID %d.', ID)
             end
             ID = obj.parent(ID);
         end
         
-        function IDs = getsiblings(obj, ID)
-            %% GETSIBLINGS  Return the list of ID of the sliblings of the 
+        function IDs = get_siblings(obj, ID)
+            %% GET_SIBLINGS  Return the list of ID of the sliblings of the 
             % given node ID, including itself.
             % The list is returned as a column vector.
             if ID < 1 || ID > numel(obj.parent)
-                error('MATLAB:Tree:getsiblings', ...
+                error('MATLAB:Tree:get_siblings', ...
                     'No node with ID %d.', ID)
             end
             
@@ -217,12 +186,12 @@ classdef Tree
             end
             
             parent = obj.parent(ID);
-            IDs = obj.getchildren(parent);
+            IDs = obj.get_children(parent);
         end
         
-        function n = nnodes(obj)
-            %% NNODES  Return the number of nodes in the Tree. 
-            n = numel(obj.parent);
+        function n = n_nodes(obj)
+            %% N_NODES  Return the number of nodes in the Tree. 
+            n = numel(obj.nodes);
         end
         
         
@@ -232,74 +201,6 @@ classdef Tree
     
     methods (Static)
         idx = nodeCols()
-        
-        hl = decorateplots(ha)
-        
-        function [lineage, duration] = example
-            
-            lineage_AB = Tree('AB');
-            [lineage_AB, id_ABa] = lineage_AB.addnode(1, 'AB.a');
-            [lineage_AB, id_ABp] = lineage_AB.addnode(1, 'AB.p');
-            
-            [lineage_AB, id_ABal] = lineage_AB.addnode(id_ABa, 'AB.al');
-            [lineage_AB, id_ABar] = lineage_AB.addnode(id_ABa, 'AB.ar');
-            [lineage_AB, id_ABala] = lineage_AB.addnode(id_ABal, 'AB.ala');
-            [lineage_AB, id_ABalp] = lineage_AB.addnode(id_ABal, 'AB.alp');
-            [lineage_AB, id_ABara] = lineage_AB.addnode(id_ABar, 'AB.ara');
-            [lineage_AB, id_ABarp] = lineage_AB.addnode(id_ABar, 'AB.arp');
-            
-            [lineage_AB, id_ABpl] = lineage_AB.addnode(id_ABp, 'AB.pl');
-            [lineage_AB, id_ABpr] = lineage_AB.addnode(id_ABp, 'AB.pr');
-            [lineage_AB, id_ABpla] = lineage_AB.addnode(id_ABpl, 'AB.pla');
-            [lineage_AB, id_ABplp] = lineage_AB.addnode(id_ABpl, 'AB.plp');
-            [lineage_AB, id_ABpra] = lineage_AB.addnode(id_ABpr, 'AB.pra');
-            [lineage_AB, id_ABprp] = lineage_AB.addnode(id_ABpr, 'AB.prp');
-            
-            lineage_P1 = Tree('P1');
-            [lineage_P1, id_P2] = lineage_P1.addnode(1, 'P2');
-            [lineage_P1, id_EMS] = lineage_P1.addnode(1, 'EMS');
-            [lineage_P1, id_P3] = lineage_P1.addnode(id_P2, 'P3');
-            
-            [lineage_P1, id_C] = lineage_P1.addnode(id_P2, 'C');
-            [lineage_P1, id_Ca] = lineage_P1.addnode(id_C, 'C.a');
-            [lineage_P1, id_Caa] = lineage_P1.addnode(id_Ca, 'C.aa');
-            [lineage_P1, id_Cap] = lineage_P1.addnode(id_Ca, 'C.ap');
-            [lineage_P1, id_Cp] = lineage_P1.addnode(id_C, 'C.p');
-            [lineage_P1, id_Cpa] = lineage_P1.addnode(id_Cp, 'C.pa');
-            [lineage_P1, id_Cpp] = lineage_P1.addnode(id_Cp, 'C.pp');
-            
-            [lineage_P1, id_MS] = lineage_P1.addnode(id_EMS, 'MS');
-            [lineage_P1, id_MSa] = lineage_P1.addnode(id_MS, 'MS.a');
-            [lineage_P1, id_MSp] = lineage_P1.addnode(id_MS, 'MS.p');
-            
-            [lineage_P1, id_E] = lineage_P1.addnode(id_EMS, 'E');
-            [lineage_P1, id_Ea] = lineage_P1.addnode(id_E, 'E.a');
-            [lineage_P1, id_Eal] = lineage_P1.addnode(id_Ea, 'E.al'); %#ok<*NASGU>
-            [lineage_P1, id_Ear] = lineage_P1.addnode(id_Ea, 'E.ar');
-            [lineage_P1, id_Ep] = lineage_P1.addnode(id_E, 'E.p');
-            [lineage_P1, id_Epl] = lineage_P1.addnode(id_Ep, 'E.pl');
-            [lineage_P1, id_Epr] = lineage_P1.addnode(id_Ep, 'E.pr');
-            
-            [lineage_P1, id_P4] = lineage_P1.addnode(id_P3, 'P4');
-            [lineage_P1, id_Z2] = lineage_P1.addnode(id_P4, 'Z2');
-            [lineage_P1, id_Z3] = lineage_P1.addnode(id_P4, 'Z3');
-            
-            
-            [lineage_P1, id_D] = lineage_P1.addnode(id_P3, 'D');
-            
-            lineage = Tree('Zygote');
-            lineage = lineage.graft(1, lineage_AB);
-            lineage = lineage.graft(1, lineage_P1);
-
-            
-            duration = Tree(lineage, 'clear');
-            iterator = duration.depthfirstiterator;
-            for i = iterator
-               duration = duration.set(i, round(20*rand)); 
-            end
-            
-        end
-        
     end
     
 end

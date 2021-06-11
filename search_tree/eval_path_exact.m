@@ -34,7 +34,7 @@ function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, ro
                 if collision_with(iVeh, shapes, scenario)
                     % Chop parent if last sibling
                     iChop = iNode;
-                    while ((numel(getsiblings(tree,root_to_node(iChop))) == 1) ...
+                    while ((numel(get_siblings(tree,root_to_node(iChop))) == 1) ...
                             && iChop ~= 1)
                         iChop = iChop - 1;
                     end

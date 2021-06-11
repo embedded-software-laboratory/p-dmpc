@@ -1,7 +1,7 @@
 function is_valid = eval_edge_exact(scenario, tree, node_id)
     is_valid = true;
     % maneuver shapes correspond to movement TO node
-    node_id_parent = getparent(tree, node_id);
+    node_id_parent = get_parent(tree, node_id);
     if ~node_id_parent % root node without parent
         return;
     end
