@@ -72,7 +72,7 @@ classdef MotionPrimitiveAutomaton
     
         function max_speed = get_max_speed(obj, cur_trim_id)
             % returns maximum speed, averaged over the timestep (nSamples x 1)
-            % TODO is not general, but works for current MPAs
+            % is not general, but works for current MPAs
             N = size(obj.transition_matrix,3);
             max_speed = zeros(N,1);
             max_speed_last = obj.trims(cur_trim_id).speed;
@@ -122,7 +122,7 @@ classdef MotionPrimitiveAutomaton
         function maneuver_matrix = compute_product_maneuver_matrix(obj,nveh,N)
             nTrimTuples = size(obj.trim_tuple,1);
             maneuver_matrix = zeros(nTrimTuples,nTrimTuples,N);
-            % TODO Account for Hp~=Hu
+            % Assumes Hp=Hu
             for k = 1:N
                 transition_matrix_slice = obj.transition_matrix_single(:,:,k);
                 % compute tensor product iteratively

@@ -49,8 +49,6 @@ while ~finished && k <= 35
     result.step_timer = tic;
     % Measurement
     % -------------------------------------------------------------------------
-    % TODO no real measurement in trajectory following.
-    % Coud use vehicles' predicted mpc traj.
     speeds = zeros(scenario.nVeh, 1);
     for iVeh=1:scenario.nVeh
         speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,NodeInfo.trim)).speed;
@@ -81,7 +79,6 @@ while ~finished && k <= 35
         end
 
         % Determine next node
-        % TODO Substitute with measure / simulate
         assert(numel(info.tree_path)>1);
         cur_node = info.tree.node{info.tree_path(2)};
 

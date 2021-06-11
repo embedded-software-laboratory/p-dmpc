@@ -2,7 +2,6 @@ function [u, y_pred, info] = graph_search(scenario, iter)
     info = struct;
 
     % Create tree with root node
-    % TODO Choose trim_indices depending on measurement
     init_depth = 0;
     g_values = zeros(scenario.nVeh,1);
     h_values = zeros(scenario.nVeh,1);
@@ -18,7 +17,6 @@ function [u, y_pred, info] = graph_search(scenario, iter)
     info.tree = Tree(cur_node);
     
     % Array storing ids of nodes that may be expanded
-    % TODO Preallocate
     open_nodes = 1;
     open_values = sum_values(info.tree, open_nodes);
     
@@ -52,7 +50,6 @@ function [u, y_pred, info] = graph_search(scenario, iter)
         end
         if cur_node(1,NodeInfo.k) == scenario.Hp
             y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
-            % TODO u
             u = 0;
             info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
             info.trim_indices = info.tree.node{info.tree_path(2)}(:,NodeInfo.trim);

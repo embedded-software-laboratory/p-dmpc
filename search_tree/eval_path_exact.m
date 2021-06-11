@@ -1,6 +1,4 @@
 function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, root_to_node)
-    % TODO use eval_edge_exact
-    % TODO use in graph search or delete
     is_valid = false;
     iChop = -1;
     evaluated_nodes = false(size(root_to_node));

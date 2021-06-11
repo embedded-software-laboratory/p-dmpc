@@ -5,7 +5,7 @@ for ir = 1:numel(result)
     r = result(ir);
     nSteps = size(r.vehicle_path_fullres,2);
     for iVeh = 1:numel(r.scenario.vehicles)
-        % TODO integrate speed
+        % Could also integrate speed, here sqrt of distance
         x = zeros(nSteps*r.scenario.tick_per_step+1,1);
         y = zeros(nSteps*r.scenario.tick_per_step+1,1);
         for j = 1:nSteps

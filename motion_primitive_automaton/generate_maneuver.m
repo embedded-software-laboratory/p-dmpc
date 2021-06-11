@@ -1,6 +1,6 @@
 % genrates maneuver struct
 function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
-    % TODO make independent from model, currently only works for BicycleModel
+    % currently works for BicycleModel
     %% calculate displacement
     
     steering_derivative = (trim2.steering - trim1.steering) / dt;
