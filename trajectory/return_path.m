@@ -1,7 +1,7 @@
 function search_paths = return_path(tree, mpa)
 %RETURN_PATH returns the path as cell array to the closest node
     
-    n_veh = length(tree.Node{1, 1}.trims);
+    n_veh = length(tree.node{1, 1}.trims);
     end_node = tree.nnodes();
     path = findpath(tree, 1, end_node);
     path_length = length(path);

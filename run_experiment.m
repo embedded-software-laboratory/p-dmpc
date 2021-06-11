@@ -96,7 +96,7 @@ while (~got_stop)
         controller_init = true;
     else
         % take last planned state as new actual state
-        planned_node = info.Tree.Node{info.tree_path(2)};
+        planned_node = info.Tree.node{info.tree_path(2)};
         speeds = zeros(scenario.nVeh,1);
         for iVeh=1:scenario.nVeh
             speeds(iVeh) = scenario.mpa.trims(planned_node(iVeh,idx.trim)).speed;
@@ -114,13 +114,13 @@ while (~got_stop)
     result.controller_outputs{cur_depth} = u;
     % store vehicles path in higher resolution
     result.vehicle_path_fullres(:,cur_depth) = path_between(...
-        info.Tree.Node{info.tree_path(1)}...
-        ,info.Tree.Node{info.tree_path(2)}...
+        info.Tree.node{info.tree_path(1)}...
+        ,info.Tree.node{info.tree_path(2)}...
         ,info.Tree...
         ,scenario.mpa...
     );
             
-    result.n_expanded = result.n_expanded + numel(info.Tree.Node);
+    result.n_expanded = result.n_expanded + numel(info.Tree.node);
             
     % Apply control action f/e veh
     % -------------------------------------------------------------------------

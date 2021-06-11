@@ -23,11 +23,11 @@ classdef Tree
     properties (SetAccess = private)
         % Index of the parent node. The root of the Tree as a parent index
         % equal to 0.
-        Parent = [ 0 ]; %#ok<NBRAK>
+        parent = [ 0 ]; %#ok<NBRAK>
     end
     
     properties (SetAccess = public)
-        Node = { [] }; % Hold the data at each node
+        node = { [] }; % Hold the data at each node
         idx;
     end
     
@@ -61,25 +61,25 @@ classdef Tree
             
             if isa(content, 'Tree')
                 % Copy constructor
-                obj.Parent = content.Parent;
+                obj.parent = content.parent;
                 if nargin > 1 
                     if strcmpi(val, 'clear')
-                        obj.Node = cell(numel(obj.Parent), 1);
+                        obj.node = cell(numel(obj.parent), 1);
                     else
-                        cellval = cell(numel(obj.Parent), 1);
-                        for i = 1 : numel(obj.Parent)
+                        cellval = cell(numel(obj.parent), 1);
+                        for i = 1 : numel(obj.parent)
                             cellval{i} = val;
                         end
-                        obj.Node = cellval;
+                        obj.node = cellval;
                     end
                 else
-                    obj.Node = content.Node;
+                    obj.node = content.node;
                 end
                 
             else
                 % New object with only root content
                 
-                obj.Node = { content };
+                obj.node = { content };
                 root_ID = 1;
             end
             
@@ -98,27 +98,27 @@ classdef Tree
             % [ Tree ID ] = Tree.ADDNODE(...) returns the modified Tree and
             % the index of the newly created node.
             
-            if parent < 0 || parent > numel(obj.Parent)
+            if parent < 0 || parent > numel(obj.parent)
                 error('MATLAB:Tree:addnode', ...
                     'Cannot add to unknown parent with index %d.\n', parent)
             end
             
             if parent == 0
                 % Replace the whole Tree by overiding the root.
-                obj.Node = { data };
-                obj.Parent = 0;
+                obj.node = { data };
+                obj.parent = 0;
                 ID = 1;
                 return
             end
             
             % Expand the cell by
-            obj.Node{ end + 1, 1 } = data;
+            obj.node{ end + 1, 1 } = data;
             
-            obj.Parent = [
-                obj.Parent
+            obj.parent = [
+                obj.parent
                 parent ];
             
-            ID = numel(obj.Node);
+            ID = numel(obj.node);
         
         end
         
@@ -131,23 +131,23 @@ classdef Tree
             if np == 1
                 [obj, IDs] = obj.addnode(parents,datas{1});
             else
-                IDs = (numel(obj.Node)+1:numel(obj.Node)+np);
+                IDs = (numel(obj.node)+1:numel(obj.node)+np);
 
-                obj.Node(IDs,1) = datas;
+                obj.node(IDs,1) = datas;
 
-                obj.Parent(IDs,1) = parents;
+                obj.parent(IDs,1) = parents;
             end
         end
         
         function flag = isleaf(obj, ID)
            %% ISLEAF  Return true if given ID matches a leaf node.
            % A leaf node is a node that has no children.
-           if ID < 1 || ID > numel(obj.Parent)
+           if ID < 1 || ID > numel(obj.parent)
                 error('MATLAB:Tree:isleaf', ...
                     'No node with ID %d.', ID)
            end
            
-           parent = obj.Parent;
+           parent = obj.parent;
            flag = ~any( parent == ID );
            
         end
@@ -158,7 +158,7 @@ classdef Tree
            if nargin<2
                 inBranch=[];
             end
-           parents = obj.Parent;
+           parents = obj.parent;
            IDs = (1 : numel(parents)); % All IDs
            IDs = setdiff(IDs, parents); % Remove those which are marked as parent
 
@@ -176,37 +176,37 @@ classdef Tree
         
         function content = get(obj, ID)
             %% GET  Return the content of the given node ID.
-            content = obj.Node{ID};
+            content = obj.node{ID};
         end
 
         function obj = set(obj, ID, content)
             %% SET  Set the content of given node ID and return the modifed Tree.
-            obj.Node{ID} = content;
+            obj.node{ID} = content;
         end
 
         
         function IDs = getchildren(obj, ID)
         %% GETCHILDREN  Return the list of ID of the children of the given node ID.
         % The list is returned as a line vector.
-            parent = obj.Parent;
+            parent = obj.parent;
             IDs = find( parent == ID );
             IDs = IDs';
         end
         
         function ID = getparent(obj, ID)
         %% GETPARENT  Return the ID of the parent of the given node.
-            if ID < 1 || ID > numel(obj.Parent)
+            if ID < 1 || ID > numel(obj.parent)
                 error('MATLAB:Tree:getparent', ...
                     'No node with ID %d.', ID)
             end
-            ID = obj.Parent(ID);
+            ID = obj.parent(ID);
         end
         
         function IDs = getsiblings(obj, ID)
             %% GETSIBLINGS  Return the list of ID of the sliblings of the 
             % given node ID, including itself.
             % The list is returned as a column vector.
-            if ID < 1 || ID > numel(obj.Parent)
+            if ID < 1 || ID > numel(obj.parent)
                 error('MATLAB:Tree:getsiblings', ...
                     'No node with ID %d.', ID)
             end
@@ -216,13 +216,13 @@ classdef Tree
                 return
             end
             
-            parent = obj.Parent(ID);
+            parent = obj.parent(ID);
             IDs = obj.getchildren(parent);
         end
         
         function n = nnodes(obj)
             %% NNODES  Return the number of nodes in the Tree. 
-            n = numel(obj.Parent);
+            n = numel(obj.parent);
         end
         
         

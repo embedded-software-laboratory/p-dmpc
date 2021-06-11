@@ -1,6 +1,6 @@
 function search_paths = return_path_to(node_id, tree, mpa)
 %RETURN_PATH returns the path as cell array to the closest node
-    n_veh = length(tree.Node{1, 1}(:,tree.idx.trim));
+    n_veh = length(tree.node{1, 1}(:,tree.idx.trim));
     path = pathtoroot(tree, node_id);
     path = fliplr(path);
     path_length = length(path);

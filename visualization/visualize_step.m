@@ -1,11 +1,11 @@
 function visualize_step(scenario, tree, parent, mpa)
     hold on
     title("Iteration: " + parent + ", Time: " + (parent * scenario.dt));
-    n_veh = length(tree.Node{1, 1}(:,tree.idx.trim));
-    parent_node = tree.Node{parent};  
+    n_veh = length(tree.node{1, 1}(:,tree.idx.trim));
+    parent_node = tree.node{parent};  
     if(parent > 1)
         pred = tree.Parent(parent);
-        pred_node = tree.Node{pred};   
+        pred_node = tree.node{pred};   
         path_cell = path_between(pred_node, parent_node, tree, mpa);
         for iVeh = 1 : n_veh
             cur_color = vehColor(iVeh);

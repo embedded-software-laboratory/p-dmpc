@@ -5,8 +5,8 @@ function is_valid = eval_edge_exact(scenario, tree, node_id)
     if ~node_id_parent % root node without parent
         return;
     end
-    node_parent = tree.Node{node_id_parent};
-    node_child = tree.Node{node_id};
+    node_parent = tree.node{node_id_parent};
+    node_child = tree.node{node_id};
     shapes = cell(scenario.nVeh,1);
     for iVeh = 1 : scenario.nVeh
         t1 = node_parent(iVeh,tree.idx.trim);

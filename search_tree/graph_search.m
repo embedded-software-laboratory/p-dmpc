@@ -37,7 +37,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
         end
         
         cur_node_id = open_nodes(1);
-        cur_node = info.tree.Node{cur_node_id};
+        cur_node = info.tree.node{cur_node_id};
         
         % remove parent node
         open_nodes(1) = [];
@@ -54,7 +54,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             % TODO u
             u = 0;
             info.tree_path = fliplr(pathtoroot(info.tree, cur_node_id));
-            info.trim_indices = info.tree.Node{info.tree_path(2)}(:,info.tree.idx.trim);
+            info.trim_indices = info.tree.node{info.tree_path(2)}(:,info.tree.idx.trim);
             info.open_nodes = open_nodes;
             info.open_values = open_values;
             break

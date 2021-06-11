@@ -1,6 +1,6 @@
 function search_path = path_between(cur_node,next_node, tree, mpa)
 %PATH_BETWEEN Return path as a cell array between two nodes
-    n_veh = length(tree.Node{1, 1}(:,tree.idx.trim));
+    n_veh = length(tree.node{1, 1}(:,tree.idx.trim));
     search_path = cell(1, n_veh);
     for iVeh = 1:n_veh        
         maneuver = mpa.maneuvers{cur_node(iVeh,tree.idx.trim), next_node(iVeh,tree.idx.trim)};

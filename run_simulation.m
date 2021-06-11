@@ -77,7 +77,7 @@ while ~finished && cur_depth <= 15
         result.controller_outputs{cur_depth} = u;
 
         % Trims
-        trim_pred = trim_pred_mat*[info.tree.Node{info.tree_path}]';
+        trim_pred = trim_pred_mat*[info.tree.node{info.tree_path}]';
 
         % init struct for exploration plot
         if doPlotExploration
@@ -90,7 +90,7 @@ while ~finished && cur_depth <= 15
         % Determine next node
         % TODO Substitute with measure / simulate
         assert(numel(info.tree_path)>1);
-        cur_node = info.tree.Node{info.tree_path(2)};
+        cur_node = info.tree.node{info.tree_path(2)};
 
         % Add node to Tree
         [tree, cur_depth] = tree.addnode(cur_depth, cur_node);
@@ -102,9 +102,9 @@ while ~finished && cur_depth <= 15
         end
 
         % store vehicles path in higher resolution
-        result.vehicle_path_fullres(:,cur_depth-1) = path_between(tree.Node{end-1},tree.Node{end},tree,scenario.mpa);
+        result.vehicle_path_fullres(:,cur_depth-1) = path_between(tree.node{end-1},tree.node{end},tree,scenario.mpa);
 
-        result.n_expanded = result.n_expanded + numel(info.tree.Node);
+        result.n_expanded = result.n_expanded + numel(info.tree.node);
     catch ME
         switch ME.identifier
         case 'graph_search:tree_exhausted'

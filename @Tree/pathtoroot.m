@@ -16,10 +16,10 @@ function path = pathtoroot(obj, n)
         
     else
         
-        p=obj.Parent(n);
+        p=obj.parent(n);
         path=[n,p];
         while p ~= 1
-            p=obj.Parent(p);
+            p=obj.parent(p);
             path(end+1)=p; % For very large trees it might hekp to pre-allocate then prune back. But right now it doesn't seem worth it.
         end
 

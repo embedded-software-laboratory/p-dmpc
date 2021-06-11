@@ -1,6 +1,6 @@
 function visualize_exploration(exploration,scenario)
     info = exploration.info;
-    t = [info.tree.Node{:}];
+    t = [info.tree.node{:}];
     t = reshape(t,scenario.nVeh,8,[]);
     leaf_idcs = find(t(1,info.tree.idx.depth,:)==scenario.Hp);
     leaves = t(:,:,leaf_idcs);

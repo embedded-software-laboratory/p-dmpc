@@ -12,11 +12,11 @@ function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, ro
         % Check if exact evaluation needs to be done
         % displacements = zeros(1,scenario.nVeh);
         % midpoints = zeros(2,scenario.nVeh);
-        if ~tree.Node{root_to_node(iNode)}(1,tree.idx.exactEval)
-            node_parent = tree.Node{root_to_node(iNode-1)};
+        if ~tree.node{root_to_node(iNode)}(1,tree.idx.exactEval)
+            node_parent = tree.node{root_to_node(iNode-1)};
             for iVeh = 1 : scenario.nVeh
                 t1 = node_parent(iVeh,tree.idx.trim);
-                t2 = tree.Node{root_to_node(iNode)}(iVeh,tree.idx.trim);
+                t2 = tree.node{root_to_node(iNode)}(iVeh,tree.idx.trim);
                 maneuver = scenario.mpa.maneuvers{t1,t2};
                 c = cos(node_parent(iVeh,tree.idx.yaw));
                 s = sin(node_parent(iVeh,tree.idx.yaw));
