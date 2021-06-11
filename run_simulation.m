@@ -92,7 +92,7 @@ while ~finished && cur_depth <= 15
         cur_node = info.tree.node{info.tree_path(2)};
 
         % Add node to Tree
-        [tree, cur_depth] = tree.addnode(cur_depth, cur_node);
+        [tree, cur_depth] = tree.add_nodes(cur_depth, {cur_node});
 
         % Check if we already reached our destination
         is_goals = is_goal(cur_node, scenario);
