@@ -6,13 +6,12 @@ info.trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
 cur_depth = 0;
 cur_node = node(cur_depth, info.trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
-search_tree = tree(cur_node);
-idx = tree.nodeCols();
+tree = Tree(cur_node);
 cur_depth = cur_depth + 1;
 
 trim_pred_mat = zeros(scenario.Hp+1,(scenario.Hp+1)*8);
 for k = 1:scenario.Hp+1
-    trim_pred_mat(k,(k-1)*8+idx.trim) = 1;
+    trim_pred_mat(k,(k-1)*8+NodeInfo.trim) = 1;
 end
 
 controller = @(scenario, iter)...
@@ -59,9 +58,10 @@ while ~finished && cur_depth <= 35
     % Coud use vehicles' predicted mpc traj.
     speeds = zeros(scenario.nVeh, 1);
     for iVeh=1:scenario.nVeh
-        speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,idx.trim)).speed;
+        speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,NodeInfo.trim)).speed;
     end
-    x0 = [cur_node(:,idx.x), cur_node(:,idx.y), cur_node(:,idx.yaw), speeds];
+    
+    x0 = [cur_node(:,NodeInfo.x), cur_node(:,NodeInfo.y), cur_node(:,NodeInfo.yaw), speeds];
     scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, cur_depth);
     
     % Control 
@@ -78,7 +78,7 @@ while ~finished && cur_depth <= 35
         result.controller_outputs{cur_depth} = u;
 
         % Trims
-        trim_pred = trim_pred_mat*[info.tree.Node{info.tree_path}]';
+        trim_pred = trim_pred_mat*[info.tree.node{info.tree_path}]';
 
         % init struct for exploration plot
         if doPlotExploration
@@ -91,10 +91,10 @@ while ~finished && cur_depth <= 35
         % Determine next node
         % TODO Substitute with measure / simulate
         assert(numel(info.tree_path)>1);
-        cur_node = info.tree.Node{info.tree_path(2)};
+        cur_node = info.tree.node{info.tree_path(2)};
 
-        % Add node to tree
-        [search_tree, cur_depth] = search_tree.addnode(cur_depth, cur_node);
+        % Add node to Tree
+        [tree, cur_depth] = tree.add_nodes(cur_depth, {cur_node});
 
         % Check if we already reached our destination
         is_goals = is_goal(cur_node, scenario);
@@ -103,9 +103,9 @@ while ~finished && cur_depth <= 35
         end
 
         % store vehicles path in higher resolution
-        result.vehicle_path_fullres(:,cur_depth-1) = path_between(search_tree.Node{end-1},search_tree.Node{end},search_tree,scenario.mpa);
+        result.vehicle_path_fullres(:,cur_depth-1) = path_between(tree.node{end-1},tree.node{end},tree,scenario.mpa);
 
-        result.n_expanded(cur_depth-1) = numel(info.tree.Node);
+        result.n_expanded(cur_depth-1) = numel(info.tree.node);
     catch ME
         switch ME.identifier
         case 'graph_search:tree_exhausted'

@@ -32,7 +32,6 @@ info = struct;
 info.trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
 n_vertices = 0;
-idx = tree.nodeCols();
 cur_depth = 1;
 
 controller = @(scenario, iter)...
@@ -96,12 +95,12 @@ while (~got_stop)
         controller_init = true;
     else
         % take last planned state as new actual state
-        planned_node = info.tree.Node{info.tree_path(2)};
+        planned_node = info.Tree.node{info.tree_path(2)};
         speeds = zeros(scenario.nVeh,1);
         for iVeh=1:scenario.nVeh
-            speeds(iVeh) = scenario.mpa.trims(planned_node(iVeh,idx.trim)).speed;
+            speeds(iVeh) = scenario.mpa.trims(planned_node(iVeh,NodeInfo.trim)).speed;
         end
-        x0 = [planned_node(:,idx.x), planned_node(:,idx.y), planned_node(:,idx.yaw), speeds];
+        x0 = [planned_node(:,NodeInfo.x), planned_node(:,NodeInfo.y), planned_node(:,NodeInfo.yaw), speeds];
     end
     % Sample reference trajectory
     iter = rhc_init(scenario,x0,info.trim_indices);
@@ -114,13 +113,13 @@ while (~got_stop)
     result.controller_outputs{cur_depth} = u;
     % store vehicles path in higher resolution
     result.vehicle_path_fullres(:,cur_depth) = path_between(...
-        info.tree.Node{info.tree_path(1)}...
-        ,info.tree.Node{info.tree_path(2)}...
-        ,info.tree...
+        info.Tree.node{info.tree_path(1)}...
+        ,info.Tree.node{info.tree_path(2)}...
+        ,info.Tree...
         ,scenario.mpa...
     );
             
-    result.n_expanded = result.n_expanded + numel(info.tree.Node);
+    result.n_expanded = result.n_expanded + numel(info.Tree.node);
             
     % Apply control action f/e veh
     % -------------------------------------------------------------------------
