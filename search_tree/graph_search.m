@@ -53,7 +53,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
             % TODO u
             u = 0;
-            info.tree_path = fliplr(pathtoroot(info.tree, cur_node_id));
+            info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
             info.trim_indices = info.tree.node{info.tree_path(2)}(:,info.tree.idx.trim);
             info.open_nodes = open_nodes;
             info.open_values = open_values;

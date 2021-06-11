@@ -133,7 +133,7 @@ classdef Tree
 
            if ~isempty(inBranch)
             for ii=length(IDs):-1:1
-                thisPath=obj.pathtoroot(IDs(ii));
+                thisPath=obj.path_to_root(IDs(ii));
                 f=find(thisPath==inBranch);
                 if isempty(f)
                     IDs(ii)=[];
@@ -193,8 +193,17 @@ classdef Tree
             %% N_NODES  Return the number of nodes in the Tree. 
             n = numel(obj.nodes);
         end
+
+        function path = path_to_root(obj, n)
+            %% PATH_TO_ROOT  Path from node "n" to the Tree root. 
+            %
+            
+            path = n;
+            while path(end) ~= 1
+                path(end+1)=obj.parent(path(end));
+            end
         
-        
+        end
     end
     
     % STATIC METHODS
