@@ -1,3 +1,0 @@
-[submodule "export_video/export_fig"]
-	path = export_video/export_fig
-	url = git@github.com:altmany/export_fig.git

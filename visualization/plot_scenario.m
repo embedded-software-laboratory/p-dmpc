@@ -33,7 +33,5 @@ filetype = 'pdf';
 filepath = fullfile(result.output_path, ['scenario.' filetype]);
 set_figure_properties(fig,'paper')
 exportgraphics(fig, filepath, 'ContentType','vector');
-% filepath = fullfile(result.output_path, 'scenario');
-% export_fig(filepath, '-pdf','-painters');
 close(fig);
 end
