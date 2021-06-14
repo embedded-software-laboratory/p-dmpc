@@ -10,7 +10,7 @@ classdef MuCar < VehicleModel
         end
 
         function dx = ode(obj,x,u,t,t_u)
-            % See vehicle paper TODO Reference
+            % See vehicle paper https://doi.org/10.1016/j.ifacol.2020.12.1821
             u = interp1(t_u,u,t, 'method', 'previous');
             
             px    = x(:,1);

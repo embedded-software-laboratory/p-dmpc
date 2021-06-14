@@ -85,12 +85,6 @@ while ~finished && k <= 35
         % Add node to Tree
         tree = tree.add_nodes(k, {cur_node});
 
-        % Check if we already reached our destination
-        is_goals = is_goal(cur_node, scenario);
-        if(sum(is_goals) == scenario.nVeh)
-            finished = true;
-        end
-
         % store vehicles path in higher resolution
         result.vehicle_path_fullres(:,k) = path_between(tree.node{end-1},tree.node{end},tree,scenario.mpa);
 
