@@ -45,10 +45,10 @@ end
 % Main control loop
 finished = false;
 
-while ~finished && k <= 35
+while ~finished && k <= scenario.k_end
     result.step_timer = tic;
     % Measurement
-    % -------------------------------------------------------------------------
+    % --------------------------------------------------------------------------
     speeds = zeros(scenario.nVeh, 1);
     for iVeh=1:scenario.nVeh
         speeds(iVeh) = scenario.mpa.trims(cur_node(iVeh,NodeInfo.trim)).speed;
@@ -57,9 +57,10 @@ while ~finished && k <= 35
     x0 = [cur_node(:,NodeInfo.x), cur_node(:,NodeInfo.y), cur_node(:,NodeInfo.yaw), speeds];
     scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, k);
     
-    % Control 
-    % -------------------------------------------------------------------------
+    
     try
+        % Control 
+        % ----------------------------------------------------------------------
         % Sample reference trajectory
         iter = rhc_init(scenario,x0,info.trim_indices);
         result.iteration_structs{k} = iter;
@@ -89,9 +90,24 @@ while ~finished && k <= 35
         result.vehicle_path_fullres(:,k) = path_between(tree.node{end-1},tree.node{end},tree,scenario.mpa);
 
         result.n_expanded(k) = numel(info.tree.node);
+
+        % Simulation
+        % ----------------------------------------------------------------------
+
+        result.step_time(k) = toc(result.step_timer);
+
+        % Visualization
+        % ----------------------------------------------------------------------
+        if doOnlinePlot
+            % wait to simulate realtime plotting
+            pause(scenario.dt-result.step_time(k))
+
+            % visualize time step
+            plotOnline(result,k,1,exploration_struct);
+        end
     catch ME
         switch ME.identifier
-        case 'graph_search:tree_exhausted'
+        case 'MATLAB:graph_search:tree_exhausted'
             warning([ME.message, ', ending search...']);
             finished = true;
         otherwise
@@ -111,21 +127,6 @@ while ~finished && k <= 35
     if abort
         disp('Aborted.');
         finished = true;
-    end
-
-    % Simulation
-    % -------------------------------------------------------------------------
-    
-    result.step_time(k) = toc(result.step_timer);
-    
-    % Visualization
-    % -------------------------------------------------------------------------
-    if doOnlinePlot
-        % wait to simulate realtime plotting
-        pause(scenario.dt-result.step_time(k))
-        
-        % visualize time step
-        plotOnline(result,k,1,exploration_struct);
     end
 
     k = k+1;

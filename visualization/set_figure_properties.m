@@ -110,15 +110,16 @@ function set_figure_properties(figHandle, preset, paperheight_in)
                 'Box','on');
         end
         % Set graphic objects
-        try
-            h_graphics = get(allchildren(a),'Children');
-            for h_graphic = h_graphics
+        
+        h_graphics = get(allchildren(a),'Children');
+        for h_graphic = h_graphics'
+            try
                 set(h_graphic ...
                     ,'LineWidth', linewidth ...
                 );
+            catch
+                % continue
             end
-        catch
-            % continue
         end
     end
     

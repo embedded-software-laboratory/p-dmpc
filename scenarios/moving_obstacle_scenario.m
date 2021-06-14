@@ -16,7 +16,7 @@ function scenario = moving_obstacle_scenario()
     scenario.vehicles = veh;
     scenario.nVeh = 1;
     scenario.Hp = 5;
-    scenario.Hu = scenario.Hp;
+    scenario.T_end = 14;
     
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     
@@ -77,5 +77,5 @@ function scenario = moving_obstacle_scenario()
         end
     end
     
-    scenario.name = sprintf('moving_obstacles_%iTimestep', 2);
+    scenario.name = sprintf('moving_obstacles');
 end

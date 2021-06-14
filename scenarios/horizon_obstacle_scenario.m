@@ -16,7 +16,7 @@ function scenario = horizon_obstacle_scenario(N, d_obstacle)
     scenario.vehicles = veh;
     scenario.nVeh = 1;
     scenario.Hp = N;
-    scenario.Hu = N;
+    scenario.T_end = 6;
     
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     
@@ -32,8 +32,13 @@ function scenario = horizon_obstacle_scenario(N, d_obstacle)
         , recursive_feasibility...
     );
     
-    scenario.name = sprintf('horizon_obstacle_%s_%s', num2str(N),num2str(d_obstacle));
+    scenario.name = sprintf( ...
+        'horizon_obstacle_%s_%s', ...
+        num2str(N, '%02i'),...
+        num2str(d_obstacle, '%2.1f') ...
+    );
     
+    scenario.plot_limits = [-0.5,5;1.5,2.5];
     
     x_obs_l = veh.x_start + d_obstacle;
     scenario.obstacles{1} = transformedRectangle(...

@@ -10,7 +10,7 @@ nVeh = scenario.nVeh;
 nObst = size(scenario.obstacles,2);
 nDynObst = size(scenario.dynamic_obstacle_fullres,1);
 
-fig = figure('visible','on','position',[100 100 600 630],'color',[1 1 1]);
+fig = figure('visible','off','position',[100 100 600 630],'color',[1 1 1]);
 
 
 % show predictions for multiple timesteps
@@ -79,6 +79,6 @@ end
 set_figure_properties(fig, 'paper', 12);
 filepath = fullfile(result.output_path, 'overviewPlot.pdf');
 exportgraphics(fig, filepath, 'ContentType','vector');
-
+close(fig)
 end
 

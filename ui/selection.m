@@ -1,5 +1,4 @@
 function options = selection(vehicle_amount,plot_option)
-
 %% Specify amount of vehicles
 scenarios = {
     '1', pi+pi; ...
@@ -17,6 +16,15 @@ possPlots = {
     '2', 'vehicle visualization',               [true,false]; ...
     '3', 'visualization + node exploration',    [true,true]; ...
     };
+
+
+
+    % ====== load previous choice ======
+    try
+        load([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option');
+    catch
+        % continue
+    end
 
 if nargin < 1
     if ~exist('vehicle_amount','var')
@@ -51,5 +59,10 @@ end
 options.angles = scenarios{vehicle_amount,2};
 options.amount = vehicle_amount;
 options.visu = possPlots{plot_option,3};
+
+
+    % ============= save choice ============
+    save([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option');
+
 end
 

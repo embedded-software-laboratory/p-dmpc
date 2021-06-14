@@ -14,7 +14,7 @@ else
 end
 
 % Setup scenario
-scenario = Scenario(options);
+scenario = circle_scenario(options.amount);
 
 doPlotOnline = options.visu(1);
 doPlotExploration = options.visu(2);

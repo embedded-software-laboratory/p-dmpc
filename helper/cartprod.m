@@ -27,7 +27,7 @@ function X = cartprod(varargin)
 
 
 numSets = length(varargin);
-sizeThisSet = zeros(numSets,1);
+sizeThisSet = zeros(1,numSets);
 for i = 1:numSets
     thisSet = sort(varargin{i});
     if ~isequal(numel(thisSet),length(thisSet))

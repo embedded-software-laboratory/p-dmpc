@@ -1,6 +1,6 @@
 function result = eval_horizon_obstacle(result)
-horizons = 5:30;
-obstacle_distances = 1:0.1:3;
+horizons = 5:10:30;
+obstacle_distances = 1:1:3;
 if nargin==0
     result = cell(numel(horizons), numel(obstacle_distances));
     for i_N = 1:numel(horizons)
@@ -18,11 +18,10 @@ end
 Z = zeros(size(X));
 for i_N = 1:numel(horizons)
     for i_d_obstacle = 1:numel(obstacle_distances)
-        Z(i_N,i_d_obstacle) = result{i_N, i_d_obstacle}.n_expanded;
+        Z(i_N,i_d_obstacle) = sum(result{i_N, i_d_obstacle}.n_expanded);
     end
 end
-output_path = 'output';
-fig = figure;
+fig = figure('Visible','Off');
 surf(X,Y,Z, 'FaceColor', 'interp');
 xlabel('Distance [$m$]'...
     ,'Rotation',15 ...
@@ -36,7 +35,7 @@ ylabel('Horizon'...
 )
 zlabel('Expanded vertices')
 filetype = 'pdf';
-filepath = fullfile(output_path, ['eval_horizon_obstacle.' filetype]);
+filepath = fullfile('results', ['eval_horizon_obstacle.' filetype]);
 set_figure_properties(fig,'paper',6)
 exportgraphics(fig, filepath, 'ContentType','vector');
 close(fig);

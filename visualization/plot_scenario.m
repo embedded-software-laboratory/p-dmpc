@@ -1,9 +1,9 @@
 function plot_scenario(result)
-fig = figure('Visible','off');
+fig = figure('Visible','on');
 daspect([1 1 1]);
 
-xlim(result.plot_limits(1,:));
-ylim(result.plot_limits(2,:));
+xlim(result.scenario.plot_limits(1,:));
+ylim(result.scenario.plot_limits(2,:));
 
 % reference trajectory
 for iVeh = 1:numel(result.scenario.vehicles)

@@ -7,6 +7,7 @@ To run a simulation:
 2. execute `main.m`.
 
 More information is provided in our publication [1], which we kindly ask you to consider citing if you find RHGS helpful for your work.
+The results of the publication can be reproduced by running `eval_paper.m`.
 
 ### Acknowledgements
 This research is supported by the Deutsche Forschungsgemeinschaft (German Research Foundation) within the Priority Program SPP 1835 "Cooperative Interacting Automobiles" (grant number: KO 1430/17-1).
