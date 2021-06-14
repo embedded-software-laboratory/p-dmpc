@@ -16,7 +16,7 @@ assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_f
 addpath(common_cpm_functions_path);
 
 matlabDomainId = 1;
-[matlabParticipant, reader_vehicleStateList, writer_vehicleCommandTrajectory, ~, reader_systemTrigger, writer_readyStatus, trigger_stop] = init_script(matlabDomainId);
+[matlabParticipant, reader_vehicleStateList, writer_vehicleCommandTrajectory, ~, reader_systemTrigger, writer_readyStatus, trigger_stop] = init_script(matlabDomainId); %#ok<ASGLU>
 
 % Set reader properties
 reader_vehicleStateList.WaitSet = true;
@@ -31,7 +31,6 @@ scenario = varargin{end};
 info = struct;
 info.trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
-n_vertices = 0;
 cur_depth = 1;
 
 controller = @(scenario, iter)...
@@ -41,11 +40,6 @@ controller = @(scenario, iter)...
 % init result struct
 result = get_result_struct(scenario);
 controller_init = false;
-% times
-t             = zeros(1,0);
-t_start_nanos = 0;
-t_end         = 10;
-t_rel         = 0;
 
 % Middleware period for valid_after stamp
 dt_period_nanos = uint64(scenario.dt*1e9);
@@ -85,7 +79,6 @@ while (~got_stop)
     % -------------------------------------------------------------------------
     % one-time initialization of starting position
     if controller_init == false
-        t_start_nanos = sample(end).t_now;
         x0 = zeros(scenario.nVeh,4);
         pose = [sample(end).state_list.pose];
         x0(:,1) = [pose.x];

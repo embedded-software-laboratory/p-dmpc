@@ -27,15 +27,16 @@ function X = cartprod(varargin)
 
 
 numSets = length(varargin);
-for i = 1:numSets,
+sizeThisSet = zeros(numSets,1);
+for i = 1:numSets
     thisSet = sort(varargin{i});
-    if ~isequal(prod(size(thisSet)),length(thisSet)),
+    if ~isequal(numel(thisSet),length(thisSet))
         error('All inputs must be vectors.')
     end
-    if ~isnumeric(thisSet),
+    if ~isnumeric(thisSet)
         error('All inputs must be numeric.')
     end
-    if ~isequal(thisSet,unique(thisSet)),
+    if ~isequal(thisSet,unique(thisSet))
         error(['Input set' ' ' num2str(i) ' ' 'contains duplicated elements.'])
     end
     sizeThisSet(i) = length(thisSet);
@@ -43,14 +44,14 @@ for i = 1:numSets,
 end
 
 X = zeros(prod(sizeThisSet),numSets);
-for i = 1:size(X,1),
+for i = 1:size(X,1)
     
     % Envision imaginary n-d array with dimension "sizeThisSet" ...
     % = length(varargin{1}) x length(varargin{2}) x ...
     
     ixVect = ind2subVect(sizeThisSet,i);
     
-    for j = 1:numSets,
+    for j = 1:numSets
         X(i,j) = varargin{j}(ixVect(j));
     end
 end

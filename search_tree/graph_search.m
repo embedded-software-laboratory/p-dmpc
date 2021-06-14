@@ -19,10 +19,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
     % Array storing ids of nodes that may be expanded
     open_nodes = 1;
     open_values = sum_values(info.tree, open_nodes);
-    
-    % Array storing ids of nodes that were visited
-    visited_nodes = [];
-    
+        
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
     while true
@@ -66,8 +63,8 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             parents = cur_node_id*ones(numel(expanded_nodes),1);
             [info.tree, new_open_nodes] = info.tree.add_nodes(parents, expanded_nodes);
             % add child nodes
-            open_nodes = [open_nodes, new_open_nodes];
-            open_values = [open_values, sum_values(info.tree, new_open_nodes)];
+            open_nodes = [open_nodes, new_open_nodes]; %#ok<AGROW>
+            open_values = [open_values, sum_values(info.tree, new_open_nodes)]; %#ok<AGROW>
             [open_nodes, open_values] = sort_open_list(open_nodes, open_values);
 
             % % plot exploration

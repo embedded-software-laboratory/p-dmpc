@@ -45,7 +45,7 @@ function [signed_distance_min, arclength_min, x_min, y_min, index_min ] = getSho
     signed_distance_min = sqrt((x-curve_x(1))^2 +(y-curve_y(1))^2);
     index_min = 2;
     
-    for j = 2:(length(curve_x));
+    for j = 2:(length(curve_x))
         [xp, yp, signed_distance, lambda, piecelength] =  Projection2D(curve_x(j-1),curve_y(j-1),curve_x(j),curve_y(j),x,y);
 
         % Projected point is between the end points.

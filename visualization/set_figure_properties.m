@@ -54,6 +54,8 @@ function set_figure_properties(figHandle, preset, paperheight_in)
                 'FontSize',fontsize+1,...
                 'FontName',fontname,...
                 'Interpreter','latex');
+        catch
+            % continue
         end
         try % redefine x- and y-labels
             h_xlabel = get(allchildren(a), 'xlabel');
@@ -66,6 +68,8 @@ function set_figure_properties(figHandle, preset, paperheight_in)
                 'FontSize',fontsize,...
                 'FontName',fontname,...
                 'Interpreter','latex')
+        catch
+            % continue
         end
         % set axes
         try
@@ -75,6 +79,8 @@ function set_figure_properties(figHandle, preset, paperheight_in)
                 'FontName',fontname,...
                 'LineWidth',linewidth, ...
                 'Box','on');
+        catch
+            % continue
         end
         % set subplotaxes
         try
@@ -86,6 +92,8 @@ function set_figure_properties(figHandle, preset, paperheight_in)
             );
                 % ,'XAxisLocation','origin'...
                 % ,'YAxisLocation','origin'...
+        catch
+            % continue
         end
         % set legend
         if strcmpi(get(allchildren(a),'Tag'),'legend')
@@ -109,6 +117,8 @@ function set_figure_properties(figHandle, preset, paperheight_in)
                     ,'LineWidth', linewidth ...
                 );
             end
+        catch
+            % continue
         end
     end
     
