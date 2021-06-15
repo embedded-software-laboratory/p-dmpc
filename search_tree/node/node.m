@@ -3,14 +3,13 @@ function n = node(depth, trims, xs, ys, yaws, g_values, h_values)
         return;
     end
     nVeh = numel(yaws);
-    idx = tree.nodeCols();
-    nCols = numel(fieldnames(idx));
+    nCols = NodeInfo.n_cols;
     n = zeros(nVeh,nCols);
-    n(:,idx.depth) = depth;
-    n(:,idx.trim) = trims;
-    n(:,idx.x) = xs;
-    n(:,idx.y) = ys;
-    n(:,idx.yaw) = yaws;
-    n(:,idx.g) = g_values;
-    n(:,idx.h) = h_values;
+    n(:,NodeInfo.depth) = depth;
+    n(:,NodeInfo.trim) = trims;
+    n(:,NodeInfo.x) = xs;
+    n(:,NodeInfo.y) = ys;
+    n(:,NodeInfo.yaw) = yaws;
+    n(:,NodeInfo.g) = g_values;
+    n(:,NodeInfo.h) = h_values;
 end
