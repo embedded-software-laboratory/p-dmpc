@@ -24,59 +24,67 @@
 % 
 % Author: i11 - Embedded Software, RWTH Aachen University
 
-function scenario = recursive_feasibility_scenario(recursive_feasibility,is_ok)
+function scenario = circle_scenario_pb(nVeh)
     scenario = Scenario();
-    veh = Vehicle();
-    radius = 2;
-    center_x = 2.25;
-    center_y = 2;
-    veh.x_start = -radius + center_x;
-    veh.y_start = 0 + center_y;
-    veh.yaw_start = 0;
-    veh.x_goal = radius + center_x;
-    veh.y_goal = 0 + center_y;
-    veh.yaw_goal = 0;
-    veh.trim_config = 1;
-    veh.referenceTrajectory = [veh.x_start veh.y_start;veh.x_goal veh.y_goal];
-    scenario.vehicles = veh;
-    scenario.nVeh = 1;
-    scenario.Hp = 2;
-    scenario.T_end = 6;
-    scenario.trim_set = 1;
     
-    scenario.plot_limits = [-0.5,5;1.5,2.5];
+    radius = 2;
+    yaws = pi*2/nVeh*(0:nVeh-1);
+    for yaw = yaws
+        s = sin(yaw);
+        c = cos(yaw);
+        veh = Vehicle();
+
+        veh.trim_config = 1;
+
+        veh.x_start = -c*radius;
+        veh.y_start = -s*radius;
+        veh.yaw_start = yaw;
+        veh.x_goal = c*radius;
+        veh.y_goal = s*radius;
+        veh.yaw_goal = yaw;
+        % Lab: translate by center
+        center_x = 2.25;
+        center_y = 2;
+        veh.x_start = veh.x_start + center_x;
+        veh.y_start = veh.y_start + center_y;
+        veh.x_goal  = veh.x_goal  + center_x;
+        veh.y_goal  = veh.y_goal  + center_y;
+
+        veh.referenceTrajectory = [veh.x_start veh.y_start
+                                   veh.x_goal  veh.y_goal];
+
+        scenario.vehicles = [scenario.vehicles, veh];
+    end
+    if nVeh <= 2
+        scenario.plot_limits = [-0.5,5;1.5,2.5];
+    else
+        scenario.plot_limits = [-0.5,5;-0.5,4.5];
+    end
+    scenario.nVeh = nVeh;
+    scenario.name = sprintf('%i-circle', scenario.nVeh);
 
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
 
+    scenario.T_end = 6;
+
+    recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(...
         scenario.model...
         , scenario.trim_set...
         , scenario.offset...
         , scenario.dt...
-        , scenario.nVeh...
+        , 1 ...
         , scenario.Hp...
         , scenario.tick_per_step...
         , recursive_feasibility...
     );
 
-    scenario.name = sprintf('recursive_feasibility_%s', mat2str(recursive_feasibility));
-
-
-    x_obs_l = veh.x_start+0.5*veh.Length...
-        + ( (scenario.mpa.trims(1).speed + scenario.mpa.trims(2).speed) / 2 ...
-            +(scenario.mpa.trims(2).speed + scenario.mpa.trims(3).speed) / 2 ...
-            + 1*scenario.mpa.trims(3).speed ...
-            +(scenario.mpa.trims(2).speed + scenario.mpa.trims(3).speed) / 2 ...
-        ) * scenario.dt ...
-        + scenario.offset + 0.08;
-
-
-    scenario.obstacles{1} = [
-        0    0.2  0.2  0
-        -0.2 -0.2  0.2  0.2] ...
-        + [x_obs_l; center_y];
-    if is_ok
-        scenario.obstacles{1} = scenario.obstacles{1} + [0.3; 0];
-    end
+       if scenario.assignPrios
+            scenario.coupling_adjacency = triu(ones(nVeh))-eye(nVeh);
+       else
+            scenario.coupling_adjacency = triu(ones(nVeh))-eye(nVeh);
+       end
+       scenario.controller_name = strcat(scenario.controller_name, '-PB');
+       scenario.controller = @(s,i) pb_controller(s,i);
 
 end

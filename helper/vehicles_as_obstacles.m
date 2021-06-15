@@ -10,10 +10,12 @@ function [scenario_v, iter_v] = vehicles_as_obstacles(scenario, iter, vehicle_fi
     scenario_v = filter_scenario(scenario, ~vehicle_filter);
     iter_v = filter_iter(iter, ~vehicle_filter);
     
-    scenario_v.dynamic_obstacles = cell(sum(vehicle_filter),scenario.Hp);
+    nDynObst = size(scenario_v.dynamic_obstacle_area, 1);
+    
+    scenario_v.dynamic_obstacle_area = [scenario_v.dynamic_obstacle_area; cell(sum(vehicle_filter),scenario.Hp)];
 
     for iVeh = find(vehicle_filter)
-        scenario_v.dynamic_obstacles(iVeh,:) = info{iVeh}.shapes;
+        scenario_v.dynamic_obstacle_area(nDynObst+iVeh,:) = info{iVeh}.shapes;
     end
 
 end

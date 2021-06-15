@@ -1,3 +1,29 @@
+% MIT License
+% 
+% Copyright (c) 2021 Lehrstuhl Informatik 11 - RWTH Aachen University
+% 
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+% 
+% The above copyright notice and this permission notice shall be included in all
+% copies or substantial portions of the Software.
+% 
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+% SOFTWARE.
+% 
+% This file is part of receding-horizon-graph-search.
+% 
+% Author: i11 - Embedded Software, RWTH Aachen University
+
 function result = run_experiment(varargin)
 %MAIN_MPC Summary of this function goes here
 %   Detailed explanation goes here
@@ -16,7 +42,7 @@ assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_f
 addpath(common_cpm_functions_path);
 
 matlabDomainId = 1;
-[matlabParticipant, reader_vehicleStateList, writer_vehicleCommandTrajectory, ~, reader_systemTrigger, writer_readyStatus, trigger_stop] = init_script(matlabDomainId);
+[matlabParticipant, reader_vehicleStateList, writer_vehicleCommandTrajectory, ~, reader_systemTrigger, writer_readyStatus, trigger_stop] = init_script(matlabDomainId); %#ok<ASGLU>
 
 % Set reader properties
 reader_vehicleStateList.WaitSet = true;
@@ -31,8 +57,6 @@ scenario = varargin{end};
 info = struct;
 info.trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
-n_vertices = 0;
-idx = tree.nodeCols();
 cur_depth = 1;
 
 controller = @(scenario, iter)...
@@ -42,11 +66,6 @@ controller = @(scenario, iter)...
 % init result struct
 result = get_result_struct(scenario);
 controller_init = false;
-% times
-t             = zeros(1,0);
-t_start_nanos = 0;
-t_end         = 10;
-t_rel         = 0;
 
 % Middleware period for valid_after stamp
 dt_period_nanos = uint64(scenario.dt*1e9);
@@ -86,7 +105,6 @@ while (~got_stop)
     % -------------------------------------------------------------------------
     % one-time initialization of starting position
     if controller_init == false
-        t_start_nanos = sample(end).t_now;
         x0 = zeros(scenario.nVeh,4);
         pose = [sample(end).state_list.pose];
         x0(:,1) = [pose.x];
@@ -96,12 +114,12 @@ while (~got_stop)
         controller_init = true;
     else
         % take last planned state as new actual state
-        planned_node = info.tree.Node{info.tree_path(2)};
+        planned_node = info.Tree.node{info.tree_path(2)};
         speeds = zeros(scenario.nVeh,1);
         for iVeh=1:scenario.nVeh
-            speeds(iVeh) = scenario.mpa.trims(planned_node(iVeh,idx.trim)).speed;
+            speeds(iVeh) = scenario.mpa.trims(planned_node(iVeh,NodeInfo.trim)).speed;
         end
-        x0 = [planned_node(:,idx.x), planned_node(:,idx.y), planned_node(:,idx.yaw), speeds];
+        x0 = [planned_node(:,NodeInfo.x), planned_node(:,NodeInfo.y), planned_node(:,NodeInfo.yaw), speeds];
     end
     % Sample reference trajectory
     iter = rhc_init(scenario,x0,info.trim_indices);
@@ -114,13 +132,13 @@ while (~got_stop)
     result.controller_outputs{cur_depth} = u;
     % store vehicles path in higher resolution
     result.vehicle_path_fullres(:,cur_depth) = path_between(...
-        info.tree.Node{info.tree_path(1)}...
-        ,info.tree.Node{info.tree_path(2)}...
-        ,info.tree...
+        info.Tree.node{info.tree_path(1)}...
+        ,info.Tree.node{info.tree_path(2)}...
+        ,info.Tree...
         ,scenario.mpa...
     );
             
-    result.n_expanded = result.n_expanded + numel(info.tree.Node);
+    result.n_expanded = result.n_expanded + numel(info.Tree.node);
             
     % Apply control action f/e veh
     % -------------------------------------------------------------------------

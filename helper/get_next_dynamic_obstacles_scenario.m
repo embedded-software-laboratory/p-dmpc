@@ -24,17 +24,9 @@
 % 
 % Author: i11 - Embedded Software, RWTH Aachen University
 
-classdef VehicleModel
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    properties
-        nx
-        nu
-        ny
-    end
-    
-    methods(Abstract)
-        dx = ode(obj,x,u)
-    end
+function [ scenario ] = get_next_dynamic_obstacles_scenario( scenario,iStep )
+if ~isempty(scenario.dynamic_obstacle_area)
+    scenario.dynamic_obstacle_area = scenario.dynamic_obstacle_area(:,iStep:iStep+scenario.Hp-1);
 end
+end
+

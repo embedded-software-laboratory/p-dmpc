@@ -12,9 +12,9 @@ function cur_node = get_cur_node(info,scenario)
     for i = 1:scenario.nVeh
         assert(numel(info{i}.tree_path)>1);
         trim_indices = [trim_indices; info{i}.trim_indices];
-        x = [x; info{i}.tree.Node{info{i}.tree_path(2)}(1,info{i}.tree.idx.x)];
-        y = [y; info{i}.tree.Node{info{i}.tree_path(2)}(1,info{i}.tree.idx.y)];
-        yaw = [yaw; info{i}.tree.Node{info{i}.tree_path(2)}(1,info{i}.tree.idx.yaw)];
+        x = [x; info{i}.tree.node{info{i}.tree_path(2)}(1,NodeInfo.x)];
+        y = [y; info{i}.tree.node{info{i}.tree_path(2)}(1,NodeInfo.y)];
+        yaw = [yaw; info{i}.tree.node{info{i}.tree_path(2)}(1,NodeInfo.yaw)];
     end
     init_depth = 0;
     g_values = zeros(scenario.nVeh,1);
