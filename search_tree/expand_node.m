@@ -39,8 +39,6 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node)
         id = successor_trim_ids(iTrim);
         expanded_node = cur_node;
         expanded_node(:,NodeInfo.k) = k_exp;
-        expanded_node(:,NodeInfo.trim)
-        trim_tuple(id,:)
         expanded_node(:,NodeInfo.trim) = trim_tuple(id,:);
         for iVeh = 1 : scenario.nVeh
             itrim1 = cur_node(iVeh,NodeInfo.trim);

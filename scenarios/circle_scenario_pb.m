@@ -80,7 +80,7 @@ function scenario = circle_scenario_pb(nVeh)
     );
 
        if scenario.assignPrios
-            scenario.coupling_adjacency = triu(ones(nVeh))-eye(nVeh);
+            scenario.coupling_adjacency = ones(nVeh,nVeh);
        else
             scenario.coupling_adjacency = triu(ones(nVeh))-eye(nVeh);
        end

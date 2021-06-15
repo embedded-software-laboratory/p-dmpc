@@ -96,7 +96,7 @@ while ~finished && k <= scenario.k_end
         % save controller outputs in result struct
         result.trajectory_predictions(:,k) = y_pred;
         result.controller_outputs{k} = u;
-        result.subcontroller_runtime(:,k) = get_subcontroller_runtime(info);
+        result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
 
         % init struct for exploration plot
         if doPlotExploration
@@ -108,12 +108,12 @@ while ~finished && k <= scenario.k_end
 
         % Determine next node
         % TODO Substitute with measure / simulate
-        cur_node = get_cur_node(info,scenario);
+        cur_node = info.next_node;
 
         % store vehicles path in higher resolution
-        result.vehicle_path_fullres(:,k) = get_fullres_path(info,scenario);
+        result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
 
-        %result.n_expanded(k) = numel(info.tree.node);
+        result.n_expanded = result.n_expanded + info.n_expanded;
 
         % Simulation
         % ----------------------------------------------------------------------
