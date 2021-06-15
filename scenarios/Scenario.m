@@ -1,3 +1,29 @@
+% MIT License
+% 
+% Copyright (c) 2021 Lehrstuhl Informatik 11 - RWTH Aachen University
+% 
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+% 
+% The above copyright notice and this permission notice shall be included in all
+% copies or substantial portions of the Software.
+% 
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+% SOFTWARE.
+% 
+% This file is part of receding-horizon-graph-search.
+% 
+% Author: i11 - Embedded Software, RWTH Aachen University
+
 classdef Scenario
     properties
         vehicles = [];  % array of Vehicle objects
@@ -6,64 +32,38 @@ classdef Scenario
         name = 'UnnamedScenario';
         controller_name = 'RHC';
         dt = 0.4;     % RHC sample time [s]
+        T_end = 20;   % Duration of simulation. [s]
         Hp = 5;
-        Hu;
         mpa;
         trim_set = 3;
         offset = 0.03;  % offset for collision checks
         model = [];
         time_per_tick = 0.01;
-        tick_per_step;
         r_goal = 0.1;   % goal circle
+        dynamic_obstacle_area;
+        dynamic_obstacle_shape;
+        dynamic_obstacle_fullres;
+        plot_limits = [-10,10;-10,10]; % default fallback if not defined
+    end
+    
+    properties (Dependent)
+        tick_per_step;
+        Hu;
+        k_end;
     end
     
     methods
-        function obj = Scenario(options)
-            obj.Hu = obj.Hp;
-            obj.tick_per_step = obj.dt/obj.time_per_tick;
-            if nargin == 1
-                radius = 2;
-                for the_angle=options.angles
-                    s = sin(the_angle);
-                    c = cos(the_angle);
-                    veh = Vehicle();
-                    veh.x_start = -c*radius;
-                    veh.y_start = -s*radius;
-                    veh.yaw_start = the_angle;
-                    veh.x_goal = c*radius;
-                    veh.y_goal = s*radius;
-                    veh.yaw_goal = the_angle;
-                    veh.trim_config = 1;
-                    veh.referenceTrajectory = [-c*radius -s*radius;c*radius s*radius];
-                    
-                    % Lab: translate by center
-                    center_x = 2.25;
-                    center_y = 2;
-                    veh.x_start = -c*radius + center_x;
-                    veh.y_start = -s*radius + center_y;
-                    veh.x_goal = c*radius + center_x;
-                    veh.y_goal = s*radius + center_y;
-                    veh.referenceTrajectory = veh.referenceTrajectory + [center_x, center_y];
-                    obj.vehicles = [obj.vehicles, veh];
-                end
-                
-                obj.nVeh = options.amount;
-                obj.name = sprintf('%i-circle', options.amount);
-
-                obj.model = BicycleModel(veh.Lf,veh.Lr);
-
-                recursive_feasibility = true;
-                obj.mpa = MotionPrimitiveAutomaton(...
-                    obj.model...
-                    , obj.trim_set...
-                    , obj.offset...
-                    , obj.dt...
-                    , options.amount...
-                    , obj.Hp...
-                    , obj.tick_per_step...
-                    , recursive_feasibility...
-                );
-            end
+        function obj = Scenario()
+        end
+        
+        function result = get.k_end(obj)
+            result = floor(obj.T_end/obj.dt);
+        end
+        function result = get.tick_per_step(obj)
+            result = obj.dt/obj.time_per_tick;
+        end
+        function result = get.Hu(obj)
+            result = obj.Hp;
         end
         
         function plot(obj)

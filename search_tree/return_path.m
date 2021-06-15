@@ -24,17 +24,22 @@
 % 
 % Author: i11 - Embedded Software, RWTH Aachen University
 
-classdef VehicleModel
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+function search_paths = return_path(tree, mpa)
+%RETURN_PATH returns the path as cell array to the closest node
     
-    properties
-        nx
-        nu
-        ny
-    end
+    n_veh = length(tree.node{1, 1}.trims);
+    end_node = tree.n_nodes();
+    path = findpath(tree, 1, end_node);
+    path_length = length(path);
+    search_paths = cell(1, n_veh);
     
-    methods(Abstract)
-        dx = ode(obj,x,u)
-    end
+    for j = 1 : (path_length - 1)
+        cur_node = tree.get(path(j));
+        next_node  = tree.get(path(j + 1));
+        search_path = path_between(cur_node, next_node, tree, mpa);
+        
+        for i = 1:n_veh
+            search_paths(i) = {[search_paths{i}; search_path{i}]};
+        end
+    end  
 end

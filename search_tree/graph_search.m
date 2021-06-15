@@ -1,8 +1,33 @@
+% MIT License
+% 
+% Copyright (c) 2021 Lehrstuhl Informatik 11 - RWTH Aachen University
+% 
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+% 
+% The above copyright notice and this permission notice shall be included in all
+% copies or substantial portions of the Software.
+% 
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+% SOFTWARE.
+% 
+% This file is part of receding-horizon-graph-search.
+% 
+% Author: i11 - Embedded Software, RWTH Aachen University
+
 function [u, y_pred, info] = graph_search(scenario, iter)
     info = struct;
 
     % Create tree with root node
-    % TODO Choose trim_indices depending on measurement
     init_depth = 0;
     g_values = zeros(scenario.nVeh,1);
     h_values = zeros(scenario.nVeh,1);
@@ -18,13 +43,9 @@ function [u, y_pred, info] = graph_search(scenario, iter)
     info.tree = Tree(cur_node);
     
     % Array storing ids of nodes that may be expanded
-    % TODO Preallocate
     open_nodes = 1;
     open_values = sum_values(info.tree, open_nodes);
-    
-    % Array storing ids of nodes that were visited
-    visited_nodes = [];
-    
+        
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
     while true
@@ -50,9 +71,8 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             % could remove node from tree here
             continue
         end
-        if cur_node(1,NodeInfo.depth) == scenario.Hp
+        if cur_node(1,NodeInfo.k) == scenario.Hp
             y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
-            % TODO u
             u = 0;
             info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
             info.trim_indices = info.tree.node{info.tree_path(2)}(:,NodeInfo.trim);
@@ -69,8 +89,8 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             parents = cur_node_id*ones(numel(expanded_nodes),1);
             [info.tree, new_open_nodes] = info.tree.add_nodes(parents, expanded_nodes);
             % add child nodes
-            open_nodes = [open_nodes, new_open_nodes];
-            open_values = [open_values, sum_values(info.tree, new_open_nodes)];
+            open_nodes = [open_nodes, new_open_nodes]; %#ok<AGROW>
+            open_values = [open_values, sum_values(info.tree, new_open_nodes)]; %#ok<AGROW>
             [open_nodes, open_values] = sort_open_list(open_nodes, open_values);
 
             % % plot exploration

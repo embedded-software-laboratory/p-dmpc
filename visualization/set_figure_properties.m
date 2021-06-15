@@ -1,3 +1,29 @@
+% MIT License
+% 
+% Copyright (c) 2021 Lehrstuhl Informatik 11 - RWTH Aachen University
+% 
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+% 
+% The above copyright notice and this permission notice shall be included in all
+% copies or substantial portions of the Software.
+% 
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+% SOFTWARE.
+% 
+% This file is part of receding-horizon-graph-search.
+% 
+% Author: i11 - Embedded Software, RWTH Aachen University
+
 function set_figure_properties(figHandle, preset, paperheight_in)
 
     switch lower(preset)
@@ -54,6 +80,8 @@ function set_figure_properties(figHandle, preset, paperheight_in)
                 'FontSize',fontsize+1,...
                 'FontName',fontname,...
                 'Interpreter','latex');
+        catch
+            % continue
         end
         try % redefine x- and y-labels
             h_xlabel = get(allchildren(a), 'xlabel');
@@ -66,6 +94,8 @@ function set_figure_properties(figHandle, preset, paperheight_in)
                 'FontSize',fontsize,...
                 'FontName',fontname,...
                 'Interpreter','latex')
+        catch
+            % continue
         end
         % set axes
         try
@@ -75,6 +105,8 @@ function set_figure_properties(figHandle, preset, paperheight_in)
                 'FontName',fontname,...
                 'LineWidth',linewidth, ...
                 'Box','on');
+        catch
+            % continue
         end
         % set subplotaxes
         try
@@ -86,6 +118,8 @@ function set_figure_properties(figHandle, preset, paperheight_in)
             );
                 % ,'XAxisLocation','origin'...
                 % ,'YAxisLocation','origin'...
+        catch
+            % continue
         end
         % set legend
         if strcmpi(get(allchildren(a),'Tag'),'legend')
@@ -102,12 +136,15 @@ function set_figure_properties(figHandle, preset, paperheight_in)
                 'Box','on');
         end
         % Set graphic objects
-        try
-            h_graphics = get(allchildren(a),'Children');
-            for h_graphic = h_graphics
+        
+        h_graphics = get(allchildren(a),'Children');
+        for h_graphic = h_graphics'
+            try
                 set(h_graphic ...
                     ,'LineWidth', linewidth ...
                 );
+            catch
+                % continue
             end
         end
     end
@@ -120,22 +157,22 @@ function set_figure_properties(figHandle, preset, paperheight_in)
     set(figHandle ...
         ,'Position',[screenpos(1:2), paperwidth, paperheight]...  % px, py, w, h, of figure on screen
     );
-        
-    if ~strcmp(preset, 'video')
-        % Make axes span whole window
-        ax = get(figHandle,'CurrentAxes');
-        outerpos = ax.OuterPosition;
-        ti = ax.TightInset; 
-        left = outerpos(1) + ti(1);
-        bottom = outerpos(2) + ti(2);
-        ax_width = outerpos(3) - ti(1) - ti(3) - 2e-3; %box was sometimes cut off
-        ax_height = outerpos(4) - ti(2) - ti(4);
-        ax.Position = [left bottom ax_width ax_height];
-        set(figHandle,'PaperUnits',units)
-        set(figHandle ...
-            ,'PaperSize',[paperwidth, paperheight] ...
-            ,'PaperPosition',[0, 0, paperwidth, paperheight] ...
-        );
-    end
+%         
+%     if ~strcmp(preset, 'video')
+%         % Make axes span whole window
+%         ax = get(figHandle,'CurrentAxes');
+%         outerpos = ax.OuterPosition;
+%         ti = ax.TightInset; 
+%         left = outerpos(1) + ti(1);
+%         bottom = outerpos(2) + ti(2);
+%         ax_width = outerpos(3) - ti(1) - ti(3) - 2e-3; %box was sometimes cut off
+%         ax_height = outerpos(4) - ti(2) - ti(4);
+%         ax.Position = [left bottom ax_width ax_height];
+%         set(figHandle,'PaperUnits',units)
+%         set(figHandle ...
+%             ,'PaperSize',[paperwidth, paperheight] ...
+%             ,'PaperPosition',[0, 0, paperwidth, paperheight] ...
+%         );
+%     end
     
 end

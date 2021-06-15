@@ -1,3 +1,29 @@
+% MIT License
+% 
+% Copyright (c) 2021 Lehrstuhl Informatik 11 - RWTH Aachen University
+% 
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+% 
+% The above copyright notice and this permission notice shall be included in all
+% copies or substantial portions of the Software.
+% 
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+% SOFTWARE.
+% 
+% This file is part of receding-horizon-graph-search.
+% 
+% Author: i11 - Embedded Software, RWTH Aachen University
+
 function X = cartprod(varargin)
 %CARTPROD Cartesian product of multiple sets.
 %
@@ -27,15 +53,16 @@ function X = cartprod(varargin)
 
 
 numSets = length(varargin);
-for i = 1:numSets,
+sizeThisSet = zeros(1,numSets);
+for i = 1:numSets
     thisSet = sort(varargin{i});
-    if ~isequal(prod(size(thisSet)),length(thisSet)),
+    if ~isequal(numel(thisSet),length(thisSet))
         error('All inputs must be vectors.')
     end
-    if ~isnumeric(thisSet),
+    if ~isnumeric(thisSet)
         error('All inputs must be numeric.')
     end
-    if ~isequal(thisSet,unique(thisSet)),
+    if ~isequal(thisSet,unique(thisSet))
         error(['Input set' ' ' num2str(i) ' ' 'contains duplicated elements.'])
     end
     sizeThisSet(i) = length(thisSet);
@@ -43,14 +70,14 @@ for i = 1:numSets,
 end
 
 X = zeros(prod(sizeThisSet),numSets);
-for i = 1:size(X,1),
+for i = 1:size(X,1)
     
     % Envision imaginary n-d array with dimension "sizeThisSet" ...
     % = length(varargin{1}) x length(varargin{2}) x ...
     
     ixVect = ind2subVect(sizeThisSet,i);
     
-    for j = 1:numSets,
+    for j = 1:numSets
         X(i,j) = varargin{j}(ixVect(j));
     end
 end

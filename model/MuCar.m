@@ -1,3 +1,29 @@
+% MIT License
+% 
+% Copyright (c) 2021 Lehrstuhl Informatik 11 - RWTH Aachen University
+% 
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+% 
+% The above copyright notice and this permission notice shall be included in all
+% copies or substantial portions of the Software.
+% 
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+% SOFTWARE.
+% 
+% This file is part of receding-horizon-graph-search.
+% 
+% Author: i11 - Embedded Software, RWTH Aachen University
+
 classdef MuCar < VehicleModel
     properties
         p = [1.004582, -0.142938, 0.195236, 3.560576, -2.190728, -9.726828, 2.515565, 1.321199, 0.032208, -0.012863]; % parameter vector
@@ -10,7 +36,7 @@ classdef MuCar < VehicleModel
         end
 
         function dx = ode(obj,x,u,t,t_u)
-            % See vehicle paper TODO Reference
+            % See vehicle paper https://doi.org/10.1016/j.ifacol.2020.12.1821
             u = interp1(t_u,u,t, 'method', 'previous');
             
             px    = x(:,1);

@@ -1,8 +1,34 @@
+% MIT License
+% 
+% Copyright (c) 2021 Lehrstuhl Informatik 11 - RWTH Aachen University
+% 
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+% 
+% The above copyright notice and this permission notice shall be included in all
+% copies or substantial portions of the Software.
+% 
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+% SOFTWARE.
+% 
+% This file is part of receding-horizon-graph-search.
+% 
+% Author: i11 - Embedded Software, RWTH Aachen University
+
 function [expanded_nodes] = expand_node(scenario, iter, cur_node)
     trim_tuple = scenario.mpa.trim_tuple;
     trim_length = length(scenario.mpa.trims)*ones(1, scenario.nVeh);
     cur_trim_id = tuple2index(cur_node(:,NodeInfo.trim),trim_length);
-    k_cur = cur_node(1,NodeInfo.depth);
+    k_cur = cur_node(1,NodeInfo.k);
     k_exp = k_cur + 1;
     successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
     
@@ -12,7 +38,7 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node)
     for iTrim = 1:nTrims
         id = successor_trim_ids(iTrim);
         expanded_node = cur_node;
-        expanded_node(:,NodeInfo.depth) = k_exp;
+        expanded_node(:,NodeInfo.k) = k_exp;
         expanded_node(:,NodeInfo.trim) = trim_tuple(id,:);
         for iVeh = 1 : scenario.nVeh
             itrim1 = cur_node(iVeh,NodeInfo.trim);
