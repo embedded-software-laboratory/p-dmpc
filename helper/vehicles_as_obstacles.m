@@ -3,7 +3,7 @@
 % vehicles are represented as obstacles along their predicted path
 function [scenario_v, iter_v] = vehicles_as_obstacles(scenario, iter, vehicle_filter, shapes)
 
-    assert( size(shapes,1) == scenario.nVeh)
+    assert( size(shapes,1) == scenario.nVeh-1 )
     assert( length(vehicle_filter) == scenario.nVeh );
     assert( islogical( vehicle_filter ));
 

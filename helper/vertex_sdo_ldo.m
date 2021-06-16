@@ -1,4 +1,6 @@
-function idx = next_node_sdo_ldo(A,color,degree)
+% finde next vertex in color order with a combination of
+% "Saturation Degree Ordering" (SDO) and "Largest Degree Ordering" (LDO)
+function idx = vertex_sdo_ldo(A,color,degree)
     max = -1;
     uncolored = find(color == 0);
     for i = uncolored

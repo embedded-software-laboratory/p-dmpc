@@ -70,6 +70,7 @@ function scenario = circle_scenario(nVeh,isPB)
     nVeh_mpa = scenario.nVeh;
     
     if isPB
+        % coupling graph is complete
        if scenario.assignPrios
             scenario.coupling_adjacency = ones(nVeh,nVeh);
        else

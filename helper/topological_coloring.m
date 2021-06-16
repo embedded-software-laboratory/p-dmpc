@@ -1,3 +1,5 @@
+% find a topological sorting with a minimum number of levels (approximation)
+% based on graph coloring in an undirected graph
 function [valid,L] = topological_coloring(A)
     % init
     a = length(A(:,1));
@@ -8,11 +10,11 @@ function [valid,L] = topological_coloring(A)
     % assignment
     color(degree == 0) = 1;
     while ~all(color ~= 0)
-        % get next node in coloring order
-        node = next_node_sdo_ldo(A,color,degree);
-        neighbor_col  = unique(color(A(node,:)));
+        % get next vertex in coloring order
+        v = vertex_sdo_ldo(A,color,degree);
+        neighbor_col  = unique(color(A(v,:) == 1));
         poss_col = setdiff(col,neighbor_col);
-        color(node) = poss_col(1);
+        color(v) = poss_col(1);
     end
     % topolical sorting matrix
     used_col = unique(color);

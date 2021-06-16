@@ -2,13 +2,16 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
 
     assert(~isempty(scenario.coupling_adjacency));
     
+    % determine planning levels
     if scenario.assignPrios
-        groups = PB_predecessor_groups_coloring(scenario.coupling_adjacency);
+        [isDAG, topo_groups] = topological_sorting_coloring(scenario.coupling_adjacency);
     else
         [isDAG, topo_groups] = kahn(scenario.coupling_adjacency);
-        assert( isDAG, 'Coupling matrix is not a DAG' );
-        groups = PB_predecessor_groups(topo_groups);
     end
+    assert( isDAG, 'Coupling matrix is not a DAG' );
+    
+    % get planning groups and their predecessors
+    groups = PB_predecessor_groups(topo_groups);
 
     % add 'self-connections'.
     scenario.coupling_adjacency = scenario.coupling_adjacency + eye(scenario.nVeh) > 0;
@@ -45,7 +48,7 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
             v2o_filter(self_index) = false;
 
             % add predicted trajecotries as obstacle
-            [scenario_v, iter_v] = vehicles_as_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(priority_filter,:));
+            [scenario_v, iter_v] = vehicles_as_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(group.predecessors,:));
     
             % execute sub controller for 1-veh scenario
             [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
