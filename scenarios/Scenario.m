@@ -45,7 +45,7 @@ classdef Scenario
         dynamic_obstacle_shape;
         dynamic_obstacle_fullres;
         plot_limits = [-10,10;-10,10]; % default fallback if not defined
-        coupling_adjacency = [];
+        coupling_adjacency;
         assignPrios = false;
     end
     

@@ -24,7 +24,7 @@
 % 
 % Author: i11 - Embedded Software, RWTH Aachen University
 
-function scenario = circle_scenario(nVeh)
+function scenario = circle_scenario(nVeh,isPB)
     scenario = Scenario();
     
     radius = 2;
@@ -66,6 +66,20 @@ function scenario = circle_scenario(nVeh)
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
 
     scenario.T_end = 6;
+   
+    nVeh_mpa = scenario.nVeh;
+    
+    if isPB
+       if scenario.assignPrios
+            scenario.coupling_adjacency = ones(nVeh,nVeh);
+       else
+            scenario.coupling_adjacency = triu(ones(nVeh))-eye(nVeh);
+       end
+       scenario.controller_name = strcat(scenario.controller_name, '-PB');
+       scenario.controller = @(s,i) pb_controller(s,i);
+
+       nVeh_mpa = 1;
+    end
 
     recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(...
@@ -73,7 +87,7 @@ function scenario = circle_scenario(nVeh)
         , scenario.trim_set...
         , scenario.offset...
         , scenario.dt...
-        , scenario.nVeh...
+        , nVeh_mpa...
         , scenario.Hp...
         , scenario.tick_per_step...
         , recursive_feasibility...
