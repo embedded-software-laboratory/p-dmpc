@@ -70,11 +70,12 @@ function scenario = circle_scenario(nVeh,isPB)
     nVeh_mpa = scenario.nVeh;
     
     if isPB
-        % coupling graph is complete
+        % undirected coupling adjacency is complete
+        scenario.adjacency = ones(nVeh,nVeh);
        if scenario.assignPrios
-            scenario.coupling_adjacency = ones(nVeh,nVeh);
+            scenario.directed_coupling = [];
        else
-            scenario.coupling_adjacency = triu(ones(nVeh))-eye(nVeh);
+            scenario.directed_coupling = triu(ones(nVeh))-eye(nVeh);
        end
        scenario.controller_name = strcat(scenario.controller_name, '-PB');
        scenario.controller = @(s,i) pb_controller(s,i);

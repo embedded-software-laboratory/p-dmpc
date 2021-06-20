@@ -25,22 +25,18 @@
 % Author: i11 - Embedded Software, RWTH Aachen University
 
 function [u, y_pred, info] = pb_controller(scenario, iter)
+    assert( ~isempty(scenario.adjacency) )
 
-    assert(~isempty(scenario.coupling_adjacency));
-    
     % determine planning levels
-    if scenario.assignPrios
-        [isDAG, topo_groups] = topological_sorting_coloring(scenario.coupling_adjacency);
+    if scenario.assignPrios || isempty(scenario.directed_coupling)
+        [isDAG, topo_groups] = topological_sorting_coloring(scenario.adjacency);
     else
-        [isDAG, topo_groups] = kahn(scenario.coupling_adjacency);
+        [isDAG, topo_groups] = kahn(scenario.directed_coupling);
     end
     assert( isDAG, 'Coupling matrix is not a DAG' );
     
     % get planning groups and their predecessors
     groups = PB_predecessor_groups(topo_groups);
-
-    % add 'self-connections'.
-    scenario.coupling_adjacency = scenario.coupling_adjacency + eye(scenario.nVeh) > 0;
 
     y_pred = cell(scenario.nVeh,1);
     u = zeros(scenario.nVeh,1);
