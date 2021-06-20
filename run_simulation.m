@@ -32,7 +32,6 @@ info.trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
 k = 0;
 cur_node = node(k, info.trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
-tree = Tree(cur_node);
 k = k + 1;
 
 controller = @(scenario, iter)...
