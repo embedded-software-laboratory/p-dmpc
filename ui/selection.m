@@ -24,7 +24,7 @@
 % 
 % Author: i11 - Embedded Software, RWTH Aachen University
 
-function options = selection(vehicle_amount,plot_option)
+function options = selection(vehicle_amount,plot_option,strat_option)
 %% Specify amount of vehicles
 scenarios = {
     '1', pi+pi; ...
@@ -52,7 +52,7 @@ possStrats = {
 
     % ====== load previous choice ======
     try
-        load([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option');
+        load([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option', 'strat_option');
     catch
         % continue
     end
@@ -110,7 +110,7 @@ options.visu = possPlots{plot_option,3};
 
 
     % ============= save choice ============
-    save([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option');
+    save([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option', 'strat_option');
 
 end
 

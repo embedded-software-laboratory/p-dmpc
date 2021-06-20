@@ -29,18 +29,15 @@ close all
 clc
 
 % Determine options
-if nargin == 3
-    options = selection(varargin{1},varargin{2},varargin{3});
-else
-    if nargin==2
+switch nargin
+    case 3
+        options = selection(varargin{1},varargin{2},varargin{3});
+    case 2
         options = selection(varargin{1},varargin{2},1);
-    else
-        if nargin==1
-            options = selection(varargin{1},2,1);
-        else
-            options = selection();
-        end
-    end
+    case 1
+        options = selection(varargin{1},2,1);
+    otherwise
+        options = selection();
 end
 
 % Setup scenario
