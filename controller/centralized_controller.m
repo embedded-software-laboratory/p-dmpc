@@ -40,6 +40,7 @@ function [u, y_pred, info] = centralized_controller(scenario, iter)
     [u, y_pred, info_v] = sub_controller(scenario, iter);
     
     % prepare output data
+    info.tree = info_v.tree; % only for node explorationslee
     info.subcontroller_runtime = toc(subcontroller_timer);
     info.n_expanded = info.n_expanded + numel(info_v.tree.node);
     info.next_node = set_node(info.next_node,1:scenario.nVeh,info_v);
