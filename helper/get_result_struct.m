@@ -34,7 +34,7 @@ function result = get_result_struct(scenario)
     result.trajectory_predictions = cell(scenario.nVeh,0);
     result.controller_runtime = zeros(0,1);
     result.step_time = zeros(0,1);
-    result.n_expanded = 0;
+    result.n_expanded = zeros(0,1);
     
     % create output directory
     directory_name = strrep(strcat(result.scenario.name, '_', result.scenario.controller_name),' ','_');

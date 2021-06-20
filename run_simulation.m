@@ -113,7 +113,7 @@ while ~finished && k <= scenario.k_end
         % store vehicles path in higher resolution
         result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
 
-        result.n_expanded = result.n_expanded + info.n_expanded;
+        result.n_expanded(k) = info.n_expanded;
 
         % Simulation
         % ----------------------------------------------------------------------
