@@ -1,4 +1,6 @@
 function is_valid = eval_edge_exact(scenario, tree, node_id)
+% EVAL_EDGE_EXACT   Evaluate if step is valid.
+
     is_valid = true;
     % maneuver shapes correspond to movement TO node
     node_id_parent = get_parent(tree, node_id);

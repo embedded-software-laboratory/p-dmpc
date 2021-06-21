@@ -1,6 +1,5 @@
 function iter = rhc_init(scenario, x_measured, trim_indices)
-% Preprocessing step for RHC controller
-% iter.referenceTrajectoryPoints (scenario.nVeh,scenario.Hp,2)
+% RHC_INIT  Preprocessing step for RHC controller
 
     iter = struct;
     idx = indices();

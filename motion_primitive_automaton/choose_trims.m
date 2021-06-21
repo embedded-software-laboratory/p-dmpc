@@ -1,4 +1,6 @@
 function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
+% CHOOSE_TRIMS  Choose trim set used.
+
     switch trim_set
     case 1
         %% Three speeds (0 to 1.5 m/s), one steering (0 deg)

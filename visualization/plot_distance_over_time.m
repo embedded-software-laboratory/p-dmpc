@@ -1,4 +1,6 @@
 function plot_distance_over_time(result)
+% PLOT_DISTANCE_OVER_TIME   Plot distance over time
+
 fig = figure('Visible','off');
 
 T_end = 2.8;

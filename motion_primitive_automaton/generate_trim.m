@@ -1,5 +1,5 @@
-% genrates trim struct
 function trim = generate_trim(model, trim_input)
+% GENERATE_TRIM     Generate a trim for motion primitive automaton.
     
     % BicycleModel
     if model.nu == 2

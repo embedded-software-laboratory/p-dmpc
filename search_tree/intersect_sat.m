@@ -1,6 +1,6 @@
 function collide = intersect_sat(shape1,shape2)
 % INTERSECT_SAT         intersection test for two CONVEX polygon
-%   INTERSECT_SAT(shape1,shape2) returns true iff polygons defined by the vector shapei = [xs;ys] overlap
+%   COLLIDE = INTERSECT_SAT(shape1,shape2) returns true iff polygons defined by the vector shapei = [xs;ys] overlap
 %   The implementation uses the separating axis theorem and therefore can only be used for convex polygons.
 %   Behaviour for using the function for non-convex polygons is undefined
 

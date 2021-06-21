@@ -1,6 +1,7 @@
 function expanded_node = calculate_next_values_reference(scenario, iter, expanded_node)
-    % Cost to come
-    % iter.reference is of size (scenario.nVeh,scenario.Hp,2)
+% CALCULATE_NEXT_VALUES_REFERENCE   Calculate heuristic values for next node.
+    
+    % cost to come
     % Distance to reference trajectory points squared
     for iVeh = 1:scenario.nVeh
         expanded_node(iVeh,NodeInfo.g) = expanded_node(iVeh,NodeInfo.g) ...

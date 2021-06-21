@@ -1,4 +1,6 @@
 function [u, y_pred, info] = graph_search(scenario, iter)
+% GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
+
     info = struct;
 
     % Create tree with root node

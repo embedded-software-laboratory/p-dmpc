@@ -1,6 +1,5 @@
 classdef Vehicle
-    %UNTITLED2 Summary of this class goes here
-    %   Detailed explanation goes here
+% VEHICLE   Class representing vehicles in a scenario
     
     properties
         trim_config         = 1;     % initial trim configuration
@@ -29,4 +28,3 @@ classdef Vehicle
         end
     end
 end
-

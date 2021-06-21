@@ -1,6 +1,6 @@
 function result = run_experiment(varargin)
-%MAIN_MPC Summary of this function goes here
-%   Detailed explanation goes here
+% RUN_EXPERIMENT    Runtime function for usage in the cpm lab.
+
 %% Setup
 
 %% Read input

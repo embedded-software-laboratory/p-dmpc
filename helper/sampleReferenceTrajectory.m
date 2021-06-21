@@ -1,5 +1,5 @@
 function [ ReferencePoints ] = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize )
-% Computes equidistant points along a piecewise linear curve. The first
+% SAMPLEREFERENCETRAJETORY  Computes equidistant points along a piecewise linear curve. The first
 % point is the point on the curve closest to the given point
 % (vehicle_x,vehicle_y). All following points are on the curve with a
 % distance of 'stepSize' to their predecessor.

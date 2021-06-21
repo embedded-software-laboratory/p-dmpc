@@ -1,4 +1,6 @@
 function visualize_exploration(exploration,scenario)
+% VISUALIZE_EXPLORATION     Visualize the explored nodes at the end of prediction horizon.
+
     info = exploration.info;
     t = [info.tree.node{:}];
     t = reshape(t,scenario.nVeh,NodeInfo.n_cols,[]);

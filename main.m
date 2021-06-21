@@ -1,4 +1,6 @@
 function result = main(varargin)
+% MAIN  main function for graph-based receeding horizon control
+
 close all
 clc
 
@@ -14,7 +16,7 @@ else
 end
 
 % Setup scenario
-scenario = circle_scenario(options.amount);
+scenario = horizon_obstacle_scenario(2,2)
 
 doPlotOnline = options.visu(1);
 doPlotExploration = options.visu(2);

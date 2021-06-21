@@ -1,4 +1,6 @@
 function n = node(depth, trims, xs, ys, yaws, g_values, h_values)
+% NODE  Return new node for search tree and set its values.
+
     if nargin == 0
         return;
     end

@@ -1,4 +1,6 @@
 function scenario = recursive_feasibility_scenario(recursive_feasibility,is_ok)
+% RECURSIVE_FEASIBILITY_SCENARIO     Constructor for recursive feasibility scenario
+
     scenario = Scenario();
     veh = Vehicle();
     radius = 2;

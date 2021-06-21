@@ -1,4 +1,5 @@
 classdef BicycleModel < VehicleModel
+% BICYCLEMODEL  Kinematic bicycle model
     
     properties
         Lf

@@ -1,4 +1,6 @@
 function [expanded_nodes] = expand_node(scenario, iter, cur_node)
+% EXPAND_NODE   Expand node in search tree and return succeeding nodes.
+
     trim_tuple = scenario.mpa.trim_tuple;
     trim_length = length(scenario.mpa.trims)*ones(1, scenario.nVeh);
     cur_trim_id = tuple2index(cur_node(:,NodeInfo.trim),trim_length);

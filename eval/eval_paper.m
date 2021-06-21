@@ -1,3 +1,5 @@
+% EVAL_PAPER    Script yielding the evaluation results used in the paper
+
 if verLessThan('matlab','9.10')
     warning('Code was designed for MATLAB 9.10, prepare for incompatibilities')
 end

@@ -1,5 +1,6 @@
 function search_path = path_between(cur_node,next_node, tree, mpa)
 %PATH_BETWEEN Return path as a cell array between two nodes
+
     n_veh = length(tree.node{1, 1}(:,NodeInfo.trim));
     search_path = cell(1, n_veh);
     for iVeh = 1:n_veh        
@@ -22,4 +23,3 @@ function search_path = path_between(cur_node,next_node, tree, mpa)
         search_path(iVeh) = {[xs', ys', yaws', trims]};
     end
 end
-

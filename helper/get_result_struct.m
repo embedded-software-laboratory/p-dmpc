@@ -1,4 +1,6 @@
 function result = get_result_struct(scenario)
+% GET_RESULT_STRUCT     Initialize result struct returned by simulation.
+
     result = struct;
     
     result.scenario = scenario;

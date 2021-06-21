@@ -1,5 +1,6 @@
 function options = selection(vehicle_amount,plot_option)
-%% Specify amount of vehicles
+% SELECTION     Choose scenario/simulation properties in user interface.
+
 scenarios = {
     '1', pi+pi; ...
     '2', pi+pi*(1:2); ...
@@ -65,4 +66,3 @@ options.visu = possPlots{plot_option,3};
     save([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option');
 
 end
-

@@ -1,4 +1,6 @@
 function result = run_simulation(scenario, doOnlinePlot, doPlotExploration)
+% RUN_SIMULATION    Runtime function for usage in matlab simulation.
+
 %% Setup
 % Setup controller
 info = struct;

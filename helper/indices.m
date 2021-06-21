@@ -1,5 +1,5 @@
 function idx=indices
-    % Structure of integer constants used as indices in vectors.
+% INDICES   Return structure of integer constants used as indices in vectors.
 
     idx = struct;
     

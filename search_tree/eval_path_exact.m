@@ -1,4 +1,6 @@
 function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, root_to_node)
+% EVAL_PATH_EXACT   Evaluate if a whole path is valid.
+
     is_valid = false;
     iChop = -1;
     evaluated_nodes = false(size(root_to_node));

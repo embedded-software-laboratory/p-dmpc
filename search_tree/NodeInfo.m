@@ -1,4 +1,6 @@
 classdef NodeInfo
+% NODEINFO  Indices for values stored in node.
+    
     properties (Constant)
         x = 1;
         y = 2;

@@ -1,4 +1,6 @@
 classdef Scenario
+% SCENARIO  Scenario class    
+
     properties
         vehicles = [];  % array of Vehicle objects
         obstacles = {}; % obstacles = {[xs;ys],...}

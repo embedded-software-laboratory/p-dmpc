@@ -1,4 +1,6 @@
 function scenario = horizon_obstacle_scenario(N, d_obstacle)
+% HORIZON_OBSTACLE_SCENARIO     Constructor for horizon obstacle scenario
+
     scenario = Scenario();
     scenario.trim_set = 3;
     veh = Vehicle();

@@ -1,4 +1,6 @@
 function startup()
+% STARTUP   Startup function. Call before executing the main function.
+
 if ispc % windows
     splitchar = ';';
 else
@@ -14,5 +16,5 @@ for d=dirs
     if(~contains(d{1},ignore_dirs))
         addpath(d{1});
     end
-end    
+end
 end

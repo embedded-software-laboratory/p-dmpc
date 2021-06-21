@@ -1,4 +1,6 @@
 classdef MuCar < VehicleModel
+% MUCAR     MuCar Model used in CPM lab    
+
     properties
         p = [1.004582, -0.142938, 0.195236, 3.560576, -2.190728, -9.726828, 2.515565, 1.321199, 0.032208, -0.012863]; % parameter vector
     end

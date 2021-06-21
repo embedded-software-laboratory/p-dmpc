@@ -1,4 +1,6 @@
 function scenario = moving_obstacle_scenario()
+% MOVING_OBSTACLE_SCENARIO     Constructor for moving obstacle scenario
+
     scenario = Scenario();
     scenario.trim_set = 3;
     veh = Vehicle();

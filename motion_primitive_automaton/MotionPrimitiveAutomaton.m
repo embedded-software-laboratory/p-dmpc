@@ -1,4 +1,6 @@
 classdef MotionPrimitiveAutomaton
+% MOTIONPRIMITVEAUTOMATON   MotionPrimitiveAutomaton 
+   
     properties
         maneuvers % cell(n_trims, n_trims)
         trims % A struct array of the specified trim_inputs

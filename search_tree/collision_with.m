@@ -1,4 +1,6 @@
 function collision = collision_with(index, shapes, scenario, iStep)
+% COLLISION_WITH    Determine whether position has is a collision.
+
     collision = false;
     
     obstacles = scenario.obstacles;

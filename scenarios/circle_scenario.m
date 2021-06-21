@@ -1,4 +1,6 @@
 function scenario = circle_scenario(nVeh)
+% CIRCLE_SCENARIO   Constructor for scenario with vehicles circular arranged heading to the center of the circle.
+    
     scenario = Scenario();
     
     radius = 2;

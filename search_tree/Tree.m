@@ -10,6 +10,7 @@ classdef Tree
 %
 % Internally, the class simply manage an array referencing the node parent
 % indices, and a cell array containing the node data. 
+
     properties (SetAccess = private)
         % Index of the parent node. The root of the Tree as a parent index
         % equal to 0.
@@ -122,4 +123,3 @@ classdef Tree
         end
     end
 end
-

@@ -1,4 +1,6 @@
 function result = eval_horizon_obstacle(result)
+% EVAL_HORIZON_OBSTACLE     Evaluate results yielded by the horizon obstacle scenario.
+
 horizons = 5:10:30;
 obstacle_distances = 1:1:3;
 if nargin==0

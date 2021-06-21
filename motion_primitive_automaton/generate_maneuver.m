@@ -1,5 +1,6 @@
-% genrates maneuver struct
 function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
+% GENERATE_MANEUVER     Generate a maneuver for motion primitive automaton.
+
     % currently works for BicycleModel
     %% calculate displacement
     

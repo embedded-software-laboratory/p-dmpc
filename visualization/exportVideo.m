@@ -1,4 +1,5 @@
 function exportVideo( result )
+% EXPORTVIDEO   Export Video from results of simulation.
 
 framerate = 30;
 resolution = [1920 1080];

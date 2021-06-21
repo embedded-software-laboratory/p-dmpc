@@ -1,21 +1,20 @@
 function [signed_distance_min, arclength_min, x_min, y_min, index_min ] = getShortestDistance(curve_x,curve_y,x,y)
-
-    % Finds the point on a piecewise linear curve that is closest to a
-    % given point.
-    % Params:
-    %     curve_x, curve_y:
-    %         A polygonal chain (a.k.a. piecewise linear curve)
-    %     x,y:
-    %         The point to be projected onto the curve
-    % Returns:
-    %     x_min, y_min:
-    %         The projected point on the curve.
-    %     arclength_min:
-    %         Arc length on the curve between (curve_x(1),curve_y(1)) and 
-    %         (x_min,y_min).
-    %     signed_distance_min:
-    %         Signed distance between (x_min,y_min) and (x,y).
-    %         Left ~ positive, right ~ negative.
+% GETSHORTESTDISTANCE   Finds the point on a piecewise linear curve that is closest to a
+%                       given point.
+% Params:
+%     curve_x, curve_y:
+%         A polygonal chain (a.k.a. piecewise linear curve)
+%     x,y:
+%         The point to be projected onto the curve
+% Returns:
+%     x_min, y_min:
+%         The projected point on the curve.
+%     arclength_min:
+%         Arc length on the curve between (curve_x(1),curve_y(1)) and 
+%         (x_min,y_min).
+%     signed_distance_min:
+%         Signed distance between (x_min,y_min) and (x,y).
+%         Left ~ positive, right ~ negative.
 
     assert(length(x)==1);
     assert(length(y)==1);

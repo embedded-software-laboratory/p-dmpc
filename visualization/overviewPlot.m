@@ -1,4 +1,6 @@
 function overviewPlot( result, step_indices )
+% OVERVIEWPLOT  Export plot with multiple snapshots.
+
 close all
 scenario = result.scenario;
 assert(scenario.nVeh<=2)
@@ -81,4 +83,3 @@ filepath = fullfile(result.output_path, 'overviewPlot.pdf');
 exportgraphics(fig, filepath, 'ContentType','vector');
 close(fig)
 end
-
