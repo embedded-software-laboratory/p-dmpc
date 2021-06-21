@@ -1,32 +1,8 @@
-% MIT License
-% 
-% Copyright (c) 2021 Lehrstuhl Informatik 11 - RWTH Aachen University
-% 
-% Permission is hereby granted, free of charge, to any person obtaining a copy
-% of this software and associated documentation files (the "Software"), to deal
-% in the Software without restriction, including without limitation the rights
-% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-% copies of the Software, and to permit persons to whom the Software is
-% furnished to do so, subject to the following conditions:
-% 
-% The above copyright notice and this permission notice shall be included in all
-% copies or substantial portions of the Software.
-% 
-% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-% SOFTWARE.
-% 
-% This file is part of receding-horizon-graph-search.
-% 
-% Author: i11 - Embedded Software, RWTH Aachen University
-
 function [u, y_pred, info] = graph_search(scenario, iter)
-    info = struct;
+% GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
 
+    info = struct;
+    shapes_tmp = cell(scenario.nVeh,0);
     % Create tree with root node
     init_depth = 0;
     g_values = zeros(scenario.nVeh,1);
@@ -66,14 +42,16 @@ function [u, y_pred, info] = graph_search(scenario, iter)
         open_values(1) = [];
 
         % Eval edge 
-        is_valid = eval_edge_exact(scenario, info.tree, cur_node_id);
+        [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id);
         if ~is_valid
             % could remove node from tree here
             continue
         end
+        shapes_tmp(:,cur_node_id) = shapes;
         if cur_node(1,NodeInfo.k) == scenario.Hp
             y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
-            u = 0;
+            u = zeros(scenario.nVeh);
+            info.shapes = return_path_area(shapes_tmp, info.tree, cur_node_id);
             info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
             info.trim_indices = info.tree.node{info.tree_path(2)}(:,NodeInfo.trim);
             info.open_nodes = open_nodes;

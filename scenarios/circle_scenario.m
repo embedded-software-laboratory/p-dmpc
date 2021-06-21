@@ -1,30 +1,6 @@
-% MIT License
-% 
-% Copyright (c) 2021 Lehrstuhl Informatik 11 - RWTH Aachen University
-% 
-% Permission is hereby granted, free of charge, to any person obtaining a copy
-% of this software and associated documentation files (the "Software"), to deal
-% in the Software without restriction, including without limitation the rights
-% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-% copies of the Software, and to permit persons to whom the Software is
-% furnished to do so, subject to the following conditions:
-% 
-% The above copyright notice and this permission notice shall be included in all
-% copies or substantial portions of the Software.
-% 
-% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-% SOFTWARE.
-% 
-% This file is part of receding-horizon-graph-search.
-% 
-% Author: i11 - Embedded Software, RWTH Aachen University
-
-function scenario = circle_scenario(nVeh)
+function scenario = circle_scenario(nVeh,isPB)
+% CIRCLE_SCENARIO   Constructor for scenario with vehicles circular arranged heading to the center of the circle.
+    
     scenario = Scenario();
     
     radius = 2;
@@ -66,6 +42,22 @@ function scenario = circle_scenario(nVeh)
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
 
     scenario.T_end = 6;
+   
+    nVeh_mpa = scenario.nVeh;
+    
+    if isPB
+        % undirected coupling adjacency is complete
+        scenario.adjacency = ones(nVeh,nVeh);
+       if scenario.assignPrios
+            scenario.directed_coupling = [];
+       else
+            scenario.directed_coupling = triu(ones(nVeh))-eye(nVeh);
+       end
+       scenario.controller_name = strcat(scenario.controller_name, '-PB');
+       scenario.controller = @(s,i) pb_controller(s,i);
+
+       nVeh_mpa = 1;
+    end
 
     recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(...
@@ -73,7 +65,7 @@ function scenario = circle_scenario(nVeh)
         , scenario.trim_set...
         , scenario.offset...
         , scenario.dt...
-        , scenario.nVeh...
+        , nVeh_mpa...
         , scenario.Hp...
         , scenario.tick_per_step...
         , recursive_feasibility...

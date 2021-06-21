@@ -1,30 +1,6 @@
-% MIT License
-% 
-% Copyright (c) 2021 Lehrstuhl Informatik 11 - RWTH Aachen University
-% 
-% Permission is hereby granted, free of charge, to any person obtaining a copy
-% of this software and associated documentation files (the "Software"), to deal
-% in the Software without restriction, including without limitation the rights
-% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-% copies of the Software, and to permit persons to whom the Software is
-% furnished to do so, subject to the following conditions:
-% 
-% The above copyright notice and this permission notice shall be included in all
-% copies or substantial portions of the Software.
-% 
-% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-% SOFTWARE.
-% 
-% This file is part of receding-horizon-graph-search.
-% 
-% Author: i11 - Embedded Software, RWTH Aachen University
-
 function result = run_simulation(scenario, doOnlinePlot, doPlotExploration)
+% RUN_SIMULATION    Runtime function for usage in matlab simulation.
+
 %% Setup
 % Setup controller
 info = struct;
@@ -32,11 +8,10 @@ info.trim_indices = [scenario.vehicles(:).trim_config];
 % Initialize
 k = 0;
 cur_node = node(k, info.trim_indices, [scenario.vehicles(:).x_start]', [scenario.vehicles(:).y_start]', [scenario.vehicles(:).yaw_start]', zeros(scenario.nVeh,1), zeros(scenario.nVeh,1));
-tree = Tree(cur_node);
 k = k + 1;
 
 controller = @(scenario, iter)...
-    graph_search(scenario, iter);
+    scenario.controller(scenario, iter);
 
 % init result struct
 result = get_result_struct(scenario);
@@ -88,7 +63,7 @@ while ~finished && k <= scenario.k_end
         % Control 
         % ----------------------------------------------------------------------
         % Sample reference trajectory
-        iter = rhc_init(scenario,x0,info.trim_indices);
+        iter = rhc_init(scenario,x0,cur_node(:,NodeInfo.trim));
         result.iteration_structs{k} = iter;
         controller_timer = tic;
             [u, y_pred, info] = controller(scenario_tmp, iter);
@@ -96,6 +71,7 @@ while ~finished && k <= scenario.k_end
         % save controller outputs in result struct
         result.trajectory_predictions(:,k) = y_pred;
         result.controller_outputs{k} = u;
+        result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
 
         % init struct for exploration plot
         if doPlotExploration
@@ -106,16 +82,13 @@ while ~finished && k <= scenario.k_end
         end
 
         % Determine next node
-        assert(numel(info.tree_path)>1);
-        cur_node = info.tree.node{info.tree_path(2)};
-
-        % Add node to Tree
-        tree = tree.add_nodes(k, {cur_node});
+        % TODO Substitute with measure / simulate
+        cur_node = info.next_node;
 
         % store vehicles path in higher resolution
-        result.vehicle_path_fullres(:,k) = path_between(tree.node{end-1},tree.node{end},tree,scenario.mpa);
+        result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
 
-        result.n_expanded(k) = numel(info.tree.node);
+        result.n_expanded(k) = info.n_expanded;
 
         % Simulation
         % ----------------------------------------------------------------------
