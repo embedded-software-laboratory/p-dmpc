@@ -1,3 +1,6 @@
+function [ groups ] = PB_predecessor_groups( topological_grouping_matrix )
+% PB_PREDECESSOR_GROUPS   Returns the members and predecessors based on the topolical levels.  
+
 % Copyright 2016 Bassam Alrifaee
 % 
 % This program is free software: you can redistribute it and/or modify
@@ -11,8 +14,6 @@
 % 
 % You should have received a copy of the GNU General Public License
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-function [ groups ] = PB_predecessor_groups( topological_grouping_matrix )
 
     groups = struct;
 

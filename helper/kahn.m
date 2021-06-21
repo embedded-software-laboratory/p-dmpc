@@ -1,3 +1,6 @@
+function [valid, L] = kahn(A)
+% KAHN  Kahn's topological sorting algorithm.
+
 % Copyright 2016 Bassam Alrifaee
 % 
 % This program is free software: you can redistribute it and/or modify
@@ -12,8 +15,6 @@
 % You should have received a copy of the GNU General Public License
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-% Kahn's topological sorting algorithm
-function [valid, L] = kahn(A)
     % init
     a = length(A);
     l = 1; % nr. of levels

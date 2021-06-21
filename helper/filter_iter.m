@@ -1,3 +1,6 @@
+function iter = filter_iter(iter, vehicle_filter)
+% FILTER_ITER   Reduce iter structure to selected vehicles.
+
 % Copyright 2016 Bassam Alrifaee
 % 
 % This program is free software: you can redistribute it and/or modify
@@ -12,8 +15,6 @@
 % You should have received a copy of the GNU General Public License
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-% Reduce iter structure to selected vehicles
-function iter = filter_iter(iter, vehicle_filter)
     iter.x0 = iter.x0(vehicle_filter,:);
     iter.trim_indices = iter.trim_indices(vehicle_filter);
     iter.vRef = iter.vRef(vehicle_filter,:);
