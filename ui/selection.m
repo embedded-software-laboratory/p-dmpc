@@ -1,5 +1,5 @@
 function options = selection(vehicle_amount_p,plot_option_p,strat_option_p)
-% SELECTION     Select options run of simulation in an UI.
+% SELECTION     Choose scenario/simulation properties in user interface.
 
 %% Specify amount of vehicles
 scenarios = {

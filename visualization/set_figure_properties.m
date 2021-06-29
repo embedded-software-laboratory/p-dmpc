@@ -1,5 +1,5 @@
 function set_figure_properties(figHandle, preset, paperheight_in)
-% SET_FIGURE_PROPERTIES     Set Properties used for figures based on the time of export.
+% SET_FIGURE_PROPERTIES     Set Properties used for figures based on the type of export.
 
     switch lower(preset)
     case 'paper' % \the\linewidth=252.0pt, 1pt=0.3515mm --> 88.578mm

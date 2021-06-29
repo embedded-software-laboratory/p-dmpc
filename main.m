@@ -1,5 +1,5 @@
 function result = main(varargin)
-% MAIN  main function for receeding horizon control
+% MAIN  main function for graph-based receeding horizon control
 
 close all
 clc

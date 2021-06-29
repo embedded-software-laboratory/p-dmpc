@@ -1,5 +1,5 @@
 function plot_scenario(result)
-% PLOT_SCENARIO     Plot scenario
+% PLOT_SCENARIO     Plot scenario setup
 
 fig = figure('Visible','on');
 daspect([1 1 1]);

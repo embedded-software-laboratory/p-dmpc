@@ -1,7 +1,5 @@
 function [ polygon_XY ] = transformedRectangle( x,y,angle, Length, Width )
 % TRANSFORMED_RECTANGLE Creates a rectangle with the given position and orientation.
-% Author: Janis Maczijewski
-% Date: Sep 2015
 
     unitSquare = [ 0 0 0 1; 1 0 0 1; 1 1 0 1; 0 1 0 1]';
     

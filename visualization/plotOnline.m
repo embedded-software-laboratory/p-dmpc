@@ -1,5 +1,6 @@
 function plotOnline(result,step_idx,tick_now,exploration)
-% PLOTONLINE    Plot function using during simulation the current time step.
+% PLOTONLINE    Plot function used for plotting the simulation state in a specified tick
+%               during a specified time step
 
     iter = result.iteration_structs{step_idx};
     if nargin < 3
