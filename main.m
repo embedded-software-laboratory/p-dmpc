@@ -16,7 +16,7 @@ else
 end
 
 % Setup scenario
-scenario = horizon_obstacle_scenario(2,2)
+scenario = circle_scenario(options.amount);
 
 doPlotOnline = options.visu(1);
 doPlotExploration = options.visu(2);
