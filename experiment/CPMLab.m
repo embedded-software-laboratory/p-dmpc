@@ -1,5 +1,5 @@
-classdef CPMLab < RunningEnv
-% CPMLAB    Instance of running environment for usage in the cpm lab.
+classdef CPMLab < InterfaceExperiment
+% CPMLAB    Instance of experiment interface for usage in the cpm lab.
     
     properties (Access=private)
         vehicle_ids

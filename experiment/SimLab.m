@@ -1,5 +1,5 @@
-classdef Simulation < RunningEnv
-% CPMLAB    Instance of running environment for usage as simulation in matlab.
+classdef SimLab < InterfaceExperiment
+% SIMLAB    Instance of experiment interface used for simulation in matlab.
     
     properties (Access=private)
         doOnlinePlot
@@ -11,7 +11,7 @@ classdef Simulation < RunningEnv
     end
     
     methods
-        function obj = Simulation(scenario, options)
+        function obj = SimLab(scenario, options)
             obj.doOnlinePlot = options.visu(1);
             obj.doExploration = options.visu(2);
             obj.scenario = scenario;

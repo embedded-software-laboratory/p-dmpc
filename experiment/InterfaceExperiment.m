@@ -1,12 +1,11 @@
-classdef (Abstract) RunningEnv < handle
-% SIMENV    Abstract class used for defining preoperties and mehtods used by different simulation setups.
+classdef (Abstract) InterfaceExperiment < handle
+% INTERFACEEXPERIMENT    Abstract class used for defining properties and methods used by different experiment setups.
     
     properties (Access=protected)
         % struct used for every iteration
         x0
         trim_indices
         cur_node
-        controller
         scenario
         k
     end

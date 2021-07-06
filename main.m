@@ -5,9 +5,9 @@ close all
 clc
 
 %% Determine options
-is_lab = (nargin > 0 && varargin{1} == 'lab');
+is_cpm_lab = (nargin > 0 && varargin{1} == 'cpmlab');
 
-if ~is_lab
+if ~is_cpm_lab
     switch nargin
         case 3
             options = selection(varargin{1},varargin{2},varargin{3});
@@ -19,7 +19,7 @@ if ~is_lab
             options = selection();
     end
 else
-    disp('lab')
+    disp('cpmlab')
     options = struct;
     vehicle_ids = [varargin{2:end}];
     options.amount = numel(vehicle_ids);
@@ -29,10 +29,10 @@ end
 
 scenario = circle_scenario(options.amount, options.isPB);
 
-if is_lab
+if is_cpm_lab
     env = CPMLab(scenario, vehicle_ids);
 else
-    env = Simulation(scenario, options);
+    env = SimLab(scenario, options);
 end
 
 %% Setup
