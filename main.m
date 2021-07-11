@@ -5,7 +5,7 @@ close all
 clc
 
 %% Determine options
-is_cpm_lab = (nargin > 0 && varargin{1} == 'cpmlab');
+is_cpm_lab = (nargin > 0 && strcmp(varargin{1},'cpmlab'));
 
 if ~is_cpm_lab
     switch nargin

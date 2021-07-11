@@ -3,6 +3,7 @@ classdef CPMLab < InterfaceExperiment
     
     properties (Access=private)
         vehicle_ids
+        matlabParticipant
         reader_vehicleStateList
         writer_vehicleCommandTrajectory
         reader_systemTrigger
@@ -28,20 +29,20 @@ classdef CPMLab < InterfaceExperiment
             % Initialize data readers/writers...
             % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
             common_cpm_functions_path = fullfile( ...
-                '../examples/matlab' ...
+                getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
             );
             assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
             addpath(common_cpm_functions_path);
 
             matlabDomainId = 1;
-            [~, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop] = init_script(matlabDomainId); %#ok<ASGLU>
+            [obj.matlabParticipant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop] = init_script(matlabDomainId); % #ok<ASGLU>
 
             % Set reader properties
             obj.reader_vehicleStateList.WaitSet = true;
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
             % Middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(scenario.dt*1e9);
+            obj.dt_period_nanos = uint64(obj.scenario.dt*1e9);
 
             % Sync start with infrastructure
             % Send ready signal for all assigned vehicle ids
@@ -83,8 +84,8 @@ classdef CPMLab < InterfaceExperiment
                 obj.controller_init = true;
             else
             % take last planned state as new actual state
-                speeds = zeros(scenario.nVeh,1);
-                for iVeh=1:scenario.nVeh
+                speeds = zeros(obj.scenario.nVeh,1);
+                for iVeh=1:obj.scenario.nVeh
                     speeds(iVeh) = obj.scenario.mpa.trims(obj.cur_node(iVeh,NodeInfo.trim)).speed;
                 end
                 x0 = [obj.cur_node(:,NodeInfo.x), obj.cur_node(:,NodeInfo.y), obj.cur_node(:,NodeInfo.yaw), speeds];
@@ -93,8 +94,8 @@ classdef CPMLab < InterfaceExperiment
         end
         
         function apply(obj, ~, y_pred, info, ~, k)
-            obj.out_of_map_limits = false(scenario.nVeh,1);
-            for iVeh = 1:scenario.nVeh
+            obj.out_of_map_limits = false(obj.scenario.nVeh,1);
+            for iVeh = 1:obj.scenario.nVeh
                 % TODO: n_traj_pts = numel(info.tree_path)-1;
                 n_traj_pts = obj.scenario.Hp;
                 n_predicted_points = size(y_pred{iVeh},1);
@@ -107,7 +108,7 @@ classdef CPMLab < InterfaceExperiment
                     trajectory_points(i_traj_pt).px = y_pred{iVeh}(i_predicted_points,1);
                     trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points,2);
                     yaw = y_pred{iVeh}(i_predicted_points,3);
-                    speed = scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
+                    speed = obj.scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
                     trajectory_points(i_traj_pt).vx = cos(yaw)*speed;
                     trajectory_points(i_traj_pt).vy = sin(yaw)*speed;
                 end
@@ -142,7 +143,7 @@ classdef CPMLab < InterfaceExperiment
     
     methods (Access=private)    
         % helper function
-        function stop_experiment = is_veh_at_map_border(trajectory_points)
+        function stop_experiment = is_veh_at_map_border(obj, trajectory_points)
             % Vehicle command timeout is 1000 ms after the last valid_after_stamp,
             % so vehicle initiates stop between third and fourth trajectory point
             vhlength = 0.25;
