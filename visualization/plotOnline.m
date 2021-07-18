@@ -36,6 +36,9 @@ function plotOnline(result,step_idx,tick_now,exploration)
     if exploration.doExploration
         visualize_exploration(exploration,scenario);
     end
+    if ~isempty(scenario.lanelets)
+        plot_lanelets(scenario.lanelets);
+    end
     
 
     % Sampled trajectory points

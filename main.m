@@ -17,7 +17,7 @@ switch nargin
 end
 
 % Setup scenario
-scenario = circle_scenario(options.amount,options.isPB);
+scenario = lanelet_scenario(1);
 
 doPlotOnline = options.visu(1);
 doPlotExploration = options.visu(2);
