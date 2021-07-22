@@ -83,17 +83,13 @@ classdef CPMLab < InterfaceExperiment
                 x0(:,4) = [obj.sample(end).state_list.speed];
                 obj.controller_init = true;
             else
-            % take last planned state as new actual state
-                speeds = zeros(obj.scenario.nVeh,1);
-                for iVeh=1:obj.scenario.nVeh
-                    speeds(iVeh) = obj.scenario.mpa.trims(obj.cur_node(iVeh,NodeInfo.trim)).speed;
-                end
-                x0 = [obj.cur_node(:,NodeInfo.x), obj.cur_node(:,NodeInfo.y), obj.cur_node(:,NodeInfo.yaw), speeds];
+                [ x0, trim_indices ] = obj.measure_node();
             end
-            trim_indices = obj.cur_node(:,NodeInfo.trim);
         end
         
         function apply(obj, ~, y_pred, info, ~, k)
+            obj.update_values(info.next_node, k)
+            
             obj.out_of_map_limits = false(obj.scenario.nVeh,1);
             for iVeh = 1:obj.scenario.nVeh
                 % TODO: n_traj_pts = numel(info.tree_path)-1;
@@ -122,10 +118,6 @@ classdef CPMLab < InterfaceExperiment
                     uint64(obj.sample(end).t_now + obj.dt_period_nanos);
                 obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
             end
-            
-            obj.k = k;
-            
-            obj.cur_node = info.next_node;   
         end
         
         function got_stop = is_stop(obj)

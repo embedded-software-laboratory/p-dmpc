@@ -43,16 +43,11 @@ classdef SimLab < InterfaceExperiment
         end
         
         function [ x0, trim_indices ] = measure(obj)
-            % take last planned state as new actual state
-            speeds = zeros(obj.scenario.nVeh,1);
-            for iVeh=1:obj.scenario.nVeh
-                speeds(iVeh) = obj.scenario.mpa.trims(obj.cur_node(iVeh,NodeInfo.trim)).speed;
-            end
-            x0 = [obj.cur_node(:,NodeInfo.x), obj.cur_node(:,NodeInfo.y), obj.cur_node(:,NodeInfo.yaw), speeds];
-            trim_indices = obj.cur_node(:,NodeInfo.trim);
+            [ x0, trim_indices ] = obj.measure_node();
         end
         
         function apply(obj, ~, ~, info, result, k)
+            obj.update_values(info.next_node, k)
             % init struct for exploration plot
             if obj.doExploration
                 exploration_struct.doExploration = true;
@@ -60,8 +55,6 @@ classdef SimLab < InterfaceExperiment
             else
                 exploration_struct = [];
             end
-            % get current iteration index
-            obj.k = k;
             if obj.doOnlinePlot
                 % wait to simulate realtime plotting
                 pause(obj.scenario.dt-result.step_time(obj.k))
@@ -69,8 +62,6 @@ classdef SimLab < InterfaceExperiment
                 % visualize time step
                 plotOnline(result,obj.k,1,exploration_struct);
             end
-            
-            obj.cur_node = info.next_node;
         end
         
         function got_stop = is_stop(obj)

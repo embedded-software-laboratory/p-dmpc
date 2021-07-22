@@ -5,16 +5,18 @@ close all
 clc
 
 %% Determine options
-is_cpm_lab = (nargin > 0 && strcmp(varargin{1},'cpmlab'));
+% if matlab simulation should be started with certain parameters
+% first argument has to be 'sim'
+is_sim_lab = (nargin > 0 && strcmp(varargin{1},'sim'));
 
-if ~is_cpm_lab
+if is_sim_lab
     switch nargin
+        case 4
+            options = selection(varargin{2},varargin{3},varargin{4});
         case 3
-            options = selection(varargin{1},varargin{2},varargin{3});
+            options = selection(varargin{2},varargin{3},1);
         case 2
-            options = selection(varargin{1},varargin{2},1);
-        case 1
-            options = selection(varargin{1},2,1);
+            options = selection(varargin{2},2,1);
         otherwise
             options = selection();
     end
@@ -29,10 +31,10 @@ end
 
 scenario = circle_scenario(options.amount, options.isPB);
 
-if is_cpm_lab
-    env = CPMLab(scenario, vehicle_ids);
+if is_sim_lab
+    exp = SimLab(scenario, options);
 else
-    env = SimLab(scenario, options);
+    exp = CPMLab(scenario, vehicle_ids);
 end
 
 %% Setup
@@ -43,14 +45,14 @@ k = 1;
 % init result struct
 result = get_result_struct(scenario);
 
-env.setup();
+exp.setup();
 
 %% Main control loop
 while (~got_stop)
     result.step_timer = tic;
     % Measurement
     % -------------------------------------------------------------------------
-    [ x0, trim_indices ] = env.measure();
+    [ x0, trim_indices ] = exp.measure();
     
     try
         % Control 
@@ -75,7 +77,7 @@ while (~got_stop)
         
         % Apply control action f/e veh
         % -------------------------------------------------------------------------
-        env.apply(u, y_pred, info, result, k);
+        exp.apply(u, y_pred, info, result, k);
 
     % catch case where graph search could not find a new node
     catch ME
@@ -90,7 +92,7 @@ while (~got_stop)
     
     % Check for stop signal
     % -------------------------------------------------------------------------
-    got_stop = env.is_stop() || got_stop;
+    got_stop = exp.is_stop() || got_stop;
     
     % increment interation counter
     k = k+1;
@@ -99,7 +101,7 @@ end
 %% save results
 save(fullfile(result.output_path,'data.mat'),'result');
 
-env.end_run()
+exp.end_run()
 
 
 end

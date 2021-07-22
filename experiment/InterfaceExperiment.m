@@ -17,5 +17,22 @@ classdef (Abstract) InterfaceExperiment < handle
         got_stop = is_stop(obj)
         end_run(obj)
     end
+    
+    methods
+        function [ x0, trim_indices ] = measure_node(obj)
+            % take last planned state as new actual state
+            speeds = zeros(obj.scenario.nVeh,1);
+            for iVeh=1:obj.scenario.nVeh
+                speeds(iVeh) = obj.scenario.mpa.trims(obj.cur_node(iVeh,NodeInfo.trim)).speed;
+            end
+            x0 = [obj.cur_node(:,NodeInfo.x), obj.cur_node(:,NodeInfo.y), obj.cur_node(:,NodeInfo.yaw), speeds];
+            trim_indices = obj.cur_node(:,NodeInfo.trim);
+        end
+        function update_values(obj, newnode, newk)
+            obj.cur_node = newnode;
+            obj.k = newk;
+        end
+    end
+    
 end
 
