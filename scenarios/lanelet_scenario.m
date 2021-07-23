@@ -41,7 +41,7 @@ function scenario = lanelet_scenario(isPB)
 
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
 
-    scenario.T_end = 6;
+    scenario.T_end = 10;
    
     nVeh_mpa = scenario.nVeh;
     
