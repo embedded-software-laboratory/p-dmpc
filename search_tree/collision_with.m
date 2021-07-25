@@ -32,14 +32,7 @@ function collision = collision_with(index, shapes, scenario, iStep)
     
     lane_idx = nonzeros(scenario.vehicle_to_lanelet(index,:))';
     for i = lane_idx
-        lanelet = scenario.lanelets{i};
-        % right bound
-        if intersect_sat(shapes{index},lanelet(:,[LaneletInfo.rx,LaneletInfo.ry])')
-            collision = true;
-            return;
-        end
-        % left bound
-        if intersect_sat(shapes{index},lanelet(:,[LaneletInfo.lx,LaneletInfo.ly])')
+        if intersect_lanelets(shapes{index},scenario.lanelets{i})
             collision = true;
             return;
         end
