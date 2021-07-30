@@ -7,7 +7,7 @@ clc
 %% Determine options
 % if matlab simulation should be started with certain parameters
 % first argument has to be 'sim'
-is_sim_lab = (nargin > 0 && strcmp(varargin{1},'sim'));
+is_sim_lab = (nargin == 0 || (nargin > 0 && strcmp(varargin{1},'sim')));
 
 if is_sim_lab
     switch nargin
