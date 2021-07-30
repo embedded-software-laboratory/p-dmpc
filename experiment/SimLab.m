@@ -47,7 +47,9 @@ classdef SimLab < InterfaceExperiment
         end
         
         function apply(obj, ~, ~, info, result, k)
-            obj.update_values(info.next_node, k)
+            % simulate change of state
+            obj.cur_node = info.next_node;
+            obj.k = k;            
             % init struct for exploration plot
             if obj.doExploration
                 exploration_struct.doExploration = true;

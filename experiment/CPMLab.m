@@ -88,11 +88,12 @@ classdef CPMLab < InterfaceExperiment
         end
         
         function apply(obj, ~, y_pred, info, ~, k)
-            obj.update_values(info.next_node, k)
-            
+            % simulate change of state
+            obj.cur_node = info.next_node;
+            obj.k = k;
+            % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.scenario.nVeh,1);
             for iVeh = 1:obj.scenario.nVeh
-                % TODO: n_traj_pts = numel(info.tree_path)-1;
                 n_traj_pts = obj.scenario.Hp;
                 n_predicted_points = size(y_pred{iVeh},1);
                 idx_predicted_points = 1:n_predicted_points/n_traj_pts:n_predicted_points;

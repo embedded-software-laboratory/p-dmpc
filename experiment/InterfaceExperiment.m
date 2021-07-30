@@ -28,11 +28,7 @@ classdef (Abstract) InterfaceExperiment < handle
             x0 = [obj.cur_node(:,NodeInfo.x), obj.cur_node(:,NodeInfo.y), obj.cur_node(:,NodeInfo.yaw), speeds];
             trim_indices = obj.cur_node(:,NodeInfo.trim);
         end
-        function update_values(obj, newnode, newk)
-            obj.cur_node = newnode;
-            obj.k = newk;
-        end
     end
-    
+
 end
 
