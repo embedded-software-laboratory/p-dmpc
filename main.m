@@ -23,7 +23,7 @@ if is_sim_lab
 else
     disp('cpmlab')
     options = struct;
-    vehicle_ids = [varargin{2:end}];
+    vehicle_ids = [varargin{:}];
     options.amount = numel(vehicle_ids);
     options.isPB = false;
 end

@@ -82,6 +82,7 @@ classdef CPMLab < InterfaceExperiment
                 x0(:,3) = [pose.yaw];
                 x0(:,4) = [obj.sample(end).state_list.speed];
                 obj.controller_init = true;
+                [ ~, trim_indices ] = obj.measure_node();
             else
                 [ x0, trim_indices ] = obj.measure_node();
             end
