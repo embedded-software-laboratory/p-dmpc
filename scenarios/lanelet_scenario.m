@@ -8,8 +8,6 @@ function scenario = lanelet_scenario(isPB)
     
     scenario.vehicle_to_lanelet = [     1, 9, 6;    ...
                                         3, 14, 2        ];
-                                    
-    tmp_lanelets = cellfun(@(S) S(2:end,:), scenario.lanelets, 'Uniform', 0);
     
     veh = Vehicle();
     veh.trim_config = 1;
@@ -19,8 +17,8 @@ function scenario = lanelet_scenario(isPB)
     veh.x_goal = c*-2.5;
     veh.y_goal = c*-18;
     veh.yaw_goal = 1.5*pi;
-    veh_lanelets = vertcat(tmp_lanelets{scenario.vehicle_to_lanelet(1,:)});
-    veh.referenceTrajectory = [veh_lanelets(:,LaneletInfo.cx),veh_lanelets(:,LaneletInfo.cy)];
+    veh_lanelets = vertcat(scenario.lanelets{scenario.vehicle_to_lanelet(1,:)});
+    veh.referenceTrajectory = unique([veh_lanelets(:,LaneletInfo.cx),veh_lanelets(:,LaneletInfo.cy)],'rows','stable');
     scenario.vehicles = [scenario.vehicles, veh];
     
     veh = Vehicle();
@@ -31,8 +29,8 @@ function scenario = lanelet_scenario(isPB)
     veh.x_goal = c*2.5;
     veh.y_goal = c*18;
     veh.yaw_goal = 0.5*pi;
-    veh_lanelets = vertcat(scenario.lanelets{scenario.vehicle_to_lanelet(2,1)},tmp_lanelets{scenario.vehicle_to_lanelet(2,2:end)});
-    veh.referenceTrajectory = [veh_lanelets(:,LaneletInfo.cx),veh_lanelets(:,LaneletInfo.cy)];
+    veh_lanelets = vertcat(scenario.lanelets{scenario.vehicle_to_lanelet(2,:)});
+    veh.referenceTrajectory = unique([veh_lanelets(:,LaneletInfo.cx),veh_lanelets(:,LaneletInfo.cy)],'rows','stable');
     scenario.vehicles = [scenario.vehicles, veh];
 
     scenario.plot_limits = c*[-20,20;-20,20];
