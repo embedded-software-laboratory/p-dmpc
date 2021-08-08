@@ -17,7 +17,7 @@ switch nargin
 end
 
 % Setup scenario
-scenario = lanelet_scenario(1);
+scenario = lanelet_scenario3(0);
 
 doPlotOnline = options.visu(1);
 doPlotExploration = options.visu(2);
