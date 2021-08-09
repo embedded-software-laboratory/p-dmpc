@@ -1,5 +1,5 @@
 function scenario = lanelet_scenario3(isPB)
-% LANELET_SCENARIO   Constructor for scenario with two vehicles at an intersection one driving right and one straight
+% LANELET_SCENARIO3   Constructor for scenario with two vehicles at an intersection one driving right and one straight
 %                    ending in the same lane.
 
     c = 0.2;
