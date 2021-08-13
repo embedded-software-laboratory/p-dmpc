@@ -6,7 +6,7 @@ function tests = intersect_unittest
 end
 
 function testLaneletPos(testcase)
-    lanelets = intersection_lanelets;
+    [lanelets, ~] = intersection_lanelets;
     lanelet_idx = [3,18,6];
     collision = false;
     shape = [0, 5, 5, 0; 0, 0, -5, -5];
@@ -23,7 +23,7 @@ function testLaneletPos(testcase)
 end
 
 function testLaneletNegLeft(testcase)
-    lanelets = intersection_lanelets;
+    [lanelets, ~] = intersection_lanelets;
     lanelet_idx = [5,19,8];
     collision = false;
     shape = [-1.5, -1, -2.5, -2.5; 1, -1, -1, 0];
@@ -40,7 +40,7 @@ function testLaneletNegLeft(testcase)
 end
 
 function testLaneletNegRight(testcase)
-    lanelets = intersection_lanelets;
+    [lanelets, ~] = intersection_lanelets;
     lanelet_idx = [5,15,5];
     collision = false;
     shape = [2.1, 3, 3.5, 2.5; -2.1, -2.1, -3.5, -5];

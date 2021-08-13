@@ -1,4 +1,4 @@
-function lanelets = intersection_lanelets()
+function [lanelets, collision] = intersection_lanelets()
 % INTERSECTION_LANELETS     Constructor for lanelets of one-lane intersection
 
     lanelets = cell(1,0);
@@ -208,5 +208,76 @@ function lanelets = intersection_lanelets()
     l(:,LaneletInfo.cy) = [-2.5, 1, 5];
     lanelets{end+1} = l;
     
+    %% collision pair matrix
+    % number of lanelet segments
+    nLanelets = length(lanelets);
+    
+    c = zeros(nLanelets, nLanelets);
+    
+    % straight north-south
+    c(9,10) = 1;
+    c(9,12) = 1;
+    c(9,13) = 1;
+    c(9,16) = 1;
+    c(9,17) = 1;
+    c(9,18) = 1;
+    c(9,19) = 1;
+    c(9,20) = 1;
+    
+    % straight east-west
+    c(10,11) = 1;
+    c(10,13) = 1;
+    c(10,14) = 1;
+    c(10,17) = 1;
+    c(10,18) = 1;
+    c(10,19) = 1;
+    c(10,20) = 1;
+    
+    % straight south-north
+    c(11,12) = 1;
+    c(11,14) = 1;
+    c(11,15) = 1;
+    c(11,17) = 1;
+    c(11,18) = 1;
+    c(11,19) = 1;
+    c(11,20) = 1;
+    
+    % straight west-east
+    c(12,15) = 1;
+    c(12,16) = 1;
+    c(12,17) = 1;
+    c(12,18) = 1;
+    c(12,19) = 1;
+    c(12,20) = 1;
+    
+    % right north-west
+    c(13,17) = 1;
+    c(13,19) = 1;
+    
+    % right east-north
+    c(14,18) = 1;
+    c(14,20) = 1;
+    
+    % right south-east
+    c(15,17) = 1;
+    c(15,19) = 1;
+    
+    % right west-south
+    c(16,18) = 1;
+    c(16,20) = 1;
+    
+    % left north-east
+    c(17,18) = 1;
+    c(17,20) = 1;
+    
+    % left east-south
+    c(18,19) = 1;
+    
+    % left south-east
+    c(19,20) = 1;
+    
+    
+    
+    collision = c + c' + eye(nLanelets, nLanelets); % same lanelet is everytime a collision
     
 end

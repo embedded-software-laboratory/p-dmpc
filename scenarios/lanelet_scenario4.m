@@ -3,7 +3,8 @@ function scenario = lanelet_scenario4(isPB)
     c = 0.2;
 
     scenario = Scenario();
-    scenario.lanelets = cellfun(@(S) c*S(:,:), intersection_lanelets(), 'Uniform', 0);
+    [lanelets, collision] = intersection_lanelets();
+    scenario.lanelets = cellfun(@(S) c*S(:,:), lanelets, 'Uniform', 0);
     
     scenario.vehicle_to_lanelet = [     1, 9, 6;   ...
                                         5, 11, 2;  ...
@@ -69,12 +70,8 @@ function scenario = lanelet_scenario4(isPB)
     nVeh_mpa = scenario.nVeh;
     
     if isPB
-        % undirected coupling adjacency is complete
-        scenario.adjacency = [ 0,0,1,1
-                               0,0,1,1
-                               1,1,0,0
-                               1,1,0,0 ];
-        scenario.assignPrios = true;
+       scenario.adjacency = coupling_adjacency_lanelets(scenario.vehicle_to_lanelet, collision);
+       scenario.assignPrios = true;
        scenario.controller_name = strcat(scenario.controller_name, '-PB');
        scenario.controller = @(s,i) pb_controller(s,i);
 
