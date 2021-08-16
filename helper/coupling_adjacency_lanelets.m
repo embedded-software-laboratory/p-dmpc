@@ -13,10 +13,10 @@ function adjacency = coupling_adjacency_lanelets(lanelet_idx,collision)
             stop_flag = false;
             % get lanelet indices for vehicle j
             lanelets_j = lanelet_idx(j,:);
-            for li = 1 : length(lanelets_i)
-                for lj = 1 : length(lanelets_j)
+            for li = lanelets_i
+                for lj = lanelets_j
                     % is there a collision pair among these lanelet index seqeunce
-                    if collision(lanelets_i(li),lanelets_j(lj))
+                    if collision(li,lj)
                         adjacency(i,j) = 1;
                         adjacency(j,i) = 1;
                         % no need to check any other pair for these two vehicles
