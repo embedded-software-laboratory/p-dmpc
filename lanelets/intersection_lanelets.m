@@ -276,8 +276,7 @@ function [lanelets, collision] = intersection_lanelets()
     % left south-east
     c(19,20) = 1;
     
-    
-    
+    % also add reversed combination of collision pairs (easier to check later on)
     collision = c + c' + eye(nLanelets, nLanelets); % same lanelet is everytime a collision
     
 end
