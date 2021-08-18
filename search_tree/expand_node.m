@@ -28,10 +28,10 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node)
             expanded_node(iVeh,NodeInfo.yaw) = cur_node(iVeh,NodeInfo.yaw) + maneuver.dyaw;
         end
 
-        % expanded_node = calculate_next_values_reference(scenario, iter, expanded_node, NodeInfo);
         % Cost to come
         % iter.reference is of size (scenario.nVeh,scenario.Hp,2)
-        % Distance to reference trajectory points squared
+        % Distance to reference trajectory points squared to conform with
+        % J = (x-x_ref)' Q (x-x_ref)
         for iVeh = 1:scenario.nVeh
             expanded_node(iVeh,NodeInfo.g) = expanded_node(iVeh,NodeInfo.g) ...
                 + norm(...
@@ -44,7 +44,7 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node)
         
         % Cost to go
         expanded_node(:,NodeInfo.h) = 0;
-        % Distance to every reference trajectory point squared
+        % same as cost to come
         % subtract squared distance traveled for every timestep and vehicle
         time_steps_to_go = scenario.Hp - k_exp;
         for iVeh = 1:scenario.nVeh
