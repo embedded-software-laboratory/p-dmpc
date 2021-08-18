@@ -28,7 +28,6 @@ function [expanded_nodes] = expand_node(scenario, iter, cur_node)
             expanded_node(iVeh,NodeInfo.yaw) = cur_node(iVeh,NodeInfo.yaw) + maneuver.dyaw;
         end
 
-        % expanded_node = calculate_next_values_reference(scenario, iter, expanded_node, NodeInfo);
         % Cost to come
         % iter.reference is of size (scenario.nVeh,scenario.Hp,2)
         % Distance to reference trajectory points squared
