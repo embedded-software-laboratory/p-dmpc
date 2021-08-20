@@ -1,6 +1,10 @@
+function eval_paper(plot_online,is_video_exported)
 % EVAL_PAPER    Script yielding the evaluation results used in the paper
 
-plot_online = 0;
+if nargin==0
+    plot_online = 0;
+    is_video_exported = 1;
+end
 
 %% Trajectory planning
 % ------------------------------------------------------------------------------
@@ -8,7 +12,9 @@ disp('Evaluating with one vehicle and moving obstacles.')
 s = moving_obstacle_scenario();
 r = run_simulation(s,plot_online,0);
 overviewPlot(r,[17,21,25,28]);
-exportVideo(r);
+if is_video_exported
+    exportVideo(r);
+end
 
 
 %% Recursive feasibility
@@ -48,10 +54,14 @@ disp('Evaluating with two vehicles crossing a circle.');
 s = circle_scenario(2);
 r = run_simulation(s,plot_online,0);
 plot_scenario(r);
-exportVideo(r);
+if is_video_exported
+    exportVideo(r);
+end
 
 % disp('Evaluating with three vehicles crossing a circle.');
 % s = circle_scenario(3);
 % r = run_simulation(s,plot_online,0);
 % plot_scenario(r);
-% exportVideo(r);
+% if is_video_exported
+%     exportVideo(r);
+% end
