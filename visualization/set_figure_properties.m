@@ -3,7 +3,6 @@ function set_figure_properties(figHandle, preset, paperheight_in)
 
     switch lower(preset)
     case 'paper' % \the\linewidth=252.0pt, 1pt=0.3515mm --> 88.578mm
-        disp('Preset: paper.');
         fontsize    = 9;
         paperwidth  = 8;    % picture width in cm
         paperheight = 4;    % picture height in cm
@@ -14,7 +13,6 @@ function set_figure_properties(figHandle, preset, paperheight_in)
         units       = 'centimeters';
     
     case 'presentation'
-        disp('Preset: presentation.');
         fontsize    = 18;
         paperwidth  = 31.77; % picture width in cm
         paperheight = 14.01; % picture height in cm

@@ -1,8 +1,5 @@
 % EVAL_PAPER    Script yielding the evaluation results used in the paper
 
-if verLessThan('matlab','9.10')
-    warning('Code was designed for MATLAB 9.10, prepare for incompatibilities')
-end
 plot_online = 0;
 
 %% Trajectory planning
@@ -53,8 +50,8 @@ r = run_simulation(s,plot_online,0);
 plot_scenario(r);
 exportVideo(r);
 
-disp('Evaluating with three vehicles crossing a circle.');
-s = circle_scenario(3);
-r = run_simulation(s,plot_online,0);
-plot_scenario(r);
-exportVideo(r);
+% disp('Evaluating with three vehicles crossing a circle.');
+% s = circle_scenario(3);
+% r = run_simulation(s,plot_online,0);
+% plot_scenario(r);
+% exportVideo(r);

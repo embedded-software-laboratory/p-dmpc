@@ -80,6 +80,6 @@ end
 
 set_figure_properties(fig, 'paper', 12);
 filepath = fullfile(result.output_path, 'overviewPlot.pdf');
-exportgraphics(fig, filepath, 'ContentType','vector');
+export_fig(fig, filepath)
 close(fig)
 end
