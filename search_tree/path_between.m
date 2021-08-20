@@ -23,4 +23,3 @@ function search_path = path_between(cur_node,next_node, tree, mpa)
         search_path(iVeh) = {[xs', ys', yaws', trims]};
     end
 end
-

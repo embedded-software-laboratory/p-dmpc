@@ -34,6 +34,6 @@ ylabel('$y$ [m]')
 filetype = 'pdf';
 filepath = fullfile(result.output_path, ['scenario.' filetype]);
 set_figure_properties(fig,'paper')
-exportgraphics(fig, filepath, 'ContentType','vector');
+export_fig(fig, filepath)
 close(fig);
 end
