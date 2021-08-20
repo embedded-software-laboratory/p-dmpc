@@ -1,11 +1,6 @@
 function overviewPlot( result, step_indices )
 % OVERVIEWPLOT  Export plot with multiple snapshots.
 
-close all
-scenario = result.scenario;
-assert(scenario.nVeh<=2)
-% assert(length(step_indices)==4)
-
 scenario = result.scenario;
 
 nVeh = scenario.nVeh;

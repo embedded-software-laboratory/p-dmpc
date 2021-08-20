@@ -54,6 +54,7 @@ disp('Evaluating with two vehicles crossing a circle.');
 s = circle_scenario(2);
 r = run_simulation(s,plot_online,0);
 plot_scenario(r);
+overviewPlot(r,[1,4,8,13]);
 if is_video_exported
     exportVideo(r);
 end
@@ -62,6 +63,7 @@ disp('Evaluating with three vehicles crossing a circle.');
 s = circle_scenario(3);
 r = run_simulation(s,plot_online,0);
 plot_scenario(r);
+overviewPlot(r,[1,5,8,13]);
 if is_video_exported
     exportVideo(r);
 end
