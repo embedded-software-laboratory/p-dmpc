@@ -58,10 +58,10 @@ if is_video_exported
     exportVideo(r);
 end
 
-% disp('Evaluating with three vehicles crossing a circle.');
-% s = circle_scenario(3);
-% r = run_simulation(s,plot_online,0);
-% plot_scenario(r);
-% if is_video_exported
-%     exportVideo(r);
-% end
+disp('Evaluating with three vehicles crossing a circle.');
+s = circle_scenario(3);
+r = run_simulation(s,plot_online,0);
+plot_scenario(r);
+if is_video_exported
+    exportVideo(r);
+end
