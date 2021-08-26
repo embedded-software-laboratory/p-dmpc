@@ -7,14 +7,19 @@ nResults = length(results);
 fig = figure('visible','off','position',[100 100 600 630],'color',[1 1 1]);
 
 runtimes = [];
-labels = {};
+nVehicles = [];
 
 for i = 1 : nResults
     % make sure only one controller runtime is stored in the struct
     assert(size(results(i).controller_runtime, 1) == 1);
     runtimes = [runtimes, results(i).controller_runtime'];
-    labels{end+1} = results(i).scenario.name;
+    nVehicles = [nVehicles, results(i).scenario.nVeh];
 end
+
+[~,order] = sort(nVehicles);
+
+runtimes(:,:) = runtimes(:,order);
+nVehicles(:) = nVehicles(order);
 
 % y axis on left and right side
 ax = axes();
@@ -25,14 +30,14 @@ yyaxis left;
 set(gca,'ycolor','black');
 
 % plot
-boxplot(runtimes,'Labels',labels,'MedianStyle','line');
+boxplot(runtimes,nVehicles,'MedianStyle','line');
 
 % TODO: plot limits - outlier
 
 % set labels
-xlabel('Scenario','Interpreter','LaTex');
+xlabel('Number of Vehicles','Interpreter','LaTex');
 ylabel('Runtime [s]','Interpreter','LaTex');
-title('Controller runtime','Interpreter','LaTex');
+title('Controller runtime in Circle scenario','Interpreter','LaTex');
 
 set_figure_properties(fig, 'paper', 12);
 filepath = fullfile('results', 'runtimePlot.pdf');
