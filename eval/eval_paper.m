@@ -49,12 +49,14 @@ eval_horizon_obstacle();
 % ------------------------------------------------------------------------------
 disp('Evaluating with two vehicles crossing a circle.');
 s = circle_scenario(2);
-r = run_simulation(s,plot_online,0);
-plot_scenario(r);
-exportVideo(r);
+r2 = run_simulation(s,plot_online,0);
+plot_scenario(r2);
+exportVideo(r2);
 
 disp('Evaluating with three vehicles crossing a circle.');
 s = circle_scenario(3);
-r = run_simulation(s,plot_online,0);
-plot_scenario(r);
-exportVideo(r);
+r3 = run_simulation(s,plot_online,0);
+plot_scenario(r3);
+exportVideo(r3);
+
+runtimePlotCentralized([r2,r3]);
