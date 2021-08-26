@@ -1,9 +1,10 @@
+function eval_paper(plot_online,is_video_exported)
 % EVAL_PAPER    Script yielding the evaluation results used in the paper
 
-if verLessThan('matlab','9.10')
-    warning('Code was designed for MATLAB 9.10, prepare for incompatibilities')
+if nargin==0
+    plot_online = 0;
+    is_video_exported = 1;
 end
-plot_online = 0;
 
 %% Trajectory planning
 % ------------------------------------------------------------------------------
@@ -11,7 +12,9 @@ disp('Evaluating with one vehicle and moving obstacles.')
 s = moving_obstacle_scenario();
 r = run_simulation(s,plot_online,0);
 overviewPlot(r,[17,21,25,28]);
-exportVideo(r);
+if is_video_exported
+    exportVideo(r);
+end
 
 
 %% Recursive feasibility
@@ -51,12 +54,18 @@ disp('Evaluating with two vehicles crossing a circle.');
 s = circle_scenario(2);
 r2 = run_simulation(s,plot_online,0);
 plot_scenario(r2);
-exportVideo(r2);
+overviewPlot(r2,[1,4,8,13]);
+if is_video_exported
+    exportVideo(r2);
+end
 
 disp('Evaluating with three vehicles crossing a circle.');
 s = circle_scenario(3);
 r3 = run_simulation(s,plot_online,0);
 plot_scenario(r3);
-exportVideo(r3);
+overviewPlot(r3,[1,5,8,13]);
+if is_video_exported
+    exportVideo(r3);
+end
 
 runtimePlotCentralized([r2,r3]);
