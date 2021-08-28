@@ -21,22 +21,18 @@ end
 runtimes(:,:) = runtimes(:,order);
 nVehicles(:) = nVehicles(order);
 
-% y axis on left and right side
-ax = axes();
+% plot with axis on both sides and logarithmic scale
+colororder({'k','k'});
 yyaxis right;
-linkprop(ax.YAxis, 'Limits');
-set(gca,'ycolor','black');
-yyaxis left;
-set(gca,'ycolor','black');
-
-% plot
 boxplot(runtimes,nVehicles,'MedianStyle','line');
-
-% TODO: plot limits - outlier
+set(gca, 'YScale', 'log');
+yyaxis left;
+boxplot(runtimes,nVehicles,'MedianStyle','line');
+set(gca, 'YScale', 'log');
 
 % set labels
 xlabel('Number of Vehicles','Interpreter','LaTex');
-ylabel('Runtime [s]','Interpreter','LaTex');
+ylabel('Computation Time [s]','Interpreter','LaTex');
 title('Controller runtime in Circle scenario','Interpreter','LaTex');
 
 set_figure_properties(fig, 'paper', 12);
