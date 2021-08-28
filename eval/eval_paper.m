@@ -68,4 +68,4 @@ if is_video_exported
     exportVideo(r3);
 end
 
-runtimePlotCentralized([r2,r3]);
+computationTimePlotCentralized([r2,r3]);

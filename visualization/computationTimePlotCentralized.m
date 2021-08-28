@@ -1,4 +1,4 @@
-function runtimePlotCentralized( results )
+function computationTimePlotCentralized( results )
 %RUNTIMEPLOT    Creates boxplots for result-struct-vector visualizing computation time in centralizied RHC
 
 close all;
