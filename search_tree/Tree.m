@@ -1,15 +1,12 @@
 classdef Tree < handle
 %% TREE A class implementing a Tree data structure.
 %
-% This class implements a simple Tree data structure. Each node can
-% have one parent, and store any kind of data.
+% This class implements a Tree data structure. Each node can
+% have one parent, and data in seven arrays x,y,yaw,trim,k,g,h
 %
 % Nodes are accessed through their index. The index of a node is
 % returned when it is added to the Tree, and corresponds to the
 % order of addition.
-%
-% Internally, the class simply manage an array referencing the node parent
-% indices, and a cell array containing the node data. 
 
     properties (SetAccess = private)
         % Index of the parent node. The root of the Tree as a parent index
@@ -38,9 +35,8 @@ classdef Tree < handle
             % class. It returns a new Tree where the node order and content
             % is duplicated from the Tree argument.
             %
-            % t = TREE(root_content) where 'root_content' is not a Tree,
-            % initialize a new Tree with only the root node, and set its
-            % content to be 'root_content'.
+            % t = TREE(x,y,yaw,trim,k,g,h) 
+            % initialize a new Tree with the given values as nodes
             if nargin < 1
                 root_ID = 1;
                 return
@@ -105,6 +101,7 @@ classdef Tree < handle
         end
 
         function result = get_node(obj, ID)
+        % GET_NODE Return node matrix of desired index ID
             result = node( ...
                 obj.k(:,ID), ...
                 obj.trim(:,ID), ...
@@ -117,6 +114,7 @@ classdef Tree < handle
         end
 
         function result = size(obj)
+        %% SIZE Return the number of nodes in the Tree. 
             result = size(obj.x,2);
         end
         
@@ -130,16 +128,9 @@ classdef Tree < handle
             
             ID = obj.parent(ID);
         end
-        
-        function n = n_nodes(obj)
-            %% N_NODES  Return the number of nodes in the Tree. 
-            n = numel(obj.node);
-        end
 
         function result = path_to_root(obj, ID)
             %% PATH_TO_ROOT  Path from node ID to the Tree root. 
-            %
-            
             result = ID;
             while result(end) ~= 1
                 result(end+1)=obj.parent(result(end)); %#ok<AGROW>
