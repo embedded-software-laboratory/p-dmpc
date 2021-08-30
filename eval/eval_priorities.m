@@ -55,6 +55,6 @@ for ip = 1:nP
 end
 
 fig = figure('position',[100 100 600 630],'color',[1 1 1]);
-boxplot(x);
+histogram(x);
 ylabel('Number of Planning Levels','Interpreter','LaTex');
 title('Number of Planning levels for PBNC-Controllers in Lanelet Scenario','Interpreter','LaTex');
