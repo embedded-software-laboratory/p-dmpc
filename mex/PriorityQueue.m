@@ -24,12 +24,12 @@ classdef PriorityQueue
             priority_queue_interface_mex(PriorityQueue.PUSH, this.iObj, id, prio_val);
         end
 
-        function pop(this)
-            priority_queue_interface_mex(PriorityQueue.POP, this.iObj);
+        function [id,val] = pop(this)
+            [id,val] = priority_queue_interface_mex(PriorityQueue.POP, this.iObj);
         end
 
-        function result = top(this)
-            result = priority_queue_interface_mex(PriorityQueue.TOP, this.iObj);
+        function [id,val] = top(this)
+            [id,val] = priority_queue_interface_mex(PriorityQueue.TOP, this.iObj);
         end
 
         function result = size(this)

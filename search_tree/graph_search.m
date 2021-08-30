@@ -21,8 +21,9 @@ function [u, y_pred, info] = graph_search(scenario, iter)
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
     while true
-        % Choose cheapest node for expansion
-        if pq.size() == 0
+        % Select cheapest node for expansion and remove it
+        cur_node_id = pq.pop();
+        if (cur_node_id == -1)
             ME = MException( ...
                 'MATLAB:graph_search:tree_exhausted' ...
                 ,'No more open nodes to explore' ...
@@ -30,10 +31,6 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             throw(ME);
         end
         
-        cur_node_id = pq.top();
-        
-        % remove parent node
-        pq.pop();
 
         % Eval edge 
         [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id);
@@ -61,9 +58,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             h_weight = 1;
             new_open_values = info.tree.g(new_open_nodes) * g_weight + info.tree.h(new_open_nodes) * h_weight;
             % add child nodes
-            for iNode = 1:numel(new_open_nodes)
-                pq.push(new_open_nodes(iNode),new_open_values(iNode));
-            end
+            pq.push(new_open_nodes,new_open_values);
 
             % % plot exploration
             % info.plot = visualize_exploration(scenario, info.tree, info.plot);

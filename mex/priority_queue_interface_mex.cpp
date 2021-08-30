@@ -61,27 +61,45 @@ public:
 
         if (cmd == PUSH)
         {
-            size_t id = inputs[2][0];
-            double prio_val = inputs[3][0];
-            pq->push(queue_entry(id, prio_val));
-            return;
-        }
+            matlab::data::TypedArray<double> ids = inputs[2];
+            matlab::data::TypedArray<double> prio_vals = inputs[3];
 
-        if (cmd == POP)
-        {
-            pq->pop();
-            return;
-        }
-        if (cmd == TOP)
-        {
-            queue_entry qe = pq->top();
-            outputs[0] = factory.createScalar<size_t>(std::get<ID>(qe));
-            if (outputs.size()>1)
+            for (size_t i = 0; i < ids.getNumberOfElements(); ++i)
             {
-                outputs[1] = factory.createScalar<double>(std::get<PRIO_VAL>(qe));
+                size_t id = ids[i];
+                double prio_val = prio_vals[i];
+                pq->push(queue_entry(id, prio_val));
             }
             return;
         }
+
+        if (cmd == TOP || cmd == POP)
+        {
+            if (!pq->empty())
+            {
+                queue_entry qe = pq->top();
+                outputs[0] = factory.createScalar<size_t>(std::get<ID>(qe));
+                if (outputs.size()>1)
+                {
+                    outputs[1] = factory.createScalar<double>(std::get<PRIO_VAL>(qe));
+                }
+            }
+            else
+            {
+                outputs[0] = factory.createScalar<int>(-1);
+                if (outputs.size()>1)
+                {
+                    outputs[1] = factory.createScalar<int>(-1);
+                }
+            }
+
+            if (cmd == POP)
+            {
+                pq->pop();
+            }
+            return;
+        }
+
         if (cmd == SIZE)
         {
             outputs[0] = factory.createScalar<size_t>(pq->size());
