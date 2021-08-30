@@ -19,14 +19,9 @@ for d=dirs
 end
 
 
-
 folder = fullfile(fileparts(mfilename('fullpath')),'mex');
 if ~isequal(fileparts(which('priority_queue_interface_mex')), folder)
     % Compile the mex
-    cwd = cd(folder);
-    cleanup_obj = onCleanup(@() cd(cwd));
-    fprintf('Compiling priority_queue_interface_mex\n');
-    mex priority_queue_interface_mex.cpp
+    compile_priority_queue(); 
 end
-
 end
