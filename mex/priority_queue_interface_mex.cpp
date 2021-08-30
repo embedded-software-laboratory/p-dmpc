@@ -41,7 +41,6 @@ enum COMMAND {
 class MexFunction : public matlab::mex::Function {
 public:
     inline void operator()(ArgumentList outputs, ArgumentList inputs) {
-        // checkArguments(outputs, inputs);
         const int cmd = inputs[0][0];
 
         if (cmd == NEW)
@@ -76,11 +75,6 @@ public:
         if (cmd == TOP)
         {
             queue_entry qe = pq->top();
-            // matlab::data::TypedArray<double> out = factory.createArray<double>(
-            //     {1, 2}, // dims
-            //     {std::get<ID>(qe), std::get<PRIO_VAL>(qe)} // data
-            // );
-            // outputs[0] = out;
             outputs[0] = factory.createScalar<size_t>(std::get<ID>(qe));
             if (outputs.size()>1)
             {
@@ -99,37 +93,4 @@ private:
     vector<shared_ptr<prio_q>> objects;
     // Create MATLAB data array factory
     matlab::data::ArrayFactory factory;
-
-    void checkArguments(ArgumentList outputs, ArgumentList inputs) {
-        // Get pointer to engine
-        std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr = getEngine();
-
-        // Get array factory
-        matlab::data::ArrayFactory factory;
-
-        // Check first input argument
-        if (inputs[0].getType() != matlab::data::ArrayType::DOUBLE ||
-            inputs[0].getType() == matlab::data::ArrayType::COMPLEX_DOUBLE ||
-            inputs[0].getNumberOfElements() != 1)
-        {
-            matlabPtr->feval(u"error",
-                0,
-                vector<matlab::data::Array>({ factory.createScalar("First input must be scalar double") }));
-        }
-
-        // Check second input argument
-        if (inputs[1].getType() != matlab::data::ArrayType::DOUBLE ||
-            inputs[1].getType() == matlab::data::ArrayType::COMPLEX_DOUBLE)
-        {
-            matlabPtr->feval(u"error",
-                0,
-                vector<matlab::data::Array>({ factory.createScalar("Input must be double array") }));
-        }
-        // Check number of outputs
-        if (outputs.size() > 1) {
-            matlabPtr->feval(u"error",
-                0,
-                vector<matlab::data::Array>({ factory.createScalar("Only one output is returned") }));
-        }
-    }
 };
