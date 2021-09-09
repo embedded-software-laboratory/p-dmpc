@@ -53,17 +53,19 @@ eval_horizon_obstacle();
 disp('Evaluating with two vehicles crossing a circle.');
 s = circle_scenario(2);
 r = run_simulation(s,plot_online,0);
-plot_scenario(r);
-overviewPlot(r,[1,4,8,13]);
+plot_scenario(r(1));
+overviewPlot(r(1),[1,4,8,13]);
 if is_video_exported
-    exportVideo(r);
+    exportVideo(r(1));
 end
 
 disp('Evaluating with three vehicles crossing a circle.');
 s = circle_scenario(3);
-r = run_simulation(s,plot_online,0);
-plot_scenario(r);
-overviewPlot(r,[1,5,8,13]);
+r(2) = run_simulation(s,plot_online,0);
+plot_scenario(r(2));
+overviewPlot(r(2),[1,5,8,13]);
 if is_video_exported
-    exportVideo(r);
+    exportVideo(r(2));
 end
+
+computation_time_plot(r);
