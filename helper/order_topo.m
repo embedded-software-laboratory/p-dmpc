@@ -4,6 +4,12 @@ function order = order_topo(L,C)
 
     lvls = PB_predecessor_groups(L);
     deg = sum(C);
+    
+    if sum(deg) == 0
+        order = [1];
+        return;
+    end
+    
     order = [];
     while sum(deg) ~= 0
         max_deg = 0;
