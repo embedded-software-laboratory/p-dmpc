@@ -50,10 +50,9 @@ eval_horizon_obstacle();
 
 %% Multi-agent experiment
 % ------------------------------------------------------------------------------
-r = [];
 disp('Evaluating with two vehicles crossing a circle.');
 s = circle_scenario(2);
-r(1) = run_simulation(s,plot_online,0);
+r = run_simulation(s,plot_online,0);
 plot_scenario(r(1));
 overviewPlot(r(1),[1,4,8,13]);
 if is_video_exported
@@ -64,9 +63,9 @@ disp('Evaluating with three vehicles crossing a circle.');
 s = circle_scenario(3);
 r(2) = run_simulation(s,plot_online,0);
 plot_scenario(r(2));
-overviewPlot(r3,[1,5,8,13]);
+overviewPlot(r(2),[1,5,8,13]);
 if is_video_exported
     exportVideo(r(2));
 end
 
-computationTimePlotCentralized(r);
+computation_time_plot(r);

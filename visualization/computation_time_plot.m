@@ -1,5 +1,5 @@
-function computationTimePlotCentralized( results )
-%RUNTIMEPLOT    Creates boxplots for result-struct-vector visualizing computation time in centralizied RHC
+function computation_time_plot( results )
+%COMPUTATION_TIME_PLOT    Creates boxplots for result-struct-vector visualizing computation time in centralizied RHC
 
 close all;
 nResults = length(results);
@@ -33,10 +33,9 @@ set(gca, 'YScale', 'log');
 % set labels
 xlabel('Number of Vehicles','Interpreter','LaTex');
 ylabel('Computation Time [s]','Interpreter','LaTex');
-title('Controller runtime in Circle scenario','Interpreter','LaTex');
 
 set_figure_properties(fig, 'paper', 12);
-filepath = fullfile('results', 'runtimePlot.pdf');
+filepath = fullfile('results', 'computation_time.pdf');
 exportgraphics(fig, filepath, 'ContentType','vector');
 close(fig);
 
