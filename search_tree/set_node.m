@@ -1,7 +1,7 @@
 function node = set_node(node,vehicle_filter,info)
 % SET_NODE  Set values to a node stored in a smaller node.
 
-    sub_node = info.tree.node{info.tree_path(2)};
+    sub_node = info.tree.get_node(info.tree_path(2));
     node(vehicle_filter,NodeInfo.k) = sub_node(:,NodeInfo.k);
     node(vehicle_filter,NodeInfo.trim) = sub_node(:,NodeInfo.trim);
     node(vehicle_filter,NodeInfo.x) = sub_node(:,NodeInfo.x);

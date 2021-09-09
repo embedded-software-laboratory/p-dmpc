@@ -37,8 +37,8 @@ ylabel('Horizon'...
 )
 zlabel('Expanded vertices')
 filetype = 'pdf';
-filepath = fullfile('results', ['eval_horizon_obstacle.' filetype]);
+filepath = fullfile('results','horizon_obstacle', ['eval_horizon_obstacle.' filetype]);
 set_figure_properties(fig,'paper',6)
-exportgraphics(fig, filepath, 'ContentType','vector');
+export_fig(fig, filepath)
 close(fig);
 end

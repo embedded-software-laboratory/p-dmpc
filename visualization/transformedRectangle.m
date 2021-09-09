@@ -12,4 +12,3 @@ function [ polygon_XY ] = transformedRectangle( x,y,angle, Length, Width )
             
     polygon_XY = polygon_XY(1:2,:);
 end
-
