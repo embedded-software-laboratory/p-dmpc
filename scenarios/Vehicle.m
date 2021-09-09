@@ -28,4 +28,3 @@ classdef Vehicle
         end
     end
 end
-

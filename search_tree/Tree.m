@@ -1,15 +1,12 @@
-classdef Tree
+classdef Tree < handle
 %% TREE A class implementing a Tree data structure.
 %
-% This class implements a simple Tree data structure. Each node can
-% have one parent, and store any kind of data.
+% This class implements a Tree data structure. Each node can
+% have one parent, and data in seven arrays x,y,yaw,trim,k,g,h
 %
 % Nodes are accessed through their index. The index of a node is
 % returned when it is added to the Tree, and corresponds to the
 % order of addition.
-%
-% Internally, the class simply manage an array referencing the node parent
-% indices, and a cell array containing the node data. 
 
     properties (SetAccess = private)
         % Index of the parent node. The root of the Tree as a parent index
@@ -18,34 +15,45 @@ classdef Tree
     end
     
     properties (SetAccess = public)
-        node = { [] }; % Hold the data at each node
+        x
+        y
+        yaw
+        trim
+        k
+        g
+        h
     end
     
     methods
         
         % CONSTRUCTOR
         
-        function [obj, root_ID] = Tree(content)
+        function [obj, root_ID] = Tree(x,y,yaw,trim,k,g,h)
             %% TREE  Construct a new Tree
             %
             % t = TREE(another_tree) is the copy-constructor for this
             % class. It returns a new Tree where the node order and content
             % is duplicated from the Tree argument.
             %
-            % t = TREE(root_content) where 'root_content' is not a Tree,
-            % initialize a new Tree with only the root node, and set its
-            % content to be 'root_content'.
+            % t = TREE(x,y,yaw,trim,k,g,h) 
+            % initialize a new Tree with the given values as nodes
             if nargin < 1
                 root_ID = 1;
                 return
             end
             
-            if isa(content, 'Tree')
+            if isa(x, 'Tree')
                 % Copy constructor
-                obj = content;
+                obj = x;
             else
                 % New object with only root content
-                obj.node = { content };
+                obj.x = x;
+                obj.y = y;
+                obj.yaw = yaw;
+                obj.trim = trim;
+                obj.k = k;
+                obj.g = g;
+                obj.h = h;
                 root_ID = 1;
             end
             
@@ -54,7 +62,7 @@ classdef Tree
         
         % METHODS
         
-        function [obj, IDs] = add_nodes(obj, parents, datas)
+        function IDs = add_nodes(obj, parent, x,y,yaw,trim,k,g,h)
             %% ADD_NODES attach multiple new nodes to a parent node
             % Tree = Tree.ADD_NODES(parent_index, data) create a new node
             % with content 'data', and attach it as a child of the node
@@ -64,14 +72,20 @@ classdef Tree
             % the index of the newly created node.
             
             assert( ...
-                all(parents>0) && all(parents<=numel(obj.parent)) ...
+                parent>0 && parent<=numel(obj.parent) ...
                 , 'Parent index %d out of bounds.\n' ...
-                , parents ...
+                , parent ...
             );
 
-            IDs = (numel(obj.node)+1:numel(obj.node)+numel(parents));
-            obj.node(IDs,1) = datas;
-            obj.parent(IDs,1) = parents;
+            IDs = (size(obj)+1:size(obj)+size(x,2));
+            obj.x(:,IDs) = x;
+            obj.y(:,IDs) = y;
+            obj.yaw(:,IDs) = yaw;
+            obj.trim(:,IDs) = trim;
+            obj.k(:,IDs) = k;
+            obj.g(:,IDs) = g;
+            obj.h(:,IDs) = h;
+            obj.parent(IDs,1) = parent;
         end
         
         function flag = is_leaf(obj, ID)
@@ -85,15 +99,23 @@ classdef Tree
 
             flag = ~any( obj.parent == ID );
         end
-        
-        function content = get(obj, ID)
-            %% GET  Return the content of the given node ID.
-            content = obj.node{ID};
+
+        function result = get_node(obj, ID)
+        % GET_NODE Return node matrix of desired index ID
+            result = node( ...
+                obj.k(:,ID), ...
+                obj.trim(:,ID), ...
+                obj.x(:,ID), ...
+                obj.y(:,ID), ...
+                obj.yaw(:,ID), ...
+                obj.g(:,ID), ...
+                obj.h(:,ID)...
+            );
         end
 
-        function obj = set(obj, ID, content)
-            %% SET  Set the content of given node ID and return the modifed Tree.
-            obj.node{ID} = content;
+        function result = size(obj)
+        %% SIZE Return the number of nodes in the Tree. 
+            result = size(obj.x,2);
         end
         
         function ID = get_parent(obj, ID)
@@ -106,16 +128,9 @@ classdef Tree
             
             ID = obj.parent(ID);
         end
-        
-        function n = n_nodes(obj)
-            %% N_NODES  Return the number of nodes in the Tree. 
-            n = numel(obj.node);
-        end
 
         function result = path_to_root(obj, ID)
             %% PATH_TO_ROOT  Path from node ID to the Tree root. 
-            %
-            
             result = ID;
             while result(end) ~= 1
                 result(end+1)=obj.parent(result(end)); %#ok<AGROW>
@@ -123,4 +138,3 @@ classdef Tree
         end
     end
 end
-

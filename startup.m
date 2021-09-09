@@ -16,5 +16,12 @@ for d=dirs
     if(~contains(d{1},ignore_dirs))
         addpath(d{1});
     end
-end    
+end
+
+
+folder = fullfile(fileparts(mfilename('fullpath')),'mex');
+if ~isequal(fileparts(which('priority_queue_interface_mex')), folder)
+    % Compile the mex
+    compile_priority_queue(); 
+end
 end

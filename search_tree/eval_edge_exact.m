@@ -1,34 +1,35 @@
-function [is_valid, shapes] = eval_edge_exact(scenario, tree, node_id)
+function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode)
 % EVAL_EDGE_EXACT   Evaluate if step is valid.
 
     is_valid = true;
     % maneuver shapes correspond to movement TO node
-    node_id_parent = get_parent(tree, node_id);
+    node_id_parent = get_parent(tree, iNode);
     shapes = cell(scenario.nVeh,1);
     if ~node_id_parent % root node without parent
         return;
     end
-    node_parent = tree.node{node_id_parent};
-    node_child = tree.node{node_id};
+
+    pX     = tree.x(:,node_id_parent);
+    pY     = tree.y(:,node_id_parent);
+    pYaw   = tree.yaw(:,node_id_parent);
+    pTrim  = tree.trim(:,node_id_parent);
+
+    cTrim  = tree.trim(:,iNode);
+    cK     = tree.k(:,iNode);
+
     for iVeh = 1 : scenario.nVeh
-        t1 = node_parent(iVeh,NodeInfo.trim);
-        t2 = node_child(iVeh,NodeInfo.trim);
+        t1 = pTrim(iVeh);
+        t2 = cTrim(iVeh);
         maneuver = scenario.mpa.maneuvers{t1,t2};
-        c = cos(node_parent(iVeh,NodeInfo.yaw));
-        s = sin(node_parent(iVeh,NodeInfo.yaw));
+        c = cos(pYaw(iVeh));
+        s = sin(pYaw(iVeh));
         
-        shape_x = c*maneuver.area(1,:) - s*maneuver.area(2,:) + node_parent(iVeh,NodeInfo.x);
-        shape_y = s*maneuver.area(1,:) + c*maneuver.area(2,:) + node_parent(iVeh,NodeInfo.y);
+        shape_x = c*maneuver.area(1,:) - s*maneuver.area(2,:) + pX(iVeh);
+        shape_y = s*maneuver.area(1,:) + c*maneuver.area(2,:) + pY(iVeh);
         shapes{iVeh} = [shape_x;shape_y];
         
-        % displacements(iVeh) = sqrt(maneuver.dx^2+maneuver.dy^2);
-        % (1,NodeInfo) for x; (2,NodeInfo) for y
-        % midpoints(:,iVeh) = [   node_parent(iVeh,NodeInfo.x)+(maneuver.dx*cos(node_parent(iVeh,NodeInfo.yaw))-maneuver.dy*sin(node_parent(iVeh,NodeInfo.yaw)))/2,...
-        %                         node_parent(iVeh,NodeInfo.y)+(maneuver.dx*sin(node_parent(iVeh,NodeInfo.yaw))+maneuver.dy*cos(node_parent(iVeh,NodeInfo.yaw)))/2];
+        iStep = cK;
         
-        iStep = node_child(1,NodeInfo.k);
-        
-        % If collision, chop node and subtree
         if collision_with(iVeh, shapes, scenario, iStep)
             is_valid = false;
             return;

@@ -35,7 +35,8 @@ open(v);
 
 startTimer = tic;
 
-progress_bar(1:50) = ' ';
+disp('Exporting video ...');
+wb = waitbar(0, 'Exporting video ...','Name','Video Export Progress');
 for step_idx = 1:nSteps
     for frame_idx = frame_ticks
         clf
@@ -43,16 +44,14 @@ for step_idx = 1:nSteps
         set_figure_properties(fig,'video');
         frame = getframe(fig);
         writeVideo(v,frame);
-        clc;
         progress = (find(frame_ticks==frame_idx)/length(frame_ticks))*(1/nSteps)+((step_idx-1)/nSteps);
-        progress_bar(1:ceil(50*progress)) = '=';
-        progress_bar(ceil(50*progress)) = '>';
-        fprintf('|%s|\n', progress_bar);
-        fprintf('%2.3f %%\n', 100*progress);
         ETA = toc(startTimer)*(1-progress)/progress;
-        fprintf('ETA: %4.1f sec\n', ETA);
+        waitbar(progress,wb, ...
+                sprintf('Exporting video, %4.1f sec remaining...', ETA) ...
+        );
     end
 end
+close(wb);
 close(v);
 close(fig);
 

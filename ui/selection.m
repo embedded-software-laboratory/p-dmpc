@@ -93,4 +93,3 @@ options.visu = possPlots{plot_option,3};
     save([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option', 'strat_option');
 
 end
-
