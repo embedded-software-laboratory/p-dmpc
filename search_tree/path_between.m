@@ -1,22 +1,22 @@
-function search_path = path_between(cur_node,next_node, tree, mpa)
+function search_path = path_between(iCur,iNext, tree, mpa)
 %PATH_BETWEEN Return path as a cell array between two nodes
 
-    n_veh = length(tree.node{1, 1}(:,NodeInfo.trim));
+    n_veh = size(tree.x,1);
     search_path = cell(1, n_veh);
     for iVeh = 1:n_veh        
-        maneuver = mpa.maneuvers{cur_node(iVeh,NodeInfo.trim), next_node(iVeh,NodeInfo.trim)};
-        assert(~isempty(maneuver),'manuevers{%d, %d} is empty.',cur_node(iVeh,NodeInfo.trim), next_node(iVeh,NodeInfo.trim));
+        maneuver = mpa.maneuvers{tree.trim(iVeh,iCur), tree.trim(iVeh,iNext)};
+        assert(~isempty(maneuver),'manuevers{%d, %d} is empty.',tree.trim(iVeh,iCur), tree.trim(iVeh,iNext));
         
-        x = cur_node(iVeh,NodeInfo.x);
-        y = cur_node(iVeh,NodeInfo.y);
-        yaw = cur_node(iVeh,NodeInfo.yaw);
+        x = tree.x(iVeh,iCur);
+        y = tree.y(iVeh,iCur);
+        yaw = tree.yaw(iVeh,iCur);
         
         xs = maneuver.xs;
         ys = maneuver.ys;
         yaws = maneuver.yaws + yaw;       
         
         length_maneuver = length(xs);
-        trims = cur_node(iVeh,NodeInfo.trim) * ones(length_maneuver, 1);
+        trims = tree.trim(iVeh,iCur) * ones(length_maneuver, 1);
         
         [xs, ys] = translate_global(yaw, x, y, xs, ys);
         

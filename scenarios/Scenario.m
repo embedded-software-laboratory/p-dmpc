@@ -24,6 +24,8 @@ classdef Scenario
         adjacency;
         directed_coupling;
         assignPrios = false;
+        vehicle_to_lanelet
+        lanelets
     end
     
     properties (Dependent)

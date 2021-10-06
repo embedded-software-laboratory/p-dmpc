@@ -18,9 +18,9 @@ function [u, y_pred, info] = centralized_controller(scenario, iter)
     % prepare output data
     info.tree = info_v.tree; % only for node explorationslee
     info.subcontroller_runtime = toc(subcontroller_timer);
-    info.n_expanded = info.n_expanded + numel(info_v.tree.node);
+    info.n_expanded = info.n_expanded + info_v.tree.size();
     info.next_node = set_node(info.next_node,1:scenario.nVeh,info_v);
     info.shapes = info_v.shapes;
-    info.vehicle_fullres_path = path_between(info_v.tree.node{info_v.tree_path(1)},info_v.tree.node{info_v.tree_path(2)},info_v.tree,scenario.mpa);
+    info.vehicle_fullres_path = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario.mpa);
     info.trim_indices = info_v.trim_indices;
 end

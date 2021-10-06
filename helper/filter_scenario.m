@@ -16,5 +16,8 @@ function scenario = filter_scenario(scenario, vehicle_filter)
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 
     scenario.vehicles = scenario.vehicles(vehicle_filter);
+    if ~isempty(scenario.vehicle_to_lanelet)
+        scenario.vehicle_to_lanelet = scenario.vehicle_to_lanelet(vehicle_filter,:);
+    end
     scenario.nVeh = sum(vehicle_filter);
 end

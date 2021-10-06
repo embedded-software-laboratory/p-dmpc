@@ -47,7 +47,7 @@ function [signed_distance_min, arclength_min, x_min, y_min, index_min ] = getSho
             if  abs(d_end) < abs(signed_distance_min)
                 x_min = curve_x(j);
                 y_min = curve_y(j);
-                signed_distance_min = sign(signed_distance)*d_end;
+                signed_distance_min = signum(signed_distance)*d_end;
                 arclength_min= arclength_sum + piecelength;
                 index_min = j;
             end
@@ -55,4 +55,12 @@ function [signed_distance_min, arclength_min, x_min, y_min, index_min ] = getSho
         arclength_sum = arclength_sum+piecelength;
     end
     
+end
+
+function sign = signum(x)
+    if x < 0
+        sign = -1;
+        return;
+    end
+        sign = 1;
 end
