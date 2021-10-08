@@ -26,11 +26,14 @@ else
     options = struct;
     vehicle_ids = [varargin{:}];
     options.amount = numel(vehicle_ids);
-    options.isPB = false;
+    options.isPB = true;
 end
     
 
-scenario = circle_scenario(options.amount,options.isPB);
+scenario = commonroad(options.amount,vehicle_ids,options.isPB);
+
+
+% scenario = circle_scenario(options.amount,options.isPB);
 
 if is_sim_lab
     exp = SimLab(scenario, options);
@@ -93,7 +96,7 @@ while (~got_stop)
     
     % Check for stop signal
     % -------------------------------------------------------------------------
-    got_stop = exp.is_stop() || got_stop;
+%     got_stop = exp.is_stop() || got_stop;
     
     % increment interation counter
     k = k+1;
