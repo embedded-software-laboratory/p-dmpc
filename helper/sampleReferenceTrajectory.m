@@ -21,9 +21,9 @@ function [ ReferencePoints ] = sampleReferenceTrajectory(nSamples, referenceTraj
     % All line-segments are assumed to be longer than stepSize. Should it
     % become necessary to have short line-segments this algorithm needs to
     % be changed.
-    for i=1:nLinePieces-1
-        assert(norm(referenceTrajectory(i+1,:)-referenceTrajectory(i,:),2)>max(stepSize));
-    end
+%     for i=1:nLinePieces-1
+%         assert(norm(referenceTrajectory(i+1,:)-referenceTrajectory(i,:),2)>max(stepSize));
+%     end
     
     for i=1:nSamples
         % make a step
@@ -31,9 +31,17 @@ function [ ReferencePoints ] = sampleReferenceTrajectory(nSamples, referenceTraj
         if remainingLength > stepSize(i) || TrajectoryIndex == nLinePieces
             currentPoint = currentPoint + stepSize(i)*normalize(referenceTrajectory(TrajectoryIndex,:)-referenceTrajectory(TrajectoryIndex-1,:));
         else
-            currentPoint = referenceTrajectory(TrajectoryIndex,:);            
-            TrajectoryIndex = min(TrajectoryIndex+1, nLinePieces);            
-            currentPoint = currentPoint + (stepSize(i)-remainingLength)*normalize(referenceTrajectory(TrajectoryIndex,:)-referenceTrajectory(TrajectoryIndex-1,:));
+%             currentPoint = referenceTrajectory(TrajectoryIndex,:);
+%             TrajectoryIndex = min(TrajectoryIndex+1, nLinePieces);
+%             currentPoint = currentPoint + (stepSize(i)-remainingLength)*normalize(referenceTrajectory(TrajectoryIndex,:)-referenceTrajectory(TrajectoryIndex-1,:));
+
+            while remainingLength < stepSize(i) % works for line-segments shorter than the stepSize
+                reflength = remainingLength;
+                currentPoint = referenceTrajectory(TrajectoryIndex,:);
+                TrajectoryIndex = min(TrajectoryIndex+1, nLinePieces);
+                remainingLength = remainingLength + norm(currentPoint-referenceTrajectory(TrajectoryIndex,:),2);
+            end
+            currentPoint = currentPoint + (stepSize(i)-reflength)*normalize(referenceTrajectory(TrajectoryIndex,:)-referenceTrajectory(TrajectoryIndex-1,:));
         end
         
         % record step
