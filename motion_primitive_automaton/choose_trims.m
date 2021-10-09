@@ -37,5 +37,20 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
         trim_adjacency(2:end,2:end) = trim_adjacency(2:end,2:end) ...
             - triu(ones(ntrims-1),2)...
             - tril(ones(ntrims-1),-2);
+    case 12
+        %% Two speeds (0 and 0.75 m/s), 12 steering
+        steering = (-3:0.4:2) * pi/18;
+        ntrims = numel(steering)+1;
+        trim_inputs = zeros(ntrims,2);
+        trim_inputs(2:end,1) = steering;
+        trim_inputs(2:end,2) = 0.35;
+        trim_adjacency = ones(ntrims);
+        % equilibrium is state 1
+        % equilibrium is reachable from all states
+        % and can reach all states, so all 1s is good
+        % other states are connected by one hop
+        trim_adjacency(2:end,2:end) = trim_adjacency(2:end,2:end) ...
+            - triu(ones(ntrims-1),2)...
+            - tril(ones(ntrims-1),-2);
     end
 end
