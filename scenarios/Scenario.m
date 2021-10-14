@@ -26,6 +26,7 @@ classdef Scenario
         assignPrios = false;
         vehicle_to_lanelet
         lanelets
+        commonroad
     end
     
     properties (Dependent)
