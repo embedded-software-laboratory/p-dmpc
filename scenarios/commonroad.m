@@ -3,8 +3,9 @@ function scenario = commonroad(nVeh,vehid,isPB)
 
     scenario = Scenario();
     scenario.name = 'Commonroad';
-    scenario.trim_set = 5;
-    scenario.dt = 0.3;
+    scenario.trim_set = 13;
+    scenario.dt = 0.2;
+    scenario.commonroad = commonroad_lanelets();
     
     
     for iveh = 1:nVeh
