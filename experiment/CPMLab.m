@@ -141,10 +141,11 @@ classdef CPMLab < InterfaceExperiment
             % Vehicle command timeout is 1000 ms after the last valid_after_stamp,
             % so vehicle initiates stop between third and fourth trajectory point
             vhlength = 0.25;
-            x_min =  vhlength + 0;
-            x_max = -vhlength + 4.5;
-            y_min =  vhlength + 0;
-            y_max = -vhlength + 4.0;
+            vhwidth = 0.1;
+            x_min =  vhwidth/2 + 0;  % vhlength + 0;
+            x_max = -vhwidth/2 +  4.5; % -vhlength + 4.5;
+            y_min =  vhwidth/2 + 0;  % vhlength + 0;
+            y_max = -vhwidth/2 + 4.0; % -vhlength + 4.0;
             px = trajectory_points(4).px;
             py = trajectory_points(4).py;
             stop_experiment = x_min>px || px>x_max ...
