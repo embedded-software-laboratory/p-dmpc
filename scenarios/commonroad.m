@@ -3,8 +3,10 @@ function scenario = commonroad(nVeh,vehid,isPB)
 
     scenario = Scenario();
     scenario.name = 'Commonroad';
-    scenario.trim_set = 13;
-    scenario.dt = 0.2;
+%     scenario.trim_set = 13;
+%     scenario.dt = 0.2;
+    scenario.trim_set = 12;
+    scenario.dt = 0.4;
     scenario.commonroad = commonroad_lanelets();
     
     
@@ -12,7 +14,7 @@ function scenario = commonroad(nVeh,vehid,isPB)
         
         veh = Vehicle();
         veh.trim_config = 1;
-        refPath = generateRefPath(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
+        refPath = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
         veh.x_start = refPath(1,1);
         veh.y_start = refPath(1,2);
         veh.x_goal = refPath(2:end,1);
@@ -21,16 +23,16 @@ function scenario = commonroad(nVeh,vehid,isPB)
         veh.referenceTrajectory = [veh.x_start veh.y_start
                                    veh.x_goal  veh.y_goal];
 
-        yaw = calculateYaw(vehid(iveh));
+        yaw = calculate_yaw(vehid(iveh));
         veh.yaw_start = yaw(1);
-        veh.yaw_goal = yaw(2:end); % function not defined yet
+        veh.yaw_goal = yaw(2:end); 
         scenario.vehicles = [scenario.vehicles, veh];
         
     end
 
     scenario.plot_limits = [0,4.5;0,4];  
     scenario.nVeh = nVeh;
-    scenario.T_end = 6;
+    scenario.T_end = 60;
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     nVeh_mpa = scenario.nVeh;
     scenario.Hp = 6;
