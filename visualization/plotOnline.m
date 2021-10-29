@@ -39,10 +39,7 @@ function plotOnline(result,step_idx,tick_now,exploration)
     if ~isempty(scenario.lanelets)
         plot_lanelets(scenario.lanelets);
     end
-    %% plot the commonroad
-    if ~isempty(scenario.commonroad)
-        plot_commonroad_lanelets(scenario.commonroad)
-    end
+
     %%
 
     % Sampled trajectory points
