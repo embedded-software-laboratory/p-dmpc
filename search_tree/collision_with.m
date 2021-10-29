@@ -40,4 +40,14 @@ function collision = collision_with(index, shapes, scenario, iStep)
         end
     end
     
+    
+   if ~isempty(scenario.boundary)
+        if intersect_boundary(shapes{index},scenario.boundary) 
+            collision = true;
+            return;
+        end
+    end
+    
+    
+    
 end
