@@ -1,5 +1,8 @@
 function [lanelets,boundary] = commonroad_lanelets()
 
+% commonroad_lanelets return the lanelets information and the boundary(outer boundary and inner boundary) of the CPM LAB. 
+% Each lanelet contains information of leftBound, rightBound, and the centralLine.
+
     % commonroad_data = readstruct('LabMapCommonRoad.xml');
     % % % save('commonroad_data.mat','commonroad_data')
 
