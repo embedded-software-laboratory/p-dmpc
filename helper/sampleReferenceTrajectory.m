@@ -19,14 +19,14 @@ function [ ReferencePoints ] = sampleReferenceTrajectory(nSamples, referenceTraj
     nLinePieces = size(referenceTrajectory,1);
     currentPoint = [x y];
     
-    % If the refPath is in a loop, the first and the last refPoint should be the same
-    
-    Is_refPath_loop = referenceTrajectory(1,1) == referenceTrajectory(end,1) && referenceTrajectory(1,2) == referenceTrajectory(end,2);
+    % If the first and the last Point of the reference path are the same(here within a small enough distance),
+    % we think the reference is in a loop. 
+    Is_refPath_loop = norm((referenceTrajectory(1,:) - referenceTrajectory(end,:)),2) < 1e-8;
     Is_refPoint_last = TrajectoryIndex == nLinePieces;
     TrajectoryIndexLast = TrajectoryIndex - 1;
 
     % If the refPath is in a loop and the refPoint is the last one, change
-    % the TrajectoryIndex to 1 for sampling ref trajectory in a loop later
+    % the TrajectoryIndex to 1
     if Is_refPath_loop && Is_refPoint_last
         TrajectoryIndex = 1; 
     end  
@@ -57,13 +57,15 @@ function [ ReferencePoints ] = sampleReferenceTrajectory(nSamples, referenceTraj
                 
                 Is_refPoint_last = TrajectoryIndex == nLinePieces;
 
-                if Is_refPath_loop && Is_refPoint_last
+                if (Is_refPath_loop && Is_refPoint_last)
+                    disp('bingo, this is the last ref point')
                     TrajectoryIndex = 1;
                 end 
-
+       
                 remainingLength = remainingLength + norm(currentPoint-referenceTrajectory(TrajectoryIndex,:),2);
             end
             currentPoint = currentPoint + (stepSize(i)-reflength)*normalize(referenceTrajectory(TrajectoryIndex,:)-referenceTrajectory(TrajectoryIndexLast,:));
+            disp(['trajectoryIndex is :',num2str(TrajectoryIndex)])
         end      
         % record step
         ReferencePoints(i,:) = currentPoint;
