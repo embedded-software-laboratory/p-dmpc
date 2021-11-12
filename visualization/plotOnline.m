@@ -22,7 +22,13 @@ function plotOnline(result,step_idx,tick_now,exploration)
     
     %% Simulation state / scenario plot
     %subplot(nVeh,3,[2 3*nVeh]);
-    cla
+%     cla % delete all the plots
+
+    % find all the plots with property "LineWidth 1", which are different to plot_lanelets (default "LineWidth 0.5")  
+    % at every time step, delete all these plots while keep plot_lanelets
+    h = findobj('LineWidth',1);
+    delete(h)
+    
     hold on
     box on
     axis equal
@@ -36,9 +42,13 @@ function plotOnline(result,step_idx,tick_now,exploration)
     if exploration.doExploration
         visualize_exploration(exploration,scenario);
     end
-    if ~isempty(scenario.lanelets)
-        plot_lanelets(scenario.lanelets);
+    
+    if step_idx == 1 % plot the lanelets only once at the beginning
+        if ~isempty(scenario.lanelets)
+            plot_lanelets(scenario.lanelets);
+        end
     end
+
 
     %%
 
@@ -46,14 +56,14 @@ function plotOnline(result,step_idx,tick_now,exploration)
     for v=1:nVeh
         line(   iter.referenceTrajectoryPoints(v,:,1), ...
                 iter.referenceTrajectoryPoints(v,:,2), ...
-                'Color',vehColor(v),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(v),'MarkerSize',3 );
+                'Color',vehColor(v),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(v),'MarkerSize',3,'LineWidth',1 );
     end
 
     % predicted trajectory
     for v=1:nVeh
         line(   result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],1), ...
                 result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],2), ...
-                'Color',vehColor(v),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(v),'MarkerSize', 3 );
+                'Color',vehColor(v),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(v),'MarkerSize', 3, 'LineWidth',1 );
         line(   result.trajectory_predictions{v,step_idx}(:,1), ...
                 result.trajectory_predictions{v,step_idx}(:,2), ...
                 'Color',vehColor(v),'LineWidth',1 );
@@ -70,6 +80,7 @@ function plotOnline(result,step_idx,tick_now,exploration)
                 ,vehColor(v)...
                 ,'LineWidth', 1 ...
         );
+    
     end
     
     % Obstacle rectangle
