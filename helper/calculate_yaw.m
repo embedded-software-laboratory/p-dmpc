@@ -1,6 +1,7 @@
 function yaw = calculate_yaw(iveh)
 
-    refPath = generate_ref_path(iveh);
+    ref_path = generate_ref_path(iveh);
+    refPath = ref_path.path;
     nrefPoints = length(refPath);
     yaw = zeros(nrefPoints,1);
     
