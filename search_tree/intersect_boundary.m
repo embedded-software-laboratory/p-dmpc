@@ -1,14 +1,15 @@
 function collision = intersect_boundary(shape, boundary)
 % INTERSECT_BOUNDARY     Wrapper for INTERSECT_SAT calls for a scenario boundary and check if there is intersection between the shape and the boundary.
+% Returns true iff the shape intersect with the boundary
 
     collision = false;
     n_boundary = size(boundary,2); % number of boundary segments
     
     for i = 1:n_boundary
-        n_point = length(boundary{1,n_boundary});% number of data points of the boundary segments
+        n_point = length(boundary{1,i});% number of data points of the boundary segments
         
         for n = 1:n_point-1
-            if intersect_sat(shape,boundary{1,n_boundary}(:,i:i+1))
+            if intersect_sat(shape,boundary{1,i}(:,n:n+1))
                 collision = true;
 %                 disp('There is collision with the boundary')
                 return;
