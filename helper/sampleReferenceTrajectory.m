@@ -1,4 +1,4 @@
-function [ ReferencePoints ] = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize )
+function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize )
 % SAMPLEREFERENCETRAJETORY  Computes equidistant points along a piecewise linear curve. The first
 % point is the point on the curve closest to the given point
 % (vehicle_x,vehicle_y). All following points are on the curve with a
@@ -11,7 +11,9 @@ function [ ReferencePoints ] = sampleReferenceTrajectory(nSamples, referenceTraj
 %       stepSize: Distance between points [d1; d2; ...]
 % Returns: points [x1 y1; x2 y2; ...]
 
-    ReferencePoints = zeros(nSamples,2);
+    reference = struct;
+    reference.ReferencePoints = zeros(nSamples,2);
+    reference.ReferenceIndex = zeros(nSamples,1);
     
     [~, ~, x, y, TrajectoryIndex ] = getShortestDistance(referenceTrajectory(:,1),referenceTrajectory(:,2),vehicle_x,vehicle_y);
     
@@ -58,17 +60,18 @@ function [ ReferencePoints ] = sampleReferenceTrajectory(nSamples, referenceTraj
                 Is_refPoint_last = TrajectoryIndex == nLinePieces;
 
                 if (Is_refPath_loop && Is_refPoint_last)
-                    disp('bingo, this is the last ref point')
+                    disp('this is the last ref point')
                     TrajectoryIndex = 1;
                 end 
        
                 remainingLength = remainingLength + norm(currentPoint-referenceTrajectory(TrajectoryIndex,:),2);
             end
             currentPoint = currentPoint + (stepSize(i)-reflength)*normalize(referenceTrajectory(TrajectoryIndex,:)-referenceTrajectory(TrajectoryIndexLast,:));
-            disp(['trajectoryIndex is :',num2str(TrajectoryIndex)])
+%             disp(['trajectoryIndex is :',num2str(TrajectoryIndex)])
         end      
         % record step
-        ReferencePoints(i,:) = currentPoint;
+        reference.ReferencePoints(i,:) = currentPoint;
+        reference.ReferenceIndex(i,:) = TrajectoryIndex;
     end
 
 end
