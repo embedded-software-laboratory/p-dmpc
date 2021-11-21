@@ -7,7 +7,8 @@ function adjacency = coupling_adjacency(scenario, iter)
     Hp = size(iter.referenceTrajectoryPoints,2);
     adjacency = zeros(nVeh,nVeh);
     [~,adjacent,~] = commonroad_lanelets();
-
+%     save('adjacent.mat','adjacent')
+    
     for i = 1:nVeh-1
         nlanelets_i = [];
         stop_flag = false;
@@ -17,7 +18,7 @@ function adjacency = coupling_adjacency(scenario, iter)
         for n = ref_points_index_i
             nlanelets_i = [ nlanelets_i, sum(n > scenario.vehicles(1,i).points_index)+1];
         end 
-%         disp(nlanelets_i)
+        disp(nlanelets_i)
         lanelets_index_i = scenario.vehicles(1,i).lanelets_index(nlanelets_i);
         
         
