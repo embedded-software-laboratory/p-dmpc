@@ -10655,4 +10655,63 @@
       <adjacentRight drivingDir="same" ref="95"/>
    </lanelet>
    
+   <intersection id="1">
+    <incoming id="1">
+      <incomingLanelet ref="11"/>
+      <successorsRight ref="25"/>
+      <successorsStraight ref="26"/>
+      <successorsStraight ref="52"/>
+      <successorsLeft ref="72"/>
+    </incoming>
+    <incoming id="2">
+      <incomingLanelet ref="12"/>
+      <successorsRight ref="18"/>
+      <successorsStraight ref="17"/>
+      <successorsStraight ref="43"/>
+      <successorsLeft ref="73"/>
+    </incoming>
+    <incoming id="3">
+      <incomingLanelet ref="39"/>
+      <successorsRight ref="51"/>
+      <successorsStraight ref="50"/>
+      <successorsStraight ref="102"/>
+      <successorsLeft ref="20"/>
+    </incoming>
+    <incoming id="4">
+      <incomingLanelet ref="40"/>
+      <successorsRight ref="44"/>
+      <successorsStraight ref="45"/>
+      <successorsStraight ref="97"/>
+      <successorsLeft ref="21"/>
+    </incoming>
+    <incoming id="5">
+      <incomingLanelet ref="89"/>
+      <successorsRight ref="103"/>
+      <successorsStraight ref="104"/>
+      <successorsStraight ref="78"/>
+      <successorsLeft ref="46"/>
+    </incoming>
+    <incoming id="6">
+      <incomingLanelet ref="90"/>
+      <successorsRight ref="96"/>
+      <successorsStraight ref="95"/>
+      <successorsStraight ref="69"/>
+      <successorsLeft ref="47"/>
+    </incoming>
+    <incoming id="7">
+      <incomingLanelet ref="65"/>
+      <successorsRight ref="77"/>
+      <successorsStraight ref="76"/>
+      <successorsStraight ref="24"/>
+      <successorsLeft ref="98"/>
+    </incoming>
+    <incoming id="8">
+      <incomingLanelet ref="66"/>
+      <successorsRight ref="70"/>
+      <successorsStraight ref="71"/>
+      <successorsStraight ref="19"/>
+      <successorsLeft ref="99"/>
+    </incoming>
+  </intersection>
+  
 </commonRoad>
