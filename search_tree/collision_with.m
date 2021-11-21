@@ -1,4 +1,4 @@
-function collision = collision_with(index, shapes, scenario, iStep)
+function collision = collision_with(index, shapes, shapes_without_offset, scenario, iStep)
 % COLLISION_WITH    Determine whether position has is a collision.
 
     collision = false;
@@ -9,6 +9,7 @@ function collision = collision_with(index, shapes, scenario, iStep)
     for i = 1:nobs
         if intersect_sat(shapes{index},obstacles{i}) 
             collision = true;
+%             disp('there is collision with obstacles')
             return;
         end
     end
@@ -17,6 +18,7 @@ function collision = collision_with(index, shapes, scenario, iStep)
         for i = 1:size(scenario.dynamic_obstacle_area,1)
             if intersect_sat(shapes{index},scenario.dynamic_obstacle_area{i,iStep}) 
                 collision = true;
+%                 disp('there is collision with dynamic obstacles')
                 return;
             end
         end
@@ -26,6 +28,7 @@ function collision = collision_with(index, shapes, scenario, iStep)
         % check if polygons intersect
         if intersect_sat(shapes{i},shapes{index})
             collision = true;
+%             disp('there is collision between two vehicles')
             return;
         end
     end
@@ -42,7 +45,8 @@ function collision = collision_with(index, shapes, scenario, iStep)
     
     
    if ~isempty(scenario.boundary)
-        if intersect_boundary(shapes{index},scenario.boundary) 
+        if intersect_boundary(shapes_without_offset{index},scenario.boundary) 
+%             disp(['there is collision with boundary, vhiecle: ',num2str(index)])
             collision = true;
             return;
         end
