@@ -1,9 +1,9 @@
 classdef  random_priority < interface_priority
 % random_priority  Instance of experiment interface used for simulation in matlab.
     
-    properties (Access=protected)
+    properties (Access=private)
+
         
-        ran_priority
     end
     
     methods 
@@ -11,18 +11,27 @@ classdef  random_priority < interface_priority
             obj.scenario = scenario;
         end
         
-        function ran_priority = random(obj)
+        function groups = priority(obj)
             
-            if obj.scenario.assignPrios || isempty(obj.scenario.directed_coupling)
-                [isDAG, topo_groups] = topological_sorting_coloring(obj.scenario.adjacency);
-            else
-                [isDAG, topo_groups] = kahn(obj.scenario.directed_coupling);
+%             groups = PB_random_groups(obj.scenario);
+            groups = struct;
+            nVeh = length(obj.scenario.vehicles);
+            randomPrio = randperm(nVeh,nVeh); % random priority order 
+%             randomPrio = 1:nVeh;
+%             randomPrio = flip(1:nVeh); % random priority order
+
+            for group_idx = 1:nVeh
+                groups(group_idx).members = randomPrio(group_idx);
+                if group_idx == 1
+                    groups(group_idx).predecessors = [];
+                else
+                    groups(group_idx).predecessors = [groups(group_idx-1).predecessors groups(group_idx-1).members];
+                end
             end
-            
-            assert( isDAG, 'Coupling matrix is not a DAG' );
-            ran_priority = PB_predecessor_groups(topo_groups);
+
             
         end
+      
         
     end
     
