@@ -38,17 +38,17 @@ function plotOnline(result,step_idx,tick_now,exploration)
 
     xlim(scenario.plot_limits(1,:));
     ylim(scenario.plot_limits(2,:));
-    
+    daspect([1 1 1])
     if exploration.doExploration
         visualize_exploration(exploration,scenario);
     end
     
-    if step_idx == 1 % plot the lanelets only once at the beginning
-        if ~isempty(scenario.lanelets)
-            plot_lanelets(scenario.lanelets);
-        end
-    end
-
+%     if step_idx == 1 % plot the lanelets only once at the beginning
+%         if ~isempty(scenario.lanelets)
+%             plot_lanelets(scenario.lanelets);
+%         end
+%     end
+plot_lanelets(scenario.lanelets);
 
     %%
 
