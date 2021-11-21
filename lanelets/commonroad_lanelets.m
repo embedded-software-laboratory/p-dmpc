@@ -58,11 +58,10 @@ function [lanelets,adjacency,boundary] = commonroad_lanelets()
         end
         boundary{end+1}=boundary_segment;
     
-    end
-    
-   
+    end  
     
     % use the leftBound of the lanelets as the outer boundary
+    
     % lanelets index of the outer boundary
     outer_boundary_lanelets = {[2,4,6,8,60,58,56,54,80,82,84,86,34,32,30,28]};    
     for n_outer_boundary = 1:size(outer_boundary_lanelets,2)
@@ -80,28 +79,18 @@ function [lanelets,adjacency,boundary] = commonroad_lanelets()
         
       
     % use the leftBound of the lanelets as the outer turning boundary
+    
     % lanelets index of the outer turning boundary
     turning_boundary_lanelets = {[11],[63],[13],[39],[37],[89],[65],[91]};
     for n_turning_boundary = 1:size(turning_boundary_lanelets,2)
         boundary_segment = [];
         for nlanelets = 1:size(turning_boundary_lanelets{n_turning_boundary},2)
-            lanelets_index = turning_boundary_lanelets{n_turning_boundary}(nlanelets);
-            if lanelets_index == 11 || lanelets_index == 63
-                boundary_x = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.x));
-                boundary_y = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.y));
-            elseif lanelets_index == 13 || lanelets_index == 39
-                boundary_x = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.x));
-                boundary_y = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.y));
-            elseif lanelets_index == 37 || lanelets_index == 89
-                boundary_x = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.x));
-                boundary_y = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.y));
-            elseif lanelets_index == 65 || lanelets_index == 91
-                boundary_x = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.x));
-                boundary_y = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.y));
-            end
-
+            
+            boundary_x = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.x));
+            boundary_y = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.y));
             boundary_next = [boundary_x(1:end);boundary_y(1:end)];
             boundary_segment = [boundary_segment, boundary_next];
+            
         end
         boundary{end+1}=boundary_segment;
     
@@ -118,7 +107,7 @@ function [lanelets,adjacency,boundary] = commonroad_lanelets()
 %     
     
     %% adjacency pair matrix
-    % number of lanelet segments
+    
     adj = zeros(Nlanelets, Nlanelets);
  
     % check the predecessor, successor, adjacentLeft, and adjacentRight of the current lanelet, and assign the pair lanelets to be adjacent
