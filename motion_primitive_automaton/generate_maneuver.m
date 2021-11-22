@@ -1,4 +1,4 @@
-function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
+function maneuver = generate_maneuver(model, trim1, trim2, offset_length, offset_width, dt, nTicks)
 % GENERATE_MANEUVER     Generate a maneuver for motion primitive automaton.
 
     % currently works for BicycleModel
@@ -34,8 +34,8 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
     %% Area
     % local rectangle of bycicle model [coordinates clockwise from lower left corner]
     veh = Vehicle();
-    x_rec1 = [-1, -1,  1,  1] * (veh.Length/2+offset);
-    y_rec1 = [-1,  1,  1, -1] * (veh.Width/2+offset);
+    x_rec1 = [-1, -1,  1,  1] * (veh.Length/2+offset_length);
+    y_rec1 = [-1,  1,  1, -1] * (veh.Width/2+offset_width);
         
     % calculate displacement of model shape
     [x_rec2, y_rec2] = translate_global(maneuver.dyaw, maneuver.dx, maneuver.dy, x_rec1, y_rec1);
@@ -59,5 +59,36 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
     end
     
     maneuver.area = maneuver_area;
+    
+    
+    x_rec1_without_offset = [-1, -1,  1,  1] * (veh.Length/2);
+    y_rec1_without_offset = [-1,  1,  1, -1] * (veh.Width/2);
+        
+    % calculate displacement of model shape
+    [x_rec2_without_offset, y_rec2_without_offset] = translate_global(maneuver.dyaw, maneuver.dx, maneuver.dy, x_rec1_without_offset, y_rec1_without_offset);
+    
+    signum = sign(maneuver.dyaw);
+    
+    switch signum
+        case 0
+            maneuver_area_without_offset = [   x_rec1_without_offset(1) x_rec1_without_offset(2) x_rec2_without_offset(3) x_rec2_without_offset(4); ...
+                                               y_rec1_without_offset(1) y_rec1_without_offset(2) y_rec2_without_offset(3) y_rec2_without_offset(4)   ];
+        case 1
+            lastX = x_rec2_without_offset(4);
+            lastY = y_rec1_without_offset(4);
+            maneuver_area_without_offset = [   x_rec1_without_offset(1) x_rec1_without_offset(2) x_rec2_without_offset(3) x_rec2_without_offset(4) lastX; ...
+                                               y_rec1_without_offset(1) y_rec1_without_offset(2) y_rec2_without_offset(3) y_rec2_without_offset(4) lastY   ];
+        case -1
+            lastX = x_rec2_without_offset(3);
+            lastY = y_rec1_without_offset(3);
+            maneuver_area_without_offset = [   x_rec1_without_offset(1) x_rec1_without_offset(2) lastX x_rec2_without_offset(3) x_rec2_without_offset(4); ...
+                                               y_rec1_without_offset(1) y_rec1_without_offset(2) lastY y_rec2_without_offset(3) y_rec2_without_offset(4)   ];
+    end
+    
+    maneuver.area_without_offset = maneuver_area_without_offset;
+    
+    
+    
+    
     
 end
