@@ -1,10 +1,11 @@
-function [lanelets,adjacency,boundary] = commonroad_lanelets()
+function [lanelets,adjacency,intersection_lanelets,boundary] = commonroad_lanelets()
 
 % COMMONROAD_LANELETS  returns the lanelets information, collision pair matrix and the boundary information
 
 % Returns:
 % lanelets： lanelet information of rightBound, leftBound, and central line of each lanelet
 % collision: (nLanelets x nLanelets) matrix, entry is 1: two lanelets collide or adjacent to each other
+% intersection_lanelets: lanelet index of the intersection
 % boundary: the lanelets boundary of commonroad, includes inner boundary and outer boundary
 
 
