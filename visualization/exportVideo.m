@@ -27,8 +27,8 @@ if test_mode
     imwrite(frame,['output\video_', vid_name, '.png']);
     return
 end
-vidname = ['video_' vid_name '.mp4'];
-v = VideoWriter(fullfile(result.output_path,vidname),'MPEG-4');
+vidname = ['video_' vid_name '.avi'];
+v = VideoWriter(fullfile(result.output_path,vidname),'Motion JPEG AVI');
 v.FrameRate = framerate; 
 v.Quality = 97;
 open(v);
