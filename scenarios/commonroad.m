@@ -6,9 +6,9 @@ function scenario = commonroad(nVeh,vehid,isPB)
 %     scenario.trim_set = 13;
 %     scenario.dt = 0.2;
     scenario.trim_set = 12;
-    scenario.dt = 0.2;
+    scenario.dt = 0.4;
 %     scenario.lanelets_index = 
-    [scenario.lanelets,adjacency, scenario.boundary] = commonroad_lanelets();
+    [scenario.lanelets,scenario.adjacency, scenario.intersection_lanelets, scenario.boundary] = commonroad_lanelets();
 %     scenario.vehicle_to_lanelet = cell(1,0);
     
     for iveh = 1:nVeh
@@ -36,7 +36,7 @@ function scenario = commonroad(nVeh,vehid,isPB)
 
     scenario.plot_limits = [0,4.5;0,4];  
     scenario.nVeh = nVeh;
-    scenario.T_end = 60;
+    scenario.T_end = 20;
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     nVeh_mpa = scenario.nVeh;
     scenario.Hp = 6;
@@ -55,7 +55,8 @@ function scenario = commonroad(nVeh,vehid,isPB)
     scenario.mpa = MotionPrimitiveAutomaton(...
         scenario.model...
         , scenario.trim_set...
-        , scenario.offset...
+        , scenario.offset_length...
+        , scenario.offset_width...
         , scenario.dt...
         , nVeh_mpa...
         , scenario.Hp...
