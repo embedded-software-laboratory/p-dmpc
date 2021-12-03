@@ -61,19 +61,19 @@ ref_path = struct;
             ref_path.lanelets_index = [104,78,63,61,57,55,53,79,81,83,87,89];
 
         case 18
-            ref_path.lanelets_index = [76,24,13,15,3,5,9,11,26,52,37,35,31,29,41,39,50,102,91,93,81,83,87,89,104,78,63,61,57,55,67,65];
+            ref_path.lanelets_index = [76,24,13,15,3,5,7,59,57,55,67,65];
 
          case 19
-            ref_path.lanelets_index = [91,93,81,83,87,89,104,78,63,61,57,55,67,65,76,24,13,15,3,5,9,11,26,52,37,35,31,29,41,39,50,102];
+            ref_path.lanelets_index = [91,93,81,83,85,33,31,29,41,39,50,102];
 
          case 20
-            ref_path.lanelets_index = [69,64,62,75,74,68,66,71,19,14,16,22,23,10,12,17,43,38,36,49,48,42,40,45,97,92,94,100,101,88,90,95];
+            ref_path.lanelets_index = [69,64,62,75,55,53,79,81,101,88,90,95];
 
     end 
 
     % reference path
     path = [];
-    [lanelets, ~,~] = commonroad_lanelets(); 
+    [lanelets, ~,~,~] = commonroad_lanelets(); 
     
     for nlanelets = 1:length(ref_path.lanelets_index)
         % choose the center line of the lanelet as reference path
