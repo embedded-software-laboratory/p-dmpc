@@ -13,7 +13,9 @@ classdef Scenario
         Hp = 5;
         mpa;
         trim_set = 3;
-        offset = 0.03;  % offset for collision checks
+        offset_length = 0.03;  % offset for collision checks
+        offset_width = 0.01;  % offset for collision checks
+        
         model = [];
         time_per_tick = 0.01;
         r_goal = 0.1;   % goal circle
@@ -26,6 +28,7 @@ classdef Scenario
         assignPrios = false;
         vehicle_to_lanelet
         lanelets
+        intersection_lanelets
         boundary
     end
     
