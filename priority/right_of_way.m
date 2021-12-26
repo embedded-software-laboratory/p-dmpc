@@ -61,18 +61,49 @@ classdef  right_of_way < interface_priority
             veh_iterated = [];
             nveh_not_at_intersection = length(veh_not_at_intersection);
             
-            while ~isempty(veh_not_at_intersection) 
-                
+%             for veh_i = veh_not_at_intersection                 
+%                 
+%                 ordered_adjacent_group = [];                    
+%                 % ordering the vehicles which are adjacent according to scenario.adjacency matrix
+%                 ordered_direct_adjacent_group = adjacent_group_ordering(obj.scenario, obj.iter, veh_i, veh_at_intersection);
+%                 ordered_adjacent_group = [ordered_adjacent_group,ordered_direct_adjacent_group]; 
+%                            
+%                 %check if the ordered_group should be updated based on new ordered_adjacent_group
+%                 [~, pos] = intersect(ordered_group, ordered_adjacent_group);
+%                 
+%                 if isempty(pos)
+%                     ordered_group = [ordered_group,ordered_adjacent_group]; 
+%                 else
+%                     pos_insert = min(pos) - 1;
+%                     ordered_group = [ordered_group(1:pos_insert),ordered_adjacent_group,ordered_group(min(pos):end)];
+%                 end
+%                 
+% %                 ordered_group = [ordered_group, ordered_adjacent_group];  
+%                 [~, idx, ~] = unique(ordered_group);
+%                 ordered_group = ordered_group(sort(idx));
+%                 
+%                 
+%                 % if all vehicles are ordered, then stop iteration
+%                 if length(ordered_group) == nveh_not_at_intersection
+%                     break
+%                 end
+%     
+%             end
+       
+            
+            
+            
+            while ~isempty(veh_not_at_intersection)                 
                 veh_i = veh_not_at_intersection(1);
-                ordered_adjacent_group = [];    
-                
+                ordered_adjacent_group = [];                    
                 % ordering the vehicles which are adjacent according to scenario.adjacency matrix
                 ordered_direct_adjacent_group = adjacent_group_ordering(obj.scenario, obj.iter, veh_i, veh_at_intersection);
-                ordered_adjacent_group = [ordered_adjacent_group,ordered_direct_adjacent_group];     
+                ordered_adjacent_group = [ordered_adjacent_group,ordered_direct_adjacent_group]; 
                 
                 % if the first and the last vehicle are not iterated yet, further check these two vehicles first
                 veh_first = ordered_direct_adjacent_group(1);
                 veh_end = ordered_direct_adjacent_group(end);
+                veh_iterated = [veh_iterated, veh_i];
                 
                 while ~ismember(veh_end, veh_iterated) || ~ismember(veh_first, veh_iterated)
                     if ~ismember(veh_end, veh_iterated)      
@@ -80,13 +111,11 @@ classdef  right_of_way < interface_priority
                         ordered_adjacent_group = [ordered_adjacent_group,ordered_direct_adjacent_group];                   
                         veh_iterated = [veh_iterated, veh_end];
                     end
-
                     if ~ismember(veh_first, veh_iterated)
                         ordered_direct_adjacent_group = adjacent_group_ordering(obj.scenario, obj.iter, veh_first, veh_at_intersection);
                         ordered_adjacent_group = [ordered_direct_adjacent_group,ordered_adjacent_group];             
                         veh_iterated = [veh_iterated, veh_first];
-                    end
-                    
+                    end  
                     % remove the repeat elements while keeping original orders
                     [~, index, ~] = unique(ordered_adjacent_group);
                     ordered_adjacent_group = ordered_adjacent_group(sort(index));
@@ -95,10 +124,20 @@ classdef  right_of_way < interface_priority
                     
                 end 
                 
-                ordered_group = [ordered_group, ordered_adjacent_group];  
+                %check if the ordered_group should be updated based on new ordered_adjacent_group
+                [~, pos] = intersect(ordered_group, ordered_adjacent_group);
+                
+                if isempty(pos)
+                    ordered_group = [ordered_group,ordered_adjacent_group]; 
+                else
+                    pos_insert = min(pos) - 1;
+                    ordered_group = [ordered_group(1:pos_insert),ordered_adjacent_group,ordered_group(min(pos):end)];
+                end
+                
+%                 ordered_group = [ordered_group, ordered_adjacent_group];  
                 [~, idx, ~] = unique(ordered_group);
                 ordered_group = ordered_group(sort(idx));
-                veh_iterated = [veh_iterated, veh_i];
+                
                 
                 % if all vehicles are ordered, then stop iteration
                 if length(ordered_group) == nveh_not_at_intersection
