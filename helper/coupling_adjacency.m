@@ -1,7 +1,6 @@
 function adjacency = coupling_adjacency(scenario, iter)
 % COUPLING_ADJACENCY returns the adjacency matrix based on predicted
-% trajectories. If the future trajectories are within  the specified
-% distance, the two vehicles are considered as adjacent.
+% trajectories. If the future trajectories are in two ajacent lanelets, the two vehicles are considered as adjacent.
     
     nVeh = size(iter.referenceTrajectoryPoints,1);
     Hp = size(iter.referenceTrajectoryPoints,2);
@@ -20,8 +19,7 @@ function adjacency = coupling_adjacency(scenario, iter)
         end 
 %         disp(nlanelets_i)
         lanelets_index_i = scenario.vehicles(1,i).lanelets_index(nlanelets_i);
-        
-        
+              
         for j = nVeh:-1:i+1
             nlanelets_j = [];
             ref_points_index_j = reshape(iter.referenceTrajectoryIndex(j,:,:),1,Hp);
@@ -53,12 +51,8 @@ function adjacency = coupling_adjacency(scenario, iter)
     end
     
     
- 
-    
-%     nVeh = size(iter.referenceTrajectoryPoints,1);
-%     Hp = size(iter.referenceTrajectoryPoints,2);
-%     adjacency = zeros(nVeh,nVeh);
-% 
+
+% % Adjacency based on distance between vehicles
 %     for i = 1:nVeh-1
 %         
 %         stop_flag = false;
@@ -84,7 +78,7 @@ function adjacency = coupling_adjacency(scenario, iter)
 %             end   
 %         
 %         end
-
+% 
 %     end
 
 
