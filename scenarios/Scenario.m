@@ -13,7 +13,7 @@ classdef Scenario
         Hp = 5;
         mpa;
         trim_set = 3;
-        offset_length = 0.03;  % offset for collision checks
+        offset_length = 0.01;  % offset for collision checks
         offset_width = 0.01;  % offset for collision checks
         
         model = [];
@@ -30,6 +30,7 @@ classdef Scenario
         lanelets
         intersection_lanelets
         boundary
+        commonroad_data
     end
     
     properties (Dependent)
