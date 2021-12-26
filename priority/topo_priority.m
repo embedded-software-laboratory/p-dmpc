@@ -12,9 +12,9 @@ classdef  topo_priority < interface_priority
             obj.scenario = scenario;
             
             if obj.scenario.assignPrios || isempty(obj.scenario.directed_coupling)
-                [obj.isDAG, obj.topo_groups] = topological_sorting_coloring(obj.scenario.adjacency);
+                [obj.isDAG, obj.topo_groups] = topological_sorting_coloring(obj.scenario.adjacency(:,:,end));
             else
-                [obj.isDAG, obj.topo_groups] = kahn(obj.scenario.directed_coupling);
+                [obj.isDAG, obj.topo_groups] = kahn(obj.scenario.directed_coupling(:,:,end));
             end
             
         end
