@@ -43,11 +43,11 @@ function plotOnline(result,step_idx,tick_now,exploration)
         visualize_exploration(exploration,scenario);
     end
     
-%     if step_idx == 1 % plot the lanelets only once at the beginning
-%         if ~isempty(scenario.lanelets)
-%             plot_lanelets(scenario.lanelets);
-%         end
-%     end
+    if step_idx == 1 % plot the lanelets only once at the beginning
+        if ~isempty(scenario.lanelets)
+            plot_lanelets(scenario.lanelets);
+        end
+    end
 plot_lanelets(scenario.lanelets);
 
     %%
@@ -80,8 +80,36 @@ plot_lanelets(scenario.lanelets);
                 ,vehColor(v)...
                 ,'LineWidth', 1 ...
         );
-    
+        % plot the priority
+        text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1);
+       
+        % plot scenario adjacency
+        adjacent_vehicles = find(scenario.adjacency(v,:,step_idx));
+%         disp('scenario.adjacency')
+%         disp(scenario.adjacency)
+%         disp('adjacent_vehicles')
+%         disp(length(adjacent_vehicles))
+        for adj_v = adjacent_vehicles
+            
+            adj_pos_step = result.vehicle_path_fullres{adj_v,step_idx};
+            adj_x = adj_pos_step(tick_now,:);
+            line([x(1),adj_x(1)],[x(2),adj_x(2)],'LineWidth',1);
+            
+        end
+        
+        
+        
     end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     % Obstacle rectangle
     for obs = 1:nObst
