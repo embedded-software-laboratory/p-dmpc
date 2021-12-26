@@ -1,4 +1,4 @@
-function [lanelets,adjacency,intersection_lanelets,boundary] = commonroad_lanelets()
+function [lanelets,adjacency,intersection_lanelets,boundary,commonroad] = commonroad_lanelets()
 
 % COMMONROAD_LANELETS  returns the lanelets information, collision pair matrix and the boundary information
 
@@ -16,7 +16,8 @@ function [lanelets,adjacency,intersection_lanelets,boundary] = commonroad_lanele
 %     commonroad_data = readstruct('LabMapCommonRoad_Update.xml');
 %     save('commonroad_data.mat','commonroad_data')
     
-    load('commonroad_data.mat')
+    load('commonroad_data.mat');
+    
 
     lanelets = cell(1,0);
     Nlanelets = length(commonroad_data.lanelet); % number of lanelets
@@ -36,7 +37,7 @@ function [lanelets,adjacency,intersection_lanelets,boundary] = commonroad_lanele
 
     end
      
-
+    commonroad = commonroad_data;
     %% commonroad scenario boundary 
                      
     boundary = cell(1,0);
@@ -138,7 +139,7 @@ function [lanelets,adjacency,intersection_lanelets,boundary] = commonroad_lanele
                    adjacent_index = [adjacent_index,predecessor_adjacentRight_index];
                 end
                 
-                %% check the successor of predecessor to include forking lanelets
+                % check the successor of predecessor to include forking lanelets
                 if isfield(predecessor_successor,'refAttribute')
                    predecessor_successor_index = horzcat(predecessor_successor.refAttribute);
                    adjacent_index = [adjacent_index,predecessor_successor_index];
@@ -155,8 +156,7 @@ function [lanelets,adjacency,intersection_lanelets,boundary] = commonroad_lanele
                 successor_adjacentLeft = commonroad_data.lanelet(index).adjacentLeft;
                 successor_adjacentRight = commonroad_data.lanelet(index).adjacentRight;
                 successor_predecessor = commonroad_data.lanelet(index).predecessor;
-                
-                
+  
                 if isfield(successor_adjacentLeft,'refAttribute')
                    successor_adjacentLeft_index = horzcat(successor_adjacentLeft.refAttribute);
                    adjacent_index = [adjacent_index,successor_adjacentLeft_index];
@@ -165,9 +165,16 @@ function [lanelets,adjacency,intersection_lanelets,boundary] = commonroad_lanele
                    successor_adjacentRight_index = horzcat(successor_adjacentRight.refAttribute);
                    adjacent_index = [adjacent_index,successor_adjacentRight_index];
                 end
-                %% check the predecessor of successor to include merging lanelets
+                
+                % check the predecessor of successor to include merging lanelets
                 if isfield(successor_predecessor,'refAttribute')
                    successor_predecessor_index = horzcat(successor_predecessor.refAttribute);
+                   
+                   % successor_predecessor's adjacentLeft and adjacentRight
+                   
+                   
+                   
+                   
                    adjacent_index = [adjacent_index,successor_predecessor_index];
                 end
                 
@@ -188,6 +195,19 @@ function [lanelets,adjacency,intersection_lanelets,boundary] = commonroad_lanele
         adj(i,adjacent_index) = 1;
      
     end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
        
     % check the lanelets at intersection and assign them to be adjacent
     
