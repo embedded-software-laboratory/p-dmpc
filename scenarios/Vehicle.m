@@ -16,6 +16,7 @@ classdef Vehicle
         Lr                  = 0.1;   % Distance between vehicle center and rear axle center [m]
         lanelets_index
         points_index
+        lanelet_boundary
     end
     
     methods
