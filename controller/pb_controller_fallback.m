@@ -1,8 +1,9 @@
-function [u, y_pred, info] = pb_controller_fallback(scenario, u, y_pred, info)
-% PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
-%     Controller simulates multiple distributed controllers.
+function [u, y_pred, info, priority] = pb_controller_fallback(scenario, u, y_pred, info, priority_list)
+% pb_controller_fallback    planning by using last priority and
+% trajectories directly
 
 
+    priority = priority_list;
     nVeh = length(scenario.vehicles);
     for vehicle_idx = 1:nVeh
         subcontroller_timer = tic;
@@ -24,14 +25,14 @@ function [u, y_pred, info] = pb_controller_fallback(scenario, u, y_pred, info)
         info.tree_path(vehicle_idx,:) = [info.tree_path(vehicle_idx,2:end),1];% the last element is used to keep the size
         y_pred{vehicle_idx,1} = y_pred{vehicle_idx,1}((scenario.tick_per_step+1)+1:end,:);
 
-        
-        
+   
 %         disp('info.tree_path');
 %         disp(info.tree_path(vehicle_idx,:))
 %         disp('info_v.tree_path')
 %         disp(info_v.tree_path)
 %         disp('next node:')
 %         disp(info.next_node)
+
     end
         
  
