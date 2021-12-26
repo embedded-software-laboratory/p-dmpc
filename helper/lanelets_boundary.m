@@ -1,6 +1,6 @@
 function lanelet_boundary = lanelets_boundary(scenario, iter)
 
-% lanelets_boundary  update the boundary for each vehicle based on predicted trajectories. 
+% lanelets_boundary  l. 
     
     nVeh = size(iter.referenceTrajectoryPoints,1);
     Hp = size(iter.referenceTrajectoryPoints,2);
