@@ -1,4 +1,4 @@
-function [u, y_pred, info] = pb_controller(scenario, iter)
+function [u, y_pred, info, priority_list] = pb_controller(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
@@ -10,11 +10,21 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
 
 %     obj = topo_priority(scenario);
 %     groups = obj.priority();   
-    obj = random_priority(scenario);
-    groups = obj.priority();  
+%     obj = random_priority(scenario);
+%     groups = obj.priority();  
+
+    obj = right_of_way(scenario,iter);
+    groups = obj.priority(); 
     
-    priority_list = horzcat(groups.members);
-    disp(['priority list is:',num2str(priority_list)])
+    members_list = horzcat(groups.members);
+    nVeh = length(members_list);
+    priority_list = zeros(1,nVeh);
+    prio = 1;
+    for iVeh = members_list
+        
+        priority_list(iVeh) = prio;
+        prio = prio + 1;
+    end
     
     if isempty(Lastgroups)
         Lastgroups = groups;
