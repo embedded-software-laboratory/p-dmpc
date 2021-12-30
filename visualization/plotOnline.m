@@ -48,7 +48,7 @@ function plotOnline(result,step_idx,tick_now,exploration)
             plot_lanelets(scenario.lanelets);
         end
     end
-plot_lanelets(scenario.lanelets);
+% plot_lanelets(scenario.lanelets);
 
     %%
 
@@ -82,6 +82,7 @@ plot_lanelets(scenario.lanelets);
         );
         % plot the priority
         text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1);
+        text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 12, 'LineWidth',1,'Color','m');
        
         % plot scenario adjacency
         adjacent_vehicles = find(scenario.adjacency(v,:,step_idx));
@@ -93,22 +94,13 @@ plot_lanelets(scenario.lanelets);
             
             adj_pos_step = result.vehicle_path_fullres{adj_v,step_idx};
             adj_x = adj_pos_step(tick_now,:);
-            line([x(1),adj_x(1)],[x(2),adj_x(2)],'LineWidth',1);
+            line([x(1),adj_x(1)],[x(2),adj_x(2)],'LineWidth',1, 'Color','r');
             
         end
         
         
         
     end
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     % Obstacle rectangle
