@@ -23,8 +23,8 @@ if is_sim_lab
     end
 %     vehicle_ids = [1];
 %     vehicle_ids = [1,3,5,8,10,13,15,17,18,20];
-    vehicle_ids = [1,2,3,4,5,7,8,12,14,17,19]; % ok
-%     vehicle_ids = [1,2,3,4,5,7,8,9,11,12,14,16,17,18,19]; % ok
+%     vehicle_ids = [1,2,3,4,5,7,8,12,14,17,19]; % ok
+    vehicle_ids = [1,2,3,4,5,7,8,9,11,12,14,16,17,18,19]; % ok
 else
     disp('cpmlab')
     options = struct;
@@ -75,7 +75,7 @@ while (~got_stop)
         if ~isempty(scenario.lanelets)
             lanelet_boundary = lanelets_boundary(scenario, iter);% update the boundary information of each vehicle
             for iveh = 1:options.amount
-                scenario.vehicles(1,iveh).lanelet_boundary = lanelet_boundary(1,iveh);
+                scenario.vehicles(1,iveh).lanelet_boundary = lanelet_boundary{1,iveh};
             end
             scenario.adjacency(:,:,k) = coupling_adjacency(scenario,iter);
         end
