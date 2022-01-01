@@ -2,8 +2,7 @@ classdef  right_of_way_update < interface_priority
 % right_of_way  Instance of interface_priority used for dynamic priority
 % assignment. For vehicles driving consectively, vehicles in the front are
 % aasigned with higher priorities; For vehicles at the intersection, vehicles
-% closer to the center of intersection are assigned with higher priorities. Vehicles at intersection keep
-% higher priority and do not change their relative priority until they leave intersection
+% closer to the center of intersection are assigned with higher priorities. Vehicles at intersection keep higher priority and do not change their relative priority until they leave intersection
     
     properties (Access=private)
         iter
