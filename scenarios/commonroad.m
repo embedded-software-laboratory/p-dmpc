@@ -6,7 +6,7 @@ function scenario = commonroad(nVeh,vehid,isPB)
 %     scenario.trim_set = 13;
 %     scenario.dt = 0.2;
     scenario.trim_set = 12;
-    scenario.dt = 0.3;
+    scenario.dt = 0.4;
 %     scenario.lanelets_index = 
     [scenario.lanelets,scenario.adjacency, scenario.intersection_lanelets, scenario.boundary, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets();
 %     scenario.vehicle_to_lanelet = cell(1,0);
@@ -45,7 +45,7 @@ function scenario = commonroad(nVeh,vehid,isPB)
        scenario.adjacency = zeros(nVeh,nVeh);
        scenario.assignPrios = true;
        scenario.controller_name = strcat(scenario.controller_name, '-PB');
-       scenario.controller = @(s,i) pb_controller(s,i);
+       scenario.controller = @(s,i,j) pb_controller(s,i,j);
        nVeh_mpa = 1;
 
     end
