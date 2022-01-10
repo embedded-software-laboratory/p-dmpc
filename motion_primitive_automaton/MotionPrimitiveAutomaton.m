@@ -50,13 +50,9 @@ classdef MotionPrimitiveAutomaton
             end
 
             % compute distance to equilibrium state
-            eq_states = find(trim_inputs(:,2)==0);
-            obj.distance_to_equilibrium = zeros(n_trims,1);
-            for iTrim = 1:n_trims
-                dist_to_eq_state = 0;
-                visited_states = iTrim;
-                [obj.distance_to_equilibrium(iTrim),~] = obj.comp_dist_to_eq_state(iTrim, dist_to_eq_state, visited_states, eq_states);
-            end
+            eq_states = find(trim_inputs(:,2)==0);            
+            adj_trims = graph(obj.transition_matrix_single(:,:,1));
+            obj.distance_to_equilibrium = distances(adj_trims,eq_states);
 
             % compute trim tuple (vertices)
             trim_index_list = cell(nveh,1);
@@ -87,28 +83,6 @@ classdef MotionPrimitiveAutomaton
         end
 
         
-        function [dist_to_eq_state, visited_states] = comp_dist_to_eq_state(obj, state, dist_to_eq_state, visited_states,eq_states)
-            if ismember(state, eq_states)
-                % return
-            else
-                dist_to_eq_state = dist_to_eq_state + 1;
-                min_dist = Inf;
-                for s = find(obj.transition_matrix_single(state,:,1))
-                    if (ismember(s, visited_states))
-                        next_dist = Inf;
-                    else
-                        next_visited_states = [visited_states, s];
-                        [next_dist,~] = obj.comp_dist_to_eq_state(s,dist_to_eq_state,next_visited_states,eq_states);
-                    end
-                    if next_dist < min_dist
-                        min_dist = next_dist;
-                    end
-                end
-                dist_to_eq_state = min_dist;
-            end
-        end
-
-
         function transition_matrix_single = compute_time_varying_transition_matrix(obj)
             N = size(obj.transition_matrix_single,3);
             transition_matrix_single = obj.transition_matrix_single;
