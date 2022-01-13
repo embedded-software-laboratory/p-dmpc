@@ -67,6 +67,9 @@ ref_path = struct;
 
          case 20
             ref_path.lanelets_index = [78,63,61,57,55,53,79,81,83,87,89,104];
+        
+         case 21
+            ref_path.lanelets_index = [83,85,33,31,29,27,1,3,5,7,59,57,55,53,79,81];
 
     end 
 
