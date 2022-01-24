@@ -1,4 +1,4 @@
-function [lanelets,adjacency,intersection_lanelets,boundary,commonroad,lanelet_boundary] = commonroad_lanelets()
+function [lanelets,adjacency,semi_adjacency,intersection_lanelets,boundary,commonroad,lanelet_boundary] = commonroad_lanelets()
 
 % COMMONROAD_LANELETS  returns the lanelets information, collision pair matrix and the boundary information
 
@@ -112,8 +112,6 @@ function [lanelets,adjacency,intersection_lanelets,boundary,commonroad,lanelet_b
     for i = 1:Nlanelets
         predecessor = commonroad_data.lanelet(i).predecessor;
         successor = commonroad_data.lanelet(i).successor;
-        adjacentLeft = commonroad_data.lanelet(i).adjacentLeft;
-        adjacentRight = commonroad_data.lanelet(i).adjacentRight;
         adjacent_index = [];
         
         if isfield(predecessor,'refAttribute')
@@ -126,11 +124,11 @@ function [lanelets,adjacency,intersection_lanelets,boundary,commonroad,lanelet_b
                 predecessor_adjacentRight = commonroad_data.lanelet(index).adjacentRight;
                 predecessor_successor = commonroad_data.lanelet(index).successor;
                 
-                if isfield(predecessor_adjacentLeft,'refAttribute')
+                if isfield(predecessor_adjacentLeft,'refAttribute') && strcmp(predecessor_adjacentLeft.drivingDirAttribute,'same')
                    predecessor_adjacentLeft_index = horzcat(predecessor_adjacentLeft.refAttribute);
                    adjacent_index = [adjacent_index,predecessor_adjacentLeft_index];
                 end
-                if isfield(predecessor_adjacentRight,'refAttribute')
+                if isfield(predecessor_adjacentRight,'refAttribute') && strcmp(predecessor_adjacentRight.drivingDirAttribute,'same')
                    predecessor_adjacentRight_index = horzcat(predecessor_adjacentRight.refAttribute);
                    adjacent_index = [adjacent_index,predecessor_adjacentRight_index];
                 end
@@ -143,12 +141,12 @@ function [lanelets,adjacency,intersection_lanelets,boundary,commonroad,lanelet_b
                    for idx = predecessor_successor_index
                        predecessor_successor_adjacentLeft = commonroad_data.lanelet(idx).adjacentLeft;
                        predecessor_successor_adjacentRight = commonroad_data.lanelet(idx).adjacentRight;
-                       if isfield(predecessor_successor_adjacentLeft,'refAttribute')
+                       if isfield(predecessor_successor_adjacentLeft,'refAttribute') && strcmp(predecessor_successor_adjacentLeft.drivingDirAttribute,'same')
                            predecessor_successor_adjacentLeft_index = horzcat(predecessor_successor_adjacentLeft.refAttribute);
                            
                            adjacent_index = [adjacent_index,predecessor_successor_adjacentLeft_index];
                        end
-                       if isfield(predecessor_successor_adjacentRight,'refAttribute')
+                       if isfield(predecessor_successor_adjacentRight,'refAttribute') && strcmp(predecessor_successor_adjacentRight.drivingDirAttribute,'same')
                            predecessor_successor_adjacentRight_index = horzcat(predecessor_successor_adjacentRight.refAttribute);
                            adjacent_index = [adjacent_index,predecessor_successor_adjacentRight_index];
                        end                      
@@ -168,11 +166,11 @@ function [lanelets,adjacency,intersection_lanelets,boundary,commonroad,lanelet_b
                 successor_adjacentRight = commonroad_data.lanelet(index).adjacentRight;
                 successor_predecessor = commonroad_data.lanelet(index).predecessor;
   
-                if isfield(successor_adjacentLeft,'refAttribute')
+                if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
                    successor_adjacentLeft_index = horzcat(successor_adjacentLeft.refAttribute);
                    adjacent_index = [adjacent_index,successor_adjacentLeft_index];
                 end
-                if isfield(successor_adjacentRight,'refAttribute')
+                if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
                    successor_adjacentRight_index = horzcat(successor_adjacentRight.refAttribute);
                    adjacent_index = [adjacent_index,successor_adjacentRight_index];
                 end
@@ -186,12 +184,12 @@ function [lanelets,adjacency,intersection_lanelets,boundary,commonroad,lanelet_b
                        successor_predecessor_adjacentLeft = commonroad_data.lanelet(idx).adjacentLeft;
                        successor_predecessor_adjacentRight = commonroad_data.lanelet(idx).adjacentRight;
                        
-                       if isfield(successor_predecessor_adjacentLeft,'refAttribute')
+                       if isfield(successor_predecessor_adjacentLeft,'refAttribute') && strcmp(successor_predecessor_adjacentLeft.drivingDirAttribute,'same')
                            successor_predecessor_adjacentLeft_index = horzcat(successor_predecessor_adjacentLeft.refAttribute);
                            adjacent_index = [adjacent_index,successor_predecessor_adjacentLeft_index];
                        end
                        
-                       if isfield(successor_predecessor_adjacentRight,'refAttribute')
+                       if isfield(successor_predecessor_adjacentRight,'refAttribute') && strcmp(successor_predecessor_adjacentRight.drivingDirAttribute,'same')
                            successor_predecessor_adjacentRight_index = horzcat(successor_predecessor_adjacentRight.refAttribute);
                            adjacent_index = [adjacent_index,successor_predecessor_adjacentRight_index];
                        end  
@@ -217,6 +215,8 @@ function [lanelets,adjacency,intersection_lanelets,boundary,commonroad,lanelet_b
   
     %% intersection_lanelets   
     % check the lanelets at intersection and assign them to be adjacent
+    semi_adjacency = adj + adj' + eye(Nlanelets, Nlanelets);
+    semi_adjacency = (semi_adjacency > 0);
     
     Nintersections = length(commonroad_data.intersection); 
     
@@ -232,9 +232,11 @@ function [lanelets,adjacency,intersection_lanelets,boundary,commonroad,lanelet_b
             for l = length(intersection_lanelets) : -1 : k+1
                 adj(intersection_lanelets(k),intersection_lanelets(l)) = 1;
             end
-        end
-        
+        end      
     end
+    
+    % remove some adjacency lanelets...................
+    
     
     
     adjacency = adj + adj' + eye(Nlanelets, Nlanelets); % same lanelet is always adjacent
@@ -245,36 +247,35 @@ function [lanelets,adjacency,intersection_lanelets,boundary,commonroad,lanelet_b
     %% lanelets boundary
     lanelet_boundary = cell(1,Nlanelets);
     for lanelet = 1:Nlanelets
-        left_bound = [];
-        right_bound = [];
         adjacentLeft = commonroad_data.lanelet(lanelet).adjacentLeft;
         adjacentRight = commonroad_data.lanelet(lanelet).adjacentRight;
 
         % if the lanelet has adjacent left lanelet, the boundary
         % should be the leftBound of adjacentLeft and rightBound of
         % the current lanelet
-        if isfield(adjacentLeft,'refAttribute')
+        
+        left_bound_x = lanelets{ lanelet }(:,LaneletInfo.lx);
+        left_bound_y = lanelets{ lanelet }(:,LaneletInfo.ly);
+        left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
+
+        right_bound_x = lanelets{ lanelet }(:,LaneletInfo.rx);
+        right_bound_y = lanelets{ lanelet }(:,LaneletInfo.ry);
+        right_bound = [right_bound_x(1:end),right_bound_y(1:end)];
+        
+        if isfield(adjacentLeft,'refAttribute') && strcmp(adjacentLeft.drivingDirAttribute,'same')
             adjacentLeft_index = horzcat(adjacentLeft.refAttribute);
             left_bound_x = lanelets{ adjacentLeft_index }(:,LaneletInfo.lx);
             left_bound_y = lanelets{ adjacentLeft_index }(:,LaneletInfo.ly);
             left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
 
-            right_bound_x = lanelets{ lanelet }(:,LaneletInfo.rx);
-            right_bound_y = lanelets{ lanelet }(:,LaneletInfo.ry);
-            right_bound = [right_bound_x(1:end),right_bound_y(1:end)];                           
-        end
-
-        if isfield(adjacentRight,'refAttribute')
+        elseif isfield(adjacentRight,'refAttribute') && strcmp(adjacentRight.drivingDirAttribute,'same')
             adjacentRight_index = horzcat(adjacentRight.refAttribute);
-            left_bound_x = lanelets{ lanelet }(:,LaneletInfo.lx);
-            left_bound_y = lanelets{ lanelet }(:,LaneletInfo.ly);
-            left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
-
             right_bound_x = lanelets{ adjacentRight_index }(:,LaneletInfo.rx);
             right_bound_y = lanelets{ adjacentRight_index }(:,LaneletInfo.ry);
             right_bound = [right_bound_x(1:end),right_bound_y(1:end)];
+    
         end
-
+        
         lanelet_boundary{lanelet} = {left_bound,right_bound};
     end
     
