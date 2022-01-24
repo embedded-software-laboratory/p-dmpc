@@ -11,7 +11,7 @@ function [u, y_pred, info, priority_list,veh_at_intersection] = pb_controller(sc
 %     obj = random_priority(scenario);
 %     groups = obj.priority();  
 
-    obj = right_of_way_update(scenario,iter);
+    obj = right_of_way_update3(scenario,iter);
     [veh_at_intersection, groups] = obj.priority(last_veh_at_intersection); 
     
     members_list = horzcat(groups.members);
@@ -43,6 +43,7 @@ function [u, y_pred, info, priority_list,veh_at_intersection] = pb_controller(sc
         for grp_member_idx = 1:length(group.members) 
             subcontroller_timer = tic;
             vehicle_idx = group.members(grp_member_idx);
+%             disp(['the vehicle is going to search: ',num2str(vehicle_idx)])
             % Filter out vehicles with lower or same priority.
             priority_filter = false(1,scenario.nVeh);
             priority_filter(group.predecessors) = true; % keep all with higher priority
@@ -59,6 +60,7 @@ function [u, y_pred, info, priority_list,veh_at_intersection] = pb_controller(sc
 
             % execute sub controller for 1-veh scenario
             [u_v,y_pred_v,info_v, MEflag] = sub_controller(scenario_v, iter_v);
+%             disp('Search finished')
 
             if MEflag 
                 disp('No more nodes to expand...')
@@ -84,10 +86,6 @@ function [u, y_pred, info, priority_list,veh_at_intersection] = pb_controller(sc
         end
 
     end
-
-    Lastgroups = groups;
-
-    
-    
+  
     
 end
