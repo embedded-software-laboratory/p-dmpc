@@ -78,7 +78,7 @@ while (~got_stop)
             for iveh = 1:options.amount
                 scenario.vehicles(1,iveh).lanelet_boundary = lanelet_boundary{1,iveh};
             end
-            scenario.adjacency(:,:,k) = coupling_adjacency(scenario,iter);
+            [scenario.adjacency(:,:,k),scenario.semi_adjacency(:,:,k)] = coupling_adjacency(scenario,iter);
         end
         
         
