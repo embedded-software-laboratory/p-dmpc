@@ -32,6 +32,7 @@ classdef Scenario
         boundary
         commonroad_data
         lanelet_boundary
+        semi_adjacency
     end
     
     properties (Dependent)
