@@ -60,7 +60,6 @@ function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, ve
                 Is_refPoint_last = TrajectoryIndex == nLinePieces;
 
                 if (Is_refPath_loop && Is_refPoint_last)
-                    disp('this is the last ref point')
                     TrajectoryIndex = 1;
                 end 
        
