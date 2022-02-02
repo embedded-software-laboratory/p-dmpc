@@ -25,6 +25,7 @@ if is_sim_lab
     end
 
     vehicle_ids = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]; % ok
+%     vehicle_ids = 22:33; % vheicles running in a circle(test for cyclic directed graph)
 else
     disp('cpmlab')
     options = struct;
@@ -81,6 +82,18 @@ while (~got_stop)
             [scenario.adjacency(:,:,k),scenario.semi_adjacency(:,:,k)] = coupling_adjacency(scenario,iter);
         end
         
+%         % calculate the distance 
+%         distance = zeros(options.amount,1);
+% 
+%         for vehi = 1:options.amount
+%             if vehi < options.amount
+%                 distance(vehi) = check_distance(iter,vehi,vehi+1);
+%             else
+%                 distance(vehi) = check_distance(iter, vehi,1);
+%             end
+%         end
+%         result.distance(:,k) = distance;
+        
         
 %         disp('adjacency_matrix is:')
 %         disp(scenario.adjacency)
@@ -90,8 +103,9 @@ while (~got_stop)
         
         
         controller_timer = tic;
-            [u, y_pred, info, priority_list, veh_at_intersection] = scenario.controller(scenario_tmp, iter, last_veh_at_intersection );
-            disp(['priority: ',num2str(priority_list)])
+            [u, y_pred, info, priority_list, veh_at_intersection] = scenario.controller(scenario_tmp, iter, last_veh_at_intersection);
+        
+%         disp(['Hi priority: ',num2str(priority_list)])
 
         last_veh_at_intersection = veh_at_intersection;
         
@@ -113,6 +127,7 @@ while (~got_stop)
         exp.apply(u, y_pred, info, result, k);
         result.apply_runtime(k) = toc(apply_timer);
         result.total_runtime(k) = toc(result.step_timer);
+        
         
     % catch case where graph search could not find a new node
     catch ME
