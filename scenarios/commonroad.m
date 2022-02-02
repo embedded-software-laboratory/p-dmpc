@@ -36,7 +36,7 @@ function scenario = commonroad(nVeh,vehid,isPB)
 
     scenario.plot_limits = [0,4.5;0,4];  
     scenario.nVeh = nVeh;
-    scenario.T_end = 20;
+    scenario.T_end = 120;
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     nVeh_mpa = scenario.nVeh;
     scenario.Hp = 6;
