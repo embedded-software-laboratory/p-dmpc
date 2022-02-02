@@ -44,7 +44,7 @@ function [adjacency, semi_adjacency] = coupling_adjacency(scenario, iter)
                         for k = 1:Hp 
 %                             disp(['k is: ',num2str(k)])
                             dist = norm((ref_points_i(k,:)-ref_points_j(k,:)),2);                    
-                            if dist < 1.5
+                            if dist < 1.2
                                 adjacency(i,j) = 1;
                                 adjacency(j,i) = 1;
                                 stop_flag = true;
@@ -61,7 +61,7 @@ function [adjacency, semi_adjacency] = coupling_adjacency(scenario, iter)
                         for k = 1:Hp 
 %                             disp(['k is: ',num2str(k)])
                             dist = norm((ref_points_i(k,:)-ref_points_j(k,:)),2);                    
-                            if dist < 1.5
+                            if dist < 1.2
                                 semi_adjacency(i,j) = 1;
                                 semi_adjacency(j,i) = 1;
                                 stop_flag = true;
