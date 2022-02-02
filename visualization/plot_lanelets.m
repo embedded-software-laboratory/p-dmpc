@@ -5,13 +5,16 @@ function plot_lanelets(lanelets)
         
         lanelet = lanelets{i};
         
+
         if i < 13
             color = '#848484';
         else
             if i < 17
-                color = '#E50000';
+%                color = '#E50000';
+                color = '#848484';
             else
-                color = '#0080FF';
+%                color = '#0080FF';
+                color = '#848484';
             end
         end
         plot_lanelet(lanelet,color);
