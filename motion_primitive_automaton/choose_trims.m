@@ -59,8 +59,8 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
 %             - tril(ones(ntrims-3),-3);
 %         
         trim_adjacency(2:end,2:end) = trim_adjacency(2:end,2:end) ...
-            - triu(ones(ntrims-1),3)...
-            - tril(ones(ntrims-1),-3);
+            - triu(ones(ntrims-1),2)...
+            - tril(ones(ntrims-1),-2);
         
     case 13
         %% Two speeds (0, 0.6 m/s), 12 steering
