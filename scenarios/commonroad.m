@@ -6,7 +6,7 @@ function scenario = commonroad(nVeh,vehid,isPB)
 %     scenario.trim_set = 13;
 %     scenario.dt = 0.2;
     scenario.trim_set = 12;
-    scenario.dt = 0.4;
+    scenario.dt = 0.2;
 %     scenario.lanelets_index = 
     [scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.boundary, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets();
 %     scenario.vehicle_to_lanelet = cell(1,0);
@@ -27,7 +27,7 @@ function scenario = commonroad(nVeh,vehid,isPB)
         veh.lanelets_index = ref_path.lanelets_index;
         veh.points_index = ref_path.points_index;
 
-        yaw = calculate_yaw(vehid(iveh));
+        yaw = calculate_yaw(refPath);
         veh.yaw_start = yaw(1);
         veh.yaw_goal = yaw(2:end); 
         scenario.vehicles = [scenario.vehicles, veh];
@@ -36,7 +36,7 @@ function scenario = commonroad(nVeh,vehid,isPB)
 
     scenario.plot_limits = [0,4.5;0,4];  
     scenario.nVeh = nVeh;
-    scenario.T_end = 120;
+    scenario.T_end = 180;
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     nVeh_mpa = scenario.nVeh;
     scenario.Hp = 6;
