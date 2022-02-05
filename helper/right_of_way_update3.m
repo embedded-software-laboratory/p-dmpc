@@ -28,7 +28,8 @@ classdef  right_of_way_update3 < interface_priority
             
             % semi_adjacency matrix
             semi_adjacency= obj.scenario.semi_adjacency(:,:,end); 
-            
+%             disp('semi_adjacency')
+%             disp(semi_adjacency)
             % update the undirected adjacency matrix to a directed adajacency matrix
             
             for nveh = 1: nVeh-1
@@ -43,9 +44,7 @@ classdef  right_of_way_update3 < interface_priority
                     is_leading_vehicle = check_driving_order(obj.iter, nveh, iveh);
                     if is_leading_vehicle
                         directed_adjacency(nveh, iveh) = 1;
-                        directed_adjacency(iveh, nveh) = 0;
                     else
-                        directed_adjacency(nveh, iveh) = 0;
                         directed_adjacency(iveh, nveh) = 1;            
                     end                  
                 end         
@@ -121,9 +120,14 @@ classdef  right_of_way_update3 < interface_priority
             end
  
             Graph = digraph(directed_adjacency);
+%             disp(directed_adjacency)
             
             %check if there is any cycles in the directed graph
             cycles = allcycles(Graph);
+            
+            
+            %% make sure the most number of vehicles in the first of all cycles
+            
             while ~isempty(cycles)
                 % break the cycle between vehicles which have the largest distance 
 %                 disp('there are cycles in the directed graph')
@@ -155,15 +159,60 @@ classdef  right_of_way_update3 < interface_priority
                 end
 
                 directed_adjacency(i,j) = 0;
-                directed_adjacency(j,i) = 0;
+%                 directed_adjacency(j,i) = 0;
                 Graph = digraph(directed_adjacency);
                 cycles = allcycles(Graph);
             end
             
+            
+%             while ~isempty(cycles)
+%                 
+%                 n_cycles = length(cycles);% 不一定有用
+%                 largest_distance = zeros(n_cycles,1);
+%                 veh_to_break_in_cycle = zeros(n_cycles,1);
+%                 n_cyclic_vehicles = zeros(n_cycles,1);  
+%                 disp(['cycles: ',num2str(cycles{1})])
+%                 % break the cycle between vehicles which have the largest distance 
+%                 disp('there are cycles in the directed graph')
+%                 for n = 1:n_cycles
+%                     cyclic_vehicles = cycles{n};
+%                     n_cyclic_vehicles(n,1) = length(cyclic_vehicles);  
+%                     distance = 0;
+%                     for vehi = 1:n_cyclic_vehicles(n,1)
+%                         if vehi < n_cyclic_vehicles(n,1)
+%                             distance_i = check_distance(obj.iter, cyclic_vehicles(vehi),cyclic_vehicles(vehi+1));
+%                         else
+%                             distance_i = check_distance(obj.iter, cyclic_vehicles(vehi),cyclic_vehicles(1));
+%                         end
+%                         if distance_i > distance
+%                             distance = distance_i;
+%                             veh_to_break_in_cycle(n,1) = cyclic_vehicles(vehi);
+%                         end
+%                     end
+%                     largest_distance(n,1) = distance;
+%                 end
+%                 [sorted_distance, cycle_index] = sort(largest_distance,'descend');
+%                 cycle_to_break = cycle_index(end);
+%                 veh_to_break = veh_to_break_in_cycle(cycle_to_break);
+%                 
+%                 veh_to_break_index = find(cycles{cycle_to_break} == veh_to_break);
+%                 
+% %                 disp(['veh_to_break',num2str(veh_to_break)])  
+%                 if veh_to_break_index < n_cyclic_vehicles(cycle_to_break)
+%                     i = cycles{cycle_to_break}(veh_to_break_index);
+%                     j = cycles{cycle_to_break}(veh_to_break_index + 1);
+%                 else
+%                     i = cycles{cycle_to_break}(veh_to_break_index);
+%                     j = cycles{cycle_to_break}(1);    
+%                 end
+%                 directed_adjacency(i,j) = 0;
+% %                 directed_adjacency(j,i) = 0;
+%                 Graph = digraph(directed_adjacency);
+%                 cycles = allcycles(Graph);
+%             end
+            
             priority_index  = toposort(Graph);% compare the function from helper/kahn.m
             [~,priority] = sort(priority_index); % ordered vehicle index w.r.t. priority
-            
-            
             disp(['priority: ',num2str(priority)])
             [~,veh_index] = sort(priority);
             for group_idx = 1:nVeh
