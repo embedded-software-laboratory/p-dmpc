@@ -212,11 +212,13 @@ classdef  right_of_way_update3 < interface_priority
 %             end
             
             priority_index  = toposort(Graph);% compare the function from helper/kahn.m
+            disp(['prio_index: ',num2str(priority_index)])
             [~,priority] = sort(priority_index); % ordered vehicle index w.r.t. priority
+           
             disp(['priority: ',num2str(priority)])
-            [~,veh_index] = sort(priority);
+%             disp(['veh_index: ',num2str(priority_index)])
             for group_idx = 1:nVeh
-                groups(group_idx).members = veh_index(group_idx);
+                groups(group_idx).members = priority_index(group_idx);
                 if group_idx == 1
                     groups(group_idx).predecessors = [];
                 else
