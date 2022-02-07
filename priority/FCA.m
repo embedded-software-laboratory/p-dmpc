@@ -43,32 +43,56 @@ classdef  FCA < interface_priority
                 
                 %check the vehicles whose index is larger than the current vehicle, no repeated check
                 veh_adjacent = veh_adjacent(veh_adjacent > nveh);
-                
-                for iveh = veh_adjacent              
-                    % position of iveh
-                    iveh_x = obj.iter.referenceTrajectoryPoints(iveh,:,1);
-                    iveh_y = obj.iter.referenceTrajectoryPoints(iveh,:,2);
-                    refPath_i = [iveh_x;iveh_y]';
-                    iveh_yaw = calculate_yaw(refPath_i);
+                                    
+                for istep = 1:Hp 
+                    % shape of nveh
+                    [x_globals_n,y_globals_n] = translate_global(nveh_yaw(istep), nveh_x(istep), nveh_y(istep), x_locals, y_locals);
+                    shape_n = [x_globals_n;y_globals_n];
+                   
+                    % check collistion between vehicles and static obstacles
+                    if ~isempty(obj.scenario.obstacles)
+                        for i = 1:numel(obj.scenario.obstacles)
+                            if intersect_sat(shape_n,obj.scenario.obstacles{i}) 
+                                collisions(nveh) = collisions(nveh) + 1;
+                            end
+                        end
+                    end
                     
-                    for istep = 1:Hp 
-                        % shape of nveh
-                        [x_globals_n,y_globals_n] = translate_global(nveh_yaw(istep), nveh_x(istep), nveh_y(istep), x_locals, y_locals);
-                        shape_n = [x_globals_n;y_globals_n];
-                        
+                    % check collistion between vehicles and dynamic obstacles
+                    if ~isempty(obj.scenario.dynamic_obstacle_area)
+                        for i = 1:size(obj.scenario.dynamic_obstacle_area,1)
+                            if intersect_sat(shape_n,obj.scenario.dynamic_obstacle_area{i,istep}) 
+                                collisions(nveh) = collisions(nveh) + 1;
+                            end
+                        end
+                    end
+                    
+                    % check collistion between two vehicles
+                    for iveh = veh_adjacent              
+                        % position of iveh
+                        iveh_x = obj.iter.referenceTrajectoryPoints(iveh,:,1);
+                        iveh_y = obj.iter.referenceTrajectoryPoints(iveh,:,2);
+                        refPath_i = [iveh_x;iveh_y]';
+                        iveh_yaw = calculate_yaw(refPath_i);
+                    
                         % shape of iveh
                         [x_globals_i,y_globals_i] = translate_global(iveh_yaw(istep), iveh_x(istep), iveh_y(istep), x_locals, y_locals);
                         shape_i = [x_globals_i;y_globals_i];
-                        
+
                         % check if there is collision between nveh and iveh
                         if intersect_sat(shape_n,shape_i) 
                             collisions(nveh) = collisions(nveh) + 1;
                             collisions(iveh) = collisions(iveh) + 1;
                         end
-                    end 
+                        
+                    end
+
+ 
                 end
-            end        
+            end       
+            
             [~,priority_index] = sort(collisions,'descend'); % ordered vehicle index w.r.t. priority
+            disp(['collisions: ',num2str(collisions)])
             disp(['priority_index: ',num2str(priority_index)])
             
             [~,priority] = sort(priority_index); % ordered vehicle index w.r.t. priority
