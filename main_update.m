@@ -24,7 +24,7 @@ if is_sim_lab
             options = selection();
     end
 
-    vehicle_ids = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]; % ok
+    vehicle_ids = 1:20; % ok
 %     vehicle_ids = 22:33; % vheicles running in a circle(test for cyclic directed graph)
 else
     disp('cpmlab')
@@ -58,6 +58,7 @@ result = get_result_struct(scenario);
 
 exp.setup();
 last_veh_at_intersection = [];
+fallback=1;
 %% Main control loop
 while (~got_stop)
     
@@ -79,20 +80,22 @@ while (~got_stop)
             for iveh = 1:options.amount
                 scenario.vehicles(1,iveh).lanelet_boundary = lanelet_boundary{1,iveh};
             end
-            [scenario.adjacency(:,:,k),scenario.semi_adjacency(:,:,k)] = coupling_adjacency(scenario,iter);
+            [scenario,scenario.adjacency(:,:,k),scenario.semi_adjacency(:,:,k)] = coupling_adjacency(scenario,iter);
         end
         
 %         % calculate the distance 
-%         distance = zeros(options.amount,1);
-% 
-%         for vehi = 1:options.amount
-%             if vehi < options.amount
-%                 distance(vehi) = check_distance(iter,vehi,vehi+1);
-%             else
-%                 distance(vehi) = check_distance(iter, vehi,1);
-%             end
-%         end
-%         result.distance(:,k) = distance;
+        distance = zeros(options.amount,options.amount);
+        adjacency = scenario.adjacency(:,:,k);
+
+        for vehi = 1:options.amount-1
+            adjacent_vehicle = find(adjacency(vehi,:));
+            adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > vehi);
+            for vehn = adjacent_vehicle
+                distance(vehi,vehn) = check_distance(iter,vehi,vehn);
+            end
+        end
+        
+        result.distance(:,:,k) = distance;
         
         
 %         disp('adjacency_matrix is:')
@@ -103,7 +106,7 @@ while (~got_stop)
         
         
         controller_timer = tic;
-            [u, y_pred, info, priority_list, veh_at_intersection] = scenario.controller(scenario_tmp, iter, last_veh_at_intersection);
+            [u, y_pred, info, priority_list, veh_at_intersection,computation_levels,edge_to_break] = scenario.controller(scenario_tmp, iter, last_veh_at_intersection);
         
 %         disp(['Hi priority: ',num2str(priority_list)])
 
@@ -120,6 +123,8 @@ while (~got_stop)
         result.n_expanded(k) = info.n_expanded;
         result.step_time(k) = toc(result.step_timer);
         result.priority(:,k) = priority_list;
+        result.computation_levels(k) = computation_levels;
+        result.edges_to_break{k} = edge_to_break;
         
         % Apply control action f/e veh
         % -------------------------------------------------------------------------
@@ -138,7 +143,7 @@ while (~got_stop)
 %             disp('ME, fallback to last priority...............................')  
             warning([ME.message, ', ME, fallback to last priority.............']);
             controller_timer = tic;
-            [u, y_pred, info, priority_list] = pb_controller_fallback(scenario, u, y_pred, info, priority_list);
+            [u, y_pred, info] = pb_controller_fallback(scenario, u, y_pred, info);
 
             result.controller_runtime(k) = toc(controller_timer);
             result.iteration_structs{k} = iter;
@@ -151,6 +156,7 @@ while (~got_stop)
             result.n_expanded(k) = info.n_expanded;
             result.step_time(k) = toc(result.step_timer);
             result.priority(:,k) = priority_list;
+            result.computation_levels(k) = computation_levels;
 
             % Apply control action f/e veh
             % -------------------------------------------------------------------------
@@ -159,6 +165,7 @@ while (~got_stop)
             result.apply_runtime(k) = toc(apply_timer);
             result.total_runtime(k) = toc(result.step_timer);
             disp('plotting finished ........................................');  
+            fallback = fallback + 1;
           
 %             got_stop = true;
         otherwise
@@ -174,6 +181,7 @@ while (~got_stop)
     k = k+1;
 end
 %% save results
+disp(['fallback times: ',num2str(fallback)])
 save(fullfile(result.output_path,'data.mat'),'result');
 % exportVideo( result );
 exp.end_run()
