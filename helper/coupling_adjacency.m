@@ -1,4 +1,4 @@
-function [adjacency, semi_adjacency] = coupling_adjacency(scenario, iter)
+function [Scenario,adjacency, semi_adjacency] = coupling_adjacency(scenario, iter)
 % COUPLING_ADJACENCY returns the adjacency matrix based on predicted
 % trajectories. If the future trajectories are in two ajacent lanelets, the two vehicles are considered as adjacent.
     
@@ -7,23 +7,28 @@ function [adjacency, semi_adjacency] = coupling_adjacency(scenario, iter)
     adjacency = zeros(nVeh,nVeh);
     semi_adjacency = zeros(nVeh,nVeh);
     [~,adjacent,semi_adjacent,~,~,~,~] = commonroad_lanelets();
+    Scenario=scenario;
 
     for i = 1:(nVeh-1)
 %         stop_flag = false;
+
         nlanelets_i = [];   
 %         disp(['i is: ', num2str(i)])
         ref_points_index_i = reshape(iter.referenceTrajectoryIndex(i,:,:),Hp,1);
         ref_points_i = reshape(iter.referenceTrajectoryPoints(i,:,:),Hp,2);
-        
+
         for n = 1:length(ref_points_index_i)
             nlanelets_i = [ nlanelets_i, sum(ref_points_index_i(n) > scenario.vehicles(1,i).points_index)+1];
         end              
         nlanelets_i = unique(nlanelets_i);
         lanelets_index_i = scenario.vehicles(1,i).lanelets_index(nlanelets_i);
+        scenario.vehicles(1,i).predicted_lanelets = lanelets_index_i;
+
 %         disp(['lanelets i: ',num2str(lanelets_index_i)])
         
         for j = (i+1):nVeh
             stop_flag = false;
+
 %             disp(['j is: ', num2str(j)])
             nlanelets_j = [];
             ref_points_index_j = reshape(iter.referenceTrajectoryIndex(j,:,:),Hp,1);
@@ -34,6 +39,7 @@ function [adjacency, semi_adjacency] = coupling_adjacency(scenario, iter)
             nlanelets_j = unique(nlanelets_j);
             lanelets_index_j = scenario.vehicles(1,j).lanelets_index(nlanelets_j);
 %             disp(['lanelets j: ',num2str(lanelets_index_j)])
+            scenario.vehicles(1,j).predicted_lanelets = lanelets_index_j;
             
             for k_i = 1:length(lanelets_index_i)  
                 for k_j = 1:length(lanelets_index_j)   
