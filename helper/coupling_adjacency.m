@@ -1,4 +1,4 @@
-function [Scenario,adjacency, semi_adjacency] = coupling_adjacency(scenario, iter)
+ function [Scenario,adjacency, semi_adjacency] = coupling_adjacency(scenario, iter)
 % COUPLING_ADJACENCY returns the adjacency matrix based on predicted
 % trajectories. If the future trajectories are in two ajacent lanelets, the two vehicles are considered as adjacent.
     
