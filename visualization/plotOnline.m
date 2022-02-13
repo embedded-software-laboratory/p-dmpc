@@ -70,6 +70,8 @@ function plotOnline(result,step_idx,tick_now,exploration)
     end
 
     % Vehicle rectangles
+    adj = cell(nVeh,nVeh);
+    dis = cell(nVeh,nVeh);
     for v=1:nVeh
         veh = scenario.vehicles(v);
         pos_step = result.vehicle_path_fullres{v,step_idx};
@@ -82,27 +84,29 @@ function plotOnline(result,step_idx,tick_now,exploration)
         );
         % plot the priority
         text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1);
+        
+        % plot the vehicle index
         text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 12, 'LineWidth',1,'Color','m');
-       
+
         % plot scenario adjacency
         adjacent_vehicles = find(scenario.adjacency(v,:,step_idx));
-%         disp('scenario.adjacency')
-%         disp(scenario.adjacency)
-%         disp('adjacent_vehicles')
-%         disp(length(adjacent_vehicles))
+        adjacent_vehicles = adjacent_vehicles(adjacent_vehicles>v);
         for adj_v = adjacent_vehicles
             
             adj_pos_step = result.vehicle_path_fullres{adj_v,step_idx};
             adj_x = adj_pos_step(tick_now,:);
-            line([x(1),adj_x(1)],[x(2),adj_x(2)],'LineWidth',1, 'Color','r');
+            plot adjacency
+            adj{v,adj_v}=line([x(1),adj_x(1)],[x(2),adj_x(2)],'LineWidth',1, 'Color','r');
             
+%             % plot distance
+%             dis{v,adj_v}=text((iter.x0(v,1)+iter.x0(adj_v,1))/2,(iter.x0(v,2)+iter.x0(adj_v,2))/2,...
+%                 num2str(result.distance(v,adj_v,step_idx)),'FontSize', 12, 'LineWidth',1,'Color','b');
+ 
         end
-        
-        
-        
+     
     end
     
-    
+
     % Obstacle rectangle
     for obs = 1:nObst
         patch(   scenario.obstacles{obs}(1,:)...
@@ -128,15 +132,39 @@ function plotOnline(result,step_idx,tick_now,exploration)
     scenarioName = scenario.name;
     optimizer = 'Graph Search';
     strategy = scenario.controller_name;
-    
-    t=title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs',...
+    computation_levels = result.computation_levels(end);
+    t=title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs, Computation Levels: %i',...
         scenarioName,...
         optimizer,...
         strategy,...
         step_idx,...
-        (step_idx-1)*scenario.dt + (tick_now-1) * scenario.time_per_tick),'Interpreter','LaTex');
+        (step_idx-1)*scenario.dt + (tick_now-1) * scenario.time_per_tick,...
+        computation_levels),'Interpreter','LaTex');
 
     set(t,'HorizontalAlignment', 'center');
+    
+%     % delete edges to construct acyclic graph
+%     if ~isempty(result.edges_to_break{end})
+%         disp('break cycles')
+%         for edge_i = 1:length(result.edges_to_break{end})
+% 
+%             vertices = result.edges_to_break{end}{edge_i};
+%             disp(['delete: ', num2str(vertices)])
+%             disp('delete edge')
+%             str = sprintf('Vehicle to break: %s and %s',num2str(vertices(1)),num2str(vertices(2)));
+%             cycle_title = text(4.5,4,str,'FontSize', 16, 'LineWidth',1,'Color','b');
+%             pause(3)
+%             delete(adj{vertices(1),vertices(2)})
+%             delete(adj{vertices(2),vertices(1)})
+%             
+%             disp('delete distance')
+%             pause(0.3)
+%             delete(dis{vertices(1),vertices(2)})
+%             delete(dis{vertices(2),vertices(1)})
+%             
+%             delete(cycle_title)
+%         end
+%     end
     
     drawnow
 end
