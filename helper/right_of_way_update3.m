@@ -15,7 +15,7 @@ classdef  right_of_way_update3 < interface_priority
             obj.iter = iter;
         end
         
-        function [veh_at_intersection,groups] = priority(obj,last_veh_at_intersection)
+        function [veh_at_intersection,groups,edge_to_break] = priority(obj,last_veh_at_intersection)
 
             groups = struct;
             nVeh = length(obj.scenario.vehicles);
@@ -41,7 +41,7 @@ classdef  right_of_way_update3 < interface_priority
                 veh_semi_adjacent = veh_semi_adjacent(veh_semi_adjacent > nveh);
                 
                 for iveh = veh_semi_adjacent  
-                    is_leading_vehicle = check_driving_order(obj.iter, nveh, iveh);
+                    is_leading_vehicle = check_driving_order(obj.scenario,obj.iter, nveh, iveh);
                     if is_leading_vehicle
                         directed_adjacency(nveh, iveh) = 1;
                     else
@@ -127,7 +127,7 @@ classdef  right_of_way_update3 < interface_priority
             
             
             %% make sure the most number of vehicles in the first of all cycles
-            
+            edge_to_break = {};
             while ~isempty(cycles)
                 % break the cycle between vehicles which have the largest distance 
 %                 disp('there are cycles in the directed graph')
@@ -157,6 +157,7 @@ classdef  right_of_way_update3 < interface_priority
                     j = cyclic_vehicles(1);
                     
                 end
+                edge_to_break{end+1} = [i,j];
 
                 directed_adjacency(i,j) = 0;
 %                 directed_adjacency(j,i) = 0;
@@ -164,6 +165,14 @@ classdef  right_of_way_update3 < interface_priority
                 cycles = allcycles(Graph);
             end
             
+           % calculate computation levels 
+            [valid, L] = kahn(directed_adjacency);
+            computation_levels = size(L,1);
+            if valid
+                disp(['computation levels: ',num2str(computation_levels)])
+            else
+                disp('Cyclic')
+            end
             
 %             while ~isempty(cycles)
 %                 
@@ -213,18 +222,27 @@ classdef  right_of_way_update3 < interface_priority
             
             priority_index  = toposort(Graph);% compare the function from helper/kahn.m
             disp(['prio_index: ',num2str(priority_index)])
-            [~,priority] = sort(priority_index); % ordered vehicle index w.r.t. priority
+%             [~,priority] = sort(priority_index); % ordered vehicle index w.r.t. priority
            
-            disp(['priority: ',num2str(priority)])
+%             disp(['priority: ',num2str(priority)])
 %             disp(['veh_index: ',num2str(priority_index)])
-            for group_idx = 1:nVeh
-                groups(group_idx).members = priority_index(group_idx);
+%             for group_idx = 1:nVeh
+%                 groups(group_idx).members = priority_index(group_idx);
+%                 if group_idx == 1
+%                     groups(group_idx).predecessors = [];
+%                 else
+%                     groups(group_idx).predecessors = [groups(group_idx-1).predecessors groups(group_idx-1).members];
+%                 end
+%             end
+            
+            for group_idx = 1:computation_levels
+                groups(group_idx).members = find(L(group_idx,:));
                 if group_idx == 1
                     groups(group_idx).predecessors = [];
                 else
                     groups(group_idx).predecessors = [groups(group_idx-1).predecessors groups(group_idx-1).members];
                 end
-            end
+            end    
               
         end
 
