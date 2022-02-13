@@ -95,7 +95,7 @@ function plotOnline(result,step_idx,tick_now,exploration)
             
             adj_pos_step = result.vehicle_path_fullres{adj_v,step_idx};
             adj_x = adj_pos_step(tick_now,:);
-            plot adjacency
+            % plot adjacency
             adj{v,adj_v}=line([x(1),adj_x(1)],[x(2),adj_x(2)],'LineWidth',1, 'Color','r');
             
 %             % plot distance
