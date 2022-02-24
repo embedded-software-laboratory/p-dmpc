@@ -279,6 +279,51 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets,boundary,commo
         lanelet_boundary{lanelet} = {left_bound,right_bound};
     end
     
+%     % intersection steering lanelets (Relaxation)
+%     % 20 21--> 45 69
+%     lanelet_boundary_relaxation1 = lanelets{45}(:,[LaneletInfo.rx,LaneletInfo.ry]);
+%     lanelet_boundary_relaxation2 = lanelets{69}(:,[LaneletInfo.rx,LaneletInfo.ry]);
+%     lanelet_boundary_relaxation = [lanelet_boundary_relaxation1([1,3,5,7,9,end],:);lanelet_boundary_relaxation2([1,3,5,7,9,end],:)];
+%     lanelet_boundary{20}{2} = lanelet_boundary_relaxation;
+%     lanelet_boundary{21}{2} = lanelet_boundary_relaxation;
+%     
+%     % 46 47 --> 95 19
+%     lanelet_boundary_relaxation1 = lanelets{95}(:,[LaneletInfo.rx,LaneletInfo.ry]);
+%     lanelet_boundary_relaxation2 = lanelets{19}(:,[LaneletInfo.rx,LaneletInfo.ry]);
+%     lanelet_boundary_relaxation = [lanelet_boundary_relaxation1([1,3,5,7,9,end],:);lanelet_boundary_relaxation2([1,3,5,7,9,end],:)];
+%     lanelet_boundary{46}{2} = lanelet_boundary_relaxation;
+%     lanelet_boundary{47}{2} = lanelet_boundary_relaxation;
+%     
+%     % 98 99 --> 71 43
+%     lanelet_boundary_relaxation1 = lanelets{71}(:,[LaneletInfo.rx,LaneletInfo.ry]);
+%     lanelet_boundary_relaxation2 = lanelets{43}(:,[LaneletInfo.rx,LaneletInfo.ry]);
+%     lanelet_boundary_relaxation = [lanelet_boundary_relaxation1([1,3,5,7,9,end],:);lanelet_boundary_relaxation2([1,3,5,7,9,end],:)];
+%     lanelet_boundary{98}{2} = lanelet_boundary_relaxation;
+%     lanelet_boundary{99}{2} = lanelet_boundary_relaxation;
+%     
+%     % 72 73 --> 17 97
+%     lanelet_boundary_relaxation1 = lanelets{17}(:,[LaneletInfo.rx,LaneletInfo.ry]);
+%     lanelet_boundary_relaxation2 = lanelets{97}(:,[LaneletInfo.rx,LaneletInfo.ry]);
+%     lanelet_boundary_relaxation = [lanelet_boundary_relaxation1([1,3,5,7,9,end],:);lanelet_boundary_relaxation2([1,3,5,7,9,end],:)];
+%     lanelet_boundary{72}{2} = lanelet_boundary_relaxation;
+%     lanelet_boundary{73}{2} = lanelet_boundary_relaxation;
+
+%     for lanelet = intersection_lanelets
+%         lanelet_boundary{lanelet} = {[],[]};
+%     end
+%     
+    % forking lanelets
+    forking = [9,41,67,87];
+    for i = forking
+        lanelet_boundary{i}{1} = lanelet_boundary{i}{1}(6:end,:);
+    end
+    
+%     % merging lanelets
+%     forking = [9,41,67,87];
+%     for i = forking
+%         lanelet_boundary{i}{1} = lanelet_boundary{i}{1}(8:end,:);
+%     end
+
     % update the boundary for lanelets at the turning corner
     corner1 = [3,4,22];
     corner2 = [5,6,23];
