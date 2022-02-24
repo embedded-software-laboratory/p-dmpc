@@ -7,7 +7,7 @@
     adjacency = zeros(nVeh,nVeh);
     semi_adjacency = zeros(nVeh,nVeh);
     [~,adjacent,semi_adjacent,~,~,~,~] = commonroad_lanelets();
-    Scenario=scenario;
+    
 
     for i = 1:(nVeh-1)
 %         stop_flag = false;
@@ -24,7 +24,7 @@
         lanelets_index_i = scenario.vehicles(1,i).lanelets_index(nlanelets_i);
         scenario.vehicles(1,i).predicted_lanelets = lanelets_index_i;
 
-%         disp(['lanelets i: ',num2str(lanelets_index_i)])
+%         disp(['lanelets_index_i: ',num2str(lanelets_index_i)])
         
         for j = (i+1):nVeh
             stop_flag = false;
@@ -90,5 +90,5 @@
             end           
         end
     end
- 
+    Scenario=scenario;
 end
