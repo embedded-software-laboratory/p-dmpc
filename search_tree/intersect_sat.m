@@ -6,52 +6,31 @@ function collide = intersect_sat(shape1,shape2)
 
     collide = true;
     
-    noe1 = length(shape1(1,:));
-    noe2 = length(shape2(1,:));
-    
-    % iterate over all edges of polygon 1
-    for iter = 1:noe1
-        i = iter;
-        ip1 = mod(iter,noe1)+1;
-        % get vector according to polygon edge
-        edge_vector = [shape1(1,i)-shape1(1,ip1);shape1(2,i)-shape1(2,ip1)];
-        % axis orthogonal to edge vector
-        axis = [-edge_vector(2),edge_vector(1)];
-        % normalize vector
-        axis = axis/norm(axis);
-        % calculate min and max dot product for interval
-        [min1, max1] = project_polygon_interval(axis,shape1);
-        [min2, max2] = project_polygon_interval(axis,shape2);
-        % calculate distance between the two polygons
-        if min1 < min2
-            int_dist = min2 - max1;
-        else
-            int_dist = min1 - max2;
-        end
-        % if there is space between the two polygons then the polygons dont collide
-        if int_dist > 0
-            collide = false;
-            return;
-        end
+    if ~intersect_a_b(shape1, shape2)
+        collide = false;
+    elseif ~intersect_a_b(shape2, shape1)
+        collide = false;
     end
-    
-    % now the same for polygon 2
-    for iter = 1:noe2
-        i = iter;
-        ip1 = mod(iter,noe2)+1;
-        edge_vector = [shape2(1,i)-shape2(1,ip1);shape2(2,i)-shape2(2,ip1)];
-        axis = [-edge_vector(2),edge_vector(1)];
-        axis = axis/norm(axis);
-        [min1, max1] = project_polygon_interval(axis,shape1);
-        [min2, max2] = project_polygon_interval(axis,shape2);
-        if min1 < min2
-            int_dist = min2 - max1;
-        else
-            int_dist = min1 - max2;
-        end
-        if int_dist > 0
-            collide = false;
-            return;
-        end
+end
+
+function collide = intersect_a_b(shape1,shape2)
+    % all vectors between vertices, row 1: x row 2: y
+    edge_vector = diff([shape1, shape1(:,1)],1,2);
+    normed_edges = edge_vector./vecnorm(edge_vector);
+    % Project all sides onto all sides,
+    % a row is the projection of all sides to one
+    dotprod1 = normed_edges'*shape1;
+    % minimum of projected polygon to each side
+    minimum1 = min(dotprod1,[],2);
+    maximum1 = max(dotprod1,[],2);
+    dotprod2 = normed_edges'*shape2;
+    minimum2 = min(dotprod2,[],2);
+    maximum2 = max(dotprod2,[],2);
+    d1 = minimum1 - maximum2;
+    d2 = minimum2 - maximum1;
+    if (any(d1>0)) || (any(d2>0))
+        collide = false;
+    else
+        collide = true;
     end
 end
