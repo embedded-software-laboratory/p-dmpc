@@ -16,14 +16,17 @@ end
 function collide = intersect_a_b(shape1,shape2)
     % all vectors between vertices, row 1: x row 2: y
     edge_vector = diff([shape1, shape1(:,1)],1,2);
-    normed_edges = edge_vector./vecnorm(edge_vector);
-    % Project all sides onto all sides,
-    % a row is the projection of all sides to one
-    dotprod1 = normed_edges'*shape1;
-    % minimum of projected polygon to each side
+    % projection axis orthogonal to edge vector
+    axis = [-edge_vector(2,:);edge_vector(1,:)];
+    % normalize axis
+    normed_axis = axis./vecnorm(axis);
+    % Project all vertices to all axes,
+    % a row is the projection of all vertices to one axis
+    dotprod1 = normed_axis'*shape1;
+    % minimum of projected polygon to each axis
     minimum1 = min(dotprod1,[],2);
     maximum1 = max(dotprod1,[],2);
-    dotprod2 = normed_edges'*shape2;
+    dotprod2 = normed_axis'*shape2;
     minimum2 = min(dotprod2,[],2);
     maximum2 = max(dotprod2,[],2);
     d1 = minimum1 - maximum2;
