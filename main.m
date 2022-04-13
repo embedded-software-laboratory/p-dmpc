@@ -30,7 +30,8 @@ else
 end
     
 
-scenario = circle_scenario(options.amount,options.isPB);
+% scenario = circle_scenario(options.amount,options.isPB);
+scenario = lanelet_scenario4_parl(options.isPB);
 
 if is_sim_lab
     exp = SimLab(scenario, options);
