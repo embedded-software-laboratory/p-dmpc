@@ -1,6 +1,6 @@
-load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/results/Commonroad_RHC-PB/data.mat')
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/results/Commonroad_RHC-PB/data.mat')
 % %% computation levels
-% computation_levels = last4.computation_levels;
+% computation_levels = result_02.computation_levels;
 % unique_computation_levels = unique(computation_levels);
 % n_unique_computation_levels = zeros(1,length(unique_computation_levels));
 % 
@@ -10,10 +10,11 @@ load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_plannin
 % end
 % 
 % levels=bar(unique_computation_levels,n_unique_computation_levels);
-% text(unique_computation_levels,n_unique_computation_levels',num2str(n_unique_computation_levels'),'HorizontalAlignment','center','VerticalAlignment','bottom');
-% title('Distribution of Computation Levels 0.4s','FontSize', 14)
-% xlabel('Computation Level','FontSize', 14)
-% ylabel('Number of Computation Levels','FontSize', 14)
+% text(unique_computation_levels,n_unique_computation_levels',num2str(n_unique_computation_levels'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 24);
+% title('Distribution of Computation Levels')
+% xlabel('Computation Level')
+% ylabel('Number of Computation Levels')
+% set(gca,'FontSize',24)
 
 % %% expanded nodes
 % expanded_nodes = result_04.n_expanded;
@@ -32,7 +33,8 @@ load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_plannin
 
 
 % %% controller time
-% controller_runtime = result_04.controller_runtime;
+% % distributed controller
+% controller_runtime = result_02.controller_runtime;
 % max_runtime = max(controller_runtime);
 % min_runtime = min(controller_runtime);
 % avg_runtime = mean(controller_runtime);
@@ -41,36 +43,208 @@ load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_plannin
 % X = reordercats(X,{'max\_runtime','avg\_runtime'});
 % Y = [max_runtime,avg_runtime];
 % runtime = bar(X,Y);
-% text(X,Y,num2str(Y'),'HorizontalAlignment','center','VerticalAlignment','bottom');
-% title('Controller Runtime (0.4s)','FontSize', 14)
+% text(X,Y,num2str(Y','%20.4f'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 24);
+% title('Distributed Controller Runtime','FontSize', 24)
+% ylim([0,0.8])
 % % xlabel('FontSize', 14)
-% ylabel('Time','FontSize', 14)
+% ylabel('Time','FontSize', 24)
+% set(gca,'FontSize',24)
+% % 
+% % centralized controller
+% X = categorical({'1 vehicle','2 vehicle','3 vehicle'});
+% X = reordercats(X,{'1 vehicle','2 vehicle','3 vehicle'});
+% Y = [0.0867,2.0217,81.6638];
+% runtime = bar(X,Y);
+% text(X,Y,num2str(Y','%20.4f'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 24);
+% title('Centralized Controller Runtime','FontSize', 24)
+% ylim([0,100])
+% % xlabel('FontSize', 14)
+% ylabel('Time','FontSize', 24)
+% set(gca,'FontSize',24)
 
-%% deviation 0.2s for single vehicle
-trim_duration = 0.2;
-load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/result_single_vehicle.mat');
-iteration_structs = result_single_vehicle.iteration_structs;
-realpoints = result_single_vehicle.trajectory_predictions;
-total_steps = length(result_single_vehicle.iteration_structs);
-[deviation_single2,max_deviation_single2,avg_deviation_single2] = deviation(iteration_structs,realpoints,total_steps,trim_duration);
-[avg_vRef_single2, avg_speed_single2] = speed(iteration_structs,total_steps);
-bar(1:length(deviation_single2), deviation_single2)
-ylim([0,0.02])
-xlabel('Steps','FontSize', 14)
-ylabel('deviation [m]','FontSize', 14)
-title('Deviation for single vehicle with 0.2s trim duration','FontSize', 14)
 
-% %% 
-% % deviation 0.2s
+
+% % deviation 0.2s for single vehicle
+% % different trajectories
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single.mat');
+% [deviation_single,max_deviation_single,avg_deviation_single, avg_vRef_single, avg_speed_single] = plot_deviation(result);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single6.mat');
+% [deviation_single6,max_deviation_single6,avg_deviation_single6, avg_vRef_single6, avg_speed_single6] = plot_deviation(result);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single10.mat');
+% [deviation_single10,max_deviation_single10,avg_deviation_single10, avg_vRef_single10, avg_speed_single10] = plot_deviation(result);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single11.mat');
+% [deviation_single11,max_deviation_single11,avg_deviation_single11, avg_vRef_single11, avg_speed_single11] = plot_deviation(result);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single15.mat');
+% [deviation_single15,max_deviation_single15,avg_deviation_single15, avg_vRef_single15, avg_speed_single15] = plot_deviation(result);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single16.mat');
+% [deviation_single16,max_deviation_single16,avg_deviation_single16, avg_vRef_single16, avg_speed_single16] = plot_deviation(result);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single19.mat');
+% [deviation_single19,max_deviation_single19,avg_deviation_single19, avg_vRef_single19, avg_speed_single19] = plot_deviation(result);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single21_02s.mat');
 % 
+% [deviation_single21,max_deviation_single21,avg_deviation_single21, avg_vRef_single21, avg_speed_single21] = plot_deviation(result);
+% max_deviation  = max([max_deviation_single,max_deviation_single6,max_deviation_single10,max_deviation_single11,...
+%     max_deviation_single15,max_deviation_single16,max_deviation_single19,max_deviation_single21]);
+% avg_deviation = mean([avg_deviation_single,avg_deviation_single6,avg_deviation_single10,avg_deviation_single11,...
+%     avg_deviation_single15,avg_deviation_single16,avg_deviation_single19,avg_deviation_single21]);
+% 
+% subplot(1,2,2)
+% hold on
+% 
+% X = categorical({'Max deviation','Average Deviation'});
+% X = reordercats(X,{'Max deviation','Average Deviation'});
+% Y = [max_deviation,avg_deviation];
+% 
+% deviations = bar(X,Y);
+% % deviations = bar(X,Y,'stacked');
+% text(X,Y,num2str(Y','%20.4f'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 24);
+% title('Max and Average Deviation ','FontSize', 14)
+% ylim([0,0.02])
+% % xlabel('Types','FontSize', 14)
+% ylabel('Deviation[m]','FontSize', 14)
+% set(gca,'FontSize',24)
+
+% % differen trim duration
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single21_01s.mat');
+% [deviation_single21_01,max_deviation_single21_01,avg_deviation_single21_01, avg_vRef_single21_01, avg_speed_single21_01] = plot_deviation(result);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single21_02s.mat');
+% [deviation_single21_02,max_deviation_single21_02,avg_deviation_single21_02, avg_vRef_single21_02, avg_speed_single21_02] = plot_deviation(result);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single21_03s.mat');
+% [deviation_single21_03,max_deviation_single21_03,avg_deviation_single21_03, avg_vRef_single21_03, avg_speed_single21_03] = plot_deviation(result);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single21_04s.mat');
+% [deviation_single21_04,max_deviation_single21_04,avg_deviation_single21_04, avg_vRef_single21_04, avg_speed_single21_04] = plot_deviation(result);
+% figure
+% X = categorical({'Max deviation','Average Deviation'});
+% X = reordercats(X,{'Max deviation','Average Deviation'});
+% Y = [max_deviation_single21_01,avg_deviation_single21_01;...
+%     max_deviation_single21_02,avg_deviation_single21_02;...
+%     max_deviation_single21_03,avg_deviation_single21_03;...
+%     max_deviation_single21_04,avg_deviation_single21_04];
+% % deviations = bar(X,Y);
+% deviations = bar(X,Y);
+% digits(4)
+% xtips1 = double(deviations(1).XEndPoints);
+% ytips1 = deviations(1).YEndPoints;
+% labels1 = num2str(ytips1','%20.4f');
+% text(xtips1,ytips1,labels1,'HorizontalAlignment','center',...
+%     'VerticalAlignment','bottom','FontSize', 24)
+% xtips2 = deviations(2).XEndPoints;
+% ytips2 = deviations(2).YEndPoints;
+% labels2 = num2str(ytips2','%20.4f');
+% text(xtips2,ytips2,labels2,'HorizontalAlignment','center',...
+%     'VerticalAlignment','bottom','FontSize', 24)
+% xtips3 = deviations(3).XEndPoints;
+% ytips3 = deviations(3).YEndPoints;
+% labels3 = num2str(ytips3','%20.4f');
+% text(xtips3,ytips3,labels3,'HorizontalAlignment','center',...
+%     'VerticalAlignment','bottom','FontSize', 24)
+% xtips4 = deviations(4).XEndPoints;
+% ytips4 = deviations(4).YEndPoints;
+% labels4 = num2str(ytips4','%20.4f');
+% text(xtips4,ytips4,labels4,'HorizontalAlignment','center',...
+%     'VerticalAlignment','bottom','FontSize', 24)
+% % text(X,Y,num2str(Y'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 20);
+% title('Max and Average Deviations for Different Trim Durations ','FontSize', 24)
+% ylim([0,0.25])
+% % xlabel('Types','FontSize', 14)
+% ylabel('Deviation[m]','FontSize', 24)
+% legend('0.1s','0.2s','0.3s','0.4s')
+% set(gca,'FontSize',24)
+
+% % different trim number
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single21_02s_more_trims.mat');
+% [deviation_single21_02_more,max_deviation_single21_02_more,avg_deviation_single21_02_more, avg_vRef_single21_02_more, avg_speed_single21_02_more] = plot_deviation(result);
+% 
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single21_02s_fewer_trims.mat');
+% [deviation_single21_02_fewer,max_deviation_single21_02_fewer,avg_deviation_single21_02_fewer, avg_vRef_single21_02_fewer, avg_speed_single21_02_fewer] = plot_deviation(result);
+% 
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single21_02s.mat');
+% [deviation_single21_02,max_deviation_single21_02,avg_deviation_single21_02, avg_vRef_single21_02, avg_speed_single21_02] = plot_deviation(result);
+% 
+% figure
+% X = categorical({'Max deviation','Average Deviation'});
+% X = reordercats(X,{'Max deviation','Average Deviation'});
+% Y = [max_deviation_single21_02_fewer,avg_deviation_single21_02_fewer;...
+%     max_deviation_single21_02,avg_deviation_single21_02;...
+%     max_deviation_single21_02_more,avg_deviation_single21_02_more];
+% deviations = bar(X,Y);
+% xtips1 = deviations(1).XEndPoints;
+% ytips1 = deviations(1).YEndPoints;
+% labels1 = string(deviations(1).YData);
+% text(xtips1,ytips1,labels1,'HorizontalAlignment','center',...
+%     'VerticalAlignment','bottom','FontSize', 24)
+% xtips1 = deviations(2).XEndPoints;
+% ytips1 = deviations(2).YEndPoints;
+% labels1 = string(deviations(2).YData);
+% text(xtips1,ytips1,labels1,'HorizontalAlignment','center',...
+%     'VerticalAlignment','bottom','FontSize', 24)
+% xtips1 = deviations(3).XEndPoints;
+% ytips1 = deviations(3).YEndPoints;
+% labels1 = string(deviations(3).YData);
+% text(xtips1,ytips1,labels1,'HorizontalAlignment','center',...
+%     'VerticalAlignment','bottom','FontSize', 24)
+% % text(X,Y,num2str(Y'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 20);
+% title('Max and Average Deviation','FontSize', 24)
+% ylim([0,0.25])
+% % xlabel('Types','FontSize', 24)
+% ylabel('Deviation[m]','FontSize', 24)
+% legend('Fewer trims','Proposed trims','More trims')
+% set(gca,'FontSize',24)
+
+
+
+% iteration_structs = result.iteration_structs;
+% realpoints = result.trajectory_predictions;
+% total_steps = length(result.iteration_structs);
+% [deviation_single2,max_deviation_single2,avg_deviation_single2] = deviation(iteration_structs,realpoints,total_steps,trim_duration);
+% [avg_vRef_single2, avg_speed_single2] = speed(iteration_structs,total_steps);
+% subplot(1,2,1)
+% hold on
+% plot(1:length(deviation_single2), deviation_single2)
+% plot(1:length(deviation_single2),ones(1,length(deviation_single2))*max_deviation_single2)
+% ylim([0,0.02])
+% xlabel('Steps','FontSize', 14)
+% ylabel('Deviation [m]','FontSize', 20)
+% title('Deviations over 300 steps','FontSize', 14)
+% set(gca,'FontSize',20)
+% 
+% subplot(1,2,2)
+% hold on
+% X = categorical({'Max deviation','Average Deviation'});
+% X = reordercats(X,{'Max deviation','Average Deviation'});
+% Y = [max_deviation_single2,avg_deviation_single2];
+% deviations = bar(X,Y);
+% % deviations = bar(X,Y,'stacked');
+% text(X,Y,num2str(Y'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 20);
+% title('Max and Average Deviation ','FontSize', 14)
+% % xlabel('Types','FontSize', 14)
+% ylabel('Deviation[m]','FontSize', 14)
+% set(gca,'FontSize',20)
+
+% figure
 % trim_duration = 0.2;
-% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/result2.mat');
-% iteration_structs = result2.iteration_structs;
-% realpoints = result2.trajectory_predictions;
-% total_steps = length(result2.iteration_structs);
-% [deviation2,max_deviation2,avg_deviation2] = deviation(iteration_structs,realpoints,total_steps,trim_duration);
-% [avg_vRef2, avg_speed2] = speed(iteration_structs,total_steps);
-% 
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/single.mat');
+% iteration_structs1 = result.iteration_structs;
+% realpoints1 = result.trajectory_predictions;
+% total_steps1 = length(result.iteration_structs);
+% [deviation_single21,max_deviation_single21,avg_deviation_single21] = deviation(iteration_structs1,realpoints1,total_steps1,trim_duration);
+% [avg_vRef_single21, avg_speed_single21] = speed(iteration_structs1,total_steps1);
+% bar(1:length(deviation_single21), deviation_single21)
+% ylim([0,0.02])
+% xlabel('Steps','FontSize', 14)
+% ylabel('deviation [m]','FontSize', 14)
+% title('Deviation for single vehicle with 0.2s trim duration','FontSize', 14)
+%% 
+% deviation 0.2s
+
+trim_duration = 0.2;
+load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/result2.mat');
+iteration_structs = result2.iteration_structs;
+realpoints = result2.trajectory_predictions;
+total_steps = length(result2.iteration_structs);
+[deviation2,max_deviation2,avg_deviation2] = deviation(iteration_structs,realpoints,total_steps,trim_duration);
+[avg_vRef2, avg_speed2] = speed(iteration_structs,total_steps);
+
 % % deviation 0.3s
 % trim_duration = 0.3;
 % load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/result3.mat');
@@ -97,38 +271,120 @@ title('Deviation for single vehicle with 0.2s trim duration','FontSize', 14)
 % total_steps = length(result5.iteration_structs);
 % [deviation5,max_deviation5,avg_deviation5] = deviation(iteration_structs,realpoints,total_steps,trim_duration);
 % [avg_vRef5, avg_speed5] = speed(iteration_structs,total_steps);
-% 
-% % plot deviation
-% % X = categorical({'0.2s','0.3s','0.4s','0.5s'});
-% % X = reordercats(X,{'0.2s','0.3s','0.4s','0.5s'});
-% % Y = [avg_deviation2,avg_deviation3,avg_deviation4,avg_deviation5];
-% 
+
+% plot deviation
+% X = categorical({'0.2s','0.3s','0.4s','0.5s'});
+% X = reordercats(X,{'0.2s','0.3s','0.4s','0.5s'});
+% Y = [avg_deviation2,avg_deviation3,avg_deviation4,avg_deviation5];
+
 % X = 1:20;
 % % Y = avg_deviation2;
 % Y = [avg_deviation2;avg_deviation3;avg_deviation4;avg_deviation5];
 % deviations = bar(X,Y);
 % % deviations = bar(X,Y,'stacked');
 % % text(X,Y,num2str(Y'),'HorizontalAlignment','center','VerticalAlignment','bottom');
-% title('Average Deviation ','FontSize', 14)
-% xlabel('Vehicle','FontSize', 14)
-% ylabel('Distance[m]','FontSize', 14)
+% title('Average Deviation ','FontSize', 24)
+% xlabel('Vehicle','FontSize', 24)
+% ylabel('Distance[m]','FontSize', 24)
 % legend('0.2s','0.3s','0.4s','0.5s')
+
+% plot average speed
+X = 1:20;
+Y = avg_speed2;
+% Y = [avg_speed2;avg_speed3;avg_speed4;avg_speed5];
+speeds = bar(X,Y');
+% deviations = bar(X,Y,'stacked');
+text(X,Y,num2str(Y','%20.4f'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 14);
+title('Average Speed(0.2)','FontSize', 20)
+xlabel('Vehicle','FontSize', 20)
+ylabel('Speed[m/s]','FontSize', 20)
+ylim([0,0.65])
+% legend('0.2s','0.3s','0.4s','0.5s')
+
+
+
+% %% priority assignment
+% % max number of vehicles
+% figure
+% X = categorical({'Constant','Random','FCA','Right-of-way'});
+% X = reordercats(X,{'Constant','Random','FCA','Right-of-way'});
+% Y = [4,8,6,20];
+% priority = bar(X,Y);
+% text(X,Y,num2str(Y'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 24);
+% title('Max number of vehicles running for 180 seconds ','FontSize', 24)
+% ylim([0,25])
+% % xlabel('Types','FontSize', 24)
+% ylabel('Number of Vehicles','FontSize', 24)
+% set(gca,'FontSize',24)
+
+% % max running time for 20 vehicles
+% figure
+% X = categorical({'Constant','Random','FCA','Right-of-way'});
+% X = reordercats(X,{'Constant','Random','FCA','Right-of-way'});
+% Y = [1.6,2.0,1.6,180];
+% priority = bar(X,Y);
+% text(X,Y,num2str(Y'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 24);
+% title('Max running time for 20 vehicles','FontSize', 14)
+% ylim([0,190])
+% % xlabel('Types','FontSize', 14)
+% ylabel('Time [s]','FontSize', 14)
+% set(gca,'FontSize',24)
+
+% %% Centralized 
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/central_1.mat');
+% max_controller_time1 = max(result.controller_runtime);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/central_2.mat');
+% max_controller_time2 = max(result.controller_runtime);
+% load('/home/bingyi/Desktop/Master_thesis/Trajectory_planning/graph_based_planning/Evaluation/central_3.mat');
+% max_controller_time3 = max(result.controller_runtime);
 % 
-% % plot average speed
-% X = 1:20;
-% Y = avg_speed2;
-% % Y = [avg_speed2;avg_speed3;avg_speed4;avg_speed5];
-% speeds = bar(X,Y);
-% % deviations = bar(X,Y,'stacked');
-% text(X,Y,num2str(Y'),'HorizontalAlignment','center','VerticalAlignment','bottom');
-% title('Average Speed(0.2)','FontSize', 14)
-% xlabel('Vehicle','FontSize', 14)
-% ylabel('Speed[m/s]','FontSize', 14)
-% % legend('0.2s','0.3s','0.4s','0.5s')
-% 
-% 
-% 
-% 
+% figure
+% X = categorical({'1 vehicle','2 vehicles','3 vehicles'});
+% X = reordercats(X,{'1 vehicle','2 vehicles','3 vehicles'});
+% Y = [max_controller_time1,max_controller_time2,max_controller_time3];
+% priority = bar(X,Y);
+% text(X,Y,num2str(Y','%20.4f'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 24);
+% title('Centralized-controller runtime','FontSize', 24)
+% ylim([0,100])
+% % xlabel('Types','FontSize', 24)
+% % ylabel('Time [s]','FontSize', 24)
+% set(gca,'FontSize',24)
+
+
+
+
+function [deviation_single,max_deviation_single,avg_deviation_single, avg_vRef_single, avg_speed_single] = plot_deviation(result)
+trim_duration = result.scenario.dt;
+iteration_structs = result.iteration_structs;
+realpoints = result.trajectory_predictions;
+total_steps = length(result.iteration_structs);
+[deviation_single,max_deviation_single,avg_deviation_single] = deviation(iteration_structs,realpoints,total_steps,trim_duration);
+[avg_vRef_single, avg_speed_single] = speed(iteration_structs,total_steps);
+subplot(1,2,1)
+hold on
+plot(1:length(deviation_single), deviation_single)
+plot(1:length(deviation_single),ones(1,length(deviation_single))*max_deviation_single)
+ylim([0,0.02])
+xlabel('Steps','FontSize', 14)
+ylabel('Deviation [m]','FontSize', 20)
+title('Deviations over 300 steps','FontSize', 14)
+set(gca,'FontSize',20)
+
+% subplot(1,2,2)
+% hold on
+% X = categorical({'Max deviation','Average Deviation'});
+% X = reordercats(X,{'Max deviation','Average Deviation'});
+% Y = [max_deviation_single,avg_deviation_single];
+% deviations = bar(X,Y);
+% deviations = bar(X,Y,'stacked');
+% text(X,Y,num2str(Y'),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize', 20);
+% title('Max and Average Deviation ','FontSize', 14)
+% ylim([0,0.02])
+% xlabel('Types','FontSize', 14)
+% ylabel('Deviation[m]','FontSize', 14)
+% set(gca,'FontSize',20)
+end
+
 function [deviation,max_deviation,avg_deviation] = deviation(iteration_structs,realpoints,total_steps,trim_duration)
     nveh=size(iteration_structs,1);
     scenario = Scenario();
@@ -161,7 +417,8 @@ function [deviation,max_deviation,avg_deviation] = deviation(iteration_structs,r
 end
 
 function [avg_vRef, avg_speed] = speed(iteration_structs,total_steps)
-    nveh=size(iteration_structs,1);
+    nveh=size(iteration_structs{1,1}.vRef,1);
+    disp(['nveh',num2str(nveh)])
     [trim_inputs, ~] = choose_trims(12);
     vRef = zeros(nveh,total_steps);
     vTrim = zeros(nveh,total_steps);
