@@ -17,8 +17,6 @@ classdef  random_priority < interface_priority
             groups = struct;
             nVeh = length(obj.scenario.vehicles);
             randomPrio = randperm(nVeh,nVeh); % random priority order 
-%             randomPrio = 1:nVeh;
-%             randomPrio = flip(1:nVeh); % random priority order
 
             for group_idx = 1:nVeh
                 groups(group_idx).members = randomPrio(group_idx);
