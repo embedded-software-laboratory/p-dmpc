@@ -43,20 +43,10 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
         end
     end
     
-%     
-%    if ~isempty(scenario.boundary)
-%         if intersect_boundary(shapes_without_offset{index},scenario.boundary) 
-% %             disp(['there is collision with boundary, vhiecle: ',num2str(index)])
-%             collision = true;
-%             return;
-%         end
-%    end
-%     
+
     if ~isempty(scenario.vehicles(1,index).lanelet_boundary)
         if intersect_lanelet_boundary(shapes_without_offset{index},scenario.vehicles(1,index).lanelet_boundary) 
-%             disp(['there is collision with boundary, vhiecle: ',num2str(index)])
             collision = true;
-%             disp('lanelet boundary collision')
             return;
         end
     end
