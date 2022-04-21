@@ -13,8 +13,7 @@ classdef Scenario
         Hp = 5;
         mpa;
         trim_set = 3;
-        offset_length = 0.01;  % offset for collision checks
-        offset_width = 0.01;  % offset for collision checks
+        offset = 0.01;
         
         model = [];
         time_per_tick = 0.01;
@@ -24,15 +23,17 @@ classdef Scenario
         dynamic_obstacle_fullres;
         plot_limits = [-10,10;-10,10]; % default fallback if not defined
         adjacency;
+        semi_adjacency;
         directed_coupling;
         assignPrios = false;
-        vehicle_to_lanelet
-        lanelets
-        intersection_lanelets
-        boundary
-        commonroad_data
-        lanelet_boundary
-        semi_adjacency
+        vehicle_to_lanelet;
+        lanelets;
+        intersection_lanelets;
+        boundary;
+        commonroad_data;
+        lanelet_boundary;
+        last_veh_at_intersection = [];
+        k; %simulation steps
     end
     
     properties (Dependent)
