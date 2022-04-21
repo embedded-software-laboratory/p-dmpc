@@ -1,42 +1,46 @@
-function [u, y_pred, info, priority_list,veh_at_intersection,computation_levels,edge_to_break] = pb_controller(scenario, iter, last_veh_at_intersection)
+function [u, y_pred, info] = pb_controller(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
-    assert( ~isempty(scenario.adjacency) )
-
-    MEflag = false;
-    veh_at_intersection = [];
-    edge_to_break = [];
-
-%     obj = topo_priority(scenario);
-%     groups = obj.priority();   
+%% random priority  
 %     obj = random_priority(scenario);
 %     groups = obj.priority(); 
+%     right_of_way = false;
+%     veh_at_intersection = [];
+%     edge_to_break = [];
+
+%% constant priority  
+%     obj = constant_priority(scenario);
+%     groups = obj.priority(); 
+%     right_of_way = false;
+%     veh_at_intersection = [];
+%     edge_to_break = [];
+
+%% FCA priority  
 %     obj = FCA(scenario,iter);
 %     [veh_at_intersection, groups] = obj.priority();
+%     edge_to_break = [];
 
-    obj = right_of_way_update3(scenario,iter);
-    [veh_at_intersection, groups,edge_to_break] = obj.priority(last_veh_at_intersection); 
+%% Right-of-way priority  
+    obj = right_of_way_assignment(scenario,iter);
+    right_of_way = true;
+    [veh_at_intersection, groups, edge_to_break] = obj.priority(); 
+
     
+    % construct the priority list
     computation_levels = length(groups);
-    disp(['computation_levels: ',num2str(computation_levels)])
-    
-    
     members_list = horzcat(groups.members);
     nVeh = length(members_list); 
     priority_list = zeros(1,nVeh);
     prio = 1;
-    for iVeh = members_list
-        
+    for iVeh = members_list 
         priority_list(iVeh) = prio;
         prio = prio + 1;
     end
-%     disp(['member list: ', num2str(members_list)])
-%     disp(['priority list: ', num2str(priority_list)])
-
-
+    
     y_pred = cell(scenario.nVeh,1);
     u = zeros(scenario.nVeh,1);
+    
     info = struct;
     info.vehicle_fullres_path = cell(scenario.nVeh,1);
     info.trim_indices = (-1)*ones(scenario.nVeh,1);
@@ -44,7 +48,12 @@ function [u, y_pred, info, priority_list,veh_at_intersection,computation_levels,
     info.shapes = cell(scenario.nVeh,scenario.Hp);
     info.next_node = node(-1, zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), -1, -1);
     info.n_expanded = 0;
+    info.priority_list = priority_list;
+    info.veh_at_intersection = veh_at_intersection;
+    info.computation_levels = computation_levels;
+    info.edge_to_break = edge_to_break;
     
+    % graph-search to select the optimal motion primitive
     sub_controller = @(scenario, iter)...
         graph_search(scenario, iter); 
 
@@ -53,12 +62,11 @@ function [u, y_pred, info, priority_list,veh_at_intersection,computation_levels,
         for grp_member_idx = 1:length(group.members) 
             subcontroller_timer = tic;
             vehicle_idx = group.members(grp_member_idx);
-%             disp(['the vehicle is going to search: ',num2str(vehicle_idx)])
-%             disp(['group.predecessores: ',num2str(group.predecessors)])
-%             % Filter out vehicles that are not adjacent
+            % Filter out vehicles that are not adjacent
             veh_adjacent = find(scenario.adjacency(vehicle_idx,:,end));
             predecessors = intersect(group.predecessors,veh_adjacent);
-%             disp(['group.predecessores: ',num2str(group.predecessors)])
+%             predecessors = group.predecessors;
+
             % Filter out vehicles with lower or same priority.
             priority_filter = false(1,scenario.nVeh);
             priority_filter(predecessors) = true; % keep all with higher priority
@@ -74,35 +82,28 @@ function [u, y_pred, info, priority_list,veh_at_intersection,computation_levels,
             [scenario_v, iter_v] = vehicles_as_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(predecessors,:));
 
             
-%             % add adjacent vehicles with lower priorities as static obstacles
-           
-            adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
-            
-            for i = 1:length(adjacent_vehicle_lower_priority)
-                veh_index = adjacent_vehicle_lower_priority(i);
-                x0 = iter.x0(veh_index,1);
-                y0 = iter.x0(veh_index,2);
-                yaw0 = iter.x0(veh_index,3);
-                veh = Vehicle();
-                x_locals = [-1, -1,  1,  1] * (veh.Length/2+0.01);
-                y_locals = [-1,  1,  1, -1] * (veh.Width/2+0.01);
-                [x_globals,y_globals] = translate_global(yaw0, x0, y0, x_locals, y_locals);
-                scenario_v.obstacles{end+1} = [x_globals;y_globals];
-            end
-            
-            % execute sub controller for 1-veh scenario
-            [u_v,y_pred_v,info_v, MEflag] = sub_controller(scenario_v, iter_v);
-%             disp('Search finished')
+            % add adjacent vehicles with lower priorities as static obstacles
+            if right_of_way
+                adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
 
-            if MEflag 
-                disp('No more nodes to expand...')
-                break
-            end
-            %
+                for i = 1:length(adjacent_vehicle_lower_priority)
+                    veh_index = adjacent_vehicle_lower_priority(i);
+                    x0 = iter.x0(veh_index,1);
+                    y0 = iter.x0(veh_index,2);
+                    yaw0 = iter.x0(veh_index,3);
+                    veh = Vehicle();
+                    x_locals = [-1, -1,  1,  1] * (veh.Length/2+scenario.offset);
+                    y_locals = [-1,  1,  1, -1] * (veh.Width/2+scenario.offset);
+                    [x_globals,y_globals] = translate_global(yaw0, x0, y0, x_locals, y_locals);
+                    scenario_v.obstacles{end+1} = [x_globals;y_globals];
+                end
+           end
+            % execute sub controller for 1-veh scenario
+            [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
+            
+            % prepare output data
             info.tree{vehicle_idx} = info_v.tree;
             info.tree_path(vehicle_idx,:) = info_v.tree_path;
-
-            % prepare output data
             info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
             info.n_expanded = info.n_expanded + info_v.tree.size();
             info.next_node = set_node(info.next_node,[vehicle_idx],info_v);
@@ -112,18 +113,7 @@ function [u, y_pred, info, priority_list,veh_at_intersection,computation_levels,
             y_pred{vehicle_idx,1} = y_pred_v{:};
             u(vehicle_idx) = u_v(1);
         end
-%         if grp_idx > 4
-%             a
-%         end
-
-        if MEflag 
-            break
-        end
 
     end
-    
-  
-%    a=1; 
-%    b=a;
    
 end
