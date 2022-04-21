@@ -17,7 +17,6 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode)
 
     cTrim  = tree.trim(:,iNode);
     cK     = tree.k(:,iNode);
-%     disp(['ck: ', num2str(cK)])
 
     for iVeh = 1 : scenario.nVeh
         t1 = pTrim(iVeh);
@@ -30,7 +29,7 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode)
         shape_y = s*maneuver.area(1,:) + c*maneuver.area(2,:) + pY(iVeh);
         shapes{iVeh} = [shape_x;shape_y];
         
-        if tree.k(iNode) > 5
+        if tree.k(iNode) == scenario.Hp
             shape_x_without_offset = c*maneuver.area_boundary_check(1,:) - s*maneuver.area_boundary_check(2,:) + pX(iVeh);
             shape_y_without_offset = s*maneuver.area_boundary_check(1,:) + c*maneuver.area_boundary_check(2,:) + pY(iVeh);
             shapes_without_offset{iVeh} = [shape_x_without_offset;shape_y_without_offset];    
@@ -43,11 +42,9 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode)
         
         
         iStep = cK;
-%         disp(['iVeh： ',num2str(iVeh)])
-%         disp(['iStep: ',num2str(iStep)])
+
         if collision_with(iVeh, shapes, shapes_without_offset, scenario, iStep)
             is_valid = false;
-%             disp('there is collision between two vehicles')
             return;
         end
     end
