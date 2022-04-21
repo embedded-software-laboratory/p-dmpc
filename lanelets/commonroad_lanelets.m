@@ -1,18 +1,18 @@
-function [lanelets,adjacency,semi_adjacency,intersection_lanelets,boundary,commonroad,lanelet_boundary] = commonroad_lanelets()
+function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,lanelet_boundary] = commonroad_lanelets()
 
-% COMMONROAD_LANELETS  returns the lanelets information, collision pair matrix and the boundary information
+% COMMONROAD_LANELETS
 
 % Returns:
 % lanelets： lanelet information of rightBound, leftBound, and central line of each lanelet
-% collision: (nLanelets x nLanelets) matrix, entry is 1: two lanelets collide or adjacent to each other
+% adjacency: (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent to each other
+% semi_adjacency: (nLanelets x nLanelets) matrix, consecutive adjacent lanelets
 % intersection_lanelets: lanelet index of the intersection
-% boundary: the lanelets boundary of commonroad, includes inner boundary and outer boundary
+% boundary: the inner boundary and outer boundary of the Scenario
+% commonroad: raw commonroad data
+% lanelet_boundary: left and right boundaries of each lanelet
 
 
-    %% lanelets 
-%     commonroad_data = readstruct('LabMapCommonRoad.xml');
-%     save('commonroad_data.mat','commonroad_data')
-
+%    %% lanelets 
 %     commonroad_data = readstruct('LabMapCommonRoad_Update.xml');
 %     save('commonroad_data.mat','commonroad_data')
     
@@ -39,70 +39,6 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets,boundary,commo
 
     end
      
-    
-    %% boundary                     
-    boundary = cell(1,0);
-    
-    % use the rightBound of the lanelets as the inner boundary lanelets index of the inner boundary
-    inner_boundary_lanelets = {[14,16,22,23,10,12,18] ... 
-                               [49,48,42,40,44,38,36] ...  
-                               [88,90,96,92,94,100,101] ... 
-                               [70,64,62,75,74,68,66]};
-    
-    for n_inner_boundary = 1:size(inner_boundary_lanelets,2)
-        boundary_segment = [];
-        for nlanelets = 1:size(inner_boundary_lanelets{n_inner_boundary},2)
-            boundary_x = (horzcat(commonroad_data.lanelet(inner_boundary_lanelets{n_inner_boundary}(nlanelets)).rightBound.point.x));
-            boundary_y = (horzcat(commonroad_data.lanelet(inner_boundary_lanelets{n_inner_boundary}(nlanelets)).rightBound.point.y));
-
-            boundary_next = [boundary_x(1:end);boundary_y(1:end)];
-            boundary_segment = [boundary_segment, boundary_next];
-        end
-        boundary{end+1}=boundary_segment;
-    
-    end  
-    
-    % use the leftBound of the lanelets as the outer boundary lanelets index of the outer boundary
-    outer_boundary_lanelets = {[2,4,6,8,60,58,56,54,80,82,84,86,34,32,30,28]};    
-    for n_outer_boundary = 1:size(outer_boundary_lanelets,2)
-        boundary_segment = [];
-        for nlanelets = 1:size(outer_boundary_lanelets{n_outer_boundary},2)
-            boundary_x = (horzcat(commonroad_data.lanelet(outer_boundary_lanelets{n_outer_boundary}(nlanelets)).leftBound.point.x));
-            boundary_y = (horzcat(commonroad_data.lanelet(outer_boundary_lanelets{n_outer_boundary}(nlanelets)).leftBound.point.y));
-
-            boundary_next = [boundary_x(1:end);boundary_y(1:end)];
-            boundary_segment = [boundary_segment, boundary_next];
-        end
-        boundary{end+1}=boundary_segment;
-    
-    end
-        
-      
-    % use the leftBound of the lanelets as the outer turning boundary lanelets index of the outer turning boundary
-    turning_boundary_lanelets = {[11],[63],[13],[39],[37],[89],[65],[91]};
-    for n_turning_boundary = 1:size(turning_boundary_lanelets,2)
-        boundary_segment = [];
-        for nlanelets = 1:size(turning_boundary_lanelets{n_turning_boundary},2)
-            
-            boundary_x = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.x));
-            boundary_y = (horzcat(commonroad_data.lanelet(turning_boundary_lanelets{n_turning_boundary}(nlanelets)).leftBound.point.y));
-            boundary_next = [boundary_x(1:end);boundary_y(1:end)];
-            boundary_segment = [boundary_segment, boundary_next];
-            
-        end
-        boundary{end+1}=boundary_segment;
-    
-    end  
-       
-    
-%     % plot the boundary
-%     n = length(boundary);
-%     figure
-%     for i = 1:n
-%         hold on
-%         plot(boundary{1,i}(1,:),boundary{1,i}(2,:))
-%     end
-%     
     
     %% adjacency
     
@@ -197,29 +133,18 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets,boundary,commo
                 end
             end
         end
-        
-%         if isfield(adjacentLeft,'refAttribute')
-%             adjacentLeft_index = horzcat(adjacentLeft.refAttribute);
-%             adjacent_index = [adjacent_index,adjacentLeft_index];
-%         end
-%         
-%         if isfield(adjacentRight,'refAttribute')
-%             adjacentRight_index = horzcat(adjacentRight.refAttribute);
-%             adjacent_index = [adjacent_index,adjacentRight_index];
-%         end
 
         adj(i,adjacent_index) = 1;
      
     end
+    semi_adjacency = adj + adj' + eye(Nlanelets, Nlanelets); % same lanelet is always adjacent
+    semi_adjacency = (semi_adjacency > 0);
     
   
     %% intersection_lanelets   
+    
     % check the lanelets at intersection and assign them to be adjacent
-    semi_adjacency = adj + adj' + eye(Nlanelets, Nlanelets);
-    semi_adjacency = (semi_adjacency > 0);
-    
     Nintersections = length(commonroad_data.intersection); 
-    
     for i = 1:Nintersections
         intersection_lanelets = [];
         for n = 1:length(commonroad_data.intersection(i).incoming)
@@ -234,15 +159,10 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets,boundary,commo
             end
         end      
     end
-    
-    % remove some adjacency lanelets...................
-    
-    
-    
+
     adjacency = adj + adj' + eye(Nlanelets, Nlanelets); % same lanelet is always adjacent
     adjacency = (adjacency>0);
     
-%     save('adjacency.mat','adjacency')
 
     %% lanelets boundary
     lanelet_boundary = cell(1,Nlanelets);
@@ -250,9 +170,8 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets,boundary,commo
         adjacentLeft = commonroad_data.lanelet(lanelet).adjacentLeft;
         adjacentRight = commonroad_data.lanelet(lanelet).adjacentRight;
 
-        % if the lanelet has adjacent left lanelet, the boundary
-        % should be the leftBound of adjacentLeft and rightBound of
-        % the current lanelet
+        % if the lanelet has adjacent left lanelet, the boundary should be 
+        % the leftBound of adjacentLeft and rightBound of the current lanelet
         
         left_bound_x = lanelets{ lanelet }(:,LaneletInfo.lx);
         left_bound_y = lanelets{ lanelet }(:,LaneletInfo.ly);
@@ -277,52 +196,13 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets,boundary,commo
         end
         
         lanelet_boundary{lanelet} = {left_bound,right_bound};
-    end
-    
-%     % intersection steering lanelets (Relaxation)
-%     % 20 21--> 45 69
-%     lanelet_boundary_relaxation1 = lanelets{45}(:,[LaneletInfo.rx,LaneletInfo.ry]);
-%     lanelet_boundary_relaxation2 = lanelets{69}(:,[LaneletInfo.rx,LaneletInfo.ry]);
-%     lanelet_boundary_relaxation = [lanelet_boundary_relaxation1([1,3,5,7,9,end],:);lanelet_boundary_relaxation2([1,3,5,7,9,end],:)];
-%     lanelet_boundary{20}{2} = lanelet_boundary_relaxation;
-%     lanelet_boundary{21}{2} = lanelet_boundary_relaxation;
-%     
-%     % 46 47 --> 95 19
-%     lanelet_boundary_relaxation1 = lanelets{95}(:,[LaneletInfo.rx,LaneletInfo.ry]);
-%     lanelet_boundary_relaxation2 = lanelets{19}(:,[LaneletInfo.rx,LaneletInfo.ry]);
-%     lanelet_boundary_relaxation = [lanelet_boundary_relaxation1([1,3,5,7,9,end],:);lanelet_boundary_relaxation2([1,3,5,7,9,end],:)];
-%     lanelet_boundary{46}{2} = lanelet_boundary_relaxation;
-%     lanelet_boundary{47}{2} = lanelet_boundary_relaxation;
-%     
-%     % 98 99 --> 71 43
-%     lanelet_boundary_relaxation1 = lanelets{71}(:,[LaneletInfo.rx,LaneletInfo.ry]);
-%     lanelet_boundary_relaxation2 = lanelets{43}(:,[LaneletInfo.rx,LaneletInfo.ry]);
-%     lanelet_boundary_relaxation = [lanelet_boundary_relaxation1([1,3,5,7,9,end],:);lanelet_boundary_relaxation2([1,3,5,7,9,end],:)];
-%     lanelet_boundary{98}{2} = lanelet_boundary_relaxation;
-%     lanelet_boundary{99}{2} = lanelet_boundary_relaxation;
-%     
-%     % 72 73 --> 17 97
-%     lanelet_boundary_relaxation1 = lanelets{17}(:,[LaneletInfo.rx,LaneletInfo.ry]);
-%     lanelet_boundary_relaxation2 = lanelets{97}(:,[LaneletInfo.rx,LaneletInfo.ry]);
-%     lanelet_boundary_relaxation = [lanelet_boundary_relaxation1([1,3,5,7,9,end],:);lanelet_boundary_relaxation2([1,3,5,7,9,end],:)];
-%     lanelet_boundary{72}{2} = lanelet_boundary_relaxation;
-%     lanelet_boundary{73}{2} = lanelet_boundary_relaxation;
-
-%     for lanelet = intersection_lanelets
-%         lanelet_boundary{lanelet} = {[],[]};
-%     end
-%     
+    end 
+  
     % forking lanelets
     forking = [9,41,67,87];
     for i = forking
         lanelet_boundary{i}{1} = lanelet_boundary{i}{1}(6:end,:);
     end
-    
-%     % merging lanelets
-%     forking = [9,41,67,87];
-%     for i = forking
-%         lanelet_boundary{i}{1} = lanelet_boundary{i}{1}(8:end,:);
-%     end
 
     % update the boundary for lanelets at the turning corner
     corner1 = [3,4,22];
