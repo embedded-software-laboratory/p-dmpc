@@ -3,13 +3,9 @@ function scenario = commonroad(nVeh,vehid,isPB)
 
     scenario = Scenario();
     scenario.name = 'Commonroad';
-%     scenario.trim_set = 13;
-%     scenario.dt = 0.2;
     scenario.trim_set = 12;
-    scenario.dt = 0.2;
-%     scenario.lanelets_index = 
-    [scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.boundary, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets();
-%     scenario.vehicle_to_lanelet = cell(1,0);
+    scenario.dt = 0.2; 
+    [scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets();
     
     for iveh = 1:nVeh
         
@@ -31,12 +27,11 @@ function scenario = commonroad(nVeh,vehid,isPB)
         veh.yaw_start = yaw(1);
         veh.yaw_goal = yaw(2:end); 
         scenario.vehicles = [scenario.vehicles, veh];
-%         scenario.vehicle_to_lanelet{end+1} = lanelets_index;
     end
 
     scenario.plot_limits = [0,4.5;0,4];  
     scenario.nVeh = nVeh;
-    scenario.T_end = 180;
+    scenario.T_end = 60;
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     nVeh_mpa = scenario.nVeh;
     scenario.Hp = 6;
@@ -45,7 +40,7 @@ function scenario = commonroad(nVeh,vehid,isPB)
        scenario.adjacency = zeros(nVeh,nVeh);
        scenario.assignPrios = true;
        scenario.controller_name = strcat(scenario.controller_name, '-PB');
-       scenario.controller = @(s,i,j) pb_controller(s,i,j);
+       scenario.controller = @(s,i) pb_controller(s,i);
        nVeh_mpa = 1;
 
     end
@@ -55,8 +50,7 @@ function scenario = commonroad(nVeh,vehid,isPB)
     scenario.mpa = MotionPrimitiveAutomaton(...
         scenario.model...
         , scenario.trim_set...
-        , scenario.offset_length...
-        , scenario.offset_width...
+        , scenario.offset...
         , scenario.dt...
         , nVeh_mpa...
         , scenario.Hp...
