@@ -39,6 +39,7 @@ function plotOnline(result,step_idx,tick_now,exploration)
     xlim(scenario.plot_limits(1,:));
     ylim(scenario.plot_limits(2,:));
     daspect([1 1 1])
+    
     if exploration.doExploration
         visualize_exploration(exploration,scenario);
     end
@@ -89,11 +90,11 @@ function plotOnline(result,step_idx,tick_now,exploration)
         text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 12, 'LineWidth',1,'Color','m');
 
         % plot scenario adjacency
-        adjacent_vehicles = find(scenario.adjacency(v,:,step_idx));
+        adjacent_vehicles = find(scenario.adjacency(v,:,end));
         adjacent_vehicles = adjacent_vehicles(adjacent_vehicles>v);
         for adj_v = adjacent_vehicles
             
-            adj_pos_step = result.vehicle_path_fullres{adj_v,step_idx};
+            adj_pos_step = result.vehicle_path_fullres{adj_v,end};
             adj_x = adj_pos_step(tick_now,:);
             % plot adjacency
             adj{v,adj_v}=line([x(1),adj_x(1)],[x(2),adj_x(2)],'LineWidth',1, 'Color','r');
@@ -143,28 +144,6 @@ function plotOnline(result,step_idx,tick_now,exploration)
 
     set(t,'HorizontalAlignment', 'center');
     
-%     % delete edges to construct acyclic graph
-%     if ~isempty(result.edges_to_break{end})
-%         disp('break cycles')
-%         for edge_i = 1:length(result.edges_to_break{end})
-% 
-%             vertices = result.edges_to_break{end}{edge_i};
-%             disp(['delete: ', num2str(vertices)])
-%             disp('delete edge')
-%             str = sprintf('Vehicle to break: %s and %s',num2str(vertices(1)),num2str(vertices(2)));
-%             cycle_title = text(4.5,4,str,'FontSize', 16, 'LineWidth',1,'Color','b');
-%             pause(3)
-%             delete(adj{vertices(1),vertices(2)})
-%             delete(adj{vertices(2),vertices(1)})
-%             
-%             disp('delete distance')
-%             pause(0.3)
-%             delete(dis{vertices(1),vertices(2)})
-%             delete(dis{vertices(2),vertices(1)})
-%             
-%             delete(cycle_title)
-%         end
-%     end
     
     drawnow
 end
