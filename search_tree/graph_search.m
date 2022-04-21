@@ -1,4 +1,4 @@
-function [u, y_pred, info, MEflag] = graph_search(scenario, iter)
+function [u, y_pred, info] = graph_search(scenario, iter)
 % GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
 
     info = struct;
@@ -12,7 +12,6 @@ function [u, y_pred, info, MEflag] = graph_search(scenario, iter)
     g = 0;
     h = 0;
     info.tree = Tree(x,y,yaw,trim,k,g,h);
-    MEflag = false;
     
     % Array storing ids of nodes that may be expanded
     
@@ -25,16 +24,11 @@ function [u, y_pred, info, MEflag] = graph_search(scenario, iter)
         % Select cheapest node for expansion and remove it
         cur_node_id = pq.pop();
         if (cur_node_id == -1)
-%             MEflag = true;
             ME = MException( ...
                 'MATLAB:graph_search:tree_exhausted' ...
                 ,'No more open nodes to explore' ...
             );
             throw(ME);
-%             
-%             u = zeros(scenario.nVeh);
-%             y_pred = [];
-%             return
         end
         
 
@@ -44,8 +38,6 @@ function [u, y_pred, info, MEflag] = graph_search(scenario, iter)
             % could remove node from tree here
             continue
         end
-%         disp('info.tree.trim')
-%         disp(info.tree.trim(:))
         shapes_tmp(:,cur_node_id) = shapes;
         if info.tree.k(cur_node_id) == scenario.Hp
             y_pred = return_path_to(cur_node_id, info.tree, scenario.mpa);
@@ -53,9 +45,6 @@ function [u, y_pred, info, MEflag] = graph_search(scenario, iter)
             info.shapes = return_path_area(shapes_tmp, info.tree, cur_node_id);
             info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
             info.trim_indices = info.tree.trim(:,info.tree_path(2));
-%             disp('info.trim_indices')
-%             disp(info.trim_indices)
-            
             break
         else
             % Expand chosen node
