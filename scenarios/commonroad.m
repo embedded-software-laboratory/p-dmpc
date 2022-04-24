@@ -11,7 +11,8 @@ function scenario = commonroad(nVeh,vehid,isPB)
         
         veh = Vehicle();
         veh.trim_config = 1;
-        ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
+        % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
+        ref_path = generate_random_path(scenario, vehid(iveh), 20); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
         refPath = ref_path.path;
         veh.x_start = refPath(1,1);
         veh.y_start = refPath(1,2);
