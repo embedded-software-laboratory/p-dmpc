@@ -25,22 +25,45 @@ function random_path = generate_random_path(scenario, vehid, n)
     random_path.lanelets_index = [lanelets_index_vehid];
 
     while length(random_path.lanelets_index) < n
-        % find all edges that have predecessor: lanelets(random_path.lanelets_index(end))
+        % find all edges that are the successor of the current lane or adjacent and lane change enabled
         subsequent_lanes = struct;
         subsequent_lanes.lanelets_index = [0];
 
         for i = 1:length(commonroad_data.lanelet)
-            predecessor = commonroad_data.lanelet(i).predecessor;
-            predecessor_index = horzcat(predecessor.refAttribute);
             
-            if ismember(random_path.lanelets_index(end), predecessor_index)
-                %disp(sprintf('lanelet i: %d', commonroad_data.lanelet(i).idAttribute));
-                if subsequent_lanes.lanelets_index(1) == 0
-                    subsequent_lanes.lanelets_index(1) = commonroad_data.lanelet(i).idAttribute;
-                else
-                    subsequent_lanes.lanelets_index(end+1) = commonroad_data.lanelet(i).idAttribute;
+            % find id of current lane
+            if random_path.lanelets_index(end) == commonroad_data.lanelet(i).idAttribute
+                successor = commonroad_data.lanelet(i).successor;
+                successor_indices = horzcat(successor.refAttribute);
+                subsequent_indices = successor_indices;
+
+                disp(subsequent_indices);
+
+                for k = 1:length(successor_indices)
+                    successor_adjacentLeft = commonroad_data.lanelet(successor_indices(k)).adjacentLeft;
+                    if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
+                        subsequent_indices = horzcat(successor_adjacentLeft.refAttribute);
+                        disp(subsequent_indices);
+                    end
+
+                    successor_adjacentRight = commonroad_data.lanelet(successor_indices(k)).adjacentRight;
+                    if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
+                        subsequent_indices = horzcat(successor_adjacentRight.refAttribute);
+                        disp(subsequent_indices);
+                    end
+
+                    % include check for predecessor of successor
                 end
-                disp(sprintf('subsequent lanelets index end: %d', subsequent_lanes.lanelets_index(end)));
+                
+                for j = 1:length(subsequent_indices)
+                    if subsequent_lanes.lanelets_index(1) == 0
+                        subsequent_lanes.lanelets_index(1) = subsequent_indices(j);
+                    else
+                        subsequent_lanes.lanelets_index(end+1) = subsequent_indices(j);
+                    end
+                    disp(sprintf('subsequent lanelets index end: %d', subsequent_lanes.lanelets_index(end)));
+                end
+
                 disp(sprintf('subsequent lanelets index size: %d', length(subsequent_lanes.lanelets_index)));
             end
         end

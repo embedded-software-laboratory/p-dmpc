@@ -3,11 +3,11 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
 %     Controller simulates multiple distributed controllers.
 
 %% random priority  
-%     obj = random_priority(scenario);
-%     groups = obj.priority(); 
-%     right_of_way = false;
-%     veh_at_intersection = [];
-%     edge_to_break = [];
+      obj = random_priority(scenario);
+      groups = obj.priority(); 
+      right_of_way = false;
+      veh_at_intersection = [];
+      edge_to_break = [];
 
 %% constant priority  
 %     obj = constant_priority(scenario);
@@ -22,9 +22,9 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
 %     edge_to_break = [];
 
 %% Right-of-way priority  
-    obj = right_of_way_assignment(scenario,iter);
-    right_of_way = true;
-    [veh_at_intersection, groups, edge_to_break] = obj.priority(); 
+%    obj = right_of_way_assignment(scenario,iter);
+%    right_of_way = true;
+%    [veh_at_intersection, groups, edge_to_break] = obj.priority(); 
 
     
     % construct the priority list
