@@ -79,6 +79,10 @@ while (~got_stop)
             lanelet_boundary = lanelets_boundary(scenario, iter);
             for iveh = 1:options.amount
                 scenario.vehicles(1,iveh).lanelet_boundary = lanelet_boundary{1,iveh};
+                %disp(sprintf('left, veh: %d', iveh));
+                %disp(lanelet_boundary{1,iveh}{1,1});
+                %disp(sprintf('right, veh: %d', iveh));
+                %disp(lanelet_boundary{1,iveh}{1,2});
             end
             % update the coupling information
             scenario = coupling_adjacency(scenario,iter);
