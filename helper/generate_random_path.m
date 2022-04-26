@@ -9,7 +9,7 @@ function random_path = generate_random_path(scenario, vehid, n)
     disp(sprintf('Id: %d', vehid));
     % maybe scenario.vehicles not yet initialized
     % lanelets_index_vehid = scenario.vehicles(1,vehid).lanelets_index; 
-    lanelets_index_vehid = vehid * 30;  
+    lanelets_index_vehid = 31+vehid;  
     
     load('commonroad_data.mat');
     commonroad = commonroad_data;
@@ -88,6 +88,15 @@ function random_path = generate_random_path(scenario, vehid, n)
         % choose the center line of the lanelet as reference path
         randomPath_x = lanelets{ random_path.lanelets_index(nlanelets)}(:,LaneletInfo.cx);
         randomPath_y = lanelets{ random_path.lanelets_index(nlanelets)}(:,LaneletInfo.cy);
+
+        if length(randomPath_x) > 3
+            randomPath_x = randomPath_x([2:(end-2)]);
+        end
+        
+        if length(randomPath_y) > 3
+            randomPath_y = randomPath_y([2:(end-2)]);
+        end
+
         randomPath_next = [randomPath_x(1:end),randomPath_y(1:end)];
         path = [path; randomPath_next];
 
