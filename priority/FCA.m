@@ -1,9 +1,8 @@
 classdef  FCA < interface_priority
-% right_of_way  Instance of interface_priority used for dynamic priority
-% assignment. For vehicles driving consectively, vehicles in the front are
-% aasigned with higher priorities; For vehicles at the intersection, vehicles
-% closer to the center of intersection are assigned with higher priorities. Vehicles at intersection keep higher priority and do not change their relative priority until they leave intersection
-    
+% FCA  Instance of interface_priority used for dynamic priority
+% assignment. Vehicles with more potential collisions on their future
+% reference trajectory are assigned higher priorities.
+
     properties (Access=private)
         iter
     end

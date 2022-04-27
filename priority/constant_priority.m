@@ -1,5 +1,6 @@
 classdef  constant_priority < interface_priority
-% random_priority  Instance of experiment interface used for simulation in matlab.
+% constant_priority  Instance of interface_priority used for priority
+% assignment, fixed priority according to vehicle ids
     
     properties (Access=private)
 

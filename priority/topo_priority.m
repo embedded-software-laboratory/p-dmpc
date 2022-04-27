@@ -1,5 +1,5 @@
 classdef  topo_priority < interface_priority
-% random_priority  Instance of experiment interface used for simulation in matlab.
+% topo_priority  Instance of interface_priority used for priority assignment.
     
     properties (Access=private)
         isDAG

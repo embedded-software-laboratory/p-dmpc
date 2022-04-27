@@ -1,5 +1,6 @@
 classdef  random_priority < interface_priority
-% random_priority  Instance of experiment interface used for simulation in matlab.
+% random_priority  Instance of interface_priority used for dynamic priority
+% assignment, randomly assign priority to vehicles
     
     properties (Access=private)
 
