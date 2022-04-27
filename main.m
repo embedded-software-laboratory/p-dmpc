@@ -1,7 +1,5 @@
 function result = main(varargin)
-% MAIN  main function for graph-based receeding horizon control with
-% right-of-way priority assignment. Vehicles at intersection keep
-% higher priority and do not change their relative priority until they leave intersection
+% MAIN  main function for graph-based receeding horizon control
 
 if verLessThan('matlab','9.10')
     warning("Code is developed in MATLAB 2021a, prepare for backward incompatibilities.")
@@ -35,6 +33,8 @@ else
     vehicle_ids = [varargin{:}];
     options.amount = numel(vehicle_ids);
     options.isPB = true;
+    options.scenario = 'Commonroad';
+    options.priority = 'topo_priority';
 end
   
 
