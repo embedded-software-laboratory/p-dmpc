@@ -21,8 +21,6 @@ function plotOnline(result,step_idx,tick_now,exploration)
     
     
     %% Simulation state / scenario plot
-    %subplot(nVeh,3,[2 3*nVeh]);
-%     cla % delete all the plots
 
     % find all the plots with property "LineWidth 1", which are different to plot_lanelets (default "LineWidth 0.5")  
     % at every time step, delete all these plots while keep plot_lanelets
@@ -46,7 +44,7 @@ function plotOnline(result,step_idx,tick_now,exploration)
     
     if step_idx == 1 % plot the lanelets only once at the beginning
         if ~isempty(scenario.lanelets)
-            plot_lanelets(scenario.lanelets);
+            plot_lanelets(scenario.lanelets,scenario.name);
         end
     end
 % plot_lanelets(scenario.lanelets);
@@ -71,8 +69,6 @@ function plotOnline(result,step_idx,tick_now,exploration)
     end
 
     % Vehicle rectangles
-    adj = cell(nVeh,nVeh);
-    dis = cell(nVeh,nVeh);
     for v=1:nVeh
         veh = scenario.vehicles(v);
         pos_step = result.vehicle_path_fullres{v,step_idx};
@@ -83,27 +79,28 @@ function plotOnline(result,step_idx,tick_now,exploration)
                 ,vehColor(v)...
                 ,'LineWidth', 1 ...
         );
-        % plot the priority
-        text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1);
-        
-        % plot the vehicle index
-        text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 12, 'LineWidth',1,'Color','m');
-
-        % plot scenario adjacency
-        adjacent_vehicles = find(scenario.adjacency(v,:,end));
-        adjacent_vehicles = adjacent_vehicles(adjacent_vehicles>v);
-        for adj_v = adjacent_vehicles
-            
-            adj_pos_step = result.vehicle_path_fullres{adj_v,end};
-            adj_x = adj_pos_step(tick_now,:);
-            % plot adjacency
-            adj{v,adj_v}=line([x(1),adj_x(1)],[x(2),adj_x(2)],'LineWidth',1, 'Color','r');
-            
+%         % plot the priority
+%         text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1);
+%         
+%         % plot the vehicle index
+%         text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 12, 'LineWidth',1,'Color','m');
+% 
+%         % plot scenario adjacency
+%         adj = cell(nVeh,nVeh);
+%         adjacent_vehicles = find(scenario.adjacency(v,:,end));
+%         adjacent_vehicles = adjacent_vehicles(adjacent_vehicles>v);
+%         for adj_v = adjacent_vehicles
+%             
+%             adj_pos_step = result.vehicle_path_fullres{adj_v,end};
+%             adj_x = adj_pos_step(tick_now,:);
+%             % plot adjacency
+%             adj{v,adj_v}=line([x(1),adj_x(1)],[x(2),adj_x(2)],'LineWidth',1, 'Color','r');
+%             
 %             % plot distance
 %             dis{v,adj_v}=text((iter.x0(v,1)+iter.x0(adj_v,1))/2,(iter.x0(v,2)+iter.x0(adj_v,2))/2,...
 %                 num2str(result.distance(v,adj_v,step_idx)),'FontSize', 12, 'LineWidth',1,'Color','b');
  
-        end
+%         end
      
     end
     
@@ -128,19 +125,18 @@ function plotOnline(result,step_idx,tick_now,exploration)
                 ,'LineWidth', 1 ...
         );
     end
-        
+    
     
     scenarioName = scenario.name;
     optimizer = 'Graph Search';
     strategy = scenario.controller_name;
-    computation_levels = result.computation_levels(end);
-    t=title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs, Computation Levels: %i',...
+    
+    t=title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs',...
         scenarioName,...
         optimizer,...
         strategy,...
         step_idx,...
-        (step_idx-1)*scenario.dt + (tick_now-1) * scenario.time_per_tick,...
-        computation_levels),'Interpreter','LaTex');
+        (step_idx-1)*scenario.dt + (tick_now-1) * scenario.time_per_tick),'Interpreter','LaTex');
 
     set(t,'HorizontalAlignment', 'center');
     
