@@ -2,29 +2,35 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
-%% random priority  
-%     obj = random_priority(scenario);
-%     groups = obj.priority(); 
-%     right_of_way = false;
-%     veh_at_intersection = [];
-%     edge_to_break = [];
 
-%% constant priority  
-%     obj = constant_priority(scenario);
-%     groups = obj.priority(); 
-%     right_of_way = false;
-%     veh_at_intersection = [];
-%     edge_to_break = [];
-
-%% FCA priority  
-%     obj = FCA(scenario,iter);
-%     [veh_at_intersection, groups] = obj.priority();
-%     edge_to_break = [];
-
-%% Right-of-way priority  
-    obj = right_of_way_assignment(scenario,iter);
-    right_of_way = true;
-    [veh_at_intersection, groups, edge_to_break] = obj.priority(); 
+switch scenario.priority_option
+    case 'topo_priority'
+        obj = topo_priority(scenario);
+        groups = obj.priority(); 
+        right_of_way = false;
+        veh_at_intersection = [];
+        edge_to_break = [];
+    case 'right_of_way_priority'
+        obj = right_of_way_assignment(scenario,iter);
+        right_of_way = true;
+        [veh_at_intersection, groups, edge_to_break] = obj.priority();  
+    case 'constant_priority'
+        obj = constant_priority(scenario);
+        groups = obj.priority(); 
+        right_of_way = false;
+        veh_at_intersection = [];
+        edge_to_break = [];
+    case 'random_priority' 
+        obj = random_priority(scenario);
+        groups = obj.priority(); 
+        right_of_way = false;
+        veh_at_intersection = [];
+        edge_to_break = [];
+    case 'FCA_priority'
+        obj = FCA(scenario,iter);
+        [veh_at_intersection, groups] = obj.priority();
+        edge_to_break = [];   
+end
 
     
     % construct the priority list
