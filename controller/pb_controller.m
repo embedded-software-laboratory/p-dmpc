@@ -11,7 +11,7 @@ switch scenario.priority_option
         veh_at_intersection = [];
         edge_to_break = [];
     case 'right_of_way_priority'
-        obj = right_of_way_assignment(scenario,iter);
+        obj = right_of_way_priority(scenario,iter);
         right_of_way = true;
         [veh_at_intersection, groups, edge_to_break] = obj.priority();  
     case 'constant_priority'
@@ -27,8 +27,9 @@ switch scenario.priority_option
         veh_at_intersection = [];
         edge_to_break = [];
     case 'FCA_priority'
-        obj = FCA(scenario,iter);
+        obj = FCA_priority(scenario,iter);
         [veh_at_intersection, groups] = obj.priority();
+        right_of_way = false;
         edge_to_break = [];   
 end
 
