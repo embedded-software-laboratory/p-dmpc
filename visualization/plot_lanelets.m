@@ -1,21 +1,23 @@
-function plot_lanelets(lanelets)
+function plot_lanelets(lanelets,scenario_name)
 % PLOT_LANELETS     Plots the lanelet structure.
 
     for i = 1 : length(lanelets)
         
         lanelet = lanelets{i};
         
-
-        if i < 13
-            color = '#848484';
-        else
-            if i < 17
-%                color = '#E50000';
+        switch scenario_name
+            case 'Commonroad'
                 color = '#848484';
-            else
-%                color = '#0080FF';
-                color = '#848484';
-            end
+            otherwise
+                if i < 13
+                    color = '#848484';
+                else
+                    if i < 17
+                       color = '#E50000';
+                    else
+                       color = '#0080FF';
+                    end
+                end
         end
         plot_lanelet(lanelet,color);
         
