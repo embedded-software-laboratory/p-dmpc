@@ -34,6 +34,7 @@ classdef Scenario
         lanelet_boundary;
         last_veh_at_intersection = [];
         k; %simulation steps
+        priority_option;
     end
     
     properties (Dependent)
