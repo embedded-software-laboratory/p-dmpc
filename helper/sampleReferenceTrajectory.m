@@ -9,7 +9,8 @@ function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, ve
 %       referenceTrajectory: piecewise linear curve [x1 y1; x2 y2; ...]
 %       vehicle_x,vehicle_y: start point
 %       stepSize: Distance between points [d1; d2; ...]
-% Returns: points [x1 y1; x2 y2; ...]
+% Returns: ReferencePoints [x1 y1; x2 y2; ...] and corresponding
+% ReferenceIndex (point index)
 
     reference = struct;
     reference.ReferencePoints = zeros(nSamples,2);
