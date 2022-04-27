@@ -1,4 +1,4 @@
-function result = main_update(varargin)
+function result = main(varargin)
 % MAIN  main function for graph-based receeding horizon control with
 % right-of-way priority assignment. Vehicles at intersection keep
 % higher priority and do not change their relative priority until they leave intersection
