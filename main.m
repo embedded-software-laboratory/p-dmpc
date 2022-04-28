@@ -29,9 +29,13 @@ else
     options.isPB = false;
 end
     
-
+options.isParl = 1;
+isROS = 0;
 % scenario = circle_scenario(options.amount,options.isPB);
-scenario = lanelet_scenario4_parl(options.isPB);
+scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
+% scenario = lanelet_scenario4_parl(options.isPB);
+
+% plot_reachable_sets_offline(scenario.mpa)
 
 if is_sim_lab
     exp = SimLab(scenario, options);
@@ -48,6 +52,14 @@ k = 1;
 result = get_result_struct(scenario);
 
 exp.setup();
+info_prev = struct;
+
+% Initialize the communication network
+scenario.communication = communication_init(scenario.vehicles);
+
+% todo: each should calculates the groups information based on received
+% data from other vehicles
+group_and_prioritize_vehicles(scenario.communication)
 
 %% Main control loop
 while (~got_stop)
@@ -57,16 +69,33 @@ while (~got_stop)
     [ x0, trim_indices ] = exp.measure();
     
     try
-        % Control 
+        % Control
         % ----------------------------------------------------------------------
         % Sample reference trajectory
         iter = rhc_init(scenario,x0,trim_indices);
-        scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, k);
+        iter.time_step = k; % time step
         
+        % initial time step
+        if iter.time_step == 1
+            % todo Vehicles communicate initial states using ROS
+            % communicate_init_state(scenario);
+            
+        end
+
+        % For parallel computation, information from previous time step is need, for example, 
+        % the previous fail-safe trajectory is used again if a new fail-safe trajectory cannot be found.
+        if options.isParl
+            iter.info_prev = info_prev;
+        end
+        scenario.groups_info = group_and_prioritize_vehicles(scenario, iter);
+        scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, k);
+
+%         groups = group_and_prioritize_vehicles(scenario.adjacency);
         controller_timer = tic;
             [u, y_pred, info] = scenario.controller(scenario_tmp, iter);
             
         result.controller_runtime(k) = toc(controller_timer);
+        info_prev = info; % store information for next time step in case the controller fails to find a new fail-safe trajectory
         result.iteration_structs{k} = iter;
         % save controller outputs in result struct
         result.trajectory_predictions(:,k) = y_pred;
@@ -101,6 +130,7 @@ while (~got_stop)
 end
 
 %% save results
+result.mpa = scenario.mpa;
 save(fullfile(result.output_path,'data.mat'),'result');
 
 exp.end_run()
