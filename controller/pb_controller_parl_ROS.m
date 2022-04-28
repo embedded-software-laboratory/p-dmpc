@@ -1,4 +1,4 @@
-function [u, y_pred, info] = pb_controller_parl(scenario, iter)
+function [u, y_pred, info] = pb_controller_parl_ROS(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
