@@ -1,10 +1,11 @@
-function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode)
+function [is_valid, shapes, is_collide_with_reachableSets] = eval_edge_exact(scenario, tree, iNode)
 % EVAL_EDGE_EXACT   Evaluate if step is valid.
 
     is_valid = true;
     % maneuver shapes correspond to movement TO node
     node_id_parent = get_parent(tree, iNode);
     shapes = cell(scenario.nVeh,1);
+    is_collide_with_reachableSets = false;
     if ~node_id_parent % root node without parent
         return;
     end
@@ -29,10 +30,24 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode)
         shapes{iVeh} = [shape_x;shape_y];
         
         iStep = cK;
-        
-        if collision_with(iVeh, shapes, scenario, iStep)
+
+        % check if collides with other vehicles' predicted trajectory or
+        % lanelets 
+        collision  = collision_with(iVeh, shapes, scenario, iStep);
+        if collision
             is_valid = false;
             return;
         end
+
+        % check if collides with other vehicles' reachable sets
+        if iStep<=scenario.Hp  % only check the reachable sets of maximal two time step to avoid being too conservativeness
+            collision_reachableSets  = collision_with_reachableSets(iVeh, shapes, scenario, iStep);
+            if collision_reachableSets
+                is_valid = false;
+                is_collide_with_reachableSets = true;
+                return;
+            end
+        end
+
     end
 end
