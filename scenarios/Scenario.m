@@ -12,8 +12,9 @@ classdef Scenario
         T_end = 18;   % Duration of simulation. [s]
         Hp = 4;
         mpa;
-        trim_set = 12;
-        offset = 0.03;  % offset for collision checks
+        trim_set = 3;
+        offset = 0.01;
+        
         model = [];
         time_per_tick = 0.01;
         r_goal = 0.1;   % goal circle
@@ -23,14 +24,22 @@ classdef Scenario
         dynamic_obstacle_reachableSets; % reachable sets of the coupled vehicles with higher priorities in other groups
         plot_limits = [-10,10;-10,10]; % default fallback if not defined
         adjacency;
+        semi_adjacency;
         directed_coupling;
         assignPrios = false;
-        vehicle_to_lanelet
-        lanelets
         isParl = false % if use parallel computation (logical variable)
         communication = {} % all the information related to communication between vehicles
 %         road_info = struct % road information including all lanelets and position of all vehicles
         groups_info = {} % groups information about which vehicles form a group and which vehicles have which priorities
+        vehicle_to_lanelet;
+        lanelets;
+        intersection_lanelets;
+        boundary;
+        commonroad_data;
+        lanelet_boundary;
+        last_veh_at_intersection = [];
+        k; %simulation steps
+        priority_option;
     end
     
     properties (Dependent)

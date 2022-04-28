@@ -6,6 +6,7 @@ function [is_valid, shapes, is_collide_with_reachableSets] = eval_edge_exact(sce
     node_id_parent = get_parent(tree, iNode);
     shapes = cell(scenario.nVeh,1);
     is_collide_with_reachableSets = false;
+    shapes_without_offset = cell(scenario.nVeh,1);
     if ~node_id_parent % root node without parent
         return;
     end
@@ -29,12 +30,24 @@ function [is_valid, shapes, is_collide_with_reachableSets] = eval_edge_exact(sce
         shape_y = s*maneuver.area(1,:) + c*maneuver.area(2,:) + pY(iVeh);
         shapes{iVeh} = [shape_x;shape_y];
         
-        iStep = cK;
 
         % check if collides with other vehicles' predicted trajectory or
         % lanelets 
-        collision  = collision_with(iVeh, shapes, scenario, iStep);
-        if collision
+        if tree.k(iNode) == scenario.Hp
+            shape_x_without_offset = c*maneuver.area_boundary_check(1,:) - s*maneuver.area_boundary_check(2,:) + pX(iVeh);
+            shape_y_without_offset = s*maneuver.area_boundary_check(1,:) + c*maneuver.area_boundary_check(2,:) + pY(iVeh);
+            shapes_without_offset{iVeh} = [shape_x_without_offset;shape_y_without_offset];    
+        else
+            shape_x_without_offset = c*maneuver.area_without_offset(1,:) - s*maneuver.area_without_offset(2,:) + pX(iVeh);
+            shape_y_without_offset = s*maneuver.area_without_offset(1,:) + c*maneuver.area_without_offset(2,:) + pY(iVeh);
+            shapes_without_offset{iVeh} = [shape_x_without_offset;shape_y_without_offset];
+        
+        end
+        
+        
+        iStep = cK;
+
+        if collision_with(iVeh, shapes, shapes_without_offset, scenario, iStep)
             is_valid = false;
             return;
         end

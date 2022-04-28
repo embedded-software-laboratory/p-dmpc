@@ -5,7 +5,8 @@ function scenario = circle_scenario(nVeh,isPB)
     
     radius = 2;
     yaws = pi*2/nVeh*(0:nVeh-1);
-    for yaw = yaws
+    for iVeh = 1:nVeh
+        yaw = yaws(iVeh);
         s = sin(yaw);
         c = cos(yaw);
         veh = Vehicle();
@@ -28,6 +29,7 @@ function scenario = circle_scenario(nVeh,isPB)
 
         veh.referenceTrajectory = [veh.x_start veh.y_start
                                    veh.x_goal  veh.y_goal];
+        veh.ID = iVeh;
 
         scenario.vehicles = [scenario.vehicles, veh];
     end

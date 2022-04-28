@@ -14,7 +14,7 @@ classdef MotionPrimitiveAutomaton
     end
     
     methods
-        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N, nTicks, recursive_feasibility, isParl, isROS)
+        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N, nTicks, recursive_feasibility)
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
@@ -85,16 +85,11 @@ classdef MotionPrimitiveAutomaton
             % variables to store reachable sets in different time steps
             obj.reachable_sets = cell(n_trims,N);
             obj.reachable_sets_conv = cell(n_trims,N);
-
-            if isParl
-                if isROS % if use ROS to communicate between vehicles
-                    scenario.rosInfo = create_ROS_nodes(nveh); % create ROS nodes for communication between vehicles
-                end
                 
-                % compute the reachable sets of each trim
-                [obj.reachable_sets, obj.reachable_sets_conv] = reachability_analysis_offline(obj,N);
-            end
-
+            % compute the reachable sets of each trim
+            
+            [obj.reachable_sets, obj.reachable_sets_conv] = reachability_analysis_offline(obj,N);
+            
             save_mpa(obj,mpa_full_path); % save mpa to library
             
         end

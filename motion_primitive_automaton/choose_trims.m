@@ -76,5 +76,18 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
         trim_adjacency(2:end,2:end) = trim_adjacency(2:end,2:end) ...
             - triu(ones(ntrims-1),3)...
             - tril(ones(ntrims-1),-4);
+
     end
 end
+
+
+
+
+
+
+
+
+
+
+
+

@@ -12,8 +12,11 @@ function [reachable_sets, reachable_sets_conv] = reachability_analysis_offline(m
 %         The union of the reachable sets of each trims
 %     reachable_sets_conv: cell [n_trims x Hp]
 %         The convexified union of the reachable sets of each trims
-
-
+    
+    threshold_Hp = 5;
+    if Hp > threshold_Hp
+        warning(['Computing the reachable sets now...' newline 'Since the prediction horizon is more than ' num2str(threshold_Hp) ', it may take several minutes.'])
+    end
     n_trims = numel(mpa.trims);
     reachable_sets = cell(n_trims,Hp);
     reachable_sets_conv = cell(n_trims,Hp);
@@ -28,11 +31,11 @@ function [reachable_sets, reachable_sets_conv] = reachability_analysis_offline(m
         end
     end
     
-    % todo: use a different horizon for reachability analysis
-    if Hp>5
-        Hp = 5;
-        warning(['The pridiction horizon is too large for reachability analysis and therefore a prediction horizon of ', num2str(Hp),' will be used.'])
-    end
+%     % todo: use a different horizon for reachability analysis
+%     if Hp>5
+%         Hp = 5;
+%         warning(['The pridiction horizon is too large for reachability analysis and therefore a prediction horizon of ', num2str(Hp),' will be used.'])
+%     end
 
     trimsInfo = struct;
     for i=1:n_trims

@@ -73,19 +73,20 @@ function [u, y_pred, info] = pb_controller_parl(scenario, iter)
             [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
             
             % prepare output data
+            info.tree{vehicle_idx} = info_v.tree;
+            info.tree_path(vehicle_idx,:) = info_v.tree_path;
             info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
             info.n_expanded = info.n_expanded + info_v.tree.size();
             info.next_node = set_node(info.next_node,[vehicle_idx],info_v);
             info.shapes(vehicle_idx,:) = info_v.shapes(:);
             info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario.mpa);
-            info.trim_indices(vehicle_idx) = info_v.trim_indices(1);
-            info.trims_Hp(vehicle_idx,:) = info_v.trims_Hp;
-            info.tree_path(vehicle_idx,:) = info_v.tree_path;
+            info.trim_indices(vehicle_idx) = info_v.trim_indices;
+            info.trims_Hp(vehicle_idx,:) = info_v.trims_Hp; % store the planned trims in the future Hp time steps
             info.trees{vehicle_idx} = info_v.tree; % store tree information
-            y_pred{vehicle_idx,1} = y_pred_v{:};
             info.y_predicted{vehicle_idx,1} = y_pred_v{:}; % store the information of the predicted output
+            info.n_exhausted(vehicle_idx) = info_v.n_exhausted; % store the number of graph search exhaustion times
+            y_pred{vehicle_idx,1} = y_pred_v{:};
             u(vehicle_idx) = u_v(1);
-            info.n_exhausted(vehicle_idx) = info_v.n_exhausted;
             
         end
     end

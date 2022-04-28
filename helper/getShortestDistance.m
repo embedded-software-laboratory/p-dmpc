@@ -33,20 +33,22 @@ function [signed_distance_min, arclength_min, x_min, y_min, index_min ] = getSho
     for j = 2:(length(curve_x))
         [xp, yp, signed_distance, lambda, piecelength] =  Projection2D(curve_x(j-1),curve_y(j-1),curve_x(j),curve_y(j),x,y);
 
-        % Projected point is between the end points.
-        if (0 < lambda || j==2) && (lambda < 1 || j==length(curve_x))
+        % Projected point is between the two ref points curve_x(j-1) and curve_x(j).
+        if (0 < lambda) && (lambda < 1)
             if abs(signed_distance) < abs(signed_distance_min)
-                x_min = xp;
+                x_min = xp; %The projected point on the curve.
                 y_min = yp;
                 signed_distance_min = signed_distance;
                 arclength_min= arclength_sum + lambda * piecelength;
                 index_min = j;
             end
+            
+        % Projected point is beyond the two ref points curve_x(j-1) and curve_x(j).    
         else
             d_end = sqrt((x-curve_x(j))^2 +(y-curve_y(j))^2);
             if  abs(d_end) < abs(signed_distance_min)
-                x_min = curve_x(j);
-                y_min = curve_y(j);
+                x_min = xp; %The projected point on the curve.
+                y_min = yp;
                 signed_distance_min = signum(signed_distance)*d_end;
                 arclength_min= arclength_sum + piecelength;
                 index_min = j;
