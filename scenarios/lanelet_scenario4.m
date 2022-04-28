@@ -1,4 +1,4 @@
-function scenario = lanelet_scenario4(isPB)
+function scenario = lanelet_scenario4(isPB,isParl,isROS)
 % LANELET_SCENARIO4   Constructor for scenario with four vehicles at an intersection driving straight
     c = 0.2;
 
@@ -12,6 +12,7 @@ function scenario = lanelet_scenario4(isPB)
                                         7, 12, 4    ];
     
     veh = Vehicle();
+    veh.ID = 1;
     veh.trim_config = 1;
     veh.x_start = c*-2.5;
     veh.y_start = c*18;
@@ -24,6 +25,7 @@ function scenario = lanelet_scenario4(isPB)
     scenario.vehicles = [scenario.vehicles, veh];
     
     veh = Vehicle();
+    veh.ID = 2;
     veh.trim_config = 1;
     veh.x_start = c*2.5;
     veh.y_start = c*-18;
@@ -36,6 +38,7 @@ function scenario = lanelet_scenario4(isPB)
     scenario.vehicles = [scenario.vehicles, veh];
     
     veh = Vehicle();
+    veh.ID = 3;
     veh.trim_config = 1;
     veh.x_start = c*13;
     veh.y_start = c*2.5;
@@ -48,6 +51,7 @@ function scenario = lanelet_scenario4(isPB)
     scenario.vehicles = [scenario.vehicles, veh];
     
     veh = Vehicle();
+    veh.ID = 4;
     veh.trim_config = 1;
     veh.x_start = c*-13;
     veh.y_start = c*-2.5;
@@ -65,15 +69,23 @@ function scenario = lanelet_scenario4(isPB)
 
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
 
-    scenario.T_end = 10;
    
     nVeh_mpa = scenario.nVeh;
+    scenario.isParl = logical(isParl); % is use parallel computation
     
     if isPB
        scenario.adjacency = coupling_adjacency_lanelets(scenario.vehicle_to_lanelet, collision);
        scenario.assignPrios = true;
        scenario.controller_name = strcat(scenario.controller_name, '-PB');
-       scenario.controller = @(s,i) pb_controller(s,i);
+
+       if scenario.isParl % use parallel trajectory planning
+           scenario.controller = @(s,i) pb_controller_parl(s,i);
+           if isROS
+               scenario.controller = @(s,i) pb_controller_parl_ROS(s,i);
+           end
+       else % use sequential trajectory planning
+           scenario.controller = @(s,i) pb_controller(s,i);
+       end
 
        nVeh_mpa = 1;
     end
@@ -88,5 +100,9 @@ function scenario = lanelet_scenario4(isPB)
         , scenario.Hp...
         , scenario.tick_per_step...
         , recursive_feasibility...
+        , scenario.isParl...
+        , isROS...
     );
+    
+
 end
