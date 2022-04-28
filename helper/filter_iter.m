@@ -19,4 +19,27 @@ function iter = filter_iter(iter, vehicle_filter)
     iter.trim_indices = iter.trim_indices(vehicle_filter);
     iter.vRef = iter.vRef(vehicle_filter,:);
     iter.referenceTrajectoryPoints = iter.referenceTrajectoryPoints(vehicle_filter,:,:);
+
+    % Information from previous time step extract
+    if ~isempty(fieldnames(iter.info_prev))
+        iter.info_prev.vehicle_fullres_path = iter.info_prev.vehicle_fullres_path(vehicle_filter,:);
+        iter.info_prev.trim_indices = iter.info_prev.trim_indices(vehicle_filter);
+        iter.info_prev.subcontroller_runtime = iter.info_prev.subcontroller_runtime(vehicle_filter);
+        iter.info_prev.shapes = iter.info_prev.shapes(vehicle_filter,:);
+        iter.info_prev.trims_Hp = iter.info_prev.trims_Hp(vehicle_filter,:);
+        iter.info_prev.tree_path = iter.info_prev.tree_path(vehicle_filter,:);
+        iter.info_prev.y_predicted = iter.info_prev.y_predicted(vehicle_filter,:);
+        iter.info_prev.trees = iter.info_prev.trees(vehicle_filter);
+        iter.info_prev.n_exhausted = iter.info_prev.n_exhausted(vehicle_filter);
+%         if sum(vehicle_filter)==0
+%             iter.info_prev.trees = struct;
+%         elseif sum(vehicle_filter)==1 % if only one vehicle is selected, reduce the cell array of trees to a single tree
+%             iter.info_prev.tree = iter.info_prev.trees{vehicle_filter}; % create new field named 'tree'
+%             iter.info_prev = rmfield(iter.info_prev,'trees'); % delete the field named 'trees'
+%         else
+%             iter.info_prev.trees = iter.info_prev.trees(vehicle_filter);
+%         end
+    end
+
+    
 end
