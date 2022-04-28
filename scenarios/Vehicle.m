@@ -14,6 +14,7 @@ classdef Vehicle
         Width               = 0.1;   % Vehicle width [m]
         Lf                  = 0.1;   % Distance between vehicle center and front axle center [m]
         Lr                  = 0.1;   % Distance between vehicle center and rear axle center [m]
+        ID                  = -1;    % vehicle ID (should be positive integer)
     end
     
     methods
