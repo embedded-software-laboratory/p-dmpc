@@ -8,16 +8,32 @@ classdef MotionPrimitiveAutomaton
         trim_tuple               % Matrix with trim indices ((nTrims1*nTrims2*...) x nVehicles)
         transition_matrix        % binary Matrix (if maneuverTuple exist according to trims) (nTrimTuples x nTrimTuples x horizon_length)
         distance_to_equilibrium  % Distance in graph from current state to equilibrium state (nTrims x 1)
-        recursive_feasibility;
+        recursive_feasibility
+        reachable_sets           % Store all the reachable sets of each trim (possibly non-convex)
+        reachable_sets_conv;     % Convexified reachable sets of each trim
     end
     
     methods
-        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N, nTicks, recursive_feasibility)
+        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N, nTicks, recursive_feasibility, isParl, isROS)
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
             %   read as: rows are start trims and columns are end trims
             % N is the horizon length
+
+            % path of the MPA
+            [file_path,name,ext] = fileparts(mfilename('fullpath'));
+            folder_target = [file_path,filesep,'library'];
+            mpa_instance_name = ['MPA_','trims',num2str(trim_set),'_Hp',num2str(N),'.mat'];
+            mpa_full_path = [folder_target,filesep,mpa_instance_name];
+
+            % if the needed MPA is alread exist in the library, simply load it
+            if isfile(mpa_full_path)
+                load(mpa_full_path,"mpa");
+                obj = mpa;
+                return
+            end
+
             obj.recursive_feasibility = recursive_feasibility;
                         
             [trim_inputs, trim_adjacency] = choose_trims(trim_set);
@@ -66,6 +82,21 @@ classdef MotionPrimitiveAutomaton
             % compute maneuver matrix for trimProduct
             obj.transition_matrix = compute_product_maneuver_matrix(obj,nveh,N);
             
+            % variables to store reachable sets in different time steps
+            obj.reachable_sets = cell(n_trims,N);
+            obj.reachable_sets_conv = cell(n_trims,N);
+
+            if isParl
+                if isROS % if use ROS to communicate between vehicles
+                    scenario.rosInfo = create_ROS_nodes(nveh); % create ROS nodes for communication between vehicles
+                end
+                
+                % compute the reachable sets of each trim
+                [obj.reachable_sets, obj.reachable_sets_conv] = reachability_analysis_offline(obj,N);
+            end
+
+            save_mpa(obj,mpa_full_path); % save mpa to library
+            
         end
     
         function max_speed = get_max_speed(obj, cur_trim_id)
@@ -107,6 +138,12 @@ classdef MotionPrimitiveAutomaton
                 end
                 maneuver_matrix(:,:,k) = transition_matrix_slice;
             end
+        end
+
+        function save_mpa(obj,mpa_full_path)
+            % Save MPA to library
+            mpa = obj;
+            save(mpa_full_path,'mpa');
         end
 
     end
