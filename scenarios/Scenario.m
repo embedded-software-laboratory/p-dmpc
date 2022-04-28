@@ -9,10 +9,10 @@ classdef Scenario
         controller_name = 'RHC';
         controller = @(s,i) centralized_controller(s,i);
         dt = 0.4;     % RHC sample time [s]
-        T_end = 20;   % Duration of simulation. [s]
-        Hp = 5;
+        T_end = 18;   % Duration of simulation. [s]
+        Hp = 4;
         mpa;
-        trim_set = 3;
+        trim_set = 12;
         offset = 0.03;  % offset for collision checks
         model = [];
         time_per_tick = 0.01;
@@ -20,12 +20,17 @@ classdef Scenario
         dynamic_obstacle_area;
         dynamic_obstacle_shape;
         dynamic_obstacle_fullres;
+        dynamic_obstacle_reachableSets; % reachable sets of the coupled vehicles with higher priorities in other groups
         plot_limits = [-10,10;-10,10]; % default fallback if not defined
         adjacency;
         directed_coupling;
         assignPrios = false;
         vehicle_to_lanelet
         lanelets
+        isParl = false % if use parallel computation (logical variable)
+        communication = {} % all the information related to communication between vehicles
+%         road_info = struct % road information including all lanelets and position of all vehicles
+        groups_info = {} % groups information about which vehicles form a group and which vehicles have which priorities
     end
     
     properties (Dependent)
@@ -60,6 +65,7 @@ classdef Scenario
                 );
             end
         end
+        
     end
     
     
