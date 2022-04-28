@@ -20,6 +20,8 @@ function iter = rhc_init(scenario, x_measured, trim_indices)
             iter.vRef(iVeh,:)*scenario.dt...  % distance traveled in one timestep
         );
     end
+
+    iter.info_prev = struct;
     
    
     % Determine Obstacle positions (x = x0 + v*t)
