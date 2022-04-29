@@ -35,6 +35,11 @@ else
     options.isPB = true;
     options.scenario = 'Commonroad';
     options.priority = 'topo_priority';
+
+    mixedTrafficOptions = mixedTrafficSelection();
+    manualVehicle_id = mixedTrafficOptions.id-1;
+    disp(manualVehicle_id);
+
 end
   
 
@@ -43,7 +48,7 @@ switch options.scenario
     case 'Circle_scenario'
         scenario = circle_scenario(options.amount,options.isPB);
     case 'Commonroad'
-        scenario = commonroad(options.amount,vehicle_ids,options.isPB);  
+        scenario = commonroad(options.amount,vehicle_ids,options.isPB, manualVehicle_id);  
 end
 scenario.name = options.scenario;
 scenario.priority_option = options.priority;

@@ -37,19 +37,18 @@ function random_path = generate_random_path(scenario, vehid, n)
                 successor_indices = horzcat(successor.refAttribute);
                 subsequent_indices = successor_indices;
 
-                disp(subsequent_indices);
-
+                %disp(subsequent_indices);
                 for k = 1:length(successor_indices)
                     successor_adjacentLeft = commonroad_data.lanelet(successor_indices(k)).adjacentLeft;
                     if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
                         subsequent_indices = horzcat(subsequent_indices, successor_adjacentLeft.refAttribute);
-                        disp(subsequent_indices);
+                        %disp(subsequent_indices);
                     end
 
                     successor_adjacentRight = commonroad_data.lanelet(successor_indices(k)).adjacentRight;
                     if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
                         subsequent_indices = horzcat(subsequent_indices, successor_adjacentRight.refAttribute);
-                        disp(subsequent_indices);
+                        %disp(subsequent_indices);
                     end
 
                     % include check for predecessor of successor
@@ -61,18 +60,17 @@ function random_path = generate_random_path(scenario, vehid, n)
                     else
                         subsequent_lanes.lanelets_index(end+1) = subsequent_indices(j);
                     end
-                    %disp(sprintf('subsequent lanelets index end: %d', subsequent_lanes.lanelets_index(end)));
                 end
 
-                disp(sprintf('subsequent lanelets index size: %d', length(subsequent_lanes.lanelets_index)));
+                %disp(sprintf('subsequent lanelets index size: %d', length(subsequent_lanes.lanelets_index)));
             end
         end
         
         range = length(subsequent_lanes.lanelets_index);
         index = randi(range);
-        disp(sprintf('range: %d, index: %d', range, index));
+        %disp(sprintf('range: %d, index: %d', range, index));
         random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(index);
-        disp(sprintf('random at end: %d', random_path.lanelets_index(end)));
+        %disp(sprintf('random at end: %d', random_path.lanelets_index(end)));
     end
 
     for i = 1:length(random_path.lanelets_index)
