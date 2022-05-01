@@ -1,4 +1,4 @@
-function random_path = generate_random_path(scenario, vehid, n)
+function random_path = generate_random_path(scenario, vehid, n, startPosition)
     % GENERATE_RANDOM_PATH    returns a ref_path struct
     % random_path.lanelets_index: lanelet index of the reference path
     % random_path.path: reference path including x and y information
@@ -9,7 +9,7 @@ function random_path = generate_random_path(scenario, vehid, n)
     disp(sprintf('Id: %d', vehid));
     % maybe scenario.vehicles not yet initialized
     % lanelets_index_vehid = scenario.vehicles(1,vehid).lanelets_index; 
-    lanelets_index_vehid = 31+vehid;  
+    lanelets_index_vehid = startPosition;  
     
     load('commonroad_data.mat');
     commonroad = commonroad_data;

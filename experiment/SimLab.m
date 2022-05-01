@@ -41,6 +41,10 @@ classdef SimLab < InterfaceExperiment
                 hold on
             end
         end
+
+        function update(obj)
+            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
+        end
         
         function [ x0, trim_indices ] = measure(obj)
             [ x0, trim_indices ] = obj.measure_node();

@@ -26,6 +26,7 @@ if is_sim_lab
             options = selection();
     end
     vehicle_ids = 1:20;
+    manualVehicle_id = 0;
     
 else
     disp('cpmlab')
@@ -64,6 +65,7 @@ end
 %% Setup
 % Initialize
 got_stop = false;
+initialized_reference_path = false;
 k = 1;
 
 % init result struct
@@ -86,7 +88,11 @@ while (~got_stop)
         % ----------------------------------------------------------------------
         
         % Sample reference trajectory
-        iter = rhc_init(scenario,x0,trim_indices);
+        iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, manualVehicle_id, options.isPB);
+        if ~initialized_reference_path
+            exp.update();
+        end
+        initialized_reference_path = true;
         
         % update the boundary information of each vehicle
         if strcmp(scenario.name, 'Commonroad')
