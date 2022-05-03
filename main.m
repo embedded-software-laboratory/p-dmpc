@@ -39,7 +39,6 @@ else
 
     mixedTrafficOptions = mixedTrafficSelection();
     manualVehicle_id = mixedTrafficOptions.id-1;
-    disp(manualVehicle_id);
 
 end
   
@@ -89,6 +88,7 @@ while (~got_stop)
         
         % Sample reference trajectory
         iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, manualVehicle_id, options.isPB, vehicle_ids, is_sim_lab);
+        scenario = iter.scenario;
         if ~initialized_reference_path
             exp.update();
         end

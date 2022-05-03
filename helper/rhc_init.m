@@ -53,37 +53,11 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
                 scenario.vehicles(iVeh).yaw_start = yaw(1);
                 scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
             end
-
-            scenario.plot_limits = [0,4.5;0,4];  
-            scenario.T_end = 60;
-            scenario.model = BicycleModel(scenario.vehicles(end).Lf,scenario.vehicles(end).Lr); %why only single veh?
-            nVeh_mpa = scenario.nVeh;
-            scenario.Hp = 6;
-            
-            if isPB 
-                scenario.adjacency = zeros(scenario.nVeh,scenario.nVeh);
-                scenario.assignPrios = true;
-                scenario.controller_name = strcat(scenario.controller_name, '-PB');
-                scenario.controller = @(s,i) pb_controller(s,i);
-                nVeh_mpa = 1;
-
-            end    
-            
-            recursive_feasibility = true;
-            scenario.mpa = MotionPrimitiveAutomaton(...
-                scenario.model...
-                , scenario.trim_set...
-                , scenario.offset...
-                , scenario.dt...
-                , nVeh_mpa...
-                , scenario.Hp...
-                , scenario.tick_per_step...
-                , recursive_feasibility...
-            );
         end
     end
     
     iter = struct;
+    iter.scenario = scenario;
     iter.referenceTrajectoryPoints = zeros(scenario.nVeh,scenario.Hp,2);
     iter.referenceTrajectoryIndex = zeros(scenario.nVeh,scenario.Hp,1);
     iter.x0 = x_measured;

@@ -3,7 +3,7 @@ function scenario = commonroad(nVeh,vehid,isPB,mVehid, is_sim_lab)
 
     scenario = Scenario();
     scenario.name = 'Commonroad';
-    scenario.trim_set = 12;
+    scenario.trim_set = 4;
     scenario.dt = 0.2; 
     [scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets();
     

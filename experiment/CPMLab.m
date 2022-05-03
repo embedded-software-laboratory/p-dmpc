@@ -41,29 +41,6 @@ classdef CPMLab < InterfaceExperiment
             obj.reader_vehicleStateList.WaitSet = true;
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
-            %{
-            x0 = zeros(length(vehicle_ids),4);
-            [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
-            
-            pose = [obj.sample(end).state_list.pose];
-            x0(:,1) = [pose.x];
-            x0(:,2) = [pose.y];
-            x0(:,3) = [pose.yaw];
-            x0(:,4) = [obj.sample(end).state_list.speed];
-
-            switch options.scenario
-                case 'Circle_scenario'
-                    scenario = circle_scenario(options.amount,options.isPB);
-                case 'Commonroad'
-                    scenario = commonroad(options.amount,vehicle_ids,options.isPB, manualVehicle_id, x0, true);  
-            end
-
-            %obj.vehicle_ids = vehicle_ids;
-            obj.scenario = scenario;
-            obj.controller_init = false;
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
-            %}
-
             % Middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(obj.scenario.dt*1e9);
 
@@ -119,15 +96,16 @@ classdef CPMLab < InterfaceExperiment
                 for i = 1:obj.scenario.nVeh
                     x0(i,1) = sub(i,1) - x0(i,1);
                 end
+                %}
 
                 for i = 1:obj.scenario.nVeh
-                    disp(obj.scenario.nVeh);
+                    %disp(obj.scenario.nVeh);
                     disp("x: ");
                     disp(x0(i));
                     disp("y: ");
                     disp(x0(i,2));
                 end
-                %}
+                
                 x0(:,3) = [pose.yaw];
                 x0(:,4) = [obj.sample(end).state_list.speed];
                 obj.controller_init = true;

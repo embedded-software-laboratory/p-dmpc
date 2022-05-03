@@ -19,8 +19,8 @@ function index = match_pose_to_lane(vehicle_x, vehicle_y)
         lanelets{end+1} = l;
     end
 
-    disp(vehicle_x);
-    disp(vehicle_y);
+    %disp(vehicle_x);
+    %disp(vehicle_y);
 
     for i = 1:length(commonroad_data.lanelet)
         centerline_x = lanelets{ i }(:,LaneletInfo.cx);
