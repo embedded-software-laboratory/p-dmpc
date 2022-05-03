@@ -7,8 +7,13 @@
     Hp = size(iter.referenceTrajectoryPoints,2);
     adjacency = zeros(nVeh,nVeh);
     semi_adjacency = zeros(nVeh,nVeh);
-    [~,adjacent,semi_adjacent,~,~,~] = commonroad_lanelets();
     
+    if scenario.is_single_lane
+        [~,adjacent,semi_adjacent,~,~,~] = commonroad_lanelets_sharpened();
+    else
+        [~,adjacent,semi_adjacent,~,~,~] = commonroad_lanelets();
+    end
+
 
     for i = 1:(nVeh-1)
         nlanelets_i = [];   
@@ -19,6 +24,10 @@
             nlanelets_i = [ nlanelets_i, sum(ref_points_index_i(n) > scenario.vehicles(1,i).points_index)+1];
         end              
         nlanelets_i = unique(nlanelets_i);
+        n_predicted_lanelets = length(nlanelets_i); % number of predicted lanelets 
+%         if n_predicted_lanelets<n_predicted_lanelets_min
+%             nlanelets_i = [nlanelets_i nlanelets_i(end)+1:nlanelets_i(end)+n_predicted_lanelets_min-n_predicted_lanelets];
+%         end
         lanelets_index_i = scenario.vehicles(1,i).lanelets_index(nlanelets_i);
         scenario.vehicles(1,i).predicted_lanelets = lanelets_index_i;
 
@@ -32,9 +41,10 @@
                 nlanelets_j = [ nlanelets_j, sum(ref_points_index_j(m) > scenario.vehicles(1,j).points_index)+1];
             end              
             nlanelets_j = unique(nlanelets_j);
+            n_predicted_lanelets = length(nlanelets_j); % number of predicted lanelets 
             lanelets_index_j = scenario.vehicles(1,j).lanelets_index(nlanelets_j);
             scenario.vehicles(1,j).predicted_lanelets = lanelets_index_j;
-            
+
             for k_i = 1:length(lanelets_index_i)  
                 for k_j = 1:length(lanelets_index_j)   
                     stop_flag = false;

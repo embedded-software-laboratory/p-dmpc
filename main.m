@@ -37,26 +37,25 @@ else
     options.priority = 'topo_priority';
 end
     
-options.isParl = 1;
-isROS = 0;
 % scenario = circle_scenario(options.amount,options.isPB);
 % scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
-% scenario = lanelet_scenario4_parl(options.isPB);
 
 % plot_reachable_sets_offline(scenario.mpa)
   
-
+options.is_single_lane = false; % If true, vehicles are not allowed to switch to the adjacent parallel lane
 
 switch options.scenario
     case 'Circle_scenario'
         scenario = circle_scenario(options.amount,options.isPB);
     case 'Commonroad'
-        scenario = commonroad(options.amount,vehicle_ids,options.isPB);  
+        scenario = commonroad(options.amount,vehicle_ids,options.isPB,options.is_single_lane);
+    case 'Intersection_scenario'
+        scenario = intersection_scenario(options.isPB);
 end
 scenario.name = options.scenario;
 scenario.priority_option = options.priority;
-
-
+scenario.is_single_lane = options.is_single_lane; % If true, vehicles are not allowed to switch to the adjacent parallel lane
+ 
 if is_sim_lab
     exp = SimLab(scenario, options);
 else
@@ -98,13 +97,11 @@ while (~got_stop)
         
         % Sample reference trajectory
         iter = rhc_init(scenario,x0,trim_indices);
-        iter.time_step = k; % time step
         
         % initial time step
-        if iter.time_step == 1
+        if scenario.k == 1
             % todo Vehicles communicate initial states using ROS
             % communicate_init_state(scenario);
-            
         end
 
         % For parallel computation, information from previous time step is need, for example, 
@@ -112,6 +109,8 @@ while (~got_stop)
         if options.isParl
             iter.info_prev = info_prev;
         end
+
+        % group info
         scenario.groups_info = group_and_prioritize_vehicles(scenario, iter);
 
 %         groups = group_and_prioritize_vehicles(scenario.adjacency);
@@ -126,7 +125,7 @@ while (~got_stop)
             scenario = coupling_adjacency(scenario,iter);
         end
         
-        % calculate the distance 
+        % calculate the distance
         distance = zeros(options.amount,options.amount);
         adjacency = scenario.adjacency(:,:,end);
 
@@ -146,7 +145,7 @@ while (~got_stop)
         
         % The controller computes plans
         controller_timer = tic;
-        [u, y_pred, info] = scenario.controller(scenario_tmp, iter);
+            [u, y_pred, info] = scenario.controller(scenario_tmp, iter);
         scenario.last_veh_at_intersection = info.veh_at_intersection;
         result.controller_runtime(k) = toc(controller_timer);
         info_prev = info; % store information for next time step in case the controller fails to find a new fail-safe trajectory
@@ -176,7 +175,7 @@ while (~got_stop)
         switch ME.identifier
         case 'MATLAB:graph_search:tree_exhausted'
             warning([ME.message, ', ME, fallback to last priority.............']);
-            
+             
             fallback = fallback + 1;
             fallback_update = fallback_update + 1;
             disp(['fallback: ', num2str(fallback)])

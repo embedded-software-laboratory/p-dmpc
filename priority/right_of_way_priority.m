@@ -160,7 +160,9 @@ classdef  right_of_way_priority < interface_priority
            % calculate computation levels using kahn algorithm(topological ordering)
             [~, L] = kahn(directed_adjacency);
             computation_levels = size(L,1);
-            
+%                 % visualize the directed graph  
+%                 figure(); plot(Graph) 
+
 
             % construct the priority groups
             for group_idx = 1:computation_levels

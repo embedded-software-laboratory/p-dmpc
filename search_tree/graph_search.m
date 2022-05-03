@@ -1,8 +1,8 @@
 function [u, y_pred, info] = graph_search(scenario, iter)
 % GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
     
-    plot_shapes(scenario.dynamic_obstacle_area); % visualize other vehicles' predicted occupation areas
-    plot_shapes(scenario.dynamic_obstacle_reachableSets); % visualize other vehicles' reachable sets
+%     plot_shapes(scenario.dynamic_obstacle_area); % visualize other vehicles' predicted occupation areas
+%     plot_shapes(scenario.dynamic_obstacle_reachableSets); % visualize other vehicles' reachable sets
     info = struct;
     shapes_tmp = cell(scenario.nVeh,0);
     % Create tree with root node
@@ -70,7 +70,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             
             u = zeros(scenario.nVeh);
             
-            plot_shapes(info.shapes); % visualize the ego vehicle's predicted occupation areas
+%             plot_shapes(info.shapes); % visualize the ego vehicle's predicted occupation areas
 
             % if the exhaust time is greater than Hp and the fail-safe trajectory is not invariant safe
             if info.n_exhausted>=scenario.Hp && ~info.invariant_safe 
@@ -108,7 +108,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             info.trim_indices = info.trims_Hp(:,2);
             info.n_exhausted = 0; % reset the number of exhaustion times
 
-            plot_shapes(info.shapes); % visualize the ego vehicle's predicted occupation areas
+%             plot_shapes(info.shapes); % visualize the ego vehicle's predicted occupation areas
             
             break
         else
