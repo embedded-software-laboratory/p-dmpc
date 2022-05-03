@@ -1,12 +1,15 @@
-function scenario = commonroad(nVeh,vehid,isPB)
+function scenario = commonroad(nVeh,vehid,isPB,is_single_lane)
 % Commonroad_Scenario   
 
     scenario = Scenario();
     scenario.name = 'Commonroad';
     scenario.trim_set = 12;
-    scenario.dt = 0.2; 
-    [scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets();
-    
+    scenario.dt = 0.2;
+    if is_single_lane
+        [scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets_sharpened();
+    else
+        [scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets();
+    end
     for iveh = 1:nVeh
         
         veh = Vehicle();
