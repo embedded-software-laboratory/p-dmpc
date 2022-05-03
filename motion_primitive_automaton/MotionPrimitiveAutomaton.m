@@ -27,7 +27,8 @@ classdef MotionPrimitiveAutomaton
             mpa_instance_name = ['MPA_','trims',num2str(trim_set),'_Hp',num2str(N),'.mat'];
             mpa_full_path = [folder_target,filesep,mpa_instance_name];
 
-            % if the needed MPA is alread exist in the library, simply load it
+            % if the needed MPA is alread exist in the library, simply load
+            % it, otherwise it will be calculated and saved to the library.
             if isfile(mpa_full_path)
                 load(mpa_full_path,"mpa");
                 obj = mpa;
