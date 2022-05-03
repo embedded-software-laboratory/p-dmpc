@@ -32,14 +32,15 @@ classdef Scenario
 %         road_info = struct % road information including all lanelets and position of all vehicles
         groups_info = {} % groups information about which vehicles form a group and which vehicles have which priorities
         vehicle_to_lanelet;
-        lanelets;
-        intersection_lanelets;
+        lanelets; % position of all lanelets
+        intersection_lanelets; % indices of intersection lanelets
         boundary;
-        commonroad_data;
-        lanelet_boundary;
-        last_veh_at_intersection = [];
+        commonroad_data; % metadata
+        lanelet_boundary; % boundaries of all lanelets
+        last_veh_at_intersection = []; % store information about which vehicles were at the intersection in the last time step
         k; %simulation steps
         priority_option;
+        is_single_lane = false; % If true, vehicles are not allowed to switch to the adjacent parallel lane
     end
     
     properties (Dependent)

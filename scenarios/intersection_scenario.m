@@ -1,4 +1,4 @@
-function scenario = lanelet_scenario4_parl(isPB)
+function scenario = intersection_scenario(isPB)
 % LANELET_SCENARIO4   Constructor for scenario with four vehicles at an
 % intersection driving straight using parallel computation
     c = 0.2;
