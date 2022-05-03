@@ -1,4 +1,4 @@
-function scenario = commonroad(nVeh,vehid,isPB,mVehid)
+function scenario = commonroad(nVeh,vehid,isPB,mVehid, is_sim_lab)
 % Commonroad_Scenario   
 
     scenario = Scenario();
@@ -12,11 +12,17 @@ function scenario = commonroad(nVeh,vehid,isPB,mVehid)
         veh = Vehicle();
         veh.trim_config = 1;
 
-        if (mVehid == iveh)
-            ref_path = generate_manual_path(scenario, vehid(iveh), 3, (vehid(iveh)+31));     
+        if is_sim_lab
+            ref_path = generate_random_path(scenario, vehid(iveh), 20, (vehid(iveh)+31));
         else
-            % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
-            ref_path = generate_random_path(scenario, vehid(iveh), 3, (vehid(iveh)+31)); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+            if (mVehid == vehid(iveh))
+                ref_path = generate_manual_path(scenario, vehid(iveh), 3, (vehid(iveh)+31));  
+                %ref_path = generate_manual_path(scenario, vehid(iveh), 3, (vehid(iveh)));     
+            else
+                % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
+                ref_path = generate_random_path(scenario, vehid(iveh), 3, (vehid(iveh)+31)); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                %ref_path = generate_random_path(scenario, vehid(iveh), 3, (vehid(iveh)));
+            end
         end
         
         refPath = ref_path.path;

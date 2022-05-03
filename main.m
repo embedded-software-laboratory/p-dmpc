@@ -49,7 +49,7 @@ switch options.scenario
     case 'Circle_scenario'
         scenario = circle_scenario(options.amount,options.isPB);
     case 'Commonroad'
-        scenario = commonroad(options.amount,vehicle_ids,options.isPB, manualVehicle_id);  
+        scenario = commonroad(options.amount,vehicle_ids,options.isPB, manualVehicle_id, is_sim_lab);  
 end
 scenario.name = options.scenario;
 scenario.priority_option = options.priority;
@@ -88,7 +88,7 @@ while (~got_stop)
         % ----------------------------------------------------------------------
         
         % Sample reference trajectory
-        iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, manualVehicle_id, options.isPB);
+        iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, manualVehicle_id, options.isPB, vehicle_ids, is_sim_lab);
         if ~initialized_reference_path
             exp.update();
         end

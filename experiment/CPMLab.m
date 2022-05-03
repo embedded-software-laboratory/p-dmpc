@@ -105,11 +105,29 @@ classdef CPMLab < InterfaceExperiment
                 x0 = zeros(obj.scenario.nVeh,4);
                 pose = [obj.sample(end).state_list.pose];
                 x0(:,1) = [pose.x];
-                % WARNING: wrong y coordinate
                 x0(:,2) = [pose.y];
-                %for i = 1:length(x0)
-                    %disp(x0(:,2));
-                %end
+                %{
+                x0(:,1) = [pose.y];
+                % WARNING: wrong x and y coordinates are inverted, and new x (former y) coordinate has to be shifted
+                x0(:,2) = [pose.x];
+
+                sub = zeros(obj.scenario.nVeh,4);
+                for i = 1:obj.scenario.nVeh
+                    sub(i,1) = 4;
+                end
+
+                for i = 1:obj.scenario.nVeh
+                    x0(i,1) = sub(i,1) - x0(i,1);
+                end
+
+                for i = 1:obj.scenario.nVeh
+                    disp(obj.scenario.nVeh);
+                    disp("x: ");
+                    disp(x0(i));
+                    disp("y: ");
+                    disp(x0(i,2));
+                end
+                %}
                 x0(:,3) = [pose.yaw];
                 x0(:,4) = [obj.sample(end).state_list.speed];
                 obj.controller_init = true;
@@ -136,6 +154,15 @@ classdef CPMLab < InterfaceExperiment
                         uint64(obj.sample(end).t_now + i_traj_pt*obj.dt_period_nanos);
                     trajectory_points(i_traj_pt).px = y_pred{iVeh}(i_predicted_points,1);
                     trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points,2);
+                    %{
+                    trajectory_points(i_traj_pt).px = y_pred{iVeh}(i_predicted_points,2);
+                    disp("x: ");
+                    disp(trajectory_points(i_traj_pt).px);
+                    trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points,1);
+                    trajectory_points(i_traj_pt).py = 4 - trajectory_points(i_traj_pt).py;
+                    disp("y: ");
+                    disp(trajectory_points(i_traj_pt).py);
+                    %}
                     yaw = y_pred{iVeh}(i_predicted_points,3);
                     speed = obj.scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
                     trajectory_points(i_traj_pt).vx = cos(yaw)*speed;
