@@ -79,11 +79,11 @@ function plotOnline(result,step_idx,tick_now,exploration)
                 ,vehColor(v)...
                 ,'LineWidth', 1 ...
         );
-%         % plot the priority
+        % plot the priority
 %         text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1);
 %         
-%         % plot the vehicle index
-%         text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 12, 'LineWidth',1,'Color','m');
+        % plot the vehicle index
+        text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 16, 'LineWidth',1,'Color','m');
 % 
 %         % plot scenario adjacency
 %         adj = cell(nVeh,nVeh);
