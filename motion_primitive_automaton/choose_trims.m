@@ -23,7 +23,7 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
         % All states connected
         trim_adjacency = ones(ntrims);
     case 4
-        %% Two speeds (0 and 0.6 m/s), 12 steering
+        %% Two speeds (0 and 1 m/s), 12 steering
         steering = (-2:0.5:2) * pi/18;
         ntrims = numel(steering)+3;
         trim_inputs = zeros(ntrims,2);

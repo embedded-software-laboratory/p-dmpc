@@ -93,6 +93,14 @@ while (~got_stop)
             exp.update();
         end
         initialized_reference_path = true;
+
+        if ~is_sim_lab
+            % function that updates the steering wheel data
+            wheelData = exp.getWheelData();
+            disp(wheelData);
+
+            % function that checks for lane and/or speed change for Guided-Mode
+        end
         
         % update the boundary information of each vehicle
         if strcmp(scenario.name, 'Commonroad')

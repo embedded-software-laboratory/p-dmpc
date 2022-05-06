@@ -13,6 +13,8 @@ classdef CPMLab < InterfaceExperiment
         dt_period_nanos
         sample
         out_of_map_limits
+        wheelNode
+        wheelSub
     end
     
     methods
@@ -22,9 +24,30 @@ classdef CPMLab < InterfaceExperiment
             obj.controller_init = false;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
         end
+
+        function steeringWheelCallback(src, message)    
+            global wheelAxes
+            global wheelButtons
+            
+            % Extract Axes and Buttons from the ROS message and assign the
+            % data to the global variables.
+            wheelAxes = message.axes;
+            wheelButtons = message.buttons;
+        end
+        
         
         function setup(obj)
             assert(issorted(obj.vehicle_ids));
+
+            %obj.joy = vrjoystick(0);
+            %test1 = ros2node("/test1");
+            %ros2 node list;
+            %exampleHelperROS2CreateSampleNetwork
+
+            % This command has first to be executed in terminal:
+            %ros2 run joy joy_node _dev_name:="/dev/input/js0";
+            obj.wheelNode = ros2node("/wheel");
+            obj.wheelSub = ros2subscriber(obj.wheelNode,"/joy",@obj.steeringWheelCallback);
 
             % Initialize data readers/writers...
             % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
@@ -65,6 +88,10 @@ classdef CPMLab < InterfaceExperiment
             while (~got_stop && ~got_start)
                 [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
             end
+        end
+
+        function wheelData = getWheelData(obj)
+            wheelData = receive(obj.wheelSub, 1);
         end
 
         function update(obj)
