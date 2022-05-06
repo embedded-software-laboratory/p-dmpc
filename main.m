@@ -40,6 +40,11 @@ else
     mixedTrafficOptions = mixedTrafficSelection();
     manualVehicle_id = mixedTrafficOptions.id-1;
 
+    if manualVehicle_id ~= 0
+        options.mode = mixedTrafficOptions.mode;
+    else
+        options.mode = 0;
+    end
 end
   
 

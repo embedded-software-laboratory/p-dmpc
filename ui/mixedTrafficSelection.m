@@ -1,4 +1,4 @@
-function mixedTrafficOptions = mixedTrafficSelection(vehicle_amount_p)
+function mixedTrafficOptions = mixedTrafficSelection(vehicle_amount_p,mode_option_p)
 
 scenarios = {
     'No manual vehicle', pi+pi; ...
@@ -24,8 +24,13 @@ scenarios = {
     '20', pi+2*pi/15*(1:21); ...
     };
 
+    possModes = {
+    '1', 'Guided-Mode'; ...
+    '2', 'Expert-Mode'; ...
+    };
+
     try
-        load([tempdir 'uiMixedTrafficSelection'], 'vehicle_amount');
+        load([tempdir 'uiMixedTrafficSelection'], 'vehicle_amount', 'mode_option');
     catch
         % continue
     end
@@ -33,6 +38,9 @@ scenarios = {
 if nargin < 1
     if ~exist('vehicle_amount','var')
         vehicle_amount = 1;
+    end
+    if ~exist('mode_option','var')
+        mode_option = 2;
     end
 
     [vehicle_amount,ok] = listdlg(...
@@ -46,12 +54,27 @@ if nargin < 1
         error('Canceled');
     end
 
+    if vehicle_amount ~= 1
+        [mode_option,ok] = listdlg(...
+            'ListString',possModes(:,2), ...
+            'ListSize', [300,300], ...
+            'SelectionMode', 'single', ...
+            'InitialValue', mode_option, ...
+            'PromptString', 'Choose the manual control mode');
+
+        if(~ok)
+            error('Canceled');
+        end
+    end
+
 else
     vehicle_amount = vehicle_amount_p;
+    mode_option = mode_option_p;
 end
 
 mixedTrafficOptions.id = vehicle_amount;
+mixedTrafficOptions.mode = mode_option;
 
-    save([tempdir 'uiMixedTrafficSelection'], 'vehicle_amount');
+    save([tempdir 'uiMixedTrafficSelection'], 'vehicle_amount', 'mode_option');
 
 end
