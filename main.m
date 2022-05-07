@@ -105,6 +105,14 @@ while (~got_stop)
             disp(wheelData);
 
             % function that checks for lane and/or speed change for Guided-Mode
+            if options.mode == 1
+                % call function that translates current steering angle into lane change
+                modeHandler = GuidedMode(scenario,x0,manualVehicle_id,vehicle_ids,wheelData);
+                scenario = modeHandler.scenario;
+                
+            elseif options.mode == 2
+                % classify steering angle into intervals and send according steering command
+            end
         end
         
         % update the boundary information of each vehicle
