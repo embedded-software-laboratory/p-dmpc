@@ -70,6 +70,8 @@ end
 % Initialize
 got_stop = false;
 initialized_reference_path = false;
+updated_manual_vehicle_path = false;
+cooldown_after_lane_change = 0;
 k = 1;
 
 % init result struct
@@ -94,7 +96,7 @@ while (~got_stop)
         % Sample reference trajectory
         iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, manualVehicle_id, options.isPB, vehicle_ids, is_sim_lab);
         scenario = iter.scenario;
-        if ~initialized_reference_path
+        if (~initialized_reference_path | updated_manual_vehicle_path)
             exp.update();
         end
         initialized_reference_path = true;
@@ -102,17 +104,25 @@ while (~got_stop)
         if ~is_sim_lab
             % function that updates the steering wheel data
             wheelData = exp.getWheelData();
-            disp(wheelData);
+            %disp(wheelData);
 
             % function that checks for lane and/or speed change for Guided-Mode
-            if options.mode == 1
+            if (options.mode == 1)
                 % call function that translates current steering angle into lane change
-                modeHandler = GuidedMode(scenario,x0,manualVehicle_id,vehicle_ids,wheelData);
+                modeHandler = GuidedMode(scenario,x0,manualVehicle_id,vehicle_ids,cooldown_after_lane_change,wheelData);
                 scenario = modeHandler.scenario;
                 
             elseif options.mode == 2
                 % classify steering angle into intervals and send according steering command
             end
+
+            updated_manual_vehicle_path = modeHandler.updatedPath;
+        end
+
+        if updated_manual_vehicle_path
+            cooldown_after_lane_change = 0;
+        else
+            cooldown_after_lane_change = cooldown_after_lane_change + 1;
         end
         
         % update the boundary information of each vehicle

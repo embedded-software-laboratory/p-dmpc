@@ -1,7 +1,6 @@
 classdef GuidedMode
 
     properties(Access=private)
-        scenario
         axes
         buttons
         steering
@@ -9,8 +8,13 @@ classdef GuidedMode
         brake
     end
 
+    properties(Access=public)
+        scenario
+        updatedPath
+    end
+
     methods
-        function modeHandler = GuidedMode(scenario, x_measured, mVehid, vehid, wheelData)
+        function modeHandler = GuidedMode(scenario, x_measured, mVehid, vehid, cooldown_after_lane_change, wheelData)
             modeHandler.axes = wheelData.axes;
             modeHandler.buttons = wheelData.buttons;
 
@@ -18,71 +22,82 @@ classdef GuidedMode
             modeHandler.throttle = modeHandler.axes(3);
             modeHandler.brake = modeHandler.axes(4);
 
+            laneID = 0;
+            idx = indices();
+
+            for k = 1:length(vehid)
+                if vehid(k) == mVehid
+                    vehicle_iteration_index = k;
+                    break
+                end
+            end
+
             % if steering over threshold, then perform lane change
-            if modeHandler.steering < -0.5
-                % find out current lane of manual vehicle
-                index = match_pose_to_lane(x_measured(mVehid, idx.x), x_measured(mVehid, idx.y));
-                index_successor = 0;
+            if cooldown_after_lane_change > 9
+                if modeHandler.steering > 0.3
+                    disp("entered steering left");
+                    % find out current lane of manual vehicle
+                    index = match_pose_to_lane(x_measured(vehid(vehicle_iteration_index), idx.x), x_measured(vehid(vehicle_iteration_index), idx.y));
+                    index_successor = 0;
 
-                for iVeh = 1:scenario.nVeh
-                    if (mVehid == vehid(iVeh))
-                        lanelets = scenario.vehicles(iVeh).lanelets_index;
+                    for iVeh = 1:scenario.nVeh
+                        if (mVehid == vehid(iVeh))
+                            lanelets = scenario.vehicles(iVeh).lanelets_index;
 
-                        % find out successor in reference path
-                        for j = 1:(length(lanelets) - 1)
-                            if lanelets(j) == index
-                                index_successor = lanelets(j+1);
-                            end
-                        end
-
-                        if (index_successor == 0)
-                            disp("error when finding successor of current lane");
-                        end
-
-                        iteration_index = iVeh;
-                        break
-                    end
-                end
-
-                if (index_successor ~= 0)
-                    laneID = find_lane_for_change(index_successor, true);
-                else
-                    laneID = 0;
-                end
-
-            elseif modeHandler > 0.5
-                % find out current lane of manual vehicle
-                index = match_pose_to_lane(x_measured(mVehid, idx.x), x_measured(mVehid, idx.y));
-                index_successor = 0;
-
-                for iVeh = 1:scenario.nVeh
-                    if (mVehid == vehid(iVeh))
-                        lanelets = scenario.vehicles(iVeh).lanelets_index;
-
-                        % find out successor in reference path
-                        for j = 1:(length(lanelets) - 1)
+                            % find out successor in reference path
+                            for j = 1:(length(lanelets) - 1)
                                 if lanelets(j) == index
                                     index_successor = lanelets(j+1);
                                 end
-                        end
+                            end
 
-                        if (index_successor == 0)
-                            disp("error when finding successor of current lane");
-                        end
+                            if (index_successor == 0)
+                                disp("error when finding successor of current lane");
+                            end
 
-                        iteration_index = iVeh;
-                        break
+                            iteration_index = iVeh;
+                            break
+                        end
                     end
-                end
 
-                if (index_successor ~= 0)
-                    laneID = find_lane_for_change(index_successor, false);
-                else
-                    laneID = 0;
+                    if (index_successor ~= 0)
+                        laneID = find_lane_for_change(index_successor, true);
+                    end
+
+                elseif modeHandler.steering < -0.3
+                    disp("entered steering right");
+                    % find out current lane of manual vehicle
+                    index = match_pose_to_lane(x_measured(vehid(vehicle_iteration_index), idx.x), x_measured(vehid(vehicle_iteration_index), idx.y));
+                    index_successor = 0;
+
+                    for iVeh = 1:scenario.nVeh
+                        if (mVehid == vehid(iVeh))
+                            lanelets = scenario.vehicles(iVeh).lanelets_index;
+
+                            % find out successor in reference path
+                            for j = 1:(length(lanelets) - 1)
+                                    if lanelets(j) == index
+                                        index_successor = lanelets(j+1);
+                                    end
+                            end
+
+                            if (index_successor == 0)
+                                disp("error when finding successor of current lane");
+                            end
+
+                            iteration_index = iVeh;
+                            break
+                        end
+                    end
+
+                    if (index_successor ~= 0)
+                        laneID = find_lane_for_change(index_successor, false);
+                    end
                 end
             end
 
             if (laneID ~= 0)
+                disp(sprintf("laneID: %d", laneID));
                 % generate manual path with lane as start index
                 % maybe current lane has to be start value of lane -> has to be evaluated
                 updated_ref_path = generate_manual_path(scenario, mVehid, 20, laneID); 
@@ -101,34 +116,14 @@ classdef GuidedMode
                 yaw = calculate_yaw(updatedRefPath);
                 scenario.vehicles(iteration_index).yaw_start = yaw(1);
                 scenario.vehicles(iteration_index).yaw_goal = yaw(2:end); 
-            end  
+
+                modeHandler.updatedPath = true;
+            else
+                modeHandler.updatedPath = false;
+            end 
 
             modeHandler.scenario = scenario;
         end
-
-        function laneID = find_lane_for_change(index_successor, turnLeft)
-            load('commonroad_data.mat');
-            commonroad = commonroad_data;
-
-            if turnLeft
-                successor_adjacentLeft = commonroad_data.lanelet(index_successor).adjacentLeft;
-
-                if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
-                    laneID = successor_adjacentLeft.refAttribute;  
-                else
-                    laneID = 0;
-                end
-            else
-                successor_adjacentRight = commonroad_data.lanelet(index_successor).adjacentRight;
-                
-                if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
-                    laneID = successor_adjacentRight.refAttribute;
-                else
-                    laneID = 0;
-                end
-            end
-        end
-
     end
 
 end
