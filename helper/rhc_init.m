@@ -10,10 +10,10 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
                 disp(sprintf("veh ID: %d, index: %d", vehid(iVeh), index));
 
                 if (mVehid == vehid(iVeh))
-                    updated_ref_path = generate_manual_path(scenario, vehid(iVeh), 20, index);     
+                    updated_ref_path = generate_manual_path(scenario, vehid(iVeh), 50, index);     
                 else
                     % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
-                    updated_ref_path = generate_random_path(scenario, vehid(iVeh), 20, index); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                    updated_ref_path = generate_random_path(scenario, vehid(iVeh), 50, index); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
                 end
                 
                 updatedRefPath = updated_ref_path.path;
@@ -65,7 +65,11 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
     
     iter.vRef = zeros(scenario.nVeh,scenario.Hp);
     for iVeh=1:scenario.nVeh
-        iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,trim_indices(iVeh));
+        if (mVehid == vehid(iVeh) & scenario.manual_mpa_initialized)
+            iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,trim_indices(iVeh));
+        else
+            iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,trim_indices(iVeh));
+        end
         % Find equidistant points on the reference trajectory.
         reference = sampleReferenceTrajectory(...
             scenario.Hp, ... % number of prediction steps

@@ -142,7 +142,7 @@ classdef CPMLab < InterfaceExperiment
             end
         end
         
-        function apply(obj, ~, y_pred, info, ~, k)
+        function apply(obj, ~, y_pred, info, ~, k, scenario)
             % simulate change of state
             obj.cur_node = info.next_node;
             obj.k = k;
@@ -169,7 +169,14 @@ classdef CPMLab < InterfaceExperiment
                     disp(trajectory_points(i_traj_pt).py);
                     %}
                     yaw = y_pred{iVeh}(i_predicted_points,3);
-                    speed = obj.scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
+
+                    if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) & scenario.manual_mpa_initialized
+                        speed = scenario.vehicles(iVeh).vehicle_mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
+                    else
+                        speed = obj.scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
+                    end
+                    disp(sprintf("iVeh: %d, speed: %f", iVeh, speed));
+                    
                     trajectory_points(i_traj_pt).vx = cos(yaw)*speed;
                     trajectory_points(i_traj_pt).vy = sin(yaw)*speed;
                 end

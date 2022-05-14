@@ -1,10 +1,15 @@
-function search_path = path_between(iCur,iNext, tree, mpa)
+function search_path = path_between(iCur,iNext, tree, scenario)
 %PATH_BETWEEN Return path as a cell array between two nodes
 
     n_veh = size(tree.x,1);
     search_path = cell(1, n_veh);
-    for iVeh = 1:n_veh        
-        maneuver = mpa.maneuvers{tree.trim(iVeh,iCur), tree.trim(iVeh,iNext)};
+    for iVeh = 1:n_veh
+        if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) & scenario.manual_mpa_initialized & ~isempty(scenario.vehicles(iVeh).vehicle_mpa)
+            mpa = scenario.vehicles(iVeh).vehicle_mpa;
+            maneuver = mpa.maneuvers{tree.trim(iVeh,iCur), tree.trim(iVeh,iNext)};
+        else
+            maneuver = scenario.mpa.maneuvers{tree.trim(iVeh,iCur), tree.trim(iVeh,iNext)};
+        end
         assert(~isempty(maneuver),'manuevers{%d, %d} is empty.',tree.trim(iVeh,iCur), tree.trim(iVeh,iNext));
         
         x = tree.x(iVeh,iCur);

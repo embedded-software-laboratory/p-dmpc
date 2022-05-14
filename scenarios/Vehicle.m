@@ -18,6 +18,8 @@ classdef Vehicle
         predicted_lanelets
         points_index
         lanelet_boundary
+        paddle_counter      = 2;     % initial speed profile
+        vehicle_mpa;
     end
     
     methods

@@ -12,6 +12,9 @@ classdef Scenario
         T_end = 20;   % Duration of simulation. [s]
         Hp = 5;
         mpa;
+        manual_vehicle_id = 0;
+        manual_mpa_initialized = false;
+        vehicle_ids = [];
         trim_set = 3;
         offset = 0.01;
         

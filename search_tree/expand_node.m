@@ -13,6 +13,11 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     k_exp = curK+1;
     cur_trim_id = tuple2index(curTrim(:),trim_length);
     successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
+    for iVeh = 1 : scenario.nVeh
+        if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) & scenario.manual_mpa_initialized
+            manual_successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
+        end
+    end
     nTrims = numel(successor_trim_ids);
     
     expX     = zeros(scenario.nVeh,nTrims);
@@ -31,7 +36,19 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
         for iVeh = 1 : scenario.nVeh
             itrim1 = curTrim(iVeh);
             itrim2 = expTrim(iVeh,iTrim);
-            maneuver = scenario.mpa.maneuvers{itrim1, itrim2};
+
+            if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) & scenario.manual_mpa_initialized & ~isempty(scenario.vehicles(iVeh).vehicle_mpa)
+                id = manual_successor_trim_ids(iTrim);
+                expTrim(:,iTrim) = trim_tuple(id,:);
+                itrim1 = curTrim(iVeh);
+                itrim2 = expTrim(iVeh,iTrim);
+
+                mpa = scenario.vehicles(iVeh).vehicle_mpa;
+                maneuver = mpa.maneuvers{itrim1, itrim2};
+            else
+                maneuver = scenario.mpa.maneuvers{itrim1, itrim2};
+            end
+            
             c = cos(curYaw(iVeh));
             s = sin(curYaw(iVeh));
 

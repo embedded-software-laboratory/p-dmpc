@@ -57,6 +57,8 @@ switch options.scenario
 end
 scenario.name = options.scenario;
 scenario.priority_option = options.priority;
+scenario.manual_vehicle_id = manualVehicle_id;
+scenario.vehicle_ids = vehicle_ids;
 
 
 if is_sim_lab
@@ -174,7 +176,7 @@ while (~got_stop)
         
         % Apply control action
         % -------------------------------------------------------------------------
-        exp.apply(u, y_pred, info, result, k);
+        exp.apply(u, y_pred, info, result, k, scenario); 
         
         fallback_update = 0;
         
@@ -209,7 +211,7 @@ while (~got_stop)
 
             % Apply control action
             % -------------------------------------------------------------------------
-            exp.apply(u, y_pred, info, result, k); 
+            exp.apply(u, y_pred, info, result, k, scenario); 
             
             % if fallback to last plan Hp times continuously, the vehicle
             % will stop at the current position, terminate the simulation

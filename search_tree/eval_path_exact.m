@@ -17,7 +17,14 @@ function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, ro
             for iVeh = 1 : scenario.nVeh
                 t1 = node_parent(iVeh,NodeInfo.trim);
                 t2 = tree.node{root_to_node(iNode)}(iVeh,NodeInfo.trim);
-                maneuver = scenario.mpa.maneuvers{t1,t2};
+
+                if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) & scenario.manual_mpa_initialized & ~isempty(scenario.vehicles(iVeh).vehicle_mpa)
+                    mpa = scenario.vehicles(iVeh).vehicle_mpa;
+                    maneuver = mpa.maneuvers{t1,t2};
+                else
+                    maneuver = scenario.mpa.maneuvers{t1,t2};
+                end
+                
                 c = cos(node_parent(iVeh,NodeInfo.yaw));
                 s = sin(node_parent(iVeh,NodeInfo.yaw));
                 

@@ -6,11 +6,15 @@ classdef GuidedMode
         steering
         throttle
         brake
+        leftPaddle
+        rightPaddle
     end
 
     properties(Access=public)
         scenario
         updatedPath
+        speedValue
+        mpa
     end
 
     methods
@@ -21,9 +25,13 @@ classdef GuidedMode
             modeHandler.steering = modeHandler.axes(1);
             modeHandler.throttle = modeHandler.axes(3);
             modeHandler.brake = modeHandler.axes(4);
+            modeHandler.leftPaddle = modeHandler.buttons(6);
+            modeHandler.rightPaddle = modeHandler.buttons(5);
 
             laneID = 0;
             idx = indices();
+            mapPaddleCounterToSpeedProfile = [2 4 6];
+            modeHandler.mpa = scenario.mpa;
 
             for k = 1:length(vehid)
                 if vehid(k) == mVehid
@@ -121,6 +129,51 @@ classdef GuidedMode
             else
                 modeHandler.updatedPath = false;
             end 
+
+            % select higher speed profile if not already max speed
+            if modeHandler.leftPaddle == 1
+                if scenario.vehicles(vehicle_iteration_index).paddle_counter < 3
+                    disp("entered up shift");
+                    scenario.vehicles(vehicle_iteration_index).paddle_counter = scenario.vehicles(vehicle_iteration_index).paddle_counter + 1;
+                    new_trim_set = mapPaddleCounterToSpeedProfile(scenario.vehicles(vehicle_iteration_index).paddle_counter);
+
+                    scenario.vehicles(vehicle_iteration_index).vehicle_mpa = MotionPrimitiveAutomaton(...
+                        scenario.model...
+                        , new_trim_set...
+                        , scenario.offset...
+                        , scenario.dt...
+                        , scenario.nVeh...
+                        , scenario.Hp...
+                        , scenario.tick_per_step...
+                        , true...
+                    );
+
+                    scenario.manual_mpa_initialized = true;
+                end
+            end
+
+            % select lower speed profile if not already min speed
+            if modeHandler.rightPaddle == 1
+                if scenario.vehicles(vehicle_iteration_index).paddle_counter > 1
+                    disp("entered down shift");
+                    scenario.vehicles(vehicle_iteration_index).paddle_counter = scenario.vehicles(vehicle_iteration_index).paddle_counter - 1;
+                    new_trim_set = mapPaddleCounterToSpeedProfile(scenario.vehicles(vehicle_iteration_index).paddle_counter);
+                    
+                    scenario.vehicles(vehicle_iteration_index).vehicle_mpa = MotionPrimitiveAutomaton(...
+                        scenario.model...
+                        , new_trim_set...
+                        , scenario.offset...
+                        , scenario.dt...
+                        , scenario.nVeh...
+                        , scenario.Hp...
+                        , scenario.tick_per_step...
+                        , true...
+                    );
+
+                    scenario.manual_mpa_initialized = true;
+                    
+                end
+            end
 
             modeHandler.scenario = scenario;
         end

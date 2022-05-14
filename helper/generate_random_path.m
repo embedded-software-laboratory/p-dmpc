@@ -23,6 +23,7 @@ function random_path = generate_random_path(scenario, vehid, n, startPosition)
 
     % find initial position for this
     random_path.lanelets_index = [lanelets_index_vehid];
+    laneChangeAllowed = false;
 
     while length(random_path.lanelets_index) < n
         % find all edges that are the successor of the current lane or adjacent and lane change enabled
@@ -37,21 +38,24 @@ function random_path = generate_random_path(scenario, vehid, n, startPosition)
                 successor_indices = horzcat(successor.refAttribute);
                 subsequent_indices = successor_indices;
 
-                %disp(subsequent_indices);
-                for k = 1:length(successor_indices)
-                    successor_adjacentLeft = commonroad_data.lanelet(successor_indices(k)).adjacentLeft;
-                    if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
-                        subsequent_indices = horzcat(subsequent_indices, successor_adjacentLeft.refAttribute);
-                        %disp(subsequent_indices);
-                    end
 
-                    successor_adjacentRight = commonroad_data.lanelet(successor_indices(k)).adjacentRight;
-                    if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
-                        subsequent_indices = horzcat(subsequent_indices, successor_adjacentRight.refAttribute);
-                        %disp(subsequent_indices);
-                    end
+                if laneChangeAllowed
+                    %disp(subsequent_indices);
+                    for k = 1:length(successor_indices)
+                        successor_adjacentLeft = commonroad_data.lanelet(successor_indices(k)).adjacentLeft;
+                        if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
+                            subsequent_indices = horzcat(subsequent_indices, successor_adjacentLeft.refAttribute);
+                            %disp(subsequent_indices);
+                        end
 
-                    % include check for predecessor of successor
+                        successor_adjacentRight = commonroad_data.lanelet(successor_indices(k)).adjacentRight;
+                        if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
+                            subsequent_indices = horzcat(subsequent_indices, successor_adjacentRight.refAttribute);
+                            %disp(subsequent_indices);
+                        end
+
+                        % include check for predecessor of successor
+                    end
                 end
                 
                 for j = 1:length(subsequent_indices)
@@ -66,11 +70,39 @@ function random_path = generate_random_path(scenario, vehid, n, startPosition)
             end
         end
         
-        range = length(subsequent_lanes.lanelets_index);
-        index = randi(range);
-        %disp(sprintf('range: %d, index: %d', range, index));
-        random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(index);
-        %disp(sprintf('random at end: %d', random_path.lanelets_index(end)));
+        if laneChangeAllowed
+            range = length(subsequent_lanes.lanelets_index);
+            index = randi(range);
+            %disp(sprintf('range: %d, index: %d', range, index));
+            random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(index);
+            %disp(sprintf('random at end: %d', random_path.lanelets_index(end)));
+            laneChangeAllowed = false;
+        else
+            if length(subsequent_lanes.lanelets_index) > 1
+                if (random_path.lanelets_index(end) == 3 || random_path.lanelets_index(end) == 5 || random_path.lanelets_index(end) == 81 ... 
+                    || random_path.lanelets_index(end) == 83)
+                    random_path.lanelets_index(end+1) = random_path.lanelets_index(end) + 2;
+                elseif (random_path.lanelets_index(end) == 11 || random_path.lanelets_index(end) == 89)
+                    random_path.lanelets_index(end+1) = random_path.lanelets_index(end) + 15;
+                elseif (random_path.lanelets_index(end) == 12 || random_path.lanelets_index(end) == 40 || random_path.lanelets_index(end) == 66 ...
+                        || random_path.lanelets_index(end) == 90)
+                    random_path.lanelets_index(end+1) = random_path.lanelets_index(end) + 5;
+                elseif (random_path.lanelets_index(end) == 22 || random_path.lanelets_index(end) == 100)
+                    random_path.lanelets_index(end+1) = random_path.lanelets_index(end) - 17;
+                elseif (random_path.lanelets_index(end) == 29 || random_path.lanelets_index(end) == 31 || random_path.lanelets_index(end) == 55 ...
+                        || random_path.lanelets_index(end) == 57)
+                    random_path.lanelets_index(end+1) = random_path.lanelets_index(end) - 2;
+                elseif (random_path.lanelets_index(end) == 39 || random_path.lanelets_index(end) == 65)
+                    random_path.lanelets_index(end+1) = random_path.lanelets_index(end) + 11;
+                elseif (random_path.lanelets_index(end) == 49 || random_path.lanelets_index(end) == 75)
+                    random_path.lanelets_index(end+1) = random_path.lanelets_index(end) - 20;
+                end 
+            else
+                random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(end);
+            end
+
+            laneChangeAllowed = true;
+        end
     end
 
     for i = 1:length(random_path.lanelets_index)

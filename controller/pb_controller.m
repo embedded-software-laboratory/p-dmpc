@@ -115,7 +115,7 @@ end
             info.n_expanded = info.n_expanded + info_v.tree.size();
             info.next_node = set_node(info.next_node,[vehicle_idx],info_v);
             info.shapes(vehicle_idx,:) = info_v.shapes(:);
-            info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario.mpa);
+            info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario);
             info.trim_indices(vehicle_idx) = info_v.trim_indices;
             y_pred{vehicle_idx,1} = y_pred_v{:};
             u(vehicle_idx) = u_v(1);
