@@ -6,6 +6,7 @@ classdef CPMLab < InterfaceExperiment
         matlabParticipant
         reader_vehicleStateList
         writer_vehicleCommandTrajectory
+        writer_vehicleCommandDirect
         reader_systemTrigger
         writer_readyStatus
         trigger_stop
@@ -58,7 +59,7 @@ classdef CPMLab < InterfaceExperiment
             addpath(common_cpm_functions_path);
 
             matlabDomainId = 1;
-            [obj.matlabParticipant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop] = init_script(matlabDomainId); % #ok<ASGLU>
+            [obj.matlabParticipant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
 
             % Set reader properties
             obj.reader_vehicleStateList.WaitSet = true;
@@ -98,10 +99,17 @@ classdef CPMLab < InterfaceExperiment
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
         end
         
-        function [ x0, trim_indices ] = measure(obj)
+        function [ x0, trim_indices ] = measure(obj, options)
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
             if (sample_count > 1)
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
+            end
+
+            for i = 1:length(obj.sample.state_list)
+                if obj.sample.state_list(i).vehicle_id == obj.scenario.manual_vehicle_id & options.mode == 2
+                    obj.sample.state_list(i) = [];
+                    break
+                end
             end
             
             % for first iteration use real poses
@@ -142,7 +150,7 @@ classdef CPMLab < InterfaceExperiment
             end
         end
         
-        function apply(obj, ~, y_pred, info, ~, k, scenario)
+        function apply(obj, ~, y_pred, info, ~, k, scenario, options)
             % simulate change of state
             obj.cur_node = info.next_node;
             obj.k = k;
@@ -175,12 +183,18 @@ classdef CPMLab < InterfaceExperiment
                     else
                         speed = obj.scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
                     end
-                    disp(sprintf("iVeh: %d, speed: %f", iVeh, speed));
+                    %disp(sprintf("iVeh: %d, speed: %f", iVeh, speed));
                     
                     trajectory_points(i_traj_pt).vx = cos(yaw)*speed;
                     trajectory_points(i_traj_pt).vy = sin(yaw)*speed;
                 end
-                obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
+
+                if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) & options.mode == 2
+                    obj.out_of_map_limits(iVeh) = false;
+                else
+                    obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
+                end
+                
                 vehicle_command_trajectory = VehicleCommandTrajectory;
                 vehicle_command_trajectory.vehicle_id = uint8(obj.vehicle_ids(iVeh));
                 vehicle_command_trajectory.trajectory_points = trajectory_points;
@@ -190,6 +204,33 @@ classdef CPMLab < InterfaceExperiment
                     uint64(obj.sample(end).t_now + obj.dt_period_nanos);
                 obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
             end
+        end
+
+        function updateManualControl(obj, modeHandler, scenario)
+            dt_max_comm_delay = uint64(100e6);
+            if obj.dt_period_nanos >= dt_max_comm_delay
+                dt_valid_after = obj.dt_period_nanos;
+            else
+                dt_valid_after = dt_max_comm_delay;
+            end
+
+            vehicle_command_direct = VehicleCommandDirect;
+            vehicle_command_direct.vehicle_id = uint8(scenario.manual_vehicle_id);
+
+            throttle = 0;
+            if modeHandler.throttle >= 0
+                throttle = modeHandler.throttle;
+            elseif modeHandler.brake >= 0
+                throttle = (-1) * modeHandler.brake;
+            end
+            disp(sprintf("throttle: %f, steering: %f", throttle, modeHandler.steering));
+            vehicle_command_direct.motor_throttle = throttle;
+            vehicle_command_direct.steering_servo = modeHandler.steering;
+            vehicle_command_direct.header.create_stamp.nanoseconds = ...
+                uint64(obj.sample.t_now);
+            vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
+                uint64(obj.sample.t_now+dt_valid_after);
+            obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
         end
         
         function got_stop = is_stop(obj)

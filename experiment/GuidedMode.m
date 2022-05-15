@@ -13,7 +13,6 @@ classdef GuidedMode
     properties(Access=public)
         scenario
         updatedPath
-        speedValue
         mpa
     end
 
@@ -45,7 +44,7 @@ classdef GuidedMode
                 if modeHandler.steering > 0.3
                     disp("entered steering left");
                     % find out current lane of manual vehicle
-                    index = match_pose_to_lane(x_measured(vehid(vehicle_iteration_index), idx.x), x_measured(vehid(vehicle_iteration_index), idx.y));
+                    index = match_pose_to_lane(x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y));
                     index_successor = 0;
 
                     for iVeh = 1:scenario.nVeh
@@ -75,7 +74,7 @@ classdef GuidedMode
                 elseif modeHandler.steering < -0.3
                     disp("entered steering right");
                     % find out current lane of manual vehicle
-                    index = match_pose_to_lane(x_measured(vehid(vehicle_iteration_index), idx.x), x_measured(vehid(vehicle_iteration_index), idx.y));
+                    index = match_pose_to_lane(x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y));
                     index_successor = 0;
 
                     for iVeh = 1:scenario.nVeh
@@ -108,7 +107,7 @@ classdef GuidedMode
                 disp(sprintf("laneID: %d", laneID));
                 % generate manual path with lane as start index
                 % maybe current lane has to be start value of lane -> has to be evaluated
-                updated_ref_path = generate_manual_path(scenario, mVehid, 20, laneID); 
+                updated_ref_path = generate_manual_path(scenario, mVehid, 20, laneID, false); 
                 
                 updatedRefPath = updated_ref_path.path;
                 scenario.vehicles(iteration_index).x_start = updatedRefPath(1,1);

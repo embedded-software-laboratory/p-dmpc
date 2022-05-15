@@ -1,4 +1,4 @@
-function manual_path = generate_manual_path(scenario, vehid, n, startPosition)
+function manual_path = generate_manual_path(scenario, vehid, n, startPosition, endOnInnerLane)
     % GENERATE_MANUAL_PATH    returns a ref_path struct
     % manual_path.lanelets_index: lanelet index of the reference path
     % manual_path.path: reference path including x and y information
@@ -69,6 +69,15 @@ function manual_path = generate_manual_path(scenario, vehid, n, startPosition)
             end 
         else
             manual_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(end);
+        end
+    end
+
+    if endOnInnerLane
+        index_end = manual_path.lanelets_index(end);
+        laneID = find_lane_for_change(index_end, false);
+
+        if laneID ~= 0
+            manual_path.lanelets_index(end) = laneID;
         end
     end
 

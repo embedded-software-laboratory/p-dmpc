@@ -15,6 +15,15 @@ function laneID = find_lane_for_change(index_successor, turnLeft)
         
         if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
             laneID = successor_adjacentRight.refAttribute;
+        % hardcode values to get from outer circle to crossing
+        elseif index_successor == 5
+            laneID = 23;
+        elseif index_successor == 29
+            laneID = 48;
+        elseif index_successor == 55
+            laneID = 74;
+        elseif index_successor == 83
+            laneID = 101;
         else
             laneID = 0;
         end

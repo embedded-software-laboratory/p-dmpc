@@ -53,12 +53,27 @@ switch options.scenario
     case 'Circle_scenario'
         scenario = circle_scenario(options.amount,options.isPB);
     case 'Commonroad'
-        scenario = commonroad(options.amount,vehicle_ids,options.isPB, manualVehicle_id, is_sim_lab);  
+        scenario = commonroad(options.amount,vehicle_ids,options.isPB, manualVehicle_id, is_sim_lab, options.mode);  
 end
 scenario.name = options.scenario;
 scenario.priority_option = options.priority;
 scenario.manual_vehicle_id = manualVehicle_id;
 scenario.vehicle_ids = vehicle_ids;
+
+if options.mode == 2
+    % classify steering angle into intervals and send according steering command
+    for iVeh=1:scenario.nVeh
+        if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
+            priority_filter = true(1,scenario.nVeh);
+            priority_filter(iVeh) = false;
+            delete_index = iVeh;
+        end
+    end
+    temp_scenario = filter_scenario(scenario, priority_filter);
+    scenario = temp_scenario;
+    scenario.vehicle_ids(delete_index) = [];
+    vehicle_ids(delete_index) = [];
+end
 
 
 if is_sim_lab
@@ -88,7 +103,7 @@ while (~got_stop)
     result.step_timer = tic;
     % Measurement
     % -------------------------------------------------------------------------
-    [ x0, trim_indices ] = exp.measure();% trim_indices： which trim  
+    [ x0, trim_indices ] = exp.measure(options);% trim_indices： which trim  
     scenario.k = k;
 
     try
@@ -96,7 +111,7 @@ while (~got_stop)
         % ----------------------------------------------------------------------
         
         % Sample reference trajectory
-        iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, manualVehicle_id, options.isPB, vehicle_ids, is_sim_lab);
+        iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, is_sim_lab, options);
         scenario = iter.scenario;
         if (~initialized_reference_path | updated_manual_vehicle_path)
             exp.update();
@@ -113,12 +128,14 @@ while (~got_stop)
                 % call function that translates current steering angle into lane change
                 modeHandler = GuidedMode(scenario,x0,manualVehicle_id,vehicle_ids,cooldown_after_lane_change,wheelData);
                 scenario = modeHandler.scenario;
+                updated_manual_vehicle_path = modeHandler.updatedPath;
                 
             elseif options.mode == 2
                 % classify steering angle into intervals and send according steering command
+                modeHandler = ExpertMode(exp, scenario, wheelData);
             end
 
-            updated_manual_vehicle_path = modeHandler.updatedPath;
+            %updated_manual_vehicle_path = modeHandler.updatedPath;
         end
 
         if updated_manual_vehicle_path
@@ -130,7 +147,7 @@ while (~got_stop)
         % update the boundary information of each vehicle
         if strcmp(scenario.name, 'Commonroad')
             lanelet_boundary = lanelets_boundary(scenario, iter);
-            for iveh = 1:options.amount
+            for iveh = 1:scenario.nVeh
                 scenario.vehicles(1,iveh).lanelet_boundary = lanelet_boundary{1,iveh};
             end
             % update the coupling information
@@ -138,10 +155,10 @@ while (~got_stop)
         end
         
         % calculate the distance 
-        distance = zeros(options.amount,options.amount);
+        distance = zeros(scenario.nVeh,scenario.nVeh);
         adjacency = scenario.adjacency(:,:,end);
 
-        for vehi = 1:options.amount-1
+        for vehi = 1:scenario.nVeh-1
             adjacent_vehicle = find(adjacency(vehi,:));
             adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > vehi);
             for vehn = adjacent_vehicle
@@ -176,7 +193,7 @@ while (~got_stop)
         
         % Apply control action
         % -------------------------------------------------------------------------
-        exp.apply(u, y_pred, info, result, k, scenario); 
+        exp.apply(u, y_pred, info, result, k, scenario, options); 
         
         fallback_update = 0;
         
@@ -211,7 +228,7 @@ while (~got_stop)
 
             % Apply control action
             % -------------------------------------------------------------------------
-            exp.apply(u, y_pred, info, result, k, scenario); 
+            exp.apply(u, y_pred, info, result, k, scenario, options); 
             
             % if fallback to last plan Hp times continuously, the vehicle
             % will stop at the current position, terminate the simulation

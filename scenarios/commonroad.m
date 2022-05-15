@@ -1,4 +1,4 @@
-function scenario = commonroad(nVeh,vehid,isPB,mVehid, is_sim_lab)
+function scenario = commonroad(nVeh,vehid,isPB,mVehid, is_sim_lab, mode)
 % Commonroad_Scenario   
 
     scenario = Scenario();
@@ -16,7 +16,7 @@ function scenario = commonroad(nVeh,vehid,isPB,mVehid, is_sim_lab)
             ref_path = generate_random_path(scenario, vehid(iveh), 20, (vehid(iveh)+31));
         else
             if (mVehid == vehid(iveh))
-                ref_path = generate_manual_path(scenario, vehid(iveh), 3, (vehid(iveh)+31));  
+                ref_path = generate_manual_path(scenario, vehid(iveh), 3, (vehid(iveh)+31), false);  
                 %ref_path = generate_manual_path(scenario, vehid(iveh), 3, (vehid(iveh)));     
             else
                 % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
@@ -50,11 +50,15 @@ function scenario = commonroad(nVeh,vehid,isPB,mVehid, is_sim_lab)
     scenario.Hp = 6;
     
     if isPB 
-       scenario.adjacency = zeros(nVeh,nVeh);
-       scenario.assignPrios = true;
-       scenario.controller_name = strcat(scenario.controller_name, '-PB');
-       scenario.controller = @(s,i) pb_controller(s,i);
-       nVeh_mpa = 1;
+        if mode == 2 & nVeh > 1
+            scenario.adjacency = zeros((nVeh-1),(nVeh-1));
+        else
+            scenario.adjacency = zeros(nVeh,nVeh);
+        end
+        scenario.assignPrios = true;
+        scenario.controller_name = strcat(scenario.controller_name, '-PB');
+        scenario.controller = @(s,i) pb_controller(s,i);
+        nVeh_mpa = 1;
 
     end
 %     
