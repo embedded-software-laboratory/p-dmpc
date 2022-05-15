@@ -45,6 +45,19 @@ else
     else
         options.mode = 0;
     end
+
+    if  mixedTrafficOptions.id2 ~= 1
+        if mixedTrafficOptions.id < mixedTrafficOptions.id2
+            manualVehicle_id2 = mixedTrafficOptions.id2;
+        else
+            manualVehicle_id2 = mixedTrafficOptions.id2 - 1;
+        end
+
+        options.secondVehicleMode = mixedTrafficOptions.mode2;
+    else
+        manualVehicle_id2 = 0;
+        options.secondVehicleMode = 0;
+    end
 end
   
 
