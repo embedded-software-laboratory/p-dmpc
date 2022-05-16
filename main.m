@@ -41,9 +41,9 @@ else
     manualVehicle_id = mixedTrafficOptions.id-1;
 
     if manualVehicle_id ~= 0
-        options.mode = mixedTrafficOptions.mode;
+        options.firstManualVehicleMode = mixedTrafficOptions.mode;
     else
-        options.mode = 0;
+        options.firstManualVehicleMode = 0;
     end
 
     if  mixedTrafficOptions.id2 ~= 1
@@ -53,10 +53,10 @@ else
             manualVehicle_id2 = mixedTrafficOptions.id2 - 1;
         end
 
-        options.secondVehicleMode = mixedTrafficOptions.mode2;
+        options.secondManualVehicleMode = mixedTrafficOptions.mode2;
     else
         manualVehicle_id2 = 0;
-        options.secondVehicleMode = 0;
+        options.secondManualVehicleMode = 0;
     end
 end
   
@@ -66,17 +66,35 @@ switch options.scenario
     case 'Circle_scenario'
         scenario = circle_scenario(options.amount,options.isPB);
     case 'Commonroad'
-        scenario = commonroad(options.amount,vehicle_ids,options.isPB, manualVehicle_id, is_sim_lab, options.mode);  
+        scenario = commonroad(options, vehicle_ids, manualVehicle_id, manualVehicle_id2, is_sim_lab);  
 end
+
 scenario.name = options.scenario;
 scenario.priority_option = options.priority;
 scenario.manual_vehicle_id = manualVehicle_id;
+scenario.second_manual_vehicle_id = manualVehicle_id2;
 scenario.vehicle_ids = vehicle_ids;
+scenario.options = options;
 
-if options.mode == 2
-    % classify steering angle into intervals and send according steering command
+if scenario.options.firstManualVehicleMode == 2
+    % delete first manual vehicle from scenario if it is in Expert Mode
     for iVeh=1:scenario.nVeh
         if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
+            priority_filter = true(1,scenario.nVeh);
+            priority_filter(iVeh) = false;
+            delete_index = iVeh;
+        end
+    end
+    temp_scenario = filter_scenario(scenario, priority_filter);
+    scenario = temp_scenario;
+    scenario.vehicle_ids(delete_index) = [];
+    vehicle_ids(delete_index) = [];
+end
+
+if scenario.options.secondManualVehicleMode == 2
+    % delete second manual vehicle from scenario if it is in Expert Mode
+    for iVeh=1:scenario.nVeh
+        if scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
             priority_filter = true(1,scenario.nVeh);
             priority_filter(iVeh) = false;
             delete_index = iVeh;
@@ -101,7 +119,9 @@ end
 got_stop = false;
 initialized_reference_path = false;
 updated_manual_vehicle_path = false;
+updated_second_manual_vehicle_path = false;
 cooldown_after_lane_change = 0;
+cooldown_second_manual_vehicle_after_lane_change = 0;
 k = 1;
 
 % init result struct
@@ -116,7 +136,7 @@ while (~got_stop)
     result.step_timer = tic;
     % Measurement
     % -------------------------------------------------------------------------
-    [ x0, trim_indices ] = exp.measure(options);% trim_indices： which trim  
+    [ x0, trim_indices ] = exp.measure();% trim_indices： which trim  
     scenario.k = k;
 
     try
@@ -124,37 +144,57 @@ while (~got_stop)
         % ----------------------------------------------------------------------
         
         % Sample reference trajectory
-        iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, is_sim_lab, options);
+        iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, is_sim_lab);
         scenario = iter.scenario;
-        if (~initialized_reference_path | updated_manual_vehicle_path)
+        if (~initialized_reference_path || updated_manual_vehicle_path)
             exp.update();
         end
         initialized_reference_path = true;
 
         if ~is_sim_lab
-            % function that updates the steering wheel data
-            wheelData = exp.getWheelData();
-            %disp(wheelData);
+            for iVeh = 1:scenario.nVeh
+                if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
+                    if (scenario.options.firstManualVehicleMode == 1)
+                        % function that updates the steering wheel data
+                        wheelData = exp.getWheelData();
 
-            % function that checks for lane and/or speed change for Guided-Mode
-            if (options.mode == 1)
-                % call function that translates current steering angle into lane change
-                modeHandler = GuidedMode(scenario,x0,manualVehicle_id,vehicle_ids,cooldown_after_lane_change,wheelData);
-                scenario = modeHandler.scenario;
-                updated_manual_vehicle_path = modeHandler.updatedPath;
-                
-            elseif options.mode == 2
-                % classify steering angle into intervals and send according steering command
-                modeHandler = ExpertMode(exp, scenario, wheelData);
+                        % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
+                        modeHandler = GuidedMode(scenario,x0,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,wheelData,true);
+                        scenario = modeHandler.scenario;
+                        updated_manual_vehicle_path = modeHandler.updatedPath;
+                        
+                    elseif options.mode == 2
+                        % classify steering angle into intervals and send according steering command
+                        modeHandler = ExpertMode(exp, scenario, wheelData, true);
+                    end
+                elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
+                    if (scenario.options.secondManualVehicleMode == 1)
+                        % function that updates the steering wheel data
+                        gamepadData = exp.getGamepadData();
+
+                        % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
+                        modeHandler = GuidedMode(scenario,x0,scenario.second_manual_vehicle_id,vehicle_ids,cooldown_second_manual_vehicle_after_lane_change,gamepadData,false);
+                        scenario = modeHandler.scenario;
+                        updated_second_manual_vehicle_path = modeHandler.updatedPath;
+                        
+                    elseif options.mode == 2
+                        % classify steering angle into intervals and send according steering command
+                        modeHandler = ExpertMode(exp, scenario, gamepadData, false);
+                    end
+                end
             end
-
-            %updated_manual_vehicle_path = modeHandler.updatedPath;
         end
 
         if updated_manual_vehicle_path
             cooldown_after_lane_change = 0;
         else
             cooldown_after_lane_change = cooldown_after_lane_change + 1;
+        end
+
+        if updated_second_manual_vehicle_path
+            cooldown_second_manual_vehicle_after_lane_change = 0;
+        else
+            cooldown_second_manual_vehicle_after_lane_change = cooldown_second_manual_vehicle_after_lane_change + 1;
         end
         
         % update the boundary information of each vehicle
@@ -206,7 +246,7 @@ while (~got_stop)
         
         % Apply control action
         % -------------------------------------------------------------------------
-        exp.apply(u, y_pred, info, result, k, scenario, options); 
+        exp.apply(u, y_pred, info, result, k, scenario); 
         
         fallback_update = 0;
         
@@ -241,7 +281,7 @@ while (~got_stop)
 
             % Apply control action
             % -------------------------------------------------------------------------
-            exp.apply(u, y_pred, info, result, k, scenario, options); 
+            exp.apply(u, y_pred, info, result, k, scenario); 
             
             % if fallback to last plan Hp times continuously, the vehicle
             % will stop at the current position, terminate the simulation

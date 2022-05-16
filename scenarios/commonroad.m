@@ -1,6 +1,10 @@
-function scenario = commonroad(nVeh,vehid,isPB,mVehid, is_sim_lab, mode)
+function scenario = commonroad(options,vehid,mVehid,m2Vehid,is_sim_lab)
 % Commonroad_Scenario   
 
+    nVeh = options.amount;
+    isPB = options.isPB;
+    mode = options.firstManualVehicleMode;
+    mode2 = options.secondManualVehicleMode;
     scenario = Scenario();
     scenario.name = 'Commonroad';
     scenario.trim_set = 4;
@@ -15,7 +19,7 @@ function scenario = commonroad(nVeh,vehid,isPB,mVehid, is_sim_lab, mode)
         if is_sim_lab
             ref_path = generate_random_path(scenario, vehid(iveh), 20, (vehid(iveh)+31));
         else
-            if (mVehid == vehid(iveh))
+            if (mVehid == vehid(iveh) || m2Vehid == vehid(iveh))
                 ref_path = generate_manual_path(scenario, vehid(iveh), 3, (vehid(iveh)+31), false);  
                 %ref_path = generate_manual_path(scenario, vehid(iveh), 3, (vehid(iveh)));     
             else
@@ -50,7 +54,9 @@ function scenario = commonroad(nVeh,vehid,isPB,mVehid, is_sim_lab, mode)
     scenario.Hp = 6;
     
     if isPB 
-        if mode == 2 & nVeh > 1
+        if mode == 2 && mode2 == 2 && nVeh > 2
+            scenario.adjacency = zeros((nVeh-2),(nVeh-2));
+        elseif (mode == 2 || mode2 == 2) && nVeh > 1
             scenario.adjacency = zeros((nVeh-1),(nVeh-1));
         else
             scenario.adjacency = zeros(nVeh,nVeh);

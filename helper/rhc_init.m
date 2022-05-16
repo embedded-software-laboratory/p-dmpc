@@ -1,4 +1,4 @@
-function iter = rhc_init(scenario, x_measured, trim_indices, initialized_reference_path, is_sim_lab, options)
+function iter = rhc_init(scenario, x_measured, trim_indices, initialized_reference_path, is_sim_lab)
 % RHC_INIT  Preprocessing step for RHC controller
 
     idx = indices();
@@ -10,12 +10,19 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
                 disp(sprintf("veh ID: %d, index: %d", scenario.vehicle_ids(iVeh), index));
 
                 if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
-                    if options.mode == 1
+                    if scenario.options.firstManualVehicleMode == 1
                         updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
                     else
                         %updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 3, index, true);
                         continue
                     end     
+                elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
+                    if scenario.options.secondManualVehicleMode == 1
+                        updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
+                    else
+                        %updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 3, index, true);
+                        continue
+                    end      
                 else
                     % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
                     updated_ref_path = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 50, index); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
@@ -70,7 +77,9 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
     
     iter.vRef = zeros(scenario.nVeh,scenario.Hp);
     for iVeh=1:scenario.nVeh
-        if (scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) & scenario.manual_mpa_initialized)
+        if (scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.manual_mpa_initialized)
+            iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,trim_indices(iVeh));
+        elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.second_manual_mpa_initialized)
             iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,trim_indices(iVeh));
         else
             iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,trim_indices(iVeh));

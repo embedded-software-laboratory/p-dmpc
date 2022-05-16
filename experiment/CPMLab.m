@@ -16,6 +16,8 @@ classdef CPMLab < InterfaceExperiment
         out_of_map_limits
         wheelNode
         wheelSub
+        gamepadNode
+        gamepadSub
     end
     
     methods
@@ -47,8 +49,15 @@ classdef CPMLab < InterfaceExperiment
 
             % This command has first to be executed in terminal:
             %ros2 run joy joy_node _dev_name:="/dev/input/js0";
-            obj.wheelNode = ros2node("/wheel");
-            obj.wheelSub = ros2subscriber(obj.wheelNode,"/joy",@obj.steeringWheelCallback);
+            if obj.scenario.manual_vehicle_id ~= 0 && obj.scenario.options.firstManualVehicleMode == 1
+                obj.wheelNode = ros2node("/wheel");
+                obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0",@obj.steeringWheelCallback);
+            end
+
+            if obj.scenario.second_manual_vehicle_id ~= 0 && obj.scenario.options.secondManualVehicleMode == 1
+                obj.gamepadNode = ros2node("/gamepad");
+                obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1",@obj.steeringWheelCallback);
+            end
 
             % Initialize data readers/writers...
             % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
@@ -95,20 +104,25 @@ classdef CPMLab < InterfaceExperiment
             wheelData = receive(obj.wheelSub, 1);
         end
 
+        function gamepadData = getGamepadData(obj)
+            gamepadData = receive(obj.gamepadSub, 1);
+        end
+
         function update(obj)
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
         end
         
-        function [ x0, trim_indices ] = measure(obj, options)
+        function [ x0, trim_indices ] = measure(obj)
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
             if (sample_count > 1)
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
 
             for i = 1:length(obj.sample.state_list)
-                if obj.sample.state_list(i).vehicle_id == obj.scenario.manual_vehicle_id & options.mode == 2
+                if (obj.sample.state_list(i).vehicle_id == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
+                        || (obj.sample.state_list(i).vehicle_id == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2)
                     obj.sample.state_list(i) = [];
-                    break
+                    %break
                 end
             end
             
@@ -150,7 +164,7 @@ classdef CPMLab < InterfaceExperiment
             end
         end
         
-        function apply(obj, ~, y_pred, info, ~, k, scenario, options)
+        function apply(obj, ~, y_pred, info, ~, k, scenario)
             % simulate change of state
             obj.cur_node = info.next_node;
             obj.k = k;
@@ -189,7 +203,8 @@ classdef CPMLab < InterfaceExperiment
                     trajectory_points(i_traj_pt).vy = sin(yaw)*speed;
                 end
 
-                if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) & options.mode == 2
+                if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.options.firstManualVehicleMode == 2) ...
+                        || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.options.secondManualVehicleMode == 2)
                     obj.out_of_map_limits(iVeh) = false;
                 else
                     obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
