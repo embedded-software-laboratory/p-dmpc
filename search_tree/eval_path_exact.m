@@ -18,7 +18,9 @@ function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, ro
                 t1 = node_parent(iVeh,NodeInfo.trim);
                 t2 = tree.node{root_to_node(iNode)}(iVeh,NodeInfo.trim);
 
-                if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) & scenario.manual_mpa_initialized & ~isempty(scenario.vehicles(iVeh).vehicle_mpa)
+                % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
+                if ((scenario.vehicles(iVeh).vehicle_id == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
+                    || ((scenario.vehicles(iVeh).vehicle_id == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
                     mpa = scenario.vehicles(iVeh).vehicle_mpa;
                     maneuver = mpa.maneuvers{t1,t2};
                 else

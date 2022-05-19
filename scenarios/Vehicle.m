@@ -20,6 +20,7 @@ classdef Vehicle
         lanelet_boundary
         paddle_counter      = 2;     % initial speed profile
         vehicle_mpa;
+        vehicle_id          = 0;     % initial vehicle id
     end
     
     methods

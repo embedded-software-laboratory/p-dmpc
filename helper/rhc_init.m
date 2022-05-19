@@ -6,6 +6,10 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
     if ~is_sim_lab
         if ~initialized_reference_path
             for iVeh = 1:scenario.nVeh
+
+                % initialize vehicle ids of all vehicles
+                scenario.vehicles(iVeh).vehicle_id = scenario.vehicle_ids(iVeh);
+
                 index = match_pose_to_lane(x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
                 disp(sprintf("veh ID: %d, index: %d", scenario.vehicle_ids(iVeh), index));
 

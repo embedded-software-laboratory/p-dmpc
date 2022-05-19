@@ -81,7 +81,8 @@ function scenario = commonroad(options,vehid,mVehid,m2Vehid,is_sim_lab)
         , recursive_feasibility...
     );
 
-
+    % initialize speed profile vector, currently 3 speed profiles are available
+    scenario.speed_profile_mpas = [scenario.mpa, scenario.mpa, scenario.mpa];
  
 
 

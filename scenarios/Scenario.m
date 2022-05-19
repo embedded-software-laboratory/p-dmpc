@@ -20,6 +20,7 @@ classdef Scenario
         trim_set = 3;
         offset = 0.01;
         options;
+        speed_profile_mpas = [];
         
         model = [];
         time_per_tick = 0.01;

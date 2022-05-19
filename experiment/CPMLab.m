@@ -49,12 +49,12 @@ classdef CPMLab < InterfaceExperiment
 
             % This command has first to be executed in terminal:
             %ros2 run joy joy_node _dev_name:="/dev/input/js0";
-            if obj.scenario.manual_vehicle_id ~= 0 && obj.scenario.options.firstManualVehicleMode == 1
+            if obj.scenario.manual_vehicle_id ~= 0 && (obj.scenario.options.firstManualVehicleMode == 1 || obj.scenario.options.firstManualVehicleMode == 2)
                 obj.wheelNode = ros2node("/wheel");
                 obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0",@obj.steeringWheelCallback);
             end
 
-            if obj.scenario.second_manual_vehicle_id ~= 0 && obj.scenario.options.secondManualVehicleMode == 1
+            if obj.scenario.second_manual_vehicle_id ~= 0 && (obj.scenario.options.secondManualVehicleMode == 1 || obj.scenario.options.secondManualVehicleMode == 2)
                 obj.gamepadNode = ros2node("/gamepad");
                 obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1",@obj.steeringWheelCallback);
             end
@@ -118,12 +118,16 @@ classdef CPMLab < InterfaceExperiment
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
 
-            for i = 1:length(obj.sample.state_list)
-                if (obj.sample.state_list(i).vehicle_id == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
-                        || (obj.sample.state_list(i).vehicle_id == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2)
-                    obj.sample.state_list(i) = [];
-                    %break
+            if (obj.scenario.options.firstManualVehicleMode == 2) || (obj.scenario.options.secondManualVehicleMode == 2)
+                obj.sample.state_list = fliplr(obj.sample.state_list);
+                for i = 1:length(obj.sample.state_list)
+                    if (obj.sample.state_list(i).vehicle_id == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
+                            || (obj.sample.state_list(i).vehicle_id == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2)
+                        obj.sample.state_list(i) = [];
+                        %break
+                    end
                 end
+                obj.sample.state_list = fliplr(obj.sample.state_list);
             end
             
             % for first iteration use real poses
@@ -192,7 +196,8 @@ classdef CPMLab < InterfaceExperiment
                     %}
                     yaw = y_pred{iVeh}(i_predicted_points,3);
 
-                    if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) & scenario.manual_mpa_initialized
+                    if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
+                        || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
                         speed = scenario.vehicles(iVeh).vehicle_mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
                     else
                         speed = obj.scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
@@ -203,8 +208,10 @@ classdef CPMLab < InterfaceExperiment
                     trajectory_points(i_traj_pt).vy = sin(yaw)*speed;
                 end
 
-                if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.options.firstManualVehicleMode == 2) ...
-                        || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.options.secondManualVehicleMode == 2)
+                is_manual_vehicle = (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+                    || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.options.secondManualVehicleMode == 2);
+                    
+                if (is_manual_vehicle)
                     obj.out_of_map_limits(iVeh) = false;
                 else
                     obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
@@ -239,8 +246,8 @@ classdef CPMLab < InterfaceExperiment
                 throttle = (-1) * modeHandler.brake;
             end
             disp(sprintf("throttle: %f, steering: %f", throttle, modeHandler.steering));
-            vehicle_command_direct.motor_throttle = throttle;
-            vehicle_command_direct.steering_servo = modeHandler.steering;
+            vehicle_command_direct.motor_throttle = double(throttle);
+            vehicle_command_direct.steering_servo = double(modeHandler.steering);
             vehicle_command_direct.header.create_stamp.nanoseconds = ...
                 uint64(obj.sample.t_now);
             vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
