@@ -15,7 +15,9 @@ classdef Scenario
         manual_vehicle_id = 0;
         second_manual_vehicle_id = 0;
         manual_mpa_initialized = false;
+        updated_manual_vehicle_path = false;
         second_manual_mpa_initialized = false;
+        updated_second_manual_vehicle_path = false;
         vehicle_ids = [];
         trim_set = 3;
         offset = 0.01;

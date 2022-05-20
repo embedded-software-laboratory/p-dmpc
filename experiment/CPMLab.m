@@ -7,6 +7,7 @@ classdef CPMLab < InterfaceExperiment
         reader_vehicleStateList
         writer_vehicleCommandTrajectory
         writer_vehicleCommandDirect
+        writer_visualization
         reader_systemTrigger
         writer_readyStatus
         trigger_stop
@@ -18,6 +19,8 @@ classdef CPMLab < InterfaceExperiment
         wheelSub
         gamepadNode
         gamepadSub
+        visualize_manual_lane_change_counter
+        visualize_second_manual_lane_change_counter
     end
     
     methods
@@ -25,6 +28,8 @@ classdef CPMLab < InterfaceExperiment
             obj.vehicle_ids = vehicle_ids;
             obj.scenario = scenario;
             obj.controller_init = false;
+            obj.visualize_manual_lane_change_counter = 0;
+            obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
         end
 
@@ -68,7 +73,7 @@ classdef CPMLab < InterfaceExperiment
             addpath(common_cpm_functions_path);
 
             matlabDomainId = 1;
-            [obj.matlabParticipant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
+            [obj.matlabParticipant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect, obj.writer_visualization] = init_script(matlabDomainId); % #ok<ASGLU>
 
             % Set reader properties
             obj.reader_vehicleStateList.WaitSet = true;
@@ -224,7 +229,64 @@ classdef CPMLab < InterfaceExperiment
                     uint64(obj.sample(end).t_now);
                 vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
                     uint64(obj.sample(end).t_now + obj.dt_period_nanos);
+
+                vehicle_command_trajectory.vehicle_lane_change = uint8(0);
+                if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
+                    if scenario.updated_manual_vehicle_path || obj.visualize_manual_lane_change_counter > 0
+                        vehicle_command_trajectory.vehicle_lane_change = uint8(1);
+
+                        if obj.visualize_manual_lane_change_counter == 0
+                            obj.visualize_manual_lane_change_counter = 4;
+                        else
+                            obj.visualize_manual_lane_change_counter = obj.visualize_manual_lane_change_counter - 1;
+                        end
+                    end
+                elseif (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id)
+                    if scenario.updated_second_manual_vehicle_path || obj.visualize_second_manual_lane_change_counter > 0
+                        vehicle_command_trajectory.vehicle_lane_change = uint8(1);
+
+                        if obj.visualize_second_manual_lane_change_counter == 0
+                            obj.visualize_second_manual_lane_change_counter = 4;
+                        else
+                            obj.visualize_second_manual_lane_change_counter = obj.visualize_second_manual_lane_change_counter - 1;
+                        end
+                    end
+                end
+                
                 obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
+
+                %{
+                visualization_command = Visualization;
+                visualization_command.id = uint8(obj.vehicle_ids(iVeh));
+                visualization_command.type = VisualizationType.LineStrips;
+                visualization_command.time_to_live = 200000;
+                visualization_command.points = trajectory_points;
+                visualization_command.size = 200000;
+
+                color1 = Color;
+                color1.r = uint8(255);
+                color1.g = uint8(255);
+                color1.b = uint8(204);
+
+                color2 = Color;
+                color2.r = uint8(0);
+                color2.g = uint8(230);
+                color2.b = uint8(26);
+
+                %visualization_command.color = color1;
+
+                if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
+                    if scenario.updated_manual_vehicle_path
+                        %visualization_command.color = color2;
+                    end
+                elseif (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id)
+                    if scenario.updated_second_manual_vehicle_path
+                        visualization_command.color = color2;
+                    end
+                end
+
+                obj.writer_visualization.write(visualization_command);
+                %}
             end
         end
 

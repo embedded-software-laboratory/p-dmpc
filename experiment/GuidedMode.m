@@ -78,7 +78,7 @@ classdef GuidedMode
             end
 
             % if steering over threshold, then perform lane change
-            if cooldown_after_lane_change > 9
+            if cooldown_after_lane_change > 5
                 if modeHandler.steering > 0.3
                     disp("entered steering left");
                     % find out current lane of manual vehicle

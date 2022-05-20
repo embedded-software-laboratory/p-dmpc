@@ -118,8 +118,6 @@ end
 % Initialize
 got_stop = false;
 initialized_reference_path = false;
-updated_manual_vehicle_path = false;
-updated_second_manual_vehicle_path = false;
 speedProfileMPAsInitialized = false;
 cooldown_after_lane_change = 0;
 cooldown_second_manual_vehicle_after_lane_change = 0;
@@ -147,7 +145,7 @@ while (~got_stop)
         % Sample reference trajectory
         iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, is_sim_lab);
         scenario = iter.scenario;
-        if (~initialized_reference_path || updated_manual_vehicle_path)
+        if (~initialized_reference_path || scenario.updated_manual_vehicle_path || scenario.updated_second_manual_vehicle_path)
             exp.update();
         end
         initialized_reference_path = true;
@@ -161,7 +159,7 @@ while (~got_stop)
                     % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
                     modeHandler = GuidedMode(scenario,x0,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
                     scenario = modeHandler.scenario;
-                    updated_manual_vehicle_path = modeHandler.updatedPath;
+                    scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
                     speedProfileMPAsInitialized = true;
                     
                 elseif scenario.options.firstManualVehicleMode == 2
@@ -178,7 +176,7 @@ while (~got_stop)
                     % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
                     modeHandler = GuidedMode(scenario,x0,scenario.second_manual_vehicle_id,vehicle_ids,cooldown_second_manual_vehicle_after_lane_change,speedProfileMPAsInitialized,gamepadData,false);
                     scenario = modeHandler.scenario;
-                    updated_second_manual_vehicle_path = modeHandler.updatedPath;
+                    scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
                     speedProfileMPAsInitialized = true;
                     
                 elseif scenario.options.secondManualVehicleMode == 2
@@ -188,17 +186,22 @@ while (~got_stop)
             end
         end
 
-        if updated_manual_vehicle_path
+        if scenario.updated_manual_vehicle_path
             cooldown_after_lane_change = 0;
         else
             cooldown_after_lane_change = cooldown_after_lane_change + 1;
         end
 
-        if updated_second_manual_vehicle_path
+        if scenario.updated_second_manual_vehicle_path
             cooldown_second_manual_vehicle_after_lane_change = 0;
         else
             cooldown_second_manual_vehicle_after_lane_change = cooldown_second_manual_vehicle_after_lane_change + 1;
         end
+
+        %disp("cooldown after lane change");
+        %disp(cooldown_after_lane_change);
+        %disp("cooldown second after lane change");
+        %disp(cooldown_second_manual_vehicle_after_lane_change);
         
         % update the boundary information of each vehicle
         if strcmp(scenario.name, 'Commonroad')
