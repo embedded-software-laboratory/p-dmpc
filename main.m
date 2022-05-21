@@ -5,10 +5,13 @@ if verLessThan('matlab','9.10')
     warning("Code is developed in MATLAB 2021a, prepare for backward incompatibilities.")
 end
 
+options = startOptions();
+is_sim_lab = options.is_sim_lab;
+
 %% Determine options
 % if matlab simulation should be started with certain parameters
 % first argument has to be 'sim'
-is_sim_lab = (nargin == 0 || (nargin > 0 && strcmp(varargin{1},'sim')));
+%is_sim_lab = (nargin == 0 || (nargin > 0 && strcmp(varargin{1},'sim')));
 
 if is_sim_lab
     switch nargin
@@ -30,33 +33,31 @@ if is_sim_lab
     
 else
     disp('cpmlab')
-    options = struct;
     vehicle_ids = [varargin{:}];
     options.amount = numel(vehicle_ids);
     options.isPB = true;
     options.scenario = 'Commonroad';
     options.priority = 'topo_priority';
 
-    mixedTrafficOptions = mixedTrafficSelection();
-    manualVehicle_id = mixedTrafficOptions.id-1;
+    %mixedTrafficOptions = mixedTrafficSelection();
+    manualVehicle_id = options.manualVehicle_id;
 
-    if manualVehicle_id ~= 0
-        options.firstManualVehicleMode = mixedTrafficOptions.mode;
-    else
+    if manualVehicle_id == 'No MV'
+        manualVehicle_id = 0;
         options.firstManualVehicleMode = 0;
-    end
-
-    if  mixedTrafficOptions.id2 ~= 1
-        if mixedTrafficOptions.id < mixedTrafficOptions.id2
-            manualVehicle_id2 = mixedTrafficOptions.id2;
-        else
-            manualVehicle_id2 = mixedTrafficOptions.id2 - 1;
-        end
-
-        options.secondManualVehicleMode = mixedTrafficOptions.mode2;
-    else
         manualVehicle_id2 = 0;
         options.secondManualVehicleMode = 0;
+    else
+        manualVehicle_id = str2num(options.manualVehicle_id);
+        options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
+
+        if options.manualVehicle_id2 == 'No second MV'
+            manualVehicle_id2 = 0;
+            options.secondManualVehicleMode = 0;
+        else
+            manualVehicle_id2 = str2num(options.manualVehicle_id2);
+            options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
+        end
     end
 end
   
