@@ -54,6 +54,7 @@ function scenario = commonroad(options,vehid,mVehid,m2Vehid,is_sim_lab)
     scenario.Hp = 6;
     
     if isPB 
+        %{
         if mode == 2 && mode2 == 2 && nVeh > 2
             scenario.adjacency = zeros((nVeh-2),(nVeh-2));
         elseif (mode == 2 || mode2 == 2) && nVeh > 1
@@ -61,6 +62,8 @@ function scenario = commonroad(options,vehid,mVehid,m2Vehid,is_sim_lab)
         else
             scenario.adjacency = zeros(nVeh,nVeh);
         end
+        %}
+        scenario.adjacency = zeros(nVeh,nVeh);
         scenario.assignPrios = true;
         scenario.controller_name = strcat(scenario.controller_name, '-PB');
         scenario.controller = @(s,i) pb_controller(s,i);

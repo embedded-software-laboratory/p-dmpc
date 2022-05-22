@@ -14,7 +14,7 @@ classdef ExpertMode
     end
 
     methods
-        function modeHandler = ExpertMode(exp, scenario, inputData, steeringWheel)
+        function modeHandler = ExpertMode(exp, scenario, inputData, steeringWheel, vehicle_id)
             modeHandler.axes = inputData.axes;
             modeHandler.buttons = inputData.buttons;
 
@@ -26,13 +26,13 @@ classdef ExpertMode
                 modeHandler.rightPaddle = modeHandler.buttons(5);
             else
                 modeHandler.steering = modeHandler.axes(1);
-                modeHandler.throttle = (-1) * modeHandler.axes(3);
-                modeHandler.brake = (-1) * modeHandler.axes(6);
+                modeHandler.throttle = (-1) * modeHandler.axes(6);
+                modeHandler.brake = (-1) * modeHandler.axes(3);
                 modeHandler.leftPaddle = modeHandler.buttons(5);
                 modeHandler.rightPaddle = modeHandler.buttons(6);
             end
 
-            exp.updateManualControl(modeHandler, scenario);
+            exp.updateManualControl(modeHandler, scenario, vehicle_id);
 
             modeHandler.scenario = scenario;
         end

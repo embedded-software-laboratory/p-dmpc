@@ -123,17 +123,21 @@ classdef CPMLab < InterfaceExperiment
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
 
+            %{
             if (obj.scenario.options.firstManualVehicleMode == 2) || (obj.scenario.options.secondManualVehicleMode == 2)
-                obj.sample.state_list = fliplr(obj.sample.state_list);
+                %obj.sample.state_list = fliplr(obj.sample.state_list);
                 for i = 1:length(obj.sample.state_list)
                     if (obj.sample.state_list(i).vehicle_id == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
                             || (obj.sample.state_list(i).vehicle_id == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2)
-                        obj.sample.state_list(i) = [];
+                        %obj.sample.state_list(i) = [];
+                        delete_index = i;
                         %break
                     end
                 end
-                obj.sample.state_list = fliplr(obj.sample.state_list);
+                %obj.sample.state_list = fliplr(obj.sample.state_list);
+                obj.sample.state_list(delete_index) = [];
             end
+            %}
             
             % for first iteration use real poses
             if obj.controller_init == false
@@ -222,37 +226,47 @@ classdef CPMLab < InterfaceExperiment
                     obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
                 end
                 
-                vehicle_command_trajectory = VehicleCommandTrajectory;
-                vehicle_command_trajectory.vehicle_id = uint8(obj.vehicle_ids(iVeh));
-                vehicle_command_trajectory.trajectory_points = trajectory_points;
-                vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
-                    uint64(obj.sample(end).t_now);
-                vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
-                    uint64(obj.sample(end).t_now + obj.dt_period_nanos);
+                if (is_manual_vehicle)
+                    vehicle_command_trajectory = VehicleCommandTrajectory;
+                    vehicle_command_trajectory.vehicle_id = uint8(obj.vehicle_ids(iVeh));
+                    vehicle_command_trajectory.trajectory_points = [];
+                    vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
+                        uint64(obj.sample(end).t_now);
+                    vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
+                        uint64(obj.sample(end).t_now + obj.dt_period_nanos);
+                else
+                    vehicle_command_trajectory = VehicleCommandTrajectory;
+                    vehicle_command_trajectory.vehicle_id = uint8(obj.vehicle_ids(iVeh));
+                    vehicle_command_trajectory.trajectory_points = trajectory_points;
+                    vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
+                        uint64(obj.sample(end).t_now);
+                    vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
+                        uint64(obj.sample(end).t_now + obj.dt_period_nanos);
 
-                vehicle_command_trajectory.vehicle_lane_change = uint8(0);
-                if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
-                    if scenario.updated_manual_vehicle_path || obj.visualize_manual_lane_change_counter > 0
-                        vehicle_command_trajectory.vehicle_lane_change = uint8(1);
+                    vehicle_command_trajectory.vehicle_lane_change = uint8(0);
+                    if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
+                        if scenario.updated_manual_vehicle_path || obj.visualize_manual_lane_change_counter > 0
+                            vehicle_command_trajectory.vehicle_lane_change = uint8(1);
 
-                        if obj.visualize_manual_lane_change_counter == 0
-                            obj.visualize_manual_lane_change_counter = 4;
-                        else
-                            obj.visualize_manual_lane_change_counter = obj.visualize_manual_lane_change_counter - 1;
+                            if obj.visualize_manual_lane_change_counter == 0
+                                obj.visualize_manual_lane_change_counter = 4;
+                            else
+                                obj.visualize_manual_lane_change_counter = obj.visualize_manual_lane_change_counter - 1;
+                            end
                         end
-                    end
-                elseif (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id)
-                    if scenario.updated_second_manual_vehicle_path || obj.visualize_second_manual_lane_change_counter > 0
-                        vehicle_command_trajectory.vehicle_lane_change = uint8(1);
+                    elseif (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id)
+                        if scenario.updated_second_manual_vehicle_path || obj.visualize_second_manual_lane_change_counter > 0
+                            vehicle_command_trajectory.vehicle_lane_change = uint8(1);
 
-                        if obj.visualize_second_manual_lane_change_counter == 0
-                            obj.visualize_second_manual_lane_change_counter = 4;
-                        else
-                            obj.visualize_second_manual_lane_change_counter = obj.visualize_second_manual_lane_change_counter - 1;
+                            if obj.visualize_second_manual_lane_change_counter == 0
+                                obj.visualize_second_manual_lane_change_counter = 4;
+                            else
+                                obj.visualize_second_manual_lane_change_counter = obj.visualize_second_manual_lane_change_counter - 1;
+                            end
                         end
                     end
                 end
-                
+
                 obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
 
                 %{
@@ -290,7 +304,7 @@ classdef CPMLab < InterfaceExperiment
             end
         end
 
-        function updateManualControl(obj, modeHandler, scenario)
+        function updateManualControl(obj, modeHandler, scenario, vehicle_id)
             dt_max_comm_delay = uint64(100e6);
             if obj.dt_period_nanos >= dt_max_comm_delay
                 dt_valid_after = obj.dt_period_nanos;
@@ -299,7 +313,7 @@ classdef CPMLab < InterfaceExperiment
             end
 
             vehicle_command_direct = VehicleCommandDirect;
-            vehicle_command_direct.vehicle_id = uint8(scenario.manual_vehicle_id);
+            vehicle_command_direct.vehicle_id = uint8(vehicle_id);
 
             throttle = 0;
             if modeHandler.throttle >= 0
@@ -311,9 +325,9 @@ classdef CPMLab < InterfaceExperiment
             vehicle_command_direct.motor_throttle = double(throttle);
             vehicle_command_direct.steering_servo = double(modeHandler.steering);
             vehicle_command_direct.header.create_stamp.nanoseconds = ...
-                uint64(obj.sample.t_now);
+                uint64(obj.sample(end).t_now);
             vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-                uint64(obj.sample.t_now+dt_valid_after);
+                uint64(obj.sample(end).t_now+dt_valid_after);
             obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
         end
         

@@ -143,7 +143,7 @@ labOptions.visu = visualization{...
     3};
 
 % visualization + node exploration only allowed for centralized controller
-if labOptions.isPB == 2 && visualizationSelection == 'visualization + node exploration'
+if labOptions.isPB == 2 && strcmp(visualizationSelection, 'visualization + node exploration')
     labOptions.visu = visualization{2,3};
 end
 
@@ -171,17 +171,17 @@ end
 
 function out = get_first_manual_vehicle_selection(ui)
     % true if no manual vehicle selected
-    out = ui.FirstManualVehicleMVIDListBox.Value == 'No MV';
+    out = strcmp(ui.FirstManualVehicleMVIDListBox.Value, 'No MV');
 end
 
 function out = get_second_manual_vehicle_selection(ui)
     % true if no second manual vehicle selected
-    out = ui.SecondMVIDListBox.Value == 'No second MV';
+    out = strcmp(ui.SecondMVIDListBox.Value, 'No second MV');
 end
 
 function out = get_pb_non_coop_selection(ui)
     % true if pb_non-coop lab selected
-    out = ui.ControlStrategyListBox.Value == 'pb non-coop';
+    out = strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop');
 end
 
 function setCpmLabElementsVisibility(ui)

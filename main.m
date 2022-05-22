@@ -77,6 +77,7 @@ scenario.second_manual_vehicle_id = manualVehicle_id2;
 scenario.vehicle_ids = vehicle_ids;
 scenario.options = options;
 
+%{
 if scenario.options.firstManualVehicleMode == 2
     % delete first manual vehicle from scenario if it is in Expert Mode
     for iVeh=1:scenario.nVeh
@@ -106,7 +107,7 @@ if scenario.options.secondManualVehicleMode == 2
     scenario.vehicle_ids(delete_index) = [];
     vehicle_ids(delete_index) = [];
 end
-
+%}
 
 if is_sim_lab
     exp = SimLab(scenario, options);
@@ -165,7 +166,7 @@ while (~got_stop)
                     
                 elseif scenario.options.firstManualVehicleMode == 2
                     % classify steering angle into intervals and send according steering command
-                    modeHandler = ExpertMode(exp, scenario, wheelData, true);
+                    modeHandler = ExpertMode(exp, scenario, wheelData, true, scenario.manual_vehicle_id);
                 end
             end
 
@@ -182,7 +183,7 @@ while (~got_stop)
                     
                 elseif scenario.options.secondManualVehicleMode == 2
                     % classify steering angle into intervals and send according steering command
-                    modeHandler = ExpertMode(exp, scenario, gamepadData, false);
+                    modeHandler = ExpertMode(exp, scenario, gamepadData, false, scenario.second_manual_vehicle_id);
                 end
             end
         end
