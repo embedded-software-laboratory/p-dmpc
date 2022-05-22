@@ -19,6 +19,7 @@ function iter = filter_iter(iter, vehicle_filter)
     iter.trim_indices = iter.trim_indices(vehicle_filter);
     iter.vRef = iter.vRef(vehicle_filter,:);
     iter.referenceTrajectoryPoints = iter.referenceTrajectoryPoints(vehicle_filter,:,:);
+    iter.referenceTrajectoryIndex = iter.referenceTrajectoryIndex(vehicle_filter,:,:);
 
     % Information from previous time step extract
     if ~isempty(fieldnames(iter.info_prev))

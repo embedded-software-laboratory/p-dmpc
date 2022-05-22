@@ -13,7 +13,7 @@ switch scenario.priority_option
     case 'right_of_way_priority'
         obj = right_of_way_priority(scenario,iter);
         right_of_way = true;
-        [veh_at_intersection, groups, edge_to_break] = obj.priority();  
+        [veh_at_intersection, groups, edge_to_break, coupling_indicators] = obj.priority_version2();  
     case 'constant_priority'
         obj = constant_priority(scenario);
         groups = obj.priority(); 

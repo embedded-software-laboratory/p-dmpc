@@ -1,4 +1,4 @@
-function scenario = intersection_scenario(isPB)
+function scenario = intersection_scenario(options)
 % LANELET_SCENARIO4   Constructor for scenario with four vehicles at an
 % intersection driving straight using parallel computation
     c = 0.2;
@@ -70,8 +70,11 @@ function scenario = intersection_scenario(isPB)
     scenario.T_end = 10;
    
     nVeh_mpa = scenario.nVeh;
+
+    scenario.name = options.scenario;
+    scenario.priority_option = options.priority;
     
-    if isPB
+    if options.isPB
        scenario.adjacency = coupling_adjacency_lanelets(scenario.vehicle_to_lanelet, collision);
        scenario.assignPrios = true;
        scenario.controller_name = strcat(scenario.controller_name, '-PB');

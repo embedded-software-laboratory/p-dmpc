@@ -110,10 +110,8 @@ while (~got_stop)
             iter.info_prev = info_prev;
         end
 
-        % group info
-        scenario.groups_info = group_and_prioritize_vehicles(scenario, iter);
-
-%         groups = group_and_prioritize_vehicles(scenario.adjacency);
+        % group info 
+%         scenario.groups_info = group_and_prioritize_vehicles(scenario, iter);
         
         % update the boundary information of each vehicle
         if strcmp(scenario.name, 'Commonroad')
@@ -144,7 +142,7 @@ while (~got_stop)
         
         
         % The controller computes plans
-        controller_timer = tic;
+        controller_timer = tic; 
             [u, y_pred, info] = scenario.controller(scenario_tmp, iter);
         scenario.last_veh_at_intersection = info.veh_at_intersection;
         result.controller_runtime(k) = toc(controller_timer);

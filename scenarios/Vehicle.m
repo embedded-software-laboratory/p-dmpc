@@ -18,7 +18,7 @@ classdef Vehicle
         lanelets_index;
         predicted_lanelets;
         points_index;
-        lanelet_boundary; % left and right boundaries of each lanelet
+        lanelet_boundary; % left and right boundaries of predicted lanelets
     end
     
     methods
