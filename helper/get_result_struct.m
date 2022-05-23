@@ -11,9 +11,9 @@ function result = get_result_struct(scenario)
     result.controller_runtime = zeros(0,1);
     result.step_time = zeros(0,1);
     result.n_expanded = zeros(0,1);
-    result.subcontroller_runtime_all_grps = cell(0,1);
-    result.subcontroller_runtime_max = zeros(0,1);
-    result.belonging_vector = cell(0,1);
+    result.subcontroller_runtime_all_grps = cell(0,1); % subcontroller run time of all parallel groups
+    result.subcontroller_run_time_total = zeros(0,1); % subcontroller total run time
+    result.belonging_vector = cell(0,1); % belonging vector indicates to which groups one vehicle belongs
     
     % create output directory
     directory_name = strrep(strcat(result.scenario.name, '_', result.scenario.controller_name),' ','_');
