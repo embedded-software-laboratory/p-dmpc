@@ -134,7 +134,7 @@ function scenario = get_coupling_infos(scenario, iter)
                                 emergency_braking_distance = get_emergency_braking_distance(scenario.mpa, cur_trim_leader, scenario.dt);
 
                                 % project the leader's position to its lanelet and form a new lanelet which starts with the projected point 
-                                [~, ~, lanelet_new, ~] = get_projected_point_on_curve(position_leader(1),position_leader(2),lanelet_x_leader,lanelet_y_leader);
+                                [~, ~, lanelet_new, ~] = project_to_curve(position_leader(1),position_leader(2),lanelet_x_leader,lanelet_y_leader);
 
                                 point_idx = 0;
                                 % get the stopping point on the path
@@ -226,8 +226,8 @@ function scenario = get_coupling_infos(scenario, iter)
                             end
 
                             % calculate the arc length from the vehicle's current position to the collision point
-                            [~, ~, ~, distance_to_collision_i] = get_projected_point_on_curve(position_i(1), position_i(2), curve_x_i, curve_y_i);
-                            [~, ~, ~, distance_to_collision_j] = get_projected_point_on_curve(position_j(1), position_j(2), curve_x_j, curve_y_j);
+                            [~, ~, ~, distance_to_collision_i] = project_to_curve(position_i(1), position_i(2), curve_x_i, curve_y_i);
+                            [~, ~, ~, distance_to_collision_j] = project_to_curve(position_j(1), position_j(2), curve_x_j, curve_y_j);
 
                             time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa,cur_trim_j,distance_to_collision_i,scenario.dt);
                             time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa,cur_trim_j,distance_to_collision_j,scenario.dt);
