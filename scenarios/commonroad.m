@@ -5,14 +5,15 @@ function scenario = commonroad(vehicle_ids,options)
     scenario.name = 'Commonroad';
     scenario.trim_set = 12;
     scenario.dt = 0.2;
-    [scenario.lanelet_coordinates, scenario.adjacency_lanelets, scenario.semi_adjacency_lanelets,...
-        scenario.intersection_lanelets, scenario.lanelet_boundaries, scenario.road_raw_data, scenario.lanelet_relationships] = get_road_data();
+    [scenario.lanelets, scenario.adjacency_lanelets, scenario.semi_adjacency_lanelets,...
+        scenario.intersection_lanelets, scenario.lanelet_boundary, scenario.road_raw_data, scenario.lanelet_relationships] = get_road_data();
     nVeh = options.amount;
     for iveh = 1:nVeh
         
         veh = Vehicle();
+        veh.ID = vehicle_ids(iveh); % vehicle ID
         veh.trim_config = 1;
-        ref_path = generate_ref_path(vehicle_ids(iveh));% function to generate refpath based on CPM Lab road geometry
+        ref_path = generate_ref_path(veh.ID);% function to generate refpath based on CPM Lab road geometry
         refPath = ref_path.path;
         veh.x_start = refPath(1,1);
         veh.y_start = refPath(1,2);
@@ -26,8 +27,7 @@ function scenario = commonroad(vehicle_ids,options)
 
         yaw = calculate_yaw(refPath);
         veh.yaw_start = yaw(1);
-        veh.yaw_goal = yaw(2:end); 
-        veh.ID = iveh; % vehicle ID
+        veh.yaw_goal = yaw(2:end);
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
