@@ -165,8 +165,8 @@ while (~got_stop)
         result.step_time(k) = toc(result.step_timer);
         if options.isParl
             result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
-            result.subcontroller_runtime_max(k) = max(cellfun(@(c) max(c), result.subcontroller_runtime_all_grps)); % maximum subcontroller run time among all parallel groups
-            result.parl_groups_infos{k} = info.parl_groups_infos;
+            result.subcontroller_runtime_max(k) = max(result.subcontroller_runtime_all_grps{k}); % maximum subcontroller run time among all parallel groups
+            result.belonging_vector{k} = info.belonging_vector;
         end
        
         % Apply control action
