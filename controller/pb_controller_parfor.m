@@ -74,7 +74,7 @@ function [u, y_pred, info] = pb_controller_parl_backup(scenario, iter)
                 v2o_filter(self_index) = false;
     
                 % add predicted trajecotries as obstacle
-                [scenario_v, iter_v] = vehicles_as_obstacles(scenario_filtered, iter_filtered, v2o_filter, info_shapes_tmp(1:grp_member_idx-1,:));
+                [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered, iter_filtered, v2o_filter, info_shapes_tmp(1:grp_member_idx-1,:));
 %                 scenario_v = scenario_filtered; iter_v = iter_filtered; % without collision avoidance
 %                 scenario_v.dynamic_obstacle_reachableSets = 
                 % execute sub controller for 1-veh scenario
