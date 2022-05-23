@@ -176,7 +176,6 @@ end
             info.predicted_trims(vehicle_i,:) = info_v.predicted_trims; % store the planned trims in the future Hp time steps
             info.trees{vehicle_i} = info_v.tree; % store tree information
             info.y_predicted{vehicle_i,1} = y_pred_v{:}; % store the information of the predicted output
-            info.parl_groups_infos = parl_groups_infos;
             y_pred{vehicle_i,1} = y_pred_v{:};
             u(vehicle_i) = u_v(1);
         end
@@ -234,6 +233,7 @@ end
     % the subcontroller time of the whole system in each time step depends on the maximum subcontroller time used by each parallel group
     max_subcontroller_time = max(subcontroller_time_all_grps);
     info.subcontroller_runtime_all_grps = subcontroller_time_all_grps;
+    info.belonging_vector = belonging_vector;
 end
 
 
