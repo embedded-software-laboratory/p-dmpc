@@ -19,13 +19,14 @@ if is_sim_lab
         case 4
             options = selection(varargin{2},varargin{3},varargin{4},1,1);            
         case 3
-            options = selection(varargin{2},varargin{3},1,1,1);
-        case 2
+            options = selection(varargin{2},varargin{3},1,1,1); 
+        case 2 
             options = selection(varargin{2},2,1,1,1);
         otherwise
             options = selection();
     end
-    vehicle_ids = 1:20;
+%     vehicle_ids = 1:options.amount; % default IDs
+    vehicle_ids = [10,14,16,17,18,20]; % specify vehicles IDs
     
 else
     disp('cpmlab')
@@ -41,20 +42,16 @@ end
 % scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
 
 % plot_reachable_sets_offline(scenario.mpa)
-  
-options.is_single_lane = false; % If true, vehicles are not allowed to switch to the adjacent parallel lane
-
+ 
 switch options.scenario
     case 'Circle_scenario'
-        scenario = circle_scenario(options.amount,options.isPB);
+        scenario = circle_scenario(options);
     case 'Commonroad'
-        scenario = commonroad(options.amount,vehicle_ids,options.isPB,options.is_single_lane);
+        scenario = commonroad(vehicle_ids,options);
     case 'Intersection_scenario'
-        scenario = intersection_scenario(options.isPB);
+        scenario = intersection_scenario(options);
 end
-scenario.name = options.scenario;
-scenario.priority_option = options.priority;
-scenario.is_single_lane = options.is_single_lane; % If true, vehicles are not allowed to switch to the adjacent parallel lane
+
  
 if is_sim_lab
     exp = SimLab(scenario, options);
@@ -66,72 +63,79 @@ end
 %% Setup
 % Initialize
 got_stop = false;
-k = 1;
+k = 0;
 
 % init result struct
 result = get_result_struct(scenario);
 
 exp.setup();
-info_prev = struct;
 
-% Initialize the communication network
-% scenario.communication = communication_init(scenario.vehicles);
-
-% todo: each should calculates the groups information based on received
-% data from other vehicles
 % group_and_prioritize_vehicles(scenario.communication)
 fallback=0;
 
+scenario.k = k;
+
+% turn off warning if intersections are detected and fixed, collinear points or
+% overlapping points are removed when using MATLAB function `polyshape`
+warning('off','MATLAB:polyshape:repairedBySimplify')
+
+if options.isParl
+    % In parallel computation, vehicles communicate via ROS 2
+    % Initialize the communication network of ROS 2
+    scenario = communication_init(scenario, exp);
+end
+
+
 %% Main control loop
 while (~got_stop)
-    
+
     result.step_timer = tic;
+    
+    % increment interation counter
+    k = k+1;
+    
     % Measurement
     % -------------------------------------------------------------------------
-    [ x0, trim_indices ] = exp.measure();% trim_indices： which trim  
+    [x0_measured, trims_measured] = exp.measure();% trim_indices： which trim  
     scenario.k = k;
+
+    disp(['Time step ' num2str(scenario.k) '.'])
 
     try
         % Control
         % ----------------------------------------------------------------------
         
-        % Sample reference trajectory
-        iter = rhc_init(scenario,x0,trim_indices);
+        % Update the iteration data
+        iter = rhc_init(scenario, x0_measured, trims_measured, options); 
         
-        % initial time step
-        if scenario.k == 1
-            % todo Vehicles communicate initial states using ROS
-            % communicate_init_state(scenario);
-        end
-
         % For parallel computation, information from previous time step is need, for example, 
         % the previous fail-safe trajectory is used again if a new fail-safe trajectory cannot be found.
-        if options.isParl
-            iter.info_prev = info_prev;
-        end
-
-        % group info 
-%         scenario.groups_info = group_and_prioritize_vehicles(scenario, iter);
         
-        % update the boundary information of each vehicle
+        % update the coupling information
         if strcmp(scenario.name, 'Commonroad')
-            lanelet_boundary = lanelets_boundary(scenario, iter);
-            for iveh = 1:options.amount
-                scenario.vehicles(1,iveh).lanelet_boundary = lanelet_boundary{1,iveh};
+            % update the lanelet boundary for each vehicle
+            for iVeh = 1:options.amount
+                scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(iVeh,:);
             end
-            % update the coupling information
-            scenario = coupling_adjacency(scenario,iter);
+
+            if options.isParl
+                % update the coupling information
+                scenario = get_coupling_infos(scenario, iter);
+            else
+                % update the coupling information
+                scenario = coupling_adjacency(scenario, iter);
+            end
         end
         
         % calculate the distance
         distance = zeros(options.amount,options.amount);
         adjacency = scenario.adjacency(:,:,end);
 
-        for vehi = 1:options.amount-1
-            adjacent_vehicle = find(adjacency(vehi,:));
-            adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > vehi);
+        for jVeh = 1:options.amount-1
+            adjacent_vehicle = find(adjacency(jVeh,:));
+            adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > jVeh);
             for vehn = adjacent_vehicle
-                distance(vehi,vehn) = check_distance(iter,vehi,vehn);
+                distance(jVeh,vehn) = check_distance(iter,jVeh,vehn);
             end
         end
         result.distance(:,:,k) = distance;
@@ -140,13 +144,11 @@ while (~got_stop)
         scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, k);
         result.iter_runtime(k) = toc(result.step_timer);
         
-        
         % The controller computes plans
         controller_timer = tic; 
             [u, y_pred, info] = scenario.controller(scenario_tmp, iter);
         scenario.last_veh_at_intersection = info.veh_at_intersection;
         result.controller_runtime(k) = toc(controller_timer);
-        info_prev = info; % store information for next time step in case the controller fails to find a new fail-safe trajectory
         result.iteration_structs{k} = iter;
         
         % save controller outputs in result struct
@@ -161,7 +163,12 @@ while (~got_stop)
         result.computation_levels(k) = info.computation_levels;
         result.edges_to_break{k} = info.edge_to_break;
         result.step_time(k) = toc(result.step_timer);
-        
+        if options.isParl
+            result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
+            result.subcontroller_runtime_max(k) = max(cellfun(@(c) max(c), result.subcontroller_runtime_all_grps)); % maximum subcontroller run time among all parallel groups
+            result.parl_groups_infos{k} = info.parl_groups_infos;
+        end
+       
         % Apply control action
         % -------------------------------------------------------------------------
         exp.apply(u, y_pred, info, result, k);
@@ -169,7 +176,7 @@ while (~got_stop)
         fallback_update = 0;
         
     % catch case where graph search could not find a new node
-    catch ME
+     catch ME
         switch ME.identifier
         case 'MATLAB:graph_search:tree_exhausted'
             warning([ME.message, ', ME, fallback to last priority.............']);
@@ -217,12 +224,10 @@ while (~got_stop)
     % -------------------------------------------------------------------------
     got_stop = exp.is_stop() || got_stop;
     
-    % increment interation counter
-    k = k+1;
 end
 %% save results
-result.mpa = scenario.mpa;
-save(fullfile(result.output_path,'data.mat'),'result');
+% result.mpa = scenario.mpa;
+% save(fullfile(result.output_path,'data.mat'),'result');
 % exportVideo( result );
 exp.end_run()
 end
