@@ -118,5 +118,14 @@ end
         end
 
     end
+
+    % calculate the total run time: only one vehicle in each computation level will be counted, this is the one with the maximum run time 
+    subcontroller_run_time_total = 0;
+    for level_i = 1:computation_levels
+        vehs_in_level_i = groups(level_i).members;
+        subcontroller_run_time_total = subcontroller_run_time_total + max(info.subcontroller_runtime(vehs_in_level_i));
+    end
+
+    info.subcontroller_run_time_total = subcontroller_run_time_total;
    
 end

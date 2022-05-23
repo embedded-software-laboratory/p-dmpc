@@ -161,9 +161,9 @@ while (~got_stop)
         result.computation_levels(k) = info.computation_levels;
         result.edges_to_break{k} = info.edge_to_break;
         result.step_time(k) = toc(result.step_timer);
+        result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
         if options.isParl
             result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
-            result.subcontroller_runtime_max(k) = max(result.subcontroller_runtime_all_grps{k}); % maximum subcontroller run time among all parallel groups
             result.belonging_vector{k} = info.belonging_vector;
         end
        
@@ -185,7 +185,7 @@ while (~got_stop)
 
             % fallback to last plan
             controller_timer = tic;
-            [u, y_pred, info] = pb_controller_fallback(scenario, u, y_pred, info);
+            [u, y_pred, info] = pb_controller_fallback(scenario, u, y_pred, info, options);
             result.controller_runtime(k) = toc(controller_timer);
             
             % save controller outputs in result struct
@@ -201,7 +201,11 @@ while (~got_stop)
             result.edges_to_break{k} = info.edge_to_break;
             result.step_time(k) = toc(result.step_timer);
             result.fallback = fallback;
-
+            if options.isParl
+                result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
+                result.subcontroller_runtime_max(k) = max(result.subcontroller_runtime_all_grps{k}); % maximum subcontroller run time among all parallel groups
+                result.belonging_vector{k} = info.belonging_vector;
+            end
             % Apply control action
             % -------------------------------------------------------------------------
             exp.apply(u, y_pred, info, result, k); 
@@ -224,8 +228,8 @@ while (~got_stop)
     
 end
 %% save results
-% result.mpa = scenario.mpa;
-% save(fullfile(result.output_path,'data.mat'),'result');
+result.mpa = scenario.mpa;
+save(fullfile(result.output_path,'data.mat'),'result');
 % exportVideo( result );
 exp.end_run()
 end
