@@ -22,7 +22,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, options)
     iter.x0 = x_measured;
 
     for iVeh = 1:nVeh
-        if options.isParl
+        if options.isParl && strcmp(scenario.name, 'Commonroad')
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
             latest_message_i = scenario.ros_subscribers{iVeh}.LatestMessage;
@@ -48,33 +48,36 @@ function iter = rhc_init(scenario, x_measured, trims_measured, options)
     
         iter.referenceTrajectoryPoints(iVeh,:,:) = reference.ReferencePoints;
         iter.referenceTrajectoryIndex(iVeh,:,:) = reference.ReferenceIndex;
+        
+        if strcmp(scenario.name, 'Commonroad')
+            % Get the predicted lanelets of other vehicles
+            if options.isParl
+                % from received messages if parallel computation is used 
+                latest_message_i = scenario.ros_subscribers{iVeh}.LatestMessage;
+                predicted_lanelets= latest_message_i.predicted_lanelets(:)'; % make row vector
+            else
+                % otherwise, calculate the predicted lanelets for others
+                ref_points_index = reshape(iter.referenceTrajectoryIndex(iVeh,:,:),Hp,1);
+                predicted_lanelets = get_predicted_lanelets(scenario.vehicles(iVeh), ref_points_index, scenario.road_raw_data.lanelet);
+            end
+            iter.predicted_lanelets{iVeh} = predicted_lanelets;
+        
 
-        % Get the predicted lanelets of other vehicles
-        if options.isParl
-            % from received messages if parallel computation is used 
-            latest_message_i = scenario.ros_subscribers{iVeh}.LatestMessage;
-            predicted_lanelets= latest_message_i.predicted_lanelets(:)'; % make row vector
-        else
-            % otherwise, calculate the predicted lanelets for others
-            ref_points_index = reshape(iter.referenceTrajectoryIndex(iVeh,:,:),Hp,1);
-            predicted_lanelets = get_predicted_lanelets(scenario.vehicles(iVeh), ref_points_index, scenario.road_raw_data.lanelet);
-        end
-        iter.predicted_lanelets{iVeh} = predicted_lanelets;
-
-        % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
-        predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary);
-        iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
-
-        if options.isParl
-            % Calculate reachable sets of other vehicles based on their
-            % current states and trims. Reachability analysis will be
-            % widely used in the parallel computation.
-            x0 = iter.x0(iVeh, idx.x);
-            y0 = iter.x0(iVeh, idx.y);
-            yaw0 = iter.x0(iVeh, idx.heading);
-            trim_current = iter.trim_indices(iVeh);
-            local_reachable_sets = scenario.mpa.local_reachable_sets;
-            iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, trim_current, local_reachable_sets, predicted_lanelet_boundary);
+            % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
+            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary);
+            iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
+    
+            if options.isParl
+                % Calculate reachable sets of other vehicles based on their
+                % current states and trims. Reachability analysis will be
+                % widely used in the parallel computation.
+                x0 = iter.x0(iVeh, idx.x);
+                y0 = iter.x0(iVeh, idx.y);
+                yaw0 = iter.x0(iVeh, idx.heading);
+                trim_current = iter.trim_indices(iVeh);
+                local_reachable_sets = scenario.mpa.local_reachable_sets;
+                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, trim_current, local_reachable_sets, predicted_lanelet_boundary);
+            end
         end
     end
    
