@@ -69,6 +69,9 @@ end
         for grp_member_idx = 1:length(group.members) 
             subcontroller_timer = tic;
             vehicle_idx = group.members(grp_member_idx);
+%             if vehicle_idx==6
+%                 disp('debug')
+%             end
             % Filter out vehicles that are not adjacent
             veh_adjacent = find(scenario.adjacency(vehicle_idx,:,end));
             predecessors = intersect(group.predecessors,veh_adjacent);
@@ -85,26 +88,16 @@ end
             v2o_filter = true(1,scenario_filtered.nVeh);
             v2o_filter(self_index) = false;
 
-            % add predicted trajecotries as obstacle
-            [scenario_v, iter_v] = vehicles_as_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(predecessors,:));
+            % add predicted trajecotries of vehicles with higher priority as dynamic obstacle
+            [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(predecessors,:));
 
             
             % add adjacent vehicles with lower priorities as static obstacles
             if right_of_way
                 adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
-
-                for i = 1:length(adjacent_vehicle_lower_priority)
-                    veh_index = adjacent_vehicle_lower_priority(i);
-                    x0 = iter.x0(veh_index,1);
-                    y0 = iter.x0(veh_index,2);
-                    yaw0 = iter.x0(veh_index,3);
-                    veh = Vehicle();
-                    x_locals = [-1, -1,  1,  1] * (veh.Length/2+scenario.offset);
-                    y_locals = [-1,  1,  1, -1] * (veh.Width/2+scenario.offset);
-                    [x_globals,y_globals] = translate_global(yaw0, x0, y0, x_locals, y_locals);
-                    scenario_v.obstacles{end+1} = [x_globals;y_globals];
-                end
-           end
+                scenario_v = vehicles_as_static_obstacles(scenario_v,iter,adjacent_vehicle_lower_priority);
+            end
+            
             % execute sub controller for 1-veh scenario
             [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
             
@@ -117,6 +110,9 @@ end
             info.shapes(vehicle_idx,:) = info_v.shapes(:);
             info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario.mpa);
             info.trim_indices(vehicle_idx) = info_v.trim_indices;
+            info.predicted_trims(vehicle_idx,:) = info_v.predicted_trims; % store the planned trims in the future Hp time steps
+            info.trees{vehicle_idx} = info_v.tree; % store tree information
+            info.y_predicted{vehicle_idx,1} = y_pred_v{:}; % store the information of the predicted output
             y_pred{vehicle_idx,1} = y_pred_v{:};
             u(vehicle_idx) = u_v(1);
         end

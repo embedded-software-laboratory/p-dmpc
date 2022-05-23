@@ -1,7 +1,7 @@
-function [scenario_v, iter_v] = vehicles_as_obstacles(scenario, iter, vehicle_filter, shapes)
+function [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario, iter, vehicle_filter, shapes)
 % VEHICLES_AS_OBSTACLES     This function converts a scenario representation based on the scenario
 %                           and iter structs into a different scenario, in which the selected
-%                           vehicles are represented as obstacles along their predicted path
+%                           vehicles are represented as dynamic obstacles along their predicted path
 
     assert( size(shapes,1) == scenario.nVeh-1 )
     assert( length(vehicle_filter) == scenario.nVeh );
@@ -10,12 +10,12 @@ function [scenario_v, iter_v] = vehicles_as_obstacles(scenario, iter, vehicle_fi
     scenario_v = filter_scenario(scenario, ~vehicle_filter);
     iter_v = filter_iter(iter, ~vehicle_filter);
     
-    nDynObst = size(scenario_v.dynamic_obstacle_area, 1);
-    
-    scenario_v.dynamic_obstacle_area = [scenario_v.dynamic_obstacle_area; cell(sum(vehicle_filter),scenario.Hp)];
+%     nDynObst = size(scenario_v.dynamic_obstacle_area, 1);
+%     
+%     scenario_v.dynamic_obstacle_area = [scenario_v.dynamic_obstacle_area; cell(sum(vehicle_filter),scenario.Hp)];
 
     for iVeh = 1:sum( vehicle_filter )
-        scenario_v.dynamic_obstacle_area(nDynObst+iVeh,:) = shapes(iVeh,:);
+        scenario_v.dynamic_obstacle_area(end+1,:) = shapes(iVeh,:);
     end
 
 end

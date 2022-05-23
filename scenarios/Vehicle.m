@@ -14,16 +14,16 @@ classdef Vehicle
         Width               = 0.1;   % Vehicle width [m]
         Lf                  = 0.1;   % Distance between vehicle center and front axle center [m]
         Lr                  = 0.1;   % Distance between vehicle center and rear axle center [m]
-        lanelets_index
-        predicted_lanelets
-        points_index
-        lanelet_boundary
+        ID                  = -1;    % vehicle ID (should be positive integer)
+        lanelets_index;
+        points_index;
+        lanelet_boundary;                   % left and right boundaries of predicted lanelets
+        communicate;                        % instance of the class `Communication`, used for communication via ROS 2
     end
     
     methods
         function obj = Vehicle()
-            %UNTITLED2 Construct an instance of this class
-            %   Detailed explanation goes here
+
         end
         
         function plot(obj, color)

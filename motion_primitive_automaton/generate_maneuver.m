@@ -59,6 +59,8 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
     end
     
     maneuver.area = maneuver_area;
+%     % convert the occupied area to polyshape objective
+%     maneuver.areaPoly = polyshape(maneuver_area(1,:),maneuver_area(2,:));
     
     
     x_rec1_without_offset = [-1, -1,  1,  1] * (veh.Length/2);

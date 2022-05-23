@@ -1,11 +1,13 @@
-function scenario = circle_scenario(nVeh,isPB)
+function scenario = circle_scenario(options)
 % CIRCLE_SCENARIO   Constructor for scenario with vehicles circular arranged heading to the center of the circle.
     
     scenario = Scenario();
     
     radius = 2;
+    nVeh = options.amount;
     yaws = pi*2/nVeh*(0:nVeh-1);
-    for yaw = yaws
+    for iVeh = 1:nVeh
+        yaw = yaws(iVeh);
         s = sin(yaw);
         c = cos(yaw);
         veh = Vehicle();
@@ -28,6 +30,7 @@ function scenario = circle_scenario(nVeh,isPB)
 
         veh.referenceTrajectory = [veh.x_start veh.y_start
                                    veh.x_goal  veh.y_goal];
+        veh.ID = iVeh;
 
         scenario.vehicles = [scenario.vehicles, veh];
     end
@@ -42,10 +45,13 @@ function scenario = circle_scenario(nVeh,isPB)
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
 
     scenario.T_end = 6;
+
+    scenario.name = options.scenario;
+    scenario.priority_option = options.priority;
    
     nVeh_mpa = scenario.nVeh;
     
-    if isPB
+    if options.isPB
         % undirected coupling adjacency is complete
         scenario.adjacency = ones(nVeh,nVeh);
        if scenario.assignPrios

@@ -16,6 +16,20 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
 %     commonroad_data = readstruct('LabMapCommonRoad_Update.xml');
 %     save('commonroad_data.mat','commonroad_data')
     
+
+    %% path of the road data
+    [file_path,name,ext] = fileparts(mfilename('fullpath'));
+    folder_target = [file_path,filesep,'offline_road_data'];
+    road_name = 'commonroad_lanelets.mat';
+    road_full_path = [folder_target,filesep,road_name];
+
+    % if the needed road data alread exist, simply load it, otherwise
+    % they will be calculated and saved.
+    if isfile(road_full_path)
+        load(road_full_path,'lanelets','adjacency','semi_adjacency','intersection_lanelets', 'commonroad','lanelet_boundary');
+        return
+    end
+
     %% commonroad data
     load('commonroad_data.mat');
     commonroad = commonroad_data;
@@ -140,30 +154,6 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
     semi_adjacency = adj + adj' + eye(Nlanelets, Nlanelets); % same lanelet is always adjacent
     semi_adjacency = (semi_adjacency > 0);
     
-  
-    %% intersection_lanelets   
-    
-    % check the lanelets at intersection and assign them to be adjacent
-    Nintersections = length(commonroad_data.intersection); 
-    for i = 1:Nintersections
-        intersection_lanelets = [];
-        for n = 1:length(commonroad_data.intersection(i).incoming)
-            intersection_lanelets = [intersection_lanelets,horzcat(commonroad_data.intersection(i).incoming(n).successorsRight.refAttribute)];
-            intersection_lanelets = [intersection_lanelets,horzcat(commonroad_data.intersection(i).incoming(n).successorsLeft.refAttribute)];
-            intersection_lanelets = [intersection_lanelets,horzcat(commonroad_data.intersection(i).incoming(n).successorsStraight.refAttribute)];            
-        end
-%         disp(intersection_lanelets)
-        for k =1:length(intersection_lanelets)
-            for l = length(intersection_lanelets) : -1 : k+1
-                adj(intersection_lanelets(k),intersection_lanelets(l)) = 1;
-            end
-        end      
-    end
-
-    adjacency = adj + adj' + eye(Nlanelets, Nlanelets); % same lanelet is always adjacent
-    adjacency = (adjacency>0);
-    
-
     %% lanelets boundary
     lanelet_boundary = cell(1,Nlanelets);
     for lanelet = 1:Nlanelets
@@ -300,8 +290,53 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
         right_bound_y = lanelets{ 101 }(:,LaneletInfo.ry);
         right_bound = [right_bound_x(1:end),right_bound_y(1:end)]; 
         lanelet_boundary{lanelet} = {left_bound,right_bound};
-    end   
+    end
     
+    % convert boundary to polygon
+    n_sample = 4; % sampling to reduce polygon's sides to save computation time in later calculations
+    for iLanelet=1:Nlanelets
+        left_bound_sampled = sample_evenly(lanelet_boundary{iLanelet}{1,1},n_sample,1);
+        right_bound_sampled = sample_evenly(lanelet_boundary{iLanelet}{1,2},n_sample,1);
+        bound_sampled = [left_bound_sampled;right_bound_sampled(end:-1:1,:)];
+        lanelet_boundary{iLanelet}{end+1} = polyshape(bound_sampled);
+    end
+
+    %% intersection_lanelets   
+    
+    % check the lanelets at intersection and assign them to be adjacent
+    Nintersections = length(commonroad_data.intersection); 
+    shrink_fac = 0.85; % shrink factor to avoid two lanelets being considered as overlapping if they only share one same side
+    for i = 1:Nintersections
+        intersection_lanelets = [];
+        for n = 1:length(commonroad_data.intersection(i).incoming)
+            intersection_lanelets = [intersection_lanelets,horzcat(commonroad_data.intersection(i).incoming(n).successorsRight.refAttribute)];
+            intersection_lanelets = [intersection_lanelets,horzcat(commonroad_data.intersection(i).incoming(n).successorsLeft.refAttribute)];
+            intersection_lanelets = [intersection_lanelets,horzcat(commonroad_data.intersection(i).incoming(n).successorsStraight.refAttribute)];            
+        end
+%         disp(intersection_lanelets)
+        for k =1:length(intersection_lanelets)
+            kIntersection = intersection_lanelets(k);
+            for l = length(intersection_lanelets) : -1 : k+1
+                lIntersection = intersection_lanelets(l);
+                kBoundary = lanelet_boundary{1,kIntersection}{1,3}.Vertices;
+                kBoundary_shrink = shrink_fac*(kBoundary-mean(kBoundary)) + mean(kBoundary);
+                lBoundary = lanelet_boundary{1,lIntersection}{1,3}.Vertices;
+                lBoundary_shrink = shrink_fac*(lBoundary-mean(lBoundary)) + mean(lBoundary);
+                if overlaps(polyshape(kBoundary_shrink),polyshape(lBoundary_shrink)) % check if two lanelets at intersection have overlapping boundaries
+                    adj(kIntersection,lIntersection) = 1;
+                end
+            end
+        end
+
+    end
+
+    adjacency = adj + adj' + eye(Nlanelets, Nlanelets); % same lanelet is always adjacent
+    adjacency = (adjacency>0);
+    
+    %% save all the road data offline
+    save(road_full_path,...
+        'lanelets','adjacency','semi_adjacency','intersection_lanelets', 'commonroad','lanelet_boundary',...
+        '-mat')
 end
 
 

@@ -79,28 +79,39 @@ function plotOnline(result,step_idx,tick_now,exploration)
                 ,vehColor(v)...
                 ,'LineWidth', 1 ...
         );
-%         % plot the priority
+        % plot the priority
 %         text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1);
 %         
-%         % plot the vehicle index
-%         text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 12, 'LineWidth',1,'Color','m');
+        % plot the vehicle index
+        text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 16, 'LineWidth',1,'Color','m');
 % 
-%         % plot scenario adjacency
-%         adj = cell(nVeh,nVeh);
-%         adjacent_vehicles = find(scenario.adjacency(v,:,end));
-%         adjacent_vehicles = adjacent_vehicles(adjacent_vehicles>v);
-%         for adj_v = adjacent_vehicles
-%             
-%             adj_pos_step = result.vehicle_path_fullres{adj_v,end};
-%             adj_x = adj_pos_step(tick_now,:);
-%             % plot adjacency
-%             adj{v,adj_v}=line([x(1),adj_x(1)],[x(2),adj_x(2)],'LineWidth',1, 'Color','r');
-%             
-%             % plot distance
+        % plot scenario adjacency
+        adj = cell(nVeh,nVeh);
+        adjacent_vehicles = find(scenario.adjacency(v,:,end));
+        adjacent_vehicles = adjacent_vehicles(adjacent_vehicles>v);
+        for adj_v = adjacent_vehicles
+            
+            adj_pos_step = result.vehicle_path_fullres{adj_v,end};
+            adj_x = adj_pos_step(tick_now,:);
+            % plot adjacency
+            coupling_line_options.LineWidth = 1;
+            if ~isempty(result.belonging_vector) && result.belonging_vector{step_idx}(v) ~= result.belonging_vector{step_idx}(adj_v)
+                % if there are parallel groups, couplings inside a group
+                % will be shown in red lines, while couplings between
+                % groups will be shown in blue dashed lines.
+                coupling_line_options.Color = 'b';
+                coupling_line_options.LineStyle = '--';
+            else
+                coupling_line_options.Color = 'r';
+                coupling_line_options.LineStyle = '-';
+            end
+            adj{v,adj_v}=line([x(1),adj_x(1)],[x(2),adj_x(2)], coupling_line_options);
+            
+            % plot distance
 %             dis{v,adj_v}=text((iter.x0(v,1)+iter.x0(adj_v,1))/2,(iter.x0(v,2)+iter.x0(adj_v,2))/2,...
-%                 num2str(result.distance(v,adj_v,step_idx)),'FontSize', 12, 'LineWidth',1,'Color','b');
+%                 num2str(round(result.distance(v,adj_v,step_idx),2)),'FontSize', 12, 'LineWidth',1,'Color','b');
  
-%         end
+        end
      
     end
     

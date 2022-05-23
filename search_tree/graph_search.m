@@ -44,6 +44,9 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             u = zeros(scenario.nVeh);
             info.shapes = return_path_area(shapes_tmp, info.tree, cur_node_id);
             info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
+            % Predicted trims in the future Hp time steps. The first
+            % entry is the current trims
+            info.predicted_trims = info.tree.trim(:,info.tree_path); 
             info.trim_indices = info.tree.trim(:,info.tree_path(2));
             break
         else

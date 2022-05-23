@@ -38,8 +38,8 @@ function is_leading_vehicle = check_driving_order(scenario,iter, nveh, iveh)
         merging4_end = [scenario.lanelets{32}(end,LaneletInfo.cx),scenario.lanelets{32}(end,LaneletInfo.cy)];
         
 
-        lanelets_index_nveh = scenario.vehicles(1,nveh).predicted_lanelets;       
-        lanelets_index_iveh = scenario.vehicles(1,iveh).predicted_lanelets;
+        lanelets_index_nveh = iter.predicted_lanelets{nveh};       
+        lanelets_index_iveh = iter.predicted_lanelets{iveh};
         
         
         if sum(ismember(lanelets_index_nveh,intersection1))>0 && sum(ismember(lanelets_index_iveh,intersection1))>0
