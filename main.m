@@ -25,8 +25,8 @@ if is_sim_lab
         otherwise
             options = selection();
     end
-%     vehicle_ids = 1:options.amount; % default IDs
-    vehicle_ids = [10,14,16,17,18,20]; % specify vehicles IDs
+    vehicle_ids = 1:options.amount; % default IDs
+%     vehicle_ids = [10,14,16,17,18,20]; % specify vehicles IDs
     
 else
     disp('cpmlab')
