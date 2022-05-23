@@ -1,5 +1,5 @@
 function [data_out] = del_first_rpt_last(data_in)
-%UNTITLED Delete the first column and repeat the last column
+% DEL_FIRST_RPT_LAST Delete the first column and repeat the last column
 % Example:
 %      data_in = [1 2 3;
 %                 4 5 6]

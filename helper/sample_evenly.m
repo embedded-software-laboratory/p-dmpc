@@ -15,11 +15,11 @@ function [array_sampled] = sample_evenly(array,n_sample,dim)
     
     [m,n] = size(array);
     if dim==1
-        ndx = round(linspace(1,m,n_sample));
-        array_sampled = array(ndx,:);
+        indices = round(linspace(1,m,n_sample));
+        array_sampled = array(indices,:);
     else
-        ndx = round(linspace(1,n,n_sample));
-        array_sampled = array(:,ndx);
+        indices = round(linspace(1,n,n_sample));
+        array_sampled = array(:,indices);
     end
 
 end
