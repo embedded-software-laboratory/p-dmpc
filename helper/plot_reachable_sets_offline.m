@@ -32,7 +32,7 @@ function plot_reachable_sets_offline(mpa)
     pos = get(fig,'Position');
     set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
     
-    [file_path,name,ext] = fileparts(mfilename('fullpath')); % get the path of the current file
+    [file_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file
     idcs = strfind(file_path,filesep); % find all positions of '/'
     one_folder_up = file_path(1:idcs(end)-1); % one folder up
     folder_target = [one_folder_up,filesep,'results',filesep,'reachable_sets_offline'];

@@ -1,25 +1,30 @@
-function [reachable_sets, reachable_sets_conv] = reachability_analysis_offline(mpa, Hp)
-%REACHABILITY_ANALYSIS_OFFLINE Calculate all the reachable sets of each
-%                              trim offline for online planning using
-%                              reachaility analysis
-% Params:
-%     mpa:
-%         motion primitive automaton
-%     Hp:
-%         prediction horizon
-% Returns:
-%     reachable_sets: cell [n_trims x Hp]
-%         The union of the reachable sets of each trims
-%     reachable_sets_conv: cell [n_trims x Hp]
-%         The convexified union of the reachable sets of each trims
+function [reachable_sets_local, reachable_sets_conv_local] = reachability_analysis_offline(mpa, Hp)
+% REACHABILITY_ANALYSIS_OFFLINE Calculate local reachable sets starting
+% from a certain trim offline, which lragely accelerates the online
+% reachaility analysis.
+% 
+% INPUT:
+%   mpa: motion primitive automaton
+%   
+%   Hp: prediction horizon
+% 
+% OUTPUT:
+%   reachable_sets_local: cell [n_trims x Hp]. The union of local reachable
+%   sets  
+%     
+%   reachable_sets_conv_local: cell [n_trims x Hp]. The convexified union
+%   of local reachable sets 
     
     threshold_Hp = 5;
     if Hp > threshold_Hp
-        warning(['Computing the reachable sets now...' newline 'Since the prediction horizon is more than ' num2str(threshold_Hp) ', it may take several minutes.'])
+        warning(['Computing the reachable sets now...' newline ...
+            'Since the prediction horizon is ' num2str(Hp) ' (more than ' num2str(threshold_Hp) '), it may take several minutes.' newline ...
+            'Note this only needs to be done once since later they will be saved for offline use.'])
     end
+
     n_trims = numel(mpa.trims);
-    reachable_sets = cell(n_trims,Hp);
-    reachable_sets_conv = cell(n_trims,Hp);
+    reachable_sets_local = cell(n_trims,Hp);
+    reachable_sets_conv_local = cell(n_trims,Hp);
 
     % transform maneuver area to polyshape which is required when using
     % MATLAB function `union`
@@ -100,8 +105,8 @@ function [reachable_sets, reachable_sets_conv] = reachability_analysis_offline(m
                 trimsInfo(i,t).reachable_sets = union(trimsInfo(i,t).reachable_sets,reachable_sets_local{j});
                 trimsInfo(i,t).reachable_sets_conv = convhull(trimsInfo(i,t).reachable_sets);
             end
-            reachable_sets{i,t} = trimsInfo(i,t).reachable_sets;
-            reachable_sets_conv{i,t} = trimsInfo(i,t).reachable_sets_conv;
+            reachable_sets_local{i,t} = trimsInfo(i,t).reachable_sets;
+            reachable_sets_conv_local{i,t} = trimsInfo(i,t).reachable_sets_conv;
         end
     end
 
