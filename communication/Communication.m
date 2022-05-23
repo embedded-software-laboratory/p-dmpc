@@ -3,10 +3,11 @@ classdef Communication
 
     properties
         ros2_node;              % node of ROS 2
-        vehicle_id = -1;        % vehicle ID
+        vehicle_id;             % vehicle ID
         publisher;              % vehicle as publisher to send message
         time_step = int32(0);   % time step
         stored_msgs;            % stored messages
+        msg_to_be_sent;                    % initialize message type
         options;                % options to create publisher and subscriber
     end
     
@@ -25,6 +26,7 @@ classdef Communication
             obj.vehicle_id = vehicle_id;
             node_name = ['/node_',num2str(obj.vehicle_id)];
             obj.ros2_node = ros2node(node_name);
+            obj.msg_to_be_sent = ros2message('veh_msgs/Traffic'); % create ROS 2 message structure
             obj.options = struct("History","keeplast","Depth",40,"Durability","transientlocal");
         end
 
@@ -48,20 +50,16 @@ classdef Communication
             end
         end
 
-        function obj = send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas)
-            % vehicle send its data to its topic
-            
-            % create ROS 2 message structure
-            msg = ros2message('veh_msgs/Traffic');
-
-            msg.time_step = int32(time_step);
-            msg.vehicle_id = int32(obj.vehicle_id);
-            msg.predicted_trims = int32(predicted_trims(:));
-            msg.predicted_lanelets = int32(predicted_lanelets(:));
+        function send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas)
+            % vehicle send message to its topic
+            obj.msg_to_be_sent.time_step = int32(time_step);
+            obj.msg_to_be_sent.vehicle_id = int32(obj.vehicle_id);
+            obj.msg_to_be_sent.predicted_trims = int32(predicted_trims(:));
+            obj.msg_to_be_sent.predicted_lanelets = int32(predicted_lanelets(:));
 
             for i = 1:length(predicted_areas)
-                msg.predicted_areas(i).x = predicted_areas{i}(1,:)';
-                msg.predicted_areas(i).y = predicted_areas{i}(2,:)';
+                obj.msg_to_be_sent.predicted_areas(i).x = predicted_areas{i}(1,:)';
+                obj.msg_to_be_sent.predicted_areas(i).y = predicted_areas{i}(2,:)';
             end     
 
             % comment out if vehicles send their reachable sets to others
@@ -69,10 +67,8 @@ classdef Communication
 %                 msg.reachable_sets(j).x = vehicle.reachable_sets{j}.Vertices(:,1);
 %                 msg.reachable_sets(j).y = vehicle.reachable_sets{j}.Vertices(:,2);
 %             end
-            
-            send(obj.publisher, msg);
 
-            obj.time_step = time_step;
+            send(obj.publisher, obj.msg_to_be_sent);
         end
 
         function obj = get_stored_msgs(obj)
