@@ -11,6 +11,9 @@ function result = get_result_struct(scenario)
     result.controller_runtime = zeros(0,1);
     result.step_time = zeros(0,1);
     result.n_expanded = zeros(0,1);
+    result.subcontroller_runtime_all_grps = cell(0,1);
+    result.subcontroller_runtime_max = zeros(0,1);
+    result.parl_groups_infos = cell(0,1);
     
     % create output directory
     directory_name = strrep(strcat(result.scenario.name, '_', result.scenario.controller_name),' ','_');
