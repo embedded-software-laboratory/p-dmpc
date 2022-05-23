@@ -32,7 +32,7 @@ classdef ExpertMode
                 modeHandler.rightPaddle = modeHandler.buttons(6);
             end
 
-            exp.updateManualControl(modeHandler, scenario, vehicle_id);
+            exp.updateManualControl(modeHandler, scenario, vehicle_id, steeringWheel);
 
             modeHandler.scenario = scenario;
         end

@@ -120,11 +120,11 @@ function random_path = generate_random_path(scenario, vehid, n, startPosition)
         randomPath_y = lanelets{ random_path.lanelets_index(nlanelets)}(:,LaneletInfo.cy);
 
         if length(randomPath_x) > 3
-            randomPath_x = randomPath_x([2:(end-2)]);
+            randomPath_x = randomPath_x([2:(end)-1]);
         end
         
         if length(randomPath_y) > 3
-            randomPath_y = randomPath_y([2:(end-2)]);
+            randomPath_y = randomPath_y([2:(end)-1]);
         end
 
         randomPath_next = [randomPath_x(1:end),randomPath_y(1:end)];

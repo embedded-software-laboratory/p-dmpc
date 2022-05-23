@@ -96,11 +96,11 @@ function manual_path = generate_manual_path(scenario, vehid, n, startPosition, e
         manualPath_y = lanelets{ manual_path.lanelets_index(nlanelets)}(:,LaneletInfo.cy);
 
         if length(manualPath_x) > 3
-            manualPath_x = manualPath_x([2:(end-2)]);
+            manualPath_x = manualPath_x([2:(end-1)]);
         end
         
         if length(manualPath_y) > 3
-            manualPath_y = manualPath_y([2:(end-2)]);
+            manualPath_y = manualPath_y([2:(end-1)]);
         end
 
         manualPath_next = [manualPath_x(1:end),manualPath_y(1:end)];

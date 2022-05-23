@@ -44,7 +44,7 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
     end
     
 
-    if ~isempty(scenario.vehicles(1,index).lanelet_boundary)
+    if ~isempty(scenario.vehicles(1,index).lanelet_boundary) && scenario.options.is_sim_lab
         if intersect_lanelet_boundary(shapes_without_offset{index},scenario.vehicles(1,index).lanelet_boundary) 
             collision = true;
             return;

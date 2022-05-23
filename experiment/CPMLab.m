@@ -304,7 +304,7 @@ classdef CPMLab < InterfaceExperiment
             end
         end
 
-        function updateManualControl(obj, modeHandler, scenario, vehicle_id)
+        function updateManualControl(obj, modeHandler, scenario, vehicle_id, steeringWheel)
             dt_max_comm_delay = uint64(100e6);
             if obj.dt_period_nanos >= dt_max_comm_delay
                 dt_valid_after = obj.dt_period_nanos;
@@ -321,6 +321,17 @@ classdef CPMLab < InterfaceExperiment
             elseif modeHandler.brake >= 0
                 throttle = (-1) * modeHandler.brake;
             end
+
+            if steeringWheel
+                if modeHandler.steering < -0.5
+                    modeHandler.steering = -0.5;
+                elseif modeHandler.steering > 0.5
+                    modeHandler.steering = 0.5;
+                end
+
+                modeHandler.steering = 2.0 * modeHandler.steering;
+            end
+
             disp(sprintf("throttle: %f, steering: %f", throttle, modeHandler.steering));
             vehicle_command_direct.motor_throttle = double(throttle);
             vehicle_command_direct.steering_servo = double(modeHandler.steering);
