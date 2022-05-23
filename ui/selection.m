@@ -105,13 +105,17 @@ if nargin < 1
         error('Canceled');
     end
 
-    isParl_option = 1;
+    isParl_option = 2;
     [isParl_option,ok] = listdlg(...
         'ListString',isParl(:,2), ...
         'ListSize', [300,300], ...
         'SelectionMode', 'single', ...
         'InitialValue', isParl_option, ...
         'PromptString', 'Use parallel computation?');
+    
+%     if isParl_option == 1
+%         error(['Parallel computation framework is not finished yet.' newline 'Please do not choose it.'])
+%     end
 
     if(~ok)
         error('Canceled');
