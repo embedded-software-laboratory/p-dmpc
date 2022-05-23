@@ -48,8 +48,6 @@ switch options.scenario
         scenario = circle_scenario(options);
     case 'Commonroad'
         scenario = commonroad(vehicle_ids,options);
-    case 'Intersection_scenario'
-        scenario = intersection_scenario(options);
 end
 
  
@@ -79,7 +77,7 @@ scenario.k = k;
 % overlapping points are removed when using MATLAB function `polyshape`
 warning('off','MATLAB:polyshape:repairedBySimplify')
 
-if options.isParl
+if options.isParl && strcmp(scenario.name, 'Commonroad')
     % In parallel computation, vehicles communicate via ROS 2
     % Initialize the communication network of ROS 2
     scenario = communication_init(scenario, exp);
