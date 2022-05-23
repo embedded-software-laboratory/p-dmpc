@@ -24,7 +24,7 @@ classdef MotionPrimitiveAutomaton
 
             % path of the MPA
             [file_path,~,~] = fileparts(mfilename('fullpath'));
-            folder_target = [file_path,filesep,'library1'];
+            folder_target = [file_path,filesep,'library'];
             if ~isfolder(folder_target)
                 % create target folder if not exist
                 mkdir(folder_target)
