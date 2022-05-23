@@ -32,14 +32,13 @@ scenarios = {
 scenarioName = {
     '1','Circle_scenario';...
     '2','Commonroad';...
-    '3','Intersection_scenario';...
     };
 priorityAssignment = {
     '1','topo_priority';...
     '2','right_of_way_priority'
-    '2','constant_priority';...
-    '3','random_priority';...
-    '4','FCA_priority'
+    '3','constant_priority';...
+    '4','random_priority';...
+    '5','FCA_priority'
     };
 
 possPlots = {
@@ -61,7 +60,7 @@ isParl = {
 
     % ====== load previous choice ======
     try
-        load([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option', 'strat_option','scenario_option','priority_option');
+        load([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option', 'strat_option', 'isParl_option', 'scenario_option','priority_option');
     catch
         % continue
     end
@@ -75,6 +74,9 @@ if nargin < 1
     end
     if ~exist('strat_option','var')
         strat_option = 1;
+    end
+    if ~exist('isParl_option','var')
+        isParl_option = 2;
     end
     if ~exist('scenario_option','var')
         scenario_option = 1;
@@ -90,6 +92,15 @@ if nargin < 1
         'InitialValue', scenario_option, ...
         'PromptString', 'Choose the scenario');    
     
+    if strcmp(scenarioName{scenario_option,2},'Circle_scenario')
+        % for circle scenario, only topo priotiry, constant priority and
+        % random priority are supported
+        priorityAssignment = priorityAssignment([1,3,4],:);
+        % parallel computation is not supported
+        isParl = isParl(2,:);
+        isParl_option = 1;
+    end
+
     if(~ok)
         error('Canceled');
     end
@@ -105,7 +116,6 @@ if nargin < 1
         error('Canceled');
     end
 
-    isParl_option = 2;
     [isParl_option,ok] = listdlg(...
         'ListString',isParl(:,2), ...
         'ListSize', [300,300], ...
@@ -113,9 +123,12 @@ if nargin < 1
         'InitialValue', isParl_option, ...
         'PromptString', 'Use parallel computation?');
     
-%     if isParl_option == 1
-%         error(['Parallel computation framework is not finished yet.' newline 'Please do not choose it.'])
-%     end
+    if strcmp(isParl{isParl_option,2},'yes')
+        % currently only right of way proprity is supported if parallel
+        % computation is used
+        priorityAssignment = priorityAssignment(2,:);
+        priority_option = 1;
+    end
 
     if(~ok)
         error('Canceled');
@@ -175,6 +188,6 @@ options.priority = priorityAssignment{priority_option,2};
 
 
     % ============= save choice ============
-    save([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option', 'strat_option','scenario_option','priority_option');
+    save([tempdir 'uiSelection'], 'vehicle_amount', 'plot_option', 'strat_option', 'isParl_option', 'scenario_option','priority_option');
 
 end
