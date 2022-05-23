@@ -214,8 +214,10 @@ end
 
     end
 
-    subcontroller_time_all_grps = zeros(1,n_grps); % subcontroller time of each group
-    % calculate the subcontroller time of each parallel group
+    % % calculate the total run time: only one vehicle in each computation
+    % level will be counted, this is the one with the maximum run time for each parallel group 
+    run_time_total_all_grps = zeros(1,n_grps); % subcontroller time of each group
+
     for grp_i = 1:n_grps
         vehs_in_grp_i = parl_groups_infos(grp_i).vertices;
         for level_j = 1:length(CL_based_hierarchy)
@@ -223,16 +225,16 @@ end
             find_in_same_level = ismember(vehs_in_grp_i,vehs_in_level_j);
             vehs_in_same_level = vehs_in_grp_i(find_in_same_level);
 
-            % take the maximum control time among vehicles in the same group and in the same computation level
+            % take the maximum run time among vehicles in the same group and in the same computation level
             if ~isempty(vehs_in_same_level)
-                subcontroller_time_all_grps(grp_i) = subcontroller_time_all_grps(grp_i) + max(info.subcontroller_runtime(vehs_in_same_level));
+                run_time_total_all_grps(grp_i) = run_time_total_all_grps(grp_i) + max(info.subcontroller_runtime(vehs_in_same_level));
             end
         end
     end
 
     % the subcontroller time of the whole system in each time step depends on the maximum subcontroller time used by each parallel group
-    max_subcontroller_time = max(subcontroller_time_all_grps);
-    info.subcontroller_runtime_all_grps = subcontroller_time_all_grps;
+    info.subcontroller_runtime_all_grps = run_time_total_all_grps;
+    info.subcontroller_run_time_total = max(run_time_total_all_grps);
     info.belonging_vector = belonging_vector;
 end
 

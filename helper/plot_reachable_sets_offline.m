@@ -1,6 +1,6 @@
 function plot_reachable_sets_offline(mpa)
-%PLOT_REACHABLE_SETS_OFFLINE Visualization of the reachable sets of different root trims
-%   s
+% PLOT_REACHABLE_SETS_OFFLINE Visualize the reachable sets of different
+% root trims.
 
     n_trims = size(mpa.reachable_sets,1);
     Hp = size(mpa.reachable_sets,2);
@@ -36,6 +36,10 @@ function plot_reachable_sets_offline(mpa)
     idcs = strfind(file_path,filesep); % find all positions of '/'
     one_folder_up = file_path(1:idcs(end)-1); % one folder up
     folder_target = [one_folder_up,filesep,'results',filesep,'reachable_sets_offline'];
+    if ~isfolder(folder_target)
+        % create target folder if not exist
+        mkdir(folder_target)
+    end
     file_name = ['trims',num2str(n_trims),'_Hp',num2str(Hp)];
     full_path = [folder_target,filesep,file_name];
     if isfile(full_path)

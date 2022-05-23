@@ -33,10 +33,10 @@ function scenario = commonroad(vehicle_ids,options)
 
     scenario.plot_limits = [0,4.5;0,4];  
     scenario.nVeh = nVeh;
-    scenario.T_end = 60;
+    scenario.T_end = 12;
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     nVeh_mpa = scenario.nVeh;
-    scenario.Hp = 6;
+    scenario.Hp = 5;
     scenario.name = options.scenario;
     scenario.priority_option = options.priority;
     scenario.isParl = options.isParl;

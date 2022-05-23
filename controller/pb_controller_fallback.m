@@ -1,4 +1,4 @@
-function [u, y_pred, info] = pb_controller_fallback(scenario, u, y_pred, info)
+function [u, y_pred, info] = pb_controller_fallback(scenario, u, y_pred, info, options)
 % pb_controller_fallback    planning by using last priority and trajectories directly
 
 
@@ -32,6 +32,11 @@ function [u, y_pred, info] = pb_controller_fallback(scenario, u, y_pred, info)
 %         disp('next node:')
 %         disp(info.next_node)
 
+    end
+
+    if options.isParl
+        info.belonging_vector = info.belonging_vector;
+        info.subcontroller_runtime_all_grps = 0;
     end
         
  

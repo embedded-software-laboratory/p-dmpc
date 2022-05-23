@@ -25,6 +25,10 @@ function [lanelets, adjacency_lanelets, semi_adjacency_lanelets, intersection_la
     % path of the road data
     [file_path,~,~] = fileparts(mfilename('fullpath'));
     folder_target = [file_path,filesep,'offline_road_data'];
+    if ~isfolder(folder_target)
+        % create target folder if not exist
+        mkdir(folder_target)
+    end
     road_name = 'commonroad_lanelets.mat';
     road_full_path = [folder_target,filesep,road_name];
 
