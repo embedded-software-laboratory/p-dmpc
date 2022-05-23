@@ -15,17 +15,16 @@ classdef  right_of_way_priority < interface_priority
             obj.scenario = scenario;
             obj.iter = iter;
         end
-        
+        %% priority
         function [veh_at_intersection,groups,edge_to_break] = priority(obj)
 
-            groups = struct;
             nVeh = length(obj.scenario.vehicles);
             Hp = size(obj.iter.referenceTrajectoryPoints,2);
             intersection_center = [2.25, 2];
             lanelets_idx = zeros(nVeh, Hp);
             veh_at_intersection = [];
             directed_adjacency = zeros(nVeh,nVeh);
-            %% assign priorities to vehicles driving consecutively
+            % assign priorities to vehicles driving consecutively
             
             % semi_adjacency matrix
             semi_adjacency= obj.scenario.semi_adjacency(:,:,end); 
@@ -50,7 +49,7 @@ classdef  right_of_way_priority < interface_priority
                 end         
             end
             
-            %% identify vehicles at intersection and assign priorities accordingly
+            % identify vehicles at intersection and assign priorities accordingly
             for veh_idx = 1:nVeh   
                 lanelets_idx(veh_idx,:) = lanelets_index(veh_idx,obj.iter,obj.scenario);
                 is_at_intersection = (sum(ismember(lanelets_idx(veh_idx,:), obj.scenario.intersection_lanelets)) > 0);
@@ -60,7 +59,6 @@ classdef  right_of_way_priority < interface_priority
                 end
  
             end
-            
             
             adjacency= obj.scenario.adjacency(:,:,end);
             
@@ -95,16 +93,18 @@ classdef  right_of_way_priority < interface_priority
                 if n_veh_at_intersection > 1
                     
                     for veh_idx = 1:n_veh_at_intersection - 1 
-                        veh_adjacent = find(adjacency(veh_at_intersection(veh_idx),:));
-                        veh_semi_adjacent = find(semi_adjacency(veh_at_intersection(veh_idx),:));
+                        veh_higher_prior = veh_at_intersection(veh_idx);
+                        veh_adjacent = find(adjacency(veh_higher_prior,:));
+                        veh_semi_adjacent = find(semi_adjacency(veh_higher_prior,:));
 
                         % find the vehicles that do not drive consecutively
                         veh_adjacent_diff = setdiff(veh_adjacent, veh_semi_adjacent);
 
                         for veh_adj_idx = (veh_idx+1):n_veh_at_intersection
-                            if ismember(veh_at_intersection(veh_adj_idx),veh_adjacent_diff)
-                                directed_adjacency(veh_at_intersection(veh_idx),veh_at_intersection(veh_adj_idx)) = 1;
-%                                 directed_adjacency(veh_at_intersection(veh_adj_idx),veh_at_intersection(veh_idx)) = 0;
+                            veh_lower_prior = veh_at_intersection(veh_adj_idx);
+                            if ismember(veh_lower_prior,veh_adjacent_diff)
+                                directed_adjacency(veh_higher_prior,veh_lower_prior) = 1;
+%                                 directed_adjacency(veh_lower_prior,veh_higher_prior) = 0;
                             end 
                         end       
                     end
@@ -119,7 +119,7 @@ classdef  right_of_way_priority < interface_priority
             cycles = allcycles(Graph);
             
             
-            %% Convert directed cyclic graph to directed acyclic graph
+            % Convert directed cyclic graph to directed acyclic graph
             edge_to_break = {};
             while ~isempty(cycles)
                 % break the cycle between vehicles which have the largest distance 
@@ -161,10 +161,11 @@ classdef  right_of_way_priority < interface_priority
             [~, L] = kahn(directed_adjacency);
             computation_levels = size(L,1);
 %                 % visualize the directed graph  
-%                 figure(); plot(Graph) 
+%                 figure(); plot(Graph,'LineWidth',1) 
 
 
             % construct the priority groups
+            groups = struct;
             for group_idx = 1:computation_levels
                 groups(group_idx).members = find(L(group_idx,:));
                 if group_idx == 1
@@ -172,8 +173,132 @@ classdef  right_of_way_priority < interface_priority
                 else
                     groups(group_idx).predecessors = [groups(group_idx-1).predecessors groups(group_idx-1).members];
                 end
-            end    
-              
+            end 
+
+        end
+
+        %% priority_parl
+        function [CL_based_hierarchy, parl_groups_infos, edge_to_break, coupling_weights, belonging_vector] = priority_parl(obj)
+            % prioritize vehicles and group vehicles in different parallel groups 
+            coupling_weights = obj.scenario.coupling_weights; 
+            edge_to_break = {};
+            
+            % directed Graph
+            Graph = digraph(coupling_weights);
+            
+            %check if there is any cycles in the directed graph
+            cycles = allcycles(Graph);
+            
+%             deal_with_cycle = 'break_circle';
+            deal_with_cycle = 'invert_edge';
+
+            switch deal_with_cycle
+                case 'break_circle'
+                    % Convert directed cyclic graph to directed acyclic graph by
+                    % iteratively breaking the coupling with the lowest weight of
+                    % the first cycle and check if there still exist circles
+                    while ~isempty(cycles)
+                        % first circle
+                        cyclic_vehicles = cycles{1};
+                        n_cyclic_vehicles = length(cyclic_vehicles);  
+                        coupling_weight_lowest = inf;
+                        
+                        for i = 1:n_cyclic_vehicles
+                            id_leader = cyclic_vehicles(i);
+        
+                            % follower's ID
+                            if i < n_cyclic_vehicles
+                                id_follower = cyclic_vehicles(i+1);    
+                            else
+                                % loopback to the first vehicle because of the circle 
+                                id_follower = cyclic_vehicles(1);
+                            end
+        
+                            % coupling weight between the two vehicles
+                            coupling_weight_i = coupling_weights(id_leader,id_follower);
+                            
+                            % record the coupling pair with the lowest coupling weight
+                            if coupling_weight_i < coupling_weight_lowest
+                                coupling_weight_lowest = coupling_weight_i;
+                                veh_to_break = i;
+                            end
+                            
+                        end
+                        
+                        id_leader_to_break = cyclic_vehicles(veh_to_break);
+                        if veh_to_break < n_cyclic_vehicles
+                            id_follower_to_invert = cyclic_vehicles(veh_to_break+1);
+                        else
+                            id_follower_to_invert = cyclic_vehicles(1);
+                            
+                        end
+                        edge_to_break{end+1} = [id_leader_to_break,id_follower_to_invert];
+                        
+                        % break the coupling 
+                        coupling_weights(id_leader_to_break,id_follower_to_invert) = 0;
+                        
+                        % construct a new graph and check the cycles in the graph
+                        Graph = digraph(coupling_weights);
+                        cycles = allcycles(Graph);
+                    end
+
+                case 'invert_edge'
+                    % invert the direction of the edge with lowest weight
+                    % until no circlt exists
+                    while ~isempty(cycles)
+                        % first circle
+                        cyclic_vehicles = cycles{1};
+                        n_cyclic_vehicles = length(cyclic_vehicles);  
+                        coupling_weight_lowest = inf;
+                        
+                        for i = 1:n_cyclic_vehicles
+                            id_leader = cyclic_vehicles(i);
+        
+                            % follower's ID
+                            if i < n_cyclic_vehicles
+                                id_follower = cyclic_vehicles(i+1);    
+                            else
+                                % loopback to the first vehicle because of the circle 
+                                id_follower = cyclic_vehicles(1);
+                            end
+        
+                            % coupling weight between the two vehicles
+                            coupling_weight_i = coupling_weights(id_leader,id_follower);
+                            
+                            % record the coupling pair with the lowest coupling weight
+                            if coupling_weight_i < coupling_weight_lowest
+                                coupling_weight_lowest = coupling_weight_i;
+                                veh_to_break = i;
+                            end
+                            
+                        end
+                        
+                        id_leader_to_invert = cyclic_vehicles(veh_to_break);
+                        if veh_to_break < n_cyclic_vehicles
+                            id_follower_to_invert = cyclic_vehicles(veh_to_break+1);
+                        else
+                            id_follower_to_invert = cyclic_vehicles(1);
+                            
+                        end
+%                         edge_to_invert{end+1} = [id_leader_to_invert,id_follower_to_invert];
+                        
+                        % invert the coupling direction
+                        coupling_weights(id_follower_to_invert,id_leader_to_invert) = coupling_weights(id_leader_to_invert,id_follower_to_invert);
+                        coupling_weights(id_leader_to_invert,id_follower_to_invert) = 0;
+                        
+                        % construct a new graph and check the cycles in the graph
+                        Graph = digraph(coupling_weights);
+                        cycles = allcycles(Graph);
+                    end
+            end
+
+
+            % visualize the directed graph  
+%             figure(); plot(Graph,'LineWidth',1) 
+
+            % construct the priority groups
+            [CL_based_hierarchy, parl_groups_infos, belonging_vector] = form_parallel_groups(coupling_weights, obj.scenario.max_num_CLs, 'method', 's-t-cut');
+
         end
 
     end
