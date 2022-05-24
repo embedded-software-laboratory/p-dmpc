@@ -148,7 +148,7 @@ while (~got_stop)
         iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, is_sim_lab);
         scenario = iter.scenario;
         if (~initialized_reference_path || scenario.updated_manual_vehicle_path || scenario.updated_second_manual_vehicle_path)
-            exp.update();
+            %exp.update();
         end
         initialized_reference_path = true;
 

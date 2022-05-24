@@ -21,6 +21,7 @@ classdef CPMLab < InterfaceExperiment
         gamepadSub
         visualize_manual_lane_change_counter
         visualize_second_manual_lane_change_counter
+        lastSteeringValue
     end
     
     methods
@@ -273,9 +274,9 @@ classdef CPMLab < InterfaceExperiment
                 visualization_command = Visualization;
                 visualization_command.id = uint8(obj.vehicle_ids(iVeh));
                 visualization_command.type = VisualizationType.LineStrips;
-                visualization_command.time_to_live = 200000;
-                visualization_command.points = trajectory_points;
-                visualization_command.size = 200000;
+                visualization_command.time_to_live = uint64(200000);
+                visualization_command.points = trajectory_points; % TODO Point2D vector
+                visualization_command.size = 0.03;
 
                 color1 = Color;
                 color1.r = uint8(255);
@@ -330,11 +331,21 @@ classdef CPMLab < InterfaceExperiment
                 end
 
                 modeHandler.steering = 2.0 * modeHandler.steering;
+
+                %{
+                % make steering back to 0 easier
+                if modeHandler.steering < 0 && obj.lastSteeringValue < modeHandler.steering
+                    modeHandler.steering = modeHandler.steering / 1.5;
+                elseif modeHandler.steering > 0 && obj.lastSteeringValue > modeHandler.steering
+                    modeHandler.steering = modeHandler.steering / 1.5;
+                end
+                %}
             end
 
             disp(sprintf("throttle: %f, steering: %f", throttle, modeHandler.steering));
             vehicle_command_direct.motor_throttle = double(throttle);
             vehicle_command_direct.steering_servo = double(modeHandler.steering);
+            obj.lastSteeringValue = double(modeHandler.steering);
             vehicle_command_direct.header.create_stamp.nanoseconds = ...
                 uint64(obj.sample(end).t_now);
             vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...

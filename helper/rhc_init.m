@@ -15,21 +15,21 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
 
                 if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.firstManualVehicleMode == 1
-                        updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
                     else
                         %updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 3, index, true);
                         continue
                     end     
                 elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.secondManualVehicleMode == 1
-                        updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
                     else
                         %updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 3, index, true);
                         continue
                     end      
                 else
                     % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
-                    updated_ref_path = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 50, index); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                    [updated_ref_path, scenario] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 50, index); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
                 end
                 
                 updatedRefPath = updated_ref_path.path;

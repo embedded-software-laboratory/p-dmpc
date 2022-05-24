@@ -1,4 +1,4 @@
-function random_path = generate_random_path(scenario, vehid, n, startPosition)
+function [random_path, scenario] = generate_random_path(scenario, vehid, n, startPosition)
     % GENERATE_RANDOM_PATH    returns a ref_path struct
     % random_path.lanelets_index: lanelet index of the reference path
     % random_path.path: reference path including x and y information
@@ -105,14 +105,20 @@ function random_path = generate_random_path(scenario, vehid, n, startPosition)
         end
     end
 
+    %random_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,1,3,5,7];
+
     for i = 1:length(random_path.lanelets_index)
         disp(sprintf('random entries: i: %d, entry: %d', i,random_path.lanelets_index(i)));
     end
 
-    [lanelets, ~,~,~,~,~] = commonroad_lanelets(); 
+    [lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(); 
 
     % reference path
     path = [];
+
+    % the max points index of each lanelet
+    lanelet_point_max = 0;
+    points_index = zeros(1,length( random_path.lanelets_index));
 
     for nlanelets = 1:length(random_path.lanelets_index)
         % choose the center line of the lanelet as reference path
@@ -120,19 +126,35 @@ function random_path = generate_random_path(scenario, vehid, n, startPosition)
         randomPath_y = lanelets{ random_path.lanelets_index(nlanelets)}(:,LaneletInfo.cy);
 
         if length(randomPath_x) > 3
-            randomPath_x = randomPath_x([2:(end)-1]);
+            %randomPath_x = randomPath_x([2:(end)-1]);
         end
         
         if length(randomPath_y) > 3
-            randomPath_y = randomPath_y([2:(end)-1]);
+            %randomPath_y = randomPath_y([2:(end)-1]);
         end
 
         randomPath_next = [randomPath_x(1:end),randomPath_y(1:end)];
         path = [path; randomPath_next];
 
+        % count the number of points of each lanelets
+        Npoints = length(randomPath_next);
+        % max point index of each lanelet
+        lanelet_point_max = lanelet_point_max + Npoints;
+        points_index(nlanelets) = lanelet_point_max;
+
     end 
     random_path.path = path;
+    random_path.points_index = points_index;
 
+    %{
+    % reduce lanelet boundarys to get same number of points as lanelets
+    for index = 1:length(scenario.lanelet_boundary)
+        scenario.lanelet_boundary{1,index}{1,1} = scenario.lanelet_boundary{1,index}{1,1}(2:(end)-1,1:2);
+        scenario.lanelet_boundary{1,index}{1,2} = scenario.lanelet_boundary{1,index}{1,2}(2:(end)-1,1:2);
+    end
+    %}
+
+    %{
     % the max points index of each lanelet
     lanelet_point_max = 0;
     points_index = zeros(1,length( random_path.lanelets_index));
@@ -145,6 +167,6 @@ function random_path = generate_random_path(scenario, vehid, n, startPosition)
 
     end 
     random_path.points_index = points_index;
-
+    %}
 
 end

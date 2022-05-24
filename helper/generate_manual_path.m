@@ -1,4 +1,4 @@
-function manual_path = generate_manual_path(scenario, vehid, n, startPosition, endOnInnerLane)
+function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, startPosition, endOnInnerLane)
     % GENERATE_MANUAL_PATH    returns a ref_path struct
     % manual_path.lanelets_index: lanelet index of the reference path
     % manual_path.path: reference path including x and y information
@@ -85,10 +85,14 @@ function manual_path = generate_manual_path(scenario, vehid, n, startPosition, e
         disp(sprintf('manual path entries: i: %d, entry: %d', i,manual_path.lanelets_index(i)));
     end
 
-    [lanelets, ~,~,~,~,~] = commonroad_lanelets(); 
+    [lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(); 
 
     % reference path
     path = [];
+
+    % the max points index of each lanelet
+    lanelet_point_max = 0;
+    points_index = zeros(1,length(manual_path.lanelets_index));
 
     for nlanelets = 1:length(manual_path.lanelets_index)
         % choose the center line of the lanelet as reference path
@@ -96,19 +100,35 @@ function manual_path = generate_manual_path(scenario, vehid, n, startPosition, e
         manualPath_y = lanelets{ manual_path.lanelets_index(nlanelets)}(:,LaneletInfo.cy);
 
         if length(manualPath_x) > 3
-            manualPath_x = manualPath_x([2:(end-1)]);
+            %manualPath_x = manualPath_x([2:(end-1)]);
         end
         
         if length(manualPath_y) > 3
-            manualPath_y = manualPath_y([2:(end-1)]);
+            %manualPath_y = manualPath_y([2:(end-1)]);
         end
 
         manualPath_next = [manualPath_x(1:end),manualPath_y(1:end)];
         path = [path; manualPath_next];
 
+        % count the number of points of each lanelets
+        Npoints = length(manualPath_next);
+        % max point index of each lanelet
+        lanelet_point_max = lanelet_point_max + Npoints;
+        points_index(nlanelets) = lanelet_point_max;
+
     end 
     manual_path.path = path;
+    manual_path.points_index = points_index;
 
+    %{
+    % reduce lanelet boundarys to get same number of points as lanelets
+    for index = 1:length(scenario.lanelet_boundary)
+        scenario.lanelet_boundary{1,index}{1,1} = scenario.lanelet_boundary{1,index}{1,1}(2:(end)-1,1:2);
+        scenario.lanelet_boundary{1,index}{1,2} = scenario.lanelet_boundary{1,index}{1,2}(2:(end)-1,1:2);
+    end
+    %}
+
+    %{
     % the max points index of each lanelet
     lanelet_point_max = 0;
     points_index = zeros(1,length(manual_path.lanelets_index));
@@ -121,6 +141,6 @@ function manual_path = generate_manual_path(scenario, vehid, n, startPosition, e
 
     end 
     manual_path.points_index = points_index;
-
+    %}
 
 end
