@@ -179,7 +179,7 @@ else
 end
 
 options.isPB = (strat_option == 2);
-options.isParl = (isParl_option == 1);
+options.isParl = strcmp(isParl{isParl_option,2},'yes');
 options.angles = scenarios{vehicle_amount,2};
 options.amount = vehicle_amount;
 options.visu = possPlots{plot_option,3};
