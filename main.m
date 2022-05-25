@@ -64,7 +64,7 @@ got_stop = false;
 k = 0;
 
 % init result struct
-result = get_result_struct(scenario);
+result = get_result_struct(scenario, options);
 
 exp.setup();
 
@@ -203,7 +203,6 @@ while (~got_stop)
             result.fallback = fallback;
             if options.isParl
                 result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
-                result.subcontroller_runtime_max(k) = max(result.subcontroller_runtime_all_grps{k}); % maximum subcontroller run time among all parallel groups
                 result.belonging_vector{k} = info.belonging_vector;
             end
             % Apply control action
@@ -228,8 +227,15 @@ while (~got_stop)
     
 end
 %% save results
+
+for kVeh = 1:options.amount
+    % delete varibales used for ROS 2 since some of them cannot be saved
+    result.scenario.vehicles(kVeh).communicate = [];
+end
+result.scenario.ros_subscribers = {};
+
 result.mpa = scenario.mpa;
-save(fullfile(result.output_path,'data.mat'),'result');
+save(result.output_path,'result');
 % exportVideo( result );
 exp.end_run()
 end
