@@ -16,7 +16,7 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
     
     if ~isempty(scenario.dynamic_obstacle_area)
         for i = 1:size(scenario.dynamic_obstacle_area,1)
-            if intersect_sat(shapes{index},scenario.dynamic_obstacle_area{i,iStep}) 
+            if intersect_sat(shapes{index}, scenario.dynamic_obstacle_area{i,iStep}) 
                 collision = true;
 %                 disp('there is collision with dynamic obstacles')
                 return;
@@ -36,7 +36,7 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
     if ~isempty(scenario.vehicle_to_lanelet)
         lane_idx = nonzeros(scenario.vehicle_to_lanelet(index,:))';
         for i = lane_idx
-            if intersect_lanelets(shapes{index},scenario.lanelets{i})
+            if intersect_lanelets(shapes{index}, scenario.lanelets{i})
                 collision = true;
                 return;
             end
@@ -45,12 +45,22 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
     
 
     if ~isempty(scenario.vehicles(1,index).lanelet_boundary)
-        if intersect_lanelet_boundary(shapes_without_offset{index},scenario.vehicles(1,index).lanelet_boundary) 
+        if intersect_lanelet_boundary(shapes_without_offset{index}, scenario.vehicles(1,index).lanelet_boundary) 
             collision = true;
             return;
         end
     end
-%     
-    
-    
+
+    % check if collides with the reachable sets of coupling vehicles with higher priorities 
+    if ~isempty(scenario.dynamic_obstacle_reachableSets)
+        for i = 1:size(scenario.dynamic_obstacle_reachableSets,1)
+%             if intersect_sat(shapes{index},scenario.dynamic_obstacle_reachableSets{i,iStep}) 
+            if InterX(shapes{index}, scenario.dynamic_obstacle_reachableSets{i,iStep})
+                % if the reachable sets are non-convex, separating axis theorem cannot be used
+                collision = true;
+                return;
+            end
+        end
+    end
+ 
 end
