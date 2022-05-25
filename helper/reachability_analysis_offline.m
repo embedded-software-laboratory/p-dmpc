@@ -36,7 +36,7 @@ function [reachable_sets_local, reachable_sets_conv_local] = reachability_analys
         end
     end
     
-%     % todo: use a different horizon for reachability analysis
+%     % todo?: use a different horizon for reachability analysis
 %     if Hp>5
 %         Hp = 5;
 %         warning(['The pridiction horizon is too large for reachability analysis and therefore a prediction horizon of ', num2str(Hp),' will be used.'])
@@ -63,12 +63,12 @@ function [reachable_sets_local, reachable_sets_conv_local] = reachability_analys
             
             % store the union of the reachable sets of the parent trims in the prediction horizon
             trimsInfo(i,t).reachable_sets = polyshape;
-            % store the union of the reachable sets of one parent tim
-            reachable_sets_local = cell(1,length(trimsInfo(i,t).parentTrims));
+            % store the union of the reachable sets of the parent trim
+            reachable_sets_union = cell(1,length(trimsInfo(i,t).parentTrims));
             
             % loop through all parent trims
             for j=1:length(trimsInfo(i,t).parentTrims)
-                reachable_sets_local{j} = polyshape;
+                reachable_sets_union{j} = polyshape;
                 % loop through all child trims
                 for k=1:trimsInfo(i,t).childNum(j)
                     trim_start = trimsInfo(i,t).parentTrims(j);
@@ -99,10 +99,10 @@ function [reachable_sets_local, reachable_sets_conv_local] = reachability_analys
                     trimsInfo(i,t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x,area_y,'Simplify',false);
     
                     % union of the reachable sets of one parent trim
-                    reachable_sets_local{j} = union(reachable_sets_local{j},trimsInfo(i,t).maneuvers{child_ordinal}.areaPoly);
+                    reachable_sets_union{j} = union(reachable_sets_union{j},trimsInfo(i,t).maneuvers{child_ordinal}.areaPoly);
                 end
                 % union of the reachable sets of all parent trims
-                trimsInfo(i,t).reachable_sets = union(trimsInfo(i,t).reachable_sets,reachable_sets_local{j});
+                trimsInfo(i,t).reachable_sets = union(trimsInfo(i,t).reachable_sets,reachable_sets_union{j});
                 trimsInfo(i,t).reachable_sets_conv = convhull(trimsInfo(i,t).reachable_sets);
             end
             reachable_sets_local{i,t} = trimsInfo(i,t).reachable_sets;

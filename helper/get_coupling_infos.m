@@ -83,7 +83,6 @@ function scenario = get_coupling_infos(scenario, iter)
                                 
                             else
                                 continue
-%                                 error('Relationship of the selected lanelets is not found.')
                             end
                         end
 

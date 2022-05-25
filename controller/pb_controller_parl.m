@@ -114,6 +114,7 @@ end
                         timeout = 0.5;
                         [msg_received, status, ~] = receive(scenario_v.ros_subscribers{veh_HP}, timeout);
                         if status
+                            disp('received a messsage')
                             predicted_areas_HP = arrayfun(@(array) {[array.x';array.y']}, msg_received.predicted_areas);
                             scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_HP;
                         end
