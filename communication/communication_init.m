@@ -64,8 +64,8 @@ function scenario = communication_init(scenario, exp)
         ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
         predicted_lanelets = get_predicted_lanelets(scenario.vehicles(jVeh), ref_points_index, scenario.road_raw_data.lanelet);
 
-        predicted_areas = {}; % for initial time step, the areas are not predicted yet
-        scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_areas);   
+        predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+        scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
     end
 end
 
