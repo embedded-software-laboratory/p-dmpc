@@ -76,7 +76,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, options)
                 yaw0 = iter.x0(iVeh, idx.heading);
                 trim_current = iter.trim_indices(iVeh);
                 local_reachable_sets = scenario.mpa.local_reachable_sets;
-                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, trim_current, local_reachable_sets, predicted_lanelet_boundary);
+                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary);
             end
         end
     end
