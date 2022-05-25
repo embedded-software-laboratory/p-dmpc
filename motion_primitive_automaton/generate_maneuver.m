@@ -58,7 +58,8 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
                                 y_rec1(1) y_rec1(2) lastY y_rec2(3) y_rec2(4)   ];
     end
     
-    maneuver.area = maneuver_area;
+    maneuver.area = maneuver_area; % with normal offset
+
 %     % convert the occupied area to polyshape objective
 %     maneuver.areaPoly = polyshape(maneuver_area(1,:),maneuver_area(2,:));
     
@@ -115,7 +116,7 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
                                                y_rec1_larger_offset(1) y_rec1_larger_offset(2) lastY y_rec2_larger_offset(3) y_rec2_larger_offset(4)   ];
     end
     
-    maneuver.area_boundary_check = maneuver_area_larger_offset;
+    maneuver.area_boundary_check = maneuver_area_larger_offset; % with larger offset
     
     
     
