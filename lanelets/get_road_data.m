@@ -11,7 +11,9 @@ function [lanelets, adjacency_lanelets, semi_adjacency_lanelets, intersection_la
 %   
 %   intersection_lanelets: IDs of lanelets at the intersection
 %   
-%   lanelet_boundary: left and right boundaries of each lanelet
+%   lanelet_boundary: (1 x nLanelets) cell, inside each cell there are four subcells: The first and second subcells are the left and right
+%   boundary data of each lanelet; the third subcell is the polyshape (a MATLAB class) of the boundary and the last subcell is the narrowed 
+%   polyshape of the boundary.
 % 
 %   road_raw_data: raw road data
 %   
@@ -59,6 +61,7 @@ function [lanelets, adjacency_lanelets, semi_adjacency_lanelets, intersection_la
         '-mat')
 end
 
+
 %% local function: get_lanelets
 function lanelets = get_lanelets(road_raw_data)
 % returns the coordinates of the left boundary, right boundary and center line
@@ -73,6 +76,8 @@ function lanelets = get_lanelets(road_raw_data)
         lanelets{i}(:,LaneletInfo.cy) = 1/2*(lanelets{i}(:,LaneletInfo.ly)+lanelets{i}(:,LaneletInfo.ry));
     end
 end
+
+
 %% local function: get_lanelet_relationships
 function [lanelet_relationships,adjacency_lenelets,semi_adjacency_lanelets] = get_lanelet_relationships(road_raw_data,lanelets)
 % Determine the relationship between each lanelet-pair.
@@ -217,59 +222,14 @@ function [lanelet_relationships,adjacency_lenelets,semi_adjacency_lanelets] = ge
                     semi_adjacency_lanelets(i,j) = 0;
                 end
             end
-            count = count + 1;
-%             % left boundary
-%             x_l_i = lanelets{i}(:,LaneletInfo.lx);
-%             y_l_i = lanelets{i}(:,LaneletInfo.ly);
-%             x_l_j = lanelets{j}(:,LaneletInfo.lx);
-%             y_l_j = lanelets{j}(:,LaneletInfo.ly);
-%             % center line
-%             x_c_i = lanelets{i}(:,LaneletInfo.cx);
-%             y_c_i = lanelets{i}(:,LaneletInfo.cy);
-%             x_c_j = lanelets{j}(:,LaneletInfo.cx);
-%             y_c_j = lanelets{j}(:,LaneletInfo.cy);
-%             % right boundary
-%             x_r_i = lanelets{i}(:,LaneletInfo.rx);
-%             y_r_i = lanelets{i}(:,LaneletInfo.ry);
-%             x_r_j = lanelets{j}(:,LaneletInfo.rx);
-%             y_r_j = lanelets{j}(:,LaneletInfo.ry);
-%             
-%             % put center line at the first column so that the relationship of center lines will be checked first
-%             X_i = [x_c_i x_l_i x_r_i]; % center line, left and right boundary  
-%             Y_i = [y_c_i y_l_i y_r_i];
-%             X_j = [x_c_j x_l_j x_r_j];
-%             Y_j = [y_c_j y_l_j y_r_j];
-%             n_columns = size(X_i,2); 
-%             
-%             % check the relationship of two lanelets according to the position relationships of their center lines and boundaries
-%             is_stop = 0;
-%             for k_i=1:n_columns
-%                 for k_j=1:n_columns
-%                     % target line
-%                     line_i_x = X_i(:,k_i);
-%                     line_i_y = Y_i(:,k_i);
-%                     line_j_x = X_j(:,k_j);
-%                     line_j_y = Y_j(:,k_j);
-%                     line_relationship = check_line_relationship(line_i_x,line_i_y,line_j_x,line_j_y);
-%                     if isfield(line_relationship,'type')
-%                         % if the two lines have relationship, store the relationship information and use break to stop checking and go to the next two lanelets  
-%                         line_relationship.pairIDs = [num2str(i),'-',num2str(j)]; % for example, '2-4' stands for lanelets 2 and 4, equal to '4-2' since relationship is mutual 
-%                         lanelet_relationships(count) = line_relationship;
-%                         count = count + 1;
-%                         is_stop = 1;
-%                         break
-%                     end
-%                 end
-%                 if is_stop==1
-%                     break % stop checking and go to the next two lanelets  
-%                 end
-%             end            
+            count = count + 1;          
         end
     end
     % extract only the elements above the main diagonal, make the matrix symmetrical and add self as adjacency 
     adjacency_lenelets = triu(adjacency_lenelets,1) + triu(adjacency_lenelets,1)' + eye(nLanelets);
     semi_adjacency_lanelets = triu(semi_adjacency_lanelets,1) + triu(semi_adjacency_lanelets,1)' + eye(nLanelets);
 end
+
 
 %% local function: get_lanelets boundary
 function lanelet_boundary = get_lanelet_boundary(road_raw_data,lanelets,lanelet_relationships)
@@ -389,8 +349,21 @@ function lanelet_boundary = get_lanelet_boundary(road_raw_data,lanelets,lanelet_
         right_bound = [right_bound_x(:),right_bound_y(:)];
    
         lanelet_boundary{i} = {left_bound,right_bound};
+
+        % convert to MATLAB polyshape object for later use (set 'Simplify' to true to remove colinear points)        
+        bound_x = [left_bound_x;right_bound_x(end:-1:1)];
+        bound_y = [left_bound_y;right_bound_y(end:-1:1)];
+        lanelet_boundary{i}{3} = polyshape(bound_x,bound_y,'Simplify',true);
+
+        % Narrowed lanelet boundaries, used to check if two vehicles' predicted lanelets boundaries overlap. 
+        % Without narrowing, two lanelets are considered as overlap if they only share the same boundary
+        narrow_fac = 0.98;
+        bound_x_narrowed = narrow_fac*(bound_x-mean(bound_x)) + mean(bound_x);
+        bound_y_narrowed = narrow_fac*(bound_y-mean(bound_y)) + mean(bound_y);
+        lanelet_boundary{i}{4} = polyshape(bound_x_narrowed,bound_y_narrowed,'Simplify',true);
     end 
 end
+
 
 %% local function: find_adjacent_lanelets_with_certain_relationship
 function adjacent_lanelets_with_certain_relationship = find_adjacent_lanelets_with_certain_relationship(current_ID,lanelet_relationships,relationship)
@@ -403,6 +376,7 @@ function adjacent_lanelets_with_certain_relationship = find_adjacent_lanelets_wi
     find_lanelet_by_relationship = strcmp({lanelet_relationships(current_lanelets_idx).type},relationship);
     adjacent_lanelets_with_certain_relationship = adjacent_lanelets(find_lanelet_by_relationship);
 end
+
 
 %% local function: get_intersection_lanelets
 function intersection_lanelets = get_intersection_lanelets(road_raw_data)
@@ -417,6 +391,7 @@ function intersection_lanelets = get_intersection_lanelets(road_raw_data)
         end
     end
 end
+
 
 %% local function get_all_adjacent_lanelets
 function [adjacentLeft_i,adjacentRight_i,...
