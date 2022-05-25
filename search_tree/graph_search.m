@@ -33,7 +33,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
         
 
         % Eval edge 
-        [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id);
+        [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id, 'sat'); % two methods: 'sat' or 'InterX'
         if ~is_valid
             % could remove node from tree here
             continue
