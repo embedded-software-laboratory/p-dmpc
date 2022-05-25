@@ -36,12 +36,9 @@ function [belonging_vector, subgraphs_infos] = graph_partitioning_algorithm(M, v
 
     subgraphs_infos(n_graphs) = struct('vertices',[],'num_CLs',[],'path_infos',[]);
     
-%     L_topologies = {1,n_graphs};
+
     for i_graph=graph_indices
         vertices_i = find(belonging_vector==i_graph);
-%         % Kahn's topological sorting algorithm
-%         [valid, L_topologies{i_graph}] = kahn(M(vertices_i,vertices_i));
-%         assert(valid==true);
 
         % get all paths from source vertices to sinks, since the computation levels are only depends on those paths 
         path_infos_i = get_longest_paths_from_sources_to_sinks(M(vertices_i,vertices_i));
@@ -53,7 +50,6 @@ function [belonging_vector, subgraphs_infos] = graph_partitioning_algorithm(M, v
 
     % get the current longest subgraph (subgraph who has the maximum number of computation levels)
     [num_CLs_longest_graph, longest_graph_ID] = max([subgraphs_infos.num_CLs]);
-%     L_topologies = L_topologies(queue);
 
     % cut the longest graph into two parts until no graph is longer than defined
     while num_CLs_longest_graph>max_num_CLs
@@ -80,16 +76,6 @@ function [belonging_vector, subgraphs_infos] = graph_partitioning_algorithm(M, v
             otherwise
                 error('Invalid method name for graph cutting.')
         end
-        
-        % Cut the longest graph into two parts while ensuring the sum of the weights f the edges being cut is minimum 
-        % Returns a vector contains only zeros and ones. Zeros for the first part, ones for the second part.
-%         options.L_topology = L_topologies{1};
-%         options.vertices_inseparable = [];
-%         belonging_vector_longest_graph = min_cut_s_t(edge_weights_longest_graph,options);
-
-
-
-%         belonging_vector_longest_graph = min_cut_s_t(M_longest_graph);
     
         vertices_first_part = vertices_longest_graph((belonging_vector_longest_graph==0));
         vertices_second_part = vertices_longest_graph((belonging_vector_longest_graph==1));
@@ -104,7 +90,6 @@ function [belonging_vector, subgraphs_infos] = graph_partitioning_algorithm(M, v
 
         % keep the index of the first part, assign the second part with the highest graph index
         belonging_vector(vertices_second_part) = n_graphs;
-
 
         % calculate the number of computation levels for the two new subgraphs
 %         [valid, L_topologies{1}] = kahn(M(indices_first_part,indices_first_part));
