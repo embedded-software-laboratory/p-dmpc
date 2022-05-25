@@ -72,13 +72,6 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, method)
                     is_valid = false;
                     return;
                 end
-        
-                % check if collides with other vehicles' reachable sets
-                collision_reachableSets  = collision_with_reachableSets(iVeh, shapes, scenario, iStep);
-                if collision_reachableSets
-                    is_valid = false;
-                    return;
-                end
 
             case 'InterX'
                 shape = shapes{iVeh};
