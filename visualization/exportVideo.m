@@ -15,9 +15,7 @@ fig = figure('Visible','Off'...
             ,'OuterPosition',[100 100 resolution(1)/2 resolution(2)/2]...
 );
 
-
-
-[~,vid_name,~] = fileparts(result.output_path);
+[target_folder,vid_name,~] = fileparts(result.output_path);
 
 test_mode = false;
 if test_mode
@@ -28,7 +26,7 @@ if test_mode
     return
 end
 vidname = ['video_' vid_name '.avi'];
-v = VideoWriter(fullfile(result.output_path,vidname),'Motion JPEG AVI');
+v = VideoWriter(fullfile(target_folder,vidname),'Motion JPEG AVI');
 v.FrameRate = framerate; 
 v.Quality = 97;
 open(v);
