@@ -163,6 +163,51 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
     adjacency = adj + adj' + eye(Nlanelets, Nlanelets); % same lanelet is always adjacent
     adjacency = (adjacency>0);
     
+    %{
+    TODO: define boundaries according to MixedTraffic Scenario
+    if mixedTrafficScenario
+        lanelet_boundary = cell(1,Nlanelets);
+
+        outerCircleLanes = [2,4,6,8,60,58,56,54,80,82,84,86,34,32,30,28];
+        innerCircleLanes = [1,3,7,59,57,53,79,81,85,33,31,27];
+        innerCircleToCrossing = [5,29,55,83];
+
+
+        for lanelet = outerCircleLanes
+            % left bound should be outer map bound, right bound should be right boundary of inner circle to allow lane changes at any position
+            left_bound_x = lanelets{i}(:,LaneletInfo.lx);
+            left_bound_y = lanelets{i}(:,LaneletInfo.ly);
+            left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
+
+            right_bound_x = lanelets{i-1}(:,LaneletInfo.rx);
+            right_bound_y = lanelets{i-1}(:,LaneletInfo.ry);
+            right_bound = [right_bound_x(1:end),right_bound_y(1:end)];  
+            lanelet_boundary{lanelet} = {left_bound,right_bound};
+        end
+
+        for lanelet = innerCircleToCrossing
+            % left bound should be outer map bound, right bound should be boundary of lanelet entering the crossing to allow lane changes at any position
+            left_bound_x = lanelets{i+1}(:,LaneletInfo.lx);
+            left_bound_y = lanelets{i+1}(:,LaneletInfo.ly);
+            left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
+
+            if lanelet == 5 || lanelet == 83
+                right_bound_x = lanelets{i+18}(:,LaneletInfo.rx);
+                right_bound_y = lanelets{i+18}(:,LaneletInfo.ry);
+            else
+                right_bound_x = lanelets{i+19}(:,LaneletInfo.rx);
+                right_bound_y = lanelets{i+19}(:,LaneletInfo.ry);
+            end
+
+            right_bound = [right_bound_x(1:end),right_bound_y(1:end)];  
+            lanelet_boundary{lanelet} = {left_bound,right_bound};
+        end
+
+
+    else
+
+    end
+    %}
 
     %% lanelets boundary
     lanelet_boundary = cell(1,Nlanelets);

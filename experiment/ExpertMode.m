@@ -14,11 +14,14 @@ classdef ExpertMode
     end
 
     methods
-        function modeHandler = ExpertMode(exp, scenario, inputData, steeringWheel, vehicle_id)
-            modeHandler.axes = inputData.axes;
-            modeHandler.buttons = inputData.buttons;
+        function modeHandler = ExpertMode(exp, scenario, steeringWheel, vehicle_id)
 
             if steeringWheel
+                global stored_wheel_messages_global
+
+                modeHandler.axes = stored_wheel_messages_global.axes;
+                modeHandler.buttons = stored_wheel_messages_global.buttons;
+                timestamp = stored_wheel_messages_global.header.stamp.sec;
                 modeHandler.steering = modeHandler.axes(1);
                 modeHandler.throttle = modeHandler.axes(3);
                 modeHandler.brake = modeHandler.axes(4);
@@ -32,7 +35,7 @@ classdef ExpertMode
                 modeHandler.rightPaddle = modeHandler.buttons(6);
             end
 
-            exp.updateManualControl(modeHandler, scenario, vehicle_id, steeringWheel);
+            exp.updateManualControl(modeHandler, scenario, vehicle_id, steeringWheel, timestamp);
 
             modeHandler.scenario = scenario;
         end

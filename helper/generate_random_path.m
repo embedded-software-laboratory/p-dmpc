@@ -74,7 +74,18 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
             range = length(subsequent_lanes.lanelets_index);
             index = randi(range);
             %disp(sprintf('range: %d, index: %d', range, index));
-            random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(index);
+
+            % TODO: find better way to delete lanes from reference path
+            % select successor of current lane as start for reference path
+            if random_path.lanelets_index(1) == lanelets_index_vehid
+                random_path.lanelets_index(end) = subsequent_lanes.lanelets_index(index);
+            else
+                random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(index);
+            end
+            
+            
+            %random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(index);
+
             %disp(sprintf('random at end: %d', random_path.lanelets_index(end)));
             laneChangeAllowed = false;
         else

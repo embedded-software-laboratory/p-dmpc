@@ -10,7 +10,7 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
                 % initialize vehicle ids of all vehicles
                 scenario.vehicles(iVeh).vehicle_id = scenario.vehicle_ids(iVeh);
 
-                index = match_pose_to_lane(x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
+                index = match_pose_to_lane(scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
                 disp(sprintf("veh ID: %d, index: %d", scenario.vehicle_ids(iVeh), index));
 
                 if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)

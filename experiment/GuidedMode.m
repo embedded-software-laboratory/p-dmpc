@@ -82,7 +82,7 @@ classdef GuidedMode
                 if modeHandler.steering > 0.3
                     disp("entered steering left");
                     % find out current lane of manual vehicle
-                    index = match_pose_to_lane(x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y));
+                    index = match_pose_to_lane(scenario, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y));
                     index_successor = 0;
 
                     for iVeh = 1:scenario.nVeh
@@ -112,7 +112,7 @@ classdef GuidedMode
                 elseif modeHandler.steering < -0.3
                     disp("entered steering right");
                     % find out current lane of manual vehicle
-                    index = match_pose_to_lane(x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y));
+                    index = match_pose_to_lane(scenario, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y));
                     index_successor = 0;
 
                     for iVeh = 1:scenario.nVeh

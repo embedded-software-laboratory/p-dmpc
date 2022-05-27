@@ -155,7 +155,8 @@ while (~got_stop)
         if ~is_sim_lab
             if scenario.manual_vehicle_id ~= 0
                 % function that updates the steering wheel data
-                wheelData = exp.getWheelData();
+                %wheelData = exp.getWheelData();
+                wheelData = exp.get_stored_wheel_msgs();
 
                 if (scenario.options.firstManualVehicleMode == 1)
                     % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
@@ -166,7 +167,7 @@ while (~got_stop)
                     
                 elseif scenario.options.firstManualVehicleMode == 2
                     % classify steering angle into intervals and send according steering command
-                    modeHandler = ExpertMode(exp, scenario, wheelData, true, scenario.manual_vehicle_id);
+                    %modeHandler = ExpertMode(exp, scenario, wheelData, true, scenario.manual_vehicle_id);
                 end
             end
 

@@ -22,6 +22,8 @@ classdef CPMLab < InterfaceExperiment
         visualize_manual_lane_change_counter
         visualize_second_manual_lane_change_counter
         lastSteeringValue
+        stored_wheel_msgs
+        stored_gamepad_msgs
     end
     
     methods
@@ -33,17 +35,6 @@ classdef CPMLab < InterfaceExperiment
             obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
         end
-
-        function steeringWheelCallback(src, message)    
-            global wheelAxes
-            global wheelButtons
-            
-            % Extract Axes and Buttons from the ROS message and assign the
-            % data to the global variables.
-            wheelAxes = message.axes;
-            wheelButtons = message.buttons;
-        end
-        
         
         function setup(obj)
             assert(issorted(obj.vehicle_ids));
@@ -55,14 +46,24 @@ classdef CPMLab < InterfaceExperiment
 
             % This command has first to be executed in terminal:
             %ros2 run joy joy_node _dev_name:="/dev/input/js0";
-            if obj.scenario.manual_vehicle_id ~= 0 && (obj.scenario.options.firstManualVehicleMode == 1 || obj.scenario.options.firstManualVehicleMode == 2)
-                obj.wheelNode = ros2node("/wheel");
-                obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0",@obj.steeringWheelCallback);
+            if obj.scenario.manual_vehicle_id ~= 0
+                if obj.scenario.options.firstManualVehicleMode == 1
+                    obj.wheelNode = ros2node("/wheel");
+                    obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0");
+                elseif obj.scenario.options.firstManualVehicleMode == 2
+                    obj.wheelNode = ros2node("/wheel");
+                    obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@obj.steeringWheelCallback);
+                end
             end
 
-            if obj.scenario.second_manual_vehicle_id ~= 0 && (obj.scenario.options.secondManualVehicleMode == 1 || obj.scenario.options.secondManualVehicleMode == 2)
-                obj.gamepadNode = ros2node("/gamepad");
-                obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1",@obj.steeringWheelCallback);
+            if obj.scenario.second_manual_vehicle_id ~= 0
+                if obj.scenario.options.secondManualVehicleMode == 1
+                    obj.gamepadNode = ros2node("/gamepad");
+                    obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1");
+                elseif obj.scenario.options.secondManualVehicleMode == 2
+                    obj.gamepadNode = ros2node("/gamepad");
+                    obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1", "j1/gamepadData",@obj.gamepadCallback);
+                end
             end
 
             % Initialize data readers/writers...
@@ -110,9 +111,45 @@ classdef CPMLab < InterfaceExperiment
             wheelData = receive(obj.wheelSub, 1);
         end
 
+        function steeringWheelCallback(obj, msg)    
+            global stored_wheel_messages_global
+
+            stored_wheel_messages_global = msg;
+
+            obj.WriteAsyncFcn = {@ExpertMode,obj, obj.scenario, true, obj.scenario.manual_vehicle_id};
+
+            %writeasynch(obj.stored_wheel_msgs, stored_wheel_messages_global);
+            
+            %modeHandler = ExpertMode(obj, obj.scenario, true, obj.scenario.manual_vehicle_id);      
+        end
+
+        function WriteAsyncFcn(obj, msg)
+            global stored_wheel_messages_global
+            writeasynch(obj.stored_wheel_msgs, stored_wheel_messages_global);
+        end
+
+        function wheelData = get_stored_wheel_msgs(obj)
+            global stored_wheel_messages_global
+            obj.stored_wheel_msgs = stored_wheel_messages_global;
+            wheelData = obj.stored_wheel_msgs;
+        end
+
         function gamepadData = getGamepadData(obj)
             gamepadData = receive(obj.gamepadSub, 1);
         end
+
+        function gamepadCallback(obj, msg)    
+            global stored_gamepad_messages_global
+
+            stored_gamepad_messages_global = msg;
+        end
+
+        function gamepadData = get_stored_gamepad_msgs(obj)
+            global stored_gamepad_messages_global
+            obj.stored_gamepad_msgs = stored_gamepad_messages_global;
+            gamepadData = obj.stored_gamepad_msgs;
+        end
+
 
         function update(obj)
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
@@ -247,7 +284,7 @@ classdef CPMLab < InterfaceExperiment
                     vehicle_command_trajectory.vehicle_lane_change = uint8(0);
                     if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
                         if scenario.updated_manual_vehicle_path || obj.visualize_manual_lane_change_counter > 0
-                            vehicle_command_trajectory.vehicle_lane_change = uint8(1);
+                            %vehicle_command_trajectory.vehicle_lane_change = uint8(1);
 
                             if obj.visualize_manual_lane_change_counter == 0
                                 obj.visualize_manual_lane_change_counter = 4;
@@ -257,7 +294,7 @@ classdef CPMLab < InterfaceExperiment
                         end
                     elseif (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id)
                         if scenario.updated_second_manual_vehicle_path || obj.visualize_second_manual_lane_change_counter > 0
-                            vehicle_command_trajectory.vehicle_lane_change = uint8(1);
+                            %vehicle_command_trajectory.vehicle_lane_change = uint8(1);
 
                             if obj.visualize_second_manual_lane_change_counter == 0
                                 obj.visualize_second_manual_lane_change_counter = 4;
@@ -272,11 +309,20 @@ classdef CPMLab < InterfaceExperiment
 
                 %{
                 visualization_command = Visualization;
-                visualization_command.id = uint8(obj.vehicle_ids(iVeh));
+                visualization_command.id = uint64(obj.vehicle_ids(iVeh));
                 visualization_command.type = VisualizationType.LineStrips;
-                visualization_command.time_to_live = uint64(200000);
-                visualization_command.points = trajectory_points; % TODO Point2D vector
-                visualization_command.size = 0.03;
+                visualization_command.time_to_live = uint64(25000000);
+
+                trajectory_points_2D = [];
+                for i = 1:length(trajectory_points)
+                    point.x = double(trajectory_points(1,i).px);
+                    point.y = double(trajectory_points(1,i).py);
+
+                    trajectory_points_2D = [trajectory_points_2D, point];
+                end
+
+                visualization_command.points = trajectory_points_2D; % TODO Point2D vector
+                visualization_command.size = double(0.03);
 
                 color1 = Color;
                 color1.r = uint8(255);
@@ -288,11 +334,11 @@ classdef CPMLab < InterfaceExperiment
                 color2.g = uint8(230);
                 color2.b = uint8(26);
 
-                %visualization_command.color = color1;
+                visualization_command.color = color1;
 
                 if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
                     if scenario.updated_manual_vehicle_path
-                        %visualization_command.color = color2;
+                        visualization_command.color = color2;
                     end
                 elseif (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id)
                     if scenario.updated_second_manual_vehicle_path
@@ -305,7 +351,7 @@ classdef CPMLab < InterfaceExperiment
             end
         end
 
-        function updateManualControl(obj, modeHandler, scenario, vehicle_id, steeringWheel)
+        function updateManualControl(obj, modeHandler, scenario, vehicle_id, steeringWheel, timestamp)
             dt_max_comm_delay = uint64(100e6);
             if obj.dt_period_nanos >= dt_max_comm_delay
                 dt_valid_after = obj.dt_period_nanos;
@@ -347,9 +393,9 @@ classdef CPMLab < InterfaceExperiment
             vehicle_command_direct.steering_servo = double(modeHandler.steering);
             obj.lastSteeringValue = double(modeHandler.steering);
             vehicle_command_direct.header.create_stamp.nanoseconds = ...
-                uint64(obj.sample(end).t_now);
+                uint64(timestamp);
             vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-                uint64(obj.sample(end).t_now+dt_valid_after);
+                uint64(timestamp) + uint64(dt_valid_after);
             obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
         end
         
