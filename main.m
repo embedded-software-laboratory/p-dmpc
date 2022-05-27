@@ -156,9 +156,10 @@ while (~got_stop)
             if scenario.manual_vehicle_id ~= 0
                 % function that updates the steering wheel data
                 %wheelData = exp.getWheelData();
-                wheelData = exp.get_stored_wheel_msgs();
+                %wheelData = exp.get_stored_wheel_msgs();
 
                 if (scenario.options.firstManualVehicleMode == 1)
+                    wheelData = exp.getWheelData();
                     % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
                     modeHandler = GuidedMode(scenario,x0,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
                     scenario = modeHandler.scenario;
@@ -167,7 +168,9 @@ while (~got_stop)
                     
                 elseif scenario.options.firstManualVehicleMode == 2
                     % classify steering angle into intervals and send according steering command
-                    %modeHandler = ExpertMode(exp, scenario, wheelData, true, scenario.manual_vehicle_id);
+                    Q = parallel.pool.DataQueue;
+                    afterEach(Q, @(steeringWheelCallback) ExpertMode(exp, scenario, true, scenario.manual_vehicle_id));
+                    %modeHandler = ExpertMode(exp, scenario, true, scenario.manual_vehicle_id);
                 end
             end
 
@@ -311,6 +314,7 @@ while (~got_stop)
     % increment interation counter
     k = k+1;
 end
+delete(gcp('nocreate'));
 %% save results
 save(fullfile(result.output_path,'data.mat'),'result');
 % exportVideo( result );

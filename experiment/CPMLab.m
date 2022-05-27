@@ -25,6 +25,10 @@ classdef CPMLab < InterfaceExperiment
         stored_wheel_msgs
         stored_gamepad_msgs
     end
+
+    properties(Access=public)
+        parpool;
+    end
     
     methods
         function obj = CPMLab(scenario, vehicle_ids)
@@ -34,6 +38,7 @@ classdef CPMLab < InterfaceExperiment
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
+            obj.parpool = parpool;
         end
         
         function setup(obj)
@@ -53,6 +58,7 @@ classdef CPMLab < InterfaceExperiment
                 elseif obj.scenario.options.firstManualVehicleMode == 2
                     obj.wheelNode = ros2node("/wheel");
                     obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@obj.steeringWheelCallback);
+                    %objscenario.ros_subscribers = obj.wheelSub;
                 end
             end
 
@@ -116,7 +122,7 @@ classdef CPMLab < InterfaceExperiment
 
             stored_wheel_messages_global = msg;
 
-            obj.WriteAsyncFcn = {@ExpertMode,obj, obj.scenario, true, obj.scenario.manual_vehicle_id};
+            %obj.WriteAsyncFcn = {@ExpertMode,obj, obj.scenario, true, obj.scenario.manual_vehicle_id};
 
             %writeasynch(obj.stored_wheel_msgs, stored_wheel_messages_global);
             
@@ -125,7 +131,7 @@ classdef CPMLab < InterfaceExperiment
 
         function WriteAsyncFcn(obj, msg)
             global stored_wheel_messages_global
-            writeasynch(obj.stored_wheel_msgs, stored_wheel_messages_global);
+            writeasync(obj.stored_wheel_msgs, stored_wheel_messages_global);
         end
 
         function wheelData = get_stored_wheel_msgs(obj)

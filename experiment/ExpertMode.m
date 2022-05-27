@@ -18,10 +18,11 @@ classdef ExpertMode
 
             if steeringWheel
                 global stored_wheel_messages_global
+                %stored_wheel_messages_global = scenario.ros_subscribers.LatestMessage;
 
                 modeHandler.axes = stored_wheel_messages_global.axes;
                 modeHandler.buttons = stored_wheel_messages_global.buttons;
-                timestamp = stored_wheel_messages_global.header.stamp.sec;
+                timestamp = stored_wheel_messages_global.header.stamp.nanosec;
                 modeHandler.steering = modeHandler.axes(1);
                 modeHandler.throttle = modeHandler.axes(3);
                 modeHandler.brake = modeHandler.axes(4);
