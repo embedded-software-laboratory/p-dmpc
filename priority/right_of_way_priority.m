@@ -16,7 +16,7 @@ classdef  right_of_way_priority < interface_priority
             obj.iter = iter;
         end
         %% priority
-        function [veh_at_intersection,groups,edge_to_break] = priority(obj)
+        function [veh_at_intersection,groups,edge_to_break,directed_adjacency] = priority(obj)
 
             nVeh = length(obj.scenario.vehicles);
             Hp = size(obj.iter.referenceTrajectoryPoints,2);
