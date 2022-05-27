@@ -6,34 +6,36 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
 switch scenario.priority_option
     case 'topo_priority'
         obj = topo_priority(scenario);
-        groups = obj.priority(); 
+        [groups, directed_adjacency] = obj.priority(); 
         right_of_way = false;
         veh_at_intersection = [];
         edge_to_break = [];
     case 'right_of_way_priority'
         obj = right_of_way_priority(scenario,iter);
         right_of_way = true;
-        [veh_at_intersection, groups, edge_to_break] = obj.priority();  
+        [veh_at_intersection, groups, edge_to_break, directed_adjacency] = obj.priority();  
     case 'constant_priority'
         obj = constant_priority(scenario);
-        groups = obj.priority(); 
+        [groups, directed_adjacency] = obj.priority(); 
         right_of_way = false;
         veh_at_intersection = [];
         edge_to_break = [];
     case 'random_priority' 
         obj = random_priority(scenario);
-        groups = obj.priority(); 
+        [groups, directed_adjacency] = obj.priority(); 
         right_of_way = false;
         veh_at_intersection = [];
         edge_to_break = [];
     case 'FCA_priority'
         obj = FCA_priority(scenario,iter);
-        [veh_at_intersection, groups] = obj.priority();
+        [veh_at_intersection, groups, directed_adjacency] = obj.priority();
         right_of_way = false;
         edge_to_break = [];   
 end
 
-    
+    % visualize the coupling between vehicles
+    plot_coupling_lines(directed_adjacency, iter)
+
     % construct the priority list
     computation_levels = length(groups);
     members_list = horzcat(groups.members);
@@ -127,5 +129,6 @@ end
     end
 
     info.subcontroller_run_time_total = subcontroller_run_time_total;
+    info.directed_adjacency = directed_adjacency;
    
 end
