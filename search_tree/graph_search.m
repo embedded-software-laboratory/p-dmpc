@@ -28,6 +28,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
                 'MATLAB:graph_search:tree_exhausted' ...
                 ,'No more open nodes to explore' ...
             );
+            disp(['Graph search exhausted with vehicle ID: ' num2str(scenario.vehicles.ID) ', at time step: ' num2str(scenario.k) '.'])
             throw(ME);
         end
         
