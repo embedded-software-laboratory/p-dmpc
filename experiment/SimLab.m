@@ -62,7 +62,8 @@ classdef SimLab < InterfaceExperiment
                 pause(obj.scenario.dt-result.step_time(obj.k))
 
                 % visualize time step
-                plotOnline(result,obj.k,1,exploration_struct);
+                tick_now = obj.scenario.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
+                plotOnline(result, obj.k, tick_now, exploration_struct);
             end
         end
         
