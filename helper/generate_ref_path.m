@@ -110,7 +110,7 @@ ref_path = struct;
 
     end 
     
-    [lanelets, ~,~,~,~,~] = commonroad_lanelets(); 
+    [lanelets, ~,~,~,~,~] = commonroad_lanelets(false); 
 
     % reference path
     path = [];

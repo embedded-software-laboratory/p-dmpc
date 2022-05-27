@@ -48,7 +48,7 @@ ui.TypeofVisualizationListBox_2.Items = visualization(:,2);
 % change visibility of vehicle ID selection depending on environment selection
 ui.FirstManualVehicleMVIDListBox.ValueChangedFcn = @(~, ~) setControlModesVisibility(ui);
 ui.SecondMVIDListBox.ValueChangedFcn = @(~, ~) setSecondControlModesVisibility(ui);
-ui.ControlStrategyListBox.ValueChangedFcn = @(~, ~) setVisualizationVisibility(ui);
+%ui.ControlStrategyListBox.ValueChangedFcn = @(~, ~) setVisualizationVisibility(ui);
 ui.EnvironmentButtonGroup.SelectionChangedFcn = @(~, ~) setCpmLabElementsVisibility(ui);
 
 %ui.ScenarioListBox.ValueChangedFcn = @(~, ~) checkScenarioVehiclesMatch(ui, scenarios);
@@ -129,14 +129,14 @@ labOptions.is_sim_lab = ~get_environment_selection(ui, true);
 
 controlStrategyHelper = controlStrategy{...
     strcmp({controlStrategy{:, 2}}, controlStrategySelection),...
-    1};
-labOptions.isPB = (controlStrategyHelper == 2);
+    2};
+labOptions.isPB = (strcmp(controlStrategyHelper, 'pb non-coop'));
 
 labOptions.angles = vehicleAmount{...
     strcmp({vehicleAmount{:,1}}, vehicleAmountSelection),...
     2};
     
-labOptions.amount = vehicleAmountSelection;
+labOptions.amount = str2num(vehicleAmountSelection);
 
 labOptions.visu = visualization{...
     strcmp({visualization{:, 2}}, visualizationSelection),...

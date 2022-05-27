@@ -26,10 +26,13 @@ if is_sim_lab
         case 2
             options = selection(varargin{2},2,1,1,1);
         otherwise
-            options = selection();
+            %options = selection();
     end
     vehicle_ids = 1:20;
     manualVehicle_id = 0;
+    manualVehicle_id2 = 0;
+    %TODO: make selection for mixedTrafficScenarioLanelets
+    options.mixedTrafficScenarioLanelets = true;
     
 else
     disp('cpmlab')
@@ -38,6 +41,7 @@ else
     options.isPB = true;
     options.scenario = 'Commonroad';
     options.priority = 'topo_priority';
+    options.mixedTrafficScenarioLanelets = true;
 
     %mixedTrafficOptions = mixedTrafficSelection();
     manualVehicle_id = options.manualVehicle_id;
@@ -76,6 +80,11 @@ scenario.manual_vehicle_id = manualVehicle_id;
 scenario.second_manual_vehicle_id = manualVehicle_id2;
 scenario.vehicle_ids = vehicle_ids;
 scenario.options = options;
+
+for iVeh = 1:scenario.options.amount
+    % initialize vehicle ids of all vehicles
+    scenario.vehicles(iVeh).vehicle_id = scenario.vehicle_ids(iVeh);
+end
 
 %{
 if scenario.options.firstManualVehicleMode == 2

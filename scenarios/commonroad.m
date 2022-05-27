@@ -8,8 +8,10 @@ function scenario = commonroad(options,vehid,mVehid,m2Vehid,is_sim_lab)
     scenario = Scenario();
     scenario.name = 'Commonroad';
     scenario.trim_set = 4;
-    scenario.dt = 0.2; 
-    [scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets();
+    scenario.dt = 0.2;
+    scenario.options = options; 
+    
+    [scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets(options.mixedTrafficScenarioLanelets);
     
     for iveh = 1:nVeh
         

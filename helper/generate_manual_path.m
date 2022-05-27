@@ -85,7 +85,7 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
         disp(sprintf('manual path entries: i: %d, entry: %d', i,manual_path.lanelets_index(i)));
     end
 
-    [lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(); 
+    [lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(scenario.options.mixedTrafficScenarioLanelets); 
 
     % reference path
     path = [];

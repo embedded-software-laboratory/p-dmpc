@@ -1,4 +1,4 @@
-function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,lanelet_boundary] = commonroad_lanelets()
+function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,lanelet_boundary] = commonroad_lanelets(mixedTrafficScenarioLanelets)
 
 % COMMONROAD_LANELETS
 
@@ -163,51 +163,6 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
     adjacency = adj + adj' + eye(Nlanelets, Nlanelets); % same lanelet is always adjacent
     adjacency = (adjacency>0);
     
-    %{
-    TODO: define boundaries according to MixedTraffic Scenario
-    if mixedTrafficScenario
-        lanelet_boundary = cell(1,Nlanelets);
-
-        outerCircleLanes = [2,4,6,8,60,58,56,54,80,82,84,86,34,32,30,28];
-        innerCircleLanes = [1,3,7,59,57,53,79,81,85,33,31,27];
-        innerCircleToCrossing = [5,29,55,83];
-
-
-        for lanelet = outerCircleLanes
-            % left bound should be outer map bound, right bound should be right boundary of inner circle to allow lane changes at any position
-            left_bound_x = lanelets{i}(:,LaneletInfo.lx);
-            left_bound_y = lanelets{i}(:,LaneletInfo.ly);
-            left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
-
-            right_bound_x = lanelets{i-1}(:,LaneletInfo.rx);
-            right_bound_y = lanelets{i-1}(:,LaneletInfo.ry);
-            right_bound = [right_bound_x(1:end),right_bound_y(1:end)];  
-            lanelet_boundary{lanelet} = {left_bound,right_bound};
-        end
-
-        for lanelet = innerCircleToCrossing
-            % left bound should be outer map bound, right bound should be boundary of lanelet entering the crossing to allow lane changes at any position
-            left_bound_x = lanelets{i+1}(:,LaneletInfo.lx);
-            left_bound_y = lanelets{i+1}(:,LaneletInfo.ly);
-            left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
-
-            if lanelet == 5 || lanelet == 83
-                right_bound_x = lanelets{i+18}(:,LaneletInfo.rx);
-                right_bound_y = lanelets{i+18}(:,LaneletInfo.ry);
-            else
-                right_bound_x = lanelets{i+19}(:,LaneletInfo.rx);
-                right_bound_y = lanelets{i+19}(:,LaneletInfo.ry);
-            end
-
-            right_bound = [right_bound_x(1:end),right_bound_y(1:end)];  
-            lanelet_boundary{lanelet} = {left_bound,right_bound};
-        end
-
-
-    else
-
-    end
-    %}
 
     %% lanelets boundary
     lanelet_boundary = cell(1,Nlanelets);
@@ -242,12 +197,6 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
         
         lanelet_boundary{lanelet} = {left_bound,right_bound};
     end 
-  
-    % forking lanelets
-    forking = [9,41,67,87];
-    for i = forking
-        lanelet_boundary{i}{1} = lanelet_boundary{i}{1}(6:end,:);
-    end
 
     % update the boundary for lanelets at the turning corner
     corner1 = [3,4,22];
@@ -345,7 +294,115 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
         right_bound_y = lanelets{ 101 }(:,LaneletInfo.ry);
         right_bound = [right_bound_x(1:end),right_bound_y(1:end)]; 
         lanelet_boundary{lanelet} = {left_bound,right_bound};
-    end   
+    end  
+    
+    if mixedTrafficScenarioLanelets
+
+        outerLanesLeft = [2,4,6,8,60,58,56,54,80,82,84,86,34,32,30,28];
+        for lanelet = outerLanesLeft
+            % left bound should be outer map bound, right bound should be right boundary of inner circle to allow lane changes at any position
+            left_bound_x = lanelets{ lanelet }(:,LaneletInfo.lx);
+            left_bound_y = lanelets{ lanelet }(:,LaneletInfo.ly);
+            left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
+
+            right_bound_x = lanelets{ lanelet-1 }(:,LaneletInfo.rx);
+            right_bound_y = lanelets{ lanelet-1 }(:,LaneletInfo.ry);
+            right_bound = [right_bound_x(1:end),right_bound_y(1:end)];  
+            lanelet_boundary{lanelet} = {left_bound,right_bound};
+        end
+        
+        outerLanesRightCrossingIntersectionLanes = [1,7,27,33,53,59,79,85];
+        for lanelet = outerLanesRightCrossingIntersectionLanes
+            % left bound should be outer map bound, right bound should not intersect boundaries of lanes entering/leaving crossing
+            left_bound_x = lanelets{ lanelet+1 }(:,LaneletInfo.lx);
+            left_bound_y = lanelets{ lanelet+1 }(:,LaneletInfo.ly);
+            left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
+
+            if lanelet == 1 || lanelet == 33 || lanelet == 59 || lanelet == 79
+                right_bound_x = lanelets{ lanelet }(:,LaneletInfo.rx);
+                right_bound_y = lanelets{ lanelet }(:,LaneletInfo.ry);
+                right_bound = [right_bound_x(1:6),right_bound_y(1:6)];
+            else
+                right_bound_x = lanelets{ lanelet }(:,LaneletInfo.rx);
+                right_bound_y = lanelets{ lanelet }(:,LaneletInfo.ry);
+                right_bound = [right_bound_x(6:end),right_bound_y(6:end)];
+            end
+
+            lanelet_boundary{lanelet} = {left_bound,right_bound};
+        end
+
+        forking = [9,41,67,87];
+        for lanelet = forking
+            left_bound_x = lanelets{ lanelet }(:,LaneletInfo.lx);
+            left_bound_y = lanelets{ lanelet }(:,LaneletInfo.ly);
+            left_bound = [left_bound_x(6:end),left_bound_y(6:end)];
+
+            right_bound_x = lanelets{ lanelet+1 }(:,LaneletInfo.rx);
+            right_bound_y = lanelets{ lanelet+1 }(:,LaneletInfo.ry);
+            right_bound = [right_bound_x(1:end),right_bound_y(1:end)];
+
+            lanelet_boundary{lanelet} = {left_bound,right_bound};
+        end
+
+        merging = [15,35,61,93];
+        for lanelet = merging
+            left_bound_x = lanelets{ lanelet }(:,LaneletInfo.lx);
+            left_bound_y = lanelets{ lanelet }(:,LaneletInfo.ly);
+            left_bound = [left_bound_x(1:6),left_bound_y(1:6)];
+
+            right_bound_x = lanelets{ lanelet+1 }(:,LaneletInfo.rx);
+            right_bound_y = lanelets{ lanelet+1 }(:,LaneletInfo.ry);
+            right_bound = [right_bound_x(1:end),right_bound_y(1:end)];
+
+            lanelet_boundary{lanelet} = {left_bound,right_bound};
+        end
+
+        parallelToMergingOrForking = [10,16,36,42,62,68,88,94];
+        for lanelet = parallelToMergingOrForking
+            % use lanelet_boundary which includes the already changed boundaries to prevent adding boundaries where no should be
+            %left_bound_x = lanelets{ lanelet-1 }(:,LaneletInfo.lx);
+            %left_bound_y = lanelets{ lanelet }(:,LaneletInfo.ly);
+            %left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
+            left_bound = lanelet_boundary{ lanelet-1 }{1,1};
+
+            right_bound_x = lanelets{ lanelet }(:,LaneletInfo.rx);
+            right_bound_y = lanelets{ lanelet }(:,LaneletInfo.ry);
+            right_bound = [right_bound_x(1:end),right_bound_y(1:end)];
+
+            lanelet_boundary{lanelet} = {left_bound,right_bound};
+        end
+
+        enteringOrLeavingCrossingLanes = [11,12,13,14,37,38,39,40,63,64,65,66,89,90,91,92];
+        for lanelet = enteringOrLeavingCrossingLanes
+            if lanelet == 11 || lanelet == 13 || lanelet == 63 || lanelet == 65 || lanelet == 89 || lanelet == 91 || lanelet == 37 || lanelet == 41
+                left_bound_x = lanelets{ lanelet }(:,LaneletInfo.lx);
+                left_bound_y = lanelets{ lanelet }(:,LaneletInfo.ly);
+                left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
+
+                right_bound_x = lanelets{ lanelet+1 }(:,LaneletInfo.rx);
+                right_bound_y = lanelets{ lanelet+1 }(:,LaneletInfo.ry);
+                right_bound = [right_bound_x(1:end),right_bound_y(1:end)];
+            else
+                left_bound_x = lanelets{ lanelet-1 }(:,LaneletInfo.lx);
+                left_bound_y = lanelets{ lanelet-1 }(:,LaneletInfo.ly);
+                left_bound = [left_bound_x(1:end),left_bound_y(1:end)];
+
+                right_bound_x = lanelets{ lanelet }(:,LaneletInfo.rx);
+                right_bound_y = lanelets{ lanelet }(:,LaneletInfo.ry);
+                right_bound = [right_bound_x(1:end),right_bound_y(1:end)];
+            end
+
+            lanelet_boundary{lanelet} = {left_bound,right_bound};
+        end
+
+        %TODO: fix boundaries in crossing
+    else
+        % forking lanelets
+        forking = [9,41,67,87];
+        for i = forking
+            lanelet_boundary{i}{1} = lanelet_boundary{i}{1}(6:end,:);
+        end
+    end
     
 end
 

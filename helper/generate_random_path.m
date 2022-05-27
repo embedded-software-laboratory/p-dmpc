@@ -122,7 +122,7 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
         disp(sprintf('random entries: i: %d, entry: %d', i,random_path.lanelets_index(i)));
     end
 
-    [lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(); 
+    [lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(scenario.options.mixedTrafficScenarioLanelets); 
 
     % reference path
     path = [];
