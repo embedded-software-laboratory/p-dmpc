@@ -25,8 +25,8 @@ if is_sim_lab
         otherwise
             options = selection();
     end
-    vehicle_ids = 1:options.amount; % default IDs
-%     vehicle_ids = [10,14,16,17,18,20]; % specify vehicles IDs
+%     vehicle_ids = 1:options.amount; % default IDs
+    vehicle_ids = [10,14,16,17,18,20]; % specify vehicles IDs
     
 else
     disp('cpmlab')
@@ -146,6 +146,7 @@ while (~got_stop)
         controller_timer = tic; 
             [u, y_pred, info] = scenario.controller(scenario_tmp, iter);
         scenario.last_veh_at_intersection = info.veh_at_intersection;
+        scenario.directed_coupling = info.directed_adjacency;
         result.controller_runtime(k) = toc(controller_timer);
         result.iteration_structs{k} = iter;
         
