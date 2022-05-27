@@ -42,6 +42,10 @@ end
 
     % update the coupling weights matrix in case some edges are inverted to berak circles in the graph 
     scenario.coupling_weights = coupling_weights;
+    directed_adjacency = (scenario.coupling_weights ~= 0);
+    
+    % visualize the coupling between vehicles
+    plot_coupling_lines(directed_adjacency, iter, belonging_vector)
 
     % construct the priority list
     computation_levels = length(CL_based_hierarchy);
@@ -130,27 +134,44 @@ end
                     end
                 end
             end
-%         
-%                     % convexify the reachable sets since the separate axis theorem works only for convex shapes
-%                     points_idx = cellfun(@(cell) {convhull(cell.Vertices,'Simplify',true)}, reachable_sets_HP);
-%                     reachable_sets_conv_HP = cellfun(@(reachable_set, idx) {[reachable_set.Vertices(idx,1)';reachable_set.Vertices(idx,2)']}, reachable_sets_HP, points_idx);
 
-            % Collision with coupling vehicles with lower priorities will be avoided by considered them as static obstacles 
+            % coupling vehicles with lower priorities
             if right_of_way
                 for i_LP = 1:length(all_coupling_vehs_LP)
                     veh_LP = all_coupling_vehs_LP(i_LP);
                     
-                    veh = Vehicle();
-                    % calculate the current occupied area 
-                    [x_globals,y_globals] = translate_global(...
-                        iter.x0(veh_LP, indices().heading),...              % yaw angle
-                        iter.x0(veh_LP, indices().x),...                    % x-position
-                        iter.x0(veh_LP, indices().y),...                    % y-position
-                        [-1,-1, 1, 1]*(veh.Length/2+scenario_v.offset),...  % x-coordinates of the local occupied area 
-                        [-1, 1, 1,-1]*(veh.Width/2+scenario_v.offset));     % y-coordinates of the local occupied area 
-                    
-                    % add as static obstacles
-                    scenario_v.obstacles(end+1) = {[x_globals;y_globals]};
+                    % consider as static obstacles
+%                     veh = Vehicle();
+%                     % calculate the current occupied area 
+%                     [x_globals,y_globals] = translate_global(...
+%                         iter.x0(veh_LP, indices().heading),...              % yaw angle
+%                         iter.x0(veh_LP, indices().x),...                    % x-position
+%                         iter.x0(veh_LP, indices().y),...                    % y-position
+%                         [-1,-1, 1, 1]*(veh.Length/2+scenario_v.offset),...  % x-coordinates of the local occupied area 
+%                         [-1, 1, 1,-1]*(veh.Width/2+scenario_v.offset));     % y-coordinates of the local occupied area 
+%                     
+%                     % add as static obstacles
+%                     scenario_v.obstacles(end+1) = {[x_globals;y_globals]};
+
+                    % consider old trajectories as dynamic obstacles the occupied areas of coupling vehicles with lower
+                    % priorities predicted at the previous time step will be shifted and considered as dynamic obstacles
+%                     latest_msg_LP = scenario_v.ros_subscribers{veh_LP}.LatestMessage;
+%                     if latest_msg_LP.time_step > 0
+%                         % the message does not come from the initial time step
+%                         predicted_areas_LP = arrayfun(@(array) {[array.x';array.y']}, latest_msg_LP.predicted_areas);
+%                         shift_step = scenario_v.k - latest_msg_LP.time_step; % times that the prediction should be shifted and the last prediction should be repeated
+%                         if shift_step > 1
+%                             disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_i) ', considered vehicle: ' num2str(veh_LP)])
+%                         end
+%                         predicted_areas_LP = del_first_rpt_last(predicted_areas_LP(:)', shift_step);
+%                         scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_LP;
+%                     end
+
+                    % consider the reachable sets of the current time step as static obstacles 
+                    reachable_sets_LP = iter.reachable_sets{veh_LP,1};
+                    % turn polyshape to plain array
+                    reachable_sets_LP_array = {[reachable_sets_LP.Vertices(:,1)';reachable_sets_LP.Vertices(:,2)']};
+                    scenario_v.obstacles(end+1,:) = reachable_sets_LP_array;
                 end
             end
             
@@ -164,7 +185,11 @@ end
             % execute sub controller for 1-veh scenario
             [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
             
-
+            if vehicle_i==3
+                plot_obstacles(scenario_v)
+                plot_obstacles(info_v.shapes)
+            end
+            
             % prepare output data
             info.tree{vehicle_i} = info_v.tree;
             info.tree_path(vehicle_i,:) = info_v.tree_path;
@@ -237,6 +262,7 @@ end
     info.subcontroller_runtime_all_grps = run_time_total_all_grps;
     info.subcontroller_run_time_total = max(run_time_total_all_grps);
     info.belonging_vector = belonging_vector;
+    info.directed_adjacency = directed_adjacency;
 end
 
 

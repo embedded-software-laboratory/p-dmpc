@@ -71,7 +71,7 @@ function plotOnline(result,step_idx,tick_now,exploration)
     % Vehicle rectangles
     for v=1:nVeh
         veh = scenario.vehicles(v);
-        pos_step = result.vehicle_path_fullres{v,step_idx};
+        pos_step = result.trajectory_predictions{v,step_idx};
         x = pos_step(tick_now,:);
         vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
         patch(   vehiclePolygon(1,:)...
@@ -85,35 +85,45 @@ function plotOnline(result,step_idx,tick_now,exploration)
         % plot the vehicle index
         text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 16, 'LineWidth',1,'Color','m');
 % 
-        % plot scenario adjacency
-        adj = cell(nVeh,nVeh);
-        adjacent_vehicles = find(scenario.adjacency(v,:,end));
-        adjacent_vehicles = adjacent_vehicles(adjacent_vehicles>v);
-        for adj_v = adjacent_vehicles
-            
-            adj_pos_step = result.vehicle_path_fullres{adj_v,end};
-            adj_x = adj_pos_step(tick_now,:);
-            % plot adjacency
-            coupling_line_options.LineWidth = 1;
-            if ~isempty(result.belonging_vector) && result.belonging_vector{step_idx}(v) ~= result.belonging_vector{step_idx}(adj_v)
-                % if there are parallel groups, couplings inside a group
-                % will be shown in red lines, while couplings between
-                % groups will be shown in blue dashed lines.
-                coupling_line_options.Color = 'b';
-                coupling_line_options.LineStyle = '--';
-            else
-                coupling_line_options.Color = 'r';
-                coupling_line_options.LineStyle = '-';
-            end
-            adj{v,adj_v}=line([x(1),adj_x(1)],[x(2),adj_x(2)], coupling_line_options);
-            
-            % plot distance
-%             dis{v,adj_v}=text((iter.x0(v,1)+iter.x0(adj_v,1))/2,(iter.x0(v,2)+iter.x0(adj_v,2))/2,...
-%                 num2str(round(result.distance(v,adj_v,step_idx),2)),'FontSize', 12, 'LineWidth',1,'Color','b');
- 
-        end
-     
     end
+
+
+    % plot scenario adjacency
+%     adj = cell(nVeh,nVeh);
+%     for v=1:nVeh
+%         pos_step = result.trajectory_predictions{v,step_idx};
+%         x = pos_step(tick_now,:);
+%         % directed coupling
+%         if ~isempty(scenario.directed_coupling)
+%             adjacent_vehicles = find(scenario.directed_coupling(v,:) ~= 0);
+%    
+%             for adj_v = adjacent_vehicles
+%                 
+%                 adj_pos_step = result.trajectory_predictions{adj_v,end};
+%                 adj_x = adj_pos_step(tick_now,:);
+%                 % plot adjacency
+%                 if ~isempty(result.belonging_vector) && result.belonging_vector{step_idx}(v) ~= result.belonging_vector{step_idx}(adj_v)
+%                     % if there are parallel groups, couplings inside a group will be shown in red lines, while couplings between
+%                     % groups will be shown in blue dashed lines.
+%                     quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color','b','LineStyle','--')
+%                 else
+%                     quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color','r','LineStyle','-');
+%                 end
+%                 % plot distance
+%         %         dis{v,adj_v}=text((iter.x0(v,1)+iter.x0(adj_v,1))/2,(iter.x0(v,2)+iter.x0(adj_v,2))/2,...
+%         %             num2str(round(result.distance(v,adj_v,step_idx),2)),'FontSize', 12, 'LineWidth',1,'Color','b');
+%             end
+%         elseif ~isempty(scenario.adjacency)
+%             adjacent_vehicles = find(scenario.adjacency(v,:,end));
+%             adjacent_vehicles = adjacent_vehicles(adjacent_vehicles>v);
+%             for adj_v = adjacent_vehicles
+%                 adj{v,adj_v}=line([x(1),adj_x(1)],[x(2),adj_x(2)], coupling_line_options);
+%                 % plot distance
+%         %         dis{v,adj_v}=text((iter.x0(v,1)+iter.x0(adj_v,1))/2,(iter.x0(v,2)+iter.x0(adj_v,2))/2,...
+%         %             num2str(round(result.distance(v,adj_v,step_idx),2)),'FontSize', 12, 'LineWidth',1,'Color','b');
+%             end
+%         end
+%     end
     
 
     % Obstacle rectangle
