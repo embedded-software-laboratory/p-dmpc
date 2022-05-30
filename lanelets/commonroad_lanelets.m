@@ -296,7 +296,8 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
         lanelet_boundary{lanelet} = {left_bound,right_bound};
     end  
     
-    if mixedTrafficScenarioLanelets
+    %if mixedTrafficScenarioLanelets
+    if false
 
         outerLanesLeft = [2,4,6,8,60,58,56,54,80,82,84,86,34,32,30,28];
         for lanelet = outerLanesLeft

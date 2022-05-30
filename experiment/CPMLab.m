@@ -4,6 +4,7 @@ classdef CPMLab < InterfaceExperiment
     properties (Access=private)
         vehicle_ids
         matlabParticipant
+        matlabParticipantLab
         reader_vehicleStateList
         writer_vehicleCommandTrajectory
         writer_vehicleCommandDirect
@@ -38,7 +39,7 @@ classdef CPMLab < InterfaceExperiment
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
-            obj.parpool = parpool;
+            %obj.parpool = parpool;
         end
         
         function setup(obj)
@@ -81,8 +82,12 @@ classdef CPMLab < InterfaceExperiment
             addpath(common_cpm_functions_path);
 
             matlabDomainId = 1;
-            [obj.matlabParticipant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect, obj.writer_visualization] = init_script(matlabDomainId); % #ok<ASGLU>
+            matlabVisualizationDomainId = 21;
+            [obj.matlabParticipant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId, matlabVisualizationDomainId); % #ok<ASGLU>
 
+            obj.matlabParticipantLab = DDS.DomainParticipant('MatlabLibrary::LocalCommunicationProfile', str2double(getenv('DDS_DOMAIN')));
+            matlabVisualizationTopicName = 'visualization';
+            obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.matlabParticipantLab), 'Visualization', matlabVisualizationTopicName);
             % Set reader properties
             obj.reader_vehicleStateList.WaitSet = true;
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
@@ -313,11 +318,11 @@ classdef CPMLab < InterfaceExperiment
 
                 obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
 
-                %{
+                
                 visualization_command = Visualization;
-                visualization_command.id = uint64(obj.vehicle_ids(iVeh));
+                visualization_command.id = uint64(4242+obj.vehicle_ids(iVeh));
                 visualization_command.type = VisualizationType.LineStrips;
-                visualization_command.time_to_live = uint64(25000000);
+                visualization_command.time_to_live = uint64(50*1e9+obj.dt_period_nanos);
 
                 trajectory_points_2D = [];
                 for i = 1:length(trajectory_points)
@@ -328,7 +333,7 @@ classdef CPMLab < InterfaceExperiment
                 end
 
                 visualization_command.points = trajectory_points_2D; % TODO Point2D vector
-                visualization_command.size = double(0.03);
+                visualization_command.size = double(0.1);
 
                 color1 = Color;
                 color1.r = uint8(255);
@@ -353,7 +358,7 @@ classdef CPMLab < InterfaceExperiment
                 end
 
                 obj.writer_visualization.write(visualization_command);
-                %}
+                
             end
         end
 

@@ -46,7 +46,7 @@ else
     %mixedTrafficOptions = mixedTrafficSelection();
     manualVehicle_id = options.manualVehicle_id;
 
-    if manualVehicle_id == 'No MV'
+    if strcmp(manualVehicle_id, 'No MV')
         manualVehicle_id = 0;
         options.firstManualVehicleMode = 0;
         manualVehicle_id2 = 0;
@@ -55,7 +55,7 @@ else
         manualVehicle_id = str2num(options.manualVehicle_id);
         options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
 
-        if options.manualVehicle_id2 == 'No second MV'
+        if strcmp(options.manualVehicle_id2, 'No second MV')
             manualVehicle_id2 = 0;
             options.secondManualVehicleMode = 0;
         else
@@ -152,6 +152,8 @@ while (~got_stop)
     try
         % Control 
         % ----------------------------------------------------------------------
+
+        % visualize trajectory here
         
         % Sample reference trajectory
         iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, is_sim_lab);
