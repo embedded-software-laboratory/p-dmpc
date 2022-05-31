@@ -77,6 +77,8 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
     
     iter.vRef = zeros(scenario.nVeh,scenario.Hp);
     for iVeh=1:scenario.nVeh
+        iter.scenario.vehicles(iVeh).x_position = iter.x0(iVeh,idx.x);
+        iter.scenario.vehicles(iVeh).y_position = iter.x0(iVeh,idx.y);
         if (scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.manual_mpa_initialized)
             iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,trim_indices(iVeh));
         elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.second_manual_mpa_initialized)

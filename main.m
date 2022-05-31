@@ -123,7 +123,7 @@ if is_sim_lab
 else
     exp = CPMLab(scenario, vehicle_ids);
 end
-
+scenario.pool = exp.parallelPool;
 
 %% Setup
 % Initialize
@@ -177,9 +177,21 @@ while (~got_stop)
                     
                 elseif scenario.options.firstManualVehicleMode == 2
                     % classify steering angle into intervals and send according steering command
-                    Q = parallel.pool.DataQueue;
-                    afterEach(Q, @(steeringWheelCallback) ExpertMode(exp, scenario, true, scenario.manual_vehicle_id));
-                    %modeHandler = ExpertMode(exp, scenario, true, scenario.manual_vehicle_id);
+                    %D = parallel.pool.DataQueue;
+                    %afterEach(D, @(steeringWheelCallback) ExpertMode(exp, scenario, true, scenario.manual_vehicle_id));
+                    %spmd(2)
+                        %wheelData = exp.getWheelData();
+                        %input = [exp, scenario, true, scenario.manual_vehicle_id, wheelData];
+                        handle = @ExpertMode;
+                        input = struct;
+                        input.exp = exp;
+                        input.scenario = scenario;
+                        input.steeringWheel = true;
+                        input.vehicle_id = scenario.manual_vehicle_id;
+        
+                        %parfeval(@ExpertMode, 0, input);
+                        parfeval(scenario.pool, handle(input), 0);
+                    %end
                 end
             end
 

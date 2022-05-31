@@ -44,6 +44,7 @@ classdef Scenario
         last_veh_at_intersection = [];
         k; %simulation steps
         priority_option;
+        pool;
     end
     
     properties (Dependent)

@@ -28,7 +28,7 @@ classdef CPMLab < InterfaceExperiment
     end
 
     properties(Access=public)
-        parpool;
+        parallelPool;
     end
     
     methods
@@ -39,7 +39,11 @@ classdef CPMLab < InterfaceExperiment
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
-            %obj.parpool = parpool;
+            %parallelPool = gcp('nocreate');
+
+            %if isempty(parallelPool)
+                %obj.parallelPool = parpool(2);
+            %end
         end
         
         function setup(obj)
@@ -56,9 +60,13 @@ classdef CPMLab < InterfaceExperiment
                 if obj.scenario.options.firstManualVehicleMode == 1
                     obj.wheelNode = ros2node("/wheel");
                     obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0");
+
+                    % if function handle, then define ros types for pool
+                    %obj.wheelNode = parallel.pool.Constant(ros2node("/wheel"));
+                    %obj.wheelSub = parallel.pool.Constant(ros2subscriber(obj.wheelNode,"/j0"));
                 elseif obj.scenario.options.firstManualVehicleMode == 2
-                    obj.wheelNode = ros2node("/wheel");
-                    obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@obj.steeringWheelCallback);
+                    %obj.wheelNode = ros2node("/wheel");
+                    %obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@obj.steeringWheelCallback);
                     %objscenario.ros_subscribers = obj.wheelSub;
                 end
             end
@@ -323,15 +331,18 @@ classdef CPMLab < InterfaceExperiment
 
                 obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
 
-                [visualization_command_line] = lab_visualize_lane_change(scenario, trajectory_points, iVeh, obj.dt_period_nanos, laneChangeColor, true);
-                obj.writer_visualization.write(visualization_command_line);
+                if (~is_manual_vehicle)
+                    [visualization_command_line] = lab_visualize_lane_change(scenario, trajectory_points, iVeh, obj.dt_period_nanos, laneChangeColor, true);
+                    obj.writer_visualization.write(visualization_command_line);
 
-                [visualization_command_points] = lab_visualize_lane_change(scenario, trajectory_points, iVeh, obj.dt_period_nanos, laneChangeColor, false);
-                obj.writer_visualization.write(visualization_command_points);
+                    [visualization_command_points] = lab_visualize_lane_change(scenario, trajectory_points, iVeh, obj.dt_period_nanos, laneChangeColor, false);
+                    obj.writer_visualization.write(visualization_command_points);
+                end
             end
         end
 
-        function updateManualControl(obj, modeHandler, scenario, vehicle_id, steeringWheel, timestamp)
+        function updateManualControl(obj, modeHandler, scenario, vehicle_id, steeringWheel)
+            [obj.sample, ~, ~, ~] = obj.reader_vehicleStateList.take();
             dt_max_comm_delay = uint64(100e6);
             if obj.dt_period_nanos >= dt_max_comm_delay
                 dt_valid_after = obj.dt_period_nanos;
@@ -373,9 +384,11 @@ classdef CPMLab < InterfaceExperiment
             vehicle_command_direct.steering_servo = double(modeHandler.steering);
             obj.lastSteeringValue = double(modeHandler.steering);
             vehicle_command_direct.header.create_stamp.nanoseconds = ...
-                uint64(timestamp);
+                uint64(obj.sample(end).t_now);
+                %uint64(timestamp);
             vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-                uint64(timestamp) + uint64(dt_valid_after);
+                uint64(obj.sample(end).t_now+dt_valid_after);
+                %uint64(timestamp) + uint64(dt_valid_after);
             obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
         end
         

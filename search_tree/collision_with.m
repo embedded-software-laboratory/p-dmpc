@@ -36,7 +36,8 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
     if ~isempty(scenario.vehicle_to_lanelet)
         lane_idx = nonzeros(scenario.vehicle_to_lanelet(index,:))';
         for i = lane_idx
-            if intersect_lanelets(shapes{index},scenario.lanelets{i})
+            %if intersect_lanelets(shapes{index},scenario.lanelets{i})
+            if intersect_lanelets(shapes{index},scenario.lanelet_boundary{i})
                 collision = true;
                 return;
             end
