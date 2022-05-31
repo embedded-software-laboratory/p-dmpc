@@ -152,8 +152,6 @@ while (~got_stop)
     try
         % Control 
         % ----------------------------------------------------------------------
-
-        % visualize trajectory here
         
         % Sample reference trajectory
         iter = rhc_init(scenario,x0,trim_indices, initialized_reference_path, is_sim_lab);

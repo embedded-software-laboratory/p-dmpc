@@ -82,12 +82,15 @@ classdef CPMLab < InterfaceExperiment
             addpath(common_cpm_functions_path);
 
             matlabDomainId = 1;
-            matlabVisualizationDomainId = 21;
-            [obj.matlabParticipant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId, matlabVisualizationDomainId); % #ok<ASGLU>
+            [obj.matlabParticipant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
 
+            % create Lab participant
             obj.matlabParticipantLab = DDS.DomainParticipant('MatlabLibrary::LocalCommunicationProfile', str2double(getenv('DDS_DOMAIN')));
+
+            % create writer for lab visualization
             matlabVisualizationTopicName = 'visualization';
             obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.matlabParticipantLab), 'Visualization', matlabVisualizationTopicName);
+
             % Set reader properties
             obj.reader_vehicleStateList.WaitSet = true;
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
@@ -292,10 +295,11 @@ classdef CPMLab < InterfaceExperiment
                     vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
                         uint64(obj.sample(end).t_now + obj.dt_period_nanos);
 
-                    vehicle_command_trajectory.vehicle_lane_change = uint8(0);
+                    laneChangeColor = false;
                     if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
+
                         if scenario.updated_manual_vehicle_path || obj.visualize_manual_lane_change_counter > 0
-                            %vehicle_command_trajectory.vehicle_lane_change = uint8(1);
+                            laneChangeColor = true;
 
                             if obj.visualize_manual_lane_change_counter == 0
                                 obj.visualize_manual_lane_change_counter = 4;
@@ -304,8 +308,9 @@ classdef CPMLab < InterfaceExperiment
                             end
                         end
                     elseif (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id)
+
                         if scenario.updated_second_manual_vehicle_path || obj.visualize_second_manual_lane_change_counter > 0
-                            %vehicle_command_trajectory.vehicle_lane_change = uint8(1);
+                            laneChangeColor = true;
 
                             if obj.visualize_second_manual_lane_change_counter == 0
                                 obj.visualize_second_manual_lane_change_counter = 4;
@@ -318,47 +323,11 @@ classdef CPMLab < InterfaceExperiment
 
                 obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
 
-                
-                visualization_command = Visualization;
-                visualization_command.id = uint64(4242+obj.vehicle_ids(iVeh));
-                visualization_command.type = VisualizationType.LineStrips;
-                visualization_command.time_to_live = uint64(50*1e9+obj.dt_period_nanos);
+                [visualization_command_line] = lab_visualize_lane_change(scenario, trajectory_points, iVeh, obj.dt_period_nanos, laneChangeColor, true);
+                obj.writer_visualization.write(visualization_command_line);
 
-                trajectory_points_2D = [];
-                for i = 1:length(trajectory_points)
-                    point.x = double(trajectory_points(1,i).px);
-                    point.y = double(trajectory_points(1,i).py);
-
-                    trajectory_points_2D = [trajectory_points_2D, point];
-                end
-
-                visualization_command.points = trajectory_points_2D; % TODO Point2D vector
-                visualization_command.size = double(0.1);
-
-                color1 = Color;
-                color1.r = uint8(255);
-                color1.g = uint8(255);
-                color1.b = uint8(204);
-
-                color2 = Color;
-                color2.r = uint8(0);
-                color2.g = uint8(230);
-                color2.b = uint8(26);
-
-                visualization_command.color = color1;
-
-                if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
-                    if scenario.updated_manual_vehicle_path
-                        visualization_command.color = color2;
-                    end
-                elseif (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id)
-                    if scenario.updated_second_manual_vehicle_path
-                        visualization_command.color = color2;
-                    end
-                end
-
-                obj.writer_visualization.write(visualization_command);
-                
+                [visualization_command_points] = lab_visualize_lane_change(scenario, trajectory_points, iVeh, obj.dt_period_nanos, laneChangeColor, false);
+                obj.writer_visualization.write(visualization_command_points);
             end
         end
 
