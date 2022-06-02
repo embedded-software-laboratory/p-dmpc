@@ -8,6 +8,7 @@
     adjacency = zeros(nVeh,nVeh);
     semi_adjacency = zeros(nVeh,nVeh);
     [~,adjacent,semi_adjacent,~,~,~,~] = get_road_data();
+    %[~,adjacent,semi_adjacent,~,~,~] = commonroad_lanelets(scenario.options.mixedTrafficScenarioLanelets);
     
     for i = 1:(nVeh-1)
         ref_points_i = reshape(iter.referenceTrajectoryPoints(i,:,:),Hp,2);

@@ -9,6 +9,8 @@ classdef Vehicle
         x_goal              = 0;     % [m]
         y_goal              = 0;     % [m]
         yaw_goal            = 0;     % [radians]
+        x_position          = 0;
+        y_position          = 0;
         referenceTrajectory = [0 0; 1 0; 3 1]; % [x1 y1; x2 y2; ...]
         Length              = 0.22;  % Vehicle length (bumper to bumper)[m]
         Width               = 0.1;   % Vehicle width [m]
@@ -19,6 +21,9 @@ classdef Vehicle
         points_index;
         lanelet_boundary;                   % left and right boundaries of predicted lanelets
         communicate;                        % instance of the class `Communication`, used for communication via ROS 2
+        predicted_lanelets
+        paddle_counter      = 2;     % initial speed profile
+        vehicle_mpa;
     end
     
     methods

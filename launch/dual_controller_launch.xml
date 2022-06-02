@@ -1,0 +1,12 @@
+<?xml version='1.0'?>
+<launch>
+	<node pkg='joy' name='joy0' exec='joy_node'>
+		<param name='dev' value='/dev/input/js0'/>
+		<remap from='joy' to='j0'/>
+	</node>
+
+	<node pkg='joy' name='joy1' exec='joy_node'>
+		<param name='dev' value='/dev/input/js1'/>
+		<remap from='joy' to='j1'/>
+	</node>
+</launch>

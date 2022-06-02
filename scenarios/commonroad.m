@@ -1,19 +1,35 @@
-function scenario = commonroad(vehicle_ids,options)
+function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
 % Commonroad_Scenario   
 
+    nVeh = options.amount;
+    isPB = options.isPB;
     scenario = Scenario();
     scenario.name = 'Commonroad';
-    scenario.trim_set = 12;
+    scenario.trim_set = 4;
     scenario.dt = 0.2;
+    scenario.options = options; 
     [scenario.lanelets, scenario.adjacency_lanelets, scenario.semi_adjacency_lanelets,...
         scenario.intersection_lanelets, scenario.lanelet_boundary, scenario.road_raw_data, scenario.lanelet_relationships] = get_road_data();
-    nVeh = options.amount;
+    %[scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets(options.mixedTrafficScenarioLanelets);
+    
     for iveh = 1:nVeh
         
         veh = Vehicle();
-        veh.ID = vehicle_ids(iveh); % vehicle ID
         veh.trim_config = 1;
-        ref_path = generate_ref_path(veh.ID);% function to generate refpath based on CPM Lab road geometry
+
+        if is_sim_lab
+            ref_path = generate_ref_path(vehicle_ids(iveh));% function to generate refpath based on CPM Lab road geometry
+            %[ref_path, scenario] = generate_random_path(scenario, vehicle_ids(iveh), 20, (vehicle_ids(iveh)+31));
+        else
+            if (mVehid == vehicle_ids(iveh) || m2Vehid == vehicle_ids(iveh))
+                [ref_path, scenario] = generate_manual_path(scenario, vehicle_ids(iveh), 3, (vehicle_ids(iveh)+31), false);  
+                %ref_path = generate_manual_path(scenario, vehicle_ids(iveh), 3, (vehicle_idsd(iveh)));     
+            else
+                [ref_path, scenario] = generate_random_path(scenario, vehicle_ids(iveh), 3, (vehicle_ids(iveh)+31)); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                %ref_path = generate_random_path(scenario, vehicle_ids(iveh), 3, (vehicle_ids(iveh)));
+            end
+        end
+        
         refPath = ref_path.path;
         veh.x_start = refPath(1,1);
         veh.y_start = refPath(1,2);
@@ -67,5 +83,7 @@ function scenario = commonroad(vehicle_ids,options)
         , options...
     );
 
-
+    % initialize speed profile vector, currently 3 speed profiles are available
+    scenario.speed_profile_mpas = [scenario.mpa, scenario.mpa, scenario.mpa];
+ 
 end

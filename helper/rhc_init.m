@@ -1,28 +1,68 @@
-function iter = rhc_init(scenario, x_measured, trims_measured, options)
+function iter = rhc_init(scenario, x_measured, trims_measured, initialized_reference_path, is_sim_lab)
 % RHC_INIT  Preprocessing step for RHC controller
 
-    
     idx = indices();
+
+    if ~is_sim_lab
+        if ~initialized_reference_path
+            for iVeh = 1:scenario.nVeh
+                index = match_pose_to_lane(scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
+                disp(sprintf("veh ID: %d, index: %d", scenario.vehicle_ids(iVeh), index));
+
+                if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
+                    if scenario.options.firstManualVehicleMode == 1
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
+                    else
+                        continue
+                    end     
+                elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
+                    if scenario.options.secondManualVehicleMode == 1
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
+                    else
+                        continue
+                    end      
+                else
+                    % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
+                    [updated_ref_path, scenario] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 50, index); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                end
+                
+                updatedRefPath = updated_ref_path.path;
+                scenario.vehicles(iVeh).x_start = updatedRefPath(1,1);
+                scenario.vehicles(iVeh).y_start = updatedRefPath(1,2);
+                scenario.vehicles(iVeh).x_goal = updatedRefPath(2:end,1);
+                scenario.vehicles(iVeh).y_goal = updatedRefPath(2:end,2);
+                
+                scenario.vehicles(iVeh).referenceTrajectory = [scenario.vehicles(iVeh).x_start scenario.vehicles(iVeh).y_start
+                                        scenario.vehicles(iVeh).x_goal  scenario.vehicles(iVeh).y_goal];
+                scenario.vehicles(iVeh).lanelets_index = updated_ref_path.lanelets_index;
+                scenario.vehicles(iVeh).points_index = updated_ref_path.points_index;
+
+                yaw = calculate_yaw(updatedRefPath);
+                scenario.vehicles(iVeh).yaw_start = yaw(1);
+                scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
+            end
+        end
+    end
 
     nVeh = scenario.nVeh;
     Hp = scenario.Hp;
-
-    % initialize
+    
     iter = struct;
-    iter.referenceTrajectoryPoints = zeros(nVeh, Hp, 2);
-    iter.referenceTrajectoryIndex = zeros(nVeh, Hp, 1);
+    iter.scenario = scenario;
+    iter.referenceTrajectoryPoints = zeros(nVeh,Hp,2);
+    iter.referenceTrajectoryIndex = zeros(nVeh,Hp,1);
     iter.x0 = zeros(nVeh, 4);                           % state
     iter.trim_indices = zeros(nVeh, 1);                 % current trim
-    iter.vRef = zeros(nVeh,Hp);                         % reference speed
+    iter.vRef = zeros(nVeh,Hp);                         % reference speed  
     iter.predicted_lanelets = cell(nVeh, 1);
     iter.predicted_lanelet_boundary = cell(nVeh, 2);    % first column for left boundary, second column for right boundary
-    iter.reachable_sets = cell(nVeh, Hp);               % cells to store instances of MATLAB calss `polyshape`
-
+    iter.reachable_sets = cell(nVeh, Hp);               % cells to store instances of MATLAB calss `polyshape` 
+    
     % states of other vehicles can be directed measured
     iter.x0 = x_measured;
-
-    for iVeh = 1:nVeh
-        if options.isParl && strcmp(scenario.name, 'Commonroad')
+    
+    for iVeh=1:scenario.nVeh
+        if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
             latest_message_i = scenario.ros_subscribers{iVeh}.LatestMessage;
@@ -35,8 +75,15 @@ function iter = rhc_init(scenario, x_measured, trims_measured, options)
             iter.trim_indices = trims_measured;
         end
 
-        % Get reference speed and path points
-        iter.vRef(iVeh,:) = get_max_speed(scenario.mpa, iter.trim_indices(iVeh));
+        iter.scenario.vehicles(iVeh).x_position = iter.x0(iVeh,idx.x);
+        iter.scenario.vehicles(iVeh).y_position = iter.x0(iVeh,idx.y);
+        if (scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.manual_mpa_initialized)
+            iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
+        elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.second_manual_mpa_initialized)
+            iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
+        else
+            iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,iter.trim_indices(iVeh));
+        end
         % Find equidistant points on the reference trajectory.
         reference = sampleReferenceTrajectory(...
             Hp, ... % number of prediction steps
@@ -51,7 +98,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, options)
         
         if strcmp(scenario.name, 'Commonroad')
             % Get the predicted lanelets of other vehicles
-            if options.isParl
+            if scenario.options.isParl
                 % from received messages if parallel computation is used 
                 latest_message_i = scenario.ros_subscribers{iVeh}.LatestMessage;
                 predicted_lanelets= latest_message_i.predicted_lanelets(:)'; % make row vector
@@ -67,7 +114,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, options)
             predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary);
             iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
     
-            if options.isParl
+            if scenario.options.isParl
                 % Calculate reachable sets of other vehicles based on their
                 % current states and trims. Reachability analysis will be
                 % widely used in the parallel computation.

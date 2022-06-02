@@ -5,10 +5,13 @@ if verLessThan('matlab','9.10')
     warning("Code is developed in MATLAB 2021a, prepare for backward incompatibilities.")
 end
 
+options = startOptions();
+is_sim_lab = options.is_sim_lab;
+
 %% Determine options
 % if matlab simulation should be started with certain parameters
 % first argument has to be 'sim'
-is_sim_lab = (nargin == 0 || (nargin > 0 && strcmp(varargin{1},'sim')));
+%is_sim_lab = (nargin == 0 || (nargin > 0 && strcmp(varargin{1},'sim')));
 
 if is_sim_lab
     switch nargin
@@ -23,19 +26,52 @@ if is_sim_lab
         case 2 
             options = selection(varargin{2},2,1,1,1);
         otherwise
-            options = selection();
+            % former UI for Sim lab
+            %options = selection();
     end
     vehicle_ids = 1:options.amount; % default IDs
 %     vehicle_ids = [10,14,16,17,18,20]; % specify vehicles IDs
+    manualVehicle_id = 0;
+    manualVehicle_id2 = 0;
+
+    if strcmp(options.scenario, 'Circle_scenario')
+        options.isParl = false;
+    end
+
+    %TODO: make selection for mixedTrafficScenarioLanelets
+    options.mixedTrafficScenarioLanelets = false;
     
 else
     disp('cpmlab')
-    options = struct;
     vehicle_ids = [varargin{:}];
     options.amount = numel(vehicle_ids);
     options.isPB = true;
     options.scenario = 'Commonroad';
     options.priority = 'topo_priority';
+    options.isParl = false;
+    options.mixedTrafficScenarioLanelets = false;
+
+    % former UI for CPM Lab
+    %mixedTrafficOptions = mixedTrafficSelection();
+    manualVehicle_id = options.manualVehicle_id;
+
+    if strcmp(manualVehicle_id, 'No MV')
+        manualVehicle_id = 0;
+        options.firstManualVehicleMode = 0;
+        manualVehicle_id2 = 0;
+        options.secondManualVehicleMode = 0;
+    else
+        manualVehicle_id = str2num(options.manualVehicle_id);
+        options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
+
+        if strcmp(options.manualVehicle_id2, 'No second MV')
+            manualVehicle_id2 = 0;
+            options.secondManualVehicleMode = 0;
+        else
+            manualVehicle_id2 = str2num(options.manualVehicle_id2);
+            options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
+        end
+    end
 end
     
 % scenario = circle_scenario(options.amount,options.isPB);
@@ -47,7 +83,19 @@ switch options.scenario
     case 'Circle_scenario'
         scenario = circle_scenario(options);
     case 'Commonroad'
-        scenario = commonroad(vehicle_ids,options);
+        scenario = commonroad(options, vehicle_ids, manualVehicle_id, manualVehicle_id2, is_sim_lab);  
+end
+
+scenario.name = options.scenario;
+scenario.priority_option = options.priority;
+scenario.manual_vehicle_id = manualVehicle_id;
+scenario.second_manual_vehicle_id = manualVehicle_id2;
+scenario.vehicle_ids = vehicle_ids;
+scenario.options = options;
+
+for iVeh = 1:scenario.options.amount
+    % initialize vehicle ids of all vehicles
+    scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
 end
 
  
@@ -56,12 +104,16 @@ if is_sim_lab
 else
     exp = CPMLab(scenario, vehicle_ids);
 end
-
+%scenario.pool = exp.parallelPool;
 
 %% Setup
 % Initialize
 got_stop = false;
 k = 0;
+initialized_reference_path = false;
+speedProfileMPAsInitialized = false;
+cooldown_after_lane_change = 0;
+cooldown_second_manual_vehicle_after_lane_change = 0;
 
 % init result struct
 result = get_result_struct(scenario, options);
@@ -94,7 +146,7 @@ while (~got_stop)
     
     % Measurement
     % -------------------------------------------------------------------------
-    [x0_measured, trims_measured] = exp.measure();% trim_indices： which trim  
+    [x0_measured, trims_measured] = exp.measure();% trims_measured： which trim  
     scenario.k = k;
 
     disp(['Time step ' num2str(scenario.k) '.'])
@@ -102,9 +154,78 @@ while (~got_stop)
     try
         % Control
         % ----------------------------------------------------------------------
+         
+        % Update the iteration data and sample reference trajectory
+        iter = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
+        scenario = iter.scenario;
+        if (~initialized_reference_path || scenario.updated_manual_vehicle_path || scenario.updated_second_manual_vehicle_path)
+            %exp.update();
+        end
+        initialized_reference_path = true;
+
+        if ~is_sim_lab
+            if scenario.manual_vehicle_id ~= 0
+                % function that updates the steering wheel data
+                %wheelData = exp.getWheelData();
+                %wheelData = exp.get_stored_wheel_msgs();
+
+                if (scenario.options.firstManualVehicleMode == 1)
+                    wheelData = exp.getWheelData();
+                    % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
+                    modeHandler = GuidedMode(scenario,x0_measured,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
+                    scenario = modeHandler.scenario;
+                    scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
+                    speedProfileMPAsInitialized = true;
+                    
+                elseif scenario.options.firstManualVehicleMode == 2
+                    % classify steering angle into intervals and send according steering command
+                    %D = parallel.pool.DataQueue;
+                    %afterEach(D, @(steeringWheelCallback) ExpertMode(exp, scenario, true, scenario.manual_vehicle_id));
+                    %spmd(2)
+                        %wheelData = exp.getWheelData();
+                        %input = [exp, scenario, true, scenario.manual_vehicle_id, wheelData];
+                        %handle = @ExpertMode;
+                        input = struct;
+                        input.exp = exp;
+                        input.scenario = scenario;
+                        input.steeringWheel = true;
+                        input.vehicle_id = scenario.manual_vehicle_id;
         
-        % Update the iteration data
-        iter = rhc_init(scenario, x0_measured, trims_measured, options); 
+                        %parfeval(@ExpertMode, 0, input);
+                        %parfeval(scenario.pool, handle(input), 0);
+                    %end
+                end
+            end
+
+            if scenario.second_manual_vehicle_id ~= 0
+                % function that updates the gamepad data
+                gamepadData = exp.getGamepadData();
+
+                if (scenario.options.secondManualVehicleMode == 1)
+                    % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
+                    modeHandler = GuidedMode(scenario,x0_measured,scenario.second_manual_vehicle_id,vehicle_ids,cooldown_second_manual_vehicle_after_lane_change,speedProfileMPAsInitialized,gamepadData,false);
+                    scenario = modeHandler.scenario;
+                    scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
+                    speedProfileMPAsInitialized = true;
+                    
+                elseif scenario.options.secondManualVehicleMode == 2
+                    % classify steering angle into intervals and send according steering command
+                    modeHandler = ExpertMode(exp, scenario, gamepadData, false, scenario.second_manual_vehicle_id);
+                end
+            end
+        end
+
+        if scenario.updated_manual_vehicle_path
+            cooldown_after_lane_change = 0;
+        else
+            cooldown_after_lane_change = cooldown_after_lane_change + 1;
+        end
+
+        if scenario.updated_second_manual_vehicle_path
+            cooldown_second_manual_vehicle_after_lane_change = 0;
+        else
+            cooldown_second_manual_vehicle_after_lane_change = cooldown_second_manual_vehicle_after_lane_change + 1;
+        end
         
         % For parallel computation, information from previous time step is need, for example, 
         % the previous fail-safe trajectory is used again if a new fail-safe trajectory cannot be found.
@@ -169,7 +290,7 @@ while (~got_stop)
        
         % Apply control action
         % -------------------------------------------------------------------------
-        exp.apply(u, y_pred, info, result, k);
+        exp.apply(u, y_pred, info, result, k, scenario); 
         
         fallback_update = 0;
         
@@ -207,7 +328,7 @@ while (~got_stop)
             end
             % Apply control action
             % -------------------------------------------------------------------------
-            exp.apply(u, y_pred, info, result, k); 
+            exp.apply(u, y_pred, info, result, k, scenario); 
             
             % if fallback to last plan Hp times continuously, the vehicle
             % will stop at the current position, terminate the simulation
@@ -226,6 +347,7 @@ while (~got_stop)
     got_stop = exp.is_stop() || got_stop;
     
 end
+%delete(gcp('nocreate'));
 %% save results
 
 for kVeh = 1:options.amount
@@ -239,3 +361,4 @@ save(result.output_path,'result');
 % exportVideo( result );
 exp.end_run()
 end
+

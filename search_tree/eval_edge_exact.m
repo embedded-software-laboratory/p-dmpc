@@ -42,7 +42,16 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, method)
     for iVeh = 1 : scenario.nVeh
         t1 = pTrim(iVeh);
         t2 = cTrim(iVeh);
-        maneuver = scenario.mpa.maneuvers{t1,t2};
+
+        % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
+        if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
+            || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
+            mpa = scenario.vehicles(iVeh).vehicle_mpa;
+            maneuver = mpa.maneuvers{t1,t2};
+        else
+            maneuver = scenario.mpa.maneuvers{t1,t2};
+        end
+    
         c = cos(pYaw(iVeh));
         s = sin(pYaw(iVeh));
         

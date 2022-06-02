@@ -12,8 +12,17 @@ classdef Scenario
         T_end = 18;                     % Duration of simulation. [s]
         Hp = 4;
         mpa;
+        manual_vehicle_id = 0;
+        second_manual_vehicle_id = 0;
+        manual_mpa_initialized = false;
+        updated_manual_vehicle_path = false;
+        second_manual_mpa_initialized = false;
+        updated_second_manual_vehicle_path = false;
+        vehicle_ids = [];
         trim_set = 3;
         offset = 0.01;
+        options;
+        speed_profile_mpas = [];
         
         model = [];
         time_per_tick = 0.01;
@@ -44,6 +53,7 @@ classdef Scenario
         coupling_infos = struct;        % couling informations of each coupling pair
         ros_subscribers = {};           % ROS 2 subscribers (used to read messages from other vehicles)
         max_num_CLs = 4;                % max number of computation levels to limit the total planning time in each time step (used in the parallel computation)
+        pool;
     end
     
     properties (Dependent)
