@@ -182,7 +182,7 @@ while (~got_stop)
                     %spmd(2)
                         %wheelData = exp.getWheelData();
                         %input = [exp, scenario, true, scenario.manual_vehicle_id, wheelData];
-                        handle = @ExpertMode;
+                        %handle = @ExpertMode;
                         input = struct;
                         input.exp = exp;
                         input.scenario = scenario;
@@ -190,7 +190,7 @@ while (~got_stop)
                         input.vehicle_id = scenario.manual_vehicle_id;
         
                         %parfeval(@ExpertMode, 0, input);
-                        parfeval(scenario.pool, handle(input), 0);
+                        %parfeval(scenario.pool, handle(input), 0);
                     %end
                 end
             end

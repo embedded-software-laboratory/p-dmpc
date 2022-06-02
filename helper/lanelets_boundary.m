@@ -18,11 +18,11 @@ function lanelet_boundary = lanelets_boundary(scenario, iter)
         end 
 
 
-        lanelets_index = match_pose_to_lane(scenario, scenario.vehicles(1,i).x_position, scenario.vehicles(1,i).y_position);
+        %lanelets_index = match_pose_to_lane(scenario, scenario.vehicles(1,i).x_position, scenario.vehicles(1,i).y_position);
 
-        %lanelets_index = scenario.vehicles(1,i).lanelets_index(nlanelets_i);
-        %[~, idx, ~] = unique(lanelets_index);
-        %lanelets_index = lanelets_index(sort(idx));
+        lanelets_index = scenario.vehicles(1,i).lanelets_index(nlanelets_i);
+        [~, idx, ~] = unique(lanelets_index);
+        lanelets_index = lanelets_index(sort(idx));
         
         % determine the boundaries for each vehicle
         left_bound = [];
