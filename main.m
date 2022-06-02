@@ -32,7 +32,7 @@ if is_sim_lab
     manualVehicle_id = 0;
     manualVehicle_id2 = 0;
     %TODO: make selection for mixedTrafficScenarioLanelets
-    options.mixedTrafficScenarioLanelets = true;
+    options.mixedTrafficScenarioLanelets = false;
     
 else
     disp('cpmlab')
@@ -41,7 +41,7 @@ else
     options.isPB = true;
     options.scenario = 'Commonroad';
     options.priority = 'topo_priority';
-    options.mixedTrafficScenarioLanelets = true;
+    options.mixedTrafficScenarioLanelets = false;
 
     %mixedTrafficOptions = mixedTrafficSelection();
     manualVehicle_id = options.manualVehicle_id;
@@ -85,38 +85,6 @@ for iVeh = 1:scenario.options.amount
     % initialize vehicle ids of all vehicles
     scenario.vehicles(iVeh).vehicle_id = scenario.vehicle_ids(iVeh);
 end
-
-%{
-if scenario.options.firstManualVehicleMode == 2
-    % delete first manual vehicle from scenario if it is in Expert Mode
-    for iVeh=1:scenario.nVeh
-        if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
-            priority_filter = true(1,scenario.nVeh);
-            priority_filter(iVeh) = false;
-            delete_index = iVeh;
-        end
-    end
-    temp_scenario = filter_scenario(scenario, priority_filter);
-    scenario = temp_scenario;
-    scenario.vehicle_ids(delete_index) = [];
-    vehicle_ids(delete_index) = [];
-end
-
-if scenario.options.secondManualVehicleMode == 2
-    % delete second manual vehicle from scenario if it is in Expert Mode
-    for iVeh=1:scenario.nVeh
-        if scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
-            priority_filter = true(1,scenario.nVeh);
-            priority_filter(iVeh) = false;
-            delete_index = iVeh;
-        end
-    end
-    temp_scenario = filter_scenario(scenario, priority_filter);
-    scenario = temp_scenario;
-    scenario.vehicle_ids(delete_index) = [];
-    vehicle_ids(delete_index) = [];
-end
-%}
 
 if is_sim_lab
     exp = SimLab(scenario, options);
@@ -224,11 +192,6 @@ while (~got_stop)
         else
             cooldown_second_manual_vehicle_after_lane_change = cooldown_second_manual_vehicle_after_lane_change + 1;
         end
-
-        %disp("cooldown after lane change");
-        %disp(cooldown_after_lane_change);
-        %disp("cooldown second after lane change");
-        %disp(cooldown_second_manual_vehicle_after_lane_change);
         
         % update the boundary information of each vehicle
         if strcmp(scenario.name, 'Commonroad')
@@ -335,7 +298,7 @@ while (~got_stop)
     % increment interation counter
     k = k+1;
 end
-delete(gcp('nocreate'));
+%delete(gcp('nocreate'));
 %% save results
 save(fullfile(result.output_path,'data.mat'),'result');
 % exportVideo( result );

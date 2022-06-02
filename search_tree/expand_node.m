@@ -14,8 +14,6 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     cur_trim_id = tuple2index(curTrim(:),trim_length);
     successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
     for iVeh = 1 : scenario.nVeh
-        %if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-        %    || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
         if ((scenario.vehicles(iVeh).vehicle_id == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
             || ((scenario.vehicles(iVeh).vehicle_id == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
             manual_successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));

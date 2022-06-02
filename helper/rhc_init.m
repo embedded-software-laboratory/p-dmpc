@@ -13,14 +13,12 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
                     if scenario.options.firstManualVehicleMode == 1
                         [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
                     else
-                        %updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 3, index, true);
                         continue
                     end     
                 elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.secondManualVehicleMode == 1
                         [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
                     else
-                        %updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 3, index, true);
                         continue
                     end      
                 else
@@ -29,28 +27,6 @@ function iter = rhc_init(scenario, x_measured, trim_indices, initialized_referen
                 end
                 
                 updatedRefPath = updated_ref_path.path;
-                %{
-                if is_CPM_lab
-                    updatedRefPathCopy = updatedRefPath(:,:);
-                    disp(updatedRefPath(:,1));
-                    disp(updatedRefPath(:,2));
-                    %updatedRefPath(:,1) = updatedRefPathCopy(:,2);
-                    %updatedRefPath(:,2) = updatedRefPathCopy(:,1);
-                    %disp(updatedRefPath(:,1));
-                    %disp(updatedRefPath(:,2));
-            
-                    sub = zeros(length(updatedRefPath),2);
-                    for i = 1:length(updatedRefPath)
-                        sub(i,1) = 4;
-                    end
-            
-                    for i = 1:length(updatedRefPath)
-                        updatedRefPath(i,1) = sub(i,1) - updatedRefPath(i,1);
-                    end
-                    disp(updatedRefPath(:,1));
-                end
-                %}
-
                 scenario.vehicles(iVeh).x_start = updatedRefPath(1,1);
                 scenario.vehicles(iVeh).y_start = updatedRefPath(1,2);
                 scenario.vehicles(iVeh).x_goal = updatedRefPath(2:end,1);

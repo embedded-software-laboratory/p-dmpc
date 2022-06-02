@@ -50,11 +50,6 @@ classdef CPMLab < InterfaceExperiment
         function setup(obj)
             assert(issorted(obj.vehicle_ids));
 
-            %obj.joy = vrjoystick(0);
-            %test1 = ros2node("/test1");
-            %ros2 node list;
-            %exampleHelperROS2CreateSampleNetwork
-
             %{
             % This command has first to be executed in terminal:
             %ros2 run joy joy_node _dev_name:="/dev/input/js0";
@@ -145,7 +140,6 @@ classdef CPMLab < InterfaceExperiment
                 elseif obj.scenario.options.firstManualVehicleMode == 2
                     obj.wheelNode = ros2node("/wheel");
                     obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@steeringWheelCallback);
-                    obj.ros_subscribers = obj.wheelSub;
                 end
             end
 
@@ -259,22 +253,6 @@ classdef CPMLab < InterfaceExperiment
             if (sample_count > 1)
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
-
-            %{
-            if (obj.scenario.options.firstManualVehicleMode == 2) || (obj.scenario.options.secondManualVehicleMode == 2)
-                %obj.sample.state_list = fliplr(obj.sample.state_list);
-                for i = 1:length(obj.sample.state_list)
-                    if (obj.sample.state_list(i).vehicle_id == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
-                            || (obj.sample.state_list(i).vehicle_id == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2)
-                        %obj.sample.state_list(i) = [];
-                        delete_index = i;
-                        %break
-                    end
-                end
-                %obj.sample.state_list = fliplr(obj.sample.state_list);
-                obj.sample.state_list(delete_index) = [];
-            end
-            %}
             
             % for first iteration use real poses
             if obj.controller_init == false
@@ -282,29 +260,6 @@ classdef CPMLab < InterfaceExperiment
                 pose = [obj.sample(end).state_list.pose];
                 x0(:,1) = [pose.x];
                 x0(:,2) = [pose.y];
-                %{
-                x0(:,1) = [pose.y];
-                % WARNING: wrong x and y coordinates are inverted, and new x (former y) coordinate has to be shifted
-                x0(:,2) = [pose.x];
-
-                sub = zeros(obj.scenario.nVeh,4);
-                for i = 1:obj.scenario.nVeh
-                    sub(i,1) = 4;
-                end
-
-                for i = 1:obj.scenario.nVeh
-                    x0(i,1) = sub(i,1) - x0(i,1);
-                end
-                %}
-
-                for i = 1:obj.scenario.nVeh
-                    %disp(obj.scenario.nVeh);
-                    disp("x: ");
-                    disp(x0(i));
-                    disp("y: ");
-                    disp(x0(i,2));
-                end
-                
                 x0(:,3) = [pose.yaw];
                 x0(:,4) = [obj.sample(end).state_list.speed];
                 obj.controller_init = true;
@@ -331,15 +286,7 @@ classdef CPMLab < InterfaceExperiment
                         uint64(obj.sample(end).t_now + i_traj_pt*obj.dt_period_nanos);
                     trajectory_points(i_traj_pt).px = y_pred{iVeh}(i_predicted_points,1);
                     trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points,2);
-                    %{
-                    trajectory_points(i_traj_pt).px = y_pred{iVeh}(i_predicted_points,2);
-                    disp("x: ");
-                    disp(trajectory_points(i_traj_pt).px);
-                    trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points,1);
-                    trajectory_points(i_traj_pt).py = 4 - trajectory_points(i_traj_pt).py;
-                    disp("y: ");
-                    disp(trajectory_points(i_traj_pt).py);
-                    %}
+                
                     yaw = y_pred{iVeh}(i_predicted_points,3);
 
                     if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
@@ -348,7 +295,6 @@ classdef CPMLab < InterfaceExperiment
                     else
                         speed = obj.scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
                     end
-                    %disp(sprintf("iVeh: %d, speed: %f", iVeh, speed));
                     
                     trajectory_points(i_traj_pt).vx = cos(yaw)*speed;
                     trajectory_points(i_traj_pt).vy = sin(yaw)*speed;

@@ -7,19 +7,11 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
     random_path = struct;
     
     disp(sprintf('Id: %d', vehid));
-    % maybe scenario.vehicles not yet initialized
-    % lanelets_index_vehid = scenario.vehicles(1,vehid).lanelets_index; 
+   
     lanelets_index_vehid = startPosition;  
     
     load('commonroad_data.mat');
     commonroad = commonroad_data;
-
-    %{ 
-    if vehicle position not directly accessable, iterate over lanelets to find position
-    for i = 1:length(lanelets)
-        if    
-    end
-    %}
 
     % find initial position for this
     random_path.lanelets_index = [lanelets_index_vehid];
