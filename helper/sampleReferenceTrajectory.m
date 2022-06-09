@@ -1,4 +1,4 @@
-function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize )
+function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize, iVeh, exp, scenario )
 % SAMPLEREFERENCETRAJETORY  Computes equidistant points along a piecewise linear curve. The first
 % point is the point on the curve closest to the given point
 % (vehicle_x,vehicle_y). All following points are on the curve with a
@@ -55,6 +55,19 @@ function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, ve
                 
                 reflength = remainingLength;
                 currentPoint = referenceTrajectory(TrajectoryIndex,:);
+
+                %{
+                point.x = currentPoint(1,1);
+                point.y = currentPoint(1,2);
+                visualization_point = point;
+
+                color = Color;
+                color.r = uint8(240);
+                color.g = uint8(230);
+                color.b = uint8(26);
+                [visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
+                exp.visualize(visualization_command);
+                %}
                 TrajectoryIndexLast = TrajectoryIndex;
                 TrajectoryIndex = min(TrajectoryIndex+1, nLinePieces);
                 

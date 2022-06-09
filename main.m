@@ -149,14 +149,14 @@ while (~got_stop)
     [x0_measured, trims_measured] = exp.measure();% trims_measured： which trim  
     scenario.k = k;
 
-    disp(['Time step ' num2str(scenario.k) '.'])
+    %disp(['Time step ' num2str(scenario.k) '.'])
 
     try
         % Control
         % ----------------------------------------------------------------------
          
         % Update the iteration data and sample reference trajectory
-        iter = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
+        iter = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab, exp);
         scenario = iter.scenario;
         if (~initialized_reference_path || scenario.updated_manual_vehicle_path || scenario.updated_second_manual_vehicle_path)
             %exp.update();

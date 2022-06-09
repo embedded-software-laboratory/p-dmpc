@@ -1,4 +1,4 @@
-function iter = rhc_init(scenario, x_measured, trims_measured, initialized_reference_path, is_sim_lab)
+function iter = rhc_init(scenario, x_measured, trims_measured, initialized_reference_path, is_sim_lab, exp)
 % RHC_INIT  Preprocessing step for RHC controller
 
     idx = indices();
@@ -11,13 +11,13 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
 
                 if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.firstManualVehicleMode == 1
-                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false, 0);
                     else
                         continue
                     end     
                 elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.secondManualVehicleMode == 1
-                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false);
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false, 0);
                     else
                         continue
                     end      
@@ -90,7 +90,10 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
             scenario.vehicles(iVeh).referenceTrajectory, ...
             iter.x0(iVeh, idx.x), ... % vehicle position x
             iter.x0(iVeh, idx.y), ... % vehicle position y
-            iter.vRef(iVeh,:)*scenario.dt...  % distance traveled in one timestep
+            iter.vRef(iVeh,:)*scenario.dt, ...  % distance traveled in one timestep
+            iVeh, ...
+            exp, ...
+            scenario...
         );
     
         iter.referenceTrajectoryPoints(iVeh,:,:) = reference.ReferencePoints;
@@ -108,11 +111,54 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                 predicted_lanelets = get_predicted_lanelets(scenario.vehicles(iVeh), ref_points_index, scenario.road_raw_data.lanelet);
             end
             iter.predicted_lanelets{iVeh} = predicted_lanelets;
+            %disp(predicted_lanelets);
+
+            visualization_point = 0;
+            for i = 1:length(iter.referenceTrajectoryPoints(iVeh,:,:))
+                point.x = iter.referenceTrajectoryPoints(iVeh,i,1);
+                point.y = iter.referenceTrajectoryPoints(iVeh,i,2);
+                visualization_point = point;
+
+                color = Color;
+                color.r = uint8(240);
+                color.g = uint8(230);
+                color.b = uint8(26);
+
+                [visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
+                exp.visualize(visualization_command);
+            end
         
 
             % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
             predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary);
             iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
+
+            for i = 1:length(predicted_lanelet_boundary{1,1})
+                left_boundary = predicted_lanelet_boundary{1,1};
+                leftPoint.x = left_boundary(1,i);
+                leftPoint.y = left_boundary(2,i);
+                visualization_left_point = leftPoint;
+                color = Color;
+                color.r = uint8(170);
+                color.g = uint8(24);
+                color.b = uint8(186);
+                %[visualization_command] = lab_visualize_point(scenario, visualization_left_point, iVeh, color);
+                %exp.visualize(visualization_command);
+            end
+
+            for i = 1:length(predicted_lanelet_boundary{1,2})
+                right_boundary = predicted_lanelet_boundary{1,2};
+                rightPoint.x = right_boundary(1,i);
+                rightPoint.y = right_boundary(2,i);
+                visualization_right_point = rightPoint;
+                color = Color;
+                color.r = uint8(232);
+                color.g = uint8(111);
+                color.b = uint8(30);
+                %[visualization_command] = lab_visualize_point(scenario, visualization_right_point, iVeh, color);
+                %exp.visualize(visualization_command);
+            end
+
     
             if scenario.options.isParl
                 % Calculate reachable sets of other vehicles based on their

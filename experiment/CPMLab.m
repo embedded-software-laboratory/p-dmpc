@@ -357,6 +357,10 @@ classdef CPMLab < InterfaceExperiment
             end
         end
 
+        function visualize(obj, visualization_command)
+            obj.writer_visualization.write(visualization_command);
+        end
+
         function updateManualControl(obj, modeHandler, scenario, vehicle_id, steeringWheel)
             %[obj.sample, ~, ~, ~] = obj.reader_vehicleStateList.take();
             dt_max_comm_delay = uint64(100e6);
