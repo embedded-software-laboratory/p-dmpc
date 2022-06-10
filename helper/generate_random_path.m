@@ -126,6 +126,30 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
     % the max points index of each lanelet
     lanelet_point_max = 0;
     points_index = zeros(1,length( random_path.lanelets_index));
+    laneChangeLanesIndices = [];
+
+    for i = 1:length(random_path.lanelets_index)-1
+        successor = commonroad_data.lanelet(random_path.lanelets_index(i)).successor; 
+        successor_indices = horzcat(successor.refAttribute);
+
+        for k = 1:length(successor_indices)
+            successor_adjacentLeft = commonroad_data.lanelet(successor_indices(k)).adjacentLeft;
+            if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
+                if ismember(random_path.lanelets_index(i+1), successor_adjacentLeft.refAttribute)
+                    laneChangeLanesIndices = [laneChangeLanesIndices, i+1];
+                    break
+                end
+            end
+
+            successor_adjacentRight = commonroad_data.lanelet(successor_indices(k)).adjacentRight;
+            if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
+                if ismember(random_path.lanelets_index(i+1), successor_adjacentRight.refAttribute)
+                    laneChangeLanesIndices = [laneChangeLanesIndices, i+1];
+                    break
+                end
+            end
+        end
+    end
 
     for nlanelets = 1:length(random_path.lanelets_index)
         % choose the center line of the lanelet as reference path
@@ -139,7 +163,37 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
         if length(randomPath_y) > 3
             %randomPath_y = randomPath_y([2:(end)-1]);
         end
+        
+        if nlanelets < length(random_path.lanelets_index)
+            if ismember((nlanelets+1), laneChangeLanesIndices)
+                % the next lane is an adjacent lane, interpolate diagonal from middle index of current lane to next lane
+                middleIndex = uint8(length(randomPath_x) / 2);
+                remainingIndices = length(randomPath_x) - middleIndex;
+                new_lane_start_x = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cx);
+                new_lane_start_y = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cy);
 
+                distance = sqrt((randomPath_x(middleIndex) - new_lane_start_x).^2 + (randomPath_y(middleIndex) - new_lane_start_y).^2);
+
+                for j = 1:remainingIndices
+                    if randomPath_x(middleIndex+j) > new_lane_start_x
+                        point_x = randomPath_x(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+j) - new_lane_start_x)/distance);
+                    else
+                        point_x = randomPath_x(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+j))/distance);
+                    end
+
+                    if randomPath_y(middleIndex+j) > new_lane_start_y
+                        point_y = randomPath_y(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+j) - new_lane_start_y)/distance);
+                    else
+                        point_y = randomPath_y(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+j))/distance);
+                    end
+
+                    randomPath_x(middleIndex+j) = point_x;
+                    randomPath_y(middleIndex+j) = point_y;
+                end
+            end
+        end
+        
+        %{
         % lane change only possible at even positions in random_path.lanelets_index
         % if position is even, then set position of last point to middle last point and first point of new lane
         if mod(nlanelets,2) == 0 && nlanelets < length(random_path.lanelets_index)
@@ -170,6 +224,7 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
             randomPath_x(1) = randomPath_x(2);
             randomPath_y(1) = randomPath_y(2);
         end
+        %}
 
         randomPath_next = [randomPath_x(1:end),randomPath_y(1:end)];
         path = [path; randomPath_next];
