@@ -1,8 +1,8 @@
-function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
+function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks, is_allow_non_convex)
 % GENERATE_MANEUVER     Generate a maneuver for motion primitive automaton.
 
     % currently works for BicycleModel
-    %% calculate displacement
+    % calculate displacement
     
     steering_derivative = (trim2.steering - trim1.steering) / dt;
     acceleration = (trim2.speed - trim1.speed) / dt;
@@ -30,95 +30,65 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks)
     maneuver.dy = maneuver.ys(end);
     maneuver.dyaw = maneuver.yaws(end);
     
-    
-    %% Area
     % local rectangle of bycicle model [coordinates clockwise from lower left corner]
     veh = Vehicle();
+
+    % with normal offset
     x_rec1 = [-1, -1,  1,  1] * (veh.Length/2+offset);
     y_rec1 = [-1,  1,  1, -1] * (veh.Width/2+offset);
-        
     % calculate displacement of model shape
     [x_rec2, y_rec2] = translate_global(maneuver.dyaw, maneuver.dx, maneuver.dy, x_rec1, y_rec1);
-    
-    signum = sign(maneuver.dyaw);
-    
-    switch signum
-        case 0
-            maneuver_area = [   x_rec1(1) x_rec1(2) x_rec2(3) x_rec2(4); ...
-                                y_rec1(1) y_rec1(2) y_rec2(3) y_rec2(4)   ];
-        case 1
-            lastX = x_rec2(4);
-            lastY = y_rec1(4);
-            maneuver_area = [   x_rec1(1) x_rec1(2) x_rec2(3) x_rec2(4) lastX; ...
-                                y_rec1(1) y_rec1(2) y_rec2(3) y_rec2(4) lastY   ];
-        case -1
-            lastX = x_rec2(3);
-            lastY = y_rec1(3);
-            maneuver_area = [   x_rec1(1) x_rec1(2) lastX x_rec2(3) x_rec2(4); ...
-                                y_rec1(1) y_rec1(2) lastY y_rec2(3) y_rec2(4)   ];
-    end
-    
-    maneuver.area = maneuver_area; % with normal offset
+    signum = sign(maneuver.dyaw); % positive for left turn, negative for right turn
+    maneuver.area = get_maneuver_area(x_rec1, y_rec1, x_rec2, y_rec2, signum, is_allow_non_convex);
 
-%     % convert the occupied area to polyshape objective
-%     maneuver.areaPoly = polyshape(maneuver_area(1,:),maneuver_area(2,:));
     
-    
+    % without offset
     x_rec1_without_offset = [-1, -1,  1,  1] * (veh.Length/2);
     y_rec1_without_offset = [-1,  1,  1, -1] * (veh.Width/2);
-        
     % calculate displacement of model shape
     [x_rec2_without_offset, y_rec2_without_offset] = translate_global(maneuver.dyaw, maneuver.dx, maneuver.dy, x_rec1_without_offset, y_rec1_without_offset);
-    
-    signum = sign(maneuver.dyaw);
-    
-    switch signum
-        case 0
-            maneuver_area_without_offset = [   x_rec1_without_offset(1) x_rec1_without_offset(2) x_rec2_without_offset(3) x_rec2_without_offset(4); ...
-                                               y_rec1_without_offset(1) y_rec1_without_offset(2) y_rec2_without_offset(3) y_rec2_without_offset(4)   ];
-        case 1
-            lastX = x_rec2_without_offset(4);
-            lastY = y_rec1_without_offset(4);
-            maneuver_area_without_offset = [   x_rec1_without_offset(1) x_rec1_without_offset(2) x_rec2_without_offset(3) x_rec2_without_offset(4) lastX; ...
-                                               y_rec1_without_offset(1) y_rec1_without_offset(2) y_rec2_without_offset(3) y_rec2_without_offset(4) lastY   ];
-        case -1
-            lastX = x_rec2_without_offset(3);
-            lastY = y_rec1_without_offset(3);
-            maneuver_area_without_offset = [   x_rec1_without_offset(1) x_rec1_without_offset(2) lastX x_rec2_without_offset(3) x_rec2_without_offset(4); ...
-                                               y_rec1_without_offset(1) y_rec1_without_offset(2) lastY y_rec2_without_offset(3) y_rec2_without_offset(4)   ];
-    end
-    
-    maneuver.area_without_offset = maneuver_area_without_offset;
+    signum = sign(maneuver.dyaw);    
+    maneuver.area_without_offset = get_maneuver_area(x_rec1_without_offset, y_rec1_without_offset, x_rec2_without_offset, y_rec2_without_offset, signum, is_allow_non_convex); 
     
     
-    % larger maneuver shape for the last step of prediction horizon
+    % with larger offset: for the last step of prediction horizon
     x_rec1_larger_offset = [-1, -1,  1,  1] * (veh.Length/2 + 0.05);
     y_rec1_larger_offset = [-1,  1,  1, -1] * (veh.Width/2 + 0.01);
-        
     % calculate displacement of model shape
     [x_rec2_larger_offset, y_rec2_larger_offset] = translate_global(maneuver.dyaw, maneuver.dx, maneuver.dy, x_rec1_larger_offset, y_rec1_larger_offset);
-    
     signum = sign(maneuver.dyaw);
-    
+    maneuver.area_boundary_check = get_maneuver_area(x_rec1_larger_offset, y_rec1_larger_offset, x_rec2_larger_offset, y_rec2_larger_offset, signum, is_allow_non_convex);     
+end
+
+
+%% local function
+function maneuver_area = get_maneuver_area(x_rec1, y_rec1, x_rec2, y_rec2, signum, is_allow_non_convex)
+% Approximates the maneuver area beased the starting area and end area
     switch signum
-        case 0
-            maneuver_area_larger_offset = [   x_rec1_larger_offset(1) x_rec1_larger_offset(2) x_rec2_larger_offset(3) x_rec2_larger_offset(4); ...
-                                               y_rec1_larger_offset(1) y_rec1_larger_offset(2) y_rec2_larger_offset(3) y_rec2_larger_offset(4)   ];
-        case 1
-            lastX = x_rec2_larger_offset(4);
-            lastY = y_rec1_larger_offset(4);
-            maneuver_area_larger_offset = [   x_rec1_larger_offset(1) x_rec1_larger_offset(2) x_rec2_larger_offset(3) x_rec2_larger_offset(4) lastX; ...
-                                               y_rec1_larger_offset(1) y_rec1_larger_offset(2) y_rec2_larger_offset(3) y_rec2_larger_offset(4) lastY   ];
-        case -1
-            lastX = x_rec2_larger_offset(3);
-            lastY = y_rec1_larger_offset(3);
-            maneuver_area_larger_offset = [   x_rec1_larger_offset(1) x_rec1_larger_offset(2) lastX x_rec2_larger_offset(3) x_rec2_larger_offset(4); ...
-                                               y_rec1_larger_offset(1) y_rec1_larger_offset(2) lastY y_rec2_larger_offset(3) y_rec2_larger_offset(4)   ];
+        case 0 % go straight
+            maneuver_area = [   x_rec1(1) x_rec1(2) x_rec2(3) x_rec2(4); ...
+                                y_rec1(1) y_rec1(2) y_rec2(3) y_rec2(4)   ];
+        case 1 % turn left
+            if is_allow_non_convex
+                maneuver_area = [   x_rec1(1) x_rec1(2) x_rec2(2) x_rec2(3) x_rec2(4) x_rec1(4); ...
+                                    y_rec1(1) y_rec1(2) y_rec2(2) y_rec2(3) y_rec2(4) y_rec1(4)   ];
+            else
+                % must be convex shapes
+                lastX = x_rec2(4);
+                lastY = y_rec1(4);
+                maneuver_area = [   x_rec1(1) x_rec1(2) x_rec2(3) x_rec2(4) lastX; ...
+                                    y_rec1(1) y_rec1(2) y_rec2(3) y_rec2(4) lastY   ];
+            end
+
+        case -1 % turn right
+            if is_allow_non_convex
+                maneuver_area = [   x_rec1(1) x_rec1(2) x_rec1(3) x_rec2(3) x_rec2(4) x_rec2(1); ...
+                                    y_rec1(1) y_rec1(2) y_rec1(3) y_rec2(3) y_rec2(4) y_rec2(1)   ];
+            else
+                lastX = x_rec2(3);
+                lastY = y_rec1(3);
+                maneuver_area = [   x_rec1(1) x_rec1(2) lastX x_rec2(3) x_rec2(4); ...
+                                    y_rec1(1) y_rec1(2) lastY y_rec2(3) y_rec2(4)   ];
+            end
     end
-    
-    maneuver.area_boundary_check = maneuver_area_larger_offset; % with larger offset
-    
-    
-    
-    
 end
