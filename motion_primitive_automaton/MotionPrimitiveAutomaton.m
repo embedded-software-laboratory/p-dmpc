@@ -14,7 +14,7 @@ classdef MotionPrimitiveAutomaton
     end
     
     methods
-        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N, nTicks, recursive_feasibility, is_allow_non_convex, options)
+        function obj = MotionPrimitiveAutomaton(model, trim_ID, offset, dt, nveh, N, nTicks, recursive_feasibility, is_allow_non_convex, options)
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
@@ -29,7 +29,8 @@ classdef MotionPrimitiveAutomaton
                 mkdir(folder_target)
             end
 
-            mpa_instance_name = ['MPA_','trims',num2str(trim_set),'_Hp',num2str(N)];
+            % for example: MPA_trims12_Hp6, MPA_trims12_Hp6_parl_non-convex
+            mpa_instance_name = ['MPA_','trims',num2str(trim_ID),'_Hp',num2str(N)];
             if options.isParl
                 mpa_instance_name = [mpa_instance_name,'_parl'];                
             end
@@ -50,7 +51,7 @@ classdef MotionPrimitiveAutomaton
 
             obj.recursive_feasibility = recursive_feasibility;
                         
-            [trim_inputs, trim_adjacency] = choose_trims(trim_set);
+            [trim_inputs, trim_adjacency] = choose_trims(trim_ID);
             n_trims = length(trim_inputs);
             
             obj.transition_matrix_single = zeros([size(trim_adjacency),N]);
