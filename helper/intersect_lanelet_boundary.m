@@ -12,7 +12,7 @@ function collision = intersect_lanelet_boundary(shapes, boundary)
     min_x = min(shapes(1,:));
     max_y = max(shapes(2,:));
     min_y = min(shapes(2,:));
-%     
+   
     for n = 1:n_point_left-1
         %check left boundary
         line_segment_left = boundary_points_left(:,n:n+1);
@@ -21,7 +21,7 @@ function collision = intersect_lanelet_boundary(shapes, boundary)
         end
         if intersect_sat(shapes,boundary_points_left(:,n:n+1))     
             collision = true;
-%             disp('There is collision with the boundary')
+%             disp('There is collision with left boundary')
             return;
         end 
     end
@@ -34,10 +34,9 @@ function collision = intersect_lanelet_boundary(shapes, boundary)
         end
         if intersect_sat(shapes,boundary_points_right(:,i:i+1))    
             collision = true;
-%             disp('There is collision with the boundary')
+%             disp('There is collision with right boundary')
             return;
-        end
-        
-    end   
+        end 
+    end  
 
 end
