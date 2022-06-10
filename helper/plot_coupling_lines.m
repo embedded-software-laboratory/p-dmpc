@@ -31,13 +31,13 @@ function plot_coupling_lines(M, x0, varargin)
             adj_x = x0(adj_v,:);
 
             % plot adjacency
-            MaxHeadSize = 0.3/norm([adj_x(1)-x(1),adj_x(2)-x(2)]);
+            MaxHeadSize = 0.3/norm([adj_x(1)-x(1),adj_x(2)-x(2)]); % to keep the arrow size 
             if ~isempty(belonging_vector) && belonging_vector(v) ~= belonging_vector(adj_v)
                 % couplings inside a group will be shown in red lines, while couplings between
                 % groups will be shown in blue dashed lines.
-                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color','b','LineStyle','--','MaxHeadSize', MaxHeadSize)
+                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color','b','LineStyle','--','MaxHeadSize',MaxHeadSize)
             else
-                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color','k','LineStyle','-','MaxHeadSize', MaxHeadSize)
+                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color','b','LineStyle',':','MaxHeadSize',MaxHeadSize)
             end
 
             if ShowWeights
