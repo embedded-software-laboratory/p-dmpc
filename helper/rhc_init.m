@@ -2,6 +2,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
 % RHC_INIT  Preprocessing step for RHC controller
 
     idx = indices();
+    last_lanes = zeros(scenario.nVeh,1);
 
     if ~is_sim_lab
         if ~initialized_reference_path
@@ -11,19 +12,19 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
 
                 if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.firstManualVehicleMode == 1
-                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false, 0);
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false, 0);
                     else
                         continue
                     end     
                 elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.secondManualVehicleMode == 1
-                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 50, index, false, 0);
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false, 0);
                     else
                         continue
                     end      
                 else
                     % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
-                    [updated_ref_path, scenario] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 50, index); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                    [updated_ref_path, scenario] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
                 end
                 
                 updatedRefPath = updated_ref_path.path;
@@ -40,6 +41,46 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                 yaw = calculate_yaw(updatedRefPath);
                 scenario.vehicles(iVeh).yaw_start = yaw(1);
                 scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
+            end
+        else
+            for iVeh = 1:scenario.nVeh
+                for i = 1:length(scenario.vehicles(iVeh).predicted_lanelets)
+                    if scenario.vehicles(iVeh).predicted_lanelets(i) == scenario.vehicles(iVeh).lanelets_index(end)
+                        if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && ~scenario.updated_manual_vehicle_path
+                            if scenario.options.firstManualVehicleMode == 1
+                                [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end), false, 0);
+                            else
+                                continue
+                            end     
+                        elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && ~scenario.updated_second_manual_vehicle_path
+                            if scenario.options.secondManualVehicleMode == 1
+                                [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end), false, 0);
+                            else
+                                continue
+                            end      
+                        else
+                            % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
+                            [updated_ref_path, scenario] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end)); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                            last_lanes(iVeh) = scenario.vehicles(iVeh).lanelets_index(end-1);
+                        end
+
+                        updatedRefPath = updated_ref_path.path;
+                        scenario.vehicles(iVeh).x_start = updatedRefPath(1,1);
+                        scenario.vehicles(iVeh).y_start = updatedRefPath(1,2);
+                        scenario.vehicles(iVeh).x_goal = updatedRefPath(2:end,1);
+                        scenario.vehicles(iVeh).y_goal = updatedRefPath(2:end,2);
+                        
+                        scenario.vehicles(iVeh).referenceTrajectory = [scenario.vehicles(iVeh).x_start scenario.vehicles(iVeh).y_start
+                                                scenario.vehicles(iVeh).x_goal  scenario.vehicles(iVeh).y_goal];
+                        scenario.vehicles(iVeh).lanelets_index = updated_ref_path.lanelets_index;
+                        scenario.vehicles(iVeh).points_index = updated_ref_path.points_index;
+
+                        yaw = calculate_yaw(updatedRefPath);
+                        scenario.vehicles(iVeh).yaw_start = yaw(1);
+                        scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
+                        break
+                    end
+                end
             end
         end
     end
@@ -110,9 +151,15 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                 ref_points_index = reshape(iter.referenceTrajectoryIndex(iVeh,:,:),Hp,1);
                 predicted_lanelets = get_predicted_lanelets(scenario.vehicles(iVeh), ref_points_index, scenario.road_raw_data.lanelet);
             end
-            iter.predicted_lanelets{iVeh} = predicted_lanelets;
-            %disp(predicted_lanelets);
 
+            % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
+            if last_lanes(iVeh) ~= 0
+                predicted_lanelets = [last_lanes(iVeh), predicted_lanelets];
+            end
+
+            iter.predicted_lanelets{iVeh} = predicted_lanelets;
+            iter.scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
+    
             visualization_point = 0;
             for i = 1:length(iter.referenceTrajectoryPoints(iVeh,:,:))
                 point.x = iter.referenceTrajectoryPoints(iVeh,i,1);
@@ -124,8 +171,8 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                 color.g = uint8(230);
                 color.b = uint8(26);
 
-                [visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
-                exp.visualize(visualization_command);
+                %[visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
+                %exp.visualize(visualization_command);
             end
         
 
@@ -142,8 +189,8 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                 color.r = uint8(170);
                 color.g = uint8(24);
                 color.b = uint8(186);
-                %[visualization_command] = lab_visualize_point(scenario, visualization_left_point, iVeh, color);
-                %exp.visualize(visualization_command);
+                [visualization_command] = lab_visualize_point(scenario, visualization_left_point, iVeh, color);
+                exp.visualize(visualization_command);
             end
 
             for i = 1:length(predicted_lanelet_boundary{1,2})
@@ -155,8 +202,8 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                 color.r = uint8(232);
                 color.g = uint8(111);
                 color.b = uint8(30);
-                %[visualization_command] = lab_visualize_point(scenario, visualization_right_point, iVeh, color);
-                %exp.visualize(visualization_command);
+                [visualization_command] = lab_visualize_point(scenario, visualization_right_point, iVeh, color);
+                exp.visualize(visualization_command);
             end
 
     

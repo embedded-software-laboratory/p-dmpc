@@ -109,7 +109,8 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
     end
 
     %random_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,1,3,5,7];
-    %random_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,2,4,6,8];
+    %random_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,1,4,6,8];
+    %random_path.lanelets_index = [8,60,57,55,67,65,71,19,14,16,22,5,9,11,18,14,15,3,6,8,59];
 
     for i = 1:length(random_path.lanelets_index)
         disp(sprintf('random entries: i: %d, entry: %d', i,random_path.lanelets_index(i)));
@@ -142,15 +143,32 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
         % lane change only possible at even positions in random_path.lanelets_index
         % if position is even, then set position of last point to middle last point and first point of new lane
         if mod(nlanelets,2) == 0 && nlanelets < length(random_path.lanelets_index)
+            
+            old_lane_end_x = randomPath_x(end-1);
+            new_lane_start_x = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cx);
+            point_x = (old_lane_end_x + new_lane_start_x) / 2;
+            randomPath_x(end-1) = point_x;
+
             old_lane_end_x = randomPath_x(end);
             new_lane_start_x = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cx);
             point_x = (old_lane_end_x + new_lane_start_x) / 2;
             randomPath_x(end) = point_x;
 
+            old_lane_end_y = randomPath_y(end-1);
+            new_lane_start_y = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cy);
+            point_y = (old_lane_end_y + new_lane_start_y) / 2;
+            randomPath_y(end-1) = point_y;
+
             old_lane_end_y = randomPath_y(end);
             new_lane_start_y = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cy);
             point_y = (old_lane_end_y + new_lane_start_y) / 2;
             randomPath_y(end) = point_y;
+            
+            %randomPath_x(end) = randomPath_x(end-1);
+            %randomPath_y(end) = randomPath_y(end-1);
+        else
+            randomPath_x(1) = randomPath_x(2);
+            randomPath_y(1) = randomPath_y(2);
         end
 
         randomPath_next = [randomPath_x(1:end),randomPath_y(1:end)];
