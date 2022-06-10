@@ -19,7 +19,7 @@ function [belonging_vector, cost] = min_cut_MILP(M, varargin)
 %   vertices that must be in the same subset are not supported by this program.
 % 
 % OUTPUT: 
-%   belonging_vector: a column vector whose values indicates which
+%   belonging_vector: a column vector whose values indicate which
 %   subgraph a vertex belongs to. For example,"belonging_vector =
 %   [1;2;2;1;3]" means the following three subgraphs: {1,4}, {2,3} and {5}.
 %   

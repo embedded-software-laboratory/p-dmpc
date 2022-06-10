@@ -11,7 +11,7 @@ function [belonging_vector, subgraphs_infos] = graph_merging_algorithm(M, belong
 %   target graph. Edge-weights will not be considered if M is the dajacency
 %   matrix.
 %  
-%   belonging_vector: a column vector whose values indicates which
+%   belonging_vector: a column vector whose values indicate which
 %   subgraphs the vertices belong to. For example,"belonging_vector =
 %   [1;2;2;1;3]" means the 1st subgraph = {1,4}, the 2nd subgraph = {2,3}
 %   and the 3rd subgraph = {5}. 

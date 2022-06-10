@@ -14,7 +14,7 @@ function scenario = communication_init(scenario, exp)
 
 
     % generate custom message type (for vehicle communication) if not exist
-    msgList = ros2("msg","list"); % get all ROS 2 message type
+    msgList = ros2("msg","list"); % get all ROS 2 message types
     if sum(cellfun(@(c)strcmp(c,'veh_msgs/Traffic'), msgList))==0
         % if the message type 'veh_msgs/Traffic' does not exist 
         [file_path,~,~] = fileparts(mfilename('fullpath'));
@@ -52,17 +52,10 @@ function scenario = communication_init(scenario, exp)
     for jVeh = 1:nVeh
         predicted_trims = repmat(trims_measured(jVeh), 1, Hp+1); % current trim and predicted trims in the prediction horizon
 
-        % Predict driving lanelets
-        predicted_vRef = get_max_speed(scenario.mpa, predicted_trims(2)); % get reference speed and path points
-        reference = sampleReferenceTrajectory(...
-            Hp, ... % number of prediction steps
-            scenario.vehicles(jVeh).referenceTrajectory, ...
-            x0_measured(jVeh,indices().x), ... % vehicle position x
-            x0_measured(jVeh,indices().y), ... % vehicle position y
-            predicted_vRef*scenario.dt...  % distance traveled in one timestep
-        ); % Find equidistant points on the reference trajectory.
-        ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
-        predicted_lanelets = get_predicted_lanelets(scenario.vehicles(jVeh), ref_points_index, scenario.road_raw_data.lanelet);
+        x0 = x0_measured(jVeh,indices().x); % vehicle position x
+        y0 = x0_measured(jVeh,indices().y); % vehicle position y
+
+        predicted_lanelets = get_predicted_lanelets(scenario.vehicles(jVeh),predicted_trims(1),x0,y0,scenario.mpa,scenario.dt);
 
         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
         scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);   

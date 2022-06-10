@@ -10,9 +10,11 @@ function [belonging_vector, subgraphs_infos] = graph_partitioning_algorithm(M, v
 %   
 %   max_num_CLs: maximum number of computation levels, equals to the height
 %   of the directed tree for the given matrix.
+% 
+%   method: either 's-t-cut' or 'MILP'
 %
 % OUTPUT:
-%   belonging_vector: a column vector whose values indicates which
+%   belonging_vector: a column vector whose values indicate which
 %   subgraphs the vertices belong to. For example,"belonging_vector =
 %   [1;2;2;1;3]" means the 1st subgraph = {1,4}, the 2nd subgraph = {2,3}
 %   and the 3rd subgraph = {5}. 
@@ -23,11 +25,11 @@ function [belonging_vector, subgraphs_infos] = graph_partitioning_algorithm(M, v
     % Process optional input and Name-Value pair options
     [M, max_num_CLs, method] = parse_inputs(M, varargin{:});
 
-    G_undirected = digraph(M);
-    assert(isdag(G_undirected)) % check whether DAG
+    G_directed = digraph(M);
+    assert(isdag(G_directed)) % check whether DAG
     
     % decompose the supergraph if it contains unconnected components
-    [belonging_vector,~] = conncomp(G_undirected,'Type','weak');
+    [belonging_vector,~] = conncomp(G_directed,'Type','weak');
 
 %     graphs_visualization(belonging_vector, M, 'ShowWeights', true)
     % number of graphs
@@ -35,9 +37,8 @@ function [belonging_vector, subgraphs_infos] = graph_partitioning_algorithm(M, v
     n_graphs = length(graph_indices);
 
     subgraphs_infos(n_graphs) = struct('vertices',[],'num_CLs',[],'path_infos',[]);
-    
 
-    for i_graph=graph_indices
+    for i_graph = graph_indices
         vertices_i = find(belonging_vector==i_graph);
 
         % get all paths from source vertices to sinks, since the computation levels are only depends on those paths 
@@ -52,7 +53,7 @@ function [belonging_vector, subgraphs_infos] = graph_partitioning_algorithm(M, v
     [num_CLs_longest_graph, longest_graph_ID] = max([subgraphs_infos.num_CLs]);
 
     % cut the longest graph into two parts until no graph is longer than defined
-    while num_CLs_longest_graph>max_num_CLs
+    while num_CLs_longest_graph > max_num_CLs
         vertices_longest_graph = find(belonging_vector==longest_graph_ID); % vertices that belong to the longest graph
         M_longest_graph = M(vertices_longest_graph,vertices_longest_graph);
 

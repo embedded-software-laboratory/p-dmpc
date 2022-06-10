@@ -29,8 +29,6 @@ if is_sim_lab
             % former UI for Sim lab
             %options = selection();
     end
-    vehicle_ids = 1:options.amount; % default IDs
-%     vehicle_ids = [10,14,16,17,18,20]; % specify vehicles IDs
     manualVehicle_id = 0;
     manualVehicle_id2 = 0;
 
@@ -41,6 +39,19 @@ if is_sim_lab
     %TODO: make selection for mixedTrafficScenarioLanelets
     options.mixedTrafficScenarioLanelets = false;
     
+
+switch options.amount
+    % specify vehicles IDs
+    case 2
+        vehicle_ids = [14,16];
+    case 4
+        vehicle_ids = [14,16,18,20];
+    case 6
+        vehicle_ids = [10,14,16,17,18,20]; 
+    otherwise
+        vehicle_ids = 1:options.amount; % default IDs
+end
+
 else
     disp('cpmlab')
     vehicle_ids = [varargin{:}];
@@ -76,8 +87,6 @@ end
     
 % scenario = circle_scenario(options.amount,options.isPB);
 % scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
-
-% plot_reachable_sets_offline(scenario.mpa)
  
 switch options.scenario
     case 'Circle_scenario'
@@ -232,18 +241,16 @@ while (~got_stop)
         
         % update the coupling information
         if strcmp(scenario.name, 'Commonroad')
-            % update the lanelet boundary for each vehicle
-            for iVeh = 1:options.amount
-                scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(iVeh,:);
-            end
-
-            if options.isParl
-                % update the coupling information
-                scenario = get_coupling_infos(scenario, iter);
-            else
+            if ~options.isParl
                 % update the coupling information
                 scenario = coupling_adjacency(scenario, iter);
             end
+
+            % update the lanelet boundary for each vehicle
+            for iVeh = 1:options.amount
+                scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(iVeh,1:2);
+            end
+
         end
         
         % calculate the distance
@@ -265,8 +272,7 @@ while (~got_stop)
         
         % The controller computes plans
         controller_timer = tic; 
-            [u, y_pred, info] = scenario.controller(scenario_tmp, iter);
-        scenario.last_veh_at_intersection = info.veh_at_intersection;
+            [u, y_pred, info, scenario] = scenario.controller(scenario_tmp, iter);
         result.controller_runtime(k) = toc(controller_timer);
         result.iteration_structs{k} = iter;
         
@@ -285,7 +291,6 @@ while (~got_stop)
         result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
         if options.isParl
             result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
-            result.belonging_vector{k} = info.belonging_vector;
         end
        
         % Apply control action
@@ -306,7 +311,7 @@ while (~got_stop)
 
             % fallback to last plan
             controller_timer = tic;
-            [u, y_pred, info] = pb_controller_fallback(scenario, u, y_pred, info, options);
+            [u, y_pred, info] = pb_controller_fallback(scenario, iter, u, y_pred, info, options);
             result.controller_runtime(k) = toc(controller_timer);
             
             % save controller outputs in result struct
@@ -323,8 +328,7 @@ while (~got_stop)
             result.step_time(k) = toc(result.step_timer);
             result.fallback = fallback;
             if options.isParl
-                result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
-                result.belonging_vector{k} = info.belonging_vector;
+                result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group
             end
             % Apply control action
             % -------------------------------------------------------------------------

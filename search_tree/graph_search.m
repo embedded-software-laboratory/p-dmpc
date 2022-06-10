@@ -18,6 +18,22 @@ function [u, y_pred, info] = graph_search(scenario, iter)
     pq = PriorityQueue();
     pq.push(1, 0);
 
+    if scenario.is_allow_non_convex
+        % currently two methods for intersecting check are available:
+        % 1. separating axis theorem (SAT) works only for convex polygons
+        % 2. InterX: works for both convex and non-convex polygons
+        method = 'InterX';
+        % if 'InterX' is used, all obstacles can be vectorized to speed up the collision checking 
+        [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(scenario);
+    else
+        method = 'sat';
+        % vectorization is currently not supported for 'sat'
+        vehicle_obstacles = [];
+        lanelet_boundary = [];
+        lanelet_crossing_areas = [];
+%             method = 'InterX';
+    end
+
     % Expand leaves of tree until depth or target is reached or until there 
     % are no leaves
     while true
@@ -28,16 +44,18 @@ function [u, y_pred, info] = graph_search(scenario, iter)
                 'MATLAB:graph_search:tree_exhausted' ...
                 ,'No more open nodes to explore' ...
             );
+            disp(['Graph search exhausted with vehicle ID: ' num2str(scenario.vehicles.ID) ', at time step: ' num2str(scenario.k) '.'])
             throw(ME);
         end
-        
 
-        % Eval edge 
-        [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id, 'sat'); % two methods: 'sat' or 'InterX'
+        % Eval edge        
+        [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
+        
         if ~is_valid
             % could remove node from tree here
             continue
         end
+        
         shapes_tmp(:,cur_node_id) = shapes;
         if info.tree.k(cur_node_id) == scenario.Hp
             y_pred = return_path_to(cur_node_id, info.tree, scenario);

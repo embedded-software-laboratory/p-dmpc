@@ -15,8 +15,9 @@ classdef  right_of_way_priority < interface_priority
             obj.scenario = scenario;
             obj.iter = iter;
         end
+
         %% priority
-        function [veh_at_intersection,groups,edge_to_break] = priority(obj)
+        function [veh_at_intersection,groups,edge_to_break,directed_adjacency] = priority(obj)
 
             nVeh = length(obj.scenario.vehicles);
             Hp = size(obj.iter.referenceTrajectoryPoints,2);
@@ -178,129 +179,121 @@ classdef  right_of_way_priority < interface_priority
         end
 
         %% priority_parl
-        function [CL_based_hierarchy, parl_groups_infos, edge_to_break, coupling_weights, belonging_vector] = priority_parl(obj)
-            % prioritize vehicles and group vehicles in different parallel groups 
-            coupling_weights = obj.scenario.coupling_weights; 
-            edge_to_break = {};
+        function [CL_based_hierarchy, parl_groups_infos, edge_to_invert, coupling_weights,...
+                belonging_vector, veh_at_intersection, priority_list, coupling_infos, time_enter_intersection] = priority_parl(obj)
+            
+            % update the coupling information
+%             [veh_at_intersection, coupling_weights, coupling_infos] = get_coupling_infos(obj.scenario, obj.iter);
+            [veh_at_intersection, coupling_weights, coupling_infos, time_enter_intersection] = get_coupling_infos_version2(obj.scenario, obj.iter);
+%             [veh_at_intersection, coupling_weights, coupling_infos, time_enter_intersection] = get_coupling_infos_version3(obj.scenario, obj.iter);
+
+            coupling_weights_origin = coupling_weights; % make a copy
+
+            if ~obj.scenario.is_allow_enter_crossing_area
+                % Coupling vehicles at the intersection are not considered as coupled if vehicles with lower priorities are not allowed to enter the crossing area 
+                for i = 1:length([coupling_infos.idLeader])
+                    id_leader = coupling_infos(i).idLeader;
+                    id_follower = coupling_infos(i).idFollower;
+                    if ismember(id_leader,veh_at_intersection) && ismember(id_follower,veh_at_intersection) && strcmp(coupling_infos(i).type, CollisionType.type_2)
+                        coupling_weights(id_leader,id_follower) = 0;
+                    end
+                end
+            end
+
+            edge_to_invert = {};
             
             % directed Graph
             Graph = digraph(coupling_weights);
             
             %check if there is any cycles in the directed graph
-            cycles = allcycles(Graph);
+            [~, edges] = allcycles(Graph);
+
+            % invert the direction of the edge with lowest weight
+            % until no circlt exists
             
-%             deal_with_cycle = 'break_circle';
-            deal_with_cycle = 'invert_edge';
+            while ~isempty(edges)
+                % find the edge with lowest weight
+                edges_all = unique([edges{:}],'stable');
+                [~,edge_sorted] = sort(Graph.Edges.Weight(edges_all),'ascend');
 
-            switch deal_with_cycle
-                case 'break_circle'
-                    % Convert directed cyclic graph to directed acyclic graph by
-                    % iteratively breaking the coupling with the lowest weight of
-                    % the first cycle and check if there still exist circles
-                    while ~isempty(cycles)
-                        % first circle
-                        cyclic_vehicles = cycles{1};
-                        n_cyclic_vehicles = length(cyclic_vehicles);  
-                        coupling_weight_lowest = inf;
-                        
-                        for i = 1:n_cyclic_vehicles
-                            id_leader = cyclic_vehicles(i);
-        
-                            % follower's ID
-                            if i < n_cyclic_vehicles
-                                id_follower = cyclic_vehicles(i+1);    
-                            else
-                                % loopback to the first vehicle because of the circle 
-                                id_follower = cyclic_vehicles(1);
-                            end
-        
-                            % coupling weight between the two vehicles
-                            coupling_weight_i = coupling_weights(id_leader,id_follower);
-                            
-                            % record the coupling pair with the lowest coupling weight
-                            if coupling_weight_i < coupling_weight_lowest
-                                coupling_weight_lowest = coupling_weight_i;
-                                veh_to_break = i;
-                            end
-                            
-                        end
-                        
-                        id_leader_to_break = cyclic_vehicles(veh_to_break);
-                        if veh_to_break < n_cyclic_vehicles
-                            id_follower_to_invert = cyclic_vehicles(veh_to_break+1);
-                        else
-                            id_follower_to_invert = cyclic_vehicles(1);
-                            
-                        end
-                        edge_to_break{end+1} = [id_leader_to_break,id_follower_to_invert];
-                        
-                        % break the coupling 
-                        coupling_weights(id_leader_to_break,id_follower_to_invert) = 0;
-                        
-                        % construct a new graph and check the cycles in the graph
-                        Graph = digraph(coupling_weights);
-                        cycles = allcycles(Graph);
+                count = 1; is_stop = false;
+                while true
+                    % if possible, do not break the edge of two vehicles at the intersection
+                    edge_target = edge_sorted(count);
+                    vertex_start = Graph.Edges.EndNodes(edge_target,1);
+                    vertex_end = Graph.Edges.EndNodes(edge_target,2);
+                    if (~ismember(vertex_start,veh_at_intersection) && ~ismember(vertex_end,veh_at_intersection)) || is_stop
+                        break
                     end
-
-                case 'invert_edge'
-                    % invert the direction of the edge with lowest weight
-                    % until no circlt exists
-                    while ~isempty(cycles)
-                        % first circle
-                        cyclic_vehicles = cycles{1};
-                        n_cyclic_vehicles = length(cyclic_vehicles);  
-                        coupling_weight_lowest = inf;
-                        
-                        for i = 1:n_cyclic_vehicles
-                            id_leader = cyclic_vehicles(i);
-        
-                            % follower's ID
-                            if i < n_cyclic_vehicles
-                                id_follower = cyclic_vehicles(i+1);    
-                            else
-                                % loopback to the first vehicle because of the circle 
-                                id_follower = cyclic_vehicles(1);
-                            end
-        
-                            % coupling weight between the two vehicles
-                            coupling_weight_i = coupling_weights(id_leader,id_follower);
-                            
-                            % record the coupling pair with the lowest coupling weight
-                            if coupling_weight_i < coupling_weight_lowest
-                                coupling_weight_lowest = coupling_weight_i;
-                                veh_to_break = i;
-                            end
-                            
-                        end
-                        
-                        id_leader_to_invert = cyclic_vehicles(veh_to_break);
-                        if veh_to_break < n_cyclic_vehicles
-                            id_follower_to_invert = cyclic_vehicles(veh_to_break+1);
-                        else
-                            id_follower_to_invert = cyclic_vehicles(1);
-                            
-                        end
-%                         edge_to_invert{end+1} = [id_leader_to_invert,id_follower_to_invert];
-                        
-                        % invert the coupling direction
-                        coupling_weights(id_follower_to_invert,id_leader_to_invert) = coupling_weights(id_leader_to_invert,id_follower_to_invert);
-                        coupling_weights(id_leader_to_invert,id_follower_to_invert) = 0;
-                        
-                        % construct a new graph and check the cycles in the graph
-                        Graph = digraph(coupling_weights);
-                        cycles = allcycles(Graph);
+                    count = count + 1;
+                    if count > length(edge_sorted)
+                        % if not possible, break the one with lowerst weight
+                        count = 1;
+                        is_stop = true;
                     end
+                end
+                
+                edge_to_invert{end+1} = [vertex_start,vertex_end];
+                coupling_weights(vertex_start,vertex_end) = 0; % break the coupling edge
+                
+                Graph = digraph(coupling_weights);
+                [~, edges] = allcycles(Graph);
             end
 
+            % recover the coupling edge by comparing their computation levels
+            [valid,L] = kahn(coupling_weights); % calculate computation levels using kahn algorithm(topological ordering)
+            assert(valid==true)
+
+            for i = 1:length(edge_to_invert)
+                vertex_start = edge_to_invert{i}(1);
+                vertex_end = edge_to_invert{i}(2);
+                level_start = find(L(:,vertex_start)~=0);
+                level_end = find(L(:,vertex_end)~=0);
+                if level_start > level_end
+                    % the broken edge is recovered but the direction is inverted
+                    coupling_weights(vertex_end,vertex_start) = coupling_weights_origin(vertex_start,vertex_end);
+
+                    % swap leader and follower
+                    find_vertex_start = find([coupling_infos.idLeader]==vertex_start);
+                    find_vertex_end = find([coupling_infos.idFollower]==vertex_end);
+                    coupling_idx = intersect(find_vertex_start,find_vertex_end);
+                    coupling_infos(coupling_idx).idLeader = vertex_end;
+                    coupling_infos(coupling_idx).idFollower = vertex_start;
+                    [coupling_infos(coupling_idx).idLeader,coupling_infos(coupling_idx).idFollower] = swap(coupling_infos(coupling_idx).idLeader,coupling_infos(coupling_idx).idFollower);
+                    [coupling_infos(coupling_idx).speedLeader,coupling_infos(coupling_idx).speedFollower] = swap(coupling_infos(coupling_idx).speedLeader,coupling_infos(coupling_idx).speedFollower);
+                    [coupling_infos(coupling_idx).positionLeader,coupling_infos(coupling_idx).positionFollower] = swap(coupling_infos(coupling_idx).positionLeader,coupling_infos(coupling_idx).positionFollower);
+
+                    disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is inverted.'])
+                else
+                    % the broken edge is recovered and the direction is maintained
+                    coupling_weights(vertex_start,vertex_end) = coupling_weights_origin(vertex_start,vertex_end);
+                    disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is not inverted.'])
+                end
+            end
 
             % visualize the directed graph  
-%             figure(); plot(Graph,'LineWidth',1) 
+%             figure(); plot(Graph,'LineWidth',1,'EdgeLabel',round(Graph.Edges.Weight,2))
 
-            % construct the priority groups
+            
+            % form parallel groups
             [CL_based_hierarchy, parl_groups_infos, belonging_vector] = form_parallel_groups(coupling_weights, obj.scenario.max_num_CLs, 'method', 's-t-cut');
 
+            % assign prrority
+            priority_list = zeros(1,obj.scenario.nVeh);
+            prio = 1;
+            for level_i = 1:length(CL_based_hierarchy)
+                vehs_in_level_i = CL_based_hierarchy(level_i).members; % vehicles in the selected computation level
+                for veh_i = vehs_in_level_i
+                    priority_list(veh_i) = prio; % assign unique priority
+                    prio = prio + 1;
+                end
+            end
+
+            % visualize the coupling between vehicles
+%             plot_coupling_lines(coupling_weights, obj.iter.x0, belonging_vector, 'ShowWeights', true)
         end
 
     end
   
 end
+

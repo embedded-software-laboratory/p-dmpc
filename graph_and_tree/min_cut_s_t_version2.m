@@ -1,4 +1,4 @@
-function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
+function [belonging_vector, cost, cutting_infos] = min_cut_s_t_version2(M, varargin)
 % MIN_CUT_S_T Cut the given edge-weighted graph into two
 % parts while ensuring the sum of the weights of the edges being cut is
 % minimum.
@@ -85,21 +85,26 @@ function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
     % reduced vertex indices after merging some vertices
     vertex_indices_reduced = vertex_indices;
 
+    vertices_merged = [];
     % make vertices inseparable if required
-    if length(must_in_same_subset)>=2
-        % merge the vertices which should not be separated, so they'll be unbreakable
-        must_in_same_subset = sort(must_in_same_subset);
-        merging_point = must_in_same_subset(1);
-
-        for i = length(must_in_same_subset):-1:2
-            vertes_to_be_merged = must_in_same_subset(i);
-            [M_reduced, vertex_indices_reduced] = merge_two_vertices(M_reduced, merging_point, vertes_to_be_merged, vertex_indices_reduced);
-        end
+    for i = 1:length(must_in_same_subset)
+        must_in_same_subset_i = must_in_same_subset{i};
+        if length(must_in_same_subset_i)>=2
+            % merge the vertices which should not be separated, so they'll be unbreakable
+            must_in_same_subset_i = sort(must_in_same_subset_i,'ascend');
+            merging_point = must_in_same_subset_i(1);
+            merging_point_local = merging_point - sum(merging_point>vertices_merged); % pay attention to the vertices that were already merged
     
-        % update belonging vector
-        belonging_vector(must_in_same_subset) = must_in_same_subset(1);
+            for j = length(must_in_same_subset_i):-1:2
+                vertes_to_be_merged = must_in_same_subset_i(j);
+                vertes_to_be_merged_local = vertes_to_be_merged - sum(vertes_to_be_merged>vertices_merged);
+                [M_reduced, vertex_indices_reduced] = merge_two_vertices(M_reduced, merging_point_local, vertes_to_be_merged_local, vertex_indices_reduced);
+            end
+            % update belonging vector
+            belonging_vector(must_in_same_subset_i) = merging_point;
+        end
+        vertices_merged = [vertices_merged, must_in_same_subset_i(2:end)];
     end
-
     count = 1;
     while length(vertex_indices_reduced)>1
         % vertex-s and -t are the last two vertices being merged during the minimum cut phase
@@ -113,6 +118,8 @@ function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
 
         % in case vertex_t is a merging point
         vertices_in_point_t = find(belonging_vector==vertex_t)';
+        % in case vertex_s is a merging point
+        vertices_remaining = setdiff(vertex_indices,vertices_in_point_t);
 
         % store cost
         cutting_infos(count).cost = cost_tmp;
@@ -158,7 +165,11 @@ function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
     % and choose the one with the lowest cost among them
     [cost, lowest_cost_idx_local] = min([cutting_infos(valid_minimum_cut_phases_idx).cost]);
     lowest_cost_idx = valid_minimum_cut_phases_idx(lowest_cost_idx_local);
-    belonging_vector = cutting_infos(lowest_cost_idx).belonging_vector;
+    if ~isempty(lowest_cost_idx)
+        belonging_vector = cutting_infos(lowest_cost_idx).belonging_vector;
+    else
+        warning('Too many constraints. No able to find a feasiable cut.')
+    end
 end
 
 
@@ -248,7 +259,8 @@ function [vertex_s, vertex_t] = minimum_cut_phase(edge_weights)
     vertex_s = queue(1);
     vertex_t = queue(2);
 end
-    
+   
+
 %% local function: parse_inputs
 function [M, must_not_in_same_subset, must_in_same_subset] = parse_inputs(M, varargin)
     % Process optional input and Name-Value pair options
@@ -259,12 +271,12 @@ function [M, must_not_in_same_subset, must_in_same_subset] = parse_inputs(M, var
     p = inputParser;
     addRequired(p,'M', @(x) isnumeric(x) && ismatrix(x)); % must be numerical matrix
     addOptional(p,'must_not_in_same_subset', must_not_in_same_subset_default, @(x) iscell(x)); % must be cell or empty
-    addOptional(p,'must_in_same_subset', must_in_same_subset_default, @(x) isempty(x) || (isnumeric(x) && isvector(x))); % must be numerical vector or empty
+    addOptional(p,'must_in_same_subset', must_in_same_subset_default, @(x) iscell(x)); % must be cell or empty
     parse(p, M, varargin{:}); % start parsing
     
     % get parsed inputs
     M = p.Results.M;
     must_not_in_same_subset = p.Results.must_not_in_same_subset;
     must_in_same_subset = p.Results.must_in_same_subset;
-
 end
+

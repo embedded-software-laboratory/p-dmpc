@@ -2,7 +2,6 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
 % Commonroad_Scenario   
 
     nVeh = options.amount;
-    isPB = options.isPB;
     scenario = Scenario();
     scenario.name = 'Commonroad';
     scenario.trim_set = 4;
@@ -11,6 +10,8 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     [scenario.lanelets, scenario.adjacency_lanelets, scenario.semi_adjacency_lanelets,...
         scenario.intersection_lanelets, scenario.lanelet_boundary, scenario.road_raw_data, scenario.lanelet_relationships] = get_road_data();
     %[scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets(options.mixedTrafficScenarioLanelets);
+    scenario.T_end = 30;
+    scenario.Hp = 6;
     
     for iveh = 1:nVeh
         
@@ -18,7 +19,7 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
         veh.trim_config = 1;
 
         if is_sim_lab
-            ref_path = generate_ref_path(vehicle_ids(iveh));% function to generate refpath based on CPM Lab road geometry
+            ref_path = generate_ref_path(vehicle_ids(iveh), scenario.lanelets);% function to generate refpath based on CPM Lab road geometry
             %[ref_path, scenario] = generate_random_path(scenario, vehicle_ids(iveh), 20, (vehicle_ids(iveh)+31));
         else
             if (mVehid == vehicle_ids(iveh) || m2Vehid == vehicle_ids(iveh))
@@ -49,10 +50,9 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
 
     scenario.plot_limits = [0,4.5;0,4];  
     scenario.nVeh = nVeh;
-    scenario.T_end = 12;
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     nVeh_mpa = scenario.nVeh;
-    scenario.Hp = 6;
+    
     scenario.name = options.scenario;
     scenario.priority_option = options.priority;
     scenario.isParl = options.isParl;
@@ -60,15 +60,18 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     if options.isPB 
        scenario.adjacency = zeros(nVeh,nVeh);
        scenario.assignPrios = true;
-       scenario.controller_name = strcat(scenario.controller_name, '-PB');
-       scenario.controller = @(s,i) pb_controller(s,i);
        nVeh_mpa = 1;
+
+       if options.isParl
+            scenario.controller_name = strcat(scenario.controller_name, '-parallel computation');
+            scenario.controller = @(s,i) pb_controller_parl(s,i);
+       else
+           scenario.controller_name = strcat(scenario.controller_name, '-PB');
+           scenario.controller = @(s,i) pb_controller(s,i);
+       end
+
     end
-    
-    if options.isParl
-        scenario.controller_name = strcat(scenario.controller_name, '-parallel computation');
-        scenario.controller = @(s,i) pb_controller_parl(s,i);
-    end
+
     
     recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(...
@@ -80,10 +83,12 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
         , scenario.Hp...
         , scenario.tick_per_step...
         , recursive_feasibility...
+        , scenario.is_allow_non_convex...
         , options...
     );
 
     % initialize speed profile vector, currently 3 speed profiles are available
     scenario.speed_profile_mpas = [scenario.mpa, scenario.mpa, scenario.mpa];
  
+%     plot_local_reachable_sets(scenario.mpa, scenario.is_allow_non_convex)
 end
