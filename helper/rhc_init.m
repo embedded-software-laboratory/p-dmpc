@@ -53,6 +53,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                             if scenario.options.firstManualVehicleMode == 1
                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
                                 [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end), false);
+                                last_lanes(iVeh) = scenario.vehicles(iVeh).lanelets_index(end-1);
                             else
                                 continue
                             end     
@@ -60,6 +61,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                             if scenario.options.secondManualVehicleMode == 1
                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
                                 [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end), false);
+                                last_lanes(iVeh) = scenario.vehicles(iVeh).lanelets_index(end-1);
                             else
                                 continue
                             end      
