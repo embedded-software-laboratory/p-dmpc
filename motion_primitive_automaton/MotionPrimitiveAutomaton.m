@@ -2,20 +2,19 @@ classdef MotionPrimitiveAutomaton
 % MOTIONPRIMITVEAUTOMATON   MotionPrimitiveAutomaton 
    
     properties
-        maneuvers % cell(n_trims, n_trims)
-        trims % A struct array of the specified trim_inputs
-        transition_matrix_single % Matrix (nTrims x nTrims x horizon_length)
-        trim_tuple               % Matrix with trim indices ((nTrims1*nTrims2*...) x nVehicles)
-        transition_matrix        % binary Matrix (if maneuverTuple exist according to trims) (nTrimTuples x nTrimTuples x horizon_length)
-        distance_to_equilibrium  % Distance in graph from current state to equilibrium state (nTrims x 1)
+        maneuvers                   % cell(n_trims, n_trims)
+        trims                       % A struct array of the specified trim_inputs
+        transition_matrix_single    % Matrix (nTrims x nTrims x horizon_length)
+        trim_tuple                  % Matrix with trim indices ((nTrims1*nTrims2*...) x nVehicles)
+        transition_matrix           % binary Matrix (if maneuverTuple exist according to trims) (nTrimTuples x nTrimTuples x horizon_length)
+        distance_to_equilibrium     % Distance in graph from current state to equilibrium state (nTrims x 1)
         recursive_feasibility
-        local_reachable_sets           % Reachable sets of each trim (possibly non-convex); 
-                                            % It's local because the position and yaw angle of vehicles are not considered
-        local_reachable_sets_conv;     % Convexified reachable sets of each trim
+        local_reachable_sets        % local reachable sets of each trim (possibly non-convex); 
+        local_reachable_sets_conv;  % Convexified local reachable sets of each trim
     end
     
     methods
-        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N, nTicks, recursive_feasibility, options)
+        function obj = MotionPrimitiveAutomaton(model, trim_set, offset, dt, nveh, N, nTicks, recursive_feasibility, is_allow_non_convex, options)
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
@@ -29,12 +28,17 @@ classdef MotionPrimitiveAutomaton
                 % create target folder if not exist
                 mkdir(folder_target)
             end
+
+            mpa_instance_name = ['MPA_','trims',num2str(trim_set),'_Hp',num2str(N)];
             if options.isParl
-                mpa_instance_name = ['MPA_','trims',num2str(trim_set),'_Hp',num2str(N),'_parl','.mat'];
-            else
-                mpa_instance_name = ['MPA_','trims',num2str(trim_set),'_Hp',num2str(N),'.mat'];
+                mpa_instance_name = [mpa_instance_name,'_parl'];                
             end
-            mpa_full_path = [folder_target,filesep,mpa_instance_name];
+
+            if is_allow_non_convex
+                mpa_instance_name = [mpa_instance_name,'_non-convex'];
+            end
+
+            mpa_full_path = [folder_target,filesep, mpa_instance_name, '.mat'];
 
             % if the needed MPA is alread exist in the library, simply load
             % it, otherwise it will be calculated and saved to the library.
@@ -70,7 +74,7 @@ classdef MotionPrimitiveAutomaton
             for i = 1:n_trims
                 for j = 1:n_trims
                     if obj.transition_matrix_single(i,j,1)
-                        obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), offset, dt, nTicks);
+                        obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), offset, dt, nTicks, is_allow_non_convex);
                     end
                 end
             end
@@ -270,11 +274,7 @@ classdef MotionPrimitiveAutomaton
             emergency_braking_distance = 0;
             speed_cur = obj.trims(cur_trim_id).speed;
 
-            % compute the shortest path from the current trim to the equilibrium trim
-            equilibrium_trim = find([obj.trims.speed]==0);
-            assert(length(equilibrium_trim)==1) % if there are multiple equilibrium states, this function should be then adapted
-            graph_trims = graph(obj.transition_matrix_single(:,:,1));
-            shortest_path_to_equilibrium = shortestpath(graph_trims,cur_trim_id,equilibrium_trim); % shortest path between current trim and equilibrium trim
+            shortest_path_to_equilibrium = get_shortest_path_to_equilibrium(obj, cur_trim_id);
 
             for iTrim=shortest_path_to_equilibrium(2:end)
                 speed_next = obj.trims(iTrim).speed;
@@ -283,10 +283,18 @@ classdef MotionPrimitiveAutomaton
                 speed_cur = speed_next; % update the current speed for the next iteration
             end
         end
+
+        function shortest_path_to_equilibrium = get_shortest_path_to_equilibrium(obj, cur_trim_id)
+            % compute the shortest path from the current trim to the equilibrium trim
+            equilibrium_trim = find([obj.trims.speed]==0);
+            assert(length(equilibrium_trim)==1) % if there are multiple equilibrium states, this function should be then adapted
+            graph_trims = graph(obj.transition_matrix_single(:,:,1));
+            shortest_path_to_equilibrium = shortestpath(graph_trims,cur_trim_id,equilibrium_trim); % shortest path between current trim and equilibrium trim
+        end
         
-        function shortest_time_to_arrive = get_the_shortest_time_to_arrive(obj, cur_trim_id, distance_destination, time_step)
+        function shortest_time_to_arrive = get_the_shortest_time_to_arrive(obj, current_trim, distance_destination, time_step)
             % Returns the shortest time to arive a given distance starting from the current trim
-            % Noted that this is only a lower bound time because the
+            % Note that this is only a lower bound time because the
             % steering angle is not considered, namely we assume the
             % vehicle drives straight to arrive the goal destination.
             shortest_time_to_arrive = 0;
@@ -297,14 +305,14 @@ classdef MotionPrimitiveAutomaton
             max_speed_trims = find([obj.trims.speed]==max_speed); % find all the trims with the maximum speed
 
             graph_trims = graph(obj.transition_matrix_single(:,:,1));
-            shortest_distances_to_max_speed = distances(graph_trims,cur_trim_id,max_speed_trims); % shortest path between two single nodes
+            shortest_distances_to_max_speed = distances(graph_trims,current_trim,max_speed_trims); % shortest path between two single nodes
             % find the one which has the minimal distance to the trims with the maximum speed
             [min_distance,idx] = min(shortest_distances_to_max_speed); 
             if min_distance==0 % if the current trim has already the maximum speed, no acceleration is needed
                 shortest_time_to_arrive = distance_remained/max_speed;
             else % acceleration to maximum speed
                 max_speed_trim = max_speed_trims(idx);
-                shortest_path_to_max_speed = shortestpath(graph_trims,cur_trim_id,max_speed_trim); % shortest path between two single nodes
+                shortest_path_to_max_speed = shortestpath(graph_trims,current_trim,max_speed_trim); % shortest path between two single nodes
                 for i=1:length(shortest_path_to_max_speed)
                     trim_current = shortest_path_to_max_speed(i);
                     
@@ -334,12 +342,14 @@ classdef MotionPrimitiveAutomaton
             end
         end
 
-        function [STAC, distance_traveled_leader_total, distance_traveled_follower_total] = get_the_shortest_time_to_catch(obj, trim_leader, trim_follower, distance, time_step)
-            % returns the shortest time that the follower needs to catch
-            % the leader by letting the leader take an emergency braking
-            % and the follower take an full acceleration
-            distance_left = distance;
-            STAC = 0;
+        function [time_to_catch, waiting_time, distance_traveled_leader_total, distance_traveled_follower_total] = get_the_shortest_time_to_catch(obj, trim_leader, trim_follower, distance, time_step)
+            % Calculatet the shortest time to achieve a collision by
+            % letting the leader take an emergency braking and the follower
+            % take an full acceleration.
+            % The total traveled distances of the leader and the follower are also returned.
+            distance_remaining = distance;
+            time_to_catch = 0;
+            waiting_time = 0; % time that the leader stops and waits for the follower
             distance_traveled_leader_total = 0;
             distance_traveled_follower_total = 0;
             speed_leader = obj.trims(trim_leader).speed;
@@ -374,8 +384,7 @@ classdef MotionPrimitiveAutomaton
                     speed_leader_next = obj.trims(trim_leader_next).speed;
                     a_leader = (speed_leader_next - speed_leader)/time_step; % acceleration (negative value)
                     % traveled distance of the current time step (assume linear acceleration) 
-                    distance_traveled_leader_tmp = distance_traveled(speed_leader, a_leader, time_step); 
-                    
+                    distance_traveled_leader_tmp = distance_traveled(speed_leader, a_leader, time_step);
                 else
                     speed_leader_next = 0;
                     a_leader = 0;
@@ -395,34 +404,37 @@ classdef MotionPrimitiveAutomaton
                 end
 
                 % remaining distance for the follower to catch the leader
-                distance_left_tmp = distance_left - distance_traveled_follower_tmp + distance_traveled_leader_tmp;
+                distance_left_tmp = distance_remaining - distance_traveled_follower_tmp + distance_traveled_leader_tmp;
                 if distance_left_tmp <= 0
                     % the follower catchs the leader at this time step
                     is_catch = true;
                     % solve the quadratic equation to get the accumulating time of this time step
-                    r = roots([1/2*(a_follower+a_leader), speed_follower-speed_leader, -distance_left]); 
+                    r = roots([1/2*(a_follower+a_leader), speed_follower-speed_leader, -distance_remaining]); 
                     assert(isreal(r)==true)
                     time_accumulate = max(r); % choose the positive one
                     % update the traveled distance of the current time step 
                     distance_traveled_leader_tmp = speed_leader + 0.5*a_leader*time_accumulate^2;
-                    distance_traveled_follower_tmp = distance_traveled_leader_tmp + distance_left;
+                    distance_traveled_follower_tmp = distance_traveled_leader_tmp + distance_remaining;
+
                 else
                     % accumulating time equals to the time step
                     time_accumulate = time_step;
                     % update the remaining distance
-                    distance_left = distance_left_tmp;
-
+                    distance_remaining = distance_left_tmp;
                 end
 
                 % update the STAC
-                STAC = STAC + time_accumulate;
+                time_to_catch = time_to_catch + time_accumulate;
                 % update the total traveled distance
                 distance_traveled_leader_total = distance_traveled_leader_total + distance_traveled_leader_tmp;
                 distance_traveled_follower_total = distance_traveled_follower_total + distance_traveled_follower_tmp;
                 % update speeds
                 speed_leader = speed_leader_next; % update the current speed for the next iteration
                 speed_follower = speed_follower_next; % update the current speed for the next iteration
-
+                % update the waiting time
+                if speed_leader==0 && speed_leader_next==0
+                    waiting_time = waiting_time + time_accumulate;
+                end
                 % update counter
                 count_trim = count_trim + 1;
             end
