@@ -46,7 +46,7 @@ function [all_veh_at_intersection, coupling_weights, coupling_infos, time_enter_
     coupling_weights = zeros(nVeh,nVeh); % coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
     
     % initialize a struct array to store information about coupling information
-    coupling_infos = struct('idLeader',[],'idFollower',[],'type',[],'speedLeader',[],'speedFollower',[],'positionLeader',[],'positionFollower',[],'STAC_adapted',[],'weight',[]); 
+    coupling_infos = struct('idLeader',[],'idFollower',[],'type',[],'lanelet_relationship',[],'speedLeader',[],'speedFollower',[],'positionLeader',[],'positionFollower',[],'STAC_adapted',[]); 
     count = 1;
 
     state_indices = indices();
@@ -67,7 +67,7 @@ function [all_veh_at_intersection, coupling_weights, coupling_infos, time_enter_
             overlap_reachable_sets = intersect(iter.reachable_sets{veh_i,end}, iter.reachable_sets{veh_j,end});
             area_overlap = area(overlap_reachable_sets);
 
-            if scenario.k>=69 && veh_i == 7
+            if scenario.k>=62 && veh_i == 8
                 disp('')
             end
             if area_overlap > 1e-3 % a small threshold to tolerate measurement error of lenelet boundary
@@ -82,12 +82,14 @@ function [all_veh_at_intersection, coupling_weights, coupling_infos, time_enter_
                             is_rear_end_collision = true;
                             is_side_impact_collision = false;
                             is_forking_lanelets = false;
+                            lanelet_relationship.type = LaneletRelationshipType.type_6; % same lanelet
                         else
                             is_same_lanelet = false;
                             % find if there exists lanelet pair that has a certain relationship in the struct array `lanelet_relationships`
                             % NOTE that only adjacent lanelet pairs with certain relationships will be stored in `lanelet_relationships`
                             idx_lanelet_pair = find_idx_lanelet_pair(predicted_lanelet_i,predicted_lanelet_j,lanelet_relationships);
                             if ~isempty(idx_lanelet_pair)
+                                is_find_lanelet_relationship = true;
                                 lanelet_relationship = lanelet_relationships(idx_lanelet_pair);
 
                                 % If forking lanelets (relationship type 4) or successive (relationship type 1) lanelets or 
@@ -100,8 +102,23 @@ function [all_veh_at_intersection, coupling_weights, coupling_infos, time_enter_
                                 is_side_impact_collision = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_3) ||...
                                     strcmp(lanelet_relationship.type, LaneletRelationshipType.type_5);
                             else
-                                % jump to the next predicted lanelet
-                                continue
+                                if predicted_lanelet_i==predicted_lanelets_i(end) && predicted_lanelet_j==predicted_lanelets_j(end)
+                                    % If no lanelet relationship is found until the last predicted lanelet pair
+                                    % 1. Set the center point of the overlapping area as collision point
+                                    % 2. Set lanelet relationship to be intersecting
+                                    % 3. Set collision type to be side-impact collision (normally lanelet relationship will always be found for rear-end collision)
+%                                     disp(['No lanelet relationship can be found for coupled vehicle ' num2str(veh_i) ' and ' num2str(veh_j) '.' newline...
+%                                         'Centroid of the overlapping area of their reachable sets will be used as collision point.'])
+                                    is_find_lanelet_relationship = false;
+                                    is_rear_end_collision = false;
+                                    is_side_impact_collision = true;
+                                    lanelet_relationship.type = LaneletRelationshipType.type_5; % intersecting lanelets
+                                    [x_centroid,y_centroid] = centroid(overlap_reachable_sets);
+                                    lanelet_relationship.point = [x_centroid,y_centroid];
+                                else
+                                    % jump to the next predicted lanelet
+                                    continue
+                                end
                             end
                         end
 
@@ -192,40 +209,40 @@ function [all_veh_at_intersection, coupling_weights, coupling_infos, time_enter_
                             % collision at the point of intersection. This is calculated by letting both vehicles take a full acceleration to 
                             % arrive at the point of intersection. The first arrived vehicle has to stop at the point of intersection and wait 
                             % for the second arrived vehicle, where the waiting time is the second part of the adapted STAC.
-                            collision_point = lanelet_relationship.point;
-                            
-                            % from a curve to calculate the arc diatance between vehicle's current position and the collision point, 
-                            % which starts from the starting point of the lanelet and ends at the collision point 
-                            if strcmp(lanelet_relationship.type,LaneletRelationshipType.type_3)
-                                % collision point of the merging lanelets is both lanelets' endpoint, thus the target curve is the whole lanelet
-                                curve_x_i = lanelet_x_i; curve_y_i = lanelet_y_i;
-                                curve_x_j = lanelet_x_j; curve_y_j = lanelet_y_j;
-                            elseif strcmp(lanelet_relationship.type,LaneletRelationshipType.type_5)
-                                % Collision point of the intersecting lanelets is the crosspoint, which could be in the middle of the lanelets
-                                % First, find the two closest points to the crosspoint on the lanelet
-                                squared_distances_to_crosspoint_i = sum(([lanelet_x_i,lanelet_y_i]-collision_point).^2,2);
-                                [~,idx_closest_two_point_i] = mink(squared_distances_to_crosspoint_i,2,1);
-                                squared_distances_to_crosspoint_j = sum(([lanelet_x_j,lanelet_y_j]-collision_point).^2,2);
-                                [~,idx_closest_two_point_j] = mink(squared_distances_to_crosspoint_j,2,1);
-                                % the endpoint of the curve is the collision point and the adjacent left point is the one among the closest two points with a smaller index  
-                                curve_x_i = [lanelet_x_i(1:min(idx_closest_two_point_i));collision_point(1)]; curve_y_i = [lanelet_y_i(1:min(idx_closest_two_point_i));collision_point(2)];
-                                curve_x_j = [lanelet_x_j(1:min(idx_closest_two_point_j));collision_point(1)]; curve_y_j = [lanelet_y_j(1:min(idx_closest_two_point_j));collision_point(2)];
+                            if is_find_lanelet_relationship
+                                collision_point = lanelet_relationship.point;
+                                % from a curve to calculate the arc diatance between vehicle's current position and the collision point, 
+                                % which starts from the starting point of the lanelet and ends at the collision point 
+                                if strcmp(lanelet_relationship.type, LaneletRelationshipType.type_3)
+                                    % collision point of the merging lanelets is both lanelets' endpoint, thus the target curve is the whole lanelet
+                                    curve_x_i = lanelet_x_i; curve_y_i = lanelet_y_i;
+                                    curve_x_j = lanelet_x_j; curve_y_j = lanelet_y_j;
+                                elseif strcmp(lanelet_relationship.type, LaneletRelationshipType.type_5)
+                                    % Collision point of the intersecting lanelets is the crosspoint, which could be in the middle of the lanelets
+                                    % First, find the two closest points to the crosspoint on the lanelet
+                                    squared_distances_to_crosspoint_i = sum(([lanelet_x_i,lanelet_y_i]-collision_point).^2,2);
+                                    [~,idx_closest_two_point_i] = mink(squared_distances_to_crosspoint_i,2,1);
+                                    squared_distances_to_crosspoint_j = sum(([lanelet_x_j,lanelet_y_j]-collision_point).^2,2);
+                                    [~,idx_closest_two_point_j] = mink(squared_distances_to_crosspoint_j,2,1);
+                                    % the endpoint of the curve is the collision point and the adjacent left point is the one among the closest two points with a smaller index  
+                                    curve_x_i = [lanelet_x_i(1:min(idx_closest_two_point_i));collision_point(1)]; curve_y_i = [lanelet_y_i(1:min(idx_closest_two_point_i));collision_point(2)];
+                                    curve_x_j = [lanelet_x_j(1:min(idx_closest_two_point_j));collision_point(1)]; curve_y_j = [lanelet_y_j(1:min(idx_closest_two_point_j));collision_point(2)];
+                                end
+    
+                                % calculate the arc length from the vehicle's current position to the collision point
+                                [distance_to_collision_i, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_i(1), position_i(2), curve_x_i, curve_y_i);
+                                [distance_to_collision_j, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_j(1), position_j(2), curve_x_j, curve_y_j);
+                            else
+                                collision_point = lanelet_relationship.point;
+                                distance_to_collision_i = norm(position_i-collision_point);
+                                distance_to_collision_j = norm(position_j-collision_point);
                             end
 
-                            % calculate the arc length from the vehicle's current position to the collision point
-                            [arc_distance_to_collision_i, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_i(1), position_i(2), curve_x_i, curve_y_i);
-                            [arc_distance_to_collision_j, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_j(1), position_j(2), curve_x_j, curve_y_j);
-                            
-%                             if arc_length_i == 0 || arc_length_j == 0
-%                                 % one vehile has already passed the point of intersection; thus, collision is no longer possible
-%                                 continue
-%                             end
-
                             % determine who is the leader 
-                            is_leader = determine_leader_and_follower(veh_i, veh_j, arc_distance_to_collision_i, arc_distance_to_collision_j, is_both_at_intersection, time_enter_intersection, directed_adjacency_old, is_forking_lanelets);
+                            is_leader = determine_leader_and_follower(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_both_at_intersection, time_enter_intersection, directed_adjacency_old, is_forking_lanelets);
 
-                            time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa,trim_i,arc_distance_to_collision_i,scenario.dt);
-                            time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa,trim_j,arc_distance_to_collision_j,scenario.dt);
+                            time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa,trim_i,distance_to_collision_i,scenario.dt);
+                            time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa,trim_j,distance_to_collision_j,scenario.dt);
 
                             % the first arrived vehicle will wait for the second arrived vehicle to "achieve" a collision.
                             % Here we ignore the fact that the first arrived vehicle should also decelerate to stop at the
@@ -239,11 +256,11 @@ function [all_veh_at_intersection, coupling_weights, coupling_infos, time_enter_
 
                         % store coupling information
                         coupling_infos(count).STAC_adapted = STAC_adapted;
-                        coupling_infos(count).weight = weighting_function(STAC_adapted);
+                        coupling_infos(count).lanelet_relationship = lanelet_relationship.type;
                         if is_leader
 %                             disp(['Leader with ID ' num2str(veh_i) ' is coupled with follower with ID ' num2str(veh_j) ' .'])
                             % vehicle_i is the leader
-                            coupling_weights(veh_i,veh_j) = coupling_infos(count).weight; 
+                            coupling_weights(veh_i,veh_j) = weighting_function(STAC_adapted); 
                             coupling_infos(count).idLeader = veh_i; 
                             coupling_infos(count).speedLeader = speed_i;
                             coupling_infos(count).positionLeader = position_i;
@@ -253,7 +270,7 @@ function [all_veh_at_intersection, coupling_weights, coupling_infos, time_enter_
                         else
 %                             disp(['Leader with ID ' num2str(veh_j) ' is coupled with follower with ID ' num2str(veh_i) ' .'])                            
                             % vehicle_j is the leader
-                            coupling_weights(veh_j,veh_i) = coupling_infos(count).weight; 
+                            coupling_weights(veh_j,veh_i) = weighting_function(STAC_adapted); 
                             coupling_infos(count).idLeader = veh_j;
                             coupling_infos(count).speedLeader = speed_j;
                             coupling_infos(count).positionLeader = position_j;
@@ -283,17 +300,16 @@ function idx_lanelet_pair = find_idx_lanelet_pair(predicted_lanelet_i, predicted
     % First try to find predicted_lanelet_i in the field `ID_1` and
     % predicted_lanelet_j in the field `ID_2`. If not find, do it again in
     % the opposite way.
-    idx_lanelets_i = find([lanelet_relationships.ID_1]==predicted_lanelet_i);
-    idx_lanelets_j = find([lanelet_relationships.ID_2]==predicted_lanelet_j);
-    idx_lanelet_pair = intersect(idx_lanelets_i,idx_lanelets_j);
+    idx_lanelet_pair = [];
+    id_i_j = double([predicted_lanelet_i; predicted_lanelet_j]);
+    id_j_i = double([predicted_lanelet_j; predicted_lanelet_i]);
+    IDs_1_2 = double([lanelet_relationships.ID_1;lanelet_relationships.ID_2]);
+
     if isempty(idx_lanelet_pair)
-        idx_lanelets_i = find([lanelet_relationships.ID_2]==predicted_lanelet_i);
-        idx_lanelets_j = find([lanelet_relationships.ID_1]==predicted_lanelet_j);
-        idx_lanelet_pair = intersect(idx_lanelets_i,idx_lanelets_j);
-        if isempty(idx_lanelet_pair)
-            % if still not find
-            idx_lanelet_pair = [];
-        end
+        idx_lanelet_pair = find(all((IDs_1_2-id_i_j)==0));
+    end
+    if isempty(idx_lanelet_pair)
+        idx_lanelet_pair = find(all((IDs_1_2-id_j_i)==0));
     end
 end
 
@@ -334,6 +350,7 @@ function is_leader = determine_leader_and_follower(veh_i, veh_j, distance_to_col
 % priority. 
 
     is_leader = [];
+    
     if is_both_at_intersection
         if time_enter_intersection(veh_i) < time_enter_intersection(veh_j)
             is_leader = true; 
