@@ -4,6 +4,7 @@ classdef Scenario
     properties
         vehicles = [];                  % array of Vehicle objects
         obstacles = {};                 % static obstacles = {[xs;ys],...}
+        lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
         nVeh = 0;
         name = 'UnnamedScenario';
         controller_name = 'RHC';
@@ -44,20 +45,19 @@ classdef Scenario
         coupling_infos;                 % couling informations of each coupling pair
         ros_subscribers = {};           % ROS 2 subscribers (used to read messages from other vehicles)
         max_num_CLs = 4;                % max number of computation levels to limit the total planning time in each time step (used in the parallel computation)
-        is_allow_non_convex = true     % whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
         priority_list = [];             % priority list of vehicles; a smaller value for a higher priority
+        is_allow_non_convex = false     % whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
         strategy_consider_veh_with_lower_prio = '1';    % currently five stategies are supported to let vehicle with a higher priority consider vehicle with a lower priority
                                                         % '0': do not consider 
                                                         % '1': consider currently occupied area as static obstacle
                                                         % '2': consider one-step reachable sets as static obstacle
                                                         % '3': consider old trajectory as dynamic obstacle
                                                         % '4': consider the occupied area of emergency braking maneuver as static obstacle 
-        is_allow_enter_crossing_area = false; % whether to allow lower priority vehicle enter the crossing area of its own lanelet and lanelet of its coupling vehicle at the intersection
+        is_allow_enter_crossing_area = true; % whether to allow lower priority vehicle enter the crossing area of its own lanelet and lanelet of its coupling vehicle at the intersection
         time_enter_intersection = []; % time step when vehicle enters the intersection
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
         distance_threshold_intersection = [1.1]; % vector with length numOfIntersection, threshold of distance from a vehicle's position to the intersection center point exceed which a vehicle is considered as entering the intersection
         belonging_vector; % a column vector whose value indicate which group each vehicle belongs to 
-        lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
     end
     
     properties (Dependent)
