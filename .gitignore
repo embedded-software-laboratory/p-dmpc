@@ -48,6 +48,9 @@ Temporary Items
 .apdisk
 
 ### MATLAB ###
+# MATLAB matfile
+*.mat
+
 # Windows default autosave extension
 *.asv
 
