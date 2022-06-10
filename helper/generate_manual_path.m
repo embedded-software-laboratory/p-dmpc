@@ -13,7 +13,6 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
     load('commonroad_data.mat');
     commonroad = commonroad_data;
 
-    % find initial position for this
     manual_path.lanelets_index = [lanelets_index_vehid];
 
     while length(manual_path.lanelets_index) < n
@@ -92,14 +91,6 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
         % choose the center line of the lanelet as reference path
         manualPath_x = lanelets{ manual_path.lanelets_index(nlanelets)}(:,LaneletInfo.cx);
         manualPath_y = lanelets{ manual_path.lanelets_index(nlanelets)}(:,LaneletInfo.cy);
-
-        if length(manualPath_x) > 3
-            %manualPath_x = manualPath_x([2:(end-1)]);
-        end
-        
-        if length(manualPath_y) > 3
-            %manualPath_y = manualPath_y([2:(end-1)]);
-        end
 
         manualPath_next = [manualPath_x(1:end),manualPath_y(1:end)];
         path = [path; manualPath_next];

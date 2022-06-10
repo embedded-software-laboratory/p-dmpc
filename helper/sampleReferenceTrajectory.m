@@ -56,18 +56,6 @@ function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, ve
                 reflength = remainingLength;
                 currentPoint = referenceTrajectory(TrajectoryIndex,:);
 
-                %{
-                point.x = currentPoint(1,1);
-                point.y = currentPoint(1,2);
-                visualization_point = point;
-
-                color = Color;
-                color.r = uint8(240);
-                color.g = uint8(230);
-                color.b = uint8(26);
-                [visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
-                exp.visualize(visualization_command);
-                %}
                 TrajectoryIndexLast = TrajectoryIndex;
                 TrajectoryIndex = min(TrajectoryIndex+1, nLinePieces);
                 

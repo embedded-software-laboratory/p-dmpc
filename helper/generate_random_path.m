@@ -13,7 +13,6 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
     load('commonroad_data.mat');
     commonroad = commonroad_data;
 
-    % find initial position for this
     random_path.lanelets_index = [lanelets_index_vehid];
     laneChangeAllowed = false;
 
@@ -67,16 +66,7 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
             index = randi(range);
             %disp(sprintf('range: %d, index: %d', range, index));
 
-            % TODO: find better way to delete lanes from reference path
-            % select successor of current lane as start for reference path
-            %if random_path.lanelets_index(1) == lanelets_index_vehid
-                %random_path.lanelets_index(end) = subsequent_lanes.lanelets_index(index);
-            %else
-                random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(index);
-            %end
-            
-            
-            %random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(index);
+            random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(index);
 
             %disp(sprintf('random at end: %d', random_path.lanelets_index(end)));
             laneChangeAllowed = false;
@@ -128,6 +118,7 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
     points_index = zeros(1,length( random_path.lanelets_index));
     laneChangeLanesIndices = [];
 
+    % find indices of lanes that were chosen as adjacents lanes
     for i = 1:length(random_path.lanelets_index)-1
         successor = commonroad_data.lanelet(random_path.lanelets_index(i)).successor; 
         successor_indices = horzcat(successor.refAttribute);
@@ -151,19 +142,12 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
         end
     end
 
+    % interpolate points for smooth lane changes
     for nlanelets = 1:length(random_path.lanelets_index)
         % choose the center line of the lanelet as reference path
         randomPath_x = lanelets{ random_path.lanelets_index(nlanelets)}(:,LaneletInfo.cx);
         randomPath_y = lanelets{ random_path.lanelets_index(nlanelets)}(:,LaneletInfo.cy);
 
-        if length(randomPath_x) > 3
-            %randomPath_x = randomPath_x([2:(end)-1]);
-        end
-        
-        if length(randomPath_y) > 3
-            %randomPath_y = randomPath_y([2:(end)-1]);
-        end
-        
         if nlanelets < length(random_path.lanelets_index)
             if ismember((nlanelets+1), laneChangeLanesIndices)
                 % the next lane is an adjacent lane, interpolate diagonal from middle index of current lane to next lane
@@ -192,39 +176,6 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
                 end
             end
         end
-        
-        %{
-        % lane change only possible at even positions in random_path.lanelets_index
-        % if position is even, then set position of last point to middle last point and first point of new lane
-        if mod(nlanelets,2) == 0 && nlanelets < length(random_path.lanelets_index)
-            
-            old_lane_end_x = randomPath_x(end-1);
-            new_lane_start_x = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cx);
-            point_x = (old_lane_end_x + new_lane_start_x) / 2;
-            randomPath_x(end-1) = point_x;
-
-            old_lane_end_x = randomPath_x(end);
-            new_lane_start_x = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cx);
-            point_x = (old_lane_end_x + new_lane_start_x) / 2;
-            randomPath_x(end) = point_x;
-
-            old_lane_end_y = randomPath_y(end-1);
-            new_lane_start_y = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cy);
-            point_y = (old_lane_end_y + new_lane_start_y) / 2;
-            randomPath_y(end-1) = point_y;
-
-            old_lane_end_y = randomPath_y(end);
-            new_lane_start_y = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cy);
-            point_y = (old_lane_end_y + new_lane_start_y) / 2;
-            randomPath_y(end) = point_y;
-            
-            %randomPath_x(end) = randomPath_x(end-1);
-            %randomPath_y(end) = randomPath_y(end-1);
-        else
-            randomPath_x(1) = randomPath_x(2);
-            randomPath_y(1) = randomPath_y(2);
-        end
-        %}
 
         randomPath_next = [randomPath_x(1:end),randomPath_y(1:end)];
         path = [path; randomPath_next];

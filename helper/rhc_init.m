@@ -12,19 +12,21 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
 
                 if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.firstManualVehicleMode == 1
-                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false, 0);
+                        % function to generate random path for manual vehicles based on CPM Lab road geometry
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false);
                     else
                         continue
                     end     
                 elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.secondManualVehicleMode == 1
-                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false, 0);
+                        % function to generate random path for manual vehicles based on CPM Lab road geometry
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false);
                     else
                         continue
                     end      
                 else
-                    % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
-                    [updated_ref_path, scenario] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                    % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                    [updated_ref_path, scenario] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index);
                 end
                 
                 updatedRefPath = updated_ref_path.path;
@@ -45,21 +47,24 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
         else
             for iVeh = 1:scenario.nVeh
                 for i = 1:length(scenario.vehicles(iVeh).predicted_lanelets)
+                    % if last lane is reached, then lane will be automatically updated
                     if scenario.vehicles(iVeh).predicted_lanelets(i) == scenario.vehicles(iVeh).lanelets_index(end)
                         if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && ~scenario.updated_manual_vehicle_path
                             if scenario.options.firstManualVehicleMode == 1
-                                [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end), false, 0);
+                                % function to generate random path for manual vehicles based on CPM Lab road geometry
+                                [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end), false);
                             else
                                 continue
                             end     
                         elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && ~scenario.updated_second_manual_vehicle_path
                             if scenario.options.secondManualVehicleMode == 1
-                                [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end), false, 0);
+                                % function to generate random path for manual vehicles based on CPM Lab road geometry
+                                [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end), false);
                             else
                                 continue
                             end      
                         else
-                            % ref_path = generate_ref_path(vehid(iveh));% function to generate refpath based on CPM Lab road geometry
+                            % function to generate random path for autonomous vehicles based on CPM Lab road geometry
                             [updated_ref_path, scenario] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end)); % function to generate random path for autonomous vehicles based on CPM Lab road geometry
                             last_lanes(iVeh) = scenario.vehicles(iVeh).lanelets_index(end-1);
                         end
@@ -159,7 +164,9 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
 
             iter.predicted_lanelets{iVeh} = predicted_lanelets;
             iter.scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
-    
+            
+            %{
+            % visualize trajectory index
             visualization_point = 0;
             for i = 1:length(iter.referenceTrajectoryPoints(iVeh,:,:))
                 point.x = iter.referenceTrajectoryPoints(iVeh,i,1);
@@ -171,15 +178,17 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                 color.g = uint8(230);
                 color.b = uint8(26);
 
-                %[visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
-                %exp.visualize(visualization_command);
+                [visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
+                exp.visualize(visualization_command);
             end
-        
+            %}
 
             % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
             predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary);
             iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
 
+            %{
+            % visualize boundaries
             for i = 1:length(predicted_lanelet_boundary{1,1})
                 left_boundary = predicted_lanelet_boundary{1,1};
                 leftPoint.x = left_boundary(1,i);
@@ -205,7 +214,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                 [visualization_command] = lab_visualize_point(scenario, visualization_right_point, iVeh, color);
                 exp.visualize(visualization_command);
             end
-
+            %}
     
             if scenario.options.isParl
                 % Calculate reachable sets of other vehicles based on their

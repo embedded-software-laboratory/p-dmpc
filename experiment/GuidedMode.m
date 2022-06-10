@@ -147,7 +147,8 @@ classdef GuidedMode
                 disp(sprintf("laneID: %d", laneID));
                 % generate manual path with lane as start index
                 % maybe current lane has to be start value of lane -> has to be evaluated
-                [updated_ref_path, scenario] = generate_manual_path(scenario, mVehid, 20, laneID, false); 
+                % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                [updated_ref_path, scenario] = generate_manual_path(scenario, mVehid, 10, laneID, false); 
                 
                 updatedRefPath = updated_ref_path.path;
                 scenario.vehicles(iteration_index).x_start = updatedRefPath(1,1);
