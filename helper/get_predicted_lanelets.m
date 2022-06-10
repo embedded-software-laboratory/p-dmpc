@@ -1,90 +1,61 @@
-function predicted_lanelets = get_predicted_lanelets(vehicle, ref_points_index, lanelets)
+function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(vehicle, trim_current, x0, y0, mpa, dt)
 % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
 % based on vehile's current states and reference path. 
 % 
 % INPUT:
 %   vehicle: instance of the class Vehicle
 % 
-%   ref_points_index: indices points on vehicle's reference path
+%   trim_current: current trim
 % 
-%   lanelets: road raw data, where the information about oen lanelet's
-%   predecessor and successor lanelets will be needed
+%   x0: x-coordinate
+% 
+%   y0: y-coordinate
+% 
+%   mpa: calss MotionPrimitiveAutomaton
+% 
+%   dt: RHC sample time
 % 
 % OUTPUT:
 %   predicted_lanelets: a row vector contains the predicted lanelets
 % 
+%   reference: ReferencePoints [x1 y1; x2 y2; ...] and corresponding
+%   ReferenceIndex (point index)
+% 
+%   v_ref: reference speed
  
-    predicted_lanelets_idx = [];  
+    Hp = size(mpa.transition_matrix_single,3);
 
-    length_remaining = vehicle.Lf;
-    last_ref_point_idx = ref_points_index(end);
+    % get reference speed and path points
+    v_ref = get_max_speed(mpa, trim_current);
+    
+    % Find equidistant points on the reference trajectory.
+    reference = sampleReferenceTrajectory(...
+        Hp, ...                             % number of prediction steps
+        vehicle.referenceTrajectory, ...    % total reference path
+        x0, ...                             % vehicle position x
+        y0, ...                             % vehicle position y
+        v_ref*dt...                         % distance traveled in one timestep
+    );
 
-    % extend the reference points to consider the length of the vehicle
-    while length_remaining>0
-        last_ref_point_before_extend = vehicle.referenceTrajectory(last_ref_point_idx,:);
-        
-        last_ref_point_idx = last_ref_point_idx + 1; % extend one point ahead
-        if last_ref_point_idx > size(vehicle.referenceTrajectory,1)
-            last_ref_point_idx = 1; % loop back
+    ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
+
+    predicted_lanelets_idx = [];
+
+    for i_points_index = 1:length(ref_points_index)
+        predicted_lanelets_idx = [predicted_lanelets_idx, sum(ref_points_index(i_points_index)>vehicle.points_index)+1];
+    end
+    
+    predicted_lanelets_idx = unique(predicted_lanelets_idx,'stable'); % use 'stable' to keep the order
+
+    if length(predicted_lanelets_idx) == 1
+        % at least predict two lanelets to avoid that the endpoint of the
+        % reference path being too close to the end of the predicted lanelets
+        predicted_lanelets_idx = [predicted_lanelets_idx,predicted_lanelets_idx+1];
+        if predicted_lanelets_idx(end) > length(vehicle.lanelets_index)
+            % loop back to the first lanelet
+            predicted_lanelets_idx(end) = 1;
         end
-        
-        last_ref_point_after_extend = vehicle.referenceTrajectory(last_ref_point_idx,:);
-        length_remaining = length_remaining - norm(last_ref_point_before_extend-last_ref_point_after_extend);
     end
 
-    ref_points_index_extended = [ref_points_index;last_ref_point_idx];
-
-
-    for i_points_index = 1:length(ref_points_index_extended)
-        predicted_lanelets_idx = [predicted_lanelets_idx, sum(ref_points_index_extended(i_points_index)>vehicle.points_index)+1];
-    end
-    
-    predicted_lanelets_idx = unique(predicted_lanelets_idx);
-    
     predicted_lanelets = vehicle.lanelets_index(predicted_lanelets_idx);
-
-    % reorder the predicted lanelets such that they are always in the order
-    % of predecessor lanelet -> sucessor lanelet
-    if length(predicted_lanelets)>1
-        % reorder is only needed if there are more than one predicted lanelets
-        predicted_lanelets_reordered = zeros(1,0);
-        % assume the first lanelet is indeed the first lanelet
-        predicted_lanelets_reordered(1) = predicted_lanelets(1);
-    
-        is_find_successors_finished = false;
-        is_find_predecessors_finished = false;
-
-        while ~is_find_successors_finished || ~is_find_predecessors_finished
-            % find successor lanelet
-            if ~is_find_successors_finished
-                last_predicted_lanelet = predicted_lanelets_reordered(end);
-                successors = [lanelets(last_predicted_lanelet).successor.refAttribute];
-                find_successor = find(ismember(predicted_lanelets,successors));
-                if ~isempty(find_successor)
-                    predicted_lanelets_reordered = [predicted_lanelets_reordered, predicted_lanelets(find_successor)];
-                else
-                    is_find_successors_finished = true;
-                end
-            end
-
-            % find predecessor lanelet
-            if ~is_find_predecessors_finished
-                first_lanelet = predicted_lanelets_reordered(1);
-                predecessors = [lanelets(first_lanelet).predecessor.refAttribute];
-                find_predecessor = find(ismember(predicted_lanelets,predecessors));
-                if ~isempty(find_predecessor)
-                    predicted_lanelets_reordered = [predicted_lanelets(find_predecessor), predicted_lanelets_reordered];
-                else
-                    is_find_predecessors_finished = true;
-                end
-            end
-
-            if length(predicted_lanelets_reordered)==length(predicted_lanelets)
-                is_find_successors_finished = true;
-                is_find_predecessors_finished = true;
-            end
-        end
-        predicted_lanelets = predicted_lanelets_reordered; % output
-    end
-
 end
