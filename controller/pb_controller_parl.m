@@ -1,6 +1,8 @@
-function [u, y_pred, info] = pb_controller_parl(scenario, iter)
-% PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
-%     Controller simulates multiple distributed controllers.
+function [u, y_pred, info, scenario] = pb_controller_parl(scenario, iter)
+% PB_CONTROLLER_PARL Plan trajectory for one time step using a
+% priority-based controller. Vehicles inside one group plan in sequence and
+% between groups plan in pararllel. Controller simulates multiple
+% distributed controllers in a for-loop. 
 
 
 switch scenario.priority_option
@@ -13,8 +15,8 @@ switch scenario.priority_option
     case 'right_of_way_priority'
         obj = right_of_way_priority(scenario, iter);
         right_of_way = true;
-        [CL_based_hierarchy, parl_groups_infos, edge_to_break, coupling_weights, belonging_vector] = obj.priority_parl();
-        veh_at_intersection = [];
+        [CL_based_hierarchy, parl_groups_infos, edge_to_break, coupling_weights,...
+            belonging_vector, veh_at_intersection, priority_list, coupling_infos, time_enter_intersection] = priority_parl(obj);
     case 'constant_priority'
         obj = constant_priority(scenario);
         groups = obj.priority(); 
@@ -34,28 +36,22 @@ switch scenario.priority_option
         edge_to_break = [];   
 end
 
-
+    % currently 
     nVeh = scenario.nVeh;
     Hp = scenario.Hp;
 
-    n_grps = length(parl_groups_infos); % number of parallel groups
-
-    % update the coupling weights matrix in case some edges are inverted to berak circles in the graph 
+    % update properties of scenario 
     scenario.coupling_weights = coupling_weights;
     directed_adjacency = (scenario.coupling_weights ~= 0);
-    
-    % visualize the coupling between vehicles
-    plot_coupling_lines(directed_adjacency, iter, belonging_vector)
+    scenario.directed_coupling = directed_adjacency;
+    scenario.coupling_infos = coupling_infos;
+    scenario.belonging_vector = belonging_vector;
+    scenario.priority_list = priority_list;
+    scenario.time_enter_intersection = time_enter_intersection;
+    scenario.last_veh_at_intersection = veh_at_intersection;
 
-    % construct the priority list
-    computation_levels = length(CL_based_hierarchy);
-    members_list = horzcat(CL_based_hierarchy.members);
-    priority_list = zeros(1,nVeh);
-    prio = 1;
-    for iVeh = members_list 
-        priority_list(iVeh) = prio;
-        prio = prio + 1;
-    end
+    % visualize the coupling between vehicles
+    % plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
     
     y_pred = cell(nVeh,1);
     u = zeros(nVeh,1);
@@ -67,22 +63,19 @@ end
     info.shapes = cell(nVeh,Hp);
     info.next_node = node(-1, zeros(nVeh,1), zeros(nVeh,1), zeros(nVeh,1), zeros(nVeh,1), -1, -1);
     info.n_expanded = 0;
-    info.priority_list = priority_list;
-    info.veh_at_intersection = veh_at_intersection;
-    info.computation_levels = computation_levels;
+    info.computation_levels = length(CL_based_hierarchy);
     info.edge_to_break = edge_to_break;
+    info.priority_list = priority_list;
     
     % graph-search to select the optimal motion primitive
     sub_controller = @(scenario, iter)...
         graph_search(scenario, iter); 
-
-    for level_i = 1:length(CL_based_hierarchy)
-        vehs_level_i = CL_based_hierarchy(level_i).members; % vehicles of all groups in the same computation level
-        predecessors = CL_based_hierarchy(level_i).predecessors; % vehicles of all groups in the previous computation level
+    
+    for level_j = 1:length(CL_based_hierarchy)
+        vehs_level_i = CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
+        predecessors = CL_based_hierarchy(level_j).predecessors; % vehicles of all groups in the previous computation level
         
-        for idx_i = 1:length(vehs_level_i)
-            vehicle_i = vehs_level_i(idx_i);
-
+        for vehicle_i = vehs_level_i
             % only keep self
             filter_self = false(1,scenario.nVeh);
             filter_self(vehicle_i) = true;
@@ -104,90 +97,94 @@ end
             for i_HP = 1:length(all_coupling_vehs_HP)
                 veh_HP = all_coupling_vehs_HP(i_HP);
                 
-                latest_msg_HP = scenario_v.ros_subscribers{veh_HP}.LatestMessage;
-    
-                if latest_msg_HP.time_step == scenario_v.k
-                    % if the latest message comes from the current timestep
-                    predicted_areas_HP = arrayfun(@(array) {[array.x';array.y']}, latest_msg_HP.predicted_areas);
+                if ismember(veh_HP,coupling_vehs_same_grp_HP)
+                    % if in the same group, read the current message and
+                    % set the predicted occupied areas as dynamic obstacles  
+                    timeout = 0.5;      is_timeout = true;
+                    read_start = tic;   read_time = toc(read_start);
+                    while read_time < timeout
+                        if scenario_v.ros_subscribers{veh_HP}.LatestMessage.time_step == scenario_v.k
+%                             disp(['Get current message after ' num2str(read_time) ' seconds.'])
+                            is_timeout = false;
+                            break
+                        end
+                        read_time = toc(read_start);
+                    end
+
+                    if is_timeout
+                        warning(['Vehicle ' num2str(vehicle_i) ' is unable to receive the current message from vehicle ' num2str(veh_HP) ' . '...
+                            'The pevious message will be used.'])
+                    end
+                    latest_msg = scenario_v.ros_subscribers{veh_HP}.LatestMessage;
+                    predicted_areas_HP = arrayfun(@(array) {[array.x';array.y']}, latest_msg.predicted_areas);
+                    oldness_msg = scenario_v.k - latest_msg.time_step;
+                    if oldness_msg ~= 0
+                        % consider the oldness of the message: delete the
+                        % first n entries and repeat the last entry for n times
+                        predicted_areas_HP = del_first_rpt_last(predicted_areas_HP,oldness_msg);
+                    end
                     scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_HP;
                 else
-                    % if the latest message comes not from the current timestep 
-                    status = false; % status indicates whether a new message is received
-                    if ismember(veh_HP,coupling_vehs_same_grp_HP)
-                        % if the selected vehicle is in the same group, define a timeout and wait for its message
-                        timeout = 0.5;
-                        [msg_received, status, ~] = receive(scenario_v.ros_subscribers{veh_HP}, timeout);
-                        if status
-                            disp('received a messsage')
-                            predicted_areas_HP = arrayfun(@(array) {[array.x';array.y']}, msg_received.predicted_areas);
-                            scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_HP;
+                    % if the selected vehicle is not in the same group, add their reachable sets as dynamic obstacles 
+                    reachable_sets_HP = iter.reachable_sets(veh_HP,:);
+                    % turn polyshape to plain array
+                    reachable_sets_HP_array = cellfun(@(c) {[c.Vertices(:,1)';c.Vertices(:,2)']}, reachable_sets_HP);
+                    scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_HP_array;
+                end
+            end
+
+            if ~scenario_v.is_allow_enter_crossing_area && ismember(vehicle_i,veh_at_intersection)
+                % if follower is not allowed to enter the crossing areas before their leaders leave those areas at the intersection 
+                find_leaders = find([scenario_v.coupling_infos.idFollower]==vehicle_i);
+                % subtract the crossing area from lower priority vehicle's lanelet boundary if it is not allowed to enter this area 
+                for i_coupling = find_leaders
+                    id_leader = scenario_v.coupling_infos(i_coupling).idLeader;
+                    if ismember(id_leader,veh_at_intersection) && strcmp(scenario_v.coupling_infos(i_coupling).type, CollisionType.type_2)
+                        % both vehicles are at the intersection and they do not drive successively (side-impact collision) 
+                        lanelet_crossing_area = intersect(iter_v.predicted_lanelet_boundary{3}, iter.predicted_lanelet_boundary{id_leader,3});
+                        if lanelet_crossing_area.NumRegions == 1
+                            scenario_v.lanelet_crossing_areas{end+1} = [lanelet_crossing_area.Vertices(:,1)';lanelet_crossing_area.Vertices(:,2)'];
+                        elseif lanelet_crossing_area.NumRegions == 2
+                            warning(['There are unexpectedly ' num2str(lanelet_crossing_area.NumRegions) ' regions.'])
+                        end
+                        % subtract the crossing area from lower priority vehicle's lanelet boundary 
+                        iter_v.predicted_lanelet_boundary{3} = subtract(iter_v.predicted_lanelet_boundary{3}, iter.predicted_lanelet_boundary{id_leader,3});
+
+                        num_regions = iter_v.predicted_lanelet_boundary{3}.NumRegions;
+                        if num_regions > 1
+                            % if multiple regions, only keep the one that is closest to vehicle
+                            poly_sort = sortregions(iter_v.predicted_lanelet_boundary{3},'centroid','descend','ReferencePoint',[iter_v.x0(indices().x),iter_v.x0(indices().y)]); 
+                            iter_v.predicted_lanelet_boundary{3} = rmboundary(poly_sort, 2:num_regions);
                         end
                     end
-
-                    if ~ismember(veh_HP,coupling_vehs_same_grp_HP) || ~status
-                        % if the selected vehicle is not in the same group or is in the same group but no new message is received in a certain time 
-                        % interval, add the reachable sets as dynamic obstacles 
-                        reachable_sets_HP = iter.reachable_sets(veh_HP,:);
-                        % turn polyshape to plain array
-                        reachable_sets_HP_array = cellfun(@(c) {[c.Vertices(:,1)';c.Vertices(:,2)']}, reachable_sets_HP);
-                        scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_HP_array;
-                    end
                 end
             end
+
+            % set lanelet boundary as static obstacle
+%             scenario_v.obstacles{end+1} = [iter_v.predicted_lanelet_boundary{3}.Vertices(:,1)'; iter_v.predicted_lanelet_boundary{3}.Vertices(:,2)'];
 
             % coupling vehicles with lower priorities
-            if right_of_way
-                for i_LP = 1:length(all_coupling_vehs_LP)
-                    veh_LP = all_coupling_vehs_LP(i_LP);
-                    
-                    % consider as static obstacles
-%                     veh = Vehicle();
-%                     % calculate the current occupied area 
-%                     [x_globals,y_globals] = translate_global(...
-%                         iter.x0(veh_LP, indices().heading),...              % yaw angle
-%                         iter.x0(veh_LP, indices().x),...                    % x-position
-%                         iter.x0(veh_LP, indices().y),...                    % y-position
-%                         [-1,-1, 1, 1]*(veh.Length/2+scenario_v.offset),...  % x-coordinates of the local occupied area 
-%                         [-1, 1, 1,-1]*(veh.Width/2+scenario_v.offset));     % y-coordinates of the local occupied area 
-%                     
-%                     % add as static obstacles
-%                     scenario_v.obstacles(end+1) = {[x_globals;y_globals]};
+            scenario_v = consideration_of_followers_by_leader(scenario_v, iter, all_coupling_vehs_LP);
 
-                    % consider old trajectories as dynamic obstacles the occupied areas of coupling vehicles with lower
-                    % priorities predicted at the previous time step will be shifted and considered as dynamic obstacles
-%                     latest_msg_LP = scenario_v.ros_subscribers{veh_LP}.LatestMessage;
-%                     if latest_msg_LP.time_step > 0
-%                         % the message does not come from the initial time step
-%                         predicted_areas_LP = arrayfun(@(array) {[array.x';array.y']}, latest_msg_LP.predicted_areas);
-%                         shift_step = scenario_v.k - latest_msg_LP.time_step; % times that the prediction should be shifted and the last prediction should be repeated
-%                         if shift_step > 1
-%                             disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_i) ', considered vehicle: ' num2str(veh_LP)])
-%                         end
-%                         predicted_areas_LP = del_first_rpt_last(predicted_areas_LP(:)', shift_step);
-%                         scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_LP;
-%                     end
-
-                    % consider the reachable sets of the current time step as static obstacles 
-                    reachable_sets_LP = iter.reachable_sets{veh_LP,1};
-                    % turn polyshape to plain array
-                    reachable_sets_LP_array = {[reachable_sets_LP.Vertices(:,1)';reachable_sets_LP.Vertices(:,2)']};
-                    scenario_v.obstacles(end+1,:) = reachable_sets_LP_array;
-                end
-            end
-            
             subcontroller_timer = tic;
 
-%             if scenario.k>=8 && vehicle_i==14
-%                 graphs_visualization(belonging_vector,coupling_weights,'ShowWeights',true)
-%                 disp('debug')
+%             if scenario.k>=2
+% %                 if scenario_v.vehicles.ID==16
+%                     disp('debug')
+%                     plot_obstacles(scenario_v)
+%                     pause(0.5)
+% %                 end
 %             end
 
             % execute sub controller for 1-veh scenario
             [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
             
-            if vehicle_i==3
-                plot_obstacles(scenario_v)
-                plot_obstacles(info_v.shapes)
+            if scenario.k>=2
+%                 plot_obstacles(scenario_v)
+%                 pause(0.5)
+%                 plot_obstacles(info_v.shapes)
+%                 pause(0.5)
+%                 graphs_visualization(belonging_vector, coupling_weights, 'ShowWeights', true)
             end
             
             % prepare output data
@@ -208,37 +205,27 @@ end
         
         % Communicate data to other vehicles
         % Trick: vehicles will wait for the last vehicle in the same computation level has planned 
-        % to avoid receiving messages of the current time step from vehicles in the same computation level. 
-        for idx_k = 1:length(vehs_level_i)
-            vehicle_k = vehs_level_i(idx_k);
-
-            states_current = info.y_predicted{vehicle_k}(1,:);
-
+        % to avoid receiving messages of the current time step from vehicles in the same computation level.         
+        for vehicle_k = vehs_level_i
             predicted_trims = info.predicted_trims(vehicle_k,:); % including the current trim
+            
             trim_current = predicted_trims(2);
 
-            % get reference speed and path points
-            predicted_vRef = get_max_speed(scenario.mpa, trim_current);
-            
-            % Find equidistant points on the reference trajectory.
-            reference = sampleReferenceTrajectory(...
-                Hp, ...                                                 % number of prediction steps
-                scenario.vehicles(vehicle_k).referenceTrajectory, ...   % total reference path
-                states_current(indices().x), ...                    % vehicle position x
-                states_current(indices().y), ...                    % vehicle position y
-                predicted_vRef*scenario.dt...                         % distance traveled in one timestep
-            );
+            states_current = info.y_predicted{vehicle_k}(1,:);
+            x0 = states_current(indices().x);
+            y0 = states_current(indices().y);
 
-            ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
-            predicted_lanelets = get_predicted_lanelets(scenario.vehicles(vehicle_k), ref_points_index, scenario.road_raw_data.lanelet);
-            
+            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_k), trim_current, x0, y0, scenario.mpa, scenario.dt);
             predicted_areas = info.shapes(vehicle_k,:);
 
             % send message
-            scenario.vehicles(vehicle_k).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_areas);
+            send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas);
+%             pause(0.1)
         end
 
     end
+
+    n_grps = length(parl_groups_infos); % number of parallel groups
 
     % % calculate the total run time: only one vehicle in each computation
     % level will be counted, this is the one with the maximum run time for each parallel group 
@@ -261,58 +248,5 @@ end
     % the subcontroller time of the whole system in each time step depends on the maximum subcontroller time used by each parallel group
     info.subcontroller_runtime_all_grps = run_time_total_all_grps;
     info.subcontroller_run_time_total = max(run_time_total_all_grps);
-    info.belonging_vector = belonging_vector;
-    info.directed_adjacency = directed_adjacency;
 end
 
-
-%% backup
-%             grp_idx = arrayfun(@(array) ismember(vehicle_i,array.vertices), parl_groups_infos);
-%             all_vehs_same_grp = parl_groups_infos(grp_idx).vertices; % all vehicles in the same group
-% 
-%             % coupling vehicles with higher priorities in the same group
-%             coupling_vehs_same_grp_HP = intersect(all_coupling_vehs_HP, all_vehs_same_grp);
-%             % coupling vehicles with higher priorities in other parallel groups
-%             coupled_with_other_grps_HP = setdiff(all_coupling_vehs_HP, coupling_vehs_same_grp_HP);
-% 
-%             % Filter out vehicles that are not adjacent
-%             % create filter to keep self and coupling vehicles with higher priorities in the same group 
-%             priority_filter_same_grp = false(1,nVeh);
-%             priority_filter_same_grp(coupling_vehs_same_grp_HP) = true; % keep coupling vehicles in the same group with higher priority 
-%             priority_filter_same_grp(vehicle_i) = true; % keep self
-%             % create filter to keep coupling vehicles with higher priorities in other groups
-%             priority_filter_other_grps = false(1,nVeh);
-%             priority_filter_other_grps(coupled_with_other_grps_HP) = true; % keep coupling vehicles in other groups with higher priority
-% 
-%             scenario_filtered_same_grp = filter_scenario(scenario, priority_filter_same_grp);
-%             iter_filtered_same_grp = filter_iter(iter, priority_filter_same_grp);
-%             iter_filtered_other_grps = filter_iter(iter, priority_filter_other_grps);
-% 
-%             self_index = sum(priority_filter_same_grp(1:vehicle_i));        
-%             v2o_filter = true(1,scenario_filtered_same_grp.nVeh);
-%             v2o_filter(self_index) = false;
-% 
-%             % get the predicted areas of coupling vehicles with higher priorities in the same group
-%             predicted_areas = cell(length(coupling_vehs_same_grp_HP), Hp);
-%             for idx_j = 1:length(coupling_vehs_same_grp_HP)
-%                 veh_i = coupling_vehs_same_grp_HP(idx_j);
-%                 latest_msg_i = scenario.ros_subscribers{veh_i}.LatestMessage;
-%                 predicted_areas_j = arrayfun(@(array) {[array.x';array.y']}, latest_msg_i.predicted_areas);
-%                 % check the oldness of the latest message: the predicted
-%                 % areas must be shifted if they are not sent in the current
-%                 % time step. The last predicted area will be repeated such that the predicted area w  
-%                 
-%                 predicted_areas(idx_j,:) = predicted_areas_j;
-%             end
-% 
-%             % add predicted trajecotries of the coupling vehicles with higher priorities in the same group as dynamic obstacles
-%             [scenario_v, iter_v] = ...
-%                 vehicles_as_dynamic_obstacles(scenario_filtered_same_grp, iter_filtered_same_grp, v2o_filter, predicted_areas);
-% 
-%             % add reachable sets of the coupling vehicles with higher priorities in other groups as dynamic obsticles
-%             scenario_v = vehicles_reachable_sets_as_obstacles(scenario_v, iter_filtered_other_grps, coupled_with_other_grps_HP);
-% 
-%             % add all coupling vehicles with lower priorities as static obstacles
-%             if right_of_way
-%                 scenario_v = vehicles_as_static_obstacles(scenario_v, iter, all_coupling_vehs_LP);
-%             end
