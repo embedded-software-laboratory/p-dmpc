@@ -1,4 +1,4 @@
-function [arc_distance, x_projected, y_projected, projection_distance, curve_new, arc_length] = get_arc_distance_to_endpoint(point_x, point_y, curve_x, curve_y)
+function [arc_distance, arc_length, x_projected, y_projected, projection_distance] = get_arc_distance_to_endpoint(point_x, point_y, curve_x, curve_y)
 % GET_ARC_DISTANCE_TO_ENDPOINT This function calculate the distance from
 % the given point to the endpoint of the given curve. This is done by
 % firstly projecting the given point to the curve and calculating the arc
@@ -39,6 +39,8 @@ function [arc_distance, x_projected, y_projected, projection_distance, curve_new
 
     squared_distances = sum([curve_x-point_x,curve_y-point_y].^2,2); % ignore sqrt to save computation time
     [~,idx_closest] = min(squared_distances);
+
+    is_end_point_the_closest = false; % whether the endpoint is closest to vehicle
     
     % find which adjacent point in the curve is closer to the given point
     if idx_closest==1
@@ -50,6 +52,7 @@ function [arc_distance, x_projected, y_projected, projection_distance, curve_new
         % delete the points before the second adjacent point since they are irrelevant to calculate the needed arc length 
         curve_shortened = curve(idx_adjacent_point:end,:);
     elseif idx_closest==n_points
+        is_end_point_the_closest = true;
         idx_adjacent_point = n_points - 1;
         line_x_first = curve_x(idx_adjacent_point);
         line_y_first = curve_y(idx_adjacent_point);
@@ -96,7 +99,7 @@ function [arc_distance, x_projected, y_projected, projection_distance, curve_new
     end
 
     % calculate the arc length
-    arc_length = sum(sqrt(sum(diff(curve_new).^2,2)),1);
+    arc_length = sum(sqrt(sum(diff(curve_new,1,1).^2,2)),1);
 
     % calculate the arc distance
     arc_distance = sqrt(arc_length^2 + projection_distance^2);

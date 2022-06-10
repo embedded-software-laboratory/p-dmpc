@@ -1,4 +1,4 @@
-function ref_path = generate_ref_path(vehid)
+function ref_path = generate_ref_path(vehid, lanelets)
 % GENERATE_REF_PATH    returns a ref_path struct
 % ref_path.lanelets_index: lanelet index of the reference path
 % ref_path.path: reference path including x and y information
@@ -57,7 +57,7 @@ ref_path = struct;
             ref_path.lanelets_index = [26,52,37,35,31,29,27,1,3,5,9,11];
 
         case 17
-            ref_path.lanelets_index = [104,78,63,61,57,55,53,79,81,83,87,89];
+            ref_path.lanelets_index = [89,104,78,63,61,57,55,53,79,81,83,87];
 
         case 18
             ref_path.lanelets_index = [76,24,13,15,3,5,7,59,57,55,67,65];
@@ -66,7 +66,7 @@ ref_path = struct;
             ref_path.lanelets_index = [91,93,81,83,85,33,31,29,41,39,50,102];
 
         case 20
-            ref_path.lanelets_index = [78,63,61,57,55,53,79,81,83,87,89,104];
+            ref_path.lanelets_index = [104,78,63,61,57,55,53,79,81,83,87,89];
         
 %         case 21
 %             ref_path.lanelets_index = [89,46,13,15,3,5,9,11,72,91,93,81,83,87];
@@ -109,35 +109,21 @@ ref_path = struct;
                        
 
     end 
-    
-    [lanelets,~,~,~,~,~,~] = get_road_data(); 
 
-    % reference path
-    path = [];
+    lanelets_target = lanelets(ref_path.lanelets_index);
 
-    for nlanelets = 1:length(ref_path.lanelets_index)
-        % choose the center line of the lanelet as reference path
-        refPath_x = lanelets{ ref_path.lanelets_index(nlanelets)}(:,LaneletInfo.cx);
-        refPath_y = lanelets{ ref_path.lanelets_index(nlanelets)}(:,LaneletInfo.cy);
-        refPath_next = [refPath_x(1:end),refPath_y(1:end)];
-        path = [path; refPath_next];
+    refPath_x = cellfun(@(c)c(:,LaneletInfo.cx), lanelets_target, 'UniformOutput', false);
+    refPath_x = vertcat(refPath_x{:});
+    refPath_y = cellfun(@(c)c(:,LaneletInfo.cy), lanelets_target, 'UniformOutput', false);
+    refPath_y = vertcat(refPath_y{:});
 
-    end 
+    path = [refPath_x, refPath_y];
+
     ref_path.path = path;
-    
-    % the max points index of each lanelet
-    lanelet_point_max = 0;
-    points_index = zeros(1,length( ref_path.lanelets_index));
-    for nlanelets = 1:length( ref_path.lanelets_index)
-        % count the number of points of each lanelets
-        Npoints = length(lanelets{ ref_path.lanelets_index(nlanelets)}(:,LaneletInfo.cx));
-        % max point index of each lanelet
-        lanelet_point_max = lanelet_point_max + Npoints;
-        points_index(nlanelets) = lanelet_point_max;
 
-    end 
-    ref_path.points_index = points_index;
-  
+    % the max points index of each lanelet
+    points_length = cellfun(@(c)length(c), lanelets_target);
+    ref_path.points_index = cumsum(points_length);
 
 end
 
