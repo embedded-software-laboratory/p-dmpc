@@ -4,9 +4,6 @@ disp('App is executed, select your configuration there')
 ui = CPMStartOptionsUI();
 
 % CPM Lab
-% vehicleIDs
-vehicleIDsSelection = ui.CPMLabVehicleIDsListBox.Value;
-
 % FirstManualVehicleID
 firstManualVehicleID = list_first_manual_vehicle();
 ui.FirstManualVehicleMVIDListBox.Items = firstManualVehicleID(:,1);
@@ -22,6 +19,10 @@ ui.SecondMVIDListBox.Items = secondManualVehicleID(:,1);
 % ControlModeSecondManualVehicle
 secondControlMode = list_control_mode();
 ui.ControlModeSecondMVListBox.Items = secondControlMode(:,2);
+
+% Collision Avoidance
+collisionAvoidance = list_collision_avoidance();
+ui.CollisionAvoidanceListBox.Items = collisionAvoidance(:,2);
 
 
 % Simulation
@@ -57,17 +58,16 @@ ui.EnvironmentButtonGroup.SelectionChangedFcn = @(~, ~) setCpmLabElementsVisibil
 
 %ui.ScenarioListBox.ValueChangedFcn = @(~, ~) checkScenarioVehiclesMatch(ui, scenarios);
 ui.ScenarioListBox.ValueChangedFcn = @(~, ~) setIsParlVisibility(ui);
-%ui.CPMLabVehicleIDsListBox.ValueChangedFcn = @(~, ~) checkScenarioVehiclesMatch(ui, scenarios);
 
 %% load previous choices, if possible
 try %#ok<TRYNC>
     previousSelection = load([tempdir 'scenarioControllerSelection']);
     ui.EnvironmentButtonGroup.SelectedObject = ui.EnvironmentButtonGroup.Buttons(previousSelection.environmentSelection);
-    ui.CPMLabVehicleIDsListBox.Value = previousSelection.vehicleIDsSelection;
     ui.FirstManualVehicleMVIDListBox.Value = previousSelection.firstManualVehicleIDSelection;
     ui.ControlModeFirstMVListBox.Value = previousSelection.controlModeSelection;
     ui.SecondMVIDListBox.Value = previousSelection.secondManualVehicleIDSelection;
     ui.ControlModeSecondMVListBox.Value = previousSelection.secondControlModeSelection;
+    ui.CollisionAvoidanceListBox.Value = previousSelection.collisionAvoidanceSelection;
     ui.MiddlewarePeriodmsEditField.Value = previousSelection.MiddlewarePeriodmsSelection;
 
     ui.ScenarioListBox.Value = previousSelection.scenarioSelection;
@@ -99,6 +99,7 @@ firstManualVehicleIDSelection = ui.FirstManualVehicleMVIDListBox.Value;
 secondManualVehicleIDSelection = ui.SecondMVIDListBox.Value;
 controlModeSelection = ui.ControlModeFirstMVListBox.Value;
 secondControlModeSelection = ui.ControlModeSecondMVListBox.Value;
+collisionAvoidanceSelection = ui.CollisionAvoidanceListBox.Value;
 MiddlewarePeriodmsSelection = ui.MiddlewarePeriodmsEditField.Value;
 environmentSelection = get_environment_selection(ui);
 
@@ -109,12 +110,10 @@ vehicleAmountSelection = ui.AmountofVehiclesListBox.Value;
 visualizationSelection = ui.TypeofVisualizationListBox_2.Value;
 isParlSelection = ui.ParallelComputationListBox.Value;
 
-save([tempdir 'scenarioControllerSelection'], 'vehicleIDsSelection', 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'MiddlewarePeriodmsSelection',...
+save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'collisionAvoidanceSelection', 'MiddlewarePeriodmsSelection',...
     'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', 'isParlSelection');
 
 %% Convert to legacy/outputs
-labOptions.vehicle_ids = sort(cellfun(@str2num, vehicleIDsSelection));
-
 labOptions.manualVehicle_id = firstManualVehicleID{...
     strcmp({firstManualVehicleID{:, 1}}, firstManualVehicleIDSelection),...
     1};
@@ -130,6 +129,10 @@ labOptions.manualVehicle_id2 = secondManualVehicleID{...
 labOptions.secondManualVehicleMode = secondControlMode{...
     strcmp({secondControlMode{:, 2}}, secondControlModeSelection),...
     1};
+
+labOptions.collisionAvoidanceMode = str2num(collisionAvoidance{...
+    strcmp({collisionAvoidance{:, 2}}, collisionAvoidanceSelection),...
+    1});
 
 labOptions.middlewarePeriod = MiddlewarePeriodmsSelection;
 labOptions.is_sim_lab = ~get_environment_selection(ui, true);
@@ -205,12 +208,12 @@ end
 function setCpmLabElementsVisibility(ui)
     % if lab mode is selected
     if get_environment_selection(ui, true)
-        ui.CPMLabVehicleIDsListBox.Enable = 'On';
         ui.MiddlewarePeriodmsEditField.Enable = 'On';
         ui.FirstManualVehicleMVIDListBox.Enable = 'On';
         ui.ControlModeFirstMVListBox.Enable = 'On';
         ui.SecondMVIDListBox.Enable = 'On';
         ui.ControlModeSecondMVListBox.Enable = 'On';
+        ui.CollisionAvoidanceListBox.Enable = 'On';
 
         ui.ScenarioListBox.Enable = 'Off';
         ui.ControlStrategyListBox.Enable = 'Off';
@@ -220,15 +223,15 @@ function setCpmLabElementsVisibility(ui)
         ui.ParallelComputationListBox.Enable = 'Off';
 
         % multiple vehicles tipp
-        ui.Label_3.Text = sprintf("Hold CTRL to select multiple \nvehicles in CPM Lab mode");
-        ui.Label_3.Visible = 'On';
+        %ui.Label_3.Text = sprintf("Hold CTRL to select multiple \nvehicles in CPM Lab mode");
+        %ui.Label_3.Visible = 'On';
     else
-        ui.CPMLabVehicleIDsListBox.Enable = 'Off';
         ui.MiddlewarePeriodmsEditField.Enable = 'Off';
         ui.FirstManualVehicleMVIDListBox.Enable = 'Off';
         ui.ControlModeFirstMVListBox.Enable = 'Off';
         ui.SecondMVIDListBox.Enable = 'Off';
         ui.ControlModeSecondMVListBox.Enable = 'Off';
+        ui.CollisionAvoidanceListBox.Enable = 'Off';
 
         ui.ScenarioListBox.Enable = 'On';
         ui.ControlStrategyListBox.Enable = 'On';
@@ -237,10 +240,8 @@ function setCpmLabElementsVisibility(ui)
         ui.TypeofVisualizationListBox_2.Enable = 'On';
         ui.ParallelComputationListBox.Enable = 'On';
 
-        ui.Label_3.Visible = 'Off';
+        %ui.Label_3.Visible = 'Off';
     end
-    
-    %checkScenarioVehiclesMatch(ui, scenarios)
 end
 
 function setControlModesVisibility(ui)
@@ -249,10 +250,12 @@ function setControlModesVisibility(ui)
         ui.ControlModeFirstMVListBox.Enable = 'Off';
         ui.SecondMVIDListBox.Enable = 'Off';
         ui.ControlModeSecondMVListBox.Enable = 'Off';
+        ui.CollisionAvoidanceListBox.Enable = 'Off';
     else
         ui.ControlModeFirstMVListBox.Enable = 'On';
         ui.SecondMVIDListBox.Enable = 'On'; 
         ui.ControlModeSecondMVListBox.Enable = 'On';
+        ui.CollisionAvoidanceListBox.Enable = 'On';
     end
 end
 
@@ -285,21 +288,6 @@ function setVisualizationVisibility(ui)
     end
 end
 %}
-
-function checkScenarioVehiclesMatch(ui, scenarios)
-    nVehScnenario = scenarios{strcmp({scenarios{:, 1}}, ui.ScenarioListBox.Value), 2}().nVeh; %#ok<CCAT1>
-    nVeh = length(ui.CPMLabVehicleIDsListBox.Value);
-    
-    % if numbers match (or if lab mode: disable check)
-    if nVehScnenario == nVeh || ~get_environment_selection(ui, true)
-        ui.StartButton.Enable = 'On';
-        ui.Label.Visible = 'Off';
-    else
-        ui.StartButton.Enable = 'Off';
-        ui.Label.Text = sprintf("Number of vehicles\nof scenario (%i) and\nCPM Lab (%i) don't\nmatch", nVehScnenario, nVeh);
-        ui.Label.Visible = 'On';
-    end
-end
 
 function [ list ] = list_first_manual_vehicle
     list = {...
@@ -353,6 +341,13 @@ function [ list ] = list_second_manual_vehicle
     };
 end
 
+function [ list ] = list_collision_avoidance
+    list = {...
+    '1', 'Priority-based'; ...
+    '2', 'Reachability Analysis Guided-Mode'; ...
+    '3', 'Reachability Analysis Expert-Mode'; ...
+    };
+end
 
 function [ list ] = list_control_mode
     list = {...

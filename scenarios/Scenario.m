@@ -54,6 +54,7 @@ classdef Scenario
         ros_subscribers = {};           % ROS 2 subscribers (used to read messages from other vehicles)
         max_num_CLs = 4;                % max number of computation levels to limit the total planning time in each time step (used in the parallel computation)
         pool;
+        mixedTrafficCollisionAvoidanceMode = 0;     % mode for collision avoidance in CPM Lab Mode with manual vehicles
     end
     
     properties (Dependent)

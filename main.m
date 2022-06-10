@@ -40,6 +40,7 @@ if is_sim_lab
 
     %TODO: make selection for mixedTrafficScenarioLanelets
     options.mixedTrafficScenarioLanelets = false;
+    options.collisionAvoidanceMode = 0;
     
 else
     disp('cpmlab')
@@ -60,6 +61,7 @@ else
         options.firstManualVehicleMode = 0;
         manualVehicle_id2 = 0;
         options.secondManualVehicleMode = 0;
+        options.collisionAvoidanceMode = 0;
     else
         manualVehicle_id = str2num(options.manualVehicle_id);
         options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
@@ -91,6 +93,7 @@ scenario.priority_option = options.priority;
 scenario.manual_vehicle_id = manualVehicle_id;
 scenario.second_manual_vehicle_id = manualVehicle_id2;
 scenario.vehicle_ids = vehicle_ids;
+scenario. mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
 scenario.options = options;
 
 for iVeh = 1:scenario.options.amount
