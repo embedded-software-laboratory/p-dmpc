@@ -18,6 +18,7 @@ function plot_obstacles(data)
         plot_shapes(data.obstacles)
         plot_shapes(data.dynamic_obstacle_area)
         plot_shapes(data.dynamic_obstacle_reachableSets)
+        plot_shapes(data.lanelet_crossing_areas)
     end
 
 end
