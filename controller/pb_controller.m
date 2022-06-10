@@ -1,4 +1,4 @@
-function [u, y_pred, info] = pb_controller(scenario, iter)
+function [u, y_pred, info, scenario] = pb_controller(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
@@ -34,7 +34,7 @@ switch scenario.priority_option
 end
 
     % visualize the coupling between vehicles
-    plot_coupling_lines(directed_adjacency, iter)
+%     plot_coupling_lines(directed_adjacency, iter)
 
     % construct the priority list
     computation_levels = length(groups);
@@ -47,6 +47,11 @@ end
         prio = prio + 1;
     end
     
+    % update properties of scenario
+    scenario.directed_coupling = directed_adjacency;
+    scenario.priority_list = priority_list;
+    scenario.last_veh_at_intersection = veh_at_intersection;
+
     y_pred = cell(scenario.nVeh,1);
     u = zeros(scenario.nVeh,1);
     
@@ -92,14 +97,20 @@ end
 
             % add predicted trajecotries of vehicles with higher priority as dynamic obstacle
             [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(predecessors,:));
-
             
             % add adjacent vehicles with lower priorities as static obstacles
             if right_of_way
                 adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
-                scenario_v = vehicles_as_static_obstacles(scenario_v,iter,adjacent_vehicle_lower_priority);
+                
+                % only two strategies are supported if parallel computation is not used
+                assert(strcmp(scenario_v.strategy_consider_veh_with_lower_prio,'1')==true || strcmp(scenario_v.strategy_consider_veh_with_lower_prio,'4')==true)
+                scenario_v = consideration_of_followers_by_leader(scenario_v, iter, adjacent_vehicle_lower_priority);
+%                 scenario_v = vehicles_as_static_obstacles(scenario_v,iter,adjacent_vehicle_lower_priority);
             end
-            
+%             if scenario_v.k >= 12 && vehicle_idx==1
+%                 disp('') % debug
+%                 plot_obstacles(scenario_v)
+%             end
             % execute sub controller for 1-veh scenario
             [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
             
@@ -108,7 +119,7 @@ end
             info.tree_path(vehicle_idx,:) = info_v.tree_path;
             info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
             info.n_expanded = info.n_expanded + info_v.tree.size();
-            info.next_node = set_node(info.next_node,[vehicle_idx],info_v);
+            info.next_node = set_node(info.next_node,vehicle_idx,info_v);
             info.shapes(vehicle_idx,:) = info_v.shapes(:);
             info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario.mpa);
             info.trim_indices(vehicle_idx) = info_v.trim_indices;
@@ -129,6 +140,5 @@ end
     end
 
     info.subcontroller_run_time_total = subcontroller_run_time_total;
-    info.directed_adjacency = directed_adjacency;
    
 end
