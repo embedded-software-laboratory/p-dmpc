@@ -20,7 +20,7 @@ function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
 %   vertices that must be in the same subset are not supported by this program.
 % 
 % OUTPUT:
-%   belonging_vector: a column vector whose values indicates which
+%   belonging_vector: a column vector whose values indicate which
 %   subgraph a vertex belongs to. For example,"belonging_vector =
 %   [1;2;2;1;3]" means the following three subgraphs: {1,4}, {2,3} and {5}.
 % 
@@ -68,12 +68,12 @@ function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
 
     % turn to symmetric if not
     if ~issymmetric(M)
-        M_symmetric = M + M';
+        M = M + M';
     end
 
 
     % reduced edge-weights matrix after merging some vertices
-    M_reduced = M_symmetric;
+    M_reduced = M;
 
     % predefined variables
     belonging_vector = (1:nVertices)';
@@ -113,8 +113,6 @@ function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
 
         % in case vertex_t is a merging point
         vertices_in_point_t = find(belonging_vector==vertex_t)';
-        % in case vertex_s is a merging point
-        vertices_remaining = setdiff(vertex_indices,vertices_in_point_t);
 
         % store cost
         cutting_infos(count).cost = cost_tmp;
@@ -260,7 +258,7 @@ function [M, must_not_in_same_subset, must_in_same_subset] = parse_inputs(M, var
 
     p = inputParser;
     addRequired(p,'M', @(x) isnumeric(x) && ismatrix(x)); % must be numerical matrix
-    addOptional(p,'must_not_in_same_subset', must_not_in_same_subset_default, @(x) isempty(x) || (iscell(x))); % must be cell or empty
+    addOptional(p,'must_not_in_same_subset', must_not_in_same_subset_default, @(x) iscell(x)); % must be cell or empty
     addOptional(p,'must_in_same_subset', must_in_same_subset_default, @(x) isempty(x) || (isnumeric(x) && isvector(x))); % must be numerical vector or empty
     parse(p, M, varargin{:}); % start parsing
     
