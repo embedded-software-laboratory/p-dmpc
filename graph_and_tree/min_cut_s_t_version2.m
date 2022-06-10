@@ -259,7 +259,8 @@ function [vertex_s, vertex_t] = minimum_cut_phase(edge_weights)
     vertex_s = queue(1);
     vertex_t = queue(2);
 end
-    
+   
+
 %% local function: parse_inputs
 function [M, must_not_in_same_subset, must_in_same_subset] = parse_inputs(M, varargin)
     % Process optional input and Name-Value pair options
@@ -277,5 +278,5 @@ function [M, must_not_in_same_subset, must_in_same_subset] = parse_inputs(M, var
     M = p.Results.M;
     must_not_in_same_subset = p.Results.must_not_in_same_subset;
     must_in_same_subset = p.Results.must_in_same_subset;
-
 end
+
