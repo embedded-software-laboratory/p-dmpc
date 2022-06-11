@@ -100,22 +100,7 @@ end
                 if ismember(veh_HP,coupling_vehs_same_grp_HP)
                     % if in the same group, read the current message and
                     % set the predicted occupied areas as dynamic obstacles  
-                    timeout = 0.5;      is_timeout = true;
-                    read_start = tic;   read_time = toc(read_start);
-                    while read_time < timeout
-                        if scenario_v.ros_subscribers{veh_HP}.LatestMessage.time_step == scenario_v.k
-%                             disp(['Get current message after ' num2str(read_time) ' seconds.'])
-                            is_timeout = false;
-                            break
-                        end
-                        read_time = toc(read_start);
-                    end
-
-                    if is_timeout
-                        warning(['Vehicle ' num2str(vehicle_i) ' is unable to receive the current message from vehicle ' num2str(veh_HP) ' . '...
-                            'The pevious message will be used.'])
-                    end
-                    latest_msg = scenario_v.ros_subscribers{veh_HP}.LatestMessage;
+                    latest_msg = read_message(scenario_v.vehicles.communicate, scenario_v.ros_subscribers{veh_HP}, scenario_v.k);
                     predicted_areas_HP = arrayfun(@(array) {[array.x';array.y']}, latest_msg.predicted_areas);
                     oldness_msg = scenario_v.k - latest_msg.time_step;
                     if oldness_msg ~= 0
