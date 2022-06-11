@@ -65,25 +65,26 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
         if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
-            timeout = 0.5;      is_timeout = true;
-            read_start = tic;   read_time = toc(read_start);
-            while read_time < timeout
-                if scenario.ros_subscribers{iVeh}.LatestMessage.time_step == (scenario.k-1)
-%                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
-                    is_timeout = false;
-                    break
-                end
-                read_time = toc(read_start);
-            end
+            latest_msg_i = read_message(scenario.vehicles(iVeh).communicate, scenario.ros_subscribers{iVeh}, scenario.k-1);
 
-            if is_timeout
-                warning(['The predicted trims of vehicle ' num2str(iVeh) ' are unable to received.'...
-                    'The pevious message will be used.'])
-            end
-
-            latest_message_i = scenario.ros_subscribers{iVeh}.LatestMessage;
-            oldness_msg = scenario.k - latest_message_i.time_step;
-            iter.trim_indices(iVeh) = latest_message_i.predicted_trims(oldness_msg+1);
+%             timeout = 0.5;      is_timeout = true;
+%             read_start = tic;   read_time = toc(read_start);
+%             while read_time < timeout
+%                 if scenario.ros_subscribers{iVeh}.LatestMessage.time_step == (scenario.k-1)
+% %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
+%                     is_timeout = false;
+%                     break
+%                 end
+%                 read_time = toc(read_start);
+%             end
+% 
+%             if is_timeout
+%                 warning(['The predicted trims of vehicle ' num2str(iVeh) ' are unable to received.'...
+%                     'The pevious message will be used.'])
+%             end
+%             latest_msg_i = scenario.ros_subscribers{iVeh}.LatestMessage;
+            oldness_msg = scenario.k - latest_msg_i.time_step;
+            iter.trim_indices(iVeh) = latest_msg_i.predicted_trims(oldness_msg+1);
         else
             % if parallel computation is not used, other vehicles' trims are measured 
             iter.trim_indices = trims_measured;
@@ -122,8 +123,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
             % Get the predicted lanelets of other vehicles
             if scenario.options.isParl
                 % from received messages if parallel computation is used 
-                latest_message_i = scenario.ros_subscribers{iVeh}.LatestMessage;
-                predicted_lanelets= latest_message_i.predicted_lanelets(:)'; % make row vector
+                predicted_lanelets= latest_msg_i.predicted_lanelets(:)'; % make row vector
             end
             iter.predicted_lanelets{iVeh} = predicted_lanelets;
         
