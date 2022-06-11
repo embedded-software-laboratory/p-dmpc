@@ -38,6 +38,8 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
 
     x = [left_bound(1,:),right_bound(1,end:-1:1)];
     y = [left_bound(2,:),right_bound(2,end:-1:1)];
-    lanelet_boundary{3} = polyshape(x,y); 
+    % if x- and y-coordinates are ensured to be in the right order, set
+    % 'Simplify' to false to save computation time
+    lanelet_boundary{3} = polyshape(x,y,'Simplify',false);
     assert(lanelet_boundary{3}.NumRegions==1)
 end
