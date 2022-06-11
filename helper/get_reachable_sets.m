@@ -34,7 +34,7 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
         % translate the offline calculated local reachable sets to global coordinate
         [reachable_set_x, reachable_set_y] = ...
             translate_global(yaw0, x0, y0, local_reachable_sets{t}.Vertices(:,1)', local_reachable_sets{t}.Vertices(:,2)');
-        ploy_reachable_sets = polyshape(reachable_set_x, reachable_set_y);
+        ploy_reachable_sets = polyshape(reachable_set_x, reachable_set_y, 'Simplify', false);
 
 %         % MATLAB build-in function to rotate (around origin)
 %         local_reachable_sets_rotated = rotate(local_reachable_sets{t},rad2deg(yaw0),[0,0]);
