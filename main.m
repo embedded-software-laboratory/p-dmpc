@@ -354,11 +354,16 @@ end
 %delete(gcp('nocreate'));
 %% save results
 
-for kVeh = 1:options.amount
-    % delete varibales used for ROS 2 since some of them cannot be saved
-    result.scenario.vehicles(kVeh).communicate = [];
+% Delete varibales used for ROS 2 since some of them cannot be saved
+% Create comma-separated list
+empty_cells = cell(1,options.amount);
+
+result.scenario.ros_subscribers = [];
+[result.scenario.vehicles.communicate] = empty_cells{:};
+for i_iter = 1:length(result.iteration_structs)
+    [result.iteration_structs{i_iter}.scenario.vehicles.communicate] = empty_cells{:};
+    result.iteration_structs{i_iter}.scenario.ros_subscribers = [];
 end
-result.scenario.ros_subscribers = {};
 
 result.mpa = scenario.mpa;
 save(result.output_path,'result');
