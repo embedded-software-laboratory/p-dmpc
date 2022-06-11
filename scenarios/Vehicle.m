@@ -19,11 +19,11 @@ classdef Vehicle
         ID                  = -1;    % vehicle ID (should be positive integer)
         lanelets_index;
         points_index;
-        lanelet_boundary;                   % left and right boundaries of predicted lanelets
-        communicate;                        % instance of the class `Communication`, used for communication via ROS 2
-        predicted_lanelets
-        paddle_counter      = 2;     % initial speed profile
-        vehicle_mpa;
+        lanelet_boundary;           % left and right boundaries of predicted lanelets
+        communicate;                % instance of the class `Communication`, used for communication via ROS 2
+        predicted_lanelets          % vehicle's predicted lanelets 
+        paddle_counter      = 2;    % initial speed profile
+        vehicle_mpa;                % instance of the class `MotionPrimitiveAutomaton`
     end
     
     methods
