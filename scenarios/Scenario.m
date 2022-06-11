@@ -56,7 +56,7 @@ classdef Scenario
         max_num_CLs = 4;                % max number of computation levels to limit the total planning time in each time step (used in the parallel computation)
         pool;
         priority_list = [];             % priority list of vehicles; a smaller value for a higher priority
-        is_allow_non_convex = false     % whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
+        is_allow_non_convex = true     % whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
         strategy_consider_veh_with_lower_prio = '1';    % currently five stategies are supported to let vehicle with a higher priority consider vehicle with a lower priority
                                                         % '0': do not consider 
                                                         % '1': consider currently occupied area as static obstacle
