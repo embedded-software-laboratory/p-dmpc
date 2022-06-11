@@ -22,7 +22,7 @@ classdef Communication
 %             domain_ID = 11; % Vehicles can only communicate with vehicles in the same domain.
         end
         
-        function obj = initialize(obj, vehicle_id)
+        function obj = initialize_communication(obj, vehicle_id)
             obj.vehicle_id = vehicle_id;
             node_name = ['/node_',num2str(obj.vehicle_id)];
             obj.ros2_node = ros2node(node_name);
@@ -71,10 +71,11 @@ classdef Communication
             send(obj.publisher, obj.msg_to_be_sent);
         end
 
-        function latest_msg = read_message(sub, time_step)
+        function latest_msg = read_message(~, sub, time_step)
             % Read message from the given time step
             timeout = 0.5;      is_timeout = true;
             read_start = tic;   read_time = toc(read_start);
+            
             while read_time < timeout
                 if sub.LatestMessage.time_step == time_step
                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
@@ -83,53 +84,19 @@ classdef Communication
                 end
                 read_time = toc(read_start);
             end
+
             if is_timeout
                 warning('Unable to receive the current message. The pevious message will be used.')
             end
+
+            % return the latest message
+            latest_msg = sub.LatestMessage;
         end
 
-        function obj = get_stored_msgs(obj)
-            % get the stored messages
-            global stored_msgs_global
-            obj.stored_msgs = stored_msgs_global;
-        end
-
-%         function callback_when_receiving_message(obj,msg)
-%             % Callback function when receiving message.
-%             % Define a global variable to store message. Everytime a message is received, the publisher and the time step of the
-%             % message will be checked. It will only be stored if no message with the same publisher and time step exists. 
-%             disp(msg)
-%             global stored_messages_global
-%             
-%             if isempty(stored_messages_global)
-%                 % initialize the global variable
-%                 stored_messages_global = struct('time_step',[],'vehicle_id',[],'state_current',[],'trim_current',[],'predicted_areas',[],'reachable_sets',[],'predicted_lanelets',[],'MessageType',[]);
-%             end
-%             
-%             if msg.time_step==1 && sum([stored_messages_global.time_step]>1)>0
-%                 % initialize again if there exist messages with time step greater than
-%                 % 1 when the simulation starting (most probably the messages from previous simulation) 
-%                 stored_messages_global = struct('time_step',[],'vehicle_id',[],'state_current',[],'trim_current',[],'predicted_areas',[],'reachable_sets',[],'predicted_lanelets',[],'MessageType',[]);
-%             end
-% 
-%             % check the publisher (vehicle ID) and the time step to avoid store the same message 
-%             find_time_step_idx = find([stored_messages_global.time_step]==msg.time_step);
-%             find_veh_ID_idx = find([stored_messages_global.vehicle_id]==msg.vehicle_id);
-%             if ~isempty(intersect(find_time_step_idx,find_veh_ID_idx))
-%                 % no message with the same publisher and time step exists -> store the new message
-%                 if isempty([stored_messages_global.time_step])
-%                     % if empty
-%                     stored_messages_global(1) = msg;
-%                 else
-%                     % else append a new row
-%                     stored_messages_global(end+1) = msg;
-%                 end
-%             end
-% 
-%             % delete messages older than a certain time steps compared to the time step of newly received message
-%             threshold_older = 5;
-%             find_old_msgs = [stored_messages_global.time_step]<=msg.time_step-threshold_older;
-%             stored_messages_global(find_old_msgs) = [];
+%         function obj = get_stored_msgs(obj)
+%             % get the stored messages
+%             global stored_msgs_global
+%             obj.stored_msgs = stored_msgs_global;
 %         end
 
     end
