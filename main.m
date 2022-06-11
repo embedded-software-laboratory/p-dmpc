@@ -49,7 +49,6 @@ else
     options.isPB = true;
     options.scenario = 'Commonroad';
     options.priority = 'topo_priority';
-    options.isParl = false;
     options.mixedTrafficScenarioLanelets = false;
 
     % former UI for CPM Lab
@@ -73,6 +72,12 @@ else
             manualVehicle_id2 = str2num(options.manualVehicle_id2);
             options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
         end
+    end
+
+    if options.collisionAvoidanceMode == 1
+        options.isParl = false;
+    elseif options.collisionAvoidanceMode == 2 || options.collisionAvoidanceMode == 3
+        options.isParl = true;
     end
 end
     

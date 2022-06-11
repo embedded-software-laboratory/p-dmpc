@@ -64,6 +64,34 @@
             end           
         end
     end
+
+    if scenario.mixedTrafficCollisionAvoidanceMode == 1
+        for i = 1:nVeh
+            if scenario.vehicle_ids(i) == scenario.manual_vehicle_id
+                adjacency(i,:) = 0;
+                semi_adjacency(i,:) = 0;
+            elseif scenario.vehicle_ids(i) == scenario.second_manual_vehicle_id
+                first_manual_vehicle_iteration_index = 0;
+                value = 0;
+                semi_value = 0;
+
+                for j = 1:nVeh
+                    if scenario.vehicle_ids(j) == scenario.manual_vehicle_id
+                        first_manual_vehicle_iteration_index = j;
+                        value = adjacency(i,j);
+                        semi_value = semi_adjacency(i,j);
+
+                    end
+                end
+
+                adjacency(i,:) = 0;
+                adjacency(i,first_manual_vehicle_iteration_index) = value;
+                semi_adjacency(i,:) = 0;
+                semi_adjacency(i,first_manual_vehicle_iteration_index) = semi_value;
+            end
+        end
+    end
+
     k = scenario.k;
     scenario.adjacency(:,:,k) = adjacency;
     scenario.semi_adjacency(:,:,k) = semi_adjacency;
