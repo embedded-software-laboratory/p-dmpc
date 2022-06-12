@@ -103,7 +103,7 @@ end
                 adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
                 
                 % only two strategies are supported if parallel computation is not used
-                assert(strcmp(scenario_v.strategy_consider_veh_with_lower_prio,'1')==true || strcmp(scenario_v.strategy_consider_veh_with_lower_prio,'4')==true)
+                assert(strcmp(scenario_v.strategy_consider_veh_without_ROW,'1')==true || strcmp(scenario_v.strategy_consider_veh_without_ROW,'4')==true)
                 scenario_v = consideration_of_followers_by_leader(scenario_v, iter, adjacent_vehicle_lower_priority);
 %                 scenario_v = vehicles_as_static_obstacles(scenario_v,iter,adjacent_vehicle_lower_priority);
             end
