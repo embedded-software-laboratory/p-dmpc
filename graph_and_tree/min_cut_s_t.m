@@ -1,4 +1,4 @@
-function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
+function [belonging_vector, cost, cutting_info] = min_cut_s_t(M, varargin)
 % MIN_CUT_S_T Cut the given edge-weighted graph into two
 % parts while ensuring the sum of the weights of the edges being cut is
 % minimum.
@@ -27,7 +27,7 @@ function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
 %   cost: the sum of the edges of weights being cut. Objective value to be
 %   minimized.
 % 
-%   cutting_infos: informations of all minimum cut phases.
+%   cutting_info: informations of all minimum cut phases.
 % 
 % COMPLEXITY:
 %   O(|E|+|V|*log|V|)
@@ -79,7 +79,7 @@ function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
     belonging_vector = (1:nVertices)';
 
     % record the cutting information
-    cutting_infos = struct('belonging_vector',[],'num_valid_cut_paths',[],'cost',[]);
+    cutting_info = struct('belonging_vector',[],'num_valid_cut_paths',[],'cost',[]);
 
     vertex_indices = 1:nVertices;
     % reduced vertex indices after merging some vertices
@@ -115,19 +115,19 @@ function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
         vertices_in_point_t = find(belonging_vector==vertex_t)';
 
         % store cost
-        cutting_infos(count).cost = cost_tmp;
+        cutting_info(count).cost = cost_tmp;
         % calculate the number of valid cut paths, which equals to the
         % number of cut paths that must be cut (defined by `must_not_in_same_subset`) 
         check_if_in_part_t = cellfun(@(c) sum(ismember(c,vertices_in_point_t))~=0, must_not_in_same_subset, 'UniformOutput', false);
         check_if_fully_in_part_t = cellfun(@(c) sum(ismember(c,vertices_in_point_t))==length(c), must_not_in_same_subset, 'UniformOutput', false);
          
         num_valid_cut_paths = nnz(cell2mat(check_if_in_part_t)) - nnz(cell2mat(check_if_fully_in_part_t));
-        cutting_infos(count).num_valid_cut_paths = num_valid_cut_paths;
+        cutting_info(count).num_valid_cut_paths = num_valid_cut_paths;
 
         belong_vector_tmp = belonging_vector;
         belong_vector_tmp(belonging_vector==belonging_vector(vertex_t)) = 0; % zeros for one part
         belong_vector_tmp(belong_vector_tmp>0) = 1; % ones for another part
-        cutting_infos(count).belonging_vector = belong_vector_tmp;
+        cutting_info(count).belonging_vector = belong_vector_tmp;
         
         % merge vertex_t into vertex_s
         [M_reduced, vertex_indices_reduced] = merge_two_vertices(M_reduced, vertex_s_local, vertex_t_local, vertex_indices_reduced);
@@ -144,21 +144,21 @@ function [belonging_vector, cost, cutting_infos] = min_cut_s_t(M, varargin)
     % If no one satisfy all the constraints, iteratively reduce the number of
     % constraints by one and find again.
     while isempty(valid_minimum_cut_phases_idx) && n_must_not_in_same_subset>=1
-        valid_minimum_cut_phases_idx = find([cutting_infos.num_valid_cut_paths] >= n_must_not_in_same_subset);
+        valid_minimum_cut_phases_idx = find([cutting_info.num_valid_cut_paths] >= n_must_not_in_same_subset);
         n_must_not_in_same_subset = n_must_not_in_same_subset - 1;
     end
 
     if isempty(valid_minimum_cut_phases_idx)
         % if no minimum cut phase has a valid cut path, choose the
         % one with the lowest cost among all of the minimum cut phases
-        valid_minimum_cut_phases_idx = 1:length(cutting_infos);
+        valid_minimum_cut_phases_idx = 1:length(cutting_info);
     end
 
     % find all minimum cut pahses that has at least one valid cut path
     % and choose the one with the lowest cost among them
-    [cost, lowest_cost_idx_local] = min([cutting_infos(valid_minimum_cut_phases_idx).cost]);
+    [cost, lowest_cost_idx_local] = min([cutting_info(valid_minimum_cut_phases_idx).cost]);
     lowest_cost_idx = valid_minimum_cut_phases_idx(lowest_cost_idx_local);
-    belonging_vector = cutting_infos(lowest_cost_idx).belonging_vector;
+    belonging_vector = cutting_info(lowest_cost_idx).belonging_vector;
 end
 
 

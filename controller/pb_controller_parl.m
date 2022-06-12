@@ -15,8 +15,8 @@ switch scenario.priority_option
     case 'right_of_way_priority'
         obj = right_of_way_priority(scenario, iter);
         right_of_way = true;
-        [CL_based_hierarchy, parl_groups_infos, edge_to_break, coupling_weights,...
-            belonging_vector, veh_at_intersection, priority_list, coupling_infos, time_enter_intersection] = priority_parl(obj);
+        [CL_based_hierarchy, parl_groups_info, edge_to_break, coupling_weights,...
+            belonging_vector, veh_at_intersection, priority_list, coupling_info, time_enter_intersection] = priority_parl(obj);
     case 'constant_priority'
         obj = constant_priority(scenario);
         groups = obj.priority(); 
@@ -44,7 +44,7 @@ end
     scenario.coupling_weights = coupling_weights;
     directed_adjacency = (scenario.coupling_weights ~= 0);
     scenario.directed_coupling = directed_adjacency;
-    scenario.coupling_infos = coupling_infos;
+    scenario.coupling_info = coupling_info;
     scenario.belonging_vector = belonging_vector;
     scenario.priority_list = priority_list;
     scenario.time_enter_intersection = time_enter_intersection;
@@ -82,8 +82,8 @@ end
             scenario_v = filter_scenario(scenario, filter_self);
             iter_v = filter_iter(iter, filter_self);
 
-            grp_idx = arrayfun(@(array) ismember(vehicle_i,array.vertices), parl_groups_infos);
-            all_vehs_same_grp = parl_groups_infos(grp_idx).vertices; % all vehicles in the same group
+            grp_idx = arrayfun(@(array) ismember(vehicle_i,array.vertices), parl_groups_info);
+            all_vehs_same_grp = parl_groups_info(grp_idx).vertices; % all vehicles in the same group
 
             all_coupling_vehs_HP = find(scenario_v.coupling_weights(:,vehicle_i)~=0)'; % all coupling vehicles with higher priorities
             all_coupling_vehs_LP = find(scenario_v.coupling_weights(vehicle_i,:)~=0); % all coupling vehicles with lower priorities
@@ -118,22 +118,26 @@ end
                 end
             end
 
-            if ~scenario_v.is_allow_enter_crossing_area && ismember(vehicle_i,veh_at_intersection)
+            % Set crossing areas as static obstacles if vehicle without the right-of-way is not allowed to enter those area
+%             if ~scenario_v.is_allow_enter_crossing_area && ismember(vehicle_i,veh_at_intersection)
                 % if follower is not allowed to enter the crossing areas before their leaders leave those areas at the intersection 
-                find_leaders = find([scenario_v.coupling_infos.idFollower]==vehicle_i);
+                find_self = [coupling_info.veh_without_ROW]==vehicle_i;
+                vehs_with_ROW = [coupling_info(find_self).veh_with_ROW];
                 % subtract the crossing area from lower priority vehicle's lanelet boundary if it is not allowed to enter this area 
-                for i_coupling = find_leaders
-                    id_leader = scenario_v.coupling_infos(i_coupling).idLeader;
-                    if ismember(id_leader,veh_at_intersection) && strcmp(scenario_v.coupling_infos(i_coupling).type, CollisionType.type_2)
-                        % both vehicles are at the intersection and they do not drive successively (side-impact collision) 
-                        lanelet_crossing_area = intersect(iter_v.predicted_lanelet_boundary{3}, iter.predicted_lanelet_boundary{id_leader,3});
+                for veh_with_ROW = vehs_with_ROW
+%                     is_set_cross_area_as_obstacle
+                    if coupling_weights(veh_with_ROW,vehicle_i)==0
+%                     if ismember(veh_with_ROW, veh_at_intersection) && strcmp(coupling_info(i_coupling).collision_type, CollisionType.type_2)...
+%                             && strcmp(coupling_info(i_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
+                        % both vehicles drive at intersecting lanelets and they do not drive successively (side-impact collision)  
+                        lanelet_crossing_area = intersect(iter_v.predicted_lanelet_boundary{3}, iter.predicted_lanelet_boundary{veh_with_ROW,3});
                         if lanelet_crossing_area.NumRegions == 1
                             scenario_v.lanelet_crossing_areas{end+1} = [lanelet_crossing_area.Vertices(:,1)';lanelet_crossing_area.Vertices(:,2)'];
-                        elseif lanelet_crossing_area.NumRegions == 2
+                        elseif lanelet_crossing_area.NumRegions > 1
                             warning(['There are unexpectedly ' num2str(lanelet_crossing_area.NumRegions) ' regions.'])
                         end
                         % subtract the crossing area from lower priority vehicle's lanelet boundary 
-                        iter_v.predicted_lanelet_boundary{3} = subtract(iter_v.predicted_lanelet_boundary{3}, iter.predicted_lanelet_boundary{id_leader,3});
+                        iter_v.predicted_lanelet_boundary{3} = subtract(iter_v.predicted_lanelet_boundary{3}, iter.predicted_lanelet_boundary{veh_with_ROW,3});
 
                         num_regions = iter_v.predicted_lanelet_boundary{3}.NumRegions;
                         if num_regions > 1
@@ -143,23 +147,23 @@ end
                         end
                     end
                 end
-            end
+%             end
 
             % set lanelet boundary as static obstacle
 %             scenario_v.obstacles{end+1} = [iter_v.predicted_lanelet_boundary{3}.Vertices(:,1)'; iter_v.predicted_lanelet_boundary{3}.Vertices(:,2)'];
 
-            % coupling vehicles with lower priorities
-            scenario_v = consideration_of_followers_by_leader(scenario_v, iter, all_coupling_vehs_LP);
+            % consider coupled vehicles without the right-of-way
+            scenario_v = consider_veh_without_ROW(scenario_v, iter, all_coupling_vehs_LP);
 
             subcontroller_timer = tic;
 
-%             if scenario.k>=2
-% %                 if scenario_v.vehicles.ID==16
-%                     disp('debug')
+            if scenario.k>=60
+                if scenario_v.vehicles.ID==2
+                    disp('')
 %                     plot_obstacles(scenario_v)
 %                     pause(0.5)
-% %                 end
-%             end
+                end
+            end
 
             % execute sub controller for 1-veh scenario
             [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
@@ -205,19 +209,18 @@ end
 
             % send message
             send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas);
-%             pause(0.1)
         end
 
     end
 
-    n_grps = length(parl_groups_infos); % number of parallel groups
+    n_grps = length(parl_groups_info); % number of parallel groups
 
-    % % calculate the total run time: only one vehicle in each computation
+    % calculate the total run time: only one vehicle in each computation
     % level will be counted, this is the one with the maximum run time for each parallel group 
     run_time_total_all_grps = zeros(1,n_grps); % subcontroller time of each group
 
     for grp_i = 1:n_grps
-        vehs_in_grp_i = parl_groups_infos(grp_i).vertices;
+        vehs_in_grp_i = parl_groups_info(grp_i).vertices;
         for level_j = 1:length(CL_based_hierarchy)
             vehs_in_level_j = CL_based_hierarchy(level_j).members;
             find_in_same_level = ismember(vehs_in_grp_i,vehs_in_level_j);
