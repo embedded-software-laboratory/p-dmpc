@@ -7,7 +7,7 @@ classdef LaneletRelationshipType
         type_3 = 'merging'; % merging lanelets
         type_4 = 'forking'; % forking lanelets
         type_5 = 'intersecting'; % intersecting lanelets
-        type_6 = 'same lanelet'; % the same lanelet
+        type_6 = 'same'; % the same lanelet
         type_7 = 'adjacent left/right (opposite)'; % parallel lanelets in the opposite direction in the opposite direction
     end
 end
