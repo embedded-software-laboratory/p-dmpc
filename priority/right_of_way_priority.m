@@ -18,7 +18,7 @@ classdef  right_of_way_priority < interface_priority
 
         %% priority
         function [veh_at_intersection,groups,edge_to_break,directed_adjacency] = priority(obj)
-
+            % assign priorities to vehicles
             nVeh = length(obj.scenario.vehicles);
             Hp = size(obj.iter.referenceTrajectoryPoints,2);
             intersection_center = [2.25, 2];
@@ -179,24 +179,52 @@ classdef  right_of_way_priority < interface_priority
         end
 
         %% priority_parl
-        function [CL_based_hierarchy, parl_groups_infos, edge_to_invert, coupling_weights,...
-                belonging_vector, veh_at_intersection, priority_list, coupling_infos, time_enter_intersection] = priority_parl(obj)
-            
+        function [CL_based_hierarchy, parl_groups_info, edge_to_invert, coupling_weights,...
+                belonging_vector, veh_at_intersection, priority_list, coupling_info, time_enter_intersection] = priority_parl(obj)
+            % assign priorities to vehicles when parallel computation is used
+            scenario = obj.scenario;
+
             % update the coupling information
-%             [veh_at_intersection, coupling_weights, coupling_infos] = get_coupling_infos(obj.scenario, obj.iter);
-            [veh_at_intersection, coupling_weights, coupling_infos, time_enter_intersection] = get_coupling_infos_version2(obj.scenario, obj.iter);
-%             [veh_at_intersection, coupling_weights, coupling_infos, time_enter_intersection] = get_coupling_infos_version3(obj.scenario, obj.iter);
+%             [veh_at_intersection, coupling_weights, coupling_info] = get_coupling_info(scenario, iter);
+            [veh_at_intersection, coupling_weights, coupling_info, time_enter_intersection] = get_coupling_info_version2(scenario, obj.iter);
+%             [veh_at_intersection, coupling_weights, coupling_info, time_enter_intersection] = get_coupling_info_version3(scenario, iter);
 
             coupling_weights_origin = coupling_weights; % make a copy
 
-            if ~obj.scenario.is_allow_enter_crossing_area
-                % Coupling vehicles at the intersection are not considered as coupled if vehicles with lower priorities are not allowed to enter the crossing area 
-                for i = 1:length([coupling_infos.idLeader])
-                    id_leader = coupling_infos(i).idLeader;
-                    id_follower = coupling_infos(i).idFollower;
-                    if ismember(id_leader,veh_at_intersection) && ismember(id_follower,veh_at_intersection) && strcmp(coupling_infos(i).type, CollisionType.type_2)
-                        coupling_weights(id_leader,id_follower) = 0;
-                    end
+            % Strategy to let vehicle without the right-of-way enter the crossing area
+            % Delete coupling edge if not allowed to enter the crossing area because no collision is possible anymore
+            for i = 1:length([coupling_info.veh_with_ROW])
+                veh_with_ROW = coupling_info(i).veh_with_ROW;
+                veh_without_ROW = coupling_info(i).veh_without_ROW;
+                is_both_at_intersection = ismember(veh_with_ROW,veh_at_intersection) && ismember(veh_without_ROW,veh_at_intersection);
+                is_side_impact_collision = strcmp(coupling_info(i).collision_type, CollisionType.type_2);
+                is_intersecting_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_5);
+                is_merging_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_3);
+                if is_intersecting_lanelets || is_merging_lanelets
+                    % only side-impact collision is possible if vehicles are coupled at intersecting lanelets or merging lanelets 
+                    assert(is_side_impact_collision)
+                end
+                % check if coupling edge should be deleted
+                switch scenario.strategy_enter_crossing_area
+                    case '0'
+                        % no constraint on entering the crossing area
+                        is_delete_coupling = false;
+                    case '1'
+                        % not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
+                        is_delete_coupling = is_intersecting_lanelets && is_both_at_intersection;
+                    case '2'
+                        % not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
+                        is_delete_coupling = (is_intersecting_lanelets || is_merging_lanelets) && is_both_at_intersection;
+                    case '3'
+                        % not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
+                        is_delete_coupling = is_intersecting_lanelets || is_merging_lanelets;
+                    otherwise
+                        is_delete_coupling = false;
+                        warning("Please specify one of the following strategies to let vehicle enter crossing area: '0', '1', '2', '3'.")
+                end
+
+                if is_delete_coupling
+                    coupling_weights(veh_with_ROW,veh_without_ROW) = 0;
                 end
             end
 
@@ -208,9 +236,7 @@ classdef  right_of_way_priority < interface_priority
             %check if there is any cycles in the directed graph
             [~, edges] = allcycles(Graph);
 
-            % invert the direction of the edge with lowest weight
-            % until no circlt exists
-            
+            % break the coupling edge with the lowest weight until no circle exists
             while ~isempty(edges)
                 % find the edge with lowest weight
                 edges_all = unique([edges{:}],'stable');
@@ -254,15 +280,12 @@ classdef  right_of_way_priority < interface_priority
                     coupling_weights(vertex_end,vertex_start) = coupling_weights_origin(vertex_start,vertex_end);
 
                     % swap leader and follower
-                    find_vertex_start = find([coupling_infos.idLeader]==vertex_start);
-                    find_vertex_end = find([coupling_infos.idFollower]==vertex_end);
+                    find_vertex_start = find([coupling_info.veh_with_ROW]==vertex_start);
+                    find_vertex_end = find([coupling_info.veh_without_ROW]==vertex_end);
                     coupling_idx = intersect(find_vertex_start,find_vertex_end);
-                    coupling_infos(coupling_idx).idLeader = vertex_end;
-                    coupling_infos(coupling_idx).idFollower = vertex_start;
-                    [coupling_infos(coupling_idx).idLeader,coupling_infos(coupling_idx).idFollower] = swap(coupling_infos(coupling_idx).idLeader,coupling_infos(coupling_idx).idFollower);
-                    [coupling_infos(coupling_idx).speedLeader,coupling_infos(coupling_idx).speedFollower] = swap(coupling_infos(coupling_idx).speedLeader,coupling_infos(coupling_idx).speedFollower);
-                    [coupling_infos(coupling_idx).positionLeader,coupling_infos(coupling_idx).positionFollower] = swap(coupling_infos(coupling_idx).positionLeader,coupling_infos(coupling_idx).positionFollower);
-
+                    coupling_info(coupling_idx).veh_with_ROW = vertex_end;
+                    coupling_info(coupling_idx).veh_without_ROW = vertex_start;
+                    [coupling_info(coupling_idx).veh_with_ROW, coupling_info(coupling_idx).veh_without_ROW] = swap(coupling_info(coupling_idx).veh_with_ROW, coupling_info(coupling_idx).veh_without_ROW);
                     disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is inverted.'])
                 else
                     % the broken edge is recovered and the direction is maintained
@@ -276,10 +299,12 @@ classdef  right_of_way_priority < interface_priority
 
             
             % form parallel groups
-            [CL_based_hierarchy, parl_groups_infos, belonging_vector] = form_parallel_groups(coupling_weights, obj.scenario.max_num_CLs, 'method', 's-t-cut');
+            [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights, scenario.max_num_CLs, 'method', 's-t-cut');
 
-            % assign prrority
-            priority_list = zeros(1,obj.scenario.nVeh);
+            % Assign prrority according to computation level
+            % Vehicles with higher priorities plan trajectory before vehicles
+            % with lower priorities
+            priority_list = zeros(1,scenario.nVeh);
             prio = 1;
             for level_i = 1:length(CL_based_hierarchy)
                 vehs_in_level_i = CL_based_hierarchy(level_i).members; % vehicles in the selected computation level
@@ -290,7 +315,7 @@ classdef  right_of_way_priority < interface_priority
             end
 
             % visualize the coupling between vehicles
-%             plot_coupling_lines(coupling_weights, obj.iter.x0, belonging_vector, 'ShowWeights', true)
+%             plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
         end
 
     end
