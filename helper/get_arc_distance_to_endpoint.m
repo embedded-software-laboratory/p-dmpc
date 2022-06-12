@@ -1,4 +1,4 @@
-function [arc_distance, arc_length, x_projected, y_projected, projection_distance] = get_arc_distance_to_endpoint(point_x, point_y, curve_x, curve_y)
+function [arc_distance, arc_length, x_projected, y_projected, projection_distance, curve_new] = get_arc_distance_to_endpoint(point_x, point_y, curve_x, curve_y)
 % GET_ARC_DISTANCE_TO_ENDPOINT This function calculate the distance from
 % the given point to the endpoint of the given curve. This is done by
 % firstly projecting the given point to the curve and calculating the arc
@@ -24,8 +24,8 @@ function [arc_distance, arc_length, x_projected, y_projected, projection_distanc
 %   projection_distance: distance from the point to be projected and the
 %   prejected point on the curve 
 % 
-%   curve_new: a new curve consisting of the prejected point as the starting
-%   point and the points after the prejected points on the original curve
+%   curve_new: a new curve with the prejected point as the starting
+%   point and all points after the prejected points on the original curve
 %   
 %   arc_length: arc length from the projected point on the curve to the
 %   endpoint of the curve, which is also the arc length of the new curve 
@@ -39,8 +39,6 @@ function [arc_distance, arc_length, x_projected, y_projected, projection_distanc
 
     squared_distances = sum([curve_x-point_x,curve_y-point_y].^2,2); % ignore sqrt to save computation time
     [~,idx_closest] = min(squared_distances);
-
-    is_end_point_the_closest = false; % whether the endpoint is closest to vehicle
     
     % find which adjacent point in the curve is closer to the given point
     if idx_closest==1
@@ -52,7 +50,6 @@ function [arc_distance, arc_length, x_projected, y_projected, projection_distanc
         % delete the points before the second adjacent point since they are irrelevant to calculate the needed arc length 
         curve_shortened = curve(idx_adjacent_point:end,:);
     elseif idx_closest==n_points
-        is_end_point_the_closest = true;
         idx_adjacent_point = n_points - 1;
         line_x_first = curve_x(idx_adjacent_point);
         line_y_first = curve_y(idx_adjacent_point);
