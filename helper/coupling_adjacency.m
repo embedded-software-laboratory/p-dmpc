@@ -65,6 +65,7 @@
         end
     end
 
+    %{
     if scenario.mixedTrafficCollisionAvoidanceMode == 1
         for i = 1:nVeh
             if scenario.vehicle_ids(i) == scenario.manual_vehicle_id
@@ -91,6 +92,7 @@
             end
         end
     end
+    %}
 
     k = scenario.k;
     scenario.adjacency(:,:,k) = adjacency;

@@ -30,7 +30,13 @@ switch scenario.priority_option
         obj = FCA_priority(scenario,iter);
         [veh_at_intersection, groups] = obj.priority();
         right_of_way = false;
-        edge_to_break = [];   
+        edge_to_break = []; 
+    case 'mixed_traffic_priority'
+        obj = mixed_traffic_priority(scenario);
+        groups = obj.priority(); 
+        right_of_way = false;
+        veh_at_intersection = [];
+        edge_to_break = [];
 end
 
     

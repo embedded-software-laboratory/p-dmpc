@@ -101,6 +101,7 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
     %random_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,1,3,5,7];
     %random_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,1,4,6,8];
     %random_path.lanelets_index = [8,60,57,55,67,65,71,19,14,16,22,5,9,11,18,14,15,3,6,8,59];
+    random_path.lanelets_index = [2,4,6,8,59,57,56,54,80,82,84,86,33,31,48,42,39,50,20,63,61,57];
 
     for i = 1:length(random_path.lanelets_index)
         disp(sprintf('random entries: i: %d, entry: %d', i,random_path.lanelets_index(i)));
@@ -158,6 +159,43 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
 
                 distance = sqrt((randomPath_x(middleIndex) - new_lane_start_x).^2 + (randomPath_y(middleIndex) - new_lane_start_y).^2);
 
+                %{
+                for j = 1:remainingIndices
+                    if randomPath_x(middleIndex) > new_lane_start_x
+                        if randomPath_x(middleIndex+j) > new_lane_start_x
+                            point_x = randomPath_x(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+j) - new_lane_start_x)/distance);
+                        else
+                            point_x = randomPath_x(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+(j-1)) - new_lane_start_x)/distance);
+                            % index speichern, punkt rausnehmen, nur für fahrzeug boundary punkt aus lane nehmen
+                        end
+                    else
+                        if randomPath_x(middleIndex+j) < new_lane_start_x
+                            point_x = randomPath_x(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+j))/distance);
+                        else
+                            point_x = randomPath_x(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+(j-1)))/distance);
+                        end
+                    end
+
+                    if randomPath_y(middleIndex) > new_lane_start_y
+                        if randomPath_y(middleIndex+j) > new_lane_start_y
+                            point_y = randomPath_y(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+j) - new_lane_start_y)/distance);
+                        else
+                            point_y = randomPath_y(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+(j-1)) - new_lane_start_y)/distance);
+                        end
+                    else
+                        if randomPath_y(middleIndex+j) < new_lane_start_y
+                            point_y = randomPath_y(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+j))/distance);
+                        else
+                            point_y = randomPath_y(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+(j-1)))/distance);
+                        end
+                    end
+
+                    randomPath_x(middleIndex+j) = point_x;
+                    randomPath_y(middleIndex+j) = point_y;
+                end
+                %}
+
+                
                 for j = 1:remainingIndices
                     if randomPath_x(middleIndex+j) > new_lane_start_x
                         point_x = randomPath_x(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+j) - new_lane_start_x)/distance);
@@ -174,6 +212,7 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
                     randomPath_x(middleIndex+j) = point_x;
                     randomPath_y(middleIndex+j) = point_y;
                 end
+                
             end
         end
 

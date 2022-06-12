@@ -9,6 +9,7 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
     for i = 1:nobs
         if intersect_sat(shapes{index},obstacles{i}) 
             collision = true;
+            %disp(sprintf("vehicle id responsible for collision with obstacles: %d", scenario.vehicles.ID));
 %             disp('there is collision with obstacles')
             return;
         end
@@ -18,6 +19,7 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
         for i = 1:size(scenario.dynamic_obstacle_area,1)
             if intersect_sat(shapes{index}, scenario.dynamic_obstacle_area{i,iStep}) 
                 collision = true;
+                %disp(sprintf("vehicle id responsible for collision with dynamic obstacles: %d", scenario.vehicles.ID));
 %                 disp('there is collision with dynamic obstacles')
                 return;
             end
@@ -27,6 +29,7 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
     for i = (index - 1) : -1 : 1
         % check if polygons intersect
         if intersect_sat(shapes{i},shapes{index})
+            %disp(sprintf("vehicle id responsible for collision with vehicles: %d", scenario.vehicles.ID));
             collision = true;
 %             disp('there is collision between two vehicles')
             return;
@@ -38,6 +41,7 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
         for i = lane_idx
             %if intersect_lanelets(shapes{index},scenario.lanelet_boundary{i})
             if intersect_lanelets(shapes{index}, scenario.lanelets{i})
+                %disp(sprintf("vehicle id responsible for collision with lanelets: %d", scenario.vehicles.ID));
                 collision = true;
                 return;
             end
@@ -55,7 +59,7 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
         %end
 
         if intersect_lanelet_boundary(shapes_without_offset{index},scenario.vehicles(1,index).lanelet_boundary) 
-            %disp(sprintf("vehicle id responsible for collision: %d", scenario.vehicles.vehicle_id));
+            %disp(sprintf("vehicle id responsible for collision with boundaries: %d", scenario.vehicles.ID));
             collision = true;
             return;
         end

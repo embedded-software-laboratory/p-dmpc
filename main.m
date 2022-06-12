@@ -48,7 +48,6 @@ else
     options.amount = numel(vehicle_ids);
     options.isPB = true;
     options.scenario = 'Commonroad';
-    options.priority = 'topo_priority';
     options.mixedTrafficScenarioLanelets = false;
 
     % former UI for CPM Lab
@@ -76,8 +75,14 @@ else
 
     if options.collisionAvoidanceMode == 1
         options.isParl = false;
+        %options.priority = 'mixed_traffic_priority';
+        options.priority = 'topo_priority';
     elseif options.collisionAvoidanceMode == 2 || options.collisionAvoidanceMode == 3
         options.isParl = true;
+        options.priority = 'topo_priority';
+    else
+        options.isParl = false;
+        options.priority = 'topo_priority';
     end
 end
     
