@@ -220,8 +220,8 @@ function scenario = get_coupling_info(scenario, iter)
                             end
 
                             % calculate the arc length from the vehicle's current position to the collision point
-                            [arc_distance_to_collision_i, arc_length_i, ~, ~, ~] = get_arc_distance_to_endpoint(position_i(1), position_i(2), curve_x_i, curve_y_i);
-                            [arc_distance_to_collision_j, arc_length_j, ~, ~, ~] = get_arc_distance_to_endpoint(position_j(1), position_j(2), curve_x_j, curve_y_j);
+                            [arc_distance_to_collision_i, arc_length_i, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_i(1), position_i(2), curve_x_i, curve_y_i);
+                            [arc_distance_to_collision_j, arc_length_j, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_j(1), position_j(2), curve_x_j, curve_y_j);
                             
                             if arc_length_i == 0 || arc_length_j == 0
                                 % one vehile has already passed the point of intersection; thus, collision is no longer possible
