@@ -272,7 +272,10 @@ while (~got_stop)
         
         % The controller computes plans
         controller_timer = tic; 
-            [u, y_pred, info, scenario] = scenario.controller(scenario_tmp, iter);
+        %% controller %%
+        [u, y_pred, info, scenario] = scenario.controller(scenario_tmp, iter);
+        
+        %% save result
         result.controller_runtime(k) = toc(controller_timer);
         result.iteration_structs{k} = iter;
         
@@ -302,47 +305,47 @@ while (~got_stop)
     % catch case where graph search could not find a new node
      catch ME
         switch ME.identifier
-        case 'MATLAB:graph_search:tree_exhausted'
-            warning([ME.message, ', ME, fallback to last priority.............']);
-             
-            fallback = fallback + 1;
-            fallback_update = fallback_update + 1;
-            disp(['fallback: ', num2str(fallback)])
-
-            % fallback to last plan
-            controller_timer = tic;
-            [u, y_pred, info] = pb_controller_fallback(scenario, iter, u, y_pred, info, options);
-            result.controller_runtime(k) = toc(controller_timer);
-            
-            % save controller outputs in result struct
-            result.scenario = scenario;
-            result.iteration_structs{k} = iter;
-            result.trajectory_predictions(:,k) = y_pred;
-            result.controller_outputs{k} = u;
-            result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
-            result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
-            result.n_expanded(k) = info.n_expanded;
-            result.priority(:,k) = info.priority_list;
-            result.computation_levels(k) = info.computation_levels;
-            result.edges_to_break{k} = info.edge_to_break;
-            result.step_time(k) = toc(result.step_timer);
-            result.fallback = fallback;
-            if options.isParl
-                result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group
-            end
-            % Apply control action
-            % -------------------------------------------------------------------------
-            exp.apply(u, y_pred, info, result, k, scenario); 
-            
-            % if fallback to last plan Hp times continuously, the vehicle
-            % will stop at the current position, terminate the simulation
-            if fallback_update == scenario.Hp
-                got_stop = true;
-                disp('Already fallback Hp times, terminate the simulation')
-            end
-            
-        otherwise
-            rethrow(ME)
+            case 'MATLAB:graph_search:tree_exhausted'
+                warning([ME.message, ', ME, fallback to last priority.............']);
+                 
+                fallback = fallback + 1;
+                fallback_update = fallback_update + 1;
+                disp(['fallback: ', num2str(fallback)])
+    
+                % fallback to last plan
+                controller_timer = tic;
+                [u, y_pred, info] = pb_controller_fallback(scenario, iter, u, y_pred, info, options);
+                result.controller_runtime(k) = toc(controller_timer);
+                
+                % save controller outputs in result struct
+                result.scenario = scenario;
+                result.iteration_structs{k} = iter;
+                result.trajectory_predictions(:,k) = y_pred;
+                result.controller_outputs{k} = u;
+                result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
+                result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
+                result.n_expanded(k) = info.n_expanded;
+                result.priority(:,k) = info.priority_list;
+                result.computation_levels(k) = info.computation_levels;
+                result.edges_to_break{k} = info.edge_to_break;
+                result.step_time(k) = toc(result.step_timer);
+                result.fallback = fallback;
+                if options.isParl
+                    result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group
+                end
+                % Apply control action
+                % -------------------------------------------------------------------------
+                exp.apply(u, y_pred, info, result, k, scenario); 
+                
+                % if fallback to last plan Hp times continuously, the vehicle
+                % will stop at the current position, terminate the simulation
+                if fallback_update == scenario.Hp
+                    got_stop = true;
+                    disp('Already fallback Hp times, terminate the simulation')
+                end
+                
+            otherwise
+                rethrow(ME)
         end
     end
     
