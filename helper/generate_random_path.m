@@ -1,10 +1,12 @@
-function [random_path, scenario] = generate_random_path(scenario, vehid, n, startPosition)
+function [random_path, scenario, lane_change_indices, lane_change_lanes] = generate_random_path(scenario, vehid, n, startPosition)
     % GENERATE_RANDOM_PATH    returns a ref_path struct
     % random_path.lanelets_index: lanelet index of the reference path
     % random_path.path: reference path including x and y information
     % random_path.points_index: count the max index of reference points for each lanelets
 
     random_path = struct;
+    lane_change_indices = zeros(10,4);
+    lane_change_lanes = zeros(1,12);
     
     disp(sprintf('Id: %d', vehid));
    
@@ -101,7 +103,8 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
     %random_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,1,3,5,7];
     %random_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,1,4,6,8];
     %random_path.lanelets_index = [8,60,57,55,67,65,71,19,14,16,22,5,9,11,18,14,15,3,6,8,59];
-    random_path.lanelets_index = [2,4,6,8,59,57,56,54,80,82,84,86,33,31,48,42,39,50,20,63,61,57];
+    %random_path.lanelets_index = [2,4,6,8,59,57,56,54,80,82,84,86,33,31,48,42,39,50,20,63,61,57,];
+    %random_path.lanelets_index = [2,4,6,8,57,54,80,82,84,86,31,48,42,50,20,63,61,57];
 
     for i = 1:length(random_path.lanelets_index)
         disp(sprintf('random entries: i: %d, entry: %d', i,random_path.lanelets_index(i)));
@@ -143,13 +146,21 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
         end
     end
 
+    lane_change_lanes = laneChangeLanesIndices;
+    delete_index = 1;
+
     % interpolate points for smooth lane changes
     for nlanelets = 1:length(random_path.lanelets_index)
         % choose the center line of the lanelet as reference path
         randomPath_x = lanelets{ random_path.lanelets_index(nlanelets)}(:,LaneletInfo.cx);
         randomPath_y = lanelets{ random_path.lanelets_index(nlanelets)}(:,LaneletInfo.cy);
+        %delete_index = 1;
+        delete_index_x = 1;
+        delete_index_y = 1;
+        start_index = 1;
 
         if nlanelets < length(random_path.lanelets_index)
+            %{
             if ismember((nlanelets+1), laneChangeLanesIndices)
                 % the next lane is an adjacent lane, interpolate diagonal from middle index of current lane to next lane
                 middleIndex = uint8(length(randomPath_x) / 2);
@@ -159,43 +170,51 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
 
                 distance = sqrt((randomPath_x(middleIndex) - new_lane_start_x).^2 + (randomPath_y(middleIndex) - new_lane_start_y).^2);
 
-                %{
+                
                 for j = 1:remainingIndices
-                    if randomPath_x(middleIndex) > new_lane_start_x
-                        if randomPath_x(middleIndex+j) > new_lane_start_x
+                    if randomPath_x(middleIndex) >= new_lane_start_x
+                        if randomPath_x(middleIndex+j) >= new_lane_start_x
                             point_x = randomPath_x(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+j) - new_lane_start_x)/distance);
                         else
-                            point_x = randomPath_x(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+(j-1)) - new_lane_start_x)/distance);
+                            %point_x = randomPath_x(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+(j-1)) - new_lane_start_x)/distance);
                             % index speichern, punkt rausnehmen, nur für fahrzeug boundary punkt aus lane nehmen
+                            delete_index = (remainingIndices - j) + 1;
+                            break
                         end
                     else
                         if randomPath_x(middleIndex+j) < new_lane_start_x
                             point_x = randomPath_x(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+j))/distance);
                         else
-                            point_x = randomPath_x(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+(j-1)))/distance);
+                            %point_x = randomPath_x(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+(j-1)))/distance);
+                            delete_index = (remainingIndices - j) + 1;
+                            break
                         end
                     end
 
-                    if randomPath_y(middleIndex) > new_lane_start_y
-                        if randomPath_y(middleIndex+j) > new_lane_start_y
+                    if randomPath_y(middleIndex) >= new_lane_start_y
+                        if randomPath_y(middleIndex+j) >= new_lane_start_y
                             point_y = randomPath_y(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+j) - new_lane_start_y)/distance);
                         else
-                            point_y = randomPath_y(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+(j-1)) - new_lane_start_y)/distance);
+                            %point_y = randomPath_y(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+(j-1)) - new_lane_start_y)/distance);
+                            delete_index = (remainingIndices - j) + 1;
+                            break
                         end
                     else
                         if randomPath_y(middleIndex+j) < new_lane_start_y
                             point_y = randomPath_y(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+j))/distance);
                         else
-                            point_y = randomPath_y(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+(j-1)))/distance);
+                            %point_y = randomPath_y(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+(j-1)))/distance);
+                            delete_index = (remainingIndices - j) + 1;
+                            break
                         end
                     end
 
                     randomPath_x(middleIndex+j) = point_x;
                     randomPath_y(middleIndex+j) = point_y;
                 end
-                %}
-
                 
+
+                %{
                 for j = 1:remainingIndices
                     if randomPath_x(middleIndex+j) > new_lane_start_x
                         point_x = randomPath_x(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+j) - new_lane_start_x)/distance);
@@ -212,19 +231,120 @@ function [random_path, scenario] = generate_random_path(scenario, vehid, n, star
                     randomPath_x(middleIndex+j) = point_x;
                     randomPath_y(middleIndex+j) = point_y;
                 end
-                
+                %}
+            end
+            %}
+            
+            %{
+            if ismember((nlanelets+1), laneChangeLanesIndices)
+                %{
+                if randomPath_x(1) >= lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cx)
+                    while randomPath_x(end) < lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index_x,LaneletInfo.cx)
+                        delete_index_x = delete_index_x+1;
+                    end 
+                else
+                    while randomPath_x(end) > lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index_x,LaneletInfo.cx)
+                        delete_index_x = delete_index_x+1;
+                    end
+                end
+
+                if randomPath_y(1) >= lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cy)
+                    while randomPath_y(end) < lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index_y,LaneletInfo.cy)
+                        delete_index_y = delete_index_y+1;
+                    end 
+                else
+                    while randomPath_y(end) > lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index_y,LaneletInfo.cy)
+                        delete_index_y = delete_index_y+1;
+                    end
+                end
+                delete_index = max(delete_index_x, delete_index_y);
+                remainingIndices = length(randomPath_x) + delete_index;
+                new_lane_start_x = lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index,LaneletInfo.cx);
+                new_lane_start_y = lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index,LaneletInfo.cy);
+
+                distance = sqrt((randomPath_x(1) - new_lane_start_x).^2 + (randomPath_y(1) - new_lane_start_y).^2);
+                %}
+                %{
+                for j = 1:remainingIndices
+                    if randomPath_x(middleIndex) >= new_lane_start_x
+                        if randomPath_x(middleIndex+j) >= new_lane_start_x
+                            point_x = randomPath_x(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+j) - new_lane_start_x)/distance);
+                        else
+                            %point_x = randomPath_x(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+(j-1)) - new_lane_start_x)/distance);
+                            % index speichern, punkt rausnehmen, nur für fahrzeug boundary punkt aus lane nehmen
+                            delete_index = (remainingIndices - j) + 1;
+                            break
+                        end
+                    else
+                        if randomPath_x(middleIndex+j) < new_lane_start_x
+                            point_x = randomPath_x(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+j))/distance);
+                        else
+                            %point_x = randomPath_x(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+(j-1)))/distance);
+                            delete_index = (remainingIndices - j) + 1;
+                            break
+                        end
+                    end
+
+                    if randomPath_y(middleIndex) >= new_lane_start_y
+                        if randomPath_y(middleIndex+j) >= new_lane_start_y
+                            point_y = randomPath_y(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+j) - new_lane_start_y)/distance);
+                        else
+                            %point_y = randomPath_y(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+(j-1)) - new_lane_start_y)/distance);
+                            delete_index = (remainingIndices - j) + 1;
+                            break
+                        end
+                    else
+                        if randomPath_y(middleIndex+j) < new_lane_start_y
+                            point_y = randomPath_y(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+j))/distance);
+                        else
+                            %point_y = randomPath_y(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+(j-1)))/distance);
+                            delete_index = (remainingIndices - j) + 1;
+                            break
+                        end
+                    end
+
+                    randomPath_x(middleIndex+j) = point_x;
+                    randomPath_y(middleIndex+j) = point_y;
+                end
+                %}
+            elseif ismember((nlanelets), laneChangeLanesIndices)
+                start_index = delete_index;
+                delete_index = 1;
+            end
+            %}
+
+            if ismember(nlanelets, laneChangeLanesIndices)
+                for i = 1:length(lane_change_indices)
+                    if lane_change_indices(i) == 0
+                        lane_change_indices(i,1) = (length(path) - length(lanelets{ random_path.lanelets_index(nlanelets+1)}(:,LaneletInfo.cx)))+1;
+                        lane_change_indices(i,2) = length(path);
+                        lane_change_indices(i,3) = length(path) + 1;
+                        lane_change_indices(i,4) = (length(path) + length(randomPath_x));
+                        break
+                    end
+                end
             end
         end
 
-        randomPath_next = [randomPath_x(1:end),randomPath_y(1:end)];
-        path = [path; randomPath_next];
+        if ~ismember(nlanelets, laneChangeLanesIndices)
+            randomPath_next = [randomPath_x(start_index:(end)),randomPath_y(start_index:(end))];
+            path = [path; randomPath_next];
 
-        % count the number of points of each lanelets
-        Npoints = length(randomPath_next);
-        % max point index of each lanelet
-        lanelet_point_max = lanelet_point_max + Npoints;
-        points_index(nlanelets) = lanelet_point_max;
+            % count the number of points of each lanelets
+            Npoints = length(randomPath_next);
+            % max point index of each lanelet
+            lanelet_point_max = lanelet_point_max + Npoints;
+            points_index(nlanelets) = lanelet_point_max;
+        else
+            randomPath_next = [randomPath_x(6:end),randomPath_y(6:end)];
+            path = [path; randomPath_next];
 
+            % count the number of points of each lanelets
+            Npoints = length(randomPath_next);
+            % max point index of each lanelet
+            lanelet_point_max = lanelet_point_max + Npoints;
+            points_index(nlanelets) = lanelet_point_max;
+        end 
     end 
     random_path.path = path;
     random_path.points_index = points_index;

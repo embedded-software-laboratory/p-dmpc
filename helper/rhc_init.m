@@ -25,7 +25,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                     end      
                 else
                     % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                    [updated_ref_path, scenario] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index);
+                    [updated_ref_path, scenario, scenario.vehicles(iVeh).lane_change_indices, scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index);
                 end
                 
                 updatedRefPath = updated_ref_path.path;
@@ -67,7 +67,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                             end      
                         else
                             % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                            [updated_ref_path, scenario] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end-1));
+                            [updated_ref_path, scenario, scenario.vehicles(iVeh).lane_change_indices, scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end-1));
                             autoUpdatedPath = true;
                         end
 
@@ -141,6 +141,11 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
         else
             iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,iter.trim_indices(iVeh));
         end
+
+        if ~iter.scenario.options.is_sim_lab && iter.scenario.vehicle_ids(iVeh) ~= iter.scenario.manual_vehicle_id && iter.scenario.vehicle_ids(iVeh) ~= iter.scenario.second_manual_vehicle_id
+            %[scenario.vehicles(iVeh).referenceTrajectory] = modify_lane_changes(scenario.vehicles(iVeh).lane_change_indices, iter.vRef(iVeh,:)*scenario.dt, scenario.vehicles(iVeh).referenceTrajectory);
+        end
+
         % Find equidistant points on the reference trajectory.
         reference = sampleReferenceTrajectory(...
             Hp, ... % number of prediction steps

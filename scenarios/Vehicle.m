@@ -25,6 +25,8 @@ classdef Vehicle
         paddle_counter      = 2;     % initial speed profile
         vehicle_mpa;
         lanes_before_update = zeros(1,2);    % lanes before path has been automatically updated in CPM Lab mode
+        lane_change_indices = zeros(10,4);
+        lane_change_lanes = zeros(1,12);
     end
     
     methods

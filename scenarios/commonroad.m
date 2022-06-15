@@ -26,7 +26,7 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
                 [ref_path, scenario] = generate_manual_path(scenario, vehicle_ids(iveh), 3, (vehicle_ids(iveh)+31), false);       
             else
                 % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                [ref_path, scenario] = generate_random_path(scenario, vehicle_ids(iveh), 3, (vehicle_ids(iveh)+31));
+                [ref_path, scenario, veh.lane_change_indices, veh.lane_change_lanes] = generate_random_path(scenario, vehicle_ids(iveh), 3, (vehicle_ids(iveh)+31));
             end
         end
         
