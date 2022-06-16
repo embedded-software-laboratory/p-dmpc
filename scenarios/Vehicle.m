@@ -19,14 +19,14 @@ classdef Vehicle
         ID                  = -1;    % vehicle ID (should be positive integer)
         lanelets_index;
         points_index;
-        lanelet_boundary;                   % left and right boundaries of predicted lanelets
-        communicate;                        % instance of the class `Communication`, used for communication via ROS 2
-        predicted_lanelets
-        paddle_counter      = 2;     % initial speed profile
-        vehicle_mpa;
         lanes_before_update = zeros(1,2);    % lanes before path has been automatically updated in CPM Lab mode
         lane_change_indices = zeros(10,4);   % indices of the trajectory points of the lane before the lane change and the lane change lane
         lane_change_lanes = zeros(10,2);     % positions of the lane before the lane change and the lane change lane in the lanelet vector 
+        lanelet_boundary;           % left and right boundaries of predicted lanelets
+        communicate;                % instance of the class `Communication`, used for communication via ROS 2
+        predicted_lanelets          % vehicle's predicted lanelets 
+        paddle_counter      = 2;    % initial speed profile
+        vehicle_mpa;                % instance of the class `MotionPrimitiveAutomaton`
     end
     
     methods

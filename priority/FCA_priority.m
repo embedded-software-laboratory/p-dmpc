@@ -14,7 +14,7 @@ classdef  FCA_priority < interface_priority
             obj.iter = iter;
         end
         
-        function [veh_at_intersection,groups] = priority(obj)
+        function [veh_at_intersection,groups,directed_adjacency] = priority(obj)
 
             groups = struct;
             nVeh = length(obj.scenario.vehicles);
@@ -96,8 +96,15 @@ classdef  FCA_priority < interface_priority
             
             [~,priority] = sort(priority_index); % ordered vehicle index w.r.t. priority
 %             disp(['priority: ',num2str(priority)])
+
+            directed_adjacency = zeros(nVeh,nVeh);
             for group_idx = 1:nVeh
                 groups(group_idx).members = priority_index(group_idx);
+
+                if group_idx < nVeh
+                    directed_adjacency(priority_index(group_idx),priority_index(group_idx+1)) = 1;
+                end
+
                 if group_idx == 1
                     groups(group_idx).predecessors = [];
                 else

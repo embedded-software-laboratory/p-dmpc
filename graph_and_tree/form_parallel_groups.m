@@ -1,4 +1,4 @@
-function [parl_groups, subgraphs_infos, belonging_vector] = form_parallel_groups(M, varargin)
+function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(M, varargin)
 % FORM_PARALLEL_GROUPS Form parallel graoups of vehicles based on the given
 % matrix, which can either be a directed adjacency matrix or a edge-weights
 % matrix, while ensuring that the number of computation levels of each
@@ -9,28 +9,28 @@ function [parl_groups, subgraphs_infos, belonging_vector] = form_parallel_groups
 
     % partition the supergraph to subgraphs with a certain upper graph size.
     % The sum of weights of edges connecting subgraphs is the objective value and should be minimized.
-    [belonging_vector, subgraphs_infos] = graph_partitioning_algorithm(M, max_num_CLs, 'method', method);
+    [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, max_num_CLs, 'method', method);
     
     % subgraphs is mergeable if the number of computation levels of the
     % new graph does not exceed the maximum allowed number.
-    [belonging_vector, subgraphs_infos] = graph_merging_algorithm(M, belonging_vector, subgraphs_infos, max_num_CLs);
+    [belonging_vector, subgraphs_info] = graph_merging_algorithm(M, belonging_vector, subgraphs_info, max_num_CLs);
 
 %     graphs_visualization(belonging_vector, M, 'ShowWeights', true)
     
-    n_grps = length(subgraphs_infos); % one subgraph corresponds to one parallel group
+    n_grps = length(subgraphs_info); % one subgraph corresponds to one parallel group
     directed_adjacency = (M ~= 0);
 
-    CLs_max_grps = max([subgraphs_infos.num_CLs]); % max number of computation levels among all parallel groups
+    CLs_max_grps = max([subgraphs_info.num_CLs]); % max number of computation levels among all parallel groups
     parl_groups(CLs_max_grps) = struct('members',[],'predecessors',[]); % gather vehicles that are in the same computation level 
     
     % form the parallel groups
     for grp_i = 1:n_grps
 
-        vertices_in_i = subgraphs_infos(grp_i).vertices; % vertices in the group_i
+        vertices_in_i = subgraphs_info(grp_i).vertices; % vertices in the group_i
         directed_adjacency_i = directed_adjacency(vertices_in_i,vertices_in_i);
         [valid,L] = kahn(directed_adjacency_i);
         assert(valid==true)
-        subgraphs_infos(grp_i).L_topology = L;
+        subgraphs_info(grp_i).L_topology = L;
 
         num_CLs = size(L,1);
         for level_i = 1:num_CLs

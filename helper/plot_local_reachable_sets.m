@@ -1,9 +1,9 @@
-function plot_reachable_sets_offline(mpa)
-% PLOT_REACHABLE_SETS_OFFLINE Visualize the reachable sets of different
-% root trims.
+function plot_local_reachable_sets(mpa, is_allow_non_convex)
+% PLOT_LOCAL_REACHABLE_SETS Visualize the reachable sets starting from
+% different root trims.
 
-    n_trims = size(mpa.reachable_sets,1);
-    Hp = size(mpa.reachable_sets,2);
+    n_trims = size(mpa.local_reachable_sets,1);
+    Hp = size(mpa.local_reachable_sets,2);
 
     fig = figure('Name','ReachableSets');
     fig.Position = [10 10 500 1600];
@@ -11,9 +11,9 @@ function plot_reachable_sets_offline(mpa)
     for i=1:n_trims
         for t=1:Hp
             nexttile;
-            plot(mpa.reachable_sets{i,t})
+            plot(mpa.local_reachable_sets{i,t})
             hold on
-            plot(mpa.reachable_sets_conv{i,t})
+            plot(mpa.local_reachable_sets_conv{i,t})
             if t==1
                 ylabel(['root trim ', num2str(i)])
             end
@@ -35,12 +35,17 @@ function plot_reachable_sets_offline(mpa)
     [file_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file
     idcs = strfind(file_path,filesep); % find all positions of '/'
     one_folder_up = file_path(1:idcs(end)-1); % one folder up
-    folder_target = [one_folder_up,filesep,'results',filesep,'reachable_sets_offline'];
+    folder_target = [one_folder_up,filesep,'motion_primitive_automaton',filesep,'local_reachable_sets'];
     if ~isfolder(folder_target)
         % create target folder if not exist
         mkdir(folder_target)
     end
+    
     file_name = ['trims',num2str(n_trims),'_Hp',num2str(Hp)];
+    if is_allow_non_convex
+        file_name = [file_name, '_non-convex'];
+    end
+
     full_path = [folder_target,filesep,file_name];
     if isfile(full_path)
         warning('The file for visualization of the offline reachable sets was already saved.');

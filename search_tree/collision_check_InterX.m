@@ -14,8 +14,18 @@ function [collision] = collision_check_InterX(shape, scenario, iStep)
 %   lanelet boundaries
 % 
 
+%     if scenario.k==12 && scenario.vehicles.ID==10 && iStep==2
+%         disp('') % debug
+%     end
+
+    shape = [shape, shape(:,1)]; % enclose the shape
+    collision = false;
+    
     % get static occupied areas of the considered vehicles
     static_obstacles = scenario.obstacles;
+
+    % get crossing areas of lanelets
+    lanelet_crossing_areas = scenario.lanelet_crossing_areas;
     
     % get predicted occupied areas of the coupling vehicles in the current time step
     [~, n_occupiedAreas_Hp] = size(scenario.dynamic_obstacle_area);
@@ -35,16 +45,37 @@ function [collision] = collision_check_InterX(shape, scenario, iStep)
 
     % get lanelet boundary
     lanelet_boundary = scenario.vehicles.lanelet_boundary;
-    % add column [nan;nan] to separate left and right boundaries 
-    lanelet_boundary = cellfun(@(c)[c,[nan;nan]],lanelet_boundary,'UniformOutput',false); 
 
-    obstacles_shapes = [static_obstacles(:)', predicted_occpuied_areas(:)', reachable_sets(:)'];
+%     obstacles_shapes = [static_obstacles(:)', lanelet_crossing_areas(:)', predicted_occpuied_areas(:)', reachable_sets(:)'];
+    for i = 1:length(static_obstacles)
+        if InterX(shape,[static_obstacles{i},static_obstacles{i}(:,1)])
+            collision = true;
+            return
+        end
+    end
+    for j = 1:length(lanelet_crossing_areas)
+        if InterX(shape,[lanelet_crossing_areas{j},lanelet_crossing_areas{j}(:,1)])
+            collision = true;
+            return
+        end
+    end
+    for k = 1:length(predicted_occpuied_areas)
+        if InterX(shape,[predicted_occpuied_areas{k},predicted_occpuied_areas{k}(:,1)])
+            collision = true;
+            return
+        end
+    end
+    for m = 1:length(reachable_sets)
+        if InterX(shape,[reachable_sets{m},reachable_sets{m}(:,1)])
+            collision = true;
+            return
+        end
+    end
+    for n = 1:length(lanelet_boundary)
+        if InterX(shape,lanelet_boundary{n})
+            collision = true;
+            return
+        end
+    end
 
-    % Repeat the last column to enclose the shape.
-    % Add column [nan;nan] to separate different obstacles 
-    obstacles_shapes = cellfun(@(c)[c,c(:,1),[nan;nan]],obstacles_shapes,'UniformOutput',false); 
-    
-    % all obstacles, include static obstacles, dynamic obstacles and lanelet boundaries
-    obstacles_all = [obstacles_shapes{:},lanelet_boundary{:}];
-    collision = InterX(shape, obstacles_all);
-end
+

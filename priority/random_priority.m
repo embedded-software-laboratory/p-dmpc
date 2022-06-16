@@ -12,15 +12,22 @@ classdef  random_priority < interface_priority
             obj.scenario = scenario;
         end
         
-        function groups = priority(obj)
+        function [groups, directed_adjacency] = priority(obj)
             
 %             groups = PB_random_groups(obj.scenario);
             groups = struct;
             nVeh = length(obj.scenario.vehicles);
             randomPrio = randperm(nVeh,nVeh); % random priority order 
 
+            directed_adjacency = zeros(nVeh,nVeh);
+            
             for group_idx = 1:nVeh
                 groups(group_idx).members = randomPrio(group_idx);
+                
+                if group_idx < nVeh
+                    directed_adjacency(randomPrio(group_idx),randomPrio(group_idx+1)) = 1;
+                end
+
                 if group_idx == 1
                     groups(group_idx).predecessors = [];
                 else

@@ -1,4 +1,4 @@
-function [belonging_vector, subgraphs_infos] = graph_merging_algorithm(M, belonging_vector, subgraphs_infos, max_num_CLs)
+function [belonging_vector, subgraphs_info] = graph_merging_algorithm(M, belonging_vector, subgraphs_info, max_num_CLs)
 % GRAPH_MERGING_ALGORITHM Find connected subgraph pairs that can be merged to
 % one bigger graph while still not exceeding the maximum allowed
 % computation levels. This algorithm gaurantees to find the optimal merging
@@ -11,12 +11,12 @@ function [belonging_vector, subgraphs_infos] = graph_merging_algorithm(M, belong
 %   target graph. Edge-weights will not be considered if M is the dajacency
 %   matrix.
 %  
-%   belonging_vector: a column vector whose values indicates which
+%   belonging_vector: a column vector whose values indicate which
 %   subgraphs the vertices belong to. For example,"belonging_vector =
 %   [1;2;2;1;3]" means the 1st subgraph = {1,4}, the 2nd subgraph = {2,3}
 %   and the 3rd subgraph = {5}. 
 %   
-%   subgraph_infos: information of all the subgraphs, such as vertices, number
+%   subgraph_info: information of all the subgraphs, such as vertices, number
 %   of computation levels
 % 
 % 
@@ -29,7 +29,7 @@ function [belonging_vector, subgraphs_infos] = graph_merging_algorithm(M, belong
         max_num_CLs = round(n_vertices/2);
     end
 
-    n_graphs = length(subgraphs_infos); % number of graphs
+    n_graphs = length(subgraphs_info); % number of graphs
 %     subgraph_IDs = 1:n_graphs;
 %     
 %     subgraph_sizes = histcounts(belonging_vector,'BinMethod','integers');
@@ -56,11 +56,11 @@ function [belonging_vector, subgraphs_infos] = graph_merging_algorithm(M, belong
                 % if the selected subgraph has not been checked yet
                 is_checked(subgraph_i) = true;
 
-                vertices_of_i = subgraphs_infos(subgraph_i).vertices;
+                vertices_of_i = subgraphs_info(subgraph_i).vertices;
 
                 for subgraph_j = (subgraph_i+1):n_graphs % no repeated check
                     
-                    vertices_of_j = subgraphs_infos(subgraph_j).vertices;
+                    vertices_of_j = subgraphs_info(subgraph_j).vertices;
     
                     vertices_to_be_merged = [vertices_of_i,vertices_of_j];
                     M_merged = M(vertices_to_be_merged,vertices_to_be_merged);
@@ -91,10 +91,10 @@ function [belonging_vector, subgraphs_infos] = graph_merging_algorithm(M, belong
             % find the two subgraphs to be merged
             [subgraph_higher_id, subgraph_smaller_id] = ind2sub(size(benefit_matrix), idx);
             
-            vertices_lower_id = subgraphs_infos(subgraph_smaller_id).vertices;
+            vertices_lower_id = subgraphs_info(subgraph_smaller_id).vertices;
             % merge the subgraoh with a smaller ID to the subgraph with a higher ID
-            subgraphs_infos(subgraph_higher_id).vertices = [subgraphs_infos(subgraph_higher_id).vertices, vertices_lower_id];
-            subgraphs_infos(subgraph_higher_id).num_CLs = num_CLs_matrix(subgraph_higher_id,subgraph_smaller_id);
+            subgraphs_info(subgraph_higher_id).vertices = [subgraphs_info(subgraph_higher_id).vertices, vertices_lower_id];
+            subgraphs_info(subgraph_higher_id).num_CLs = num_CLs_matrix(subgraph_higher_id,subgraph_smaller_id);
 
             % update the belonging vector
             belonging_vector(vertices_lower_id) = subgraph_higher_id;
@@ -104,7 +104,7 @@ function [belonging_vector, subgraphs_infos] = graph_merging_algorithm(M, belong
             is_checked(subgraph_higher_id) = false;
 
             % delete the corresponding elements of the merged subgraph with a smaller ID
-            subgraphs_infos(subgraph_smaller_id) = [];
+            subgraphs_info(subgraph_smaller_id) = [];
             is_checked(subgraph_smaller_id) = [];
 
             benefit_matrix(subgraph_smaller_id,:) = [];
@@ -117,12 +117,12 @@ function [belonging_vector, subgraphs_infos] = graph_merging_algorithm(M, belong
             is_merging_happened = true;
         end
 
-        n_graphs = length(subgraphs_infos);
+        n_graphs = length(subgraphs_info);
     end
 
     % update the belonging vector
-    for i = 1:length(subgraphs_infos)
-        belonging_vector(subgraphs_infos(i).vertices) = i;
+    for i = 1:length(subgraphs_info)
+        belonging_vector(subgraphs_info(i).vertices) = i;
     end
 
 %     graphs_visualization(belonging_vector, M, 'ShowWeights', true)

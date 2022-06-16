@@ -12,8 +12,7 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
    
     lanelets_index_vehid = startPosition;  
     
-    load('commonroad_data.mat');
-    commonroad = commonroad_data;
+    road_data = scenario.road_raw_data;
 
     random_path.lanelets_index = [lanelets_index_vehid];
     laneChangeAllowed = false;
@@ -23,11 +22,11 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
         subsequent_lanes = struct;
         subsequent_lanes.lanelets_index = [0];
 
-        for i = 1:length(commonroad_data.lanelet)
+        for i = 1:length(road_data.lanelet)
             
             % find id of current lane
-            if random_path.lanelets_index(end) == commonroad_data.lanelet(i).idAttribute
-                successor = commonroad_data.lanelet(i).successor;
+            if random_path.lanelets_index(end) == road_data.lanelet(i).idAttribute
+                successor = road_data.lanelet(i).successor;
                 successor_indices = horzcat(successor.refAttribute);
                 subsequent_indices = successor_indices;
 
@@ -35,13 +34,13 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
                 if laneChangeAllowed
                     %disp(subsequent_indices);
                     for k = 1:length(successor_indices)
-                        successor_adjacentLeft = commonroad_data.lanelet(successor_indices(k)).adjacentLeft;
+                        successor_adjacentLeft = road_data.lanelet(successor_indices(k)).adjacentLeft;
                         if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
                             subsequent_indices = horzcat(subsequent_indices, successor_adjacentLeft.refAttribute);
                             %disp(subsequent_indices);
                         end
 
-                        successor_adjacentRight = commonroad_data.lanelet(successor_indices(k)).adjacentRight;
+                        successor_adjacentRight = road_data.lanelet(successor_indices(k)).adjacentRight;
                         if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
                             subsequent_indices = horzcat(subsequent_indices, successor_adjacentRight.refAttribute);
                             %disp(subsequent_indices);
@@ -125,11 +124,11 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
 
     % find indices of lanes that were chosen as adjacents lanes
     for i = 1:length(random_path.lanelets_index)-1
-        successor = commonroad_data.lanelet(random_path.lanelets_index(i)).successor; 
+        successor = road_data.lanelet(random_path.lanelets_index(i)).successor; 
         successor_indices = horzcat(successor.refAttribute);
 
         for k = 1:length(successor_indices)
-            successor_adjacentLeft = commonroad_data.lanelet(successor_indices(k)).adjacentLeft;
+            successor_adjacentLeft = road_data.lanelet(successor_indices(k)).adjacentLeft;
             if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
                 if ismember(random_path.lanelets_index(i+1), successor_adjacentLeft.refAttribute)
                     laneChangeLanesIndices = [laneChangeLanesIndices, i+1];
@@ -138,7 +137,7 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
                 end
             end
 
-            successor_adjacentRight = commonroad_data.lanelet(successor_indices(k)).adjacentRight;
+            successor_adjacentRight = road_data.lanelet(successor_indices(k)).adjacentRight;
             if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
                 if ismember(random_path.lanelets_index(i+1), successor_adjacentRight.refAttribute)
                     laneChangeLanesIndices = [laneChangeLanesIndices, i+1];

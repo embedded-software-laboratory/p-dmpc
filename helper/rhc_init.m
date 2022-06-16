@@ -113,9 +113,9 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
     iter.trim_indices = zeros(nVeh, 1);                 % current trim
     iter.vRef = zeros(nVeh,Hp);                         % reference speed  
     iter.predicted_lanelets = cell(nVeh, 1);
-    iter.predicted_lanelet_boundary = cell(nVeh, 2);    % first column for left boundary, second column for right boundary
-    iter.reachable_sets = cell(nVeh, Hp);               % cells to store instances of MATLAB calss `polyshape` 
-    
+    iter.predicted_lanelet_boundary = cell(nVeh, 3);    % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
+    iter.reachable_sets = cell(nVeh, Hp);               % cells to store instances of MATLAB calss `polyshape`
+
     % states of other vehicles can be directed measured
     iter.x0 = x_measured;
     
@@ -123,42 +123,57 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
-            latest_message_i = scenario.ros_subscribers{iVeh}.LatestMessage;
-            msg_timestep = latest_message_i.time_step;
-            
-            % consider the oldness of the message
-            iter.trim_indices(iVeh) = latest_message_i.predicted_trims(scenario.k-msg_timestep+1);
+            latest_msg_i = read_message(scenario.vehicles(iVeh).communicate, scenario.ros_subscribers{iVeh}, scenario.k-1);
+
+%             timeout = 0.5;      is_timeout = true;
+%             read_start = tic;   read_time = toc(read_start);
+%             while read_time < timeout
+%                 if scenario.ros_subscribers{iVeh}.LatestMessage.time_step == (scenario.k-1)
+% %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
+%                     is_timeout = false;
+%                     break
+%                 end
+%                 read_time = toc(read_start);
+%             end
+% 
+%             if is_timeout
+%                 warning(['The predicted trims of vehicle ' num2str(iVeh) ' are unable to received.'...
+%                     'The pevious message will be used.'])
+%             end
+%             latest_msg_i = scenario.ros_subscribers{iVeh}.LatestMessage;
+            oldness_msg = scenario.k - latest_msg_i.time_step;
+            iter.trim_indices(iVeh) = latest_msg_i.predicted_trims(oldness_msg+1);
         else
             % if parallel computation is not used, other vehicles' trims are measured 
             iter.trim_indices = trims_measured;
         end
 
-        iter_scenario.vehicles(iVeh).x_position = iter.x0(iVeh,idx.x);
-        iter_scenario.vehicles(iVeh).y_position = iter.x0(iVeh,idx.y);
+        x0 = iter.x0(iVeh, idx.x);
+        y0 = iter.x0(iVeh, idx.y);
+        yaw0 = iter.x0(iVeh, idx.heading);
+        trim_current = iter.trim_indices(iVeh);
+
+        iter.scenario.vehicles(iVeh).x_position = x0;
+        iter.scenario.vehicles(iVeh).y_position = y0;
+
+        % Get the predicted lanelets of other vehicles
+        % Byproducts: reference path and reference speed profile
         if (scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.manual_mpa_initialized)
-            iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
+            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.vehicles(iVeh).vehicle_mpa, scenario.dt);
+
+%             iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
         elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.second_manual_mpa_initialized)
-            iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
+            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.vehicles(iVeh).vehicle_mpa, scenario.dt);
+%             iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
         else
-            iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,iter.trim_indices(iVeh));
+            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.mpa, scenario.dt);
+%             iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,iter.trim_indices(iVeh));
         end
 
-        if ~iter_scenario.options.is_sim_lab && iter_scenario.vehicle_ids(iVeh) ~= iter_scenario.manual_vehicle_id && iter_scenario.vehicle_ids(iVeh) ~= iter_scenario.second_manual_vehicle_id
-            %[scenario.vehicles(iVeh).referenceTrajectory] = modify_lane_changes(scenario.vehicles(iVeh).lane_change_indices, iter.vRef(iVeh,:)*scenario.dt, scenario.vehicles(iVeh).referenceTrajectory);
-        end
-
-        % Find equidistant points on the reference trajectory.
-        reference = sampleReferenceTrajectory(...
-            Hp, ... % number of prediction steps
-            scenario.vehicles(iVeh).referenceTrajectory, ...
-            iter.x0(iVeh, idx.x), ... % vehicle position x
-            iter.x0(iVeh, idx.y), ... % vehicle position y
-            iter.vRef(iVeh,:)*scenario.dt, ...  % distance traveled in one timestep
-            iVeh, ...
-            exp, ...
-            scenario...
-        );
-    
+        % reference speed and path points
+        iter.vRef(iVeh,:) = v_ref;
+        
+        % equidistant points on the reference trajectory.
         iter.referenceTrajectoryPoints(iVeh,:,:) = reference.ReferencePoints;
         iter.referenceTrajectoryIndex(iVeh,:,:) = reference.ReferenceIndex;
         
@@ -166,12 +181,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
             % Get the predicted lanelets of other vehicles
             if scenario.options.isParl
                 % from received messages if parallel computation is used 
-                latest_message_i = scenario.ros_subscribers{iVeh}.LatestMessage;
-                predicted_lanelets= latest_message_i.predicted_lanelets(:)'; % make row vector
-            else
-                % otherwise, calculate the predicted lanelets for others
-                ref_points_index = reshape(iter.referenceTrajectoryIndex(iVeh,:,:),Hp,1);
-                predicted_lanelets = get_predicted_lanelets(scenario.vehicles(iVeh), ref_points_index, scenario.road_raw_data.lanelet);
+                predicted_lanelets= latest_msg_i.predicted_lanelets(:)'; % make row vector
             end
 
             % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
@@ -218,8 +228,9 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
             end
             %}
 
+        
             % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
-            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary);
+            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.vehicles(iVeh).lanelets_index, scenario.options.is_sim_lab);
             iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
 
             %{
@@ -255,12 +266,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 % Calculate reachable sets of other vehicles based on their
                 % current states and trims. Reachability analysis will be
                 % widely used in the parallel computation.
-                x0 = iter.x0(iVeh, idx.x);
-                y0 = iter.x0(iVeh, idx.y);
-                yaw0 = iter.x0(iVeh, idx.heading);
-                trim_current = iter.trim_indices(iVeh);
                 local_reachable_sets = scenario.mpa.local_reachable_sets;
-                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary);
+                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, scenario.is_allow_non_convex);
             end
         end
     end

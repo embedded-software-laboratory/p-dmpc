@@ -1,5 +1,5 @@
-function scenario = get_coupling_infos(scenario, iter)
-% GET_COUPLING_INFOS This function estimate the coupling information of
+function scenario = get_coupling_info(scenario, iter)
+% GET_COUPLING_INFO This function estimate the coupling information of
 % vehicles. Two vehicles are coupled if their reachable sets in the defined 
 % prediction horizon (Hp) overlap. To reduce the checking effort, only the
 % reachable sets in the last time step will be checked, which is almost
@@ -18,7 +18,7 @@ function scenario = get_coupling_infos(scenario, iter)
     coupling_weights = zeros(nVeh,nVeh); % coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
     
     % initialize a struct array to store information about coupling information
-    coupling_infos = struct('idLeader',[],'idFollower',[],'type',[],'speedLeader',[],'speedFollower',[],'positionLeader',[],'positionFollower',[],'STAC',[],'weight',[]); 
+    coupling_info = struct('idLeader',[],'idFollower',[],'type',[],'speedLeader',[],'speedFollower',[],'positionLeader',[],'positionFollower',[],'STAC',[],'weight',[]); 
     count = 1;
 
     state_indices = indices();
@@ -27,14 +27,14 @@ function scenario = get_coupling_infos(scenario, iter)
         % get the selected vehicle's position, speed, current trim and predicted lanelets 
         speed_i = iter.x0(veh_i, state_indices.speed);
         position_i = [iter.x0(veh_i,state_indices.x), iter.x0(veh_i,state_indices.y)];
-        cur_trim_i = iter.trim_indices(veh_i);
+        trim_i = iter.trim_indices(veh_i);
         reachable_sets_last_step_i = iter.reachable_sets{veh_i,end};
         predicted_lanelets_i = iter.predicted_lanelets{veh_i};
 
         for veh_j = (veh_i+1):nVeh
             speed_j = iter.x0(veh_j, state_indices.speed);
             position_j = [iter.x0(veh_j,state_indices.x), iter.x0(veh_j,state_indices.y)];
-            cur_trim_j = iter.trim_indices(veh_j);
+            trim_j = iter.trim_indices(veh_j);
             reachable_sets_last_step_j = iter.reachable_sets{veh_j,end};
             predicted_lanelets_j = iter.predicted_lanelets{veh_j};
 
@@ -45,11 +45,21 @@ function scenario = get_coupling_infos(scenario, iter)
                 for k_i = 1:length(predicted_lanelets_i)  
                     predicted_lanelet_i = predicted_lanelets_i(k_i);
                     
+%                     % debug
+%                     predicted_lanelet_i = 87;
+%                     position_i = [0.3,1.4];
+%                     position_j = [0.25,1.1];
+%                     trim_i = 7;
+%                     trim_j = 7;
+
                     % center line of the lanelet
                     lanelet_x_i = lanelets{predicted_lanelet_i}(:,LaneletInfo.cx);
                     lanelet_y_i = lanelets{predicted_lanelet_i}(:,LaneletInfo.cy);
                     for k_j = 1:length(predicted_lanelets_j)
                         predicted_lanelet_j = predicted_lanelets_j(k_j);
+
+%                         % debug
+%                         predicted_lanelet_j = 85;
 
                         % center line of the lanelet
                         lanelet_x_j = lanelets{predicted_lanelet_j}(:,LaneletInfo.cx);
@@ -80,7 +90,6 @@ function scenario = get_coupling_infos(scenario, iter)
                                 is_side_impact_collision = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_3) ||...
                                     strcmp(lanelet_relationship.type, LaneletRelationshipType.type_5);
 
-                                
                             else
                                 continue
                             end
@@ -88,7 +97,7 @@ function scenario = get_coupling_infos(scenario, iter)
 
                         if is_rear_end_collision
                             % If the same lanelet or successive (relationship type 1) lanelets or adjacent left/right lanelets (relationship type 2) -> rear-end collision
-                            coupling_infos(count).type = CollisionType.type_1; % rear-end collision
+                            coupling_info(count).type = CollisionType.type_1; % rear-end collision
 
                             if is_forking_lanelets
                                 % In forking lanelets, rear-end collision is possible around the forking point
@@ -109,56 +118,40 @@ function scenario = get_coupling_infos(scenario, iter)
                                 % vehicle closer to the forking point is the leader
                                 if distance_to_starting_point_i >= distance_to_starting_point_j
                                     is_leader = true;
-                                    cur_trim_leader = cur_trim_i;
+                                    trim_leader = trim_i;
                                     position_leader = position_i;
-                                    lanelet_x_leader = lanelet_x_i;
-                                    lanelet_y_leader = lanelet_y_i;
-                                    cur_trim_follower = cur_trim_j;
+                                    trim_follower = trim_j;
                                     position_follower = position_j;
-                                    lanelet_x_follower = lanelet_x_j;
-                                    lanelet_y_follower = lanelet_y_j;
+                                    lanelet_leader = [lanelet_x_i,lanelet_y_i];
+                                    lanelet_follower = [lanelet_x_j,lanelet_y_j];
                                 else
                                     is_leader = false;
-                                    cur_trim_leader = cur_trim_j;
+                                    trim_leader = trim_j;
                                     position_leader = position_j;
-                                    lanelet_x_leader = lanelet_x_j;
-                                    lanelet_y_leader = lanelet_y_j;
-                                    cur_trim_follower = cur_trim_i;
+                                    trim_follower = trim_i;
                                     position_follower = position_i;
-                                    lanelet_x_follower = lanelet_x_i;
-                                    lanelet_y_follower = lanelet_y_i;
+                                    lanelet_leader = [lanelet_x_j,lanelet_y_j];
+                                    lanelet_follower = [lanelet_x_i,lanelet_y_i];
                                 end
 
                                 % let the leader take an emergency breaking maneuver
-                                emergency_braking_distance = get_emergency_braking_distance(scenario.mpa, cur_trim_leader, scenario.dt);
+                                emergency_braking_distance = get_emergency_braking_distance(scenario.mpa, trim_leader, scenario.dt);
 
-                                % project the leader's position to its lanelet and form a new lanelet which starts with the projected point 
-                                [~, ~, lanelet_new, ~] = project_to_curve(position_leader(1),position_leader(2),lanelet_x_leader,lanelet_y_leader);
+                                % current distance between two vehicles
+                                cur_distance = norm(position_i-position_j,2);
+                                % the total distance to collision is the sum of the current distance between two vehicles and the emergency braking distance of the leader
+                                distance_to_collision = cur_distance + emergency_braking_distance;
+                                % let the follower take a full acceleration
+                                % to catch the leader, then calculte the STAC if two vehicles are driving at the same lanelet 
+                                [STAC_tmp, distance_traveled_leader, distance_traveled_follower] = scenario.mpa.get_the_shortest_time_to_catch(trim_leader, trim_follower, distance_to_collision, scenario.dt);
 
-                                point_idx = 0;
-                                % get the stopping point on the path
-                                arc_distances = sqrt(sum(diff(lanelet_new).^2,2));
-                                while emergency_braking_distance >= 0 && point_idx < length(arc_distances)
-                                    point_idx = point_idx + 1;
-                                    % drive along the path until stop
-                                    emergency_braking_distance = emergency_braking_distance - arc_distances(point_idx);
-                                end
-                                unit_vector_direction = lanelet_new(point_idx+1,:)-lanelet_new(point_idx,:); % unit vector pointing to the driving direction when stop
-                                stop_point = lanelet_new(point_idx+1,:) + emergency_braking_distance*unit_vector_direction;
+                                stop_point_leader = get_stop_point_after_travel_certain_distance(position_leader,lanelet_leader,distance_traveled_leader);
+                                stop_point_follower = get_stop_point_after_travel_certain_distance(position_follower,lanelet_follower,distance_traveled_follower);
 
-                                lanelet_follower = [lanelet_x_follower,lanelet_y_follower];
-                                squared_distances_to_stop_point = sum((lanelet_follower-stop_point).^2,2);
-                                [min_distances,min_idx] = min(squared_distances_to_stop_point);
-
-                                if min_distances > Vehicle().Length^2
-                                    % the stopping point on the leader's lanelet is invariant safe for the follower 
+                                distance_stop_points = norm(stop_point_leader-stop_point_follower);
+                                if distance_stop_points > Vehicle().Length
+                                    % the selected two vehicles will never collide with each other since their stopping points are far away
                                     continue
-                                else
-                                    % the stopping point is not invariant safe. 
-                                    % The collision point is set as the point on the follower's lanelet that has the minimal distance to the stopping point 
-                                    collision_point = [lanelet_x_follower(min_idx), lanelet_y_follower(min_idx)];
-                                    distance_to_collision = norm(position_follower-collision_point);
-                                    STAC_tmp = get_the_shortest_time_to_arrive(scenario.mpa,cur_trim_follower,distance_to_collision,scenario.dt);
                                 end
                             else
                                 % Otherwise vehicles are driving at the same lanelets or successive lanelets 
@@ -176,11 +169,13 @@ function scenario = get_coupling_infos(scenario, iter)
                                 if distance_to_endpoint_i <= distance_to_endpoint_j
                                     is_leader = true;
                                     % vehicle_i is the leader and thus takes an emergency braking maneuver
-                                    emergency_braking_distance = get_emergency_braking_distance(scenario.mpa, cur_trim_i, scenario.dt);
+                                    emergency_braking_distance = scenario.mpa.get_emergency_braking_distance(trim_i, scenario.dt);
+                                    trim_follower = trim_j;
                                 else
                                     is_leader = false;
                                     % else vehicle_j is the leader and thus takes an emergency braking maneuver
-                                    emergency_braking_distance = get_emergency_braking_distance(scenario.mpa, cur_trim_j, scenario.dt);
+                                    emergency_braking_distance = scenario.mpa.get_emergency_braking_distance(trim_j, scenario.dt);
+                                    trim_follower = trim_i;
                                 end
     
                                 % current distance between two vehicles
@@ -188,12 +183,12 @@ function scenario = get_coupling_infos(scenario, iter)
                                 % the total distance to collision is the sum of the current distance between two vehicles and the emergency braking distance of the leader
                                 distance_to_collision = cur_distance + emergency_braking_distance;
                                 % calculate the shortest time to achieve a collision 
-                                STAC_tmp = get_the_shortest_time_to_arrive(scenario.mpa, cur_trim_j, distance_to_collision, scenario.dt);
+                                STAC_tmp = get_the_shortest_time_to_arrive(scenario.mpa, trim_follower, distance_to_collision, scenario.dt);
                             end
 
 
                         elseif is_side_impact_collision
-                            coupling_infos(count).type = CollisionType.type_2; % side-impact collision
+                            coupling_info(count).type = CollisionType.type_2; % side-impact collision
 
                             % For side-impact collision, we calculate the adapted STAC, which is the sum of the actual STAC and a waiting time. 
                             % The calculation procedure is the following: Firstly, the actual STAC is the shortest time needed to achieve a 
@@ -225,13 +220,18 @@ function scenario = get_coupling_infos(scenario, iter)
                             end
 
                             % calculate the arc length from the vehicle's current position to the collision point
-                            [~, ~, ~, distance_to_collision_i] = project_to_curve(position_i(1), position_i(2), curve_x_i, curve_y_i);
-                            [~, ~, ~, distance_to_collision_j] = project_to_curve(position_j(1), position_j(2), curve_x_j, curve_y_j);
+                            [arc_distance_to_collision_i, arc_length_i, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_i(1), position_i(2), curve_x_i, curve_y_i);
+                            [arc_distance_to_collision_j, arc_length_j, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_j(1), position_j(2), curve_x_j, curve_y_j);
+                            
+                            if arc_length_i == 0 || arc_length_j == 0
+                                % one vehile has already passed the point of intersection; thus, collision is no longer possible
+                                continue
+                            end
 
-                            time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa,cur_trim_j,distance_to_collision_i,scenario.dt);
-                            time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa,cur_trim_j,distance_to_collision_j,scenario.dt);
+                            time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa,trim_i,arc_distance_to_collision_i,scenario.dt);
+                            time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa,trim_j,arc_distance_to_collision_j,scenario.dt);
 
-                            if distance_to_collision_i <= distance_to_collision_j
+                            if arc_distance_to_collision_i <= arc_distance_to_collision_j
                                 % vehicle closer to the collision point has a higher priority (or also called as "leader")
                                 is_leader = true; 
                             else
@@ -249,30 +249,30 @@ function scenario = get_coupling_infos(scenario, iter)
                         end
 
                         % store coupling information
-                        coupling_infos(count).STAC = STAC_tmp;
-                        coupling_infos(count).weight = weighting_function(STAC_tmp);
+                        coupling_info(count).STAC = STAC_tmp;
+                        coupling_info(count).weight = weighting_function(STAC_tmp);
                         if is_leader
                             % vehicle_i is the leader
                             STAC(veh_i,veh_j) = STAC_tmp;
 %                                 adjacency(veh_i,veh_j) = 1;
-                            coupling_weights(veh_i,veh_j) = coupling_infos(count).weight; 
-                            coupling_infos(count).idLeader = veh_i; 
-                            coupling_infos(count).speedLeader = speed_i;
-                            coupling_infos(count).positionLeader = position_i;
-                            coupling_infos(count).idFollower = veh_j; 
-                            coupling_infos(count).speedFollower = speed_j;
-                            coupling_infos(count).positionFollower = position_j;
+                            coupling_weights(veh_i,veh_j) = coupling_info(count).weight; 
+                            coupling_info(count).idLeader = veh_i; 
+                            coupling_info(count).speedLeader = speed_i;
+                            coupling_info(count).positionLeader = position_i;
+                            coupling_info(count).idFollower = veh_j; 
+                            coupling_info(count).speedFollower = speed_j;
+                            coupling_info(count).positionFollower = position_j;
                         else
                             % vehicle_j is the leader
                             STAC(veh_j,veh_i) = STAC_tmp;
 %                                 adjacency(veh_j,veh_i) = 1;
-                            coupling_weights(veh_j,veh_i) = coupling_infos(count).weight; 
-                            coupling_infos(count).idLeader = veh_j;
-                            coupling_infos(count).speedLeader = speed_j;
-                            coupling_infos(count).positionLeader = position_j;
-                            coupling_infos(count).idFollower = veh_i;
-                            coupling_infos(count).speedFollower = speed_i;
-                            coupling_infos(count).positionFollower = position_i;
+                            coupling_weights(veh_j,veh_i) = coupling_info(count).weight; 
+                            coupling_info(count).idLeader = veh_j;
+                            coupling_info(count).speedLeader = speed_j;
+                            coupling_info(count).positionLeader = position_j;
+                            coupling_info(count).idFollower = veh_i;
+                            coupling_info(count).speedFollower = speed_i;
+                            coupling_info(count).positionFollower = position_i;
                         end
                         count = count + 1;
                         stop_flag = true;
@@ -295,7 +295,7 @@ function scenario = get_coupling_infos(scenario, iter)
     scenario.adjacency(:,:,scenario.k) = adjacency;
 
     scenario.coupling_weights = coupling_weights;
-    scenario.coupling_infos = coupling_infos;  
+    scenario.coupling_info = coupling_info;  
 end
 
 
@@ -319,6 +319,19 @@ function idx_lanelet_pair = find_idx_lanelet_pair(predicted_lanelet_i, predicted
 end
 
  
+%% local function
+function stop_point = get_stop_point_after_travel_certain_distance(position, lanelet, distance_to_travel)
+% returns the stop point of the vehicle after travel a certain distance
+% along the lanelet
+    distances_to_veh = sqrt(sum((lanelet-position).^2,2));
+    [~,idx_closest_to_veh] = min(distances_to_veh);
+    distances_to_veh(1:idx_closest_to_veh) = inf; % points before vehicle's position are irrelevant
+    distances_diff = distance_to_travel - distances_to_veh;
+    [~,idx_colsest_to_stop_point] = min(abs(distances_diff));
+    vector_direction = lanelet(idx_colsest_to_stop_point,:) - lanelet(idx_colsest_to_stop_point-1,:);
+    unit_vector_direction = vector_direction/norm(vector_direction);
+    stop_point = lanelet(idx_colsest_to_stop_point,:) + distances_diff(idx_colsest_to_stop_point)*unit_vector_direction;
+end
 %% local function
 function coupling_weight = weighting_function(STAC,sensitive_factor)
     % returns the coupling weight based on the shortest time to achieve a

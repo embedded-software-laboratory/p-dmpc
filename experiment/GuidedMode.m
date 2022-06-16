@@ -51,6 +51,7 @@ classdef GuidedMode
                     , scenario.Hp...
                     , scenario.tick_per_step...
                     , true...
+                    , scenario.is_allow_non_convex...
                     , scenario.options...
                 );
                 scenario.speed_profile_mpas(1) = lowSpeedProfileMPA;
@@ -64,6 +65,7 @@ classdef GuidedMode
                     , scenario.Hp...
                     , scenario.tick_per_step...
                     , true...
+                    , scenario.is_allow_non_convex...
                     , scenario.options...
                 );
                 scenario.speed_profile_mpas(3) = highSpeedProfileMPA;
@@ -108,7 +110,7 @@ classdef GuidedMode
                     end
 
                     if (index_successor ~= 0)
-                        laneID = find_lane_for_change(index_successor, true);
+                        laneID = find_lane_for_change(scenario, index_successor, true);
                     end
 
                 elseif modeHandler.steering < -0.3
@@ -138,7 +140,7 @@ classdef GuidedMode
                     end
 
                     if (index_successor ~= 0)
-                        laneID = find_lane_for_change(index_successor, false);
+                        laneID = find_lane_for_change(scenario, index_successor, false);
                     end
                 end
             end

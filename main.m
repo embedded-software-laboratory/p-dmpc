@@ -29,8 +29,6 @@ if is_sim_lab
             % former UI for Sim lab
             %options = selection();
     end
-    vehicle_ids = 1:options.amount; % default IDs
-%     vehicle_ids = [10,14,16,17,18,20]; % specify vehicles IDs
     manualVehicle_id = 0;
     manualVehicle_id2 = 0;
 
@@ -42,6 +40,19 @@ if is_sim_lab
     options.mixedTrafficScenarioLanelets = false;
     options.collisionAvoidanceMode = 0;
     
+
+switch options.amount
+    % specify vehicles IDs
+    case 2
+        vehicle_ids = [14,16];
+    case 4
+        vehicle_ids = [14,16,18,20];
+    case 6
+        vehicle_ids = [10,14,16,17,18,20]; 
+    otherwise
+        vehicle_ids = 1:options.amount; % default IDs
+end
+
 else
     disp('cpmlab')
     vehicle_ids = [varargin{:}];
@@ -87,8 +98,6 @@ end
     
 % scenario = circle_scenario(options.amount,options.isPB);
 % scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
-
-% plot_reachable_sets_offline(scenario.mpa)
  
 switch options.scenario
     case 'Circle_scenario'
@@ -244,18 +253,16 @@ while (~got_stop)
         
         % update the coupling information
         if strcmp(scenario.name, 'Commonroad')
-            % update the lanelet boundary for each vehicle
-            for iVeh = 1:options.amount
-                scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(iVeh,:);
-            end
-
-            if options.isParl
-                % update the coupling information
-                scenario = get_coupling_infos(scenario, iter);
-            else
+            if ~options.isParl
                 % update the coupling information
                 scenario = coupling_adjacency(scenario, iter);
             end
+
+            % update the lanelet boundary for each vehicle
+            for iVeh = 1:options.amount
+                scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(iVeh,1:2);
+            end
+
         end
         
         % calculate the distance
@@ -277,8 +284,10 @@ while (~got_stop)
         
         % The controller computes plans
         controller_timer = tic; 
-            [u, y_pred, info] = scenario.controller(scenario_tmp, iter);
-        scenario.last_veh_at_intersection = info.veh_at_intersection;
+        %% controller %%
+        [u, y_pred, info, scenario] = scenario.controller(scenario_tmp, iter);
+        
+        %% save result
         result.controller_runtime(k) = toc(controller_timer);
         result.iteration_structs{k} = iter;
         
@@ -297,7 +306,6 @@ while (~got_stop)
         result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
         if options.isParl
             result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
-            result.belonging_vector{k} = info.belonging_vector;
         end
        
         % Apply control action
@@ -309,48 +317,47 @@ while (~got_stop)
     % catch case where graph search could not find a new node
      catch ME
         switch ME.identifier
-        case 'MATLAB:graph_search:tree_exhausted'
-            warning([ME.message, ', ME, fallback to last priority.............']);
-             
-            fallback = fallback + 1;
-            fallback_update = fallback_update + 1;
-            disp(['fallback: ', num2str(fallback)])
-
-            % fallback to last plan
-            controller_timer = tic;
-            [u, y_pred, info] = pb_controller_fallback(scenario, u, y_pred, info, options);
-            result.controller_runtime(k) = toc(controller_timer);
-            
-            % save controller outputs in result struct
-            result.scenario = scenario;
-            result.iteration_structs{k} = iter;
-            result.trajectory_predictions(:,k) = y_pred;
-            result.controller_outputs{k} = u;
-            result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
-            result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
-            result.n_expanded(k) = info.n_expanded;
-            result.priority(:,k) = info.priority_list;
-            result.computation_levels(k) = info.computation_levels;
-            result.edges_to_break{k} = info.edge_to_break;
-            result.step_time(k) = toc(result.step_timer);
-            result.fallback = fallback;
-            if options.isParl
-                result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
-                result.belonging_vector{k} = info.belonging_vector;
-            end
-            % Apply control action
-            % -------------------------------------------------------------------------
-            exp.apply(u, y_pred, info, result, k, scenario); 
-            
-            % if fallback to last plan Hp times continuously, the vehicle
-            % will stop at the current position, terminate the simulation
-            if fallback_update == scenario.Hp
-                got_stop = true;
-                disp('Already fallback Hp times, terminate the simulation')
-            end
-            
-        otherwise
-            rethrow(ME)
+            case 'MATLAB:graph_search:tree_exhausted'
+                warning([ME.message, ', ME, fallback to last priority.............']);
+                 
+                fallback = fallback + 1;
+                fallback_update = fallback_update + 1;
+                disp(['fallback: ', num2str(fallback)])
+    
+                % fallback to last plan
+                controller_timer = tic;
+                [u, y_pred, info] = pb_controller_fallback(scenario, iter, u, y_pred, info, options);
+                result.controller_runtime(k) = toc(controller_timer);
+                
+                % save controller outputs in result struct
+                result.scenario = scenario;
+                result.iteration_structs{k} = iter;
+                result.trajectory_predictions(:,k) = y_pred;
+                result.controller_outputs{k} = u;
+                result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
+                result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
+                result.n_expanded(k) = info.n_expanded;
+                result.priority(:,k) = info.priority_list;
+                result.computation_levels(k) = info.computation_levels;
+                result.edges_to_break{k} = info.edge_to_break;
+                result.step_time(k) = toc(result.step_timer);
+                result.fallback = fallback;
+                if options.isParl
+                    result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group
+                end
+                % Apply control action
+                % -------------------------------------------------------------------------
+                exp.apply(u, y_pred, info, result, k, scenario); 
+                
+                % if fallback to last plan Hp times continuously, the vehicle
+                % will stop at the current position, terminate the simulation
+                if fallback_update == scenario.Hp
+                    got_stop = true;
+                    disp('Already fallback Hp times, terminate the simulation')
+                end
+                
+            otherwise
+                rethrow(ME)
         end
     end
     
@@ -362,11 +369,16 @@ end
 %delete(gcp('nocreate'));
 %% save results
 
-for kVeh = 1:options.amount
-    % delete varibales used for ROS 2 since some of them cannot be saved
-    result.scenario.vehicles(kVeh).communicate = [];
+% Delete varibales used for ROS 2 since some of them cannot be saved
+% Create comma-separated list
+empty_cells = cell(1,options.amount);
+
+result.scenario.ros_subscribers = [];
+[result.scenario.vehicles.communicate] = empty_cells{:};
+for i_iter = 1:length(result.iteration_structs)
+    [result.iteration_structs{i_iter}.scenario.vehicles.communicate] = empty_cells{:};
+    result.iteration_structs{i_iter}.scenario.ros_subscribers = [];
 end
-result.scenario.ros_subscribers = {};
 
 result.mpa = scenario.mpa;
 save(result.output_path,'result');

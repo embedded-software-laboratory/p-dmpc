@@ -10,8 +10,7 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
    
     lanelets_index_vehid = startPosition;  
     
-    load('commonroad_data.mat');
-    commonroad = commonroad_data;
+    road_data = scenario.road_raw_data;
 
     manual_path.lanelets_index = [lanelets_index_vehid];
 
@@ -20,11 +19,11 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
         subsequent_lanes = struct;
         subsequent_lanes.lanelets_index = [0];
 
-        for i = 1:length(commonroad_data.lanelet)
+        for i = 1:length(road_data.lanelet)
             
             % find id of current lane
-            if  manual_path.lanelets_index(end) == commonroad_data.lanelet(i).idAttribute
-                successor = commonroad_data.lanelet(i).successor;
+            if  manual_path.lanelets_index(end) == road_data.lanelet(i).idAttribute
+                successor = road_data.lanelet(i).successor;
                 subsequent_indices = horzcat(successor.refAttribute);
                 
                 for j = 1:length(subsequent_indices)
@@ -65,7 +64,7 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
 
     if endOnInnerLane
         index_end = manual_path.lanelets_index(end);
-        laneID = find_lane_for_change(index_end, false);
+        laneID = find_lane_for_change(scenario, index_end, false);
 
         if laneID ~= 0
             manual_path.lanelets_index(end) = laneID;

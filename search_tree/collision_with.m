@@ -1,4 +1,4 @@
-function collision = collision_with(index, shapes, shapes_without_offset, scenario, iStep)
+function collision = collision_with(index, shapes, shapes_for_lanelet_check, scenario, iStep)
 % COLLISION_WITH    Determine whether position has is a collision.
 
     collision = false;
@@ -57,9 +57,8 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
         %if check_lanelet_boundary(scenario, scenario.vehicles(1,index).lanelet_boundary, shapes_without_offset{index})
             %return;
         %end
-
-        if intersect_lanelet_boundary(shapes_without_offset{index},scenario.vehicles(1,index).lanelet_boundary) 
-            %disp(sprintf("vehicle id responsible for collision with boundaries: %d", scenario.vehicles.ID));
+        if intersect_lanelet_boundary(shapes_for_lanelet_check{index}, scenario.vehicles(1,index).lanelet_boundary) 
+            %disp(sprintf("vehicle id responsible for collision: %d", scenario.vehicles.vehicle_id));
             collision = true;
             return;
         end
@@ -68,9 +67,7 @@ function collision = collision_with(index, shapes, shapes_without_offset, scenar
     % check if collides with the reachable sets of coupling vehicles with higher priorities 
     if ~isempty(scenario.dynamic_obstacle_reachableSets)
         for i = 1:size(scenario.dynamic_obstacle_reachableSets,1)
-%             if intersect_sat(shapes{index},scenario.dynamic_obstacle_reachableSets{i,iStep}) 
-            if InterX(shapes{index}, scenario.dynamic_obstacle_reachableSets{i,iStep})
-                % if the reachable sets are non-convex, separating axis theorem cannot be used
+            if intersect_sat(shapes{index},scenario.dynamic_obstacle_reachableSets{i,iStep}) 
                 collision = true;
                 return;
             end

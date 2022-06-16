@@ -1,4 +1,4 @@
-function path_infos = get_longest_paths_from_sources_to_sinks(M)
+function path_info = get_longest_paths_from_sources_to_sinks(M)
 % GET_LONGEST_PATHS_FROM_SOURCES_TO_SINKS Returns a struct contains the
 % all longest paths starting from source vertices to sink vertices.
 
@@ -8,7 +8,7 @@ function path_infos = get_longest_paths_from_sources_to_sinks(M)
     n_sources = length(source_vertices);
     n_sinks = length(sink_vertices);
 
-    path_infos(n_sources*n_sinks) = struct('source',[],'sink',[],'path',[],'length',[]);
+    path_info(n_sources*n_sinks) = struct('source',[],'sink',[],'path',[],'length',[]);
 
     count = 1;
 
@@ -20,16 +20,16 @@ function path_infos = get_longest_paths_from_sources_to_sinks(M)
         source_i = source_vertices(i);
         for j = 1:n_sinks
             sink_j = sink_vertices(j);
-            path_infos(count).source = source_i;
-            path_infos(count).sink = sink_j;
-            path_infos(count).path = shortestpath(G_negative_weighted,source_i,sink_j);
-            path_infos(count).length = length(path_infos(count).path);
+            path_info(count).source = source_i;
+            path_info(count).sink = sink_j;
+            path_info(count).path = shortestpath(G_negative_weighted,source_i,sink_j);
+            path_info(count).length = length(path_info(count).path);
             count = count + 1;
         end
     end
 
     % order the paths according to their lengths
-    [~,descending_order] = sort([path_infos.length],'descend');
-    path_infos = path_infos(descending_order);
+    [~,descending_order] = sort([path_info.length],'descend');
+    path_info = path_info(descending_order);
 
 end
