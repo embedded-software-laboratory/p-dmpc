@@ -20,13 +20,13 @@ classdef  mixed_traffic_priority < interface_priority
             prios = zeros(1, nVeh);
             for i = 1:nVeh
                 if obj.scenario.vehicle_ids(i) == obj.scenario.manual_vehicle_id
-                    prios(end) = i;
+                    prios(1) = i;
                 elseif obj.scenario.vehicle_ids(i) == obj.scenario.second_manual_vehicle_id
-                    prios(end-1) = i;
+                    prios(2) = i;
                 else
-                    for j = 1:nVeh
-                        if prios(j) == 0
-                            prios(j) = i;
+                    for j = 0:(nVeh-1)
+                        if prios(end-j) == 0
+                            prios(end-j) = i;
                             break
                         end
                     end
