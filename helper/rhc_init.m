@@ -1,7 +1,8 @@
-function iter = rhc_init(scenario, x_measured, trims_measured, initialized_reference_path, is_sim_lab, exp)
+function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, initialized_reference_path, is_sim_lab, exp)
 % RHC_INIT  Preprocessing step for RHC controller
 
     idx = indices();
+    iter_scenario = scenario;
 
     if ~is_sim_lab
         if ~initialized_reference_path
@@ -105,7 +106,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
     Hp = scenario.Hp;
     
     iter = struct;
-    iter.scenario = scenario;
+    iter_scenario = scenario;
     iter.referenceTrajectoryPoints = zeros(nVeh,Hp,2);
     iter.referenceTrajectoryIndex = zeros(nVeh,Hp,1);
     iter.x0 = zeros(nVeh, 4);                           % state
@@ -132,8 +133,8 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
             iter.trim_indices = trims_measured;
         end
 
-        iter.scenario.vehicles(iVeh).x_position = iter.x0(iVeh,idx.x);
-        iter.scenario.vehicles(iVeh).y_position = iter.x0(iVeh,idx.y);
+        iter_scenario.vehicles(iVeh).x_position = iter.x0(iVeh,idx.x);
+        iter_scenario.vehicles(iVeh).y_position = iter.x0(iVeh,idx.y);
         if (scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.manual_mpa_initialized)
             iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
         elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.second_manual_mpa_initialized)
@@ -142,7 +143,7 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
             iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,iter.trim_indices(iVeh));
         end
 
-        if ~iter.scenario.options.is_sim_lab && iter.scenario.vehicle_ids(iVeh) ~= iter.scenario.manual_vehicle_id && iter.scenario.vehicle_ids(iVeh) ~= iter.scenario.second_manual_vehicle_id
+        if ~iter_scenario.options.is_sim_lab && iter_scenario.vehicle_ids(iVeh) ~= iter_scenario.manual_vehicle_id && iter_scenario.vehicle_ids(iVeh) ~= iter_scenario.second_manual_vehicle_id
             %[scenario.vehicles(iVeh).referenceTrajectory] = modify_lane_changes(scenario.vehicles(iVeh).lane_change_indices, iter.vRef(iVeh,:)*scenario.dt, scenario.vehicles(iVeh).referenceTrajectory);
         end
 
@@ -182,8 +183,22 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
                 end
             end
 
+            % if there is a lane change in the random path, add the boundary of the lane before the change as the vehicle might be still on the lane before change
+            if ~scenario.options.is_sim_lab && scenario.manual_vehicle_id ~= scenario.vehicle_ids(iVeh) && scenario.second_manual_vehicle_id ~= scenario.vehicle_ids(iVeh)
+                if ~isempty(scenario.vehicles(iVeh).lane_change_lanes)
+                    scenario.vehicles(iVeh).lane_change_lanes = nonzeros(scenario.vehicles(iVeh).lane_change_lanes);
+                    for i = 1:(length(scenario.vehicles(iVeh).lane_change_lanes)/2)
+                        beforeLaneChange = scenario.vehicles(iVeh).lanelets_index(scenario.vehicles(iVeh).lane_change_lanes(i));
+                        laneChange = scenario.vehicles(iVeh).lanelets_index(scenario.vehicles(iVeh).lane_change_lanes(i+(length(scenario.vehicles(iVeh).lane_change_lanes))/2));
+                        if ~ismember(beforeLaneChange, predicted_lanelets) && ismember(laneChange, predicted_lanelets)
+                            predicted_lanelets = [beforeLaneChange, predicted_lanelets];
+                        end
+                    end
+                end
+            end
+
             iter.predicted_lanelets{iVeh} = predicted_lanelets;
-            iter.scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
+            iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
             
             %{
             % visualize trajectory index

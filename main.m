@@ -169,8 +169,8 @@ while (~got_stop)
         % ----------------------------------------------------------------------
          
         % Update the iteration data and sample reference trajectory
-        iter = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab, exp);
-        scenario = iter.scenario;
+        [iter, scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab, exp);
+       
         if (~initialized_reference_path || scenario.updated_manual_vehicle_path || scenario.updated_second_manual_vehicle_path)
             %exp.update();
         end

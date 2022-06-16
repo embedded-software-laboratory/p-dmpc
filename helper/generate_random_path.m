@@ -6,7 +6,7 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
 
     random_path = struct;
     lane_change_indices = zeros(10,4);
-    lane_change_lanes = zeros(1,12);
+    lane_change_lanes = zeros(10,2);
     
     disp(sprintf('Id: %d', vehid));
    
@@ -121,6 +121,7 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
     lanelet_point_max = 0;
     points_index = zeros(1,length( random_path.lanelets_index));
     laneChangeLanesIndices = [];
+    beforeLaneChangeIndices = [];
 
     % find indices of lanes that were chosen as adjacents lanes
     for i = 1:length(random_path.lanelets_index)-1
@@ -132,6 +133,7 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
             if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
                 if ismember(random_path.lanelets_index(i+1), successor_adjacentLeft.refAttribute)
                     laneChangeLanesIndices = [laneChangeLanesIndices, i+1];
+                    beforeLaneChangeIndices = [beforeLaneChangeIndices, i];
                     break
                 end
             end
@@ -140,13 +142,13 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
             if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
                 if ismember(random_path.lanelets_index(i+1), successor_adjacentRight.refAttribute)
                     laneChangeLanesIndices = [laneChangeLanesIndices, i+1];
+                    beforeLaneChangeIndices = [beforeLaneChangeIndices, i];
                     break
                 end
             end
         end
     end
 
-    lane_change_lanes = laneChangeLanesIndices;
     delete_index = 1;
 
     % interpolate points for smooth lane changes
@@ -323,28 +325,31 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
                         break
                     end
                 end
+
+                for i = 1:length(lane_change_lanes)
+                    if lane_change_lanes(i,1) == 0
+                        lane_change_lanes(i,1) = nlanelets-1;
+                        lane_change_lanes(i,2) = nlanelets;
+                        break
+                    end
+                end
             end
         end
 
         if ~ismember(nlanelets, laneChangeLanesIndices)
             randomPath_next = [randomPath_x(start_index:(end)),randomPath_y(start_index:(end))];
             path = [path; randomPath_next];
-
-            % count the number of points of each lanelets
-            Npoints = length(randomPath_next);
-            % max point index of each lanelet
-            lanelet_point_max = lanelet_point_max + Npoints;
-            points_index(nlanelets) = lanelet_point_max;
         else
-            randomPath_next = [randomPath_x(6:end),randomPath_y(6:end)];
+            startIndex = uint8(length(randomPath_x) / 2);
+            randomPath_next = [randomPath_x(startIndex:end),randomPath_y(startIndex:end)];
             path = [path; randomPath_next];
-
-            % count the number of points of each lanelets
-            Npoints = length(randomPath_next);
-            % max point index of each lanelet
-            lanelet_point_max = lanelet_point_max + Npoints;
-            points_index(nlanelets) = lanelet_point_max;
         end 
+
+        % count the number of points of each lanelets
+        Npoints = length(randomPath_next);
+        % max point index of each lanelet
+        lanelet_point_max = lanelet_point_max + Npoints;
+        points_index(nlanelets) = lanelet_point_max;
     end 
     random_path.path = path;
     random_path.points_index = points_index;
