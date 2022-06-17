@@ -111,7 +111,7 @@ scenario.priority_option = options.priority;
 scenario.manual_vehicle_id = manualVehicle_id;
 scenario.second_manual_vehicle_id = manualVehicle_id2;
 scenario.vehicle_ids = vehicle_ids;
-scenario. mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
+scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
 scenario.options = options;
 
 for iVeh = 1:scenario.options.amount

@@ -1,0 +1,16 @@
+<?xml version='1.0'?>
+<launch>
+	<node pkg='ros_g29_force_feedback' name='g29ff' exec='g29_force_feedback'> 
+		<param name='device_name' value='/dev/input/event7'/>
+		<param name='loop_rate' value='0.1'/>
+		<param name='max_torque' value='1.0'/>
+		<param name='min_torque' value='0.2'/>
+		<param name='brake_torque' value='0.2'/>
+		<param name='brake_position' value='0.1'/>
+		<param name='auto_centering_max_torque' value='0.3'/>
+		<param name='auto_centering_max_position' value='0.2'/>
+		<param name='eps' value='0.05'/>
+		<param name='auto_centering' value='true'/>
+	 	<param from='home/Documents/ros2_ws/install/ros_g29_force_feedback/share/ros_g29_force_feedback/config/g29.yaml'/>
+	</node>
+</launch>

@@ -19,6 +19,7 @@ classdef Scenario
         updated_manual_vehicle_path = false;
         second_manual_mpa_initialized = false;
         updated_second_manual_vehicle_path = false;
+        g29_force_feedback                      % to send position and torque to Logitech G29 steering wheel
         vehicle_ids = [];
         trim_set = 3;
         offset = 0.01;

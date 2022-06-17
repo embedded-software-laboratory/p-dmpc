@@ -25,6 +25,8 @@ classdef CPMLab < InterfaceExperiment
         lastSteeringValue
         stored_wheel_msgs
         stored_gamepad_msgs
+        g29_handler
+        g29_last_position
     end
 
     properties(Access=public)
@@ -137,6 +139,9 @@ classdef CPMLab < InterfaceExperiment
                     % if function handle, then define ros types for pool
                     %obj.wheelNode = parallel.pool.Constant(ros2node("/wheel"));
                     %obj.wheelSub = parallel.pool.Constant(ros2subscriber(obj.wheelNode,"/j0"));
+                    obj.scenario.g29_force_feedback = true;
+                    obj.g29_handler = G29ForceFeedback();
+                    obj.g29_last_position = 0.0;
                 elseif obj.scenario.options.firstManualVehicleMode == 2
                     obj.wheelNode = ros2node("/wheel");
                     obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@steeringWheelCallback);
@@ -353,7 +358,25 @@ classdef CPMLab < InterfaceExperiment
                     end
                 end
 
-                obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
+                obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory)
+                disp(cos(yaw));
+                disp("sin:");
+                disp(sin(yaw));
+
+                rad = speed / yaw;
+
+                Lr = scenario.vehicles(iVeh).Lr;
+                Lf = scenario.vehicles(iVeh).Lf;
+                L = Lr + Lf;
+                %d = sqrt(rad^2-Lr^2);
+                %delta = pi/2 - atan(d/L);
+                delta = atan((L*(sin(yaw)+cos(yaw)))/speed);
+                %disp(delta);
+
+
+                if obj.scenario.g29_force_feedback && scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id
+                    obj.g29_last_position = obj.g29_handler.g29_send_message(yaw, 0.3, obj.g29_last_position);                 
+                end
             end
         end
 
