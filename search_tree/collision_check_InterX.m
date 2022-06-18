@@ -24,8 +24,8 @@ function [collision] = collision_check_InterX(shape, scenario, iStep)
     % get static occupied areas of the considered vehicles
     static_obstacles = scenario.obstacles;
 
-    % get crossing areas of lanelets
-    lanelet_crossing_areas = scenario.lanelet_crossing_areas;
+    % get intersecting areas of lanelets
+    lanelet_intersecting_areas = scenario.lanelet_intersecting_areas;
     
     % get predicted occupied areas of the coupling vehicles in the current time step
     [~, n_occupiedAreas_Hp] = size(scenario.dynamic_obstacle_area);
@@ -46,15 +46,15 @@ function [collision] = collision_check_InterX(shape, scenario, iStep)
     % get lanelet boundary
     lanelet_boundary = scenario.vehicles.lanelet_boundary;
 
-%     obstacles_shapes = [static_obstacles(:)', lanelet_crossing_areas(:)', predicted_occpuied_areas(:)', reachable_sets(:)'];
+%     obstacles_shapes = [static_obstacles(:)', lanelet_intersecting_areas(:)', predicted_occpuied_areas(:)', reachable_sets(:)'];
     for i = 1:length(static_obstacles)
         if InterX(shape,[static_obstacles{i},static_obstacles{i}(:,1)])
             collision = true;
             return
         end
     end
-    for j = 1:length(lanelet_crossing_areas)
-        if InterX(shape,[lanelet_crossing_areas{j},lanelet_crossing_areas{j}(:,1)])
+    for j = 1:length(lanelet_intersecting_areas)
+        if InterX(shape,[lanelet_intersecting_areas{j},lanelet_intersecting_areas{j}(:,1)])
             collision = true;
             return
         end
