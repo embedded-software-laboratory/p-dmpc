@@ -77,6 +77,9 @@ sccprj/
 # Matlab code generation folders
 codegen/
 
+# Matlab ROS message generation folders
+matlab_msg_gen/
+
 # Simulink autosave extension
 *.autosave
 
