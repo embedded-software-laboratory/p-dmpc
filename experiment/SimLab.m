@@ -50,7 +50,7 @@ classdef SimLab < InterfaceExperiment
             [ x0, trim_indices ] = obj.measure_node();
         end
         
-        function apply(obj, ~, ~, info, result, k, ~)
+        function apply(obj, info, result, k)
             % simulate change of state
             obj.cur_node = info.next_node;
             obj.k = k;            
