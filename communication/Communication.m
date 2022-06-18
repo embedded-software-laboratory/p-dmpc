@@ -30,7 +30,13 @@ classdef Communication
             obj.options = struct("History","keeplast","Depth",40,"Durability","transientlocal");
         end
 
-        function obj = create_publisher(obj)
+        function obj = create_publisher(obj, scenario)
+            if ~scenario.options.is_sim_lab
+                % workaround to be able to create publisher
+                obj.publisher = ros2publisher(obj.ros2_node,"/parameter_events");
+                pause(0.2)
+            end
+
             % create publisher: each vehicle send message only to its own topic with name '/vehicle_ID'
             topic_name_publish = ['/vehicle_',num2str(obj.vehicle_id)]; 
             obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/Traffic", obj.options);

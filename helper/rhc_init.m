@@ -43,6 +43,19 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 yaw = calculate_yaw(updatedRefPath);
                 scenario.vehicles(iVeh).yaw_start = yaw(1);
                 scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
+
+                if scenario.options.isParl
+                    % Communicate predicted trims, predicted lanelets and areas to other vehicles
+                    predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
+
+                    x0 = x_measured(iVeh,idx.x); % vehicle position x
+                    y0 = x_measured(idx.y); % vehicle position y
+
+                    predicted_lanelets = get_predicted_lanelets(scenario.vehicles(iVeh),predicted_trims(1),x0,y0,scenario.mpa,scenario.dt);
+
+                    predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+                    scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
+                end        
             end
         else
             for iVeh = 1:scenario.nVeh
@@ -266,7 +279,13 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 % Calculate reachable sets of other vehicles based on their
                 % current states and trims. Reachability analysis will be
                 % widely used in the parallel computation.
-                local_reachable_sets = scenario.mpa.local_reachable_sets;
+                if (scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.manual_mpa_initialized)
+                    local_reachable_sets = scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
+                elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.second_manual_mpa_initialized)
+                    local_reachable_sets = scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
+                else
+                    local_reachable_sets = scenario.mpa.local_reachable_sets;
+                end
                 iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, scenario.is_allow_non_convex);
             end
         end

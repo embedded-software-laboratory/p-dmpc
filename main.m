@@ -89,7 +89,8 @@ else
         options.priority = 'mixed_traffic_priority';
     elseif options.collisionAvoidanceMode == 2 || options.collisionAvoidanceMode == 3
         options.isParl = true;
-        options.priority = 'topo_priority';
+        %options.priority = 'topo_priority';
+        options.priority = 'mixed_traffic_priority';
     else
         options.isParl = false;
         options.priority = 'topo_priority';
