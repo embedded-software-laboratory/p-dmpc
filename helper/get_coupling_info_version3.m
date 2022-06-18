@@ -27,19 +27,19 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
         time_enter_intersection = inf*ones(1,nVeh);
     end
 
-    last_veh_at_intersection = scenario.last_veh_at_intersection;
+    last_vehs_at_intersection = scenario.last_vehs_at_intersection;
 
     % vehicles are considered as at the intersection if their distances to
     % the intersection center point is smaller than a certain value
     distances_to_intersection_center = sqrt(sum((iter.x0(:,1:2) - scenario.intersection_center).^2,2));
     all_veh_at_intersection = find(distances_to_intersection_center < scenario.distance_threshold_intersection);
 
-    new_veh_at_intersection = setdiff(all_veh_at_intersection, last_veh_at_intersection);
+    new_veh_at_intersection = setdiff(all_veh_at_intersection, last_vehs_at_intersection);
     if ~isempty(new_veh_at_intersection)
         % disp('debug')
     end
 
-    veh_leave_intersection = setdiff(last_veh_at_intersection,all_veh_at_intersection);
+    veh_leave_intersection = setdiff(last_vehs_at_intersection,all_veh_at_intersection);
     time_enter_intersection(new_veh_at_intersection) = scenario.k;
     time_enter_intersection(veh_leave_intersection) = inf; % set to inf if vehicle leaves the intersection
     
@@ -124,7 +124,7 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
                 coupling_info(count).weight = weighting_function(STAC_adapted);
 
                 if is_leader % vehicle_i is the leader
-%                     disp(['Leader with ID ' num2str(veh_i) ' is coupled with follower with ID ' num2str(veh_j) ' .']) 
+%                     disp(['Leader with ID ' num2str(veh_i) ' is coupled with follower with ID ' num2str(veh_j) '.']) 
                     coupling_weights(veh_i,veh_j) = coupling_info(count).weight; 
                     coupling_info(count).veh_with_ROW = veh_i; 
                     coupling_info(count).speedLeader = speed_i;
@@ -133,7 +133,7 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
                     coupling_info(count).speedFollower = speed_j;
                     coupling_info(count).positionFollower = position_j;
                 else % vehicle_j is the leader
-%                     disp(['Leader with ID ' num2str(veh_j) ' is coupled with follower with ID ' num2str(veh_i) ' .'])
+%                     disp(['Leader with ID ' num2str(veh_j) ' is coupled with follower with ID ' num2str(veh_i) '.'])
                     coupling_weights(veh_j,veh_i) = coupling_info(count).weight; 
                     coupling_info(count).veh_with_ROW = veh_j;
                     coupling_info(count).speedLeader = speed_j;

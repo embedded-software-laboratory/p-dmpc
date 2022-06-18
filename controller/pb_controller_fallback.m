@@ -1,53 +1,40 @@
-function [u, y_pred, info, scenario] = pb_controller_fallback(scenario, iter, u, y_pred, info, options)
+function info = pb_controller_fallback(info, info_old, scenario)
 % pb_controller_fallback    planning by using last priority and trajectories directly
 
+    vehs_fallback = info.vehs_fallback;
+    vehs_fallback = vehs_fallback(:)'; % turn to row vector
+    assert(isrow(vehs_fallback))
 
-
-    nVeh = length(scenario.vehicles);
-    for vehicle_idx = 1:nVeh
-        subcontroller_timer = tic;
-        %
-        info_v.tree = info.tree{vehicle_idx};
-        info_v.tree_path = info.tree_path(vehicle_idx,2:end);
-        info_v.shapes = info.shapes;
-        info_v.trim_indices = info.trim_indices(vehicle_idx,:);
+    tick_per_step = scenario.tick_per_step + 1;
+    
+    for vehicle_idx = vehs_fallback        
+        % initialize
+        info_v = ControllResultsInfo(1,scenario.Hp,scenario.vehicles(vehicle_idx).ID);
         
-
-
+        info_v.tree = info_old.tree{vehicle_idx};
+        info_v.tree_path = del_first_rpt_last(info_old.tree_path(vehicle_idx,:));
+        info_v.shapes = del_first_rpt_last(info_old.shapes(vehicle_idx,:));
+        info_v.predicted_trims = del_first_rpt_last(info_old.predicted_trims(vehicle_idx,:));
+        
+        % predicted trajectory of the next time step
+        y_pred_v = info_old.y_predicted{vehicle_idx};
+        y_pred_v = [y_pred_v(tick_per_step+1:end,:); y_pred_v(tick_per_step*(scenario.Hp-1)+1:end,:)];
+        info_v.y_predicted = {y_pred_v};
+        
         % prepare output data
-        info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
-        info.n_expanded = info.n_expanded;
-        info.next_node = set_node(info.next_node,vehicle_idx,info_v);
-        info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario);
-        info.trim_indices(vehicle_idx,:) = info_v.trim_indices;
-        info.shapes(vehicle_idx,:) = [info.shapes(vehicle_idx,2:end),info.shapes(vehicle_idx,end)]; % the last conlumn is used to keep the size
-        info.tree_path(vehicle_idx,:) = [info.tree_path(vehicle_idx,2:end),info.tree_path(vehicle_idx,end)]; % the last element is used to keep the size
-        info.predicted_trims(vehicle_idx,:) = [info.predicted_trims(vehicle_idx,2:end),info.predicted_trims(vehicle_idx,end)]; % the last element is used to keep the size
-        y_pred{vehicle_idx,1} = [y_pred{vehicle_idx,1}((scenario.tick_per_step+1)+1:end,:);y_pred{vehicle_idx,1}((scenario.tick_per_step+1)*(scenario.Hp-1)+1:end,:)];
+        info = store_control_info(info,info_v,scenario);
 
-   
-%         disp('info.tree_path');
-%         disp(info.tree_path(vehicle_idx,:))
-%         disp('info_v.tree_path')
-%         disp(info_v.tree_path)
-%         disp('next node:')
-%         disp(info.next_node)
-
-    end
-
-    if options.isParl
-        % send message
-
-        info.subcontroller_runtime_all_grps = 0;
-        for iVeh = 1:nVeh
-            predicted_trims = info.predicted_trims(iVeh,:);
-            trim_current = predicted_trims(1);
-            x0 = info.vehicle_fullres_path{iVeh}(1,indices().x);
-            y0 = info.vehicle_fullres_path{iVeh}(1,indices().y);
-            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.mpa, scenario.dt);
+        if scenario.options.isParl
             % send message
-            send_message(scenario.vehicles(iVeh).communicate, scenario.k, predicted_trims, predicted_lanelets, info.shapes(iVeh,:));
+            predicted_trims = info.predicted_trims(vehicle_idx,:);
+            trim_current = predicted_trims(1);
+            x0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().x);
+            y0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().y);
+            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_idx), trim_current, x0, y0, scenario.mpa, scenario.dt, scenario.options.isParl);
+            % send message
+            send_message(scenario.vehicles(vehicle_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, info.shapes(vehicle_idx,:));
         end
+
     end
         
 end

@@ -57,6 +57,9 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
     iter.predicted_lanelets = cell(nVeh, 1);
     iter.predicted_lanelet_boundary = cell(nVeh, 3);    % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
     iter.reachable_sets = cell(nVeh, Hp);               % cells to store instances of MATLAB calss `polyshape`
+    iter.occupied_areas = cell(nVeh, 1);                % currently occupied areas with normal offset of vehicles 
+    iter.emergency_braking_maneuvers = cell(nVeh, 1);   % occupied area of emergency braking maneuver
+    
 
     % states of other vehicles can be directed measured
     iter.x0 = x_measured;
@@ -67,22 +70,6 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
             % lanelets of other vehicles from the received messages
             latest_msg_i = read_message(scenario.vehicles(iVeh).communicate, scenario.ros_subscribers{iVeh}, scenario.k-1);
 
-%             timeout = 0.5;      is_timeout = true;
-%             read_start = tic;   read_time = toc(read_start);
-%             while read_time < timeout
-%                 if scenario.ros_subscribers{iVeh}.LatestMessage.time_step == (scenario.k-1)
-% %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
-%                     is_timeout = false;
-%                     break
-%                 end
-%                 read_time = toc(read_start);
-%             end
-% 
-%             if is_timeout
-%                 warning(['The predicted trims of vehicle ' num2str(iVeh) ' are unable to received.'...
-%                     'The pevious message will be used.'])
-%             end
-%             latest_msg_i = scenario.ros_subscribers{iVeh}.LatestMessage;
             oldness_msg = scenario.k - latest_msg_i.time_step;
             iter.trim_indices(iVeh) = latest_msg_i.predicted_trims(oldness_msg+1);
         else
@@ -101,14 +88,13 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
         % Get the predicted lanelets of other vehicles
         % Byproducts: reference path and reference speed profile
         if (scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.manual_mpa_initialized)
-            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.vehicles(iVeh).vehicle_mpa, scenario.dt);
-
+            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.vehicles(iVeh).vehicle_mpa, scenario.dt, scenario.options.isParl);
 %             iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
         elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.second_manual_mpa_initialized)
-            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.vehicles(iVeh).vehicle_mpa, scenario.dt);
+            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.vehicles(iVeh).vehicle_mpa, scenario.dt, scenario.options.isParl);
 %             iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
         else
-            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.mpa, scenario.dt);
+            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.mpa, scenario.dt, scenario.options.isParl);
 %             iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,iter.trim_indices(iVeh));
         end
 
@@ -128,17 +114,43 @@ function iter = rhc_init(scenario, x_measured, trims_measured, initialized_refer
             iter.predicted_lanelets{iVeh} = predicted_lanelets;
         
             % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
-            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.vehicles(iVeh).lanelets_index);
+            predicted_lanelet_boundary = get_lanelets_boundary(scenario.lanelet_boundary(predicted_lanelets));
             iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
     
             if scenario.options.isParl
                 % Calculate reachable sets of other vehicles based on their
                 % current states and trims. Reachability analysis will be
                 % widely used in the parallel computation.
-                local_reachable_sets = scenario.mpa.local_reachable_sets;
+                local_reachable_sets = scenario.mpa.local_reachable_sets_conv;
                 iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, scenario.is_allow_non_convex);
             end
         end
+
+        % get each vehicle's currently occupied area
+        x_rec1 = [-1, -1,  1,  1, -1] * (scenario.vehicles(iVeh).Length/2 + scenario.offset); % repeat the first entry to enclose the shape
+        y_rec1 = [-1,  1,  1, -1, -1] * (scenario.vehicles(iVeh).Width/2 + scenario.offset);
+        % calculate displacement of model shape
+        [x_rec2, y_rec2] = translate_global(yaw0, x0, y0, x_rec1, y_rec1);
+        iter.occupied_areas{iVeh}.normal_offset = [x_rec2; y_rec2];
+
+        x_rec1_without_offset = [-1, -1,  1,  1, -1] * (scenario.vehicles(iVeh).Length/2); % repeat the first entry to enclose the shape
+        y_rec1_without_offset = [-1,  1,  1, -1, -1] * (scenario.vehicles(iVeh).Width/2);
+        [x_rec2_without_offset, y_rec2_without_offset] = translate_global(yaw0, x0, y0, x_rec1_without_offset, y_rec1_without_offset);
+        iter.occupied_areas{iVeh}.without_offset = [x_rec2_without_offset; y_rec2_without_offset];
+
+        % Get vehicle's occupied area of emergency braking maneuver
+        % with normal offset
+        area = scenario.mpa.emengency_braking_maneuvers{trim_current}.area;
+        [area_x,area_y] = translate_global(yaw0,x0,y0,area(1,:),area(2,:));
+        iter.emergency_braking_maneuvers{iVeh}.area = [area_x;area_y];
+        % without offset
+        area_without_offset = scenario.mpa.emengency_braking_maneuvers{trim_current}.area_without_offset;
+        [area_without_offset_x,area_without_offset_y] = translate_global(yaw0,x0,y0,area_without_offset(1,:),area_without_offset(2,:));
+        iter.emergency_braking_maneuvers{iVeh}.area_without_offset = [area_without_offset_x;area_without_offset_y];
+        % with large offset
+        area_large_offset = scenario.mpa.emengency_braking_maneuvers{trim_current}.area_large_offset;
+        [area_large_offset_x,area_large_offset_y] = translate_global(yaw0,x0,y0,area_large_offset(1,:),area_large_offset(2,:));
+        iter.emergency_braking_maneuvers{iVeh}.area_large_offset = [area_large_offset_x;area_large_offset_y];
     end
    
     % Determine Obstacle positions (x = x0 + v*t)

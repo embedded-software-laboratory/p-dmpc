@@ -1,4 +1,4 @@
-function [u, y_pred, info, scenario] = pb_controller(scenario, iter)
+function [info, scenario] = pb_controller(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
@@ -9,28 +9,27 @@ switch scenario.priority_option
         [groups, directed_adjacency] = obj.priority(); 
         right_of_way = false;
         veh_at_intersection = [];
-        edge_to_break = [];
-    case 'right_of_way_priority'
-        obj = right_of_way_priority(scenario,iter);
+%         edge_to_break = [];
+    case 'right_of_way_priority' 
         right_of_way = true;
-        [veh_at_intersection, groups, edge_to_break, directed_adjacency] = obj.priority();  
+        [veh_at_intersection, groups, ~, directed_adjacency] = right_of_way_priority().priority(scenario,iter);  
     case 'constant_priority'
         obj = constant_priority(scenario);
         [groups, directed_adjacency] = obj.priority(); 
         right_of_way = false;
         veh_at_intersection = [];
-        edge_to_break = [];
+%         edge_to_break = [];
     case 'random_priority' 
         obj = random_priority(scenario);
         [groups, directed_adjacency] = obj.priority(); 
         right_of_way = false;
         veh_at_intersection = [];
-        edge_to_break = [];
+%         edge_to_break = [];
     case 'FCA_priority'
         obj = FCA_priority(scenario,iter);
         [veh_at_intersection, groups, directed_adjacency] = obj.priority();
         right_of_way = false;
-        edge_to_break = [];   
+%         edge_to_break = [];   
 end
 
     % visualize the coupling between vehicles
@@ -39,7 +38,10 @@ end
     % construct the priority list
     computation_levels = length(groups);
     members_list = horzcat(groups.members);
+    
     nVeh = length(members_list); 
+    Hp = scenario.Hp;
+
     priority_list = zeros(1,nVeh);
     prio = 1;
     for iVeh = members_list 
@@ -50,39 +52,31 @@ end
     % update properties of scenario
     scenario.directed_coupling = directed_adjacency;
     scenario.priority_list = priority_list;
-    scenario.last_veh_at_intersection = veh_at_intersection;
-
-    y_pred = cell(scenario.nVeh,1);
-    u = zeros(scenario.nVeh,1);
+    scenario.last_vehs_at_intersection = veh_at_intersection;
     
-    info = struct;
-    info.vehicle_fullres_path = cell(scenario.nVeh,1);
-    info.trim_indices = (-1)*ones(scenario.nVeh,1);
-    info.subcontroller_runtime = zeros(scenario.nVeh,1);
-    info.shapes = cell(scenario.nVeh,scenario.Hp);
-    info.next_node = node(-1, zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), -1, -1);
-    info.n_expanded = 0;
-    info.priority_list = priority_list;
-    info.veh_at_intersection = veh_at_intersection;
-    info.computation_levels = computation_levels;
-    info.edge_to_break = edge_to_break;
+    % initialize variable to store control results
+    info = ControllResultsInfo(nVeh, Hp, [scenario.vehicles.ID]);
     
     % graph-search to select the optimal motion primitive
     sub_controller = @(scenario, iter)...
         graph_search(scenario, iter); 
 
+    directed_graph = digraph(directed_adjacency);
+    [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
+
     for grp_idx = 1:length(groups)
         group = groups(grp_idx);
         for grp_member_idx = 1:length(group.members) 
-            subcontroller_timer = tic;
             vehicle_idx = group.members(grp_member_idx);
-%             if vehicle_idx==6
-%                 disp('debug')
-%             end
+            if ismember(vehicle_idx, info.vehs_fallback)
+                % if the selected vehicle should take fallback
+                info.subcontroller_runtime(vehicle_idx) = 0;
+                continue
+            end
+            
             % Filter out vehicles that are not adjacent
             veh_adjacent = find(scenario.adjacency(vehicle_idx,:,end));
             predecessors = intersect(group.predecessors,veh_adjacent);
-%             predecessors = group.predecessors;
 
             % Filter out vehicles with lower or same priority.
             priority_filter = false(1,scenario.nVeh);
@@ -104,41 +98,37 @@ end
                 
                 % only two strategies are supported if parallel computation is not used
                 assert(strcmp(scenario_v.strategy_consider_veh_without_ROW,'1')==true || strcmp(scenario_v.strategy_consider_veh_without_ROW,'4')==true)
-                scenario_v = consideration_of_followers_by_leader(scenario_v, iter, adjacent_vehicle_lower_priority);
-%                 scenario_v = vehicles_as_static_obstacles(scenario_v,iter,adjacent_vehicle_lower_priority);
+                scenario_v = consider_vehs_without_ROW(scenario_v, iter, adjacent_vehicle_lower_priority);
             end
-%             if scenario_v.k >= 12 && vehicle_idx==1
-%                 disp('') % debug
-%                 plot_obstacles(scenario_v)
-%             end
+
+            if scenario.k >= 128
+                if vehicle_idx == 4
+                    disp('')
+                end
+            end
+
+            subcontroller_timer = tic;
             % execute sub controller for 1-veh scenario
-            [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
-            
-            % prepare output data
-            info.tree{vehicle_idx} = info_v.tree;
-            info.tree_path(vehicle_idx,:) = info_v.tree_path;
+            info_v = sub_controller(scenario_v, iter_v);
             info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
-            info.n_expanded = info.n_expanded + info_v.tree.size();
-            info.next_node = set_node(info.next_node,vehicle_idx,info_v);
-            info.shapes(vehicle_idx,:) = info_v.shapes(:);
-            info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario);
-            info.trim_indices(vehicle_idx) = info_v.trim_indices;
-            info.predicted_trims(vehicle_idx,:) = info_v.predicted_trims; % store the planned trims in the future Hp time steps
-            info.trees{vehicle_idx} = info_v.tree; % store tree information
-            info.y_predicted{vehicle_idx,1} = y_pred_v{:}; % store the information of the predicted output
-            y_pred{vehicle_idx,1} = y_pred_v{:};
-            u(vehicle_idx) = u_v(1);
+
+            if info_v.is_exhausted
+                % if graph search is exhausted, this vehicles and all vehicles that have directed or
+                % undirected couplings with this vehicle will take fallback 
+                disp(['Graph search exhausted for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
+                sub_graph_fallback = belonging_vector_total(vehicle_idx);
+                info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
+                info.vehs_fallback = unique(info.vehs_fallback,'stable');
+                info.is_exhausted(vehicle_idx) = true;
+            else
+                info = store_control_info(info, info_v, scenario);
+            end
         end
 
     end
 
-    % calculate the total run time: only one vehicle in each computation level will be counted, this is the one with the maximum run time 
-    subcontroller_run_time_total = 0;
-    for level_i = 1:computation_levels
-        vehs_in_level_i = groups(level_i).members;
-        subcontroller_run_time_total = subcontroller_run_time_total + max(info.subcontroller_runtime(vehs_in_level_i));
-    end
-
-    info.subcontroller_run_time_total = subcontroller_run_time_total;
-   
+    % calculate the total runtime: only one vehicle in each computation level will be counted, this is the one with the maximum runtime 
+    parl_groups_info = struct('vertices',1:nVeh,'num_CLs',computation_levels,'path_info',[]); % one group
+    info = get_run_time_total_all_grps(info, parl_groups_info, groups);
 end
+

@@ -83,7 +83,6 @@ function [u, y_pred, info, scenario] = pb_controller_parl(scenario, iter)
             info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario.mpa);
             info.trim_indices(vehicle_idx) = info_v.trim_indices;
             info.predicted_trims(vehicle_idx,:) = info_v.predicted_trims; % store the planned trims in the future Hp time steps
-            info.trees{vehicle_idx} = info_v.tree; % store tree information
             info.y_predicted{vehicle_idx,1} = y_pred_v{:}; % store the information of the predicted output
             info.n_exhausted(vehicle_idx) = info_v.n_exhausted; % store the number of graph search exhaustion times
             y_pred{vehicle_idx,1} = y_pred_v{:};

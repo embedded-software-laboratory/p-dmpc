@@ -23,7 +23,14 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, va
 %   of computation levels
     
     % Process optional input and Name-Value pair options
-    [M, max_num_CLs, method] = parse_inputs(M, varargin{:});
+    [M, max_num_CLs, coupling_info, method] = parse_inputs(M, varargin{:});
+
+    if ~isempty([coupling_info.veh_with_ROW])
+        % find all vehicles that drive in parallel 
+        coupling_info = coupling_info([coupling_info.is_drive_parallel]); 
+        vehs_drive_parallel = [coupling_info.veh_with_ROW,coupling_info.veh_without_ROW];
+        vehs_drive_parallel = reshape(vehs_drive_parallel,[],2);
+    end
 
     G_directed = digraph(M);
     assert(isdag(G_directed)) % check whether DAG
@@ -56,26 +63,41 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, va
     while num_CLs_longest_graph > max_num_CLs
         vertices_longest_graph = find(belonging_vector==longest_graph_ID); % vertices that belong to the longest graph
         M_longest_graph = M(vertices_longest_graph,vertices_longest_graph);
+        % constraint on which path must not be cut
+        must_in_same_subset = {}; % cell
+
+        % do not separate vehicles driving in parallel
+        for i_parl = 1:size(vehs_drive_parallel,1)
+            vehs_parl = vehs_drive_parallel(i_parl,:);
+            [~,vehs_parl_local] = ismember(vehs_parl,vertices_longest_graph);
+            if nnz(vehs_parl_local)==2
+                % if both two vehicles driving in parallel are in the
+                % selected subgraph
+                if ~any(ismember(vehs_parl_local,[must_in_same_subset{:}]))
+                    % not allow add repeated vehicles
+                    must_in_same_subset(end+1) = {vehs_parl_local};
+                    disp(['Vehicle ' num2str(vehs_parl(1)) ' and ' num2str(vehs_parl(2)) ' must plan trajectories in sequence because they drive in parallel.'])
+                else
+                    warning('More than two vehicles are driving in parallel!')
+                end
+            end
+        end
 
         % constraints on which paths must be cut
         must_not_in_same_subset = {subgraphs_info(longest_graph_ID).path_info(1).path}; % cell array
-        % constraint on which path must not be cut
-        must_in_same_subset = []; % vector
 
         % call program to cut the longest graph to two parts
         switch method 
-            case 's-t-cut'
+            case 's-t-cut' 
                 belonging_vector_longest_graph = min_cut_s_t(M_longest_graph, must_not_in_same_subset, must_in_same_subset);
             case 'MILP'
                 belonging_vector_longest_graph = min_cut_MILP(M_longest_graph, must_not_in_same_subset, must_in_same_subset);
                 if isempty(belonging_vector_longest_graph)
-                    warning('Change to use minimum s-t-cut algorithm.')
+                    warning("No feasible cutting found when using MILP. Change to use minimum s-t-cut algorithm.")
                     belonging_vector_longest_graph = min_cut_s_t(M_longest_graph, must_not_in_same_subset, must_in_same_subset);
                 end
-            case 'auto'
-                % to be finished if needed
             otherwise
-                error('Invalid method name for graph cutting.')
+                error("Invalid method name for graph cutting. Please specify either 's-t-cut' or 'MILP'.")
         end
     
         vertices_first_part = vertices_longest_graph((belonging_vector_longest_graph==0));
@@ -124,26 +146,30 @@ end
 
 
 %% local function
-function [M, max_num_CLs, method] = parse_inputs(M, varargin)
+function [M, max_num_CLs, coupling_info, method] = parse_inputs(M, varargin)
     % Process optional input and Name-Value pair options
     
     n = size(M,1); % number of vertices
     % set the default value of the maximum number of computation levels to be half of the total number of vertices
     default_max_num_CLs = ceil(n/2); % round up
+    default_coupling_info = {};
 
     default_method = 's-t-cut';
-    expected_methods = {'auto', 's-t-cut', 'MILP'};
+    expected_methods = {'s-t-cut', 'MILP'};
 
     p = inputParser;
     addRequired(p,'M',@(x) isnumeric(x) && ismatrix(x)); % must be numerical matrix
-    addOptional(p,'max_num_CLs', default_max_num_CLs, @(x) isnumeric(x) && isscalar(x) && x>0); % must be numerical scalar
+    addOptional(p,'max_num_CLs', default_max_num_CLs, @(x) (isnumeric(x) && x>0) || isempty(x) ); % must be numerical scalar
+    addOptional(p,'coupling_info', default_coupling_info, @(x) isstruct(x) || isempty(x)); % must be numerical scalar
     addParameter(p,'method',default_method, @(x) any(validatestring(x,expected_methods)));
     parse(p, M, varargin{:}); % start parsing
     
     % get parsed inputs
     M = p.Results.M;
     max_num_CLs = p.Results.max_num_CLs;
+    coupling_info = p.Results.coupling_info;
     method = p.Results.method;
-
 end
+
+
 
