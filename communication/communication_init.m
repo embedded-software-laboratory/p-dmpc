@@ -6,7 +6,7 @@ function scenario = communication_init(scenario, exp)
 % INPUT:
 %   scenario: instance of the class Scenario
 %   
-%   iter: iteration information
+%   exp: object of the class 'SimLab' or 'CPMLab'
 % 
 % OUTPUT:
 %   scenario: instance of the class Scenario with instance of the class
