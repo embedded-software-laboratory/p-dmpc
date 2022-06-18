@@ -1,6 +1,6 @@
 function lanelet_boundary = get_lanelets_boundary(target_lanelet_boundaries)
 % GET_LANELETS_BOUNDARY Return the lanelet boundaries based on the
-% predicted lanelets
+% target_lanelet_boundaries: predicted lanelets boundaries
     
     % first cell: left boundary
     % second cell: right boundary
