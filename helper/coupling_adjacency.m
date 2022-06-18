@@ -7,7 +7,10 @@
     Hp = size(iter.referenceTrajectoryPoints,2);
     adjacency = zeros(nVeh,nVeh);
     semi_adjacency = zeros(nVeh,nVeh);
-    [~,adjacent,semi_adjacent,~,~,~,~] = get_road_data();
+    % [~,adjacent,semi_adjacent,~,~,~,~] = get_road_data();
+    adjacent = scenario.adjacency_lanelets;
+    semi_adjacent = scenario.semi_adjacency_lanelets;
+    
     %[~,adjacent,semi_adjacent,~,~,~] = commonroad_lanelets(scenario.options.mixedTrafficScenarioLanelets);
     
     for i = 1:(nVeh-1)
