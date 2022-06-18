@@ -12,7 +12,6 @@ classdef CPMLab < InterfaceExperiment
         reader_systemTrigger
         writer_readyStatus
         trigger_stop
-        controller_init
         dt_period_nanos
         sample
         out_of_map_limits
@@ -38,7 +37,6 @@ classdef CPMLab < InterfaceExperiment
         function obj = CPMLab(scenario, vehicle_ids)
             obj.vehicle_ids = vehicle_ids;
             obj.scenario = scenario;
-            obj.controller_init = false;
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
@@ -253,21 +251,20 @@ classdef CPMLab < InterfaceExperiment
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
         end
         
-        function [ x0, trim_indices ] = measure(obj)
+        function [ x0, trim_indices ] = measure(obj, controller_init)
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
             if (sample_count > 1)
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
             
             % for first iteration use real poses
-            if obj.controller_init == false
+            if controller_init == false
                 x0 = zeros(obj.scenario.nVeh,4);
                 pose = [obj.sample(end).state_list.pose];
                 x0(:,1) = [pose.x];
                 x0(:,2) = [pose.y];
                 x0(:,3) = [pose.yaw];
                 x0(:,4) = [obj.sample(end).state_list.speed];
-                obj.controller_init = true;
                 [ ~, trim_indices ] = obj.measure_node();
             else
                 [ x0, trim_indices ] = obj.measure_node();

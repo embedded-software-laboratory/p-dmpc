@@ -31,7 +31,7 @@ function scenario = communication_init(scenario, exp)
     Hp = scenario.Hp;
 
     % measure vehicles' initial poses and trims
-    [x0_measured, trims_measured] = exp.measure();
+    [x0_measured, trims_measured] = exp.measure(false);
 
     for iVeh = 1:nVeh
         scenario.vehicles(iVeh).communicate = Communication(); % create instance of the Comunication class

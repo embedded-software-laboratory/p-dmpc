@@ -136,6 +136,7 @@ initialized_reference_path = false;
 speedProfileMPAsInitialized = false;
 cooldown_after_lane_change = 0;
 cooldown_second_manual_vehicle_after_lane_change = 0;
+controller_init = false;
 
 % init result struct
 result = get_result_struct(scenario, options);
@@ -168,7 +169,8 @@ while (~got_stop)
     
     % Measurement
     % -------------------------------------------------------------------------
-    [x0_measured, trims_measured] = exp.measure();% trims_measured： which trim  
+    [x0_measured, trims_measured] = exp.measure(controller_init);% trims_measured： which trim  
+    controller_init = true;
     scenario.k = k;
 
     %disp(['Time step ' num2str(scenario.k) '.'])
@@ -305,7 +307,7 @@ while (~got_stop)
         result.edges_to_break{k} = info.edge_to_break;
         result.step_time(k) = toc(result.step_timer);
         result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
-        if options.isParl
+        if options.isParl && scenario.mixedTrafficCollisionAvoidanceMode == 0
             result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
         end
        
@@ -343,7 +345,7 @@ while (~got_stop)
                 result.edges_to_break{k} = info.edge_to_break;
                 result.step_time(k) = toc(result.step_timer);
                 result.fallback = fallback;
-                if options.isParl
+                if options.isParl && scenario.mixedTrafficCollisionAvoidanceMode == 0
                     result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group
                 end
                 % Apply control action
