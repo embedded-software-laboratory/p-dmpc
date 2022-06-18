@@ -4,13 +4,21 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     nVeh = options.amount;
     scenario = Scenario();
     scenario.name = 'Commonroad';
-    scenario.trim_set = 4;
+    scenario.trim_set = 12;
     scenario.dt = 0.2;
     scenario.options = options; 
-    [scenario.lanelets, scenario.adjacency_lanelets, scenario.semi_adjacency_lanelets,...
-        scenario.intersection_lanelets, scenario.lanelet_boundary, scenario.road_raw_data, scenario.lanelet_relationships] = get_road_data();
-    %[scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets(options.mixedTrafficScenarioLanelets);
-    scenario.T_end = 30;
+
+    % get road data
+    road_data = RoadData().get_road_data();
+    scenario.lanelets = road_data.lanelets;
+    scenario.adjacency_lanelets = road_data.adjacency_lanelets;
+    scenario.semi_adjacency_lanelets = road_data.semi_adjacency_lanelets;
+    scenario.intersection_lanelets = road_data.intersection_lanelets;
+    scenario.lanelet_boundary = road_data.lanelet_boundary;
+    scenario.road_raw_data = road_data.road_raw_data;
+    scenario.lanelet_relationships  = road_data.lanelet_relationships;
+
+    scenario.T_end = 20;
     scenario.Hp = 6;
     
     for iveh = 1:nVeh
