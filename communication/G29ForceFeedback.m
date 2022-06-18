@@ -46,66 +46,95 @@ classdef G29ForceFeedback
             sin_yaw = sin(yaw);
             position = 0.0;
 
-            if cos_yaw > 0.8 && sin_yaw < 0.2
+            if cos_yaw > 0.95 && sin_yaw < 0.05
                 % parallel to x-axis
                 position = 0.0;
+            elseif cos_yaw > 0.9 && sin_yaw < -0.1
+                position = 0.1;
+            elseif cos_yaw > 0.8 && sin_yaw < -0.2
+                position = 0.2;
             elseif cos_yaw > 0.7 && sin_yaw < -0.3
-                position = 0.1;
+                position = 0.4;
             elseif cos_yaw > 0.6 && sin_yaw < -0.4
-                position = 0.2;
+                position = 0.5;
             elseif cos_yaw > 0.5 && sin_yaw < -0.5
-                position = 0.25;
+                position = 0.55;
             elseif cos_yaw > 0.4 && sin_yaw < -0.6
-                position = 0.2;
+                position = 0.5;
             elseif cos_yaw > 0.3 && sin_yaw < -0.7
+                position = 0.4;
+            elseif cos_yaw > 0.2 && sin_yaw < -0.8
+                position = 0.2;
+            elseif cos_yaw > 0.1 && sin_yaw < -0.9
                 position = 0.1;
-            elseif cos_yaw < 0.2 && sin_yaw < -0.8
+            elseif cos_yaw < 0.05 && sin_yaw < -0.95
                 % parallel to y-axis
                 position = 0.0;
+            elseif cos_yaw < -0.1 && sin_yaw < -0.9
+                position = 0.1;
+            elseif cos_yaw < -0.2 && sin_yaw < -0.8
+                position = 0.2;
             elseif cos_yaw < -0.3 && sin_yaw < -0.7
-                position = 0.1;
+                position = 0.4;
             elseif cos_yaw < -0.4 && sin_yaw < -0.6
-                position = 0.2;
+                position = 0.5;
             elseif cos_yaw < -0.5 && sin_yaw < -0.5
-                position = 0.25;
+                position = 0.55;
             elseif cos_yaw < -0.6 && sin_yaw < -0.4
-                position = 0.2;
+                position = 0.5;
             elseif cos_yaw < -0.7 && sin_yaw < -0.3
+                position = 0.4;
+            elseif cos_yaw < -0.8 && sin_yaw < -0.2
+                position = 0.2;
+            elseif cos_yaw < -0.9 && sin_yaw < -0.1
                 position = 0.1;
-            elseif cos_yaw < -0.8 && sin_yaw > -0.2
+            elseif cos_yaw < -0.95 && sin_yaw > -0.05
                 % x-axis
                 position = 0.0;
+            elseif cos_yaw < -0.9 && sin_yaw > 0.1
+                position = 0.1;
+            elseif cos_yaw < -0.8 && sin_yaw > 0.2
+                position = 0.2;
             elseif cos_yaw < -0.7 && sin_yaw > 0.3
-                position = 0.1;
+                position = 0.4;
             elseif cos_yaw < -0.6 && sin_yaw > 0.4
-                position = 0.2;
+                position = 0.5;
             elseif cos_yaw < -0.5 && sin_yaw > 0.5
-                position = 0.25;
+                position = 0.55;
             elseif cos_yaw < -0.4 && sin_yaw > 0.6
-                position = 0.2;
+                position = 0.5;
             elseif cos_yaw < -0.3 && sin_yaw > 0.7
+                position = 0.4;
+            elseif cos_yaw < -0.2 && sin_yaw > 0.8
+                position = 0.2;
+            elseif cos_yaw < -0.1 && sin_yaw > 0.9
                 position = 0.1;
-            elseif cos_yaw > -0.2 && sin_yaw > 0.8
+            elseif cos_yaw > -0.05 && sin_yaw > 0.95
                 % y-axis
                 position = 0.0;
-            elseif cos_yaw > 0.3 && sin_yaw > 0.7
+            elseif cos_yaw > 0.1 && sin_yaw > 0.9
                 position = 0.1;
+            elseif cos_yaw > 0.2 && sin_yaw > 0.8
+                position = 0.2;
+            elseif cos_yaw > 0.3 && sin_yaw > 0.7
+                position = 0.4;
             elseif cos_yaw > 0.4 && sin_yaw > 0.6
-                position = 0.2;
+                position = 0.5;
             elseif cos_yaw > 0.5 && sin_yaw > 0.5
-                position = 0.25;
+                position = 0.55;
             elseif cos_yaw > 0.6 && sin_yaw > 0.4
-                position = 0.2;
+                position = 0.5;
             elseif cos_yaw > 0.7 && sin_yaw > 0.3
+                position = 0.4;
+            elseif cos_yaw > 0.8 && sin_yaw > 0.2
+                position = 0.2;
+            elseif cos_yaw > 0.9 && sin_yaw > 0.1
                 position = 0.1;
             end
             disp(position);
-            position = position * 2;
 
             if position == 0.0 && last_position == 0.0
                 torque = 0.0;
-            elseif position == 0.0 && last_position > 0
-                %position = -0.1;
             end
 
             obj.msg_to_be_sent.position = single(position);
