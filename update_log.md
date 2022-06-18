@@ -1,6 +1,9 @@
-This file is used to record the update events
-Format: date, author
+This file is used to record the update events.
+
+Format: date, author.
+
 Example: 2022-06-19, Jianye
+
 
 # 2022-06-19, Jianye
 - Turned `get_road_data.m` to a class called `RoadData`, while the functionality is unchanged, but returns a object of this class containing all the necessary road information and some methods are added.
