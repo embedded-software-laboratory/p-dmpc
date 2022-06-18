@@ -1,4 +1,4 @@
-function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_intersection] = get_coupling_info_version2(scenario, iter)
+function [vehs_at_intersection, coupling_weights, coupling_info, time_enter_intersection] = get_coupling_info_version2(scenario, iter)
 % GET_COUPLING_INFO This function estimate the coupling information of
 % vehicles. Two vehicles are coupled if their reachable sets in the defined 
 % prediction horizon (Hp) overlap. To reduce the checking effort, only the
@@ -27,16 +27,16 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
         time_enter_intersection = inf*ones(1,nVeh); % time step when vehicle enters the intersection
     end
 
-    last_veh_at_intersection = scenario.last_veh_at_intersection;
+    last_vehs_at_intersection = scenario.last_vehs_at_intersection;
 
     % vehicles are considered as at the intersection if their distances to
     % the intersection center point is smaller than a certain value
     distances_to_center = sqrt(sum((iter.x0(:,1:2) - scenario.intersection_center).^2,2));
-    all_veh_at_intersection = find(distances_to_center < 1.1);
+    vehs_at_intersection = find(distances_to_center < 1.1);
 
-    new_veh_at_intersection = setdiff(all_veh_at_intersection, last_veh_at_intersection);
+    new_veh_at_intersection = setdiff(vehs_at_intersection, last_vehs_at_intersection);
 
-    veh_leave_intersection = setdiff(last_veh_at_intersection,all_veh_at_intersection);
+    veh_leave_intersection = setdiff(last_vehs_at_intersection,vehs_at_intersection);
     time_enter_intersection(new_veh_at_intersection) = scenario.k;
     time_enter_intersection(veh_leave_intersection) = inf; % set to inf if vehicle leaves the intersection
     
@@ -71,134 +71,55 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
                 % the selected two vehicles are considered as coupled if their reachable sets overlap
                 for predicted_lanelet_i = predicted_lanelets_i                    
                     for predicted_lanelet_j = predicted_lanelets_j
-                        % get the relationship of their predicted lanelets and the possible collision type 
-                        if predicted_lanelet_i == predicted_lanelet_j
-                            is_same_lanelet = true; % the same lanelet
-                            % If the same lanelet -> rear-end collision
-                            is_rear_end_collision = true;
-                            is_side_impact_collision = false;
-                            is_forking_lanelets = false;
-                            lanelet_relationship.type = LaneletRelationshipType.type_6; % same lanelet
-                        else
-                            is_same_lanelet = false;
-                            % find if there exists lanelet pair that has a certain relationship in the struct array `lanelet_relationships`
-                            % NOTE that only adjacent lanelet pairs with certain relationships will be stored in `lanelet_relationships`
-                            idx_lanelet_pair = find_idx_lanelet_pair(predicted_lanelet_i,predicted_lanelet_j,lanelet_relationships);
-                            if ~isempty(idx_lanelet_pair)
-                                is_find_lanelet_relationship = true;
-                                lanelet_relationship = lanelet_relationships(idx_lanelet_pair);
 
-                                % If forking lanelets (relationship type 4) or successive (relationship type 1) lanelets or 
-                                % adjacent left/right lanelets (relationship type 2) -> rear-end collision
-                                is_forking_lanelets = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_4);
-                                is_rear_end_collision = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_1) ||...
-                                    strcmp(lanelet_relationship.type, LaneletRelationshipType.type_2) || is_forking_lanelets;
-                                
-                                % if merging (relationship type 3) lanelets or intersecting lanelets (relationship type 5) -> side-impact collision
-                                is_side_impact_collision = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_3) ||...
-                                    strcmp(lanelet_relationship.type, LaneletRelationshipType.type_5);
-                            else
-                                if predicted_lanelet_i==predicted_lanelets_i(end) && predicted_lanelet_j==predicted_lanelets_j(end)
-                                    % If no lanelet relationship is found until the last predicted lanelet pair
-                                    % 1. Set the center point of the overlapping area as collision point
-                                    % 2. Set lanelet relationship to be intersecting
-                                    % 3. Set collision type to be side-impact collision (normally lanelet relationship will always be found for rear-end collision)
-%                                     disp(['No lanelet relationship can be found for coupled vehicle ' num2str(veh_i) ' and ' num2str(veh_j) '.' newline...
-%                                         'Centroid of the overlapping area of their reachable sets will be used as collision point.'])
-                                    is_find_lanelet_relationship = false;
-                                    is_rear_end_collision = false;
-                                    is_side_impact_collision = true;
-                                    lanelet_relationship.type = LaneletRelationshipType.type_5; % intersecting lanelets
-                                    [x_centroid,y_centroid] = centroid(overlap_reachable_sets);
-                                    lanelet_relationship.point = [x_centroid,y_centroid];
-                                    is_forking_lanelets = false;
-                                else
-                                    % jump to the next predicted lanelet
-                                    continue
-                                end
-                            end
+                        if predicted_lanelet_i==predicted_lanelets_i(end) && predicted_lanelet_j==predicted_lanelets_j(end)
+                            is_last_lanelet_pair = true;
+                        else
+                            is_last_lanelet_pair = false;
+                        end
+
+                        veh_length = mean([scenario.vehicles(veh_i).Length, scenario.vehicles(veh_i).Length]);
+
+                        [lanelet_type,collision_type,is_continue,lanelet_relationship,is_find_lanelet_relationship,lanelet] = ...
+                            get_collision_and_lanelet_type(position_i,position_j,predicted_lanelet_i,predicted_lanelet_j,is_last_lanelet_pair,lanelets,lanelet_relationships,overlap_reachable_sets,veh_length);
+
+                        if is_continue
+                            continue
                         end
 
                         % check if both vehicles are at the intersection 
-                        if ismember(veh_i,all_veh_at_intersection) && ismember(veh_j,all_veh_at_intersection)
+                        if ismember(veh_i,vehs_at_intersection) && ismember(veh_j,vehs_at_intersection)
                             is_both_at_intersection = true;
                         else
                             is_both_at_intersection = false;
                         end
 
-                        % center line of the lanelet
-                        lanelet_x_i = lanelets{predicted_lanelet_i}(:,LaneletInfo.cx); lanelet_y_i = lanelets{predicted_lanelet_i}(:,LaneletInfo.cy);
-                        lanelet_x_j = lanelets{predicted_lanelet_j}(:,LaneletInfo.cx); lanelet_y_j = lanelets{predicted_lanelet_j}(:,LaneletInfo.cy);
-
-                        if is_rear_end_collision
+                        % estimate the STAC and coupling weight
+                        if collision_type.is_rear_end
                             % If the same lanelet or successive (relationship type 1) lanelets or adjacent left/right lanelets (relationship type 2) -> rear-end collision
                             coupling_info(count).collision_type = CollisionType.type_1; % rear-end collision
 
-                            if is_forking_lanelets
-                                % In forking lanelets, rear-end collision is possible around the forking point
-                                % First, assume they are driving in a straight line and calculate the STAC.
-                                % Then estimate the points that the leader and the follower would stop at if it drives at its own lanelet.
-                                % They are only considered as coupled if the distance between two stopping points are smaller than vehicle's length.
-                                forking_point = lanelet_relationship.point;
-                                
-                                distance_to_starting_point_i = norm(position_i-forking_point,2);
-                                distance_to_starting_point_j = norm(position_j-forking_point,2);
-
-                                is_leader = determine_leader_and_follower(veh_i, veh_j, distance_to_starting_point_i, distance_to_starting_point_j, is_both_at_intersection, time_enter_intersection, directed_adjacency_old, is_forking_lanelets);
-
-                                if is_leader                       
-                                    trim_leader = trim_i;                       trim_follower = trim_j;
-                                    position_leader = position_i;               position_follower = position_j;         
-                                    lanelet_leader = [lanelet_x_i,lanelet_y_i]; lanelet_follower = [lanelet_x_j,lanelet_y_j];
-                                else
-                                    trim_leader = trim_j;                       trim_follower = trim_i;
-                                    position_leader = position_j;               position_follower = position_i;                                    
-                                    lanelet_leader = [lanelet_x_j,lanelet_y_j]; lanelet_follower = [lanelet_x_i,lanelet_y_i];
-                                end
-
-                                % current distance between two vehicles
-                                distance_two_vehs = norm(position_i-position_j,2);
-                                % calculate the shortest time to achieve a collision
-                                [STAC, waiting_time, distance_traveled_leader, distance_traveled_follower] = get_the_shortest_time_to_catch(scenario.mpa, trim_leader, trim_follower, distance_two_vehs, scenario.dt);
-
-                                stop_point_leader = get_stop_point_after_travel_certain_distance(position_leader,lanelet_leader,distance_traveled_leader);
-                                stop_point_follower = get_stop_point_after_travel_certain_distance(position_follower,lanelet_follower,distance_traveled_follower);
-
-                                distance_stop_points = norm(stop_point_leader-stop_point_follower);
-                                if distance_stop_points > Vehicle().Length
-                                    % the selected two vehicles will never collide with each other since their stopping points are far away
-                                    continue
-                                end
-                                STAC_adapted = STAC + waiting_time;
+                            % the same lanelet ot successive lanelet or forking lanelets
+                            collision_point = lanelet_relationship.point;
+                            distance_to_collision_i = norm(position_i-collision_point,2);
+                            distance_to_collision_j = norm(position_j-collision_point,2);
+                            
+                            % determine who is the leader 
+                            is_leader = determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_both_at_intersection, time_enter_intersection, directed_adjacency_old, lanelet_type.is_forking);
+                            
+                            if is_leader                        
+                                trim_leader = trim_i; trim_follower = trim_j;
                             else
-                                % Otherwise vehicles are driving at the same lanelets or successive lanelets 
-                                
-                                % Get the endpoint of the lanelet
-                                if is_same_lanelet
-                                    endpoint = [lanelet_x_i(end), lanelet_y_i(end)];
-                                else
-                                    endpoint = lanelet_relationship.point;
-                                end
-    
-                                distance_to_endpoint_i = norm(position_i-endpoint,2);
-                                distance_to_endpoint_j = norm(position_j-endpoint,2);
-                                
-                                % determine who is the leader 
-                                is_leader = determine_leader_and_follower(veh_i, veh_j, distance_to_endpoint_i, distance_to_endpoint_j, is_both_at_intersection, time_enter_intersection, directed_adjacency_old, is_forking_lanelets);
-                                
-                                if is_leader                        
-                                    trim_leader = trim_i; trim_follower = trim_j;
-                                else
-                                    trim_leader = trim_j; trim_follower = trim_i;
-                                end
-    
-                                % current distance between two vehicles
-                                distance_two_vehs = norm(position_i-position_j,2);
-                                % calculate the shortest time to achieve a collision
-                                [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, trim_leader, trim_follower, distance_two_vehs, scenario.dt);
-                                STAC_adapted = STAC + waiting_time;
+                                trim_leader = trim_j; trim_follower = trim_i;
                             end
-                        elseif is_side_impact_collision
+
+                            % current distance between two vehicles
+                            distance_two_vehs = norm(position_i-position_j,2);
+                            % calculate the shortest time to achieve a collision
+                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, trim_leader, trim_follower, distance_two_vehs, scenario.dt);
+                            STAC_adapted = STAC + waiting_time;
+
+                        elseif collision_type.is_side_impact
                             coupling_info(count).collision_type = CollisionType.type_2; % side-impact collision
 
                             % For side-impact collision, we calculate the adapted STAC, which is the sum of the actual STAC and a waiting time. 
@@ -206,37 +127,36 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
                             % collision at the point of intersection. This is calculated by letting both vehicles take a full acceleration to 
                             % arrive at the point of intersection. The first arrived vehicle has to stop at the point of intersection and wait 
                             % for the second arrived vehicle, where the waiting time is the second part of the adapted STAC.
+                            collision_point = lanelet_relationship.point;
                             if is_find_lanelet_relationship
-                                collision_point = lanelet_relationship.point;
                                 % from a curve to calculate the arc diatance between vehicle's current position and the collision point, 
                                 % which starts from the starting point of the lanelet and ends at the collision point 
-                                if strcmp(lanelet_relationship.type, LaneletRelationshipType.type_3)
+                                if lanelet_type.is_merging 
                                     % collision point of the merging lanelets is both lanelets' endpoint, thus the target curve is the whole lanelet
-                                    curve_x_i = lanelet_x_i; curve_y_i = lanelet_y_i;
-                                    curve_x_j = lanelet_x_j; curve_y_j = lanelet_y_j;
-                                elseif strcmp(lanelet_relationship.type, LaneletRelationshipType.type_5)
+                                    curve_x_i = lanelet.x_i; curve_y_i = lanelet.y_i;
+                                    curve_x_j = lanelet.x_j; curve_y_j = lanelet.y_j;
+                                elseif lanelet_type.is_intersecting 
                                     % Collision point of the intersecting lanelets is the crosspoint, which could be in the middle of the lanelets
                                     % First, find the two closest points to the crosspoint on the lanelet
-                                    squared_distances_to_crosspoint_i = sum(([lanelet_x_i,lanelet_y_i]-collision_point).^2,2);
+                                    squared_distances_to_crosspoint_i = sum(([lanelet.x_i,lanelet.y_i]-collision_point).^2,2);
                                     [~,idx_closest_two_point_i] = mink(squared_distances_to_crosspoint_i,2,1);
-                                    squared_distances_to_crosspoint_j = sum(([lanelet_x_j,lanelet_y_j]-collision_point).^2,2);
+                                    squared_distances_to_crosspoint_j = sum(([lanelet.x_j,lanelet.y_j]-collision_point).^2,2);
                                     [~,idx_closest_two_point_j] = mink(squared_distances_to_crosspoint_j,2,1);
                                     % the endpoint of the curve is the collision point and the adjacent left point is the one among the closest two points with a smaller index  
-                                    curve_x_i = [lanelet_x_i(1:min(idx_closest_two_point_i));collision_point(1)]; curve_y_i = [lanelet_y_i(1:min(idx_closest_two_point_i));collision_point(2)];
-                                    curve_x_j = [lanelet_x_j(1:min(idx_closest_two_point_j));collision_point(1)]; curve_y_j = [lanelet_y_j(1:min(idx_closest_two_point_j));collision_point(2)];
+                                    curve_x_i = [lanelet.x_i(1:min(idx_closest_two_point_i));collision_point(1)]; curve_y_i = [lanelet.y_i(1:min(idx_closest_two_point_i));collision_point(2)];
+                                    curve_x_j = [lanelet.x_j(1:min(idx_closest_two_point_j));collision_point(1)]; curve_y_j = [lanelet.y_j(1:min(idx_closest_two_point_j));collision_point(2)];
                                 end
     
                                 % calculate the arc length from the vehicle's current position to the collision point
                                 [distance_to_collision_i, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_i(1), position_i(2), curve_x_i, curve_y_i);
                                 [distance_to_collision_j, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_j(1), position_j(2), curve_x_j, curve_y_j);
                             else
-                                collision_point = lanelet_relationship.point;
                                 distance_to_collision_i = norm(position_i-collision_point);
                                 distance_to_collision_j = norm(position_j-collision_point);
                             end
 
                             % determine who is the leader 
-                            is_leader = determine_leader_and_follower(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_both_at_intersection, time_enter_intersection, directed_adjacency_old, is_forking_lanelets);
+                            is_leader = determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_both_at_intersection, time_enter_intersection, directed_adjacency_old, lanelet_type.is_forking);
 
                             time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa,trim_i,distance_to_collision_i,scenario.dt);
                             time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa,trim_j,distance_to_collision_j,scenario.dt);
@@ -255,22 +175,19 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
                         coupling_info(count).STAC = STAC;
                         coupling_info(count).lanelet_relationship = lanelet_relationship.type;
                         if is_leader
-%                             disp(['Leader with ID ' num2str(veh_i) ' is coupled with follower with ID ' num2str(veh_j) ' .'])
-                            % vehicle_i has ROW
+                            % vehicle_i has the right-of-way
                             coupling_weights(veh_i,veh_j) = weighting_function(STAC_adapted); 
                             coupling_info(count).veh_with_ROW = veh_i;  
                             coupling_info(count).veh_without_ROW = veh_j; 
                         else
-%                             disp(['Leader with ID ' num2str(veh_j) ' is coupled with follower with ID ' num2str(veh_i) ' .'])                            
-                            % vehicle_j has ROW
+                            % vehicle_j has the right-of-way
                             coupling_weights(veh_j,veh_i) = weighting_function(STAC_adapted); 
                             coupling_info(count).veh_with_ROW = veh_j;
                             coupling_info(count).veh_without_ROW = veh_i;
                         end
                         count = count + 1;
                         stop_flag = true;
-                        break
-                            
+                        break  
                     end
                     if stop_flag
                         break
@@ -278,14 +195,11 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
                 end
             end   
         end
-
     end
 
     % If two vehicles drive successively and are very close to each other,
     % the back vehicle will inherit the right-of-way of the front vehicle 
     [coupling_weights, coupling_info, time_enter_intersection] = inherit_right_of_way(coupling_weights, coupling_info, time_enter_intersection, iter.predicted_lanelets);
-
-
 end
 
 
@@ -337,48 +251,47 @@ end
 
 
 %% local function
-function is_leader = determine_leader_and_follower(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_both_at_intersection, time_enter_intersection, directed_adjacency_old, is_forking_lanelets)
-% Determines who is the leader and who is the follower. 
-% Vehicle enters the intersection earlier has a higher priority. If both
-% vheicle enter the intersection at the same time, their previous
-% coupling direction are kept. If they are not coupled at previous time
-% step, vehicle who can arrives the point of intersection has a higher
-% priority. 
+function has_ROW = determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_both_at_intersection, time_enter_intersection, directed_adjacency_old, is_forking_lanelets)
+% Determine whos has the right-of-way. 
+% Vehicle enters the intersection earlier has the right-of-way. If both
+% vheicle enter the intersection at the same time, right-of-way is given to
+% vehicle which has the right-of-way in the last time step. If they are not
+% coupled at previous time step, vehicle who can arrive the collision point
+% earilier has the right-of-way.
 
-    is_leader = [];
+    has_ROW = [];
     
     if is_both_at_intersection
         if time_enter_intersection(veh_i) < time_enter_intersection(veh_j)
-            is_leader = true; 
+            has_ROW = true; 
         elseif time_enter_intersection(veh_i) > time_enter_intersection(veh_j)
-            is_leader = false; 
+            has_ROW = false; 
         else
-            is_leader = [];
+            has_ROW = [];
         end
     end
 
-    if isempty(is_leader)
+    if isempty(has_ROW)
         % leader-follower relationship is maintained if exists in the last
         % time step
         if directed_adjacency_old(veh_i,veh_j) == 1
-            is_leader = true; 
+            has_ROW = true; 
         elseif directed_adjacency_old(veh_j,veh_i) == 1
-            is_leader = false;
+            has_ROW = false;
         else
             % if they are not coupled at previous time step, vehicle closer to the collision point is the leader
             if distance_to_collision_i <= distance_to_collision_j
-                is_leader = true; 
+                has_ROW = true; 
             else
-                is_leader = false; 
+                has_ROW = false; 
             end
 
             % for forking lenelts, vehicle closer to the collision point is the follower
             if is_forking_lanelets
-                is_leader = ~is_leader;
+                has_ROW = ~has_ROW;
             end
         end
     end
-
 end
 
 
@@ -482,19 +395,30 @@ function [coupling_weights, coupling_info, time_enter_intersection] = inherit_ri
         vehs_with_ROW_j = find(coupling_weights(:,iVeh) ~= 0);
 
         for veh_with_ROW_j = vehs_with_ROW_j(:)'
-            if any(coupling_weights(vehs_inherit,veh_with_ROW_j)~=0)
-                j_coupling = find(all(all_coupling_pairs-[veh_with_ROW_j;iVeh]==0,1));
-                if strcmp(coupling_info(j_coupling).collision_type, CollisionType.type_2)
-                    % if coupled vehicle has side-impact collision possibility with the selected vehicle
-                    disp(['After inheriting right-of-way from its front vehicle, vehicle ' num2str(iVeh) ' now has the right-of-way over vehicle ' num2str(veh_with_ROW_j) ' .'])
-                    % update coupling direction
-                    coupling_weights_adjusted(veh_with_ROW_j,iVeh) = 0;
-                    coupling_weights_adjusted(iVeh,veh_with_ROW_j) = coupling_weights(veh_with_ROW_j,iVeh);
-                    
-                    % update coupling information
-                    [coupling_info(j_coupling).veh_with_ROW, coupling_info(j_coupling).veh_without_ROW] = ...
-                        swap(coupling_info(j_coupling).veh_with_ROW, coupling_info(j_coupling).veh_without_ROW);
+            j_coupling = find(all(all_coupling_pairs-[veh_with_ROW_j;iVeh]==0,1));
+
+            % check if the coupled vehicle has side-impact collision
+            % possibility both with the selected vehicle and the vehicle to be inherited 
+            if strcmp(coupling_info(j_coupling).collision_type, CollisionType.type_2)
+                % side-impact collision with the selected vehicle
+                find_vehs_to_inherit = coupling_weights(vehs_inherit,veh_with_ROW_j)~=0;
+                find_vehs_to_inherit = vehs_inherit(find_vehs_to_inherit);
+                for veh_to_inherit = find_vehs_to_inherit(:)'
+                    k_coupling = all(all_coupling_pairs-[veh_to_inherit;veh_with_ROW_j]==0,1);
+                    if strcmp(coupling_info(k_coupling).collision_type, CollisionType.type_2)
+                        % side-impact collision with the vehicle to be inherited 
+                        disp(['After inheriting right-of-way from vehicle ' num2str(veh_to_inherit) ', ' num2str(iVeh) ' now has the right-of-way over ' num2str(veh_with_ROW_j) '.'])
+                        % update coupling direction
+                        coupling_weights_adjusted(veh_with_ROW_j,iVeh) = 0;
+                        coupling_weights_adjusted(iVeh,veh_with_ROW_j) = coupling_weights(veh_with_ROW_j,iVeh);
+                        
+                        % update coupling information
+                        [coupling_info(j_coupling).veh_with_ROW, coupling_info(j_coupling).veh_without_ROW] = ...
+                            swap(coupling_info(j_coupling).veh_with_ROW, coupling_info(j_coupling).veh_without_ROW);
+                    end
                 end
+
+                
             end
         end
         
@@ -502,5 +426,93 @@ function [coupling_weights, coupling_info, time_enter_intersection] = inherit_ri
 
     % update coupling weights
     coupling_weights = coupling_weights_adjusted;
+end
+
+%% local function
+function [lanelet_type,collision_type,is_continue,lanelet_relationship,is_find_lanelet_relationship,lanelet] = get_collision_and_lanelet_type(position_i,position_j,predicted_lanelet_i,predicted_lanelet_j,is_last_lanelet_pair,lanelets,lanelet_relationships,overlap_reachable_sets,veh_length)
+
+    % initialize
+    lanelet_type = struct('is_same',false,'is_forking',false,'is_merging',false,'is_intersecting',false,'is_successive',false);
+    collision_type = struct('is_rear_end',false,'is_side_impact',false);
+    is_continue = false;
+    lanelet_relationship = struct('ID_1',[],'ID_2',[],'type',[],'point',[]); 
+    is_find_lanelet_relationship = false;
+    lanelet = struct('x_i',[],'y_i',[],'x_j',[],'y_j',[]);
+    
+    % center line of the lanelet
+    lanelet.x_i = lanelets{predicted_lanelet_i}(:,LaneletInfo.cx); 
+    lanelet.y_i = lanelets{predicted_lanelet_i}(:,LaneletInfo.cy);
+    lanelet.x_j = lanelets{predicted_lanelet_j}(:,LaneletInfo.cx); 
+    lanelet.y_j = lanelets{predicted_lanelet_j}(:,LaneletInfo.cy);
+
+    % get the relationship of their predicted lanelets and the possible collision type 
+    if predicted_lanelet_i == predicted_lanelet_j
+        lanelet_type.is_same = true; % the same lanelet
+        % if the same lanelet: rear-end collision
+        collision_type.is_rear_end = true;
+        % create information of lanelet relationship
+        lanelet_relationship.type = LaneletRelationshipType.type_6; % same lanelet
+        lanelet_relationship.point = [lanelet.x_i(end),lanelet.y_i(end)]; % store the endpoint of the lanelet
+    else
+        % find if there exists lanelet pair that has a certain relationship in the struct array `lanelet_relationships`
+        % NOTE that only adjacent lanelet pairs with certain relationships will be stored in `lanelet_relationships`
+        idx_lanelet_pair = find_idx_lanelet_pair(predicted_lanelet_i,predicted_lanelet_j,lanelet_relationships);
+        if ~isempty(idx_lanelet_pair)
+            is_find_lanelet_relationship = true;
+            lanelet_relationship = lanelet_relationships(idx_lanelet_pair);
+
+            % If forking lanelets (relationship type 4) or successive (relationship type 1) lanelets or 
+            % adjacent left/right lanelets (relationship type 2) -> rear-end collision
+            lanelet_type.is_successive = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_1);
+            lanelet_type.is_merging = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_3);
+            lanelet_type.is_forking = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_4);
+            lanelet_type.is_intersecting = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_5);
+            lanelet_type.is_same = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_6);
+
+            if lanelet_type.is_successive || lanelet_type.is_same || lanelet_type.is_forking
+                collision_type.is_rear_end = true;
+            elseif lanelet_type.is_intersecting
+                % only side-impact could happen at intersection lanelets
+                collision_type.is_side_impact = true;
+            elseif lanelet_type.is_merging
+                % both side-impact and rear-end collision could happen at mering lanelets
+                % 1. rear-end collision: if the difference between their distances to collision point is larger than a certain velue (such as 1.5*vehicleLength)
+                % 2. otherwise side-impact collision
+
+                % get arc distance to collision point 
+                [arc_distance_i, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_i(1), position_i(2), lanelet.x_j, lanelet.y_j);
+                [arc_distance_j, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(position_j(1), position_j(2), lanelet.x_i, lanelet.y_i); 
+
+                safety_factor = 1.5;
+                if abs(arc_distance_i-arc_distance_j) > safety_factor*veh_length
+%                 if norm([x_projected_i,y_projected_i]-position_j) > wheelbase_mean && norm([x_projected_j,y_projected_j]-position_i) > wheelbase_mean
+                    collision_type.is_rear_end = true;
+                else
+                    collision_type.is_side_impact = true;
+                end  
+            else
+                error('Unknown lanelet relationship.')
+            end
+        else
+            if is_last_lanelet_pair
+                % If no lanelet relationship is found until the last predicted lanelet pair
+                % 1. Set the center point of the overlapping area as collision point
+                % 2. Set lanelet relationship to be intersecting
+                % 3. Set collision type to be side-impact collision (normally lanelet relationship will always be found for rear-end collision)
+%                 disp(['No lanelet relationship can be found for coupled vehicle ' num2str(veh_i) ' and ' num2str(veh_j) '.' newline...
+%                     'Centroid of the overlapping area of their reachable sets will be used as collision point.'])
+                
+                collision_type.is_side_impact = true;
+
+                lanelet_relationship.type = LaneletRelationshipType.type_5; % intersecting lanelets
+                [x_centroid,y_centroid] = centroid(overlap_reachable_sets);
+                lanelet_relationship.point = [x_centroid,y_centroid];
+            else
+                % jump to the next predicted lanelet
+                is_continue = true;
+            end
+        end
+    end
+
 end
 
