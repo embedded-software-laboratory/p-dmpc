@@ -9,8 +9,9 @@ classdef MotionPrimitiveAutomaton
         transition_matrix           % binary Matrix (if maneuverTuple exist according to trims) (nTrimTuples x nTrimTuples x horizon_length)
         distance_to_equilibrium     % Distance in graph from current state to equilibrium state (nTrims x 1)
         recursive_feasibility
-        local_reachable_sets        % local reachable sets of each trim (possibly non-convex); 
+        local_reachable_sets        % local reachable sets of each trim (possibly non-convex)
         local_reachable_sets_conv;  % Convexified local reachable sets of each trim
+        emengency_braking_maneuvers % cell(n_trims, 1), local occupied area of emergency braking maneuver
     end
     
     methods
@@ -78,6 +79,7 @@ classdef MotionPrimitiveAutomaton
                         obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), offset, dt, nTicks, is_allow_non_convex);
                     end
                 end
+                obj.emengency_braking_maneuvers{i,1} = get_emergency_braking_maneuver(obj,i);
             end
 
             % compute distance to equilibrium state
@@ -167,12 +169,15 @@ classdef MotionPrimitiveAutomaton
             %   reachable_sets_conv_local: cell [n_trims x Hp]. The convexified union
             %   of local reachable sets 
             
+            offline_computation_start = tic;
             threshold_Hp = 5;
             if Hp > threshold_Hp
-                warning(['Computing the reachable sets now...' newline ...
-                    'Since the prediction horizon is ' num2str(Hp) ' (more than ' num2str(threshold_Hp) '), it may take several minutes.' newline ...
-                    'Note this only needs to be done once since later they will be saved for offline use.'])
+                disp(['Computing the reachable sets now...' newline ...
+                    'Since the prediction horizon is ' num2str(Hp) ' (more than ' num2str(threshold_Hp) '), it may take several minutes.'])
+            else
+                disp('Computing local offline reachable sets now...')
             end
+            disp('Note this only needs to be done once since later they will be saved to motion-primitive-automaton library offline.')
         
             n_trims = numel(obj.trims);
             reachable_sets_local = cell(n_trims,Hp);
@@ -199,7 +204,7 @@ classdef MotionPrimitiveAutomaton
                 for t=1:Hp
                     if t==1 % root trim
                         trimsInfo(i,t).parentTrims = i;
-                    else % The child trims become the parent trims of the next time step
+                    else % The child trims become parent trims of the next time step
                         trimsInfo(i,t).parentTrims = trimsInfo(i,t-1).childTrims;
                     end
                     
@@ -261,6 +266,8 @@ classdef MotionPrimitiveAutomaton
                     reachable_sets_conv_local{i,t} = trimsInfo(i,t).reachable_sets_conv;
                 end
             end
+            duration_computation = toc(offline_computation_start);
+            disp(['Finished in ' num2str(duration_computation) ' seconds.'])
         
         end
 
@@ -439,6 +446,23 @@ classdef MotionPrimitiveAutomaton
                 % update counter
                 count_trim = count_trim + 1;
             end
+        end
+
+        function emengency_braking_maneuver = get_emergency_braking_maneuver(obj,trim_current)
+            % Returns the occupied area of emergency braking maneuver for
+            % the given trim
+            shortest_path_to_equilibrium = get_shortest_path_to_equilibrium(obj, trim_current);
+            if length(shortest_path_to_equilibrium)==1
+                % vehicle already at the equilibrium trim
+                trim_next_LP = trim_current;
+            else
+                trim_next_LP = shortest_path_to_equilibrium(2);
+            end
+            
+            % local shape to global shape
+            emengency_braking_maneuver.area = obj.maneuvers{trim_current,trim_next_LP}.area;
+            emengency_braking_maneuver.area_without_offset = obj.maneuvers{trim_current,trim_next_LP}.area_without_offset;
+            emengency_braking_maneuver.area_large_offset = obj.maneuvers{trim_current,trim_next_LP}.area_large_offset;
         end
     end
 end
