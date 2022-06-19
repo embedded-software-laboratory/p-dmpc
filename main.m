@@ -329,26 +329,20 @@ end
 
 % Delete varibales used for ROS 2 since some of them cannot be saved
 % Create comma-separated list
-tic_start = tic;
 empty_cells = cell(1,options.amount);
 
 result.scenario.ros_subscribers = [];
 [result.scenario.vehicles.communicate] = empty_cells{:};
 for i_iter = 1:length(result.iteration_structs)
     result.iteration_structs{i_iter}.scenario = 0;
-%     [result.iteration_structs{i_iter}.scenario.vehicles.communicate] = empty_cells{:};
-%     result.iteration_structs{i_iter}.scenario.ros_subscribers = [];
 end
-disp(['Deleting was finished in ' num2str(toc(tic_start)) ' seconds.'])
 
 result.mpa = scenario.mpa;
-tic_start = tic;
+% tic_start = tic;
 save(result.output_path,'result');
-disp(['Result was saved in ' num2str(toc(tic_start)) ' seconds.'])
+% disp(['Result was saved in ' num2str(toc(tic_start)) ' seconds.'])
 % exportVideo( result );
-tic_start = tic;
 exp.end_run()
-disp(['HLC was stopped in ' num2str(toc(tic_start)) ' seconds.'])
 
 end
 
