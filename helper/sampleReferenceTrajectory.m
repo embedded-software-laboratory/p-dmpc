@@ -41,7 +41,7 @@ function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, ve
     %}
 
     for i=1:nSamples
-        increased = false;
+        %increased = false;
 
         %{
         for j = 1:length(scenario.vehicles(iVeh).lane_change_indices)

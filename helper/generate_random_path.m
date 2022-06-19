@@ -99,9 +99,7 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
         end
     end
 
-    %random_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,1,3,5,7];
-    %random_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,1,4,6,8];
-    %random_path.lanelets_index = [8,60,57,55,67,65,71,19,14,16,22,5,9,11,18,14,15,3,6,8,59];
+    % paths for debugging
     %random_path.lanelets_index = [2,4,6,8,59,57,56,54,80,82,84,86,33,31,48,42,39,50,20,63,61,57,];
     %random_path.lanelets_index = [2,4,6,8,57,54,80,82,84,86,31,48,42,50,20,63,61,57];
 

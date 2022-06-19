@@ -3,6 +3,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
 
     idx = indices();
     iter_scenario = scenario;
+    visualize_trajectory_index_lab = false;
+    visualize_boundaries_lab = false;
 
     if ~is_sim_lab
         if ~initialized_reference_path
@@ -209,57 +211,57 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
             iter.predicted_lanelets{iVeh} = predicted_lanelets;
             iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
             
-            %{
-            % visualize trajectory index
-            visualization_point = 0;
-            for i = 1:length(iter.referenceTrajectoryPoints(iVeh,:,:))
-                point.x = iter.referenceTrajectoryPoints(iVeh,i,1);
-                point.y = iter.referenceTrajectoryPoints(iVeh,i,2);
-                visualization_point = point;
+            if visualize_trajectory_index_lab
+                % visualize trajectory index
+                visualization_point = 0;
+                for i = 1:length(iter.referenceTrajectoryPoints(iVeh,:,:))
+                    point.x = iter.referenceTrajectoryPoints(iVeh,i,1);
+                    point.y = iter.referenceTrajectoryPoints(iVeh,i,2);
+                    visualization_point = point;
 
-                color = Color;
-                color.r = uint8(240);
-                color.g = uint8(230);
-                color.b = uint8(26);
+                    color = Color;
+                    color.r = uint8(240);
+                    color.g = uint8(230);
+                    color.b = uint8(26);
 
-                [visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
-                exp.visualize(visualization_command);
+                    [visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
+                    exp.visualize(visualization_command);
+                end
             end
-            %}
 
         
             % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
             predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.vehicles(iVeh).lanelets_index, scenario.options.is_sim_lab);
             iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
 
-            %{
-            % visualize boundaries
-            for i = 1:length(predicted_lanelet_boundary{1,1})
-                left_boundary = predicted_lanelet_boundary{1,1};
-                leftPoint.x = left_boundary(1,i);
-                leftPoint.y = left_boundary(2,i);
-                visualization_left_point = leftPoint;
-                color = Color;
-                color.r = uint8(170);
-                color.g = uint8(24);
-                color.b = uint8(186);
-                [visualization_command] = lab_visualize_point(scenario, visualization_left_point, iVeh, color);
-                exp.visualize(visualization_command);
-            end
+            if visualize_boundaries_lab
+                % visualize boundaries
+                for i = 1:length(predicted_lanelet_boundary{1,1})
+                    left_boundary = predicted_lanelet_boundary{1,1};
+                    leftPoint.x = left_boundary(1,i);
+                    leftPoint.y = left_boundary(2,i);
+                    visualization_left_point = leftPoint;
+                    color = Color;
+                    color.r = uint8(170);
+                    color.g = uint8(24);
+                    color.b = uint8(186);
+                    [visualization_command] = lab_visualize_point(scenario, visualization_left_point, iVeh, color);
+                    exp.visualize(visualization_command);
+                end
 
-            for i = 1:length(predicted_lanelet_boundary{1,2})
-                right_boundary = predicted_lanelet_boundary{1,2};
-                rightPoint.x = right_boundary(1,i);
-                rightPoint.y = right_boundary(2,i);
-                visualization_right_point = rightPoint;
-                color = Color;
-                color.r = uint8(232);
-                color.g = uint8(111);
-                color.b = uint8(30);
-                [visualization_command] = lab_visualize_point(scenario, visualization_right_point, iVeh, color);
-                exp.visualize(visualization_command);
+                for i = 1:length(predicted_lanelet_boundary{1,2})
+                    right_boundary = predicted_lanelet_boundary{1,2};
+                    rightPoint.x = right_boundary(1,i);
+                    rightPoint.y = right_boundary(2,i);
+                    visualization_right_point = rightPoint;
+                    color = Color;
+                    color.r = uint8(232);
+                    color.g = uint8(111);
+                    color.b = uint8(30);
+                    [visualization_command] = lab_visualize_point(scenario, visualization_right_point, iVeh, color);
+                    exp.visualize(visualization_command);
+                end
             end
-            %}
     
             if scenario.options.isParl
                 % Calculate reachable sets of other vehicles based on their

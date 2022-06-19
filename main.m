@@ -36,7 +36,6 @@ if is_sim_lab
         options.isParl = false;
     end
 
-    %TODO: make selection for mixedTrafficScenarioLanelets
     options.mixedTrafficScenarioLanelets = false;
     options.collisionAvoidanceMode = 0;
     
@@ -89,9 +88,9 @@ else
         options.priority = 'mixed_traffic_priority';
     elseif options.collisionAvoidanceMode == 2 || options.collisionAvoidanceMode == 3
         options.isParl = true;
-        %options.priority = 'topo_priority';
         options.priority = 'mixed_traffic_priority';
     else
+        % Not implemented yet
         options.isParl = false;
         options.priority = 'topo_priority';
     end
@@ -173,7 +172,7 @@ while (~got_stop)
     controller_init = true;
     scenario.k = k;
 
-    %disp(['>>> Time step ' num2str(scenario.k) ''])
+    disp(['>>> Time step ' num2str(scenario.k) ''])
 
 
     % Control
