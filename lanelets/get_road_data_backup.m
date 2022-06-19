@@ -1,5 +1,5 @@
 function [lanelets, adjacency_lanelets, semi_adjacency_lanelets, intersection_lanelets,...
-    lanelet_boundary, road_raw_data, lanelet_relationships] = get_road_data()
+    lanelet_boundary, road_raw_data, lanelet_relationships] = get_road_data_backup()
 % GET_ROAD_DATA Process raw road data and extract some useful road information.
 % 
 % OUTPUT:
@@ -34,11 +34,12 @@ function [lanelets, adjacency_lanelets, semi_adjacency_lanelets, intersection_la
     road_name = 'commonroad_lanelets.mat';
     road_full_path = [folder_target,filesep,road_name];
 
-    % if the needed road data alread exist, simply load it, otherwise they will be calculated and saved.
+    %% if the needed road data alread exist, simply load it, otherwise they will be calculated and saved.
     if isfile(road_full_path)
         load(road_full_path,'lanelets','adjacency_lanelets','semi_adjacency_lanelets','intersection_lanelets','lanelet_boundary','road_raw_data','lanelet_relationships');
         return
     end
+    %% else load and preprocess the raw data and save them at the end
 
     % read raw road data
     road_raw_data = readstruct('LabMapCommonRoad_Update.xml');
@@ -355,12 +356,12 @@ function lanelet_boundary = get_lanelet_boundary(road_raw_data,lanelets,lanelet_
         bound_y = [left_bound_y;right_bound_y(end:-1:1)];
         lanelet_boundary{i}{3} = polyshape(bound_x,bound_y,'Simplify',true);
 
-        % Narrowed lanelet boundaries, used to check if two vehicles' predicted lanelets boundaries overlap. 
-        % Without narrowing, two lanelets are considered as overlap if they only share the same boundary
-        narrow_fac = 0.98;
-        bound_x_narrowed = narrow_fac*(bound_x-mean(bound_x)) + mean(bound_x);
-        bound_y_narrowed = narrow_fac*(bound_y-mean(bound_y)) + mean(bound_y);
-        lanelet_boundary{i}{4} = polyshape(bound_x_narrowed,bound_y_narrowed,'Simplify',true);
+%         % Narrowed lanelet boundaries, used to check if two vehicles' predicted lanelets boundaries overlap. 
+%         % Without narrowing, two lanelets are considered as overlap if they only share the same boundary
+%         narrow_fac = 0.98;
+%         bound_x_narrowed = narrow_fac*(bound_x-mean(bound_x)) + mean(bound_x);
+%         bound_y_narrowed = narrow_fac*(bound_y-mean(bound_y)) + mean(bound_y);
+%         lanelet_boundary{i}{4} = polyshape(bound_x_narrowed,bound_y_narrowed,'Simplify',true);
     end 
 end
 

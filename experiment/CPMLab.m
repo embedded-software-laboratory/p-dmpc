@@ -144,6 +144,8 @@ classdef CPMLab < InterfaceExperiment
                     obj.wheelNode = ros2node("/wheel");
                     obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@steeringWheelCallback);
                 end
+            else
+                obj.scenario.g29_force_feedback = false;
             end
 
             if obj.scenario.second_manual_vehicle_id ~= 0
@@ -271,7 +273,8 @@ classdef CPMLab < InterfaceExperiment
             end
         end
         
-        function apply(obj, ~, y_pred, info, ~, k, scenario)
+        function apply(obj, info, ~, k, scenario)
+            y_pred = info.y_predicted;
             % simulate change of state
             obj.cur_node = info.next_node;
             obj.k = k;
@@ -356,10 +359,8 @@ classdef CPMLab < InterfaceExperiment
                 end
 
                 obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory)
-                disp(cos(yaw));
-                disp("sin:");
-                disp(sin(yaw));
-
+                
+                %{
                 rad = speed / yaw;
 
                 Lr = scenario.vehicles(iVeh).Lr;
@@ -367,9 +368,7 @@ classdef CPMLab < InterfaceExperiment
                 L = Lr + Lf;
                 %d = sqrt(rad^2-Lr^2);
                 %delta = pi/2 - atan(d/L);
-                delta = atan((L*(sin(yaw)+cos(yaw)))/speed);
-                %disp(delta);
-
+                %}
 
                 if obj.scenario.g29_force_feedback && scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id
                     obj.g29_last_position = obj.g29_handler.g29_send_message(yaw, 0.3, obj.g29_last_position);                 

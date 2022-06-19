@@ -5,11 +5,11 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
 % group do not exceed a number defined by the second input argument. 
     
     % Process optional input and Name-Value pair options
-    [M, max_num_CLs, method] = parse_inputs(M, varargin{:});
+    [M, max_num_CLs, coupling_info, method] = parse_inputs(M, varargin{:});
 
     % partition the supergraph to subgraphs with a certain upper graph size.
     % The sum of weights of edges connecting subgraphs is the objective value and should be minimized.
-    [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, max_num_CLs, 'method', method);
+    [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, max_num_CLs, coupling_info, 'method', method);
     
     % subgraphs is mergeable if the number of computation levels of the
     % new graph does not exceed the maximum allowed number.
@@ -49,26 +49,28 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
 end
 
 %% local function
-function [M, max_num_CLs, method] = parse_inputs(M, varargin)
+function [M, max_num_CLs, coupling_info, method] = parse_inputs(M, varargin)
     % Process optional input and Name-Value pair options
     
     n = size(M,1); % number of vertices
     % set the default value of the maximum number of computation levels to be half of the total number of vertices
     default_max_num_CLs = ceil(n/2); % round up
+    default_coupling_info = [];
 
     default_method = 's-t-cut';
-    expected_methods = {'auto', 's-t-cut', 'MILP'};
+    expected_methods = {'s-t-cut', 'MILP'};
 
     p = inputParser;
     addRequired(p,'M',@(x) isnumeric(x) && ismatrix(x)); % must be numerical matrix
-    addOptional(p,'max_num_CLs', default_max_num_CLs, @(x) isnumeric(x) && isscalar(x) && x>0); % must be numerical scalar
+    addOptional(p,'max_num_CLs', default_max_num_CLs, @(x) (isnumeric(x) && x>0) || isempty(x) ); % must be numerical scalar
+    addOptional(p,'coupling_info', default_coupling_info, @(x) isstruct(x) || isempty(x)); % must be struct or empty
     addParameter(p,'method',default_method, @(x) any(validatestring(x,expected_methods)));
     parse(p, M, varargin{:}); % start parsing
     
     % get parsed inputs
     M = p.Results.M;
     max_num_CLs = p.Results.max_num_CLs;
+    coupling_info = p.Results.coupling_info;
     method = p.Results.method;
-
 end
 

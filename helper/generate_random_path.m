@@ -110,8 +110,8 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
     end
 
     %[lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(scenario.options.mixedTrafficScenarioLanelets);
-    
-    [lanelets, ~,~,~,scenario.lanelet_boundary,~,~] = get_road_data();
+    % [lanelets, ~,~,~,scenario.lanelet_boundary,~,~] = get_road_data();
+    lanelets = scenario.lanelets;
 
     % reference path
     path = [];

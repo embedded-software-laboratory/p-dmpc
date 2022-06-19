@@ -1,4 +1,4 @@
-function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
+function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obstacles, lanelet_boundary, lanelet_intersecting_areas, method)
 % EVAL_EDGE_EXACT   Evaluate if step is valid.
 % 
 % INPUT:
@@ -67,8 +67,8 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
         % check if collides with other vehicles' predicted trajectory or lanelets 
         if tree.k(iNode) == scenario.Hp
             % with larger offset
-            shape_x_for_boundary_check = c*maneuver.area_boundary_check(1,:) - s*maneuver.area_boundary_check(2,:) + pX(iVeh);
-            shape_y_for_boundary_check = s*maneuver.area_boundary_check(1,:) + c*maneuver.area_boundary_check(2,:) + pY(iVeh);
+            shape_x_for_boundary_check = c*maneuver.area_large_offset(1,:) - s*maneuver.area_large_offset(2,:) + pX(iVeh);
+            shape_y_for_boundary_check = s*maneuver.area_large_offset(1,:) + c*maneuver.area_large_offset(2,:) + pY(iVeh);
             shapes_for_boundary_check{iVeh} = [shape_x_for_boundary_check;shape_y_for_boundary_check];    
         else
             % without offset
@@ -89,19 +89,19 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
                 end
 
             case 'InterX'
-                assert(scenario.nVeh==1) % if not 1, code adaption is needed
-                % repeat the last column to enclose the shape
-                if InterX([shapes{iVeh},shapes{iVeh}(:,1)], vehicle_obstacles{iStep})
+                assert(scenario.nVeh==1) % if not 1, code adaption is needed                
+                % shape must be closed!
+                if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
                     % check collision with vehicle obstacles
                     is_valid = false;
                     return
                 end
-                if InterX([shapes_without_offset{iVeh},shapes_without_offset{iVeh}(:,1)], lanelet_crossing_areas{iStep})
-                    % check collision with crossing area of lanelets
+                if InterX(shapes_without_offset{iVeh}, lanelet_intersecting_areas{iStep})
+                    % check collision with intersecting area of lanelets
                     is_valid = false;
                     return
                 end
-                if InterX([shapes_for_boundary_check{iVeh},shapes_for_boundary_check{iVeh}(:,1)], lanelet_boundary)
+                if InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
                     % check collision with lanelet obstacles
                     is_valid = false;
                     return

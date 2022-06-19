@@ -4,7 +4,7 @@ classdef Scenario
     properties
         vehicles = [];                  % array of Vehicle objects
         obstacles = {};                 % static obstacles = {[xs;ys],...}
-        lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
+        lanelet_intersecting_areas = {}; % intersecting area of one vehicle's lanelet with another vehicle's lanelet
         nVeh = 0;
         name = 'UnnamedScenario';
         controller_name = 'RHC';
@@ -48,7 +48,7 @@ classdef Scenario
         lanelet_relationships;          % relationship between two adjacent lanelets
         adjacency_lanelets;             % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent 
         semi_adjacency_lanelets;        % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent but not intersecting
-        last_veh_at_intersection = [];  % store information about which vehicles were at the intersection in the last time step
+        last_vehs_at_intersection = [];  % store information about which vehicles were at the intersection in the last time step
         k;                              % simulation steps
         priority_option;
         coupling_weights = [];          % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
@@ -59,22 +59,23 @@ classdef Scenario
         mixedTrafficCollisionAvoidanceMode = 0;     % mode for collision avoidance in CPM Lab Mode with manual vehicles
         priority_list = [];             % priority list of vehicles; a smaller value for a higher priority
         is_allow_non_convex = true      % whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
-        strategy_consider_veh_without_ROW = '1'; % Stategies to let vehicle with the right-of-way consider vehicle without the right-of-way
+        strategy_consider_veh_without_ROW = '4'; % Stategies to let vehicle with the right-of-way consider vehicle without the right-of-way
                                                  % '0': do not consider 
                                                  % '1': consider currently occupied area as static obstacle
                                                  % '2': consider one-step reachable sets as static obstacle
                                                  % '3': consider old trajectory as dynamic obstacle
                                                  % '4': consider the occupied area of emergency braking maneuver as static obstacle 
-        strategy_enter_crossing_area = '3'; % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
-                                            % '0': no constraint on entering the crossing area 
-                                            % '1': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
-                                            % '2': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
-                                            % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
+        strategy_enter_crossing_area = '3'; % Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
+                                            % '0': no constraint on entering the intersecting area 
+                                            % '1': not allowed to enter the intersecting area if they are coupled at intersecting lanelets of the intersection
+                                            % '2': not allowed to enter the intersecting area if they are coupled at intersecting or merging lanelets of the intersection
+                                            % '3': not allowed to enter the intersecting area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
         
         time_enter_intersection = []; % time step when vehicle enters the intersection
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
         distance_threshold_intersection = [1.1]; % vector with length numOfIntersection, threshold of distance from a vehicle's position to the intersection center point exceed which a vehicle is considered as entering the intersection
         belonging_vector; % a column vector whose value indicate which group each vehicle belongs to 
+        parl_groups_info; % struct, store information of parallel groups 
     end
     
     properties (Dependent)

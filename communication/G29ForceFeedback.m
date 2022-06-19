@@ -131,7 +131,7 @@ classdef G29ForceFeedback
             elseif cos_yaw > 0.9 && sin_yaw > 0.1
                 position = 0.1;
             end
-            disp(position);
+            %disp(position);
 
             if position == 0.0 && last_position == 0.0
                 torque = 0.0;

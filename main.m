@@ -143,9 +143,6 @@ result = get_result_struct(scenario, options);
 
 exp.setup();
 
-% group_and_prioritize_vehicles(scenario.communication)
-fallback=0;
-
 scenario.k = k;
 
 % turn off warning if intersections are detected and fixed, collinear points or
@@ -158,6 +155,9 @@ if options.isParl && strcmp(scenario.name, 'Commonroad')
     scenario = communication_init(scenario, exp);
 end
 
+vehs_fallback_times = zeros(1,scenario.options.amount); % record the number of successive fallback times of each vehicle 
+info_old = []; % old information for fallback
+total_fallback_times = 0; % total times of fallbacks
 
 %% Main control loop
 while (~got_stop)
@@ -173,202 +173,172 @@ while (~got_stop)
     controller_init = true;
     scenario.k = k;
 
-    %disp(['Time step ' num2str(scenario.k) '.'])
+    %disp(['>>> Time step ' num2str(scenario.k) ''])
 
-    try
-        % Control
-        % ----------------------------------------------------------------------
-         
-        % Update the iteration data and sample reference trajectory
-        [iter, scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab, exp);
-       
-        if (~initialized_reference_path || scenario.updated_manual_vehicle_path || scenario.updated_second_manual_vehicle_path)
-            %exp.update();
-        end
-        initialized_reference_path = true;
 
-        if ~is_sim_lab
-            if scenario.manual_vehicle_id ~= 0
-                % function that updates the steering wheel data
-                %wheelData = exp.getWheelData();
-                %wheelData = exp.get_stored_wheel_msgs();
-
-                if (scenario.options.firstManualVehicleMode == 1)
-                    wheelData = exp.getWheelData();
-                    % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
-                    modeHandler = GuidedMode(scenario,x0_measured,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
-                    scenario = modeHandler.scenario;
-                    scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
-                    speedProfileMPAsInitialized = true;
-                    
-                elseif scenario.options.firstManualVehicleMode == 2
-                    % classify steering angle into intervals and send according steering command
-                    %D = parallel.pool.DataQueue;
-                    %afterEach(D, @(steeringWheelCallback) ExpertMode(exp, scenario, true, scenario.manual_vehicle_id));
-                    %spmd(2)
-                        %wheelData = exp.getWheelData();
-                        %input = [exp, scenario, true, scenario.manual_vehicle_id, wheelData];
-                        %handle = @ExpertMode;
-                        input = struct;
-                        input.exp = exp;
-                        input.scenario = scenario;
-                        input.steeringWheel = true;
-                        input.vehicle_id = scenario.manual_vehicle_id;
-        
-                        %parfeval(@ExpertMode, 0, input);
-                        %parfeval(scenario.pool, handle(input), 0);
-                    %end
-                end
-            end
-
-            if scenario.second_manual_vehicle_id ~= 0
-                % function that updates the gamepad data
-                gamepadData = exp.getGamepadData();
-
-                if (scenario.options.secondManualVehicleMode == 1)
-                    % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
-                    modeHandler = GuidedMode(scenario,x0_measured,scenario.second_manual_vehicle_id,vehicle_ids,cooldown_second_manual_vehicle_after_lane_change,speedProfileMPAsInitialized,gamepadData,false);
-                    scenario = modeHandler.scenario;
-                    scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
-                    speedProfileMPAsInitialized = true;
-                    
-                elseif scenario.options.secondManualVehicleMode == 2
-                    % classify steering angle into intervals and send according steering command
-                    modeHandler = ExpertMode(exp, scenario, gamepadData, false, scenario.second_manual_vehicle_id);
-                end
-            end
-        end
-
-        if scenario.updated_manual_vehicle_path
-            cooldown_after_lane_change = 0;
-        else
-            cooldown_after_lane_change = cooldown_after_lane_change + 1;
-        end
-
-        if scenario.updated_second_manual_vehicle_path
-            cooldown_second_manual_vehicle_after_lane_change = 0;
-        else
-            cooldown_second_manual_vehicle_after_lane_change = cooldown_second_manual_vehicle_after_lane_change + 1;
-        end
-        
-        % For parallel computation, information from previous time step is need, for example, 
-        % the previous fail-safe trajectory is used again if a new fail-safe trajectory cannot be found.
-        
-        % update the coupling information
-        if strcmp(scenario.name, 'Commonroad')
-            if ~options.isParl
-                % update the coupling information
-                scenario = coupling_adjacency(scenario, iter);
-            end
-
-            % update the lanelet boundary for each vehicle
-            for iVeh = 1:options.amount
-                scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(iVeh,1:2);
-            end
-
-        end
-        
-        % calculate the distance
-        distance = zeros(options.amount,options.amount);
-        adjacency = scenario.adjacency(:,:,end);
-
-        for jVeh = 1:options.amount-1
-            adjacent_vehicle = find(adjacency(jVeh,:));
-            adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > jVeh);
-            for vehn = adjacent_vehicle
-                distance(jVeh,vehn) = check_distance(iter,jVeh,vehn);
-            end
-        end
-        result.distance(:,:,k) = distance;
-        
-        % dynamic scenario
-        scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, k);
-        result.iter_runtime(k) = toc(result.step_timer);
-        
-        % The controller computes plans
-        controller_timer = tic; 
-        %% controller %%
-        [u, y_pred, info, scenario] = scenario.controller(scenario_tmp, iter);
-        
-        %% save result
-        result.controller_runtime(k) = toc(controller_timer);
-        result.iteration_structs{k} = iter;
-        
-        % save controller outputs in result struct
-        result.scenario = scenario;
-        result.iteration_structs{k} = iter;
-        result.trajectory_predictions(:,k) = y_pred;
-        result.controller_outputs{k} = u;
-        result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
-        result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
-        result.n_expanded(k) = info.n_expanded;
-        result.priority(:,k) = info.priority_list;
-        result.computation_levels(k) = info.computation_levels;
-        result.edges_to_break{k} = info.edge_to_break;
-        result.step_time(k) = toc(result.step_timer);
-        result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
-        if options.isParl && scenario.mixedTrafficCollisionAvoidanceMode == 0
-            result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group 
-        end
-       
-        % Apply control action
-        % -------------------------------------------------------------------------
-        exp.apply(u, y_pred, info, result, k, scenario); 
-        
-        fallback_update = 0;
-        
-    % catch case where graph search could not find a new node
-     catch ME
-        switch ME.identifier
-            case 'MATLAB:graph_search:tree_exhausted'
-                warning([ME.message, ', ME, fallback to last priority.............']);
-                 
-                fallback = fallback + 1;
-                fallback_update = fallback_update + 1;
-                disp(['fallback: ', num2str(fallback)])
+    % Control
+    % ----------------------------------------------------------------------
+     
+    % Update the iteration data and sample reference trajectory
+    [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
     
-                % fallback to last plan
-                controller_timer = tic;
-                [u, y_pred, info] = pb_controller_fallback(scenario, iter, u, y_pred, info, options);
-                result.controller_runtime(k) = toc(controller_timer);
+    if (~initialized_reference_path || scenario.updated_manual_vehicle_path || scenario.updated_second_manual_vehicle_path)
+        %exp.update();
+    end
+    initialized_reference_path = true;
+
+    if ~is_sim_lab
+        if scenario.manual_vehicle_id ~= 0
+            % function that updates the steering wheel data
+            %wheelData = exp.getWheelData();
+            %wheelData = exp.get_stored_wheel_msgs();
+
+            if (scenario.options.firstManualVehicleMode == 1)
+                wheelData = exp.getWheelData();
+                % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
+                modeHandler = GuidedMode(scenario,x0_measured,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
+                scenario = modeHandler.scenario;
+                scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
+                speedProfileMPAsInitialized = true;
                 
-                % save controller outputs in result struct
-                result.scenario = scenario;
-                result.iteration_structs{k} = iter;
-                result.trajectory_predictions(:,k) = y_pred;
-                result.controller_outputs{k} = u;
-                result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
-                result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
-                result.n_expanded(k) = info.n_expanded;
-                result.priority(:,k) = info.priority_list;
-                result.computation_levels(k) = info.computation_levels;
-                result.edges_to_break{k} = info.edge_to_break;
-                result.step_time(k) = toc(result.step_timer);
-                result.fallback = fallback;
-                if options.isParl && scenario.mixedTrafficCollisionAvoidanceMode == 0
-                    result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller run time of each parallel group
-                end
-                % Apply control action
-                % -------------------------------------------------------------------------
-                exp.apply(u, y_pred, info, result, k, scenario); 
+            elseif scenario.options.firstManualVehicleMode == 2
+                % classify steering angle into intervals and send according steering command
+                %D = parallel.pool.DataQueue;
+                %afterEach(D, @(steeringWheelCallback) ExpertMode(exp, scenario, true, scenario.manual_vehicle_id));
+                %spmd(2)
+                    %wheelData = exp.getWheelData();
+                    %input = [exp, scenario, true, scenario.manual_vehicle_id, wheelData];
+                    %handle = @ExpertMode;
+                    input = struct;
+                    input.exp = exp;
+                    input.scenario = scenario;
+                    input.steeringWheel = true;
+                    input.vehicle_id = scenario.manual_vehicle_id;
+    
+                    %parfeval(@ExpertMode, 0, input);
+                    %parfeval(scenario.pool, handle(input), 0);
+                %end
+            end
+        end
+
+        if scenario.second_manual_vehicle_id ~= 0
+            % function that updates the gamepad data
+            gamepadData = exp.getGamepadData();
+
+            if (scenario.options.secondManualVehicleMode == 1)
+                % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
+                modeHandler = GuidedMode(scenario,x0_measured,scenario.second_manual_vehicle_id,vehicle_ids,cooldown_second_manual_vehicle_after_lane_change,speedProfileMPAsInitialized,gamepadData,false);
+                scenario = modeHandler.scenario;
+                scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
+                speedProfileMPAsInitialized = true;
                 
-                % if fallback to last plan Hp times continuously, the vehicle
-                % will stop at the current position, terminate the simulation
-                if fallback_update == scenario.Hp
-                    got_stop = true;
-                    disp('Already fallback Hp times, terminate the simulation')
-                end
-                
-            otherwise
-                rethrow(ME)
+            elseif scenario.options.secondManualVehicleMode == 2
+                % classify steering angle into intervals and send according steering command
+                modeHandler = ExpertMode(exp, scenario, gamepadData, false, scenario.second_manual_vehicle_id);
+            end
         end
     end
+
+    if scenario.updated_manual_vehicle_path
+        cooldown_after_lane_change = 0;
+    else
+        cooldown_after_lane_change = cooldown_after_lane_change + 1;
+    end
+
+    if scenario.updated_second_manual_vehicle_path
+        cooldown_second_manual_vehicle_after_lane_change = 0;
+    else
+        cooldown_second_manual_vehicle_after_lane_change = cooldown_second_manual_vehicle_after_lane_change + 1;
+    end
+    
+    % For parallel computation, information from previous time step is need, for example, 
+    % the previous fail-safe trajectory is used again if a new fail-safe trajectory cannot be found.
+    
+    % update the coupling information
+    if strcmp(scenario.name, 'Commonroad')
+        if ~options.isParl
+            % update the coupling information
+            scenario = coupling_adjacency(scenario, iter);
+        end
+
+        % update the lanelet boundary for each vehicle
+        for iVeh = 1:options.amount
+            scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(iVeh,1:2);
+        end
+
+    end
+    
+    % calculate the distance
+    distance = zeros(options.amount,options.amount);
+    adjacency = scenario.adjacency(:,:,end);
+
+    for jVeh = 1:options.amount-1
+        adjacent_vehicle = find(adjacency(jVeh,:));
+        adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > jVeh);
+        for vehn = adjacent_vehicle
+            distance(jVeh,vehn) = check_distance(iter,jVeh,vehn);
+        end
+    end
+    result.distance(:,:,k) = distance;
+    
+    % dynamic scenario
+    scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, k);
+    result.iter_runtime(k) = toc(result.step_timer);
+    
+    % The controller computes plans
+    controller_timer = tic; 
+    %% controller %%
+    [info, scenario] = scenario.controller(scenario_tmp, iter);
+
+    %% fallback
+    vehs_fallback_times(info.vehs_fallback) = vehs_fallback_times(info.vehs_fallback) + 1;
+    vehs_not_fallback = setdiff(1:scenario.options.amount, info.vehs_fallback);
+    vehs_fallback_times(vehs_not_fallback) = 0; % reset
+    
+    % check whether at least one vehicle has fallen back Hp times successively
+    if max(vehs_fallback_times) < scenario.Hp
+        if ~isempty(info.vehs_fallback)
+            disp_tmp = sprintf('%d,',info.vehs_fallback); disp_tmp(end) = [];
+            disp(['*** Vehicles ' disp_tmp ' take fallback.']) % use * to highlight this message
+            info = pb_controller_fallback(info, info_old, scenario);
+            total_fallback_times = total_fallback_times + 1;
+        end
+    else
+        disp('Already fall back successively Hp times, terminate the simulation')
+        disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
+        break % break the while loop
+    end
+
+    info_old = info; % save variable in case of fallback
+    %% save result
+    result.controller_runtime(k) = toc(controller_timer);
+    
+    % save controller outputs in result struct
+    result.scenario = scenario;
+    result.iteration_structs{k} = iter;
+    result.trajectory_predictions(:,k) = info.y_predicted;
+    result.controller_outputs{k} = info.u;
+    result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
+    result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
+    result.n_expanded(k) = info.n_expanded;
+    result.priority(:,k) = scenario.priority_list;
+    result.computation_levels(k) = info.computation_levels;
+    result.step_time(k) = toc(result.step_timer);
+    result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
+    if options.isParl
+        result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller runtime of each parallel group 
+    end
+   
+    % Apply control action
+    % -------------------------------------------------------------------------
+    exp.apply(info, result, k, scenario); 
     
     % Check for stop signal
     % -------------------------------------------------------------------------
     got_stop = exp.is_stop() || got_stop;
     
 end
+
 %delete(gcp('nocreate'));
 %% save results
 
@@ -379,13 +349,15 @@ empty_cells = cell(1,options.amount);
 result.scenario.ros_subscribers = [];
 [result.scenario.vehicles.communicate] = empty_cells{:};
 for i_iter = 1:length(result.iteration_structs)
-    [result.iteration_structs{i_iter}.scenario.vehicles.communicate] = empty_cells{:};
-    result.iteration_structs{i_iter}.scenario.ros_subscribers = [];
+    result.iteration_structs{i_iter}.scenario = 0;
 end
 
 result.mpa = scenario.mpa;
+% tic_start = tic;
 save(result.output_path,'result');
+% disp(['Result was saved in ' num2str(toc(tic_start)) ' seconds.'])
 % exportVideo( result );
 exp.end_run()
+
 end
 

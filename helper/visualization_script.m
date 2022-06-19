@@ -1,8 +1,9 @@
 %% visualize lanelet
-[lanelets, adjacency_lanelets, semi_adjacency_lanelets, intersection_lanelets,...
-    lanelet_boundary, road_raw_data, lanelet_relationships] = get_road_data();
+% [lanelets, adjacency_lanelets, semi_adjacency_lanelets, intersection_lanelets,...
+%    lanelet_boundary, road_raw_data, lanelet_relationships] = get_road_data();
+road_data = RoadData().get_road_data();
 
-lanelet_boundary_poly = cellfun(@(c)[c{3}],lanelet_boundary);
+lanelet_boundary_poly = cellfun(@(c)[c{3}],road_data.lanelet_boundary);
 figure()
 plot(lanelet_boundary_poly)
 hold on

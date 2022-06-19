@@ -1,7 +1,13 @@
-function [u, y_pred, info] = graph_search(scenario, iter)
+function info = graph_search(scenario, iter)
 % GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
+% 
+% OUTPUT:
+%   is_exhausted: (true/false) whether graph search is exhausted or not
+% 
 
-    info = struct;
+    % initialize variable to store control results
+    info = ControllResultsInfo(1,scenario.Hp,scenario.vehicles.ID);
+
     shapes_tmp = cell(scenario.nVeh,0);
     % Create tree with root node
     x = iter.x0(:,1);
@@ -24,13 +30,13 @@ function [u, y_pred, info] = graph_search(scenario, iter)
         % 2. InterX: works for both convex and non-convex polygons
         method = 'InterX';
         % if 'InterX' is used, all obstacles can be vectorized to speed up the collision checking 
-        [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(scenario);
+        [vehicle_obstacles, lanelet_boundary, lanelet_intersecting_areas] = vectorize_all_obstacles(scenario);
     else
         method = 'sat';
         % vectorization is currently not supported for 'sat'
         vehicle_obstacles = [];
         lanelet_boundary = [];
-        lanelet_crossing_areas = [];
+        lanelet_intersecting_areas = [];
 %             method = 'InterX';
     end
 
@@ -40,16 +46,18 @@ function [u, y_pred, info] = graph_search(scenario, iter)
         % Select cheapest node for expansion and remove it
         cur_node_id = pq.pop();
         if (cur_node_id == -1)
-            ME = MException( ...
-                'MATLAB:graph_search:tree_exhausted' ...
-                ,'No more open nodes to explore' ...
-            );
-            disp(['Graph search exhausted with vehicle ID: ' num2str(scenario.vehicles.ID) ', at time step: ' num2str(scenario.k) '.'])
-            throw(ME);
+%             ME = MException( ...
+%                 'MATLAB:graph_search:tree_exhausted' ...
+%                 ,'No more open nodes to explore' ...
+%             );
+%             throw(ME);
+%             disp(['Graph search exhausted for vehicle with ID: ' num2str(scenario.vehicles.ID) ', at time step: ' num2str(scenario.k) '.'])
+            info.is_exhausted = true;
+            break
         end
 
         % Eval edge        
-        [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
+        [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id, vehicle_obstacles, lanelet_boundary, lanelet_intersecting_areas, method); % two methods: 'sat' or 'InterX'
         
         if ~is_valid
             % could remove node from tree here
@@ -59,13 +67,14 @@ function [u, y_pred, info] = graph_search(scenario, iter)
         shapes_tmp(:,cur_node_id) = shapes;
         if info.tree.k(cur_node_id) == scenario.Hp
             y_pred = return_path_to(cur_node_id, info.tree, scenario);
-            u = zeros(scenario.nVeh);
+            info.y_predicted = y_pred;
             info.shapes = return_path_area(shapes_tmp, info.tree, cur_node_id);
             info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
             % Predicted trims in the future Hp time steps. The first
             % entry is the current trims
             info.predicted_trims = info.tree.trim(:,info.tree_path); 
-            info.trim_indices = info.tree.trim(:,info.tree_path(2));
+%             info.trim_indices = info.tree.trim(:,info.tree_path(2));
+            info.is_exhausted = false;
             break
         else
             % Expand chosen node
