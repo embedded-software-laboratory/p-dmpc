@@ -49,9 +49,9 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                     predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
 
                     x0 = x_measured(iVeh,idx.x); % vehicle position x
-                    y0 = x_measured(idx.y); % vehicle position y
+                    y0 = x_measured(iVeh,idx.y); % vehicle position y
 
-                    predicted_lanelets = get_predicted_lanelets(scenario.vehicles(iVeh),predicted_trims(1),x0,y0,scenario.mpa,scenario.dt);
+                    predicted_lanelets = get_predicted_lanelets(scenario.vehicles(iVeh),predicted_trims(1),x0,y0,scenario.mpa,scenario.dt, scenario.options.isParl);
 
                     predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
                     scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   

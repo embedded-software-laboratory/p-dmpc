@@ -72,8 +72,13 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
        nVeh_mpa = 1;
 
        if options.isParl
-            scenario.controller_name = strcat(scenario.controller_name, '-parallel computation');
-            scenario.controller = @(s,i) pb_controller_parl(s,i);
+            if options.collisionAvoidanceMode ~= 2
+                scenario.controller_name = strcat(scenario.controller_name, '-parallel computation');
+                scenario.controller = @(s,i) pb_controller_parl(s,i);
+            else 
+                scenario.controller_name = strcat(scenario.controller_name, '-mixed traffic');
+                scenario.controller = @(s,i) pb_controller_mixed_traffic(s,i);
+            end
        else
            scenario.controller_name = strcat(scenario.controller_name, '-PB');
            scenario.controller = @(s,i) pb_controller(s,i);

@@ -256,7 +256,7 @@ while (~got_stop)
     
     % update the coupling information
     if strcmp(scenario.name, 'Commonroad')
-        if ~options.isParl
+        if ~options.isParl || scenario.mixedTrafficCollisionAvoidanceMode == 2
             % update the coupling information
             scenario = coupling_adjacency(scenario, iter);
         end

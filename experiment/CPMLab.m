@@ -358,9 +358,10 @@ classdef CPMLab < InterfaceExperiment
                     end
                 end
 
-                obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory)
+                obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
                 
                 %{
+                % calculate steering angle
                 rad = speed / yaw;
 
                 Lr = scenario.vehicles(iVeh).Lr;
