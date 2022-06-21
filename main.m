@@ -172,7 +172,7 @@ while (~got_stop)
     controller_init = true;
     scenario.k = k;
 
-    disp(['>>> Time step ' num2str(scenario.k) ''])
+    %disp(['>>> Time step ' num2str(scenario.k) ''])
 
 
     % Control

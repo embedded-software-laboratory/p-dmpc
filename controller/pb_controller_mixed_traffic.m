@@ -32,6 +32,9 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
     
     % initialize variable to store control results
     info = ControllResultsInfo(nVeh, Hp, [scenario.vehicles.ID]);
+
+    % get coupling weigths
+    [coupling_weights, coupling_info] = get_coupling_info_mixed_traffic(scenario, iter);
     
     % graph-search to select the optimal motion primitive
     sub_controller = @(scenario, iter)...
@@ -56,13 +59,27 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 index_first_manual_vehicle = 0;
                 index_second_manual_vehicle = 0;
 
+                coupled_manual_vehicles = find(coupling_weights(vehicle_idx,:)~=0); % indices of the coupled manual vehicles
+
                 for j = 1:length(predecessors)
                     if scenario.vehicle_ids(predecessors(j)) == scenario.manual_vehicle_id
                         % predecessor is first manual vehicle
-                        index_first_manual_vehicle = j;
+
+                        if ismember(predecessors(j), coupled_manual_vehicles)
+                            % manual vehicle is predecessor and coupled
+                            index_first_manual_vehicle = j;
+                        else
+                            index_first_manual_vehicle = 0;
+                        end
                     elseif scenario.vehicle_ids(predecessors(j)) == scenario.second_manual_vehicle_id
                         % predecessor is second manual vehicle
-                        index_second_manual_vehicle = j;
+                    
+                        if ismember(predecessors(j), coupled_manual_vehicles)
+                            % manual vehicle is predecessor and coupled
+                            index_second_manual_vehicle = j;
+                        else
+                            index_second_manual_vehicle = 0;
+                        end
                     end
                 end
 
@@ -90,9 +107,10 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                         % if graph search is exhausted, this vehicles and all vehicles that have directed or
                         % undirected couplings with this vehicle will take fallback 
                         disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
-                        sub_graph_fallback = belonging_vector_total(vehicle_idx);
-                        info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
-                        info.vehs_fallback = unique(info.vehs_fallback,'stable');
+                        %sub_graph_fallback = belonging_vector_total(vehicle_idx);
+                        %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
+                        %info.vehs_fallback = unique(info.vehs_fallback,'stable');
+                        info.vehs_fallback = [info.vehs_fallback, vehicle_idx];
                         info.is_exhausted(vehicle_idx) = true;
                     else
                         info = store_control_info(info, info_v, scenario);
@@ -117,9 +135,10 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                         % if graph search is exhausted, this vehicles and all vehicles that have directed or
                         % undirected couplings with this vehicle will take fallback 
                         disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
-                        sub_graph_fallback = belonging_vector_total(vehicle_idx);
-                        info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
-                        info.vehs_fallback = unique(info.vehs_fallback,'stable');
+                        %sub_graph_fallback = belonging_vector_total(vehicle_idx);
+                        %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
+                        %info.vehs_fallback = unique(info.vehs_fallback,'stable');
+                        info.vehs_fallback = [info.vehs_fallback, vehicle_idx];
                         info.is_exhausted(vehicle_idx) = true;
                     else
                         info = store_control_info(info, info_v, scenario);
@@ -156,9 +175,10 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                     % if graph search is exhausted, this vehicles and all vehicles that have directed or
                     % undirected couplings with this vehicle will take fallback 
                     disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
-                    sub_graph_fallback = belonging_vector_total(vehicle_idx);
-                    info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
-                    info.vehs_fallback = unique(info.vehs_fallback,'stable');
+                    %sub_graph_fallback = belonging_vector_total(vehicle_idx);
+                    %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
+                    %info.vehs_fallback = unique(info.vehs_fallback,'stable');
+                    info.vehs_fallback = [info.vehs_fallback, vehicle_idx];
                     info.is_exhausted(vehicle_idx) = true;
                 else
                     info = store_control_info(info, info_v, scenario);
@@ -180,36 +200,39 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                     % if graph search is exhausted, this vehicles and all vehicles that have directed or
                     % undirected couplings with this vehicle will take fallback 
                     disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
-                    sub_graph_fallback = belonging_vector_total(vehicle_idx);
-                    info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
-                    info.vehs_fallback = unique(info.vehs_fallback,'stable');
+                    %sub_graph_fallback = belonging_vector_total(vehicle_idx);
+                    %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
+                    %info.vehs_fallback = unique(info.vehs_fallback,'stable');
+                    info.vehs_fallback = [info.vehs_fallback, vehicle_idx];
                     info.is_exhausted(vehicle_idx) = true;
                 else
                     info = store_control_info(info, info_v, scenario);
                 end
             end
 
-            % communicate data to other vehicles
-            predicted_trims = info.predicted_trims(vehicle_idx,:); % including the current trim
-            trim_current = predicted_trims(2);
+            if ~ismember(vehicle_idx, info.vehs_fallback)
+                % communicate data to other vehicles
+                predicted_trims = info.predicted_trims(vehicle_idx,:); % including the current trim
+                trim_current = predicted_trims(2);
 
-            states_current = info.y_predicted{vehicle_idx}(1,:);
-            x0 = states_current(indices().x);
-            y0 = states_current(indices().y);
+                states_current = info.y_predicted{vehicle_idx}(1,:);
+                x0 = states_current(indices().x);
+                y0 = states_current(indices().y);
 
-            if (scenario.manual_vehicle_id == scenario.vehicle_ids(vehicle_idx) && scenario.manual_mpa_initialized)
-                mpa = scenario.vehicles(vehicle_idx).vehicle_mpa;
-            elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(vehicle_idx) && scenario.second_manual_mpa_initialized)
-                mpa = scenario.vehicles(vehicle_idx).vehicle_mpa;
-            else
-                mpa = scenario.mpa;
+                if (scenario.manual_vehicle_id == scenario.vehicle_ids(vehicle_idx) && scenario.manual_mpa_initialized)
+                    mpa = scenario.vehicles(vehicle_idx).vehicle_mpa;
+                elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(vehicle_idx) && scenario.second_manual_mpa_initialized)
+                    mpa = scenario.vehicles(vehicle_idx).vehicle_mpa;
+                else
+                    mpa = scenario.mpa;
+                end
+
+                [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_idx), trim_current, x0, y0, mpa, scenario.dt, scenario.options.isParl, scenario.vehicles(vehicle_idx).autoUpdatedPath);
+                predicted_areas = info.shapes(vehicle_idx,:);
+
+                % send message
+                send_message(scenario.vehicles(vehicle_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas);
             end
-
-            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_idx), trim_current, x0, y0, mpa, scenario.dt, scenario.options.isParl);
-            predicted_areas = info.shapes(vehicle_idx,:);
-
-            % send message
-            send_message(scenario.vehicles(vehicle_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas);
             
         end
 

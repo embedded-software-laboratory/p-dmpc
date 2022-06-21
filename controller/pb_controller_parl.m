@@ -167,7 +167,7 @@ end
             x0 = states_current(indices().x);
             y0 = states_current(indices().y);
 
-            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_k), trim_current, x0, y0, scenario.mpa, scenario.dt, scenario.options.isParl);
+            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_k), trim_current, x0, y0, scenario.mpa, scenario.dt, scenario.options.isParl, scenario.vehicles(vehicle_k).autoUpdatedPath);
             predicted_areas_k = info.shapes(vehicle_k,:);
 
             % send message

@@ -30,7 +30,16 @@ function info = pb_controller_fallback(info, info_old, scenario)
             trim_current = predicted_trims(1);
             x0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().x);
             y0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().y);
-            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_idx), trim_current, x0, y0, scenario.mpa, scenario.dt, scenario.options.isParl);
+
+            if (scenario.manual_vehicle_id == scenario.vehicle_ids(vehicle_idx) && scenario.manual_mpa_initialized)
+                mpa = scenario.vehicles(vehicle_idx).vehicle_mpa;
+            elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(vehicle_idx) && scenario.second_manual_mpa_initialized)
+                mpa = scenario.vehicles(vehicle_idx).vehicle_mpa;
+            else
+                mpa = scenario.mpa;
+            end
+
+            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_idx), trim_current, x0, y0, mpa, scenario.dt, scenario.options.isParl, scenario.vehicles(vehicle_idx).autoUpdatedPath);
             % send message
             send_message(scenario.vehicles(vehicle_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, info.shapes(vehicle_idx,:));
         end
