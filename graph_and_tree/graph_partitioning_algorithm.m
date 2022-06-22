@@ -11,6 +11,8 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, va
 %   max_num_CLs: maximum number of computation levels, equals to the height
 %   of the directed tree for the given matrix.
 % 
+%   coupling_info: couling information of each coupling pair
+% 
 %   method: either 's-t-cut' or 'MILP'
 %
 % OUTPUT:
@@ -91,10 +93,11 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, va
             case 's-t-cut' 
                 belonging_vector_longest_graph = min_cut_s_t(M_longest_graph, must_not_in_same_subset, must_in_same_subset);
             case 'MILP'
+                assert(length(must_in_same_subset)<=1)
                 belonging_vector_longest_graph = min_cut_MILP(M_longest_graph, must_not_in_same_subset, must_in_same_subset);
                 if isempty(belonging_vector_longest_graph)
                     warning("No feasible cutting found when using MILP. Change to use minimum s-t-cut algorithm.")
-                    belonging_vector_longest_graph = min_cut_s_t(M_longest_graph, must_not_in_same_subset, must_in_same_subset);
+                    belonging_vector_longest_graph = min_cut_s_t(M_longest_graph, must_not_in_same_subset, must_in_same_subset{:});
                 end
             otherwise
                 error("Invalid method name for graph cutting. Please specify either 's-t-cut' or 'MILP'.")
@@ -113,14 +116,6 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, va
 
         % keep the index of the first part, assign the second part with the highest graph index
         belonging_vector(vertices_second_part) = n_graphs;
-
-        % calculate the number of computation levels for the two new subgraphs
-%         [valid, L_topologies{1}] = kahn(M(indices_first_part,indices_first_part));
-%         assert(valid==true)
-%         number_CLs_first_part = size(L_first_part,1);
-%         [valid, L_topologies{end+1}] = kahn(M(indices_second_part,indices_second_part));
-%         assert(valid==true)
-%         number_CLs_second_part = size(L_second_part,1);
         
         path_info_first_part = get_longest_paths_from_sources_to_sinks(M(vertices_first_part,vertices_first_part)); 
         % replace the previous longest graph with the first part  
