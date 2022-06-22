@@ -54,10 +54,10 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
             
             % prepare output data
             info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
-            info.n_expanded = info.n_expanded + numel(info_v.tree.node);
+            info.n_expanded = info.n_expanded + info_v.tree.size();
             info.next_node = set_node(info.next_node,[vehicle_idx],info_v);
             info.shapes(vehicle_idx,:) = info_v.shapes(:);
-            info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree.node{info_v.tree_path(1)},info_v.tree.node{info_v.tree_path(2)},info_v.tree,scenario.mpa);
+            info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario.mpa);
             info.trim_indices(vehicle_idx) = info_v.trim_indices(1);
             y_pred{vehicle_idx,1} = y_pred_v{:};
             u(vehicle_idx) = u_v(1);
