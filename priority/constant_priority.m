@@ -3,20 +3,17 @@ classdef  constant_priority < interface_priority
 % assignment, fixed priority according to vehicle ids
     
     properties (Access=private)
-
-        
     end
     
     methods 
-        function obj = constant_priority(scenario)
-            obj.scenario = scenario;
+        function obj = constant_priority() 
         end
         
-        function [groups, directed_adjacency] = priority(obj)
+        function [groups, directed_adjacency, priority_list] = priority(obj,scenario)
             
-%             groups = PB_random_groups(obj.scenario);
+%             groups = PB_random_groups(scenario);
             groups = struct;
-            nVeh = length(obj.scenario.vehicles);
+            nVeh = length(scenario.vehicles);
             ConstPrio = 1:nVeh; % random priority order 
             
             directed_adjacency = zeros(nVeh,nVeh);
@@ -35,7 +32,10 @@ classdef  constant_priority < interface_priority
                 end
             end
 
-            
+            % Assign prrority according to computation level
+            % Vehicles with higher priorities plan trajectory before vehicles
+            % with lower priorities            
+            priority_list = obj.get_priority(groups,obj.is_assign_unique_priority);
         end
       
         
