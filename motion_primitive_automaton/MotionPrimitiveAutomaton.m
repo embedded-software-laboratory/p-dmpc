@@ -351,6 +351,50 @@ classdef MotionPrimitiveAutomaton
             end
         end
 
+        function braking_time = get_emergency_braking_time(obj, current_trim, braking_distance, time_step)
+            % Returns the shortest time to perform emergency braking maneuver starting from the current trim
+            % Note that this is only a lower bound time because the
+            % steering angle is not considered, namely we assume the
+            % vehicle drives straight to arrive the goal destination.
+            braking_time = 0;
+            distance_remained = braking_distance;
+            distance_decceleration = 0; % acceleration distance
+            % compute the shortest path from the current trim to the trim(s) with minimum speed
+            min_speed = 0;
+            min_speed_trims = find([obj.trims.speed]==min_speed); % find all the trims with the minimum speed
+    
+            graph_trims = graph(obj.transition_matrix_single(:,:,1));
+            shortest_distances_to_min_speed = distances(graph_trims,current_trim,min_speed_trims); % shortest path between two single nodes
+            % find the one which has the minimal distance to the trims with the minimum speed
+            [min_distance,idx] = min(shortest_distances_to_min_speed); 
+            if min_distance==0 % if the current trim has already the minimum speed, no decceleration is needed
+                braking_time = distance_remained/min_speed;
+            else % decceleration to minimum speed
+                min_speed_trim = min_speed_trims(idx);
+                shortest_path_to_min_speed = shortestpath(graph_trims,current_trim,min_speed_trim); % shortest path between two single nodes
+                for i=1:length(shortest_path_to_min_speed)
+                    trim_current = shortest_path_to_min_speed(i);
+                    
+                    speed_cur = obj.trims(trim_current).speed;
+                    if i+1<=length(shortest_path_to_min_speed)
+                        trim_next = shortest_path_to_min_speed(i+1);
+                        speed_next = obj.trims(trim_next).speed;
+                    else
+                        speed_next = min_speed;
+                    end
+                    mean_speed = (speed_cur+speed_next)/2;
+                    distance_decceleration = distance_decceleration + mean_speed*time_step;
+                    if distance_decceleration > braking_distance % if the vehicle arrives the destination when deccelerating
+                        braking_time = braking_time + distance_remained/mean_speed; % time accumulates
+                        break
+                    else
+                        braking_time = braking_time + time_step; % time accumulates
+                        distance_remained = braking_distance - distance_decceleration;
+                    end
+                end
+            end
+        end
+
         function [time_to_catch, waiting_time, distance_traveled_leader_total, distance_traveled_follower_total] = get_the_shortest_time_to_catch(obj, trim_leader, trim_follower, distance, time_step)
             % Calculatet the shortest time to achieve a collision by
             % letting the leader take an emergency braking and the follower

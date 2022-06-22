@@ -35,7 +35,8 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(vehicle
         x0, ...                             % vehicle position x
         y0, ...                             % vehicle position y
         v_ref*dt, ...                       % distance traveled in one timestep
-        autoUpdatedPath...                  % if the path has been updated automatically
+        autoUpdatedPath, ...                  % if the path has been updated automatically
+        isParl...
     );
 
     ref_points_index = reshape(reference.ReferenceIndex,Hp,1);

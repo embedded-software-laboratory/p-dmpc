@@ -1,4 +1,4 @@
-function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize, autoUpdatedPath )
+function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize, autoUpdatedPath, isParl )
 % SAMPLEREFERENCETRAJETORY  Computes equidistant points along a piecewise linear curve. The first
 % point is the point on the curve closest to the given point
 % (vehicle_x,vehicle_y). All following points are on the curve with a
@@ -101,7 +101,7 @@ function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, ve
         % record step
         reference.ReferencePoints(i,:) = currentPoint;
 
-        if autoUpdatedPath
+        if autoUpdatedPath && isParl
             % if path has been updated automatically, set index manually to first lane
             reference.ReferenceIndex(i,:) = 2;
         else

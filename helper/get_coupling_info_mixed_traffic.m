@@ -89,8 +89,45 @@ function [coupling_weights, coupling_info] = get_coupling_info_mixed_traffic(sce
                             if time_to_collisionPoint_i >= time_to_collisionPoint_j
                                 coupling_weights(iVeh,jVeh) = coupling_info(count).weight; 
                             else 
-                                % include RSS here
+                                % manual vehicle would be responsible for collision
+                                % include RSS-based rules here
+                                % if autonomous vehicle has enough time for emergency braking, then it has to perform it
+                                % otherwise break coupling and end scenario for all vehicles (also manual)
                                 %coupling_weights(veh_j,veh_i) = coupling_info(count).weight; 
+                                
+                                %if consecutive lanes or same lanes
+
+                                %else
+                                    % distance for autonomous vehicle to perform emergency breaking maneuver
+                                    emergency_braking_distance = get_emergency_braking_distance(scenario.mpa, trim_i, scenario.dt);
+
+                                    % time needed for autonomous vehicle to perform emergency braking maneuver
+                                    emergency_braking_time = get_emergency_braking_time(scenario.mpa, trim_i, emergency_braking_distance, scenario.dt);
+
+                                    % time of manual vehicle to travel emergency braking distance
+                                    %manual_vehicle_time_during_braking = get_the_shortest_time_to_arrive(mpa, trim_j, emergency_braking_distance, scenario.dt);
+
+                                    % distance travelled by manual vehicle during autonomous emergency brake
+                                    manual_vehicle_distance_during_braking = speed_j * emergency_braking_time;
+
+                                    % distance of autonomous vehicle to collision point after braking
+                                    distance_autonomous = distance_to_collision_i - emergency_braking_distance;
+
+                                    % distance of manual vehicle to collision point after autonomous vehicle braking
+                                    distance_manual = distance_to_collision_j - manual_vehicle_distance_during_braking;
+
+                                    if distance_autonomous > 0
+                                        if distance_autonomous < distance_manual 
+                                            % no emergency braking necessary
+                                        elseif distance_autonomous > (distance_manual + 0.2)
+                                            % if distance autonomous after braking larger that distance of manual vehicle after braking to collision point plus safety
+                                            % threshold (vehicle length), then autonomous vehicle should brake
+                                            coupling_weights(iVeh,jVeh) = coupling_info(count).weight; 
+                                        else
+                                            % collision unavoidable, stop all vehicles immediately
+                                        end
+                                    end
+                                %end        
                             end
                             count = count + 1; 
             
