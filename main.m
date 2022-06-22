@@ -264,6 +264,11 @@ while (~got_stop)
         for iVeh = 1:options.amount
             scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(iVeh,1:2);
         end
+    else
+        % for other scenarios, no lanelet boundary 
+        for iVeh = 1:options.amount
+            scenario.vehicles(iVeh).lanelet_boundary = {};
+        end
 
     end
     

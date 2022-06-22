@@ -12,7 +12,7 @@ classdef (Abstract) InterfaceExperiment < handle
     
     methods (Abstract) 
         setup(obj)
-        [ x0, trim_indices ] = measure(obj)
+        [ x0, trim_indices ] = measure(obj, ~)
         apply(obj, info)
         got_stop = is_stop(obj)
         end_run(obj)

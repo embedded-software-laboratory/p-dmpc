@@ -30,7 +30,7 @@ function info = pb_controller_fallback(info, info_old, scenario)
             trim_current = predicted_trims(1);
             x0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().x);
             y0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().y);
-            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_idx), trim_current, x0, y0, scenario.mpa, scenario.dt, scenario.options.isParl);
+            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_idx), trim_current, x0, y0, scenario.mpa, scenario.dt, scenario.options.isParl, scenario.name);
             % send message
             send_message(scenario.vehicles(vehicle_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, info.shapes(vehicle_idx,:));
         end
