@@ -30,6 +30,10 @@ classdef  topo_priority < interface_priority
             for k = 1:length(rows)
                 v_i = rows(k); 
                 v_j = cols(k);
+                if v_i == v_j
+                    coupling_directed(v_i,v_j) = 0;
+                    continue
+                end
                 level_i = find(obj.topo_groups(:,v_i)==1);
                 level_j = find(obj.topo_groups(:,v_j)==1);
                 % edge comes from vertex in the front level, ends in vertex in
