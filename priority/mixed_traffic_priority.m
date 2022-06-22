@@ -13,10 +13,9 @@ classdef  mixed_traffic_priority < interface_priority
             obj.scenario = scenario;
         end
         
-        function [groups, directed_adjacency] = priority(obj)
+        function [groups, coupling_directed] = priority(obj)
             groups = struct;
             nVeh = length(obj.scenario.vehicles);
-            directed_adjacency = zeros(nVeh,nVeh);
 
             prios = zeros(1, nVeh);
             for i = 1:nVeh
@@ -37,10 +36,6 @@ classdef  mixed_traffic_priority < interface_priority
             for group_idx = 1:nVeh
                 groups(group_idx).members = prios(group_idx);
 
-                if group_idx < nVeh
-                    directed_adjacency(prios(group_idx),prios(group_idx+1)) = 1;
-                end
-
                 if group_idx == 1
                     groups(group_idx).predecessors = [];
                 else
@@ -48,7 +43,7 @@ classdef  mixed_traffic_priority < interface_priority
                 end
             end
 
-            
+            coupling_directed = obj.scenario.adjacency(:,:,end);
         end
       
         

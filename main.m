@@ -86,6 +86,7 @@ else
     if options.collisionAvoidanceMode == 1
         options.isParl = false;
         options.priority = 'mixed_traffic_priority';
+        %options.priority = 'topo_priority';
     elseif options.collisionAvoidanceMode == 2 || options.collisionAvoidanceMode == 3
         options.isParl = true;
         options.priority = 'mixed_traffic_priority';
@@ -297,7 +298,13 @@ while (~got_stop)
     % check whether at least one vehicle has fallen back Hp times successively
     if max(vehs_fallback_times) < scenario.Hp
         if ~isempty(info.vehs_fallback)
-            disp_tmp = sprintf('%d,',info.vehs_fallback); disp_tmp(end) = [];
+            real_vehicles = zeros(1,length(info.vehs_fallback));
+
+            for i=1:length(info.vehs_fallback)
+                real_vehicles(i) = scenario.vehicle_ids(info.vehs_fallback(i));
+            end
+
+            disp_tmp = sprintf('%d,',real_vehicles); disp_tmp(end) = [];
             disp(['*** Vehicles ' disp_tmp ' take fallback.']) % use * to highlight this message
             info = pb_controller_fallback(info, info_old, scenario);
             total_fallback_times = total_fallback_times + 1;
