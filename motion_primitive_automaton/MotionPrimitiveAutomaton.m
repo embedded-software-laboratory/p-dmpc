@@ -12,6 +12,8 @@ classdef MotionPrimitiveAutomaton
         local_reachable_sets        % local reachable sets of each trim (possibly non-convex)
         local_reachable_sets_conv;  % Convexified local reachable sets of each trim
         emengency_braking_maneuvers % cell(n_trims, 1), local occupied area of emergency braking maneuver
+        shortest_paths_to_max_speed     % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with maximum speed
+        shortest_paths_to_equilibrium   % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
     end
     
     methods
@@ -31,16 +33,9 @@ classdef MotionPrimitiveAutomaton
             end
 
             % for example: MPA_trims12_Hp6, MPA_trims12_Hp6_parl_non-convex
-            mpa_instance_name = ['MPA_','trims',num2str(trim_ID),'_Hp',num2str(N)];
-            if options.isParl
-                mpa_instance_name = [mpa_instance_name,'_parl'];                
-            end
+            mpa_instance_name = FileNameConstructor.get_mpa_name(trim_ID,N,options.isParl,is_allow_non_convex);
 
-            if is_allow_non_convex
-                mpa_instance_name = [mpa_instance_name,'_non-convex'];
-            end
-
-            mpa_full_path = [folder_target,filesep, mpa_instance_name, '.mat'];
+            mpa_full_path = fullfile(folder_target,mpa_instance_name);
 
             % if the needed MPA is alread exist in the library, simply load
             % it, otherwise it will be calculated and saved to the library.
@@ -79,6 +74,8 @@ classdef MotionPrimitiveAutomaton
                         obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), offset, dt, nTicks, is_allow_non_convex);
                     end
                 end
+                obj.shortest_paths_to_max_speed{i,1} = get_shortest_path_to_max_speed(obj,i);
+                obj.shortest_paths_to_equilibrium{i,1} = get_shortest_path_to_equilibrium(obj,i);
                 obj.emengency_braking_maneuvers{i,1} = get_emergency_braking_maneuver(obj,i);
             end
 
@@ -301,7 +298,8 @@ classdef MotionPrimitiveAutomaton
         end
         
         function shortest_time_to_arrive = get_the_shortest_time_to_arrive(obj, current_trim, distance_destination, time_step)
-            % Returns the shortest time to arive a given distance starting from the current trim
+            % Returns the shortest time to drive a given distance starting
+            % from the current trim.
             % Note that this is only a lower bound time because the
             % steering angle is not considered, namely we assume the
             % vehicle drives straight to arrive the goal destination.
@@ -309,18 +307,13 @@ classdef MotionPrimitiveAutomaton
             distance_remained = distance_destination;
             distance_acceleration = 0; % acceleration distance
             % compute the shortest path from the current trim to the trim(s) with maximum speed
-            max_speed = max([obj.trims.speed]);
-            max_speed_trims = find([obj.trims.speed]==max_speed); % find all the trims with the maximum speed
+            shortest_path_to_max_speed = obj.shortest_paths_to_max_speed{current_trim};
+            max_speed = obj.trims(shortest_path_to_max_speed(end)).speed;
 
-            graph_trims = graph(obj.transition_matrix_single(:,:,1));
-            shortest_distances_to_max_speed = distances(graph_trims,current_trim,max_speed_trims); % shortest path between two single nodes
             % find the one which has the minimal distance to the trims with the maximum speed
-            [min_distance,idx] = min(shortest_distances_to_max_speed); 
-            if min_distance==0 % if the current trim has already the maximum speed, no acceleration is needed
+            if length(shortest_path_to_max_speed)==1 % if the current trim has already the maximum speed, no acceleration is needed
                 shortest_time_to_arrive = distance_remained/max_speed;
             else % acceleration to maximum speed
-                max_speed_trim = max_speed_trims(idx);
-                shortest_path_to_max_speed = shortestpath(graph_trims,current_trim,max_speed_trim); % shortest path between two single nodes
                 for i=1:length(shortest_path_to_max_speed)
                     trim_current = shortest_path_to_max_speed(i);
                     
@@ -363,23 +356,13 @@ classdef MotionPrimitiveAutomaton
             speed_leader = obj.trims(trim_leader).speed;
             speed_follower = obj.trims(trim_follower).speed;
 
-            % compute the shortest path from the current trim to the equilibrium trim
-            equilibrium_trim = find([obj.trims.speed]==0);
-            assert(length(equilibrium_trim)==1) % if there are multiple equilibrium states, this function should be then adapted
-            graph_trims = graph(obj.transition_matrix_single(:,:,1));
-            shortest_path_to_equilibrium = shortestpath(graph_trims, trim_leader, equilibrium_trim); % shortest path between current trim and equilibrium trim
+            % get the shortest path from the current trim to the equilibrium trim
+            shortest_path_to_equilibrium = obj.shortest_paths_to_equilibrium{trim_leader};
 
-            % compute the shortest path from the current trim to the trim(s) with maximum speed
-            max_speed = max([obj.trims.speed]);
-            max_speed_trims = find([obj.trims.speed]==max_speed); % find all the trims with the maximum speed
-
-            graph_trims = graph(obj.transition_matrix_single(:,:,1));
-            shortest_distances_to_max_speed = distances(graph_trims, trim_follower, max_speed_trims); % shortest path between two single nodes
-            % find the one which has the minimal distance to the trims with the maximum speed
-            [~,idx] = min(shortest_distances_to_max_speed); 
-
-            max_speed_trim = max_speed_trims(idx);
-            shortest_path_to_max_speed = shortestpath(graph_trims, trim_follower, max_speed_trim); % shortest path between two single nodes
+            % get the shortest path to the trims with the maximum speed
+            shortest_path_to_max_speed = obj.shortest_paths_to_max_speed{trim_follower};
+            trim_max_speed = shortest_path_to_max_speed(end);
+            max_speed = obj.trims(trim_max_speed).speed;
 
             count_trim = 2; % start from the second trim in the path since the first one is the current trim
 
@@ -451,7 +434,7 @@ classdef MotionPrimitiveAutomaton
         function emengency_braking_maneuver = get_emergency_braking_maneuver(obj,trim_current)
             % Returns the occupied area of emergency braking maneuver for
             % the given trim
-            shortest_path_to_equilibrium = get_shortest_path_to_equilibrium(obj, trim_current);
+            shortest_path_to_equilibrium = obj.shortest_paths_to_equilibrium{trim_current};
             if length(shortest_path_to_equilibrium)==1
                 % vehicle already at the equilibrium trim
                 trim_next_LP = trim_current;
@@ -463,6 +446,20 @@ classdef MotionPrimitiveAutomaton
             emengency_braking_maneuver.area = obj.maneuvers{trim_current,trim_next_LP}.area;
             emengency_braking_maneuver.area_without_offset = obj.maneuvers{trim_current,trim_next_LP}.area_without_offset;
             emengency_braking_maneuver.area_large_offset = obj.maneuvers{trim_current,trim_next_LP}.area_large_offset;
+        end
+
+        function shortest_path_to_max_speed = get_shortest_path_to_max_speed(obj,trim_current)
+            % Returns the shortest path in the trim graph from the current trim to the trim with maximum speed
+            % compute the shortest path from the current trim to the trim(s) with maximum speed
+            max_speed = max([obj.trims.speed]);
+            max_speed_trims = find([obj.trims.speed]==max_speed); % find all the trims with the maximum speed
+    
+            graph_trims = graph(obj.transition_matrix_single(:,:,1));
+            shortest_distances_to_max_speed = distances(graph_trims,trim_current,max_speed_trims); % shortest path between two single nodes
+            % find the one which has the minimal distance to the trims with the maximum speed
+            [~,idx] = min(shortest_distances_to_max_speed); 
+            max_speed_trim = max_speed_trims(idx);
+            shortest_path_to_max_speed = shortestpath(graph_trims,trim_current,max_speed_trim); % shortest path between two single nodes
         end
     end
 end
