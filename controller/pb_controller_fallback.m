@@ -7,7 +7,7 @@ function info = pb_controller_fallback(info, info_old, scenario)
 
     tick_per_step = scenario.tick_per_step + 1;
     
-    for vehicle_idx = vehs_fallback        
+    for vehicle_idx = vehs_fallback    
         % initialize
         info_v = ControllResultsInfo(1,scenario.Hp,scenario.vehicles(vehicle_idx).ID);
         
