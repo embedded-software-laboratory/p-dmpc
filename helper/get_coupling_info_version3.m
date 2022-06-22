@@ -51,12 +51,19 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
 
     state_indices = indices();
     
+    % get bounding box of reachable sets in the last prediction horizon
+    bound_boxes_x = zeros(nVeh,2); bound_boxes_y = zeros(nVeh,2);
+    for iVeh = 1:nVeh
+        [bound_boxes_x(iVeh,:),bound_boxes_y(iVeh,:)] = boundingbox(iter.reachable_sets{iVeh,end});
+    end
+
     for veh_i = 1:(nVeh-1)
         % get the selected vehicle's position, speed, current trim and predicted lanelets 
         speed_i = iter.x0(veh_i, state_indices.speed);
         position_i = [iter.x0(veh_i,state_indices.x), iter.x0(veh_i,state_indices.y)];
         trim_i = iter.trim_indices(veh_i);
-
+        x_i = bound_boxes_x(veh_i,:);
+        y_i = bound_boxes_y(veh_i,:);
         for veh_j = (veh_i+1):nVeh
             speed_j = iter.x0(veh_j, state_indices.speed);
             position_j = [iter.x0(veh_j,state_indices.x), iter.x0(veh_j,state_indices.y)];
@@ -65,6 +72,13 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
             % if two vehicles' reachable sets overlap, they are considered
             % as coupled. To save computation time, only the reachable sets
             % at the last prediction horizon will be checked.
+            x_j = bound_boxes_x(veh_j,:);
+            y_j = bound_boxes_y(veh_j,:);
+            % use rectangles to approximate their reachable sets for a quick check
+            if x_i(1)>x_j(2) || y_i(1)>y_j(2) || x_i(2)<x_j(1) || y_i(2)<y_j(1)
+                % reachable sets are not overlapping
+                continue
+            end
             overlap_reachable_sets = intersect(iter.reachable_sets{veh_i,end}, iter.reachable_sets{veh_j,end});
             area_overlap = area(overlap_reachable_sets);
             if area_overlap > 1e-3 % a small threshold to tolerate measurement error of lenelet boundary                
