@@ -7,7 +7,7 @@ classdef Communication
         publisher;              % vehicle as publisher to send message
         time_step = int32(0);   % time step
         stored_msgs;            % stored messages
-        msg_to_be_sent;                    % initialize message type
+        msg_to_be_sent;         % initialize message type
         options;                % options to create publisher and subscriber
     end
     
