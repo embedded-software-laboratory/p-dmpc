@@ -15,9 +15,9 @@ function [belonging_vector, cost, cutting_info] = min_cut_s_t(M, varargin)
 %   all those constraints can be satisfied.
 % 
 %   must_in_same_subset (optional input): cell array defines vertices that
-%   must be in the same subset. For example, 
-%   "not_in_same_subset = {[1,2,3],[2,8]}" means vertices 1, 2 and 3 are
-%   must be in one subset and vertices 2 and 8 also must be in one subset.
+%   must be in the same subset. For example, "not_in_same_subset =
+%   {[1,2,3],[2,8]}" means vertices 1, 2 and 3 are must be in one subset
+%   and vertices 2 and 8 also must be in one subset. 
 % 
 % OUTPUT:
 %   belonging_vector: a column vector whose values indicate which
@@ -45,16 +45,16 @@ function [belonging_vector, cost, cutting_info] = min_cut_s_t(M, varargin)
 % 
 %   % Without additional constraints 
 %   % Since vertices {1,2,4} are in the same subset after cutting, the results are therefore unsatisfied if the maximum computation levels is 2.
-%   [belonging_vector_1, cost_1] = min_cut_s_t(M)
+%   [belonging_vector_1, cost_1, cutting_info_1] = min_cut_s_t(M)
 % 
 %   % Next, add additional constraint that vertices {1,2,4} and {1,3,4} must not be in
 %   % the same subset
 %   must_not_in_same_subset = {[1,2,4],[1,3,4]};
-%   [belonging_vector_2, cost_2] = min_cut_s_t(M, must_not_in_same_subset)
+%   [belonging_vector_2, cost_2, cutting_inf_2] = min_cut_s_t(M, must_not_in_same_subset)
 % 
 %   % If vertices {1,2} must be in the same subset:
 %   must_in_same_subset = {[1,2]};
-%   [belonging_vector_3, cost_3] = min_cut_s_t(M, must_not_in_same_subset, must_in_same_subset)
+%   [belonging_vector_3, cost_3, cutting_info_3] = min_cut_s_t(M, must_not_in_same_subset, must_in_same_subset)
     
     % Process optional input and Name-Value pair options
     [M, must_not_in_same_subset, must_in_same_subset] = parse_inputs(M, varargin{:});
