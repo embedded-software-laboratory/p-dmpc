@@ -159,6 +159,10 @@ vehs_fallback_times = zeros(1,scenario.options.amount); % record the number of s
 info_old = []; % old information for fallback
 total_fallback_times = 0; % total times of fallbacks
 
+if scenario.options.firstManualVehicleMode == 2 || scenario.options.secondManualVehicleMode == 2
+    r = rosrate(100000);
+end
+
 %% Main control loop
 while (~got_stop)
 
@@ -214,6 +218,8 @@ while (~got_stop)
                     input.scenario = scenario;
                     input.steeringWheel = true;
                     input.vehicle_id = scenario.manual_vehicle_id;
+
+                    waitfor(r);
     
                     %parfeval(@ExpertMode, 0, input);
                     %parfeval(scenario.pool, handle(input), 0);

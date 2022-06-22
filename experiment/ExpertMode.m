@@ -39,11 +39,12 @@
                     disp("reached");
                     %global stored_wheel_messages_global
                     stored_wheel_messages_global = exp.wheelSub.LatestMessage;
+                    timestamp = stored_wheel_messages_global.header.stamp.sec;
 
                     
                     modeHandler.axes = stored_wheel_messages_global.axes;
                     modeHandler.buttons = stored_wheel_messages_global.buttons;
-                    timestamp = stored_wheel_messages_global.header.stamp.nanosec;
+                    %timestamp = stored_wheel_messages_global.header.stamp.nanosec;
                     %modeHandler.axes = inputData.axes;
                     %modeHandler.buttons = inputData.buttons;
                     modeHandler.steering =  modeHandler.axes(1);
@@ -53,6 +54,8 @@
                     modeHandler.leftPaddle = modeHandler.buttons(6);
                     modeHandler.rightPaddle = modeHandler.buttons(5);
                 else
+                    modeHandler.axes = inputData.axes;
+                    modeHandler.buttons = inputData.buttons;
                     modeHandler.steering = modeHandler.axes(1);
                     modeHandler.throttle = (-1) * modeHandler.axes(6);
                     modeHandler.brake = (-1) * modeHandler.axes(3);
@@ -60,7 +63,7 @@
                     modeHandler.rightPaddle = modeHandler.buttons(6);
                 end
 
-                exp.updateManualControl(modeHandler, scenario, vehicle_id, steeringWheel);
+                exp.updateManualControl(modeHandler, scenario, vehicle_id, steeringWheel, timestamp);
 
                 modeHandler.scenario = scenario;
             

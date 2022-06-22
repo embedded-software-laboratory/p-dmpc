@@ -40,6 +40,7 @@ classdef CPMLab < InterfaceExperiment
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
+            obj.scenario.g29_force_feedback = false;
             %parallelPool = gcp('nocreate');
 
             %if isempty(parallelPool)
@@ -126,6 +127,10 @@ classdef CPMLab < InterfaceExperiment
                 [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
             end
 
+            % initialize ROS network to set rosrate
+            if obj.scenario.options.firstManualVehicleMode == 2 || obj.scenario.options.secondManualVehicleMode == 2
+                rosinit;
+            end
             
             % This command has first to be executed in terminal:
             %ros2 run joy joy_node _dev_name:="/dev/input/js0";
@@ -142,10 +147,8 @@ classdef CPMLab < InterfaceExperiment
                     obj.g29_last_position = 0.0;
                 elseif obj.scenario.options.firstManualVehicleMode == 2
                     obj.wheelNode = ros2node("/wheel");
-                    obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@steeringWheelCallback);
+                    obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@obj.steeringWheelCallback);
                 end
-            else
-                obj.scenario.g29_force_feedback = false;
             end
 
             if obj.scenario.second_manual_vehicle_id ~= 0
@@ -154,7 +157,7 @@ classdef CPMLab < InterfaceExperiment
                     obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1");
                 elseif obj.scenario.options.secondManualVehicleMode == 2
                     obj.gamepadNode = ros2node("/gamepad");
-                    obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1", "j1/gamepadData",@obj.gamepadCallback);
+                    obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1", "sensor_msgs/Joy",@obj.gamepadCallback);
                 end
             end
             
@@ -165,11 +168,11 @@ classdef CPMLab < InterfaceExperiment
         end
 
         function steeringWheelCallback(obj, msg)
-            disp("reached");    
+            %disp("reached");    
             %global stored_wheel_messages_global
 
             %stored_wheel_messages_global = msg;
-            stored_wheel_messages_global = obj.wheelSub.LatestMessage;
+            wheel_message = obj.wheelSub.LatestMessage;
 
             %obj.WriteAsyncFcn = {@ExpertMode,obj, obj.scenario, true, obj.scenario.manual_vehicle_id};
 
@@ -177,26 +180,17 @@ classdef CPMLab < InterfaceExperiment
             
             %modeHandler = ExpertMode(obj, obj.scenario, true, obj.scenario.manual_vehicle_id);  
             
-            modeHandler = struct;
-            modeHandler.axes = stored_wheel_messages_global.axes;
-            modeHandler.buttons = stored_wheel_messages_global.buttons;
-            modeHandler.steering =  modeHandler.axes(1);
-            disp(modeHandler.steering);
-            modeHandler.throttle = modeHandler.axes(3);
-            modeHandler.brake = modeHandler.axes(4);
-            modeHandler.leftPaddle = modeHandler.buttons(6);
-            modeHandler.rightPaddle = modeHandler.buttons(5);
-
-            vehicle_command_direct = VehicleCommandDirect;
-            vehicle_command_direct.vehicle_id = uint8(obj.scenario.manual_vehicle_id);
-
-            throttle = 0;
-            if modeHandler.throttle >= 0
-                throttle = modeHandler.throttle;
-            elseif modeHandler.brake >= 0
-                throttle = (-1) * modeHandler.brake;
-            end
             
+            wheelData = struct;
+            wheelData.axes = wheel_message.axes;
+            wheelData.buttons = wheel_message.buttons;
+            wheelData.steering =  wheelData.axes(1);
+            wheelData.throttle = wheelData.axes(3);
+            wheelData.brake = wheelData.axes(4);
+            wheelData.leftPaddle = wheelData.buttons(6);
+            wheelData.rightPaddle = wheelData.buttons(5);
+            
+            %{
             if modeHandler.steering < -0.5
                 modeHandler.steering = -0.5;
             elseif modeHandler.steering > 0.5
@@ -205,7 +199,7 @@ classdef CPMLab < InterfaceExperiment
 
             modeHandler.steering = 2.0 * modeHandler.steering;
 
-            %{
+            
             % make steering back to 0 easier
             if modeHandler.steering < 0 && obj.lastSteeringValue < modeHandler.steering
                 modeHandler.steering = modeHandler.steering / 1.5;
@@ -213,11 +207,49 @@ classdef CPMLab < InterfaceExperiment
                 modeHandler.steering = modeHandler.steering / 1.5;
             end
             %}
-            
-            disp(sprintf("throttle: %f, steering: %f", throttle, modeHandler.steering));
+        
+
+            dt_max_comm_delay = uint64(100e6);
+            if obj.dt_period_nanos >= dt_max_comm_delay
+                dt_valid_after = obj.dt_period_nanos;
+            else
+                dt_valid_after = dt_max_comm_delay;
+            end
+
+            vehicle_command_direct = VehicleCommandDirect;
+            vehicle_command_direct.vehicle_id = uint8(obj.scenario.manual_vehicle_id);
+
+            throttle = 0;
+            if wheelData.throttle >= 0
+                throttle = wheelData.throttle;
+            elseif wheelData.brake >= 0
+                throttle = (-1) * wheelData.brake;
+            end
+            %{
+            if wheelData.steering < -0.4
+                wheelData.steering = -0.4;
+            elseif wheelData.steering > 0.4
+                wheelData.steering = 0.4;
+            end
+            %}
+            wheelData.steering = 2.0 * wheelData.steering;
+
+            if throttle > 0.4
+                throttle = 0.4;
+            elseif throttle < -0.4
+                throttle = -0.4;
+            end
+            disp(sprintf("throttle: %f, steering: %f", throttle, wheelData.steering));
             vehicle_command_direct.motor_throttle = double(throttle);
-            vehicle_command_direct.steering_servo = double(modeHandler.steering);
-            obj.lastSteeringValue = double(modeHandler.steering);
+            vehicle_command_direct.steering_servo = double(wheelData.steering);
+            %vehicle_command_direct.header.create_stamp.nanoseconds = ...
+                %uint64(timestamp);
+            %vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
+                %uint64(timestamp) + uint64(dt_valid_after);
+            vehicle_command_direct.header.create_stamp.nanoseconds = ...
+                uint64(obj.sample.t_now);
+            vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
+                uint64(obj.sample.t_now+dt_valid_after);
             obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
         end
 
@@ -381,7 +413,8 @@ classdef CPMLab < InterfaceExperiment
             obj.writer_visualization.write(visualization_command);
         end
 
-        function updateManualControl(obj, modeHandler, scenario, vehicle_id, steeringWheel)
+        function updateManualControl(obj, modeHandler, scenario, vehicle_id, steeringWheel, timestamp)
+            %{
             %[obj.sample, ~, ~, ~] = obj.reader_vehicleStateList.take();
             dt_max_comm_delay = uint64(100e6);
             if obj.dt_period_nanos >= dt_max_comm_delay
@@ -430,6 +463,48 @@ classdef CPMLab < InterfaceExperiment
                 %uint64(obj.sample(end).t_now+dt_valid_after);
                 %uint64(timestamp) + uint64(dt_valid_after);
             obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
+            %}
+            
+            dt_max_comm_delay = uint64(100e6);
+            if obj.dt_period_nanos >= dt_max_comm_delay
+                dt_valid_after = obj.dt_period_nanos;
+            else
+                dt_valid_after = dt_max_comm_delay;
+            end
+
+            vehicle_command_direct = VehicleCommandDirect;
+            vehicle_command_direct.vehicle_id = uint8(scenario.manual_vehicle_id);
+
+            throttle = 0;
+            if modeHandler.throttle >= 0
+                throttle = modeHandler.throttle;
+            elseif modeHandler.brake >= 0
+                throttle = (-1) * modeHandler.brake;
+            end
+            disp(sprintf("throttle: %f, steering: %f", throttle, modeHandler.steering));
+            %disp(uint64(timestamp));
+            %disp(uint64(obj.sample.t_now));
+            x=timestamp;
+            y=num2str(x);
+            out=str2num(y(1:10));
+            %disp(out);
+            dt = 1e9;
+            vehicle_command_direct.motor_throttle = double(throttle);
+            vehicle_command_direct.steering_servo = double(modeHandler.steering);
+            %vehicle_command_direct.header.create_stamp.nanoseconds = ...
+                %uint64(timestamp);
+            %vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
+                %uint64(timestamp) + uint64(dt_valid_after);
+            vehicle_command_direct.header.create_stamp.nanoseconds = ...
+                uint64(obj.sample.t_now);
+            vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
+                uint64(obj.sample.t_now+dt_valid_after);
+            %vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
+                %uint64(obj.sample.t_now+dt);
+            obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
+
+
+
         end
         
         function got_stop = is_stop(obj)
