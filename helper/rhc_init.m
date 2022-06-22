@@ -231,7 +231,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
 
         
             % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
-            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.vehicles(iVeh).lanelets_index, scenario.options.is_sim_lab);
+            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.options.is_sim_lab);
             iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
 
             if visualize_boundaries_lab
