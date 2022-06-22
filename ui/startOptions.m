@@ -1,7 +1,8 @@
 function [labOptions] = startOptions()
 disp('App is executed, select your configuration there')
 %% Create UI and populate
-ui = CPMStartOptionsUI();
+% ui = CPMStartOptionsUI();
+ui = CPMStartOptionsUI_V2();
 
 % CPM Lab
 % vehicleIDs
@@ -59,6 +60,9 @@ ui.EnvironmentButtonGroup.SelectionChangedFcn = @(~, ~) setCpmLabElementsVisibil
 ui.ScenarioListBox.ValueChangedFcn = @(~, ~) setIsParlVisibility(ui);
 %ui.CPMLabVehicleIDsListBox.ValueChangedFcn = @(~, ~) checkScenarioVehiclesMatch(ui, scenarios);
 
+% If parallel computation is not used, the maximum allowed number of computation levels is not relevant.
+ui.ParallelComputationListBox.ValueChangedFcn = @(~, ~) setMaxCLsVisibility(ui);
+
 %% load previous choices, if possible
 try %#ok<TRYNC>
     previousSelection = load([tempdir 'scenarioControllerSelection']);
@@ -76,6 +80,25 @@ try %#ok<TRYNC>
     ui.AmountofVehiclesListBox.Value = previousSelection.vehicleAmountSelection;
     ui.TypeofVisualizationListBox_2.Value = previousSelection.visualizationSelection;
     ui.ParallelComputationListBox.Value = previousSelection.isParlSelection;
+
+    % sample time [s]
+    ui.SampleTimesSpinner.Value = previousSelection.dtSelection;
+    
+    % predicion horizon
+    ui.PredictionHorizonSpinner.Value = previousSelection.HpSelection;
+    
+    % simulation duration [s]
+    ui.SimulationDurationsSpinner.Value = previousSelection.T_endSelection;
+    
+    % maximum allowed number of computation levels
+    ui.MaxComputationLevelsSpinner.Value = previousSelection.max_num_CLsSelection;
+    
+    % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
+    ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Value = previousSelection.strategy_consider_veh_without_ROWSelection;
+    
+    % Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
+    ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Value = previousSelection.strategy_enter_intersecting_areaSelection ;
+
 end
 
 %% Trigger UI change handles
@@ -109,8 +132,28 @@ vehicleAmountSelection = ui.AmountofVehiclesListBox.Value;
 visualizationSelection = ui.TypeofVisualizationListBox_2.Value;
 isParlSelection = ui.ParallelComputationListBox.Value;
 
+% sample time [s]
+dtSelection = ui.SampleTimesSpinner.Value;
+
+% predicion horizon
+HpSelection = ui.PredictionHorizonSpinner.Value;
+
+% simulation duration [s]
+T_endSelection = ui.SimulationDurationsSpinner.Value;
+
+% maximum allowed number of computation levels
+max_num_CLsSelection = ui.MaxComputationLevelsSpinner.Value;
+
+% Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
+strategy_consider_veh_without_ROWSelection = ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Value;
+
+% Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
+strategy_enter_intersecting_areaSelection = ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Value;
+
+
 save([tempdir 'scenarioControllerSelection'], 'vehicleIDsSelection', 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'MiddlewarePeriodmsSelection',...
-    'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', 'isParlSelection');
+    'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', 'isParlSelection',...
+    'dtSelection','HpSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_intersecting_areaSelection');
 
 %% Convert to legacy/outputs
 labOptions.vehicle_ids = sort(cellfun(@str2num, vehicleIDsSelection));
@@ -166,6 +209,24 @@ labOptions.scenario = scenario{...
 labOptions.priority = priorityAssignmentMethod{...
     strcmp({priorityAssignmentMethod{:, 2}}, priorityAssignmentMethodSelection),...
     2};
+
+% sample time [s]
+labOptions.dt = dtSelection;
+
+% predicion horizon
+labOptions.Hp = HpSelection;
+
+% simulation duration [s]
+labOptions.T_end = T_endSelection;
+
+% maximum allowed number of computation levels
+labOptions.max_num_CLs = max_num_CLsSelection;
+
+% Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
+labOptions.strategy_consider_veh_without_ROW = strategy_consider_veh_without_ROWSelection;
+
+% Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
+labOptions.strategy_enter_intersecting_area = strategy_enter_intersecting_areaSelection;
 
 % close app
 ui.delete;
@@ -271,6 +332,17 @@ function setIsParlVisibility(ui)
         ui.Label_4.Visible = 'On';
     else
         ui.ParallelComputationListBox.Enable = 'On';
+        ui.Label_4.Visible = 'Off';
+    end
+end
+
+function setMaxCLsVisibility(ui)
+    if strcmp(ui.ParallelComputationListBox.Value,'no')
+        ui.MaxComputationLevelsSpinner.Enable = 'off';
+        ui.Label_4.Text = sprintf("If parallel computation is not \nused, the maximum allowed \nnumber of computation \nlevels is not relevant.");
+        ui.Label_4.Visible = 'On';
+    else
+        ui.MaxComputationLevelsSpinner.Enable = 'on';
         ui.Label_4.Visible = 'Off';
     end
 end
