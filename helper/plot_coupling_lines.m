@@ -20,6 +20,11 @@ function plot_coupling_lines(M, x0, varargin)
     % Process optional input and Name-Value pair options
     [M, x0, belonging_vector, coupling_info, ShowWeights] = parse_inputs(M, x0, varargin{:});
     
+    % if the given matrix is adjacency matrix but not edge-weights matrix
+    if all(M==1|M==0,"all")
+        ShowWeights = false;
+    end
+    
     nVeh = length(M);
 
     for v = 1:nVeh
