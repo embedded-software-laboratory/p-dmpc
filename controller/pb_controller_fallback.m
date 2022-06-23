@@ -7,7 +7,7 @@ function info = pb_controller_fallback(info, info_old, scenario)
 
     tick_per_step = scenario.tick_per_step + 1;
     
-    for vehicle_idx = vehs_fallback        
+    for vehicle_idx = vehs_fallback    
         % initialize
         info_v = ControllResultsInfo(1,scenario.Hp,scenario.vehicles(vehicle_idx).ID);
         
@@ -39,7 +39,7 @@ function info = pb_controller_fallback(info, info_old, scenario)
                 mpa = scenario.mpa;
             end
 
-            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_idx), trim_current, x0, y0, mpa, scenario.dt, scenario.options.isParl, scenario.vehicles(vehicle_idx).autoUpdatedPath);
+            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_idx), trim_current, x0, y0, mpa, scenario.dt, scenario.options.isParl, scenario.name, scenario.vehicles(vehicle_idx).autoUpdatedPath);
             % send message
             send_message(scenario.vehicles(vehicle_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, info.shapes(vehicle_idx,:));
         end

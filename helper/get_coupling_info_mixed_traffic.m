@@ -66,9 +66,8 @@ function [coupling_weights, coupling_info] = get_coupling_info_mixed_traffic(sce
             
                             time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa, trim_i, distance_to_collision_i, scenario.dt);
 
-                            if (scenario.manual_vehicle_id == scenario.vehicle_ids(jVeh) && scenario.manual_mpa_initialized)
-                                mpa = scenario.vehicles(jVeh).vehicle_mpa;
-                            elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.second_manual_mpa_initialized)
+                            if ((scenario.vehicle_ids(jVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
+                                || ((scenario.vehicle_ids(jVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
                                 mpa = scenario.vehicles(iVeh).vehicle_mpa;
                             else
                                 mpa = scenario.mpa;

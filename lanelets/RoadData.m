@@ -449,17 +449,24 @@ classdef RoadData
             % First try to find predicted_lanelet_i in the field `ID_1` and
             % predicted_lanelet_j in the field `ID_2`. If not find, do it again in
             % the opposite way.
-            idx_lanelet_pair = [];
-            id_i_j = double([predicted_lanelet_i; predicted_lanelet_j]);
-            id_j_i = double([predicted_lanelet_j; predicted_lanelet_i]);
-            IDs_1_2 = double([lanelet_relationships.ID_1;lanelet_relationships.ID_2]);
-        
-            if isempty(idx_lanelet_pair)
-                idx_lanelet_pair = find(all((IDs_1_2-id_i_j)==0,1));
+
+            % make use of the fact that values of the field `ID_1` are always smaller than that of `ID_2`
+            if predicted_lanelet_i>predicted_lanelet_j
+                lan_tmp = predicted_lanelet_i;
+                predicted_lanelet_i = predicted_lanelet_j;
+                predicted_lanelet_j = lan_tmp;
             end
+
+            find_ID_1_i = find([lanelet_relationships.ID_1]==predicted_lanelet_i);
+            find_ID_2_i = [lanelet_relationships(find_ID_1_i).ID_2]==predicted_lanelet_j;
+            idx_lanelet_pair = find_ID_1_i(find_ID_2_i);
+            
             if isempty(idx_lanelet_pair)
-                idx_lanelet_pair = find(all((IDs_1_2-id_j_i)==0,1));
+                find_ID_1_j = find([lanelet_relationships.ID_1]==predicted_lanelet_j);
+                find_ID_2_j = [lanelet_relationships(find_ID_1_j).ID_2]==predicted_lanelet_j;
+                idx_lanelet_pair = find_ID_1_j(find_ID_2_j);
             end
+
         end
 
         

@@ -36,7 +36,7 @@ function scenario = communication_init(scenario, exp)
     for iVeh = 1:nVeh
         scenario.vehicles(iVeh).communicate = Communication(); % create instance of the Comunication class
         scenario.vehicles(iVeh).communicate = initialize_communication(scenario.vehicles(iVeh).communicate, scenario.vehicles(iVeh).ID); % initialize
-        scenario.vehicles(iVeh).communicate = create_publisher(scenario.vehicles(iVeh).communicate, scenario); % create publisher
+        scenario.vehicles(iVeh).communicate = create_publisher(scenario.vehicles(iVeh).communicate); % create publisher
     end
     
     % Create subscribers.
@@ -56,7 +56,7 @@ function scenario = communication_init(scenario, exp)
             x0 = x0_measured(jVeh,indices().x); % vehicle position x
             y0 = x0_measured(jVeh,indices().y); % vehicle position y
 
-            predicted_lanelets = get_predicted_lanelets(scenario.vehicles(jVeh),predicted_trims(1),x0,y0,scenario.mpa,scenario.dt, scenario.options.isParl, scenario.vehicles(jVeh).autoUpdatedPath);
+            predicted_lanelets = get_predicted_lanelets(scenario.vehicles(jVeh),predicted_trims(1),x0,y0,scenario.mpa,scenario.dt, scenario.options.isParl, scenario.name, scenario.vehicles(jVeh).autoUpdatedPath);
 
             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
             scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);   

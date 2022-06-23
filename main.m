@@ -89,7 +89,8 @@ else
         %options.priority = 'topo_priority';
     elseif options.collisionAvoidanceMode == 2 || options.collisionAvoidanceMode == 3
         options.isParl = true;
-        options.priority = 'mixed_traffic_priority';
+        %options.priority = 'mixed_traffic_priority';
+        options.priority = 'right_of_way_priority';
     else
         % Not implemented yet
         options.isParl = false;
@@ -139,7 +140,7 @@ cooldown_second_manual_vehicle_after_lane_change = 0;
 controller_init = false;
 
 % init result struct
-result = get_result_struct(scenario, options);
+result = get_result_struct(scenario);
 
 exp.setup();
 
@@ -271,6 +272,11 @@ while (~got_stop)
         for iVeh = 1:options.amount
             scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(iVeh,1:2);
         end
+    else
+        % for other scenarios, no lanelet boundary 
+        for iVeh = 1:options.amount
+            scenario.vehicles(iVeh).lanelet_boundary = {};
+        end
 
     end
     
@@ -360,13 +366,14 @@ empty_cells = cell(1,options.amount);
 
 result.scenario.ros_subscribers = [];
 [result.scenario.vehicles.communicate] = empty_cells{:};
-for i_iter = 1:length(result.iteration_structs)
-    result.iteration_structs{i_iter}.scenario = 0;
-end
+% for i_iter = 1:length(result.iteration_structs)
+%     result.iteration_structs{i_iter}.scenario = [];
+% end
 
 result.mpa = scenario.mpa;
 % tic_start = tic;
 save(result.output_path,'result');
+disp(['Simulation results were saved under ' result.output_path])
 % disp(['Result was saved in ' num2str(toc(tic_start)) ' seconds.'])
 % exportVideo( result );
 exp.end_run()

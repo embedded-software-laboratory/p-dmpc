@@ -8,15 +8,14 @@ classdef  random_priority < interface_priority
     end
     
     methods 
-        function obj = random_priority(scenario)
-            obj.scenario = scenario;
+        function obj = random_priority() 
         end
         
-        function [groups, directed_adjacency] = priority(obj)
+        function [groups, directed_adjacency, priority_list] = priority(obj,scenario)
             
-%             groups = PB_random_groups(obj.scenario);
+%             groups = PB_random_groups(scenario);
             groups = struct;
-            nVeh = length(obj.scenario.vehicles);
+            nVeh = length(scenario.vehicles);
             randomPrio = randperm(nVeh,nVeh); % random priority order 
 
             directed_adjacency = zeros(nVeh,nVeh);
@@ -35,7 +34,10 @@ classdef  random_priority < interface_priority
                 end
             end
 
-            
+            % Assign prrority according to computation level
+            % Vehicles with higher priorities plan trajectory before vehicles
+            % with lower priorities            
+            priority_list = obj.get_priority(groups,obj.is_assign_unique_priority);
         end
       
         

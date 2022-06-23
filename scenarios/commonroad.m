@@ -1,13 +1,24 @@
 function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
 % Commonroad_Scenario   
 
-    nVeh = options.amount;
     scenario = Scenario();
-    scenario.name = 'Commonroad';
-    scenario.trim_set = 4;
-    scenario.dt = 0.2;
+
+    % read from optionos
     scenario.options = options; 
-    %[scenario.lanelets,~, ~, scenario.intersection_lanelets, scenario.commonroad_data, scenario.lanelet_boundary] = commonroad_lanelets(options.mixedTrafficScenarioLanelets);
+    scenario.dt = options.dt;
+    scenario.trim_set = options.trim_set;
+    scenario.T_end = options.T_end;
+    scenario.Hp = options.Hp;
+    scenario.isParl = options.isParl;
+    scenario.max_num_CLs = options.max_num_CLs;
+    scenario.strategy_consider_veh_without_ROW = options.strategy_consider_veh_without_ROW;
+    scenario.strategy_enter_intersecting_area = options.strategy_enter_intersecting_area;
+
+    scenario.name = 'Commonroad';
+%     scenario.trim_set = 4;
+%     scenario.dt = 0.2;
+%     scenario.T_end = 20;
+%     scenario.Hp = 6;
 
     % get road data
     road_data = RoadData().get_road_data();
@@ -19,9 +30,7 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     scenario.road_raw_data = road_data.road_raw_data;
     scenario.lanelet_relationships  = road_data.lanelet_relationships;
 
-    scenario.T_end = 20;
-    scenario.Hp = 6;
-    
+    nVeh = options.amount;
     for iveh = 1:nVeh
         
         veh = Vehicle();
@@ -64,7 +73,6 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     
     scenario.name = options.scenario;
     scenario.priority_option = options.priority;
-    scenario.isParl = options.isParl;
     
     if options.isPB 
        scenario.adjacency = zeros(nVeh,nVeh);
@@ -72,21 +80,21 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
        nVeh_mpa = 1;
 
        if options.isParl
+            % if parallel computation is used
             if options.collisionAvoidanceMode ~= 2
-                scenario.controller_name = strcat(scenario.controller_name, '-parallel computation');
+                scenario.controller_name = strcat(scenario.controller_name, '-Parl');
                 scenario.controller = @(s,i) pb_controller_parl(s,i);
             else 
                 scenario.controller_name = strcat(scenario.controller_name, '-mixed traffic');
-                scenario.controller = @(s,i) pb_controller_mixed_traffic(s,i);
+                %scenario.controller = @(s,i) pb_controller_mixed_traffic(s,i);
+                scenario.controller = @(s,i) pb_controller_parl(s,i);
             end
        else
            scenario.controller_name = strcat(scenario.controller_name, '-PB');
            scenario.controller = @(s,i) pb_controller(s,i);
        end
-
     end
 
-    
     recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(...
         scenario.model...

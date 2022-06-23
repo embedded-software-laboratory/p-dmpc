@@ -2,16 +2,16 @@ classdef Scenario
 % SCENARIO  Scenario class    
 
     properties
-        vehicles = [];                  % array of Vehicle objects
-        obstacles = {};                 % static obstacles = {[xs;ys],...}
+        vehicles = [];                   % array of Vehicle objects
+        obstacles = {};                  % static obstacles = {[xs;ys],...}
         lanelet_intersecting_areas = {}; % intersecting area of one vehicle's lanelet with another vehicle's lanelet
         nVeh = 0;
         name = 'UnnamedScenario';
         controller_name = 'RHC';
         controller = @(s,i) centralized_controller(s,i);
-        dt = 0.4;                       % RHC sample time [s]
-        T_end = 18;                     % Duration of simulation. [s]
-        Hp = 4;
+        dt                          % RHC sample time [s]
+        T_end                       % Duration of simulation. [s]
+        Hp                          % prediction horizon
         mpa;
         manual_vehicle_id = 0;
         second_manual_vehicle_id = 0;
@@ -54,22 +54,22 @@ classdef Scenario
         coupling_weights = [];          % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
         coupling_info;                  % couling information of each coupling pair
         ros_subscribers = {};           % ROS 2 subscribers (used to read messages from other vehicles)
-        max_num_CLs = 4;                % max number of computation levels to limit the total planning time in each time step (used in the parallel computation)
+        max_num_CLs                     % max number of computation levels to limit the total planning time in each time step (used in the parallel computation)
         pool;
         mixedTrafficCollisionAvoidanceMode = 0;     % mode for collision avoidance in CPM Lab Mode with manual vehicles
         priority_list = [];             % priority list of vehicles; a smaller value for a higher priority
         is_allow_non_convex = true      % whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
-        strategy_consider_veh_without_ROW = '4'; % Stategies to let vehicle with the right-of-way consider vehicle without the right-of-way
-                                                 % '0': do not consider 
-                                                 % '1': consider currently occupied area as static obstacle
-                                                 % '2': consider one-step reachable sets as static obstacle
-                                                 % '3': consider old trajectory as dynamic obstacle
-                                                 % '4': consider the occupied area of emergency braking maneuver as static obstacle 
-        strategy_enter_crossing_area = '3'; % Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
-                                            % '0': no constraint on entering the intersecting area 
-                                            % '1': not allowed to enter the intersecting area if they are coupled at intersecting lanelets of the intersection
-                                            % '2': not allowed to enter the intersecting area if they are coupled at intersecting or merging lanelets of the intersection
-                                            % '3': not allowed to enter the intersecting area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
+        strategy_consider_veh_without_ROW % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
+                                             % '1': do not consider 
+                                             % '2': consider currently occupied area as static obstacle
+                                             % '3': consider the occupied area of emergency braking maneuver as static obstacle 
+                                             % '4': consider one-step reachable sets as static obstacle
+                                             % '5': consider old trajectory as dynamic obstacle
+        strategy_enter_intersecting_area % Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
+                                        % '1': no constraint on entering the intersecting area 
+                                        % '2': not allowed to enter the intersecting area if they are coupled at intersecting lanelets of the intersection
+                                        % '3': not allowed to enter the intersecting area if they are coupled at intersecting or merging lanelets of the intersection
+                                        % '4': not allowed to enter the intersecting area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
         
         time_enter_intersection = []; % time step when vehicle enters the intersection
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center

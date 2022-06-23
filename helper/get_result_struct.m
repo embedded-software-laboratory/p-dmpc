@@ -1,4 +1,4 @@
-function result = get_result_struct(scenario, options)
+function result = get_result_struct(scenario)
 % GET_RESULT_STRUCT     Initialize result struct returned by simulation.
 
     result = struct;
@@ -15,29 +15,21 @@ function result = get_result_struct(scenario, options)
     result.subcontroller_run_time_total = zeros(0,1); % subcontroller total runtime
     result.belonging_vector = cell(0,1); % belonging vector indicates to which groups one vehicle belongs
     
-    % create output directory
-
-
-    directory_name = strrep(strcat(result.scenario.name, '_', result.scenario.controller_name),' ','_');
-
-    [file_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file
-    idcs = strfind(file_path,filesep); % find all positions of '/'
-    one_folder_up = file_path(1:idcs(end)-1); % one folder up
-
-    folder_target = fullfile(one_folder_up,'results',directory_name);
-    if ~isfolder(folder_target)
-        % create target folder if not exist
-        mkdir(folder_target)
-    end
-    if options.isParl
-        file_name = ['trims',num2str(scenario.trim_set),'_Hp',num2str(scenario.Hp),'_nVeh',num2str(scenario.nVeh),'_T',num2str(scenario.T_end),'_maxCLs',num2str(scenario.max_num_CLs),'.mat'];
-    else
-        file_name = ['trims',num2str(scenario.trim_set),'_Hp',num2str(scenario.Hp),'_nVeh',num2str(scenario.nVeh),'_T',num2str(scenario.T_end),'.mat'];
-    end
-    output_path = fullfile(folder_target,file_name);
+    % create output directory and get the full path where the results will
+    % be saved
+    results_full_path = FileNameConstructor.get_results_full_path(...
+        scenario.name,...
+        scenario.controller_name,...
+        scenario.trim_set,...
+        scenario.Hp,...
+        scenario.nVeh,...
+        scenario.T_end,...
+        scenario.options.isParl,...
+        scenario.max_num_CLs,...
+        scenario.strategy_consider_veh_without_ROW,...
+        scenario.strategy_enter_intersecting_area);
     
-    result.output_path = output_path;
-    result.output_folder = folder_target;
+    result.output_path = results_full_path;
 
 end
 

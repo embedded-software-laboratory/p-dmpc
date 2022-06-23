@@ -59,6 +59,9 @@ ui.EnvironmentButtonGroup.SelectionChangedFcn = @(~, ~) setCpmLabElementsVisibil
 %ui.ScenarioListBox.ValueChangedFcn = @(~, ~) checkScenarioVehiclesMatch(ui, scenarios);
 ui.ScenarioListBox.ValueChangedFcn = @(~, ~) setIsParlVisibility(ui);
 
+% If parallel computation is not used, the number of computation levels cannot be constraint.
+ui.ParallelComputationListBox.ValueChangedFcn = @(~, ~) callbackParlSelected(ui);
+
 %% load previous choices, if possible
 try %#ok<TRYNC>
     previousSelection = load([tempdir 'scenarioControllerSelection']);
@@ -76,6 +79,27 @@ try %#ok<TRYNC>
     ui.AmountofVehiclesListBox.Value = previousSelection.vehicleAmountSelection;
     ui.TypeofVisualizationListBox_2.Value = previousSelection.visualizationSelection;
     ui.ParallelComputationListBox.Value = previousSelection.isParlSelection;
+
+    % sample time [s]
+    ui.SampleTimesSpinner.Value = previousSelection.dtSelection;
+    
+    % predicion horizon
+    ui.PredictionHorizonSpinner.Value = previousSelection.HpSelection;
+    
+    % MPA trim ID
+    ui.MPAtrimIDSpinner.Value = previousSelection.trim_setSelection;
+
+    % simulation duration [s]
+    ui.SimulationDurationsSpinner.Value = previousSelection.T_endSelection;
+    
+    % maximum allowed number of computation levels
+    ui.MaxComputationLevelsSpinner.Value = previousSelection.max_num_CLsSelection;
+    
+    % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
+    ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Value = previousSelection.strategy_consider_veh_without_ROWSelection;
+    
+    % Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
+    ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Value = previousSelection.strategy_enter_intersecting_areaSelection ;
 end
 
 %% Trigger UI change handles
@@ -110,8 +134,30 @@ vehicleAmountSelection = ui.AmountofVehiclesListBox.Value;
 visualizationSelection = ui.TypeofVisualizationListBox_2.Value;
 isParlSelection = ui.ParallelComputationListBox.Value;
 
+% sample time [s]
+dtSelection = ui.SampleTimesSpinner.Value;
+% predicion horizon
+HpSelection = ui.PredictionHorizonSpinner.Value;
+% MPA trim ID
+trim_setSelection = ui.MPAtrimIDSpinner.Value;
+% simulation duration [s]
+T_endSelection = ui.SimulationDurationsSpinner.Value;
+% maximum allowed number of computation levels
+max_num_CLsSelection = ui.MaxComputationLevelsSpinner.Value;
+% Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
+strategy_consider_veh_without_ROWSelection = ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Value;
+% Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
+strategy_enter_intersecting_areaSelection = ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Value;
+
 save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'collisionAvoidanceSelection', 'MiddlewarePeriodmsSelection',...
-    'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', 'isParlSelection');
+    'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', 'isParlSelection',...
+    'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_intersecting_areaSelection');
+
+
+
+% save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'MiddlewarePeriodmsSelection',...
+%     'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', 'isParlSelection',...
+%     'dtSelection','HpSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_intersecting_areaSelection');
 
 %% Convert to legacy/outputs
 labOptions.manualVehicle_id = firstManualVehicleID{...
@@ -170,6 +216,27 @@ labOptions.priority = priorityAssignmentMethod{...
     strcmp({priorityAssignmentMethod{:, 2}}, priorityAssignmentMethodSelection),...
     2};
 
+% sample time [s]
+labOptions.dt = dtSelection;
+
+% predicion horizon
+labOptions.Hp = HpSelection;
+
+% MPA trim ID
+labOptions.trim_set = trim_setSelection;
+
+% simulation duration [s]
+labOptions.T_end = T_endSelection;
+
+% maximum allowed number of computation levels
+labOptions.max_num_CLs = max_num_CLsSelection;
+
+% Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
+labOptions.strategy_consider_veh_without_ROW = strategy_consider_veh_without_ROWSelection;
+
+% Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
+labOptions.strategy_enter_intersecting_area = strategy_enter_intersecting_areaSelection;
+
 % close app
 ui.delete;
 end
@@ -223,7 +290,7 @@ function setCpmLabElementsVisibility(ui)
         ui.ParallelComputationListBox.Enable = 'Off';
 
         % multiple vehicles tipp
-        %ui.Label_3.Text = sprintf("Hold CTRL to select multiple \nvehicles in CPM Lab mode");
+        %ui.Label_3.Text = sprintf("Hold CTRL to select multiple vehicles in CPM Lab mode");
         %ui.Label_3.Visible = 'On';
     else
         ui.MiddlewarePeriodmsEditField.Enable = 'Off';
@@ -270,11 +337,30 @@ end
 function setIsParlVisibility(ui)
     if get_circle_selection(ui)
         ui.ParallelComputationListBox.Enable = 'Off';
-        ui.Label_4.Text = sprintf("for circle scenario, only \ntopo priority, constant priority \nand random priority are \nsupported");
+        ui.Label_4.Text = sprintf("For circle scenario, only topo priority, constant priority and random priority are supported");
         ui.Label_4.Visible = 'On';
     else
         ui.ParallelComputationListBox.Enable = 'On';
         ui.Label_4.Visible = 'Off';
+    end
+end
+
+% callback function if parallel computation is selected/unselected
+function callbackParlSelected(ui)
+    if strcmp(ui.ParallelComputationListBox.Value,'yes')
+        ui.MaxComputationLevelsSpinner.Enable = 'on';
+        ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'on';
+        ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Enable = 'on';
+%         ui.PriorityAssignmentMethodListBox.Value = ui.PriorityAssignmentMethodListBox.Items{2};
+
+        ui.Label_4.Visible = 'Off';
+    else
+        ui.MaxComputationLevelsSpinner.Enable = 'off';
+        ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'off';
+        ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Enable = 'off';
+
+        ui.Label_4.Text = sprintf("If parallel computation is not used, the maximum allowed number of computation levels is irrelevant.");
+        ui.Label_4.Visible = 'On';
     end
 end
 
