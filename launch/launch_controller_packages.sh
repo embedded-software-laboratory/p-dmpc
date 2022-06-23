@@ -17,7 +17,6 @@ else
 fi
 
 if [ $force_feedback_enabled -eq 1 ]; then
-    echo $force_feedback_enabled
     cd $force_feedback_dir
     source /opt/ros/eloquent/setup.bash
     source $force_feedback_dir/install/setup.bash

@@ -404,7 +404,7 @@ classdef CPMLab < InterfaceExperiment
                 %}
 
                 if obj.scenario.g29_force_feedback && scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id
-                    obj.g29_last_position = obj.g29_handler.g29_send_message(yaw, 0.3, obj.g29_last_position);                 
+                    obj.g29_last_position = obj.g29_handler.g29_send_message(obj.sample(end).state_list(iVeh).steering_servo, 0.3, obj.g29_last_position);                 
                 end
             end
         end
