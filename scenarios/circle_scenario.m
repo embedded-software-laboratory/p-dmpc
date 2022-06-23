@@ -2,7 +2,17 @@ function scenario = circle_scenario(options)
 % CIRCLE_SCENARIO   Constructor for scenario with vehicles circular arranged heading to the center of the circle.
     
     scenario = Scenario();
-    
+    % read from optionos
+    scenario.options = options; 
+    scenario.dt = options.dt;
+    scenario.trim_set = options.trim_set;
+    scenario.T_end = options.T_end;
+    scenario.Hp = options.Hp;
+    scenario.isParl = options.isParl;
+    scenario.max_num_CLs = options.max_num_CLs;
+    scenario.strategy_consider_veh_without_ROW = options.strategy_consider_veh_without_ROW; % may irrelevant for circle scenario
+    scenario.strategy_enter_intersecting_area = options.strategy_enter_intersecting_area; % may irrelevant for circle scenario
+
     radius = 2;
     nVeh = options.amount;
     yaws = pi*2/nVeh*(0:nVeh-1);
@@ -39,12 +49,11 @@ function scenario = circle_scenario(options)
     else
         scenario.plot_limits = [-0.5,5;-0.5,4.5];
     end
+
     scenario.nVeh = nVeh;
     scenario.name = sprintf('%i-circle', scenario.nVeh);
 
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
-
-    scenario.T_end = 6;
 
     scenario.name = options.scenario;
     scenario.priority_option = options.priority;
