@@ -4,10 +4,9 @@ Format: date, author.
 
 Example: 2022-06-19, Jianye
 
-# 2022-?-?, ?
-- ...
-- ...
-- ...
+# 2022-06-23, Jianye
+- Add more elements to ui
+- Adapt trim set ID to be successive. The ID of newly added trim should also have successive number to the existing IDs!
 
 # 2022-06-22, Jianye and David
 - Let circle scenario run
