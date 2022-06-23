@@ -43,6 +43,7 @@ classdef MotionPrimitiveAutomaton
             if isfile(mpa_full_path)
                 load(mpa_full_path,"mpa");
                 obj = mpa;
+                disp('Offline MPA was found and loaded.')
                 return
             end
 
@@ -198,6 +199,12 @@ classdef MotionPrimitiveAutomaton
 %             end
         
             trimsInfo = struct;
+
+            % display progress
+            textprogressbar('Computing local offline reachable sets: ');
+            progress = 0;
+            textprogressbar(progress);
+
             for i=1:n_trims
                 for t=1:Hp
                     if t==1 % root trim
@@ -262,9 +269,14 @@ classdef MotionPrimitiveAutomaton
                     end
                     reachable_sets_local{i,t} = trimsInfo(i,t).reachable_sets;
                     reachable_sets_conv_local{i,t} = trimsInfo(i,t).reachable_sets_conv;
+
+                    % display progress
+                    progress = ((i-1)*Hp + t)/(n_trims*Hp)*100; % percentage 
+                    textprogressbar(progress);
                 end
             end
             duration_computation = toc(offline_computation_start);
+            textprogressbar('done');
             disp(['Finished in ' num2str(duration_computation) ' seconds.'])
         
         end
