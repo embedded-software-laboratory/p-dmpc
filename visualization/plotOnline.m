@@ -16,7 +16,18 @@ function plotOnline(result,step_idx,tick_now,exploration,exp)
                       'w: show/hide coupling weights';
                       'space: pause/start simulation';
                       'esc: end simulation'};
-        text(scenario.plot_limits(1,1)-1.5, scenario.plot_limits(2,2)-0.5, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
+        if strcmp(scenario.name,'Commonroad')
+            x_text_hotkey = scenario.plot_limits(1,1)- 1.5;
+            y_text_hotkey = scenario.plot_limits(2,2)- 0.5;
+        elseif strcmp(scenario.name,'Circle_scenario')
+            x_text_hotkey = scenario.plot_limits(1,1)- 2.0;
+            y_text_hotkey = scenario.plot_limits(2,2)- 0.5;
+        else
+            % to be define according to the specific scenario
+            x_text_hotkey = scenario.plot_limits(1,1)- 1.5;
+            y_text_hotkey = scenario.plot_limits(2,2)- 0.5;
+        end
+        text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
     end
 
     if isempty(exp.visu.colormap)
