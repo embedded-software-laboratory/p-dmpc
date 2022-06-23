@@ -4,33 +4,8 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 % between groups plan in pararllel. Controller simulates multiple
 % distributed controllers in a for-loop. 
 
-runtime_others_tic = tic;
-right_of_way = false;
-switch scenario.priority_option
-    case 'topo_priority' 
-        [groups, directed_adjacency, priority_list] = topo_priority().priority(scenario); 
-        veh_at_intersection = [];
-    %         edge_to_break = [];
-    case 'right_of_way_priority'
-        [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = right_of_way_priority().priority_parl(scenario, iter);
-    case 'constant_priority' 
-        [groups, directed_adjacency, priority_list] = constant_priority().priority(scenario); 
-        veh_at_intersection = [];
-    %         edge_to_break = [];
-    case 'random_priority'  
-        [groups, directed_adjacency, priority_list] = random_priority().priority(scenario); 
-        veh_at_intersection = [];
-%         edge_to_break = [];
-    case 'FCA_priority' 
-        [veh_at_intersection, groups, directed_adjacency, priority_list] = FCA_priority().priority(scenario,iter);
-%         edge_to_break = [];
-    case 'mixed_traffic_priority'
-        obj = mixed_traffic_priority(scenario);
-        [groups, directed_adjacency] = obj.priority(); 
-        right_of_way = false;
-        veh_at_intersection = [];
-        edge_to_break = [];
-end
+    runtime_others_tic = tic;
+    [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_assignment_parl(scenario, iter);
 
     nVeh = scenario.nVeh;
     Hp = scenario.Hp;
@@ -45,7 +20,7 @@ end
     sub_controller = @(scenario, iter)...
         graph_search(scenario, iter); 
 
-    directed_graph = digraph(scenario.coupling_weights);
+    directed_graph = digraph(scenario.directed_coupling);
     [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
     
     runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
@@ -71,23 +46,23 @@ end
             grp_idx = arrayfun(@(array) ismember(vehicle_idx,array.vertices), scenario_v.parl_groups_info);
             all_vehs_same_grp = scenario_v.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
 
-            all_coupled_vehs_with_ROW = find(scenario_v.coupling_weights(:,vehicle_idx)~=0)'; % all coupled vehicles with the right-of-way
-            all_coupled_vehs_without_ROW = find(scenario_v.coupling_weights(vehicle_idx,:)~=0); % all coupled vehicles without the right-of-way
+            all_coupled_vehs_with_HP = find(scenario_v.directed_coupling(:,vehicle_idx)==1)'; % all coupled vehicles with higher priorities
+            all_coupled_vehs_with_LP = find(scenario_v.directed_coupling(vehicle_idx,:)==1); % all coupled vehicles with lower priorities
  
-            coupling_vehs_same_grp_with_ROW = intersect(all_coupled_vehs_with_ROW, all_vehs_same_grp); % coupled vehicles with the right-of-way in the same group
-            coupling_vehs_other_grps_with_ROW = setdiff(all_coupled_vehs_with_ROW, coupling_vehs_same_grp_with_ROW); % coupled vehicles with the right-of-way in other groups
+            coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp); % coupled vehicles with higher priorities in the same group
+            coupled_vehs_other_grps_with_HP = setdiff(all_coupled_vehs_with_HP, coupled_vehs_same_grp_with_HP); % coupled vehicles with higher priorities in other groups
             
-            % Collisions with coupled vehicles with the right-of-way will be avoided by two ways depending on the time step at which their latest messages are sent:
+            % Collisions with coupled vehicles with higher priorities will be avoided by two ways depending on the time step at which their latest messages are sent:
             % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step. 
             % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step. 
-            for i_HP = 1:length(all_coupled_vehs_with_ROW)
-                veh_with_ROW_i = all_coupled_vehs_with_ROW(i_HP);
+            for i_HP = 1:length(all_coupled_vehs_with_HP)
+                veh_with_HP_i = all_coupled_vehs_with_HP(i_HP);
                 
-                if ismember(veh_with_ROW_i,coupling_vehs_same_grp_with_ROW)
+                if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and
                     % set the predicted occupied areas as dynamic obstacles  
-                    latest_msg = read_message(scenario_v.vehicles.communicate, scenario_v.ros_subscribers{veh_with_ROW_i}, scenario_v.k);
-                    predicted_areas_i = arrayfun(@(array) {[array.x';array.y']}, latest_msg.predicted_areas);
+                    latest_msg = read_message(scenario_v.vehicles.communicate, scenario_v.ros_subscribers{veh_with_HP_i}, scenario_v.k);
+                    predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                     oldness_msg = scenario_v.k - latest_msg.time_step;
                     if oldness_msg ~= 0
                         % consider the oldness of the message: delete the
@@ -97,22 +72,24 @@ end
                     scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
                 else
                     % if the selected vehicle is not in the same group, add their reachable sets as dynamic obstacles 
-                    reachable_sets_i = iter.reachable_sets(veh_with_ROW_i,:);
+                    reachable_sets_i = iter.reachable_sets(veh_with_HP_i,:);
                     % turn polyshape to plain array (repeat the first row to enclosed the shape)
                     reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
                     scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
                 end
             end
 
-            % Set lanelet intersecting areas as static obstacles if vehicle without the right-of-way is not allowed to enter those area
-            scenario_v.lanelet_intersecting_areas = lanelet_intersecting_areas{vehicle_idx};
-            if isempty(scenario_v.lanelet_intersecting_areas)
-                scenario_v.lanelet_intersecting_areas = {}; % convert from 'double' to 'cell'
+            if ~strcmp(scenario.strategy_enter_intersecting_area,'1')
+                % Set lanelet intersecting areas as static obstacles if vehicle with lower priorities is not allowed to enter those area
+                scenario_v.lanelet_intersecting_areas = lanelet_intersecting_areas{vehicle_idx};
+                if isempty(scenario_v.lanelet_intersecting_areas)
+                    scenario_v.lanelet_intersecting_areas = {}; % convert from 'double' to 'cell'
+                end
+                assert(iscell(scenario_v.lanelet_intersecting_areas));
             end
-            assert(iscell(scenario_v.lanelet_intersecting_areas));
 
-            % consider coupled vehicles without the right-of-way
-            scenario_v = consider_vehs_without_ROW(scenario_v, iter, all_coupled_vehs_without_ROW);
+            % consider coupled vehicles with lower priorities
+            scenario_v = consider_vehs_with_LP(scenario_v, iter, all_coupled_vehs_with_LP);
 
             if scenario.k>=278 || scenario.k==87
                 if scenario_v.vehicles.ID==5

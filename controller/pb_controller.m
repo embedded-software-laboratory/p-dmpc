@@ -3,33 +3,7 @@ function [info, scenario] = pb_controller(scenario, iter)
 %     Controller simulates multiple distributed controllers.
 
 runtime_others_tic = tic;
-right_of_way = false;
-switch scenario.priority_option
-    case 'topo_priority' 
-        [groups, directed_adjacency, priority_list] = topo_priority().priority(scenario); 
-        veh_at_intersection = [];
-%         edge_to_break = [];
-    case 'right_of_way_priority' 
-        right_of_way = true;
-        [veh_at_intersection, groups, ~, directed_adjacency,priority_list] = right_of_way_priority().priority(scenario,iter);  
-    case 'constant_priority' 
-        [groups, directed_adjacency, priority_list] = constant_priority().priority(scenario); 
-        veh_at_intersection = [];
-%         edge_to_break = [];
-    case 'random_priority'  
-        [groups, directed_adjacency, priority_list] = random_priority().priority(scenario); 
-        veh_at_intersection = [];
-%         edge_to_break = [];
-    case 'FCA_priority' 
-        [veh_at_intersection, groups, directed_adjacency, priority_list] = FCA_priority().priority(scenario,iter);
-%         edge_to_break = [];   
-    case 'mixed_traffic_priority'
-        obj = mixed_traffic_priority(scenario);
-        [groups, directed_adjacency] = obj.priority(); 
-        right_of_way = false;
-        veh_at_intersection = [];
-        %edge_to_break = [];
-end
+[veh_at_intersection, groups, directed_adjacency, priority_list] = priority_assignment(scenario,iter);
 
     % visualize the coupling between vehicles
 %     plot_coupling_lines(directed_adjacency, iter)
@@ -88,12 +62,12 @@ end
             [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(predecessors,:));
             
             % add adjacent vehicles with lower priorities as static obstacles
-            if right_of_way
+            if strcmp(scenario.priority_option, 'right_of_way_priority')
                 adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
                 
                 % only two strategies are supported if parallel computation is not used
                 assert(strcmp(scenario_v.strategy_consider_veh_without_ROW,'2')==true || strcmp(scenario_v.strategy_consider_veh_without_ROW,'3')==true)
-                scenario_v = consider_vehs_without_ROW(scenario_v, iter, adjacent_vehicle_lower_priority);
+                scenario_v = consider_vehs_with_LP(scenario_v, iter, adjacent_vehicle_lower_priority);
             end
 
             if scenario.k >= 128

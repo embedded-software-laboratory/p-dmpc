@@ -84,7 +84,7 @@ function [belonging_vector, subgraphs_info] = graph_merging_algorithm(M, belongi
         end
 
         % compare the benefits
-        [max_benefit, idx] = max(benefit_matrix,[],'all');
+        [max_benefit, idx] = max(benefit_matrix,[],'all','linear');
         
         % merging is only meaningful if benefit is greater than zero
         if max_benefit > 0
