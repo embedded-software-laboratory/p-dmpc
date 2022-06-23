@@ -179,7 +179,6 @@ classdef  right_of_way_priority < interface_priority
             % Vehicles with higher priorities plan trajectory before vehicles
             % with lower priorities            
             priority_list = obj.get_priority(groups,obj.is_assign_unique_priority);
-
         end
 
         %% priority_parl
@@ -205,14 +204,6 @@ classdef  right_of_way_priority < interface_priority
 
             [coupling_weights,coupling_info] = obj.check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info);
 
-            % visualize the directed graph  
-%             figure(); plot(Graph,'LineWidth',1,'EdgeLabel',round(Graph.Edges.Weight,2))
-
-%             if isempty(scenario.parl_groups_info)
-%                 parl_groups_old = {};
-%             else
-%                 parl_groups_old = {scenario.parl_groups_info.vertices};
-%             end
             % form parallel groups
             [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
 
@@ -234,6 +225,8 @@ classdef  right_of_way_priority < interface_priority
             
             % visualize the coupling between vehicles
 %             plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
+            % visualize the directed graph  
+%             figure(); plot(Graph,'LineWidth',1,'EdgeLabel',round(Graph.Edges.Weight,2))
         end
     end
 
@@ -247,7 +240,6 @@ classdef  right_of_way_priority < interface_priority
             predicted_lanelet_boundary = iter.predicted_lanelet_boundary(:,3);
 
             for i = 1:length([coupling_info.veh_with_ROW])
-                coupling_info(i).is_ignored = false; % whether the coupling is ignored
                 veh_with_ROW = coupling_info(i).veh_with_ROW;
                 veh_without_ROW = coupling_info(i).veh_without_ROW;
                 is_at_intersection = coupling_info(i).is_at_intersection;
@@ -305,7 +297,7 @@ classdef  right_of_way_priority < interface_priority
                         elseif is_side_impact_collision
                             % ignore coupling 
 %                             disp(['Coupling from vehicle ' num2str(veh_with_ROW) ' to ' num2str(veh_without_ROW) ' is ignored by forbidding the latter to enter this area.'])
-                            coupling_info(i).is_ignored = true;
+                            coupling_info(i).is_ignored = true; % ignore coupling since no collision if possible anymore
                             coupling_weights(veh_with_ROW,veh_without_ROW) = 0;
                             % store intersecting area for later use
                             if ~isempty(lanelet_intersecting_area)
@@ -403,26 +395,7 @@ classdef  right_of_way_priority < interface_priority
                 end
             end
 
-            % Assign prrority according to computation level
-            % Vehicles with higher priorities plan trajectory before vehicles
-            % with lower priorities
-            priority_list = zeros(1,scenario.nVeh);
-            prio = 1;
-            for level_i = 1:length(CL_based_hierarchy)
-                vehs_in_level_i = CL_based_hierarchy(level_i).members; % vehicles in the selected computation level
-                for veh_i = vehs_in_level_i
-                    priority_list(veh_i) = prio; % assign unique priority
-                    prio = prio + 1;
-                end
-            end
-
-            % visualize the coupling between vehicles
-%             plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
-        end
-
-
-
-
+        end 
     end
   
 end
