@@ -8,22 +8,27 @@ classdef  topo_priority < interface_priority
     end
     
     methods 
-        function obj = topo_priority(scenario)
-            obj.scenario = scenario;
-            
-            if obj.scenario.assignPrios || isempty(obj.scenario.directed_coupling)
-                [obj.isDAG, obj.topo_groups] = topological_sorting_coloring(obj.scenario.adjacency(:,:,end));
-            else
-                [obj.isDAG, obj.topo_groups] = kahn(obj.scenario.directed_coupling(:,:,end));
-            end
-            
+        function obj = topo_priority()
+            obj.is_assign_unique_priority = false; % whether to asign unique priority            
         end
         
-        function [groups, coupling_directed] = priority(obj)
+        function [groups, coupling_directed, priority_list] = priority(obj,scenario)
+            
+            if scenario.assignPrios || isempty(scenario.directed_coupling)
+                [obj.isDAG, obj.topo_groups] = topological_sorting_coloring(scenario.adjacency(:,:,end));
+            else
+                [obj.isDAG, obj.topo_groups] = kahn(scenario.directed_coupling(:,:,end));
+            end
+
             assert( obj.isDAG, 'Coupling matrix is not a DAG' );
             groups = PB_predecessor_groups(obj.topo_groups);
 
-            coupling_undirected = obj.scenario.adjacency(:,:,end);
+            % Assign prrority according to computation level
+            % Vehicles with higher priorities plan trajectory before vehicles
+            % with lower priorities            
+            priority_list = obj.get_priority(groups,obj.is_assign_unique_priority);
+
+            coupling_undirected = scenario.adjacency(:,:,end);
             % determine directed adjacency
             coupling_directed = coupling_undirected;
             [rows, cols] = find(coupling_undirected~=0);

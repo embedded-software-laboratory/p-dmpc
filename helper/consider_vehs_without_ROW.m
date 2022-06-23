@@ -12,21 +12,25 @@ function scenario_v = consider_vehs_without_ROW(scenario_v, iter, all_coupling_v
         
         % stategies to let vehicle with the right-of-way consider vehicle without the right-of-way
         switch scenario_v.strategy_consider_veh_without_ROW
-            case '0'
+            case '1'
                 % do not consider
 
-            case '1'
+            case '2'
                 % consider currently occupied area as static obstacle
                 scenario_v.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset; % add as static obstacles
 
-            case '2'
+            case '3'
+                % consider the occupied area of emergency braking maneuver (with normal offset) as static obstacle 
+                scenario_v.obstacles{end+1} = iter.emergency_braking_maneuvers{veh_without_ROW}.area;
+
+            case '4'
                 % consider one-step reachable sets as static obstacle
                 reachable_sets = iter.reachable_sets{veh_without_ROW,1};
                 % get boundary of the polygon
                 [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
                 scenario_v.obstacles(end+1) = {[x_reachable_sets';y_reachable_sets']};
-
-            case '3'
+                
+            case '5'
                 % consider old trajectory as dynamic obstacle
                 latest_msg = scenario_v.ros_subscribers{veh_without_ROW}.LatestMessage;
                 if latest_msg.time_step > 0
@@ -39,12 +43,8 @@ function scenario_v = consider_vehs_without_ROW(scenario_v, iter, all_coupling_v
                     predicted_areas = del_first_rpt_last(predicted_areas(:)', shift_step);
                     scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas;
                 end
-                
-            case '4'
-                % consider the occupied area of emergency braking maneuver (with normal offset) as static obstacle 
-                scenario_v.obstacles{end+1} = iter.emergency_braking_maneuvers{veh_without_ROW}.area;
             otherwise
-                warning("Please specify one of the following strategies to let vehicle with a higher priority also consider vehicle with a lower priority: '0', '1', '2', '3', '4'.")
+                warning("Please specify one of the following strategies to let vehicle with a higher priority also consider vehicle with a lower priority: '1', '2', '3', '4', '5'.")
         end
 
     end

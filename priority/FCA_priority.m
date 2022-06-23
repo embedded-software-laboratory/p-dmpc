@@ -9,32 +9,30 @@ classdef  FCA_priority < interface_priority
     
     methods 
         
-        function obj = FCA_priority(scenario,iter)
-            obj.scenario = scenario;
-            obj.iter = iter;
+        function obj = FCA_priority() 
         end
         
-        function [veh_at_intersection,groups,directed_adjacency] = priority(obj)
+        function [veh_at_intersection,groups,directed_adjacency,priority_index] = priority(~,scenario,iter)
 
             groups = struct;
-            nVeh = length(obj.scenario.vehicles);
-            Hp = size(obj.iter.referenceTrajectoryPoints,2);
+            nVeh = length(scenario.vehicles);
+            Hp = size(iter.referenceTrajectoryPoints,2);
             veh_at_intersection = [];
 
             %% assign priorities to vehicles based on future collision assessment
             
             % adjacency matrix
-            adjacency= obj.scenario.semi_adjacency(:,:,end); 
+            adjacency= scenario.semi_adjacency(:,:,end); 
             collisions = zeros(1,nVeh);
             
             veh = Vehicle();
-            x_locals = [-1, -1,  1,  1] * (veh.Length/2 + obj.scenario.offset);
-            y_locals = [-1,  1,  1, -1] * (veh.Width/2 + obj.scenario.offset);
+            x_locals = [-1, -1,  1,  1] * (veh.Length/2 + scenario.offset);
+            y_locals = [-1,  1,  1, -1] * (veh.Width/2 + scenario.offset);
             
             for nveh = 1: nVeh-1
                 % position of nveh 
-                nveh_x = obj.iter.referenceTrajectoryPoints(nveh,:,1);
-                nveh_y = obj.iter.referenceTrajectoryPoints(nveh,:,2);
+                nveh_x = iter.referenceTrajectoryPoints(nveh,:,1);
+                nveh_y = iter.referenceTrajectoryPoints(nveh,:,2);
                 refPath_n = [nveh_x;nveh_y]';
                 nveh_yaw = calculate_yaw(refPath_n);
                 % check adjacent vehicles 
@@ -49,18 +47,18 @@ classdef  FCA_priority < interface_priority
                     shape_n = [x_globals_n;y_globals_n];
                    
                     % check collistion between vehicles and static obstacles
-                    if ~isempty(obj.scenario.obstacles)
-                        for i = 1:numel(obj.scenario.obstacles)
-                            if intersect_sat(shape_n,obj.scenario.obstacles{i}) 
+                    if ~isempty(scenario.obstacles)
+                        for i = 1:numel(scenario.obstacles)
+                            if intersect_sat(shape_n,scenario.obstacles{i}) 
                                 collisions(nveh) = collisions(nveh) + 1;
                             end
                         end
                     end
                     
                     % check collistion between vehicles and dynamic obstacles
-                    if ~isempty(obj.scenario.dynamic_obstacle_area)
-                        for i = 1:size(obj.scenario.dynamic_obstacle_area,1)
-                            if intersect_sat(shape_n,obj.scenario.dynamic_obstacle_area{i,istep}) 
+                    if ~isempty(scenario.dynamic_obstacle_area)
+                        for i = 1:size(scenario.dynamic_obstacle_area,1)
+                            if intersect_sat(shape_n,scenario.dynamic_obstacle_area{i,istep}) 
                                 collisions(nveh) = collisions(nveh) + 1;
                             end
                         end
@@ -69,8 +67,8 @@ classdef  FCA_priority < interface_priority
                     % check collistion between two vehicles
                     for iveh = veh_adjacent              
                         % position of iveh
-                        iveh_x = obj.iter.referenceTrajectoryPoints(iveh,:,1);
-                        iveh_y = obj.iter.referenceTrajectoryPoints(iveh,:,2);
+                        iveh_x = iter.referenceTrajectoryPoints(iveh,:,1);
+                        iveh_y = iter.referenceTrajectoryPoints(iveh,:,2);
                         refPath_i = [iveh_x;iveh_y]';
                         iveh_yaw = calculate_yaw(refPath_i);
                     
@@ -111,6 +109,7 @@ classdef  FCA_priority < interface_priority
                     groups(group_idx).predecessors = [groups(group_idx-1).predecessors groups(group_idx-1).members];
                 end
             end
+
               
         end
 

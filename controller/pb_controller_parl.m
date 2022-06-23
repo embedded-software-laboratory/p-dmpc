@@ -4,33 +4,26 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 % between groups plan in pararllel. Controller simulates multiple
 % distributed controllers in a for-loop. 
 
-
+runtime_others_tic = tic;
+right_of_way = false;
 switch scenario.priority_option
-    case 'topo_priority'
-        obj = topo_priority(scenario);
-        groups = obj.priority(); 
-        right_of_way = false;
-        vehs_at_intersection = [];
-        edge_to_break = [];
+    case 'topo_priority' 
+        [groups, directed_adjacency, priority_list] = topo_priority().priority(scenario); 
+        veh_at_intersection = [];
+    %         edge_to_break = [];
     case 'right_of_way_priority'
         [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = right_of_way_priority().priority_parl(scenario, iter);
-    case 'constant_priority'
-        obj = constant_priority(scenario);
-        groups = obj.priority(); 
-        right_of_way = false;
-        vehs_at_intersection = [];
-        edge_to_break = [];
-    case 'random_priority' 
-        obj = random_priority(scenario);
-        groups = obj.priority(); 
-        right_of_way = false;
-        vehs_at_intersection = [];
-        edge_to_break = [];
-    case 'FCA_priority'
-        obj = FCA_priority(scenario,iter);
-        [vehs_at_intersection, groups] = obj.priority();
-        right_of_way = false;
-        edge_to_break = [];   
+    case 'constant_priority' 
+        [groups, directed_adjacency, priority_list] = constant_priority().priority(scenario); 
+        veh_at_intersection = [];
+    %         edge_to_break = [];
+    case 'random_priority'  
+        [groups, directed_adjacency, priority_list] = random_priority().priority(scenario); 
+        veh_at_intersection = [];
+%         edge_to_break = [];
+    case 'FCA_priority' 
+        [veh_at_intersection, groups, directed_adjacency, priority_list] = FCA_priority().priority(scenario,iter);
+%         edge_to_break = [];
     case 'mixed_traffic_priority'
         obj = mixed_traffic_priority(scenario);
         [groups, directed_adjacency] = obj.priority(); 
@@ -41,7 +34,6 @@ end
 
     nVeh = scenario.nVeh;
     Hp = scenario.Hp;
-
 
     % visualize the coupling between vehicles
     % plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
@@ -56,6 +48,9 @@ end
     directed_graph = digraph(scenario.coupling_weights);
     [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
     
+    runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
+    msg_send_time = zeros(nVeh,1);
+
     for level_j = 1:length(CL_based_hierarchy)
         vehs_level_i = CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
         
@@ -65,6 +60,7 @@ end
                 info.subcontroller_runtime(vehicle_idx) = 0;
                 continue
             end
+            subcontroller_timer = tic;
 
             % only keep self
             filter_self = false(1,scenario.nVeh);
@@ -126,10 +122,9 @@ end
                 end
             end
 
-            subcontroller_timer = tic;
+            
             % execute sub controller for 1-veh scenario
             info_v = sub_controller(scenario_v, iter_v);
-            info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
 
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
@@ -142,7 +137,8 @@ end
             else
                 info = store_control_info(info, info_v, scenario);
             end
-            
+            info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
+
             if scenario.k>=2
 %                 plot_obstacles(scenario_v)
 %                 pause(0.5)
@@ -160,6 +156,7 @@ end
                 % if the selected vehicle should take fallback
                 continue
             end
+            msg_send_tic = tic;
             predicted_trims = info.predicted_trims(vehicle_k,:); % including the current trim
             trim_current = predicted_trims(2);
 
@@ -172,10 +169,13 @@ end
 
             % send message
             send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k);
+            msg_send_time(vehicle_k) = toc(msg_send_tic);
         end
 
     end
 
+    % total runtime of subcontroller
+    info.subcontroller_runtime = info.subcontroller_runtime + msg_send_time + runtime_others;
     % Calculate the total runtime of each group
     info = get_run_time_total_all_grps(info, scenario.parl_groups_info, CL_based_hierarchy);
 end

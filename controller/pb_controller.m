@@ -2,34 +2,27 @@ function [info, scenario] = pb_controller(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
-
+runtime_others_tic = tic;
+right_of_way = false;
 switch scenario.priority_option
-    case 'topo_priority'
-        obj = topo_priority(scenario);
-        [groups, directed_adjacency] = obj.priority(); 
-        right_of_way = false;
+    case 'topo_priority' 
+        [groups, directed_adjacency, priority_list] = topo_priority().priority(scenario); 
         veh_at_intersection = [];
 %         edge_to_break = [];
     case 'right_of_way_priority' 
         right_of_way = true;
-        [veh_at_intersection, groups, ~, directed_adjacency] = right_of_way_priority().priority(scenario,iter);  
-    case 'constant_priority'
-        obj = constant_priority(scenario);
-        [groups, directed_adjacency] = obj.priority(); 
-        right_of_way = false;
+        [veh_at_intersection, groups, ~, directed_adjacency,priority_list] = right_of_way_priority().priority(scenario,iter);  
+    case 'constant_priority' 
+        [groups, directed_adjacency, priority_list] = constant_priority().priority(scenario); 
         veh_at_intersection = [];
 %         edge_to_break = [];
-    case 'random_priority' 
-        obj = random_priority(scenario);
-        [groups, directed_adjacency] = obj.priority(); 
-        right_of_way = false;
+    case 'random_priority'  
+        [groups, directed_adjacency, priority_list] = random_priority().priority(scenario); 
         veh_at_intersection = [];
 %         edge_to_break = [];
-    case 'FCA_priority'
-        obj = FCA_priority(scenario,iter);
-        [veh_at_intersection, groups, directed_adjacency] = obj.priority();
-        right_of_way = false;
-        edge_to_break = []; 
+    case 'FCA_priority' 
+        [veh_at_intersection, groups, directed_adjacency, priority_list] = FCA_priority().priority(scenario,iter);
+%         edge_to_break = [];   
     case 'mixed_traffic_priority'
         obj = mixed_traffic_priority(scenario);
         [groups, directed_adjacency] = obj.priority(); 
@@ -42,19 +35,11 @@ end
 %     plot_coupling_lines(directed_adjacency, iter)
 
     % construct the priority list
-    computation_levels = length(groups);
-    members_list = horzcat(groups.members);
+    computation_levels = length(groups); 
     
-    nVeh = length(members_list); 
+    nVeh = scenario.nVeh; 
     Hp = scenario.Hp;
 
-    priority_list = zeros(1,nVeh);
-    prio = 1;
-    for iVeh = members_list 
-        priority_list(iVeh) = prio;
-        prio = prio + 1;
-    end
-    
     % update properties of scenario
     scenario.directed_coupling = directed_adjacency;
     scenario.priority_list = priority_list;
@@ -69,10 +54,14 @@ end
 
     directed_graph = digraph(directed_adjacency);
     [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
+    runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search 
+ 
 
     for grp_idx = 1:length(groups)
         group = groups(grp_idx);
         for grp_member_idx = 1:length(group.members) 
+            subcontroller_timer = tic;
+            
             vehicle_idx = group.members(grp_member_idx);
             if ismember(vehicle_idx, info.vehs_fallback)
                 % if the selected vehicle should take fallback
@@ -103,7 +92,7 @@ end
                 adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
                 
                 % only two strategies are supported if parallel computation is not used
-                assert(strcmp(scenario_v.strategy_consider_veh_without_ROW,'1')==true || strcmp(scenario_v.strategy_consider_veh_without_ROW,'4')==true)
+                assert(strcmp(scenario_v.strategy_consider_veh_without_ROW,'2')==true || strcmp(scenario_v.strategy_consider_veh_without_ROW,'3')==true)
                 scenario_v = consider_vehs_without_ROW(scenario_v, iter, adjacent_vehicle_lower_priority);
             end
 
@@ -113,11 +102,9 @@ end
                 end
             end
 
-            subcontroller_timer = tic;
             % execute sub controller for 1-veh scenario
             info_v = sub_controller(scenario_v, iter_v);
-            info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
-
+            
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback 
@@ -129,9 +116,13 @@ end
             else
                 info = store_control_info(info, info_v, scenario);
             end
+            info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
         end
 
     end
+
+    % total runtime of subcontroller
+    info.subcontroller_runtime = info.subcontroller_runtime + runtime_others;
 
     % calculate the total runtime: only one vehicle in each computation level will be counted, this is the one with the maximum runtime 
     parl_groups_info = struct('vertices',1:nVeh,'num_CLs',computation_levels,'path_info',[]); % one group

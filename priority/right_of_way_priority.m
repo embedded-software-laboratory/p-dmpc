@@ -5,19 +5,18 @@ classdef  right_of_way_priority < interface_priority
 % closer to the center of intersection are assigned with higher priorities. 
 % Vehicles at intersection keep higher priority and do not change their relative priority until they leave intersection
     
-    properties (Access=private)
-        
+    properties
+
     end
     
     methods 
         
         function obj = right_of_way_priority()
-%             obj.scenario = scenario;
-%             obj.iter = iter;
+            obj.is_assign_unique_priority = false; % whether to asign unique priority
         end
 
         %% priority
-        function [veh_at_intersection,groups,edge_to_break,directed_adjacency] = priority(~,scenario,iter)
+        function [veh_at_intersection,groups,edge_to_break,directed_adjacency,priority_list] = priority(obj,scenario,iter)
             % assign priorities to vehicles
             nVeh = length(scenario.vehicles);
             Hp = size(iter.referenceTrajectoryPoints,2);
@@ -176,6 +175,11 @@ classdef  right_of_way_priority < interface_priority
                 end
             end 
 
+            % Assign prrority according to computation level
+            % Vehicles with higher priorities plan trajectory before vehicles
+            % with lower priorities            
+            priority_list = obj.get_priority(groups,obj.is_assign_unique_priority);
+
         end
 
         %% priority_parl
@@ -196,8 +200,8 @@ classdef  right_of_way_priority < interface_priority
             
             % Strategy to let vehicle without the right-of-way enter the intersecting area
             % Ignore coupling edge if not allowed to enter the intersecting area because no collision is possible anymore
-            [coupling_weights,lanelet_intersecting_areas] = ...
-                obj.strategy_enter_crossing_area(iter,coupling_info,coupling_weights,scenario.strategy_enter_crossing_area,scenario.nVeh);
+            [coupling_weights,lanelet_intersecting_areas,coupling_info] = ...
+                obj.strategy_enter_intersecting_area(iter,coupling_info,coupling_weights,scenario.strategy_enter_intersecting_area,scenario.nVeh);
 
             [coupling_weights,coupling_info] = obj.check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info);
 
@@ -215,15 +219,7 @@ classdef  right_of_way_priority < interface_priority
             % Assign prrority according to computation level
             % Vehicles with higher priorities plan trajectory before vehicles
             % with lower priorities
-            priority_list = zeros(1,scenario.nVeh);
-            prio = 1;
-            for level_i = 1:length(CL_based_hierarchy)
-                vehs_in_level_i = CL_based_hierarchy(level_i).members; % vehicles in the selected computation level
-                for veh_i = vehs_in_level_i
-                    priority_list(veh_i) = prio; % assign unique priority
-                    prio = prio + 1;
-                end
-            end
+            priority_list = obj.get_priority(CL_based_hierarchy,obj.is_assign_unique_priority);
 
             % update properties of scenario 
             scenario.coupling_weights = coupling_weights;
@@ -242,7 +238,7 @@ classdef  right_of_way_priority < interface_priority
     end
 
     methods (Access = private, Static)
-        function [coupling_weights,lanelet_intersecting_areas,coupling_info] = strategy_enter_crossing_area(iter,coupling_info,coupling_weights,strategy_enter_crossing_area,nVeh)
+        function [coupling_weights,lanelet_intersecting_areas,coupling_info] = strategy_enter_intersecting_area(iter,coupling_info,coupling_weights,strategy_enter_intersecting_area,nVeh)
             % This function implement the strategies of letting vehicle enter
             % the intersecting area, which is the overlapping area of two
             % vehicles' lanelet boundaries. Four strategies are existed.
@@ -261,17 +257,17 @@ classdef  right_of_way_priority < interface_priority
                 is_merging_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_3);
 
                 % check if coupling edge should be ignored
-                switch strategy_enter_crossing_area
-                    case '0'
+                switch strategy_enter_intersecting_area
+                    case '1'
                         % no constraint on entering the intersecting area
                         return
-                    case '1'
+                    case '2'
                         % not allowed to enter the intersecting area if they are coupled at intersecting lanelets of the intersection
                         is_ignore_coupling = is_intersecting_lanelets && is_at_intersection;
-                    case '2'
+                    case '3'
                         % not allowed to enter the intersecting area if they are coupled at intersecting or merging lanelets of the intersection
                         is_ignore_coupling = (is_intersecting_lanelets || is_merging_lanelets) && is_at_intersection;
-                    case '3'
+                    case '4'
                         % not allowed to enter the intersecting area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
                         is_ignore_coupling = is_intersecting_lanelets || is_merging_lanelets;
                     otherwise
@@ -423,6 +419,10 @@ classdef  right_of_way_priority < interface_priority
             % visualize the coupling between vehicles
 %             plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
         end
+
+
+
+
     end
   
 end
