@@ -253,6 +253,7 @@ classdef TrafficInfo
                     % store coupling information
                     obj.coupling_info(count).STAC = STAC;
                     obj.coupling_info(count).lanelet_relationship = lanelet_relationship.type;
+                    obj.coupling_info(count).is_ignored = false; % whether the coupling is ignored  
                     if has_ROW
                         % vehicle_i has the right-of-way
                         obj.coupling_weights(veh_i,veh_j) = obj.weighting_function(STAC_adapted, obj.sensitive_factor); 
