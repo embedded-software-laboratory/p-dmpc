@@ -8,6 +8,8 @@ classdef GuidedMode
         brake
         leftPaddle
         rightPaddle
+        LeftLaneChangeButton
+        RightLaneChangeButton
     end
 
     properties(Access=public)
@@ -26,6 +28,8 @@ classdef GuidedMode
                 modeHandler.brake = modeHandler.axes(4);
                 modeHandler.leftPaddle = modeHandler.buttons(6);
                 modeHandler.rightPaddle = modeHandler.buttons(5);
+                modeHandler.LeftLaneChangeButton = modeHandler.buttons(1);
+                modeHandler.RightLaneChangeButton = modeHandler.buttons(2);
             else
                 modeHandler.steering = modeHandler.axes(1);
                 modeHandler.throttle = modeHandler.axes(3);
@@ -84,7 +88,7 @@ classdef GuidedMode
 
             % if steering over threshold, then perform lane change
             if cooldown_after_lane_change > 5
-                if modeHandler.steering > 0.4
+                if modeHandler.steering > 0.4 || (scenario.options.force_feedback_enabled && modeHandler.LeftLaneChangeButton == 1)
                     disp("entered steering left");
                     % find out current lane of manual vehicle
                     index = match_pose_to_lane(scenario, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y));
@@ -114,7 +118,7 @@ classdef GuidedMode
                         laneID = find_lane_for_change(scenario, index_successor, true);
                     end
 
-                elseif modeHandler.steering < -0.4
+                elseif modeHandler.steering < -0.4 || (scenario.options.force_feedback_enabled && modeHandler.RightLaneChangeButton == 1)
                     disp("entered steering right");
                     % find out current lane of manual vehicle
                     index = match_pose_to_lane(scenario, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y));

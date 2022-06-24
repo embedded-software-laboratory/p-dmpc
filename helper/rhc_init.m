@@ -6,7 +6,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
     visualize_trajectory_index_lab = false;
     visualize_boundaries_lab = false;
 
-    if ~is_sim_lab
+    if scenario.options.is_mixed_traffic
         if ~initialized_reference_path
             for iVeh = 1:scenario.nVeh
                 index = match_pose_to_lane(scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));

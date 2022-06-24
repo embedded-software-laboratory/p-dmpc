@@ -29,72 +29,69 @@ if is_sim_lab
             % former UI for Sim lab
             %options = selection();
     end
-    manualVehicle_id = 0;
-    manualVehicle_id2 = 0;
 
-    if strcmp(options.scenario, 'Circle_scenario')
-        options.isParl = false;
+    switch options.amount
+        % specify vehicles IDs
+        case 2
+            vehicle_ids = [14,16];
+        case 4
+            vehicle_ids = [14,16,18,20];
+        case 6
+            vehicle_ids = [10,14,16,17,18,20]; 
+        otherwise
+            vehicle_ids = 1:options.amount; % default IDs
     end
 
-    options.mixedTrafficScenarioLanelets = false;
+    manualVehicle_id = 0;
+    manualVehicle_id2 = 0;
+    options.firstManualVehicleMode = 0;
+    options.secondManualVehicleMode = 0;
     options.collisionAvoidanceMode = 0;
-    
-
-switch options.amount
-    % specify vehicles IDs
-    case 2
-        vehicle_ids = [14,16];
-    case 4
-        vehicle_ids = [14,16,18,20];
-    case 6
-        vehicle_ids = [10,14,16,17,18,20]; 
-    otherwise
-        vehicle_ids = 1:options.amount; % default IDs
-end
+    options.is_mixed_traffic = 0;
+    options.force_feedback_enabled = 0;
 
 else
     disp('cpmlab')
     vehicle_ids = [varargin{:}];
     options.amount = numel(vehicle_ids);
     options.isPB = true;
-    options.scenario = 'Commonroad';
-    options.mixedTrafficScenarioLanelets = false;
 
-    % former UI for CPM Lab
-    %mixedTrafficOptions = mixedTrafficSelection();
-    manualVehicle_id = options.manualVehicle_id;
+    if options.is_mixed_traffic
 
-    if strcmp(manualVehicle_id, 'No MV')
+        % former UI for CPM Lab
+        %mixedTrafficOptions = mixedTrafficSelection();
+        options.isParl = false;
+        manualVehicle_id = options.manualVehicle_id;
+
+        if ~strcmp(manualVehicle_id, 'No MV')
+            manualVehicle_id = str2num(options.manualVehicle_id);
+            options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
+
+            if ~strcmp(options.manualVehicle_id2, 'No second MV')
+                manualVehicle_id2 = str2num(options.manualVehicle_id2);
+                options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
+            end
+        end
+
+        if options.collisionAvoidanceMode == 1
+            options.isParl = false;
+            options.priority = 'mixed_traffic_priority';
+            %options.priority = 'topo_priority';
+        elseif options.collisionAvoidanceMode == 2 
+            options.isParl = true;
+            %options.priority = 'mixed_traffic_priority';
+            options.priority = 'right_of_way_priority';
+        else
+            % Not implemented yet
+            options.isParl = true;
+            options.priority = 'mixed_traffic_priority';
+        end
+    else
         manualVehicle_id = 0;
-        options.firstManualVehicleMode = 0;
         manualVehicle_id2 = 0;
+        options.firstManualVehicleMode = 0;
         options.secondManualVehicleMode = 0;
         options.collisionAvoidanceMode = 0;
-    else
-        manualVehicle_id = str2num(options.manualVehicle_id);
-        options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
-
-        if strcmp(options.manualVehicle_id2, 'No second MV')
-            manualVehicle_id2 = 0;
-            options.secondManualVehicleMode = 0;
-        else
-            manualVehicle_id2 = str2num(options.manualVehicle_id2);
-            options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
-        end
-    end
-
-    if options.collisionAvoidanceMode == 1
-        options.isParl = false;
-        options.priority = 'mixed_traffic_priority';
-        %options.priority = 'topo_priority';
-    elseif options.collisionAvoidanceMode == 2 || options.collisionAvoidanceMode == 3
-        options.isParl = true;
-        %options.priority = 'mixed_traffic_priority';
-        options.priority = 'right_of_way_priority';
-    else
-        % Not implemented yet
-        options.isParl = false;
-        options.priority = 'topo_priority';
     end
 end
     
@@ -192,7 +189,7 @@ while (~got_stop)
     end
     initialized_reference_path = true;
 
-    if ~is_sim_lab
+    if scenario.options.is_mixed_traffic
         if scenario.manual_vehicle_id ~= 0
             % function that updates the steering wheel data
             %wheelData = exp.getWheelData();
@@ -244,18 +241,18 @@ while (~got_stop)
                 modeHandler = ExpertMode(exp, scenario, gamepadData, false, scenario.second_manual_vehicle_id);
             end
         end
-    end
 
-    if scenario.updated_manual_vehicle_path
-        cooldown_after_lane_change = 0;
-    else
-        cooldown_after_lane_change = cooldown_after_lane_change + 1;
-    end
-
-    if scenario.updated_second_manual_vehicle_path
-        cooldown_second_manual_vehicle_after_lane_change = 0;
-    else
-        cooldown_second_manual_vehicle_after_lane_change = cooldown_second_manual_vehicle_after_lane_change + 1;
+        if scenario.updated_manual_vehicle_path
+            cooldown_after_lane_change = 0;
+        else
+            cooldown_after_lane_change = cooldown_after_lane_change + 1;
+        end
+    
+        if scenario.updated_second_manual_vehicle_path
+            cooldown_second_manual_vehicle_after_lane_change = 0;
+        else
+            cooldown_second_manual_vehicle_after_lane_change = cooldown_second_manual_vehicle_after_lane_change + 1;
+        end
     end
     
     % For parallel computation, information from previous time step is need, for example, 

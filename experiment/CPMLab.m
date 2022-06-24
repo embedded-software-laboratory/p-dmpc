@@ -40,7 +40,6 @@ classdef CPMLab < InterfaceExperiment
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
-            obj.scenario.g29_force_feedback = false;
             %parallelPool = gcp('nocreate');
 
             %if isempty(parallelPool)
@@ -142,9 +141,10 @@ classdef CPMLab < InterfaceExperiment
                     % if function handle, then define ros types for pool
                     %obj.wheelNode = parallel.pool.Constant(ros2node("/wheel"));
                     %obj.wheelSub = parallel.pool.Constant(ros2subscriber(obj.wheelNode,"/j0"));
-                    obj.scenario.g29_force_feedback = true;
-                    obj.g29_handler = G29ForceFeedback();
-                    obj.g29_last_position = 0.0;
+                    if obj.scenario.force_feedback_enabled
+                        obj.g29_handler = G29ForceFeedback();
+                        obj.g29_last_position = 0.0;
+                    end
                 elseif obj.scenario.options.firstManualVehicleMode == 2
                     obj.wheelNode = ros2node("/wheel");
                     obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@obj.steeringWheelCallback);
@@ -403,7 +403,7 @@ classdef CPMLab < InterfaceExperiment
                 %delta = pi/2 - atan(d/L);
                 %}
 
-                if obj.scenario.g29_force_feedback && scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id
+                if obj.scenario.force_feedback_enabled && scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id
                     obj.g29_last_position = obj.g29_handler.g29_send_message(obj.sample(end).state_list(iVeh).steering_servo, 0.3, obj.g29_last_position);                 
                 end
             end

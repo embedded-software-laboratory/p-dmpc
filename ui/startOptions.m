@@ -186,7 +186,7 @@ labOptions.collisionAvoidanceMode = str2num(collisionAvoidance{...
 
 labOptions.is_sim_lab = ~get_environment_selection(ui, true);
 
-labOptions.is_mixed_traffic = get_mixed_traffic_selection(ui, true);
+labOptions.is_mixed_traffic = get_traffic_mode_selection(ui, true);
 
 labOptions.force_feedback_enabled = get_force_feedback_selection(ui, true);
 
@@ -259,8 +259,8 @@ function out = get_environment_selection(ui, output_as_bool)
     end
 end
 
-function out = get_mixed_traffic_selection(ui, output_as_bool)
-    % selection of environment
+function out = get_traffic_mode_selection(ui, output_as_bool)
+    % selection of traffic mode
     out = ui.TrafficModeButtonGroup.SelectedObject == ui.TrafficModeButtonGroup.Buttons;
     
     % is mixed traffic selected
@@ -335,7 +335,7 @@ end
 
 function setMixedTrafficElementsVisibility(ui)
     % if mixed traffic is selected
-    if get_mixed_traffic_selection(ui, true)
+    if get_traffic_mode_selection(ui, true)
         ui.FirstManualVehicleMVIDListBox.Enable = 'On';
         ui.ControlModeFirstMVListBox.Enable = 'On';
         ui.SecondMVIDListBox.Enable = 'On';
