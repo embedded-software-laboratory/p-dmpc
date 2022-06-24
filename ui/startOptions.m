@@ -68,8 +68,8 @@ ui.ParallelComputationListBox.ValueChangedFcn = @(~, ~) callbackParlSelected(ui)
 try %#ok<TRYNC>
     previousSelection = load([tempdir 'scenarioControllerSelection']);
     ui.EnvironmentButtonGroup.SelectedObject = ui.EnvironmentButtonGroup.Buttons(previousSelection.environmentSelection);
-    ui.TrafficModeButtonGroup.Buttons(previousSelection.trafficModeSelection);
-    ui.ForceFeedbackFirstMVButtonGroup.Buttons(previousSelection.forceFeedbackSelection);
+    ui.TrafficModeButtonGroup.SelectedObject =  ui.TrafficModeButtonGroup.Buttons(previousSelection.trafficModeSelection);
+    ui.ForceFeedbackFirstMVButtonGroup.SelectedObject = ui.ForceFeedbackFirstMVButtonGroup.Buttons(previousSelection.forceFeedbackSelection);
     ui.FirstManualVehicleMVIDListBox.Value = previousSelection.firstManualVehicleIDSelection;
     ui.ControlModeFirstMVListBox.Value = previousSelection.controlModeSelection;
     ui.SecondMVIDListBox.Value = previousSelection.secondManualVehicleIDSelection;

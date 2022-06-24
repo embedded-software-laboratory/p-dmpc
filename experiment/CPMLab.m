@@ -141,7 +141,7 @@ classdef CPMLab < InterfaceExperiment
                     % if function handle, then define ros types for pool
                     %obj.wheelNode = parallel.pool.Constant(ros2node("/wheel"));
                     %obj.wheelSub = parallel.pool.Constant(ros2subscriber(obj.wheelNode,"/j0"));
-                    if obj.scenario.force_feedback_enabled
+                    if obj.scenario.options.force_feedback_enabled
                         obj.g29_handler = G29ForceFeedback();
                         obj.g29_last_position = 0.0;
                     end
@@ -403,7 +403,7 @@ classdef CPMLab < InterfaceExperiment
                 %delta = pi/2 - atan(d/L);
                 %}
 
-                if obj.scenario.force_feedback_enabled && scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id
+                if obj.scenario.options.force_feedback_enabled && scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id
                     obj.g29_last_position = obj.g29_handler.g29_send_message(obj.sample(end).state_list(iVeh).steering_servo, 0.3, obj.g29_last_position);                 
                 end
             end

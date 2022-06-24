@@ -48,7 +48,7 @@ function scenario = communication_init(scenario, exp)
     vehs_to_be_subscribed = [scenario.vehicles.ID];
     scenario.ros_subscribers = scenario.vehicles(1).communicate.create_subscriber(vehs_to_be_subscribed); 
 
-    if scenario.options.is_sim_lab
+    if ~scenario.options.is_mixed_traffic
         % Communicate predicted trims, pridicted lanelets and areas to other vehicles
         for jVeh = 1:nVeh
             predicted_trims = repmat(trims_measured(jVeh), 1, Hp+1); % current trim and predicted trims in the prediction horizon

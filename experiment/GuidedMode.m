@@ -28,14 +28,16 @@ classdef GuidedMode
                 modeHandler.brake = modeHandler.axes(4);
                 modeHandler.leftPaddle = modeHandler.buttons(6);
                 modeHandler.rightPaddle = modeHandler.buttons(5);
-                modeHandler.LeftLaneChangeButton = modeHandler.buttons(1);
-                modeHandler.RightLaneChangeButton = modeHandler.buttons(2);
+                modeHandler.LeftLaneChangeButton = modeHandler.buttons(12);
+                modeHandler.RightLaneChangeButton = modeHandler.buttons(11);
             else
                 modeHandler.steering = modeHandler.axes(1);
                 modeHandler.throttle = modeHandler.axes(3);
                 modeHandler.brake = modeHandler.axes(6);
                 modeHandler.leftPaddle = modeHandler.buttons(5);
                 modeHandler.rightPaddle = modeHandler.buttons(6);
+                modeHandler.LeftLaneChangeButton = 0;
+                modeHandler.RightLaneChangeButton = 0;
             end
 
             % ID's for the speed profiles in choose_trims.m

@@ -55,6 +55,8 @@ else
     vehicle_ids = [varargin{:}];
     options.amount = numel(vehicle_ids);
     options.isPB = true;
+    manualVehicle_id = 0;
+    manualVehicle_id2 = 0;
 
     if options.is_mixed_traffic
 
@@ -87,8 +89,6 @@ else
             options.priority = 'mixed_traffic_priority';
         end
     else
-        manualVehicle_id = 0;
-        manualVehicle_id2 = 0;
         options.firstManualVehicleMode = 0;
         options.secondManualVehicleMode = 0;
         options.collisionAvoidanceMode = 0;

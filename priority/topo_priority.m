@@ -26,7 +26,7 @@ classdef  topo_priority < interface_priority
             % Assign prrority according to computation level
             % Vehicles with higher priorities plan trajectory before vehicles
             % with lower priorities            
-            priority_list = obj.get_priority(groups,obj.is_assign_unique_priority);
+            priority_list = obj.get_priority(groups);
 
             coupling_undirected = scenario.adjacency(:,:,end);
             % determine directed adjacency
