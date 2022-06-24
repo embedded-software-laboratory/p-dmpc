@@ -1,5 +1,5 @@
-function scenario_v = consider_vehs_without_ROW(scenario_v, iter, all_coupling_vehs_without_ROW)
-% CONSIDER_VEHS_WITHOUT_ROW Stategies to let vehicle with the right-of-way
+function scenario_v = consider_vehs_with_LP(scenario_v, iter, all_coupling_vehs_without_ROW)
+% CONSIDER_VEHS_WITH_LP Stategies to let vehicle with the right-of-way
 % consider vehicle without the right-of-way 
 % '0': do not consider 
 % '1': consider currently occupied area as static obstacle

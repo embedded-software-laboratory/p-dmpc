@@ -3,6 +3,9 @@ This file is used to record the update events.
 Format: date, author.
 
 Example: 2022-06-19, Jianye
+# 2022-06-23, David and Jianye
+- Created two functions `priority_assignment` and `priority_assignment_parl` to assign priorities for different strategies.
+- Adapted `pb_controller_parl` for different priority assignment strategies
 
 # 2022-06-23, Jianye
 - Add more elements to ui

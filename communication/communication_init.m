@@ -36,7 +36,7 @@ function scenario = communication_init(scenario, exp)
     for iVeh = 1:nVeh
         scenario.vehicles(iVeh).communicate = Communication(); % create instance of the Comunication class
         scenario.vehicles(iVeh).communicate = initialize_communication(scenario.vehicles(iVeh).communicate, scenario.vehicles(iVeh).ID); % initialize
-        scenario.vehicles(iVeh).communicate = create_publisher(scenario.vehicles(iVeh).communicate, scenario); % create publisher
+        scenario.vehicles(iVeh).communicate = create_publisher(scenario.vehicles(iVeh).communicate); % create publisher
     end
     
     % Create subscribers.

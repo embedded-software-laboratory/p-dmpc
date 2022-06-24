@@ -50,6 +50,8 @@ function plotOnline(result,step_idx,tick_now,exploration,exp)
             exp.visu.colorbar.Visible = 'on';
         end
         clim([1 n_colors]) % define range of colorbar
+%         caxis([0 20]);
+        
         exp.visu.colorbar.Ticks = 1:n_colors; % only show integer ticks
     else
         if ~isempty(exp.visu.colorbar)

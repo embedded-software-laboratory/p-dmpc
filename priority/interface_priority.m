@@ -9,8 +9,8 @@ classdef (Abstract) interface_priority < handle
     methods (Abstract) 
         priority(obj)
     end
-    methods (Static)
-        function priority_list = get_priority(CL_based_hierarchy,is_assign_unique_priority)
+    methods
+        function priority_list = get_priority(obj,CL_based_hierarchy)
             % Assign priorities to vehicles based on their computation levels
             % 
             % INPUT:
@@ -27,7 +27,7 @@ classdef (Abstract) interface_priority < handle
             nVeh = length([CL_based_hierarchy.members]);
             priority_list = zeros(1,nVeh);
             
-            if is_assign_unique_priority
+            if obj.is_assign_unique_priority
                 % each vehicle has unique priority
                 prio = 1;
                 for level_i = 1:length(CL_based_hierarchy)

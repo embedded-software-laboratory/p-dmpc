@@ -4,7 +4,7 @@ classdef  mixed_traffic_priority < interface_priority
 % first manual vehicle gets highest priority, second manual vehicle second highest priority
     
     properties (Access=private)
-
+        scenario
         
     end
     
@@ -13,7 +13,7 @@ classdef  mixed_traffic_priority < interface_priority
             obj.scenario = scenario;
         end
         
-        function [groups, directed_adjacency] = priority(obj)
+        function [groups, directed_adjacency, prios] = priority(obj)
             groups = struct;
             nVeh = length(obj.scenario.vehicles);
             directed_adjacency = zeros(nVeh,nVeh);
