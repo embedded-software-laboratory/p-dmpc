@@ -10,10 +10,18 @@ source /opt/ros/eloquent/setup.bash
 
 if [ $controller_amount -eq 1 ]; then
     # only launch steering wheel
-    ros2 launch single_controller_launch.xml &
+    if [ $force_feedback_enabled -eq 1 ]; then
+        ros2 launch single_controller_launch.xml &
+    else
+        ros2 launch single_controller_launch.xml
+    fi
 else
     # launch steering wheel and gamepad
-    ros2 launch dual_controller_launch.xml &
+    if [ $force_feedback_enabled -eq 1 ]; then
+        ros2 launch dual_controller_launch.xml &
+    else
+        ros2 launch dual_controller_launch.xml
+    fi
 fi
 
 if [ $force_feedback_enabled -eq 1 ]; then
