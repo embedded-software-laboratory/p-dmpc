@@ -9,14 +9,14 @@ function expert_mode(manual_vehicle_id)
     addpath(common_cpm_functions_path);
 
     matlabDomainId = 1;
-    [~,reader_vehicleStateList,~, ~, ~,writer_readyStatus,~,writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
+    [matlabParticipant,reader_vehicleStateList,~,~,reader_systemTrigger,writer_readyStatus,trigger_stop,writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
 
     % Set reader properties
     reader_vehicleStateList.WaitSet = true;
     reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
     % Middleware period for valid_after stamp
-    dt_period_nanos = uint64(200*1e9);
+    dt_period_nanos = uint64(0.2*1e9);
     
     ready_msg = ReadyStatus;
     ready_msg.source_id = strcat('hlc_', num2str(1));
@@ -29,6 +29,8 @@ function expert_mode(manual_vehicle_id)
     wheelNode = ros2node("/wheel");
     wheelSub = ros2subscriber(wheelNode,"/j0","sensor_msgs/Joy");
     pause(0.2);
+    
+    %[sample,~,~,~] = reader_vehicleStateList.take();
 
     while(true)
 
@@ -61,15 +63,13 @@ function expert_mode(manual_vehicle_id)
         end
         %}
     
-        [sample,~,~,~] = reader_vehicleStateList.take();
-
-        dt_max_comm_delay = uint64(100e6);
-        if dt_period_nanos >= dt_max_comm_delay
-            dt_valid_after = obj.dt_period_nanos;
-        else
-            dt_valid_after = dt_max_comm_delay;
-        end
-
+        %[sample,~,~,~] = reader_vehicleStateList.take();
+        timestamp = uint64(wheel_message.header.stamp.sec);
+        timestamp_string = num2str(timestamp);
+        timestamp_string = strcat(timestamp_string,'000000001');
+        timestamp = uint64(str2num(timestamp_string));
+        %timestamp = uint64(bitshift(timestamp, 9));
+    
         vehicle_command_direct = VehicleCommandDirect;
         vehicle_command_direct.vehicle_id = uint8(manual_vehicle_id);
 
@@ -96,14 +96,14 @@ function expert_mode(manual_vehicle_id)
         disp(sprintf("throttle: %f, steering: %f", throttle, wheelData.steering));
         vehicle_command_direct.motor_throttle = double(throttle);
         vehicle_command_direct.steering_servo = double(wheelData.steering);
-        %vehicle_command_direct.header.create_stamp.nanoseconds = ...
-            %uint64(timestamp);
-        %vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-            %uint64(timestamp) + uint64(dt_valid_after);
         vehicle_command_direct.header.create_stamp.nanoseconds = ...
-            uint64(sample.t_now);
+            uint64(timestamp);
         vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-            uint64(sample.t_now+dt_valid_after);
+            uint64(timestamp+dt_period_nanos);
+        %vehicle_command_direct.header.create_stamp.nanoseconds = ...
+            %uint64(sample(end).t_now);
+        %vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
+            %uint64(sample(end).t_now+dt_period_nanos);
         writer_vehicleCommandDirect.write(vehicle_command_direct);
     end
     
