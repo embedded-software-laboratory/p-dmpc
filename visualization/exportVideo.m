@@ -17,9 +17,16 @@ fig = figure('Visible','Off'...
 
 [target_folder,vid_name,~] = fileparts(result.output_path);
 
+visu = struct( ...
+    'isShowVehID',true, ...
+    'isShowPriority',true, ...
+    'isShowCoupling',true, ...
+    'isShowWeight',false);
+
 test_mode = false;
 if test_mode
-    plotOnline(result,1,1,[]); %#ok<UNRCH>
+    exp.k = 1;
+    plotOnline(result,1,1,[],visu); %#ok<UNRCH>
     set_figure_properties(fig,'video');
     frame = getframe(fig);
     imwrite(frame,['output\video_', vid_name, '.png']);
@@ -38,7 +45,7 @@ wb = waitbar(0, 'Exporting video ...','Name','Video Export Progress');
 for step_idx = 1:nSteps
     for frame_idx = frame_ticks
         clf
-        plotOnline(result,step_idx,frame_idx,[]);
+        plotOnline(result,step_idx,frame_idx,[],visu);
         set_figure_properties(fig,'video');
         frame = getframe(fig);
         writeVideo(v,frame);
