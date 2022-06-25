@@ -144,9 +144,13 @@ classdef TrafficInfo
                     [lanelet_type,collision_type,is_continue,lanelet_relationship,is_find_lanelet_relationship] = ...
                         obj.get_collision_and_lanelet_type(veh_info_i,veh_info_j,is_last_lan_pair,scenario.lanelet_relationships,overlap_reachable_sets, scenario.options.is_mixed_traffic);
     
-                    if predicted_lanelets_i(2) == predicted_lanelets_j(1) || predicted_lanelets_i(1) == predicted_lanelets_j(2)
-                        disp('')
+                    % vehicle in Expert-Mode has only a single predicted lanelet
+                    if length(predicted_lanelets_i) > 1 && length(predicted_lanelets_j) > 1
+                        if predicted_lanelets_i(2) == predicted_lanelets_j(1) || predicted_lanelets_i(1) == predicted_lanelets_j(2)
+                            disp('')
+                        end
                     end
+
                     if is_continue
                         continue
                     end

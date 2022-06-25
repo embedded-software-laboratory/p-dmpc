@@ -44,7 +44,8 @@ function P = InterX(L1, L2, isReturnPoints)
        
 %     [L1, L2, isReturnPoints] = parse_inputs(L1, L2, varargin{:});
 
-    if isempty(L1) || isempty(L2)
+%   ~ismember(0, isnan(L2)) to return directly if all boundaries are NaN
+    if isempty(L1) || isempty(L2) || ~ismember(0, isnan(L2))
         % no collision if empty input
         P = false;
         return

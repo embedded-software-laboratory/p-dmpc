@@ -128,7 +128,7 @@ classdef CPMLab < InterfaceExperiment
 
             % initialize ROS network to set rosrate
             if obj.scenario.options.firstManualVehicleMode == 2 || obj.scenario.options.secondManualVehicleMode == 2
-                rosinit;
+                %rosinit;
             end
             
             % This command has first to be executed in terminal:
@@ -146,8 +146,8 @@ classdef CPMLab < InterfaceExperiment
                         obj.g29_last_position = 0.0;
                     end
                 elseif obj.scenario.options.firstManualVehicleMode == 2
-                    obj.wheelNode = ros2node("/wheel");
-                    obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@obj.steeringWheelCallback);
+                    %obj.wheelNode = ros2node("/wheel");
+                    %obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@obj.steeringWheelCallback);
                 end
             end
 
@@ -250,7 +250,7 @@ classdef CPMLab < InterfaceExperiment
                 uint64(obj.sample.t_now);
             vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
                 uint64(obj.sample.t_now+dt_valid_after);
-            obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
+            %obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
         end
 
         function WriteAsyncFcn(obj, msg)
@@ -301,7 +301,7 @@ classdef CPMLab < InterfaceExperiment
                 x0(:,4) = [obj.sample(end).state_list.speed];
                 [ ~, trim_indices ] = obj.measure_node();
             else
-                [ x0, trim_indices ] = obj.measure_node();
+                [ x0, trim_indices ] = obj.measure_node(obj.reader_vehicleStateList);
             end
         end
         

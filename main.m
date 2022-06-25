@@ -78,13 +78,10 @@ else
         if options.collisionAvoidanceMode == 1
             options.isParl = false;
             options.priority = 'mixed_traffic_priority';
-            %options.priority = 'topo_priority';
         elseif options.collisionAvoidanceMode == 2 
             options.isParl = true;
-            %options.priority = 'mixed_traffic_priority';
             options.priority = 'right_of_way_priority';
         else
-            % Not implemented yet
             options.isParl = true;
             options.priority = 'mixed_traffic_priority';
         end
@@ -158,7 +155,7 @@ info_old = []; % old information for fallback
 total_fallback_times = 0; % total times of fallbacks
 
 if scenario.options.firstManualVehicleMode == 2 || scenario.options.secondManualVehicleMode == 2
-    r = rosrate(100000);
+    %r = rosrate(100000);
 end
 
 %% Main control loop
@@ -172,7 +169,12 @@ while (~got_stop)
     % Measurement
     % -------------------------------------------------------------------------
     [x0_measured, trims_measured] = exp.measure(controller_init);% trims_measured： which trim  
-    controller_init = true;
+
+    % if a vehicle drives in Expert-Mode, the real poses are always needed
+    if ~(scenario.options.is_mixed_traffic && (scenario.options.firstManualVehicleMode == 2 || scenario.options.secondManualVehicleMode == 2))
+        controller_init = true;
+    end
+
     scenario.k = k;
 
     %disp(['>>> Time step ' num2str(scenario.k) ''])
@@ -217,7 +219,7 @@ while (~got_stop)
                     input.steeringWheel = true;
                     input.vehicle_id = scenario.manual_vehicle_id;
 
-                    waitfor(r);
+                    %waitfor(r);
     
                     %parfeval(@ExpertMode, 0, input);
                     %parfeval(scenario.pool, handle(input), 0);

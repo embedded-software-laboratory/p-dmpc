@@ -24,7 +24,7 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
     reachable_sets = cell(1, Hp);
 
     % if vehicle has predicted the lanelet boundary, the reachable sets would be the intersection of the full reachable sets and the lanelet boundary 
-    if ~isempty(predicted_lanelet_boundary)
+    if ~isempty(predicted_lanelet_boundary{1})
         boundary_x = [predicted_lanelet_boundary{1}(1,:), predicted_lanelet_boundary{2}(1,end:-1:1)];
         boundary_y = [predicted_lanelet_boundary{1}(2,:), predicted_lanelet_boundary{2}(2,end:-1:1)];
         poly_boundary = polyshape(boundary_x, boundary_y, 'Simplify', false);
@@ -42,7 +42,7 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
 %         ploy_reachable_sets = translate(local_reachable_sets_rotated,[x0,y0]);
 
         % constrain the reachable sets by lanelet boundary
-        if ~isempty(predicted_lanelet_boundary)
+        if ~isempty(predicted_lanelet_boundary{1})
             % The fourth cell in predicted_lanelet_boundary is the narrowed boundary while the third cell is the original boundary 
             % Without narrowing, two lanelets are considered as overlap if they only share the same boundary
             ploy_reachable_sets = intersect(ploy_reachable_sets, poly_boundary);

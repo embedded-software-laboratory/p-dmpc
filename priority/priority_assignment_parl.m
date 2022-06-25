@@ -24,6 +24,7 @@ function [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_ass
             obj = mixed_traffic_priority(scenario);
             [CL_based_hierarchy, directed_adjacency] = obj.priority();
             vehs_at_intersection = [];
+            lanelet_intersecting_areas = [];
     end
 
     if strcmp(scenario.priority_option,'right_of_way_priority') || strcmp(scenario.priority_option,'mixed_traffic_priority')
@@ -38,12 +39,32 @@ function [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_ass
             % Ignore coupling edge if not allowed to enter the intersecting area because no collision is possible anymore
             [coupling_weights,lanelet_intersecting_areas,coupling_info] = ...
                 strategy_enter_intersecting_area(iter,coupling_info,coupling_weights,scenario.strategy_enter_intersecting_area,scenario.nVeh);
-        end
 
-        % [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info);
+            % [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info);
 
-        % form parallel CL_based_hierarchy
-        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
+            % form parallel CL_based_hierarchy
+            [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
+        else
+            indexVehicleExpertMode = 0;
+            for j = 1:scenario.nVeh
+                if ((scenario.vehicle_ids(j) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+                    || (scenario.vehicle_ids(j) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+                    indexVehicleExpertMode = j;
+                end
+            end
+
+            % [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info);
+            coupling_weights_copy = coupling_weights;
+            
+            % set coupling for group forming to 0 to ensure that only the vehicle in Expert-Mode is in the highest group
+            for i = 1:length(coupling_weights_copy)
+                if coupling_weights_copy(indexVehicleExpertMode, i) ~= 0
+                    coupling_weights_copy(indexVehicleExpertMode, i) = 0;
+                end
+            end
+
+            [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_copy, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
+        end       
 
         % Assign prrority according to computation level
         % Vehicles with higher priorities plan trajectory before vehicles

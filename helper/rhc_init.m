@@ -17,6 +17,14 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
                         [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false);
                     else
+                        % Communicate predicted trims, predicted lanelets and areas to other vehicles
+                        predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
+
+                        % use index, as vehicle in Expert-Mode has no defined trajectory
+                        predicted_lanelets = index;
+
+                        predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+                        scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
                         continue
                     end     
                 elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
@@ -24,6 +32,14 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
                         [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false);
                     else
+                        % Communicate predicted trims, predicted lanelets and areas to other vehicles
+                        predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
+
+                        % use index, as vehicle in Expert-Mode has no defined trajectory
+                        predicted_lanelets = index;
+
+                        predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+                        scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
                         continue
                     end      
                 else
@@ -163,97 +179,110 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0);
 %             iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,iter.trim_indices(iVeh));
 
-        % reference speed and path points
-        iter.vRef(iVeh,:) = v_ref;
-        
-        % equidistant points on the reference trajectory.
-        iter.referenceTrajectoryPoints(iVeh,:,:) = reference.ReferencePoints;
-        iter.referenceTrajectoryIndex(iVeh,:,:) = reference.ReferenceIndex;
+        if ~((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+            || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+            % reference speed and path points
+            iter.vRef(iVeh,:) = v_ref;
+            
+            % equidistant points on the reference trajectory.
+            iter.referenceTrajectoryPoints(iVeh,:,:) = reference.ReferencePoints;
+            iter.referenceTrajectoryIndex(iVeh,:,:) = reference.ReferenceIndex;
 
-        iter_scenario.vehicles(iVeh).last_trajectory_index = reference.ReferenceIndex(end);
+            iter_scenario.vehicles(iVeh).last_trajectory_index = reference.ReferenceIndex(end);
+        end
         
         if strcmp(scenario.name, 'Commonroad')
-            % Get the predicted lanelets of other vehicles
-            if scenario.options.isParl && ~scenario.vehicles(iVeh).autoUpdatedPath
-                % from received messages if parallel computation is used 
-                predicted_lanelets= latest_msg_i.predicted_lanelets(:)'; % make row vector
-            end
 
-            % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
-            if scenario.vehicles(iVeh).lanes_before_update ~= zeros(1,2)
-                for i = 1:length(scenario.vehicles(iVeh).lanes_before_update)
-                    if ~ismember(scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets)
-                        predicted_lanelets = [scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets];
-                    end
+            % Vehicle in Expert-Mode does not consider boundaries
+            if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+                || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+
+                iter.predicted_lanelets{iVeh} = predicted_lanelets;
+                iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
+                predicted_lanelet_boundary = cell(nVeh, 3);
+            else
+                % Get the predicted lanelets of other vehicles
+                if scenario.options.isParl && ~scenario.vehicles(iVeh).autoUpdatedPath
+                    % from received messages if parallel computation is used 
+                    predicted_lanelets= latest_msg_i.predicted_lanelets(:)'; % make row vector
                 end
-            end
 
-            % if there is a lane change in the random path, add the boundary of the lane before the change as the vehicle might be still on the lane before change
-            if ~scenario.options.is_sim_lab && scenario.manual_vehicle_id ~= scenario.vehicle_ids(iVeh) && scenario.second_manual_vehicle_id ~= scenario.vehicle_ids(iVeh)
-                if ~isempty(scenario.vehicles(iVeh).lane_change_lanes)
-                    scenario.vehicles(iVeh).lane_change_lanes = nonzeros(scenario.vehicles(iVeh).lane_change_lanes);
-                    for i = 1:(length(scenario.vehicles(iVeh).lane_change_lanes)/2)
-                        beforeLaneChange = scenario.vehicles(iVeh).lanelets_index(scenario.vehicles(iVeh).lane_change_lanes(i));
-                        laneChange = scenario.vehicles(iVeh).lanelets_index(scenario.vehicles(iVeh).lane_change_lanes(i+(length(scenario.vehicles(iVeh).lane_change_lanes))/2));
-                        if ~ismember(beforeLaneChange, predicted_lanelets) && ismember(laneChange, predicted_lanelets)
-                            predicted_lanelets = [beforeLaneChange, predicted_lanelets];
+                % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
+                if scenario.vehicles(iVeh).lanes_before_update ~= zeros(1,2)
+                    for i = 1:length(scenario.vehicles(iVeh).lanes_before_update)
+                        if ~ismember(scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets)
+                            predicted_lanelets = [scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets];
                         end
                     end
                 end
-            end
 
-            iter.predicted_lanelets{iVeh} = predicted_lanelets;
-            iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
+                % if there is a lane change in the random path, add the boundary of the lane before the change as the vehicle might be still on the lane before change
+                if ~scenario.options.is_sim_lab && scenario.manual_vehicle_id ~= scenario.vehicle_ids(iVeh) && scenario.second_manual_vehicle_id ~= scenario.vehicle_ids(iVeh)
+                    if ~isempty(scenario.vehicles(iVeh).lane_change_lanes)
+                        scenario.vehicles(iVeh).lane_change_lanes = nonzeros(scenario.vehicles(iVeh).lane_change_lanes);
+                        for i = 1:(length(scenario.vehicles(iVeh).lane_change_lanes)/2)
+                            beforeLaneChange = scenario.vehicles(iVeh).lanelets_index(scenario.vehicles(iVeh).lane_change_lanes(i));
+                            laneChange = scenario.vehicles(iVeh).lanelets_index(scenario.vehicles(iVeh).lane_change_lanes(i+(length(scenario.vehicles(iVeh).lane_change_lanes))/2));
+                            if ~ismember(beforeLaneChange, predicted_lanelets) && ismember(laneChange, predicted_lanelets)
+                                predicted_lanelets = [beforeLaneChange, predicted_lanelets];
+                            end
+                        end
+                    end
+                end
+
+                iter.predicted_lanelets{iVeh} = predicted_lanelets;
+                iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
+                
+                if visualize_trajectory_index_lab
+                    % visualize trajectory index
+                    visualization_point = 0;
+                    for i = 1:length(iter.referenceTrajectoryPoints(iVeh,:,:))
+                        point.x = iter.referenceTrajectoryPoints(iVeh,i,1);
+                        point.y = iter.referenceTrajectoryPoints(iVeh,i,2);
+                        visualization_point = point;
+
+                        color = Color;
+                        color.r = uint8(240);
+                        color.g = uint8(230);
+                        color.b = uint8(26);
+
+                        [visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
+                        exp.visualize(visualization_command);
+                    end
+                end
+
             
-            if visualize_trajectory_index_lab
-                % visualize trajectory index
-                visualization_point = 0;
-                for i = 1:length(iter.referenceTrajectoryPoints(iVeh,:,:))
-                    point.x = iter.referenceTrajectoryPoints(iVeh,i,1);
-                    point.y = iter.referenceTrajectoryPoints(iVeh,i,2);
-                    visualization_point = point;
+                % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
+                predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.options.is_sim_lab);
+                iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
 
-                    color = Color;
-                    color.r = uint8(240);
-                    color.g = uint8(230);
-                    color.b = uint8(26);
+                if visualize_boundaries_lab
+                    % visualize boundaries
+                    for i = 1:length(predicted_lanelet_boundary{1,1})
+                        left_boundary = predicted_lanelet_boundary{1,1};
+                        leftPoint.x = left_boundary(1,i);
+                        leftPoint.y = left_boundary(2,i);
+                        visualization_left_point = leftPoint;
+                        color = Color;
+                        color.r = uint8(170);
+                        color.g = uint8(24);
+                        color.b = uint8(186);
+                        [visualization_command] = lab_visualize_point(scenario, visualization_left_point, iVeh, color);
+                        exp.visualize(visualization_command);
+                    end
 
-                    [visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
-                    exp.visualize(visualization_command);
-                end
-            end
-
-        
-            % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
-            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.options.is_sim_lab);
-            iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
-
-            if visualize_boundaries_lab
-                % visualize boundaries
-                for i = 1:length(predicted_lanelet_boundary{1,1})
-                    left_boundary = predicted_lanelet_boundary{1,1};
-                    leftPoint.x = left_boundary(1,i);
-                    leftPoint.y = left_boundary(2,i);
-                    visualization_left_point = leftPoint;
-                    color = Color;
-                    color.r = uint8(170);
-                    color.g = uint8(24);
-                    color.b = uint8(186);
-                    [visualization_command] = lab_visualize_point(scenario, visualization_left_point, iVeh, color);
-                    exp.visualize(visualization_command);
-                end
-
-                for i = 1:length(predicted_lanelet_boundary{1,2})
-                    right_boundary = predicted_lanelet_boundary{1,2};
-                    rightPoint.x = right_boundary(1,i);
-                    rightPoint.y = right_boundary(2,i);
-                    visualization_right_point = rightPoint;
-                    color = Color;
-                    color.r = uint8(232);
-                    color.g = uint8(111);
-                    color.b = uint8(30);
-                    [visualization_command] = lab_visualize_point(scenario, visualization_right_point, iVeh, color);
-                    exp.visualize(visualization_command);
+                    for i = 1:length(predicted_lanelet_boundary{1,2})
+                        right_boundary = predicted_lanelet_boundary{1,2};
+                        rightPoint.x = right_boundary(1,i);
+                        rightPoint.y = right_boundary(2,i);
+                        visualization_right_point = rightPoint;
+                        color = Color;
+                        color.r = uint8(232);
+                        color.g = uint8(111);
+                        color.b = uint8(30);
+                        [visualization_command] = lab_visualize_point(scenario, visualization_right_point, iVeh, color);
+                        exp.visualize(visualization_command);
+                    end
                 end
             end
     
