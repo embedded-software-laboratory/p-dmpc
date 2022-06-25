@@ -68,19 +68,21 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, va
         % constraint on which path must not be cut
         must_in_same_subset = {}; % cell
 
-        % do not separate vehicles driving in parallel
-        for i_parl = 1:size(vehs_drive_parallel,1)
-            vehs_parl = vehs_drive_parallel(i_parl,:);
-            [~,vehs_parl_local] = ismember(vehs_parl,vertices_longest_graph);
-            if nnz(vehs_parl_local)==2
-                % if both two vehicles driving in parallel are in the
-                % selected subgraph
-                if ~any(ismember(vehs_parl_local,[must_in_same_subset{:}]))
-                    % not allow add repeated vehicles
-                    must_in_same_subset(end+1) = {vehs_parl_local};
-                    disp(['Vehicle ' num2str(vehs_parl(1)) ' and ' num2str(vehs_parl(2)) ' must plan trajectories in sequence because they drive in parallel.'])
-                else
-                    warning('More than two vehicles are driving in parallel!')
+        if max_num_CLs >= 2
+            % do not separate vehicles driving in parallel
+            for i_parl = 1:size(vehs_drive_parallel,1)
+                vehs_parl = vehs_drive_parallel(i_parl,:);
+                [~,vehs_parl_local] = ismember(vehs_parl,vertices_longest_graph);
+                if nnz(vehs_parl_local)==2
+                    % if both two vehicles driving in parallel are in the
+                    % selected subgraph
+                    if ~any(ismember(vehs_parl_local,[must_in_same_subset{:}]))
+                        % not allow add repeated vehicles
+                        must_in_same_subset(end+1) = {vehs_parl_local};
+                        disp(['Vehicle ' num2str(vehs_parl(1)) ' and ' num2str(vehs_parl(2)) ' must plan trajectories in sequence because they drive in parallel.'])
+                    else
+                        warning('More than two vehicles are driving in parallel!')
+                    end
                 end
             end
         end
