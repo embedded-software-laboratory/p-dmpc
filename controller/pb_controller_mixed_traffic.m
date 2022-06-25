@@ -217,15 +217,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 x0 = states_current(indices().x);
                 y0 = states_current(indices().y);
 
-                if (scenario.manual_vehicle_id == scenario.vehicle_ids(vehicle_idx) && scenario.manual_mpa_initialized)
-                    mpa = scenario.vehicles(vehicle_idx).vehicle_mpa;
-                elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(vehicle_idx) && scenario.second_manual_mpa_initialized)
-                    mpa = scenario.vehicles(vehicle_idx).vehicle_mpa;
-                else
-                    mpa = scenario.mpa;
-                end
-
-                [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_idx), trim_current, x0, y0, mpa, scenario.dt, scenario.name, scenario.options.isParl, scenario.vehicles(vehicle_idx).autoUpdatedPath, scenario.vehicles(vehicle_idx).last_trajectory_index);
+                [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, vehicle_idx, trim_current, x0, y0);
                 predicted_areas = info.shapes(vehicle_idx,:);
 
                 % send message

@@ -1,4 +1,4 @@
-function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize, autoUpdatedPath, isParl, lastTrajectoryIndex )
+function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize, autoUpdatedPath, isParl, lastTrajectoryIndex, is_mixed_traffic)
 % SAMPLEREFERENCETRAJETORY  Computes equidistant points along a piecewise linear curve. The first
 % point is the point on the curve closest to the given point
 % (vehicle_x,vehicle_y). All following points are on the curve with a
@@ -19,7 +19,7 @@ function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, ve
     [~, ~, x, y, TrajectoryIndex ] = getShortestDistance(referenceTrajectory(:,1),referenceTrajectory(:,2),vehicle_x,vehicle_y);
 
     % lanelet has at most 12 points, an index higher than 12 points compared to last index means we skipped a lane
-    if TrajectoryIndex > (lastTrajectoryIndex + 12)
+    if is_mixed_traffic && (TrajectoryIndex > (lastTrajectoryIndex + 12))
         TrajectoryIndex = lastTrajectoryIndex + 1;
     end
     

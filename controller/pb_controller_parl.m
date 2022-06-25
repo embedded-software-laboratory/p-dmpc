@@ -141,14 +141,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             x0 = states_current(indices().x);
             y0 = states_current(indices().y);
 
-            if ((scenario.vehicle_ids(vehicle_k) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-                || ((scenario.vehicle_ids(vehicle_k) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
-                mpa = scenario.vehicles(vehicle_k).vehicle_mpa;
-            else
-                mpa = scenario.mpa;
-            end
-
-            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_k), trim_current, x0, y0, mpa, scenario.dt, scenario.options.isParl, scenario.name, scenario.vehicles(vehicle_k).autoUpdatedPath, scenario.vehicles(vehicle_k).last_trajectory_index);
+            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, vehicle_k, trim_current, x0, y0);
             predicted_areas_k = info.shapes(vehicle_k,:);
 
             % send message

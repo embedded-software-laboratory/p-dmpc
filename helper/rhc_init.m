@@ -53,7 +53,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                     x0 = x_measured(iVeh,idx.x); % vehicle position x
                     y0 = x_measured(iVeh,idx.y); % vehicle position y
 
-                    predicted_lanelets = get_predicted_lanelets(scenario.vehicles(iVeh),predicted_trims(1),x0,y0,scenario.mpa,scenario.dt, scenario.options.isParl, scenario.name, scenario.vehicles(iVeh).autoUpdatedPath, scenario.vehicles(iVeh).last_trajectory_index);
+                    predicted_lanelets = get_predicted_lanelets(scenario,iVeh,predicted_trims(1),x0,y0);
 
                     predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
                     scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
@@ -160,16 +160,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
 
         % Get the predicted lanelets of other vehicles
         % Byproducts: reference path and reference speed profile
-        if (scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.manual_mpa_initialized)
-            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.vehicles(iVeh).vehicle_mpa, scenario.dt, scenario.options.isParl, scenario.name, scenario.vehicles(iVeh).autoUpdatedPath, scenario.vehicles(iVeh).last_trajectory_index);
-%             iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
-        elseif (scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh) && scenario.second_manual_mpa_initialized)
-            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.vehicles(iVeh).vehicle_mpa, scenario.dt, scenario.options.isParl, scenario.name, scenario.vehicles(iVeh).autoUpdatedPath, scenario.vehicles(iVeh).last_trajectory_index);
-%             iter.vRef(iVeh,:) = get_max_speed(scenario.vehicles(iVeh).vehicle_mpa,iter.trim_indices(iVeh));
-        else
-            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario.vehicles(iVeh), trim_current, x0, y0, scenario.mpa, scenario.dt, scenario.options.isParl, scenario.name, scenario.vehicles(iVeh).autoUpdatedPath, scenario.vehicles(iVeh).last_trajectory_index);
+        [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0);
 %             iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,iter.trim_indices(iVeh));
-        end
 
         % reference speed and path points
         iter.vRef(iVeh,:) = v_ref;
