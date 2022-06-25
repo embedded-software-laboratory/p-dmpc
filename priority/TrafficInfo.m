@@ -142,7 +142,7 @@ classdef TrafficInfo
                     veh_info_j.lanelet_y = scenario.lanelets{pred_lan_j}(:,LaneletInfo.cy);
 
                     [lanelet_type,collision_type,is_continue,lanelet_relationship,is_find_lanelet_relationship] = ...
-                        obj.get_collision_and_lanelet_type(veh_info_i,veh_info_j,is_last_lan_pair,scenario.lanelet_relationships,overlap_reachable_sets);
+                        obj.get_collision_and_lanelet_type(veh_info_i,veh_info_j,is_last_lan_pair,scenario.lanelet_relationships,overlap_reachable_sets, scenario.options.is_mixed_traffic);
     
                     if predicted_lanelets_i(2) == predicted_lanelets_j(1) || predicted_lanelets_i(1) == predicted_lanelets_j(2)
                         disp('')
@@ -201,7 +201,7 @@ classdef TrafficInfo
                         else
                             % from a curve to calculate the arc diatance between vehicle's current position and the collision point, 
                             % which starts from the starting point of the lanelet and ends at the collision point 
-                            if lanelet_type.is_merging 
+                            if lanelet_type.is_merging || lanelet_type.is_adjacent_same
                                 % collision point of the merging lanelets is both lanelets' endpoint, thus the target curve is the whole lanelet
                                 curve_x_i = veh_info_i.lanelet_x; curve_y_i = veh_info_i.lanelet_y;
                                 curve_x_j = veh_info_j.lanelet_x; curve_y_j = veh_info_j.lanelet_y;
@@ -276,10 +276,10 @@ classdef TrafficInfo
 
 
         function [lanelet_type,collision_type,is_continue,lanelet_relationship,is_find_lanelet_relationship] = ...
-                get_collision_and_lanelet_type(obj,veh_info_i,veh_info_j,is_last_lan_pair,lanelet_relationships,overlap_reachable_sets)
+                get_collision_and_lanelet_type(obj,veh_info_i,veh_info_j,is_last_lan_pair,lanelet_relationships,overlap_reachable_sets, is_mixed_traffic)
         
             % initialize
-            lanelet_type = struct('is_same',false,'is_forking',false,'is_merging',false,'is_intersecting',false,'is_successive',false);
+            lanelet_type = struct('is_same',false,'is_adjacent_same',false,'is_forking',false,'is_merging',false,'is_intersecting',false,'is_successive',false);
             collision_type = struct('is_rear_end',false,'is_side_impact',false);
             is_continue = false;
             lanelet_relationship = struct('type',[],'point',[]); 
@@ -333,6 +333,7 @@ classdef TrafficInfo
 
             % get lanelet_type based on lanelet_relationship
             lanelet_type.is_successive = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_1);
+            lanelet_type.is_adjacent_same = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_2);
             lanelet_type.is_merging = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_3);
             lanelet_type.is_forking = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_4);
             lanelet_type.is_intersecting = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_5);
@@ -356,7 +357,7 @@ classdef TrafficInfo
             elseif lanelet_type.is_intersecting
                 % Only side-impact collision is possible at intersection lanelets
                 collision_type.is_side_impact = true;
-            elseif lanelet_type.is_merging
+            elseif lanelet_type.is_merging || (is_mixed_traffic && lanelet_type.is_adjacent_same)
                 % For two vehicles dirve at merging lanelets, both two collision types are possible:
                 % 1. Rear-end collision: if the difference between their distances to collision point is larger than a certain velue (such as 1.5*vehicleLength)
                 % 2. Side-impact collision: otherwise

@@ -148,7 +148,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
                 mpa = scenario.mpa;
             end
 
-            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_k), trim_current, x0, y0, mpa, scenario.dt, scenario.options.isParl, scenario.name, scenario.vehicles(vehicle_k).autoUpdatedPath);
+            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario.vehicles(vehicle_k), trim_current, x0, y0, mpa, scenario.dt, scenario.options.isParl, scenario.name, scenario.vehicles(vehicle_k).autoUpdatedPath, scenario.vehicles(vehicle_k).last_trajectory_index);
             predicted_areas_k = info.shapes(vehicle_k,:);
 
             % send message

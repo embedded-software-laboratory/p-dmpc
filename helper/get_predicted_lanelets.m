@@ -1,4 +1,4 @@
-function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(vehicle, trim_current, x0, y0, mpa, dt, isParl, scenario_name, autoUpdatedPath)
+function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(vehicle, trim_current, x0, y0, mpa, dt, isParl, scenario_name, autoUpdatedPath, lastTrajectoryIndex)
 % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
 % based on vehile's current states and reference path. 
 % 
@@ -35,8 +35,9 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(vehicle
         x0, ...                             % vehicle position x
         y0, ...                             % vehicle position y
         v_ref*dt, ...                       % distance traveled in one timestep
-        autoUpdatedPath, ...                  % if the path has been updated automatically
-        isParl...
+        autoUpdatedPath, ...                % if the path has been updated automatically
+        isParl, ...                         % parallel computation
+        lastTrajectoryIndex...              % last trajectory index of vehicle
     );
 
     ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
