@@ -13,7 +13,7 @@ classdef TrafficInfo
     end
 
     properties (Constant)
-        STAC_threshold = 0.6;   % vehicles are considered as very close if they can achieve a collision in less than this time
+        STAC_threshold = 0.5;   % vehicles are considered as very close if they can achieve a collision in less than this time
         sensitive_factor = 1;   % sensitive factor used to calculate the coupling weights. The bigger, the more sensitive to the STAC. Default value 1.
     end
 
@@ -121,8 +121,6 @@ classdef TrafficInfo
             veh_info_j.length = scenario.vehicles(veh_j).Length;
             predicted_lanelets_j = iter.predicted_lanelets{veh_j};
 
-            lanelet = struct('x_i',[],'y_i',[],'x_j',[],'y_j',[]);
-
             for pred_lan_i = predicted_lanelets_i                    
                 for pred_lan_j = predicted_lanelets_j
     
@@ -144,9 +142,6 @@ classdef TrafficInfo
                     [lanelet_type,collision_type,is_continue,lanelet_relationship,is_find_lanelet_relationship] = ...
                         obj.get_collision_and_lanelet_type(veh_info_i,veh_info_j,is_last_lan_pair,scenario.lanelet_relationships,overlap_reachable_sets);
     
-                    if predicted_lanelets_i(2) == predicted_lanelets_j(1) || predicted_lanelets_i(1) == predicted_lanelets_j(2)
-                        disp('')
-                    end
                     if is_continue
                         continue
                     end
@@ -521,16 +516,17 @@ classdef TrafficInfo
                 for veh_with_ROW_j = vehs_with_ROW_j(:)'
                     j_coupling = find(all(all_coupling_pairs-[veh_with_ROW_j;iVeh]==0,1));
         
-                    % check if the coupled vehicle has side-impact collision
-                    % possibility both with the selected vehicle and the vehicle to be inherited 
-                    if strcmp(obj.coupling_info(j_coupling).collision_type, CollisionType.type_2)
-                        % side-impact collision with the selected vehicle
+                    
+                    if strcmp(obj.coupling_info(j_coupling).lanelet_relationship, LaneletRelationshipType.type_3)...
+                            || strcmp(obj.coupling_info(j_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
+                        % check if the coupled vehicle and the selected vehicle are at merging or intersecting lanelets
                         find_vehs_to_inherit = obj.coupling_weights(vehs_inherit,veh_with_ROW_j)~=0;
                         find_vehs_to_inherit = vehs_inherit(find_vehs_to_inherit);
                         for veh_to_inherit = find_vehs_to_inherit(:)'
                             k_coupling = all(all_coupling_pairs-[veh_to_inherit;veh_with_ROW_j]==0,1);
-                            if strcmp(obj.coupling_info(k_coupling).collision_type, CollisionType.type_2)
-                                % side-impact collision with the vehicle to be inherited 
+                            if strcmp(obj.coupling_info(k_coupling).lanelet_relationship, LaneletRelationshipType.type_3)...
+                                    || strcmp(obj.coupling_info(k_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
+                                % check if the coupled vehicle and the vehicle to be inherited are at merging or intersecting lanelets
                                 disp(['After inheriting right-of-way from vehicle ' num2str(veh_to_inherit) ', ' num2str(iVeh) ' now has the right-of-way over ' num2str(veh_with_ROW_j) '.'])
                                 % update coupling direction
                                 coupling_weights_adjusted(veh_with_ROW_j,iVeh) = 0;
@@ -541,8 +537,6 @@ classdef TrafficInfo
                                     swap(obj.coupling_info(j_coupling).veh_with_ROW, obj.coupling_info(j_coupling).veh_without_ROW);
                             end
                         end
-        
-                        
                     end
                 end
                 
@@ -588,8 +582,8 @@ classdef TrafficInfo
             [~,~,~,lambda_f_j,~] = Projection2D(point_f_i(1),point_f_i(2),point_r_i(1),point_r_i(2),point_f_j(1),point_f_j(2));
             [~,~,~,lambda_r_j,~] = Projection2D(point_f_i(1),point_f_i(2),point_r_i(1),point_r_i(2),point_r_j(1),point_r_j(2)); 
             % the projected point is on the target line if 0<=lambda<=1
-            if (lambda_f_i>=0 && lambda_f_i<=1) || (lambda_r_i>=0 && lambda_r_i<=1) ||...
-                    (lambda_f_j>=0 && lambda_f_j<=1) || (lambda_r_j>=0 && lambda_r_j<=1)
+            if ((lambda_f_i>=0 && lambda_f_i<=1) || (lambda_r_i>=0 && lambda_r_i<=1)) &&...
+                    ((lambda_f_j>=0 && lambda_f_j<=1) || (lambda_r_j>=0 && lambda_r_j<=1))
                 is_drive_parallel = true;
             else
                 is_drive_parallel = false;
