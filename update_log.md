@@ -3,6 +3,13 @@ This file is used to record the update events.
 Format: date, author.
 
 Example: 2022-06-19, Jianye
+
+# 2022-06-25, David
+- Added collision avoidance in Expert-Mode using reachability analysis
+- Adapted `TrafficInfo` to consider adjacent lanes in mixed traffic for coupling
+- Created startup function for mixed traffic starting a launch script
+- Added UI selection to differentiate between mixed traffic and completely autonomous traffic in CPM Lab mode
+
 # 2022-06-23, David and Jianye
 - Created two functions `priority_assignment` and `priority_assignment_parl` to assign priorities for different strategies.
 - Adapted `pb_controller_parl` for different priority assignment strategies
