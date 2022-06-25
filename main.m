@@ -121,7 +121,6 @@ if is_sim_lab
 else
     exp = CPMLab(scenario, vehicle_ids);
 end
-%scenario.pool = exp.parallelPool;
 
 %% Setup
 % Initialize
@@ -185,17 +184,10 @@ while (~got_stop)
      
     % Update the iteration data and sample reference trajectory
     [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
-    
-    if (~initialized_reference_path || scenario.updated_manual_vehicle_path || scenario.updated_second_manual_vehicle_path)
-        %exp.update();
-    end
     initialized_reference_path = true;
 
     if scenario.options.is_mixed_traffic
         if scenario.manual_vehicle_id ~= 0
-            % function that updates the steering wheel data
-            %wheelData = exp.getWheelData();
-            %wheelData = exp.get_stored_wheel_msgs();
 
             if (scenario.options.firstManualVehicleMode == 1)
                 wheelData = exp.getWheelData();
@@ -204,26 +196,6 @@ while (~got_stop)
                 scenario = modeHandler.scenario;
                 scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
                 speedProfileMPAsInitialized = true;
-                
-            elseif scenario.options.firstManualVehicleMode == 2
-                % classify steering angle into intervals and send according steering command
-                %D = parallel.pool.DataQueue;
-                %afterEach(D, @(steeringWheelCallback) ExpertMode(exp, scenario, true, scenario.manual_vehicle_id));
-                %spmd(2)
-                    %wheelData = exp.getWheelData();
-                    %input = [exp, scenario, true, scenario.manual_vehicle_id, wheelData];
-                    %handle = @ExpertMode;
-                    input = struct;
-                    input.exp = exp;
-                    input.scenario = scenario;
-                    input.steeringWheel = true;
-                    input.vehicle_id = scenario.manual_vehicle_id;
-
-                    %waitfor(r);
-    
-                    %parfeval(@ExpertMode, 0, input);
-                    %parfeval(scenario.pool, handle(input), 0);
-                %end
             end
         end
 
@@ -237,10 +209,6 @@ while (~got_stop)
                 scenario = modeHandler.scenario;
                 scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
                 speedProfileMPAsInitialized = true;
-                
-            elseif scenario.options.secondManualVehicleMode == 2
-                % classify steering angle into intervals and send according steering command
-                modeHandler = ExpertMode(exp, scenario, gamepadData, false, scenario.second_manual_vehicle_id);
             end
         end
 
@@ -356,7 +324,6 @@ while (~got_stop)
     
 end
 
-%delete(gcp('nocreate'));
 %% save results
 
 % Delete varibales used for ROS 2 since some of them cannot be saved

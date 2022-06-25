@@ -55,7 +55,6 @@ classdef Scenario
         coupling_info;                  % couling information of each coupling pair
         ros_subscribers = {};           % ROS 2 subscribers (used to read messages from other vehicles)
         max_num_CLs                     % max number of computation levels to limit the total planning time in each time step (used in the parallel computation)
-        pool;
         mixedTrafficCollisionAvoidanceMode = 0;     % mode for collision avoidance in CPM Lab Mode with manual vehicles
         priority_list = [];             % priority list of vehicles; a smaller value for a higher priority
         is_allow_non_convex = true      % whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
