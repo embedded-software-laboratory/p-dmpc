@@ -26,7 +26,9 @@ function plot_coupling_lines(M, x0, varargin)
     end
     
     nVeh = length(M);
-
+    
+    color_main = [0 0 0];
+    color_minor = [0.5 0.5 0.5];
     for v = 1:nVeh
         x = x0(v,:);
         % plot directed coupling
@@ -46,7 +48,7 @@ function plot_coupling_lines(M, x0, varargin)
                     ignored_x = x0(i_ignored,:);
                     MaxHeadSize = 0.3/norm([ignored_x(1)-x(1),ignored_x(2)-x(2)]); % to keep the arrow size 
                     % couplings that are ignored will be shown in grey solid lines
-                    quiver(x(1),x(2),ignored_x(1)-x(1),ignored_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color',[0.5,0.5,0.5],'LineStyle','-','MaxHeadSize',MaxHeadSize)
+                    quiver(x(1),x(2),ignored_x(1)-x(1),ignored_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color',color_minor,'LineStyle','-','MaxHeadSize',MaxHeadSize)
                 end
             end
         end
@@ -58,16 +60,16 @@ function plot_coupling_lines(M, x0, varargin)
             MaxHeadSize = 0.3/norm([adj_x(1)-x(1),adj_x(2)-x(2)]); % to keep the arrow size 
             if ~isempty(belonging_vector) && belonging_vector(v) ~= belonging_vector(adj_v)
                 % couplings between groups will be shown in black dashed lines.
-                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color',[0,0,0],'LineStyle',':','MaxHeadSize',MaxHeadSize)
+                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color',color_main,'LineStyle',':','MaxHeadSize',MaxHeadSize)
             else
                 % couplings inside a group will be shown in black solid lines
-                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color',[0,0,0],'LineStyle','-','MaxHeadSize',MaxHeadSize)
+                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color',color_main,'LineStyle','-','MaxHeadSize',MaxHeadSize)
             end
 
             if ShowWeights
                 % plot coupling weights
                 text((x(1)+adj_x(1))/2,(x(2)+adj_x(2))/2,...
-                    num2str(round(M(v,adj_v),2)),'FontSize', 12, 'LineWidth',1,'Color','k');
+                    num2str(round(M(v,adj_v),2)),'FontSize', 12, 'LineWidth',1,'Color',color_main);
             end
         end
     end
