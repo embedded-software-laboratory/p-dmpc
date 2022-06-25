@@ -1,4 +1,4 @@
-function expert_mode(manual_vehicle_id)
+function expert_mode(manual_vehicle_id, force_feedback_enabled)
 
     % Initialize data readers/writers...
     % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
@@ -29,6 +29,11 @@ function expert_mode(manual_vehicle_id)
     wheelNode = ros2node("/wheel");
     wheelSub = ros2subscriber(wheelNode,"/j0","sensor_msgs/Joy");
     pause(0.2);
+
+    if force_feedback_enabled
+        g29_handler = G29ForceFeedback();
+        g29_last_position = 0.0;
+    end
     
     %[sample,~,~,~] = reader_vehicleStateList.take();
 
@@ -86,7 +91,8 @@ function expert_mode(manual_vehicle_id)
             wheelData.steering = 0.4;
         end
         %}
-        wheelData.steering = 2.0 * wheelData.steering;
+
+        wheelData.steering = 1.5 * wheelData.steering;
 
         if throttle > 0.4
             throttle = 0.4;
@@ -105,6 +111,10 @@ function expert_mode(manual_vehicle_id)
         %vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
             %uint64(sample(end).t_now+dt_period_nanos);
         writer_vehicleCommandDirect.write(vehicle_command_direct);
+
+        if force_feedback_enabled
+            g29_last_position = g29_handler.g29_send_message(0.0, 0.3, g29_last_position);
+        end
     end
     
 end
