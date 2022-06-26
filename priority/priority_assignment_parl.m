@@ -132,7 +132,7 @@ function [coupling_weights,lanelet_intersecting_areas,coupling_info] = strategy_
                 %  1. side-impact collision: not allowed to enter
                 %  2. rear-end collision: allowed to enter
                 if is_rear_end_collision
-                    disp(['Vehicle ' num2str(veh_without_ROW) ' is allowed to enter the intersecting area since it has rear-end (not side-impact) collision possibility with vehicle ' num2str(veh_with_ROW) '.'])
+                    % disp(['Vehicle ' num2str(veh_without_ROW) ' is allowed to enter the intersecting area since it has rear-end (not side-impact) collision possibility with vehicle ' num2str(veh_with_ROW) '.'])
                     continue
                 elseif is_side_impact_collision
                     % ignore coupling 
