@@ -1,73 +1,20 @@
-function plotOnline(result,step_idx,tick_now,exploration,exp)
+function plotOnline(result,step_idx,tick_now,exploration,visu)
 % PLOTONLINE    Plot function used for plotting the simulation state in a specified tick
 %               during a specified time step
+% 
+% INPUT: 
+%   result: simulation results
+% 
+%   step_idx: time step
+% 
+%   tick_now: tick index
+% 
+%   visu: struct with fields: 'isShowVehID', 'isShowPriority', 'isShowCoupling' and 'isShowWeight'
+% 
 
     scenario = result.scenario;
     iter = result.iteration_structs{step_idx};
     priority_list = result.priority(:,step_idx);
-
-    % show description of hotkey
-    find_text_hotkey = findall(gcf,'Type','text','Tag','hotkey');
-    if isempty(find_text_hotkey)
-        HotkeyDesc = {'Hotkey:';
-                      'p: show/hide priority colorbar';
-                      'i: show/hide vehicle IDs';
-                      'c: show/hide coupling lines';
-                      'w: show/hide coupling weights';
-                      'space: pause/start simulation';
-                      'esc: end simulation'};
-        if strcmp(scenario.name,'Commonroad')
-            x_text_hotkey = scenario.plot_limits(1,1)- 1.5;
-            y_text_hotkey = scenario.plot_limits(2,2)- 0.5;
-        elseif strcmp(scenario.name,'Circle_scenario')
-            x_text_hotkey = scenario.plot_limits(1,1)- 2.0;
-            y_text_hotkey = scenario.plot_limits(2,2)- 0.5;
-        else
-            % to be define according to the specific scenario
-            x_text_hotkey = scenario.plot_limits(1,1)- 1.5;
-            y_text_hotkey = scenario.plot_limits(2,2)- 0.5;
-        end
-        text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
-    end
-
-    if isempty(exp.visu.colormap)
-        exp.visu.colormap = colormap("hot");
-    end
-
-    % get colors
-    n_priorities = length(unique(priority_list)); % number of different priorities
-    n_colors_min = 6; % minimum number of colors
-    n_colors = max(n_colors_min,n_priorities); 
-    sticks = round(linspace(1,size(exp.visu.colormap,1),n_colors));
-    vehColor = exp.visu.colormap(sticks,:); % evenly sample from colormap
-    
-    if exp.visu.isShowPriority
-        if isempty(exp.visu.colorbar)
-            exp.visu.colorbar = colorbar;
-            exp.visu.colorbar.Title.String = '              Priority \newline(low value for high priority)'; % todo: find way to center the first line instead of using many spaces
-            exp.visu.colorbar.Title.FontSize = 12;
-        else
-            exp.visu.colorbar.Visible = 'on';
-        end
-        clim([1 n_colors]) % define range of colorbar
-%         caxis([0 20]);
-        
-        exp.visu.colorbar.Ticks = 1:n_colors; % only show integer ticks
-    else
-        if ~isempty(exp.visu.colorbar)
-            exp.visu.colorbar.Visible = 'off';
-        end
-    end
-
-    if nargin < 3
-        tick_now = 1;
-    end
-
-    if isempty(exploration)
-        exploration.doExploration = false;
-    end
-
-
 
     nVeh = scenario.nVeh;
     nObst = size(scenario.obstacles,2);
@@ -75,7 +22,14 @@ function plotOnline(result,step_idx,tick_now,exploration,exp)
     
     set(0,'DefaultTextFontname', 'Verdana');
     set(0,'DefaultAxesFontName', 'Verdana');
-    
+
+    if nargin < 3
+        tick_now = 1;
+    end
+
+    if isempty(exploration)
+        exploration.doExploration = false;
+    end    
     
     %% Simulation state / scenario plot
 
@@ -84,30 +38,85 @@ function plotOnline(result,step_idx,tick_now,exploration,exp)
     h = findobj('LineWidth',1);
     delete(h)
     
-    hold on
-    box on
-    axis equal
-    
-    xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
-    ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
-
-    xlim(scenario.plot_limits(1,:));
-    ylim(scenario.plot_limits(2,:));
-    daspect([1 1 1])
-    
     if exploration.doExploration
         visualize_exploration(exploration,scenario);
     end
     
-    if step_idx == 1 % plot the lanelets only once at the beginning
+    if step_idx == 1 
+        % initial time step
+        hold on
+        box on
+        axis equal
+        
+        xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
+        ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
+    
+        xlim(scenario.plot_limits(1,:));
+        ylim(scenario.plot_limits(2,:));
+        daspect([1 1 1])
+
+        % plot the lanelets only once at the beginning
         if ~isempty(scenario.lanelets)
             plot_lanelets(scenario.lanelets,scenario.name);
         end
+
+        colormap("hot"); % set colormap
     end
-% plot_lanelets(scenario.lanelets);
+
+    % show description of hotkey
+    find_text_hotkey = findall(gcf,'Type','text','Tag','hotkey');
+    if isempty(find_text_hotkey)
+        HotkeyDesc = {'Hotkey:';
+                      '{\itp}: show/hide priority colorbar';
+                      '{\iti}: show/hide vehicle IDs';
+                      '{\itc}: show/hide coupling lines';
+                      '{\itw}: show/hide coupling weights';
+                      '{\itspace}: pause/start simulation';
+                      '{\itesc}: end simulation'};
+        if strcmp(scenario.name,'Commonroad')
+            x_text_hotkey = scenario.plot_limits(1,1) - 1.5;
+            y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
+        elseif strcmp(scenario.name,'Circle_scenario')
+            x_text_hotkey = scenario.plot_limits(1,1) - 2.0;
+            y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
+        else
+            % to be define according to the specific scenario
+            x_text_hotkey = scenario.plot_limits(1,1) - 1.5;
+            y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
+        end
+        text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
+    end
+
+    get_colormap = get(gcf,'Colormap');
+
+    % get colors
+    n_priorities = length(unique(priority_list)); % number of different priorities
+    n_colors_min = 6; % minimum number of colors
+    n_colors = max(n_colors_min,n_priorities); 
+    sticks = round(linspace(1,size(get_colormap,1),n_colors));
+    vehColor = get_colormap(sticks,:); % evenly sample from colormap
+    
+    find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
+    if visu.isShowPriority
+        if isempty(find_colorbar)
+            priority_colorbar = colorbar('Tag','priority_colorbar');
+            priority_colorbar.Title.String = '              Priority \newline(low value for high priority)'; % todo: find way to center the first line instead of using many spaces
+            priority_colorbar.Title.FontSize = 12;
+            priority_colorbar.Ticks = 1:n_colors; % only show integer ticks
+        else
+            find_colorbar.Visible = 'on';
+            find_colorbar.Ticks = 1:n_colors;
+        end
+
+        caxis([0 n_colors]); % define range of colorbar
+%         clim([1 n_colors]) % renamed from caxis in R2022a
+    else
+        if ~isempty(find_colorbar)
+            find_colorbar.Visible = 'off';
+        end
+    end
 
     %%
-
     % Sampled trajectory points
     for v=1:nVeh
         line(   iter.referenceTrajectoryPoints(v,:,1), ...
@@ -142,30 +151,30 @@ function plotOnline(result,step_idx,tick_now,exploration,exp)
         );
 
         % plot the priority
-        if exp.visu.isShowPriority
-            text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1,'Color','m');
-        end
-
-        % plot the vehicle index
-%         if exp.visu.isShowVehID
-%             text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 16, 'LineWidth',1,'Color','b');
+%         if visu.isShowPriority
+%             text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1,'Color','m');
 %         end
 
-        % plot the vehicle ID
-        if exp.visu.isShowVehID
-            text(x(1)+0.1,x(2)+0.1,num2str(veh.ID),'FontSize', 12, 'LineWidth',1,'Color','b');
+        % plot the vehicle index
+        if visu.isShowVehID
+            text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 16, 'LineWidth',1,'Color','b');
         end
+
+        % plot the vehicle ID
+%         if visu.isShowVehID
+%             text(x(1)+0.1,x(2)+0.1,num2str(veh.ID),'FontSize', 12, 'LineWidth',1,'Color','b');
+%         end
 %         
     end
 
     % plot scenario adjacency
-    if exp.visu.isShowCoupling
+    if visu.isShowCoupling
         x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
         if ~isempty(scenario.coupling_weights)
-            plot_coupling_lines(scenario.coupling_weights, x0, scenario.belonging_vector, scenario.coupling_info, 'ShowWeights', exp.visu.isShowWeight)
+            plot_coupling_lines(scenario.coupling_weights, x0, scenario.belonging_vector, scenario.coupling_info, 'ShowWeights', visu.isShowWeight)
         else
-            plot_coupling_lines(scenario.directed_coupling, x0, [], [], 'ShowWeights', exp.visu.isShowWeight)
+            plot_coupling_lines(scenario.directed_coupling, x0, [], [], 'ShowWeights', visu.isShowWeight)
         end
     end
 

@@ -16,7 +16,7 @@ classdef  right_of_way_priority < interface_priority
         end
 
         %% priority
-        function [veh_at_intersection,groups,edge_to_break,directed_adjacency,priority_list] = priority(obj,scenario,iter)
+        function [veh_at_intersection,groups,directed_adjacency,priority_list] = priority(obj,scenario,iter)
             % assign priorities to vehicles
             nVeh = length(scenario.vehicles);
             Hp = size(iter.referenceTrajectoryPoints,2);
@@ -115,46 +115,47 @@ classdef  right_of_way_priority < interface_priority
             % Convert the Matrix "directed_adjacency" to a directed Graph
             Graph = digraph(directed_adjacency);
             
-            %check if there is any cycles in the directed graph
-            cycles = allcycles(Graph);
-            
-            
-            % Convert directed cyclic graph to directed acyclic graph
             edge_to_break = {};
-            while ~isempty(cycles)
-                % break the cycle between vehicles which have the largest distance 
-                cyclic_vehicles = cycles{1};
-                n_cyclic_vehicles = length(cyclic_vehicles);  
-                distance = 0;
+            if ~isdag(Graph)
+                %check if there is any cycles in the directed graph
+                cycles = all_elem_cycles(Graph);
                 
-                for vehi = 1:n_cyclic_vehicles
-                    if vehi < n_cyclic_vehicles
-                        distance_i = check_distance(iter, cyclic_vehicles(vehi),cyclic_vehicles(vehi+1));
+                % Convert directed cyclic graph to directed acyclic graph
+                while ~isempty(cycles)
+                    % break the cycle between vehicles which have the largest distance 
+                    cyclic_vehicles = cycles{1};
+                    n_cyclic_vehicles = length(cyclic_vehicles);  
+                    distance = 0;
+                    
+                    for vehi = 1:n_cyclic_vehicles
+                        if vehi < n_cyclic_vehicles
+                            distance_i = check_distance(iter, cyclic_vehicles(vehi),cyclic_vehicles(vehi+1));
+                        else
+                            distance_i = check_distance(iter, cyclic_vehicles(vehi),cyclic_vehicles(1));
+                        end
+                        
+                        if distance_i > distance
+                            distance = distance_i;
+                            veh_to_break = vehi;
+                        end
+                        
+                    end
+                    
+                    if veh_to_break < n_cyclic_vehicles
+                        i = cyclic_vehicles(veh_to_break);
+                        j = cyclic_vehicles(veh_to_break + 1);
                     else
-                        distance_i = check_distance(iter, cyclic_vehicles(vehi),cyclic_vehicles(1));
+                        i = cyclic_vehicles(veh_to_break);
+                        j = cyclic_vehicles(1);
+                        
                     end
-                    
-                    if distance_i > distance
-                        distance = distance_i;
-                        veh_to_break = vehi;
-                    end
-                    
+                    edge_to_break{end+1} = [i,j];
+    
+                    directed_adjacency(i,j) = 0;
+                    % construct a new graph and check the cycles in the graph
+                    Graph = digraph(directed_adjacency);
+                    cycles = all_elem_cycles(Graph);
                 end
-                
-                if veh_to_break < n_cyclic_vehicles
-                    i = cyclic_vehicles(veh_to_break);
-                    j = cyclic_vehicles(veh_to_break + 1);
-                else
-                    i = cyclic_vehicles(veh_to_break);
-                    j = cyclic_vehicles(1);
-                    
-                end
-                edge_to_break{end+1} = [i,j];
-
-                directed_adjacency(i,j) = 0;
-                % construct a new graph and check the cycles in the graph
-                Graph = digraph(directed_adjacency);
-                cycles = allcycles(Graph);
             end
             
            % calculate computation levels using kahn algorithm(topological ordering)
@@ -178,7 +179,7 @@ classdef  right_of_way_priority < interface_priority
             % Assign prrority according to computation level
             % Vehicles with higher priorities plan trajectory before vehicles
             % with lower priorities            
-            priority_list = obj.get_priority(groups,obj.is_assign_unique_priority);
+            priority_list = obj.get_priority(groups);
         end
 
     end

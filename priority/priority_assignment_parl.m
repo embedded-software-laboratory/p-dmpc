@@ -40,7 +40,7 @@ function [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_ass
             [coupling_weights,lanelet_intersecting_areas,coupling_info] = ...
                 strategy_enter_intersecting_area(iter,coupling_info,coupling_weights,scenario.strategy_enter_intersecting_area,scenario.nVeh);
 
-            % [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info);
+        [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info,traffic_info.vehs_at_intersection);
 
             % form parallel CL_based_hierarchy
             [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
@@ -146,14 +146,14 @@ function [coupling_weights,lanelet_intersecting_areas,coupling_info] = strategy_
             if InterX(lanelet_intersecting_area, iter.emergency_braking_maneuvers{veh_without_ROW}.area_without_offset)
                 % vehicle without right-of-way has already entered
                 % the intersecting area: coupling cannot be ignored 
-                disp(['Vehicle ' num2str(veh_without_ROW) ' has already entered the intersecting area, thus the coupling with vehicle ' num2str(veh_with_ROW) ' cannot be ignored.'])
+                % disp(['Vehicle ' num2str(veh_without_ROW) ' has already entered the intersecting area, thus the coupling with vehicle ' num2str(veh_with_ROW) ' cannot be ignored.'])
                 continue
             else
                 % Vehicle without right-of-way has not entered
                 %  1. side-impact collision: not allowed to enter
                 %  2. rear-end collision: allowed to enter
                 if is_rear_end_collision
-                    disp(['Vehicle ' num2str(veh_without_ROW) ' is allowed to enter the intersecting area since it has rear-end (not side-impact) collision possibility with vehicle ' num2str(veh_with_ROW) '.'])
+                    % disp(['Vehicle ' num2str(veh_without_ROW) ' is allowed to enter the intersecting area since it has rear-end (not side-impact) collision possibility with vehicle ' num2str(veh_with_ROW) '.'])
                     continue
                 elseif is_side_impact_collision
                     % ignore coupling 
@@ -184,7 +184,8 @@ function [coupling_weights,lanelet_intersecting_areas,coupling_info] = strategy_
 end
 
 
-function [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info)
+%% local function
+function [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info,vehs_at_intersection)
     % This function break coupling circle if exist any:
     % 1. If possible, coupling edge between vehicles at the
     % intersection will not be broke
@@ -194,37 +195,39 @@ function [coupling_weights,coupling_info] = check_and_break_circle(coupling_weig
     % directed Graph
     Graph = digraph(coupling_weights);
     
-    %check if there is any cycles in the directed graph
-    [~, edges] = allcycles(Graph);
-
-    % break the coupling edge with the lowest weight until no circle exists
-    while ~isempty(edges)
-        % find the edge with lowest weight
-        edges_all = unique([edges{:}],'stable');
-        [~,edge_sorted] = sort(Graph.Edges.Weight(edges_all),'ascend');
-
-        count = 1; is_stop = false;
-        while true
-            % if possible, do not break the edge of two vehicles at the intersection
-            edge_target = edge_sorted(count);
-            vertex_start = Graph.Edges.EndNodes(edge_target,1);
-            vertex_end = Graph.Edges.EndNodes(edge_target,2);
-            if (~ismember(vertex_start,vehs_at_intersection) && ~ismember(vertex_end,vehs_at_intersection)) || is_stop
-                break
+    if ~isdag(Graph)
+        % get cycles in the directed graph
+        [~, edges] = all_elem_cycles(Graph);
+        assert(~isempty(edges))
+        % break the coupling edge with the lowest weight until no circle exists
+        while ~isempty(edges)
+            % find the edge with lowest weight
+            edges_all = unique([edges{:}],'stable');
+            [~,edge_sorted] = sort(Graph.Edges.Weight(edges_all),'ascend');
+    
+            count = 1; is_stop = false;
+            while true
+                % if possible, do not break the edge of two vehicles at the intersection
+                edge_target = edge_sorted(count);
+                vertex_start = Graph.Edges.EndNodes(edge_target,1);
+                vertex_end = Graph.Edges.EndNodes(edge_target,2);
+                if (~ismember(vertex_start,vehs_at_intersection) && ~ismember(vertex_end,vehs_at_intersection)) || is_stop
+                    break
+                end
+                count = count + 1;
+                if count > length(edge_sorted)
+                    % if not possible, break the one with lowerst weight
+                    count = 1;
+                    is_stop = true;
+                end
             end
-            count = count + 1;
-            if count > length(edge_sorted)
-                % if not possible, break the one with lowerst weight
-                count = 1;
-                is_stop = true;
-            end
+            
+            edge_to_invert{end+1} = [vertex_start,vertex_end];
+            coupling_weights(vertex_start,vertex_end) = 0; % break the coupling edge
+            
+            Graph = digraph(coupling_weights);
+            [~, edges] = all_elem_cycles(Graph);
         end
-        
-        edge_to_invert{end+1} = [vertex_start,vertex_end];
-        coupling_weights(vertex_start,vertex_end) = 0; % break the coupling edge
-        
-        Graph = digraph(coupling_weights);
-        [~, edges] = allcycles(Graph);
     end
 
     % recover the coupling edge by comparing their computation levels
@@ -257,3 +260,4 @@ function [coupling_weights,coupling_info] = check_and_break_circle(coupling_weig
     end
 
 end 
+
