@@ -3,17 +3,15 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
 % based on vehile's current states and reference path. 
 % 
 % INPUT:
-%   vehicle: instance of the class Vehicle
+%   scenario: object of the class `Scenario`
+%
+%   iVeh: index of vehicle
 % 
 %   trim_current: current trim
 % 
 %   x0: x-coordinate
 % 
 %   y0: y-coordinate
-% 
-%   mpa: calss MotionPrimitiveAutomaton
-% 
-%   dt: RHC sample time
 % 
 % OUTPUT:
 %   predicted_lanelets: a row vector contains the predicted lanelets
