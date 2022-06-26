@@ -12,6 +12,7 @@ function scenario = circle_scenario(options)
     scenario.max_num_CLs = options.max_num_CLs;
     scenario.strategy_consider_veh_without_ROW = options.strategy_consider_veh_without_ROW; % may irrelevant for circle scenario
     scenario.strategy_enter_intersecting_area = options.strategy_enter_intersecting_area; % may irrelevant for circle scenario
+    scenario.is_allow_non_convex = false;
 
     radius = 2;
     nVeh = options.amount;
@@ -72,6 +73,12 @@ function scenario = circle_scenario(options)
        scenario.controller = @(s,i) pb_controller(s,i);
 
        nVeh_mpa = 1;
+    else
+        % no coupling?
+        scenario.adjacency = zeros(nVeh,nVeh);
+        scenario.directed_coupling = zeros(nVeh,nVeh);
+        % not priority-based
+        scenario.priority_list = ones(1,nVeh);
     end
 
     recursive_feasibility = true;

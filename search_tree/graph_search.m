@@ -6,7 +6,7 @@ function info = graph_search(scenario, iter)
 % 
 
     % initialize variable to store control results
-    info = ControllResultsInfo(1,scenario.Hp,scenario.vehicles.ID);
+    info = ControllResultsInfo(scenario.nVeh, scenario.Hp, [scenario.vehicles.ID]);
 
     shapes_tmp = cell(scenario.nVeh,0);
     % Create tree with root node
