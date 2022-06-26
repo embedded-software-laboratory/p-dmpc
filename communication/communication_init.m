@@ -34,13 +34,12 @@ function scenario = communication_init(scenario, exp)
     [x0_measured, trims_measured] = exp.measure(false);
 
     start = tic; 
-    disp('Initializing ROS 2 network for communication...')
+    disp('Create publisher of ROS 2 network for communication...')
     for iVeh = 1:nVeh
         scenario.vehicles(iVeh).communicate = Communication(); % create instance of the Comunication class
         scenario.vehicles(iVeh).communicate = initialize_communication(scenario.vehicles(iVeh).communicate, scenario.vehicles(iVeh).ID); % initialize
         scenario.vehicles(iVeh).communicate = create_publisher(scenario.vehicles(iVeh).communicate); % create publisher
     end
-    disp('Publisher created.')
     
     % Create subscribers.
     % Each vehicle subscribes all other vehicles.
@@ -48,9 +47,9 @@ function scenario = communication_init(scenario, exp)
     % vehicles to let all of them subscribe others because it is
     % time-consuming to create many subscribers. 
     % The subscribers will be used by all vehicles.
+    disp('Create subscribers of ROS 2 network for communication...')
     vehs_to_be_subscribed = [scenario.vehicles.ID];
     scenario.ros_subscribers = create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
-    disp('Subscriber created.')
 
     duration = toc(start);
     disp(['Finished in ' num2str(duration) ' seconds.'])
