@@ -4,6 +4,13 @@ Format: date, author.
 
 Example: 2022-06-19, Jianye
 
+# 2022-06-26, Jianye
+- Improve visualization when simulating
+    - More hotkeys
+    - Use different colors to show vehicle priorities
+- Let centralized circle_scenario work
+- Find another alternative function called `all_elem_cycles()` for the MATLAB build-in function `allcycles()` which is only supported in at least R2021a. Since the former runs much slower than the latter, an if condition is added such that the former will only be executed if MATLAB version is lower than R2021a. 
+
 # 2022-06-25, David
 - Added collision avoidance in Expert-Mode using reachability analysis
 - Adapted `TrafficInfo` to consider adjacent lanes in mixed traffic for coupling
