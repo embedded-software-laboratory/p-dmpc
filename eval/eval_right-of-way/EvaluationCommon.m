@@ -11,6 +11,8 @@ classdef EvaluationCommon
         real_paths
         path_tracking_errors
         path_tracking_errors_MAE % mean absolute error 
+        iter_runtime_per_step % calculate reachable sets, pridicted lanelets and reference trajectory
+        subcontroller_runtime_per_step % two big parts: graph search, priority assignment 
         total_runtime_per_step
         plot_option_real_path
         plot_option_ref_path
@@ -57,7 +59,9 @@ classdef EvaluationCommon
         function obj = get_total_runtime_per_step(obj)
             % Calculate the total runtime per step
             assert( abs(length(obj.result.subcontroller_run_time_total)-length(obj.result.iter_runtime)) <= 1 )
-            obj.total_runtime_per_step = obj.result.subcontroller_run_time_total(1:obj.nSteps)' + obj.result.iter_runtime(1:obj.nSteps)';
+            obj.iter_runtime_per_step = obj.result.iter_runtime(1:obj.nSteps)';
+            obj.subcontroller_runtime_per_step = obj.result.subcontroller_run_time_total(1:obj.nSteps)';
+            obj.total_runtime_per_step = obj.iter_runtime_per_step + obj.subcontroller_runtime_per_step;
         end
 
         function visualize_path(obj)

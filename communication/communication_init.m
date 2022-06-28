@@ -65,7 +65,8 @@ function scenario = communication_init(scenario, exp)
             predicted_lanelets = get_predicted_lanelets(scenario,jVeh,predicted_trims(1),x0,y0);
 
             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-            scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
+            is_fallback = false; % whether vehicle should take fallback
+            scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback);   
         end
     end
 end

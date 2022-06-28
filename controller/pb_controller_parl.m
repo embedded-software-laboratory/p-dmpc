@@ -143,9 +143,11 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 
             [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, vehicle_k, trim_current, x0, y0);
             predicted_areas_k = info.shapes(vehicle_k,:);
+            
+            is_fallback = false;
 
             % send message
-            send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k);
+            send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, is_fallback);
             msg_send_time(vehicle_k) = toc(msg_send_tic);
         end
 
