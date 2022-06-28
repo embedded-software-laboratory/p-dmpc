@@ -14,7 +14,7 @@ function [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_ass
             vehs_at_intersection = [];
         
         case 'random_priority'  
-            [CL_based_hierarchy, directed_adjacency, priority_list, parl_groups_info] = random_priority().priority(scenario); 
+            [CL_based_hierarchy, directed_adjacency, priority_list, parl_groups_info] = random_priority().priority(scenario.options); 
             vehs_at_intersection = [];
 
         case 'FCA_priority' 
@@ -101,11 +101,18 @@ function [coupling_weights,lanelet_intersecting_areas,coupling_info] = strategy_
     predicted_lanelet_boundary = iter.predicted_lanelet_boundary(:,3);
 
     for i = 1:length([coupling_info.veh_with_ROW])
+        is_rear_end_collision = strcmp(coupling_info(i).collision_type, CollisionType.type_1);
+        % only side-impact collision should be ignore by this strategy
+        if is_rear_end_collision
+            continue
+        end
+
         veh_with_ROW = coupling_info(i).veh_with_ROW;
         veh_without_ROW = coupling_info(i).veh_without_ROW;
+
         is_at_intersection = coupling_info(i).is_at_intersection;
         is_side_impact_collision = strcmp(coupling_info(i).collision_type, CollisionType.type_2);
-        is_rear_end_collision = strcmp(coupling_info(i).collision_type, CollisionType.type_1);
+        assert(is_side_impact_collision)
         is_intersecting_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_5);
         is_merging_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_3);
 
@@ -137,47 +144,56 @@ function [coupling_weights,lanelet_intersecting_areas,coupling_info] = strategy_
                 [x_lanelet_intersecting_area, y_lanelet_intersecting_area] = boundary(lanelet_intersecting_area);
                 lanelet_intersecting_area = [x_lanelet_intersecting_area';y_lanelet_intersecting_area'];
             else
-                warning(['The intersecting area has unexpectedly multiple ' num2str(lanelet_intersecting_area.NumRegions) ' regions.'])
-                lanelet_intersecting_area = [];
+                warning(['The intersecting area of the lanelets of vehicles' num2str(veh_with_ROW) 'and ' ...
+                    num2str(veh_without_ROW) ' has unexpectedly ' num2str(lanelet_intersecting_area.NumRegions) ' regions.' newline ...
+                    'The coupling will not be ignored.'])
+                continue
+%                 lanelet_intersecting_area = [];
             end
-            
+
+%             if InterX(lanelet_intersecting_area, iter.occupied_areas{veh_without_ROW}.without_offset)
             % if vehicle without the right-of-way cannot avoid entering the
             % intersecting area (emergency breaking meneuver), the coupling is not allowed to be deleted anymore
-            if InterX(lanelet_intersecting_area, iter.emergency_braking_maneuvers{veh_without_ROW}.area_without_offset)
+            [in_i,~] = inpolygon(iter.occupied_areas{veh_without_ROW}.without_offset(1,:),iter.occupied_areas{veh_without_ROW}.without_offset(2,:),...
+                x_lanelet_intersecting_area,y_lanelet_intersecting_area);
+            if any(in_i)
                 % vehicle without right-of-way has already entered
-                % the intersecting area: coupling cannot be ignored 
-                % disp(['Vehicle ' num2str(veh_without_ROW) ' has already entered the intersecting area, thus the coupling with vehicle ' num2str(veh_with_ROW) ' cannot be ignored.'])
-                continue
+                % the intersecting area: check if vehicle with ROW has entered this area
+                [in_j,~] = inpolygon(iter.occupied_areas{veh_with_ROW}.without_offset(1,:),iter.occupied_areas{veh_with_ROW}.without_offset(2,:),...
+                    x_lanelet_intersecting_area,y_lanelet_intersecting_area);
+                    if any(in_j)
+                        % vehicle with right-of-way has also entered the intersecting area: coupling cannot be ignored
+                        disp(['Both vehicle ' num2str(veh_with_ROW) ' and ' num2str(veh_without_ROW) ' have entered the intersecting area, thus the coupling cannot be ignored.'])
+                        continue
+                    else
+                        disp(['Swap right-of-way: vehicle ' num2str(veh_without_ROW) ' now has right-of-way over ' num2str(veh_with_ROW) '.'])
+                        veh_forbid = veh_with_ROW;
+                        veh_free = veh_without_ROW;
+                    end
             else
-                % Vehicle without right-of-way has not entered
-                %  1. side-impact collision: not allowed to enter
-                %  2. rear-end collision: allowed to enter
-                if is_rear_end_collision
-                    % disp(['Vehicle ' num2str(veh_without_ROW) ' is allowed to enter the intersecting area since it has rear-end (not side-impact) collision possibility with vehicle ' num2str(veh_with_ROW) '.'])
-                    continue
-                elseif is_side_impact_collision
-                    % ignore coupling 
-%                             disp(['Coupling from vehicle ' num2str(veh_with_ROW) ' to ' num2str(veh_without_ROW) ' is ignored by forbidding the latter to enter this area.'])
-                    coupling_info(i).is_ignored = true; % ignore coupling since no collision if possible anymore
-                    coupling_weights(veh_with_ROW,veh_without_ROW) = 0;
-                    % store intersecting area for later use
-                    if ~isempty(lanelet_intersecting_area)
-                        lanelet_intersecting_areas{veh_without_ROW}(end+1) = {lanelet_intersecting_area};
-                    end
-
-                    % subtract the intersecting area from vehicle's lanelet boundary 
-                    predicted_lanelet_boundary{veh_without_ROW} = subtract(predicted_lanelet_boundary{veh_without_ROW}, iter.predicted_lanelet_boundary{veh_with_ROW,3});
-    
-                    num_regions = predicted_lanelet_boundary{veh_without_ROW}.NumRegions;
-                    if num_regions > 1
-                        % if multiple regions, only keep the one that is closest to vehicle
-                        poly_sort = sortregions(predicted_lanelet_boundary{veh_without_ROW},'centroid','descend','ReferencePoint',[iter.x0(indices().x),iter.x0(indices().y)]); 
-                        predicted_lanelet_boundary{veh_without_ROW} = rmboundary(poly_sort, 2:num_regions);
-                    end
-                else
-                    error('Unknown collision type')
-                end
+                veh_forbid = veh_without_ROW;
+                veh_free = veh_with_ROW;
             end
+
+            % ignore coupling 
+            disp(['Ignore coupling from vehicle ' num2str(veh_with_ROW) ' to ' num2str(veh_without_ROW) ' by forbidding the latter to enter the intersecting area of their lanelets.'])
+            coupling_info(i).is_ignored = true; % ignore coupling since no collision if possible anymore
+            coupling_weights(veh_with_ROW,veh_without_ROW) = 0;
+            % store intersecting area for later use
+            if ~isempty(lanelet_intersecting_area)
+                lanelet_intersecting_areas{veh_forbid}(end+1) = {lanelet_intersecting_area};
+            end
+
+            % subtract the intersecting area from vehicle's lanelet boundary 
+            predicted_lanelet_boundary{veh_forbid} = subtract(predicted_lanelet_boundary{veh_forbid}, iter.predicted_lanelet_boundary{veh_free,3});
+
+            num_regions = predicted_lanelet_boundary{veh_forbid}.NumRegions;
+            if num_regions > 1
+                % if multiple regions, only keep the one that is closest to vehicle
+                poly_sort = sortregions(predicted_lanelet_boundary{veh_forbid},'centroid','descend','ReferencePoint',[iter.x0(veh_forbid,indices().x),iter.x0(veh_forbid,indices().y)]); 
+                predicted_lanelet_boundary{veh_forbid} = rmboundary(poly_sort, 2:num_regions);
+            end
+            
         end
     end
 
