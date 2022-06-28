@@ -143,7 +143,30 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
             trim_adjacency(2:end,2:end) = trim_adjacency(2:end,2:end) ...
                 - triu(ones(ntrims-1),3)...
                 - tril(ones(ntrims-1),-4);
-
+        case 9
+            %% 12 trims: two speeds (0, 0.5 and 0.6 m/s), 12 steering
+            n_half = 5;
+            steering_max = 0.6; % rad
+            steering = linspace(-steering_max, steering_max, 2*n_half+1);
+            
+            v_step = 0.1;
+            v_max = 0.8; % m/s
+            v_profile = 0:v_step:v_max;
+            
+            speed_left = v_profile(end-n_half+1:end);
+            speed_right = fliplr(speed_left);
+            speed = [speed_left v_max speed_right];
+            ntrims = numel(steering)+1;
+            trim_inputs = [steering',speed'];
+            trim_inputs = [zeros(1,2);trim_inputs]; % add equilibrium trim
+            trim_adjacency = ones(ntrims);
+            % equilibrium is state 1
+            % equilibrium is reachable from all states
+            % and can reach all states, so all 1s is good
+            % other states are connected by one hop        
+            trim_adjacency(2:end,2:end) = trim_adjacency(2:end,2:end) ...
+                - triu(ones(ntrims-1),2)...
+                - tril(ones(ntrims-1),-2);
     end
 %     visualize_trims(trim_inputs,trim_adjacency)
 end
