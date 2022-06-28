@@ -1,4 +1,4 @@
-function [arc_distance, arc_length, x_projected, y_projected, projection_distance, curve_new] = get_arc_distance_to_endpoint(point_x, point_y, curve_x, curve_y)
+function [arc_distance, arc_length, x_projected, y_projected, projection_distance, curve_new, idx_next] = get_arc_distance_to_endpoint(point_x, point_y, curve_x, curve_y)
 % GET_ARC_DISTANCE_TO_ENDPOINT This function calculate the distance from
 % the given point to the endpoint of the given curve. This is done by
 % firstly projecting the given point to the curve and calculating the arc
@@ -17,6 +17,11 @@ function [arc_distance, arc_length, x_projected, y_projected, projection_distanc
 %   curve_y: y-coordinates of the curve
 % 
 % OUTPUT:
+%   arc_distance: sqrt(arc_length^2 +  projection_distance^2)
+% 
+%   arc_length: arc length from the projected point on the curve to the
+%   endpoint of the curve, which is also the arc length of the new curve 
+
 %   x_prjected: x-position of the projected point on the curve
 %   
 %   y_prjected: y-position of the projected point on the curve
@@ -27,10 +32,8 @@ function [arc_distance, arc_length, x_projected, y_projected, projection_distanc
 %   curve_new: a new curve with the prejected point as the starting
 %   point and all points after the prejected points on the original curve
 %   
-%   arc_length: arc length from the projected point on the curve to the
-%   endpoint of the curve, which is also the arc length of the new curve 
-%   
-%   arc_distance: sqrt(arc_length^2 +  projection_distance^2)
+%   idx_next: the index of the next point on the curve that is adjacent to
+%   the closest point on the curve to the target point
 % 
 
     n_points = length(curve_x); % number of points in the curve
@@ -58,7 +61,7 @@ function [arc_distance, arc_length, x_projected, y_projected, projection_distanc
         % delete the points before the second adjacent point since they are irrelevant to calculate the needed arc length 
         curve_shortened = curve(idx_closest,:);
     else
-        % find wether the left point or the right point of the cloestest point in the curve is closer to the given point
+        % find whether the left point or the right point of the cloestest point in the curve is closer to the given point
         [~,idx_adjacent_point_tmp] = min(squared_distances([idx_closest-1,idx_closest+1]));
         if idx_adjacent_point_tmp==1
             % adjacent left point is colser to the given point than the adjacent right point
@@ -70,6 +73,7 @@ function [arc_distance, arc_length, x_projected, y_projected, projection_distanc
             % delete the points before the second adjacent point since they are irrelevant to calculate the needed arc length 
             curve_shortened = curve(idx_closest:end,:);
         elseif idx_adjacent_point_tmp==2
+            % adjacent right point is colser to the given point than the adjacent left point
             idx_adjacent_point = idx_closest + 1;
             line_x_first = curve_x(idx_closest);
             line_y_first = curve_y(idx_closest);
@@ -85,6 +89,22 @@ function [arc_distance, arc_length, x_projected, y_projected, projection_distanc
 
     point_projected = [x_projected,y_projected];
     
+    % get the index of the next closest point
+    idx_next = idx_closest;
+    % case 1: if the projected point is on the left side of the middle
+    % point of the line segment
+    % case 2: if the projected point is on the right side of the line
+    % segment
+    % other cases: equal to the closest point
+    if (lambda >= 0 && lambda <= 0.5) || lambda >= 1
+        if idx_closest < n_points % not exceed the max index
+            idx_next = idx_closest + 1;
+        else
+            idx_next = 1; % loop back
+        end        
+    end
+
+
     % add the projected point to the shortened curve 
     if lambda<1
         % the projected point is on the or on the left side of the second point of the line segment
