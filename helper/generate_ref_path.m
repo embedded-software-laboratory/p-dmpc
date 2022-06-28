@@ -119,11 +119,24 @@ ref_path = struct;
 
     path = [refPath_x, refPath_y];
 
-    ref_path.path = path;
+    % find identical successive points and delete them
+    % Those are cases for the endpoint of one lanelet and the starting
+    % point of its successor lanelet
+    redundant_points_idx = ismembertol(sum(diff(path,1),2),0,1e-4);
+    redundant_points_idx = [false;redundant_points_idx]; % add one element to keep size
+    path_reduced = path(~redundant_points_idx,:);
+
+    ref_path.path = path_reduced;
 
     % the max points index of each lanelet
     points_length = cellfun(@(c)length(c), lanelets_target);
-    ref_path.points_index = cumsum(points_length);
+    
+    n_cumsum_lanelets_length = cumsum(points_length);
+
+    % consider the removed redandant points
+    n_cumsum_redandant = cumsum(redundant_points_idx(:)');
+
+    ref_path.points_index = n_cumsum_lanelets_length - n_cumsum_redandant(n_cumsum_lanelets_length);
 
 end
 
