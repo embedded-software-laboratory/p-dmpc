@@ -16,16 +16,19 @@ function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, ve
     reference.ReferencePoints = zeros(nSamples,2);
     reference.ReferenceIndex = zeros(nSamples,1);
     
-    [~, ~, x, y, TrajectoryIndex ] = getShortestDistance(referenceTrajectory(:,1),referenceTrajectory(:,2),vehicle_x,vehicle_y);
+    % change another computationally fast way to calculate the closest
+    % point, the results may differ marginally but not influence the
+    % performance.
+%     [~, ~, xp, yp, TrajectoryIndex ] = getShortestDistance(referenceTrajectory(:,1),referenceTrajectory(:,2),vehicle_x,vehicle_y);
+    [~, ~, xp, yp, ~, ~, TrajectoryIndex ] = get_arc_distance_to_endpoint(vehicle_x,vehicle_y, referenceTrajectory(:,1),referenceTrajectory(:,2));
 
     % lanelet has at most 12 points, an index higher than 12 points compared to last index means we skipped a lane
     if is_mixed_traffic && (TrajectoryIndex > (lastTrajectoryIndex + 12))
         TrajectoryIndex = lastTrajectoryIndex + 1;
     end
     
-    
     nLinePieces = size(referenceTrajectory,1);
-    currentPoint = [x y];
+    currentPoint = [xp yp];
     
     % If the first and the last Point of the reference path are the same(here within a small enough distance),
     % we think the reference is in a loop. 
