@@ -72,6 +72,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
                       '{\itc}: show/hide coupling lines';
                       '{\itw}: show/hide coupling weights';
                       '{\itspace}: pause/start simulation';
+                      '{\itreturn}: disable/enable plotting';
                       '{\itesc}: end simulation'};
         if strcmp(scenario.name,'Commonroad')
             x_text_hotkey = scenario.plot_limits(1,1) - 1.5;
