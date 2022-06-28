@@ -168,11 +168,7 @@ while (~got_stop)
     % Measurement
     % -------------------------------------------------------------------------
     [x0_measured, trims_measured] = exp.measure(controller_init);% trims_measured： which trim  
-
-    % if a vehicle drives in Expert-Mode, the real poses are always needed
-    if ~(scenario.options.is_mixed_traffic && (scenario.options.firstManualVehicleMode == 2 || scenario.options.secondManualVehicleMode == 2))
-        controller_init = true;
-    end
+    controller_init = true;
 
     scenario.k = k;
 

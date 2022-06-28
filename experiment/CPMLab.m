@@ -246,7 +246,25 @@ classdef CPMLab < InterfaceExperiment
                 x0(:,4) = [obj.sample(end).state_list.speed];
                 [ ~, trim_indices ] = obj.measure_node();
             else
-                [ x0, trim_indices ] = obj.measure_node(obj.reader_vehicleStateList);
+                [ x0, trim_indices ] = obj.measure_node();
+
+                % find out index of vehicle in Expert-Mode
+                indexVehicleExpertMode = 0;
+                for j = 1:obj.scenario.nVeh
+                    if ((obj.scenario.vehicle_ids(j) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
+                        || (obj.scenario.vehicle_ids(j) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
+                        indexVehicleExpertMode = j;
+                    end
+                end
+
+                % use real poses for vehicle in Expert Mode
+                if indexVehicleExpertMode ~= 0
+                    pose = [obj.sample(end).state_list.pose];
+                    x0(indexVehicleExpertMode,1) = [pose(1,indexVehicleExpertMode).x];
+                    x0(indexVehicleExpertMode,2) = [pose(1,indexVehicleExpertMode).y];
+                    x0(indexVehicleExpertMode,3) = [pose(1,indexVehicleExpertMode).yaw];
+                    x0(indexVehicleExpertMode,4) = [obj.sample(end).state_list(1,indexVehicleExpertMode).speed];
+                end
             end
         end
         
