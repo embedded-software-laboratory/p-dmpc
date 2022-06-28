@@ -3,13 +3,11 @@ function set_figure_properties(figHandle, preset, paperheight_in)
 
     switch lower(preset)
     case 'paper' % \the\linewidth=252.0pt, 1pt=0.3515mm --> 88.578mm
-        fontsize    = 9;
+        fontsize    = 8;
         paperwidth  = 8;    % picture width in cm
         paperheight = 4;    % picture height in cm
-%         paperwidth  = 8.8;    % picture width in cm
-%         paperheight = 4.4;    % picture height in cm
         linewidth=0.5;
-        fontname    = 'CMU Serif';
+        fontname    = 'Times';
         units       = 'centimeters';
     
     case 'presentation'
@@ -17,7 +15,7 @@ function set_figure_properties(figHandle, preset, paperheight_in)
         paperwidth  = 31.77; % picture width in cm
         paperheight = 14.01; % picture height in cm
         linewidth=1;
-        fontname    = 'Arial';
+        fontname    = 'Times';
         units       = 'centimeters';
     
     case 'document'
@@ -25,7 +23,7 @@ function set_figure_properties(figHandle, preset, paperheight_in)
         paperwidth  = 15.7; % picture width in cm
         paperheight = 7.85; % picture height in cm
         linewidth=0.5;
-        fontname    = 'CMU Serif';
+        fontname    = 'Times';
         units       = 'centimeters';
 
     case 'video'
@@ -33,7 +31,7 @@ function set_figure_properties(figHandle, preset, paperheight_in)
         paperwidth  = 1920;
         paperheight = 1080;
         linewidth   = 1;
-        fontname    = 'Arial';
+        fontname    = 'Times';
         units       = 'pixels';
     
     otherwise % default
@@ -129,7 +127,18 @@ function set_figure_properties(figHandle, preset, paperheight_in)
     screenpos = get(figHandle,'Position');
     set(figHandle ...
         ,'Position',[screenpos(1:2), paperwidth, paperheight]...  % px, py, w, h, of figure on screen
+        ,'PaperSize',[paperwidth, paperheight]...  % px, py, w, h, of figure on print
     );
+
+    % Workaround to keep desired width
+    annotation('line',[0, 0],[0.49, 0.51] ...
+        ,'Color', 'w' ...
+        ,'LineWidth',0.01 ...
+    )
+    annotation('line',[1, 1],[0.49, 0.51] ...
+        ,'Color', 'w' ...
+        ,'LineWidth',0.01 ...
+    )
 %         
 %     if ~strcmp(preset, 'video')
 %         % Make axes span whole window

@@ -1,5 +1,9 @@
 function scenario = circle_scenario(nVeh,isPB)
 % CIRCLE_SCENARIO   Constructor for scenario with vehicles circular arranged heading to the center of the circle.
+arguments
+    nVeh (1,1) double
+    isPB (1,1) logical = 0;
+end
     
     scenario = Scenario();
     

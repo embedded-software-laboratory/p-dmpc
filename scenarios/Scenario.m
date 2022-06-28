@@ -7,7 +7,8 @@ classdef Scenario
         nVeh = 0;
         name = 'UnnamedScenario';
         controller_name = 'RHC';
-        controller = @(s,i) centralized_controller(s,i);
+        controller = @centralized_controller;
+        sub_controller = @graph_search;
         dt = 0.4;     % RHC sample time [s]
         T_end = 20;   % Duration of simulation. [s]
         Hp = 5;

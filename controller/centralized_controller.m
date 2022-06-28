@@ -9,12 +9,15 @@ function [u, y_pred, info] = centralized_controller(scenario, iter)
     info.next_node = node(-1, zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), -1, -1);
     info.n_expanded = 0;
     
-    sub_controller = @(scenario, iter)...
-        graph_search(scenario, iter);
+    sub_controller = @scenario.sub_controller;
     % falsifies controller_runtime slightly
     subcontroller_timer = tic;
     [u, y_pred, info_v] = sub_controller(scenario, iter);
     
+    % Check if feasible
+    info.is_feasible = info_v.is_feasible;
+    if (~info.is_feasible), return, end
+
     % prepare output data
     info.tree = info_v.tree; % only for node explorationslee
     info.subcontroller_runtime = toc(subcontroller_timer);

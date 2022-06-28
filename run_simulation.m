@@ -59,59 +59,52 @@ while ~finished && k <= scenario.k_end
     scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, k);
     
     
-    try
-        % Control 
-        % ----------------------------------------------------------------------
-        % Sample reference trajectory
-        iter = rhc_init(scenario,x0,cur_node(:,NodeInfo.trim));
-        result.iteration_structs{k} = iter;
-        controller_timer = tic;
-            [u, y_pred, info] = controller(scenario_tmp, iter);
-        result.controller_runtime(k) = toc(controller_timer);
-        % save controller outputs in result struct
-        result.trajectory_predictions(:,k) = y_pred;
-        result.controller_outputs{k} = u;
-        result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
+    % Control 
+    % ----------------------------------------------------------------------
+    % Sample reference trajectory
+    iter = rhc_init(scenario,x0,cur_node(:,NodeInfo.trim));
+    result.iteration_structs{k} = iter;
+    controller_timer = tic;
+        [u, y_pred, info] = controller(scenario_tmp, iter);
+    result.controller_runtime(k) = toc(controller_timer);
+    if (~info.is_feasible)
+        break
+    end
+    % save controller outputs in result struct
+    result.trajectory_predictions(:,k) = y_pred;
+    result.controller_outputs{k} = u;
+    result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
 
-        % init struct for exploration plot
-        if doPlotExploration
-            exploration_struct.doExploration = true;
-            exploration_struct.info = info;
-        else
-            exploration_struct = [];
-        end
+    % init struct for exploration plot
+    if doPlotExploration
+        exploration_struct.doExploration = true;
+        exploration_struct.info = info;
+    else
+        exploration_struct = [];
+    end
 
-        % Determine next node
-        % TODO Substitute with measure / simulate
-        cur_node = info.next_node;
+    % Determine next node
+    % TODO Substitute with measure / simulate
+    cur_node = info.next_node;
 
-        % store vehicles path in higher resolution
-        result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
+    % store vehicles path in higher resolution
+    result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
 
-        result.n_expanded(k) = info.n_expanded;
+    result.n_expanded(k) = info.n_expanded;
 
-        % Simulation
-        % ----------------------------------------------------------------------
+    % Simulation
+    % ----------------------------------------------------------------------
 
-        result.step_time(k) = toc(result.step_timer);
+    result.step_time(k) = toc(result.step_timer);
 
-        % Visualization
-        % ----------------------------------------------------------------------
-        if doOnlinePlot
-            % wait to simulate realtime plotting
-            pause(scenario.dt-result.step_time(k))
+    % Visualization
+    % ----------------------------------------------------------------------
+    if doOnlinePlot
+        % wait to simulate realtime plotting
+        pause(scenario.dt-result.step_time(k))
 
-            % visualize time step
-            plotOnline(result,k,1,exploration_struct);
-        end
-    catch ME
-        switch ME.identifier
-        case 'MATLAB:graph_search:tree_exhausted'
-            warning([ME.message, ', ending search...']);
-            finished = true;
-        otherwise
-            rethrow(ME)
-        end
+        % visualize time step
+        plotOnline(result,k,1,exploration_struct);
     end
     
     % idle while paused, and check if we should stop early

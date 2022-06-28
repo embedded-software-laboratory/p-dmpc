@@ -1,5 +1,9 @@
-function plot_scenario(result)
+function plot_scenario(result, filename)
 % PLOT_SCENARIO     Plot scenario setup
+arguments
+    result (1,1)
+    filename char = 'scenario'
+end
 
 fig = figure('Visible','on');
 daspect([1 1 1]);
@@ -31,8 +35,8 @@ end
 xlabel('$x$ [m]')
 ylabel('$y$ [m]')
 
-filetype = 'pdf';
-filepath = fullfile(result.output_path, ['scenario.' filetype]);
+filetype = '.pdf';
+filepath = fullfile(result.output_path, [filename filetype]);
 set_figure_properties(fig,'paper')
 export_fig(fig, filepath)
 close(fig);

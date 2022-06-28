@@ -2,6 +2,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
 % GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
 
     info = struct;
+    info.is_feasible = 1;
     shapes_tmp = cell(scenario.nVeh,0);
     % Create tree with root node
     x = iter.x0(:,1);
@@ -24,11 +25,11 @@ function [u, y_pred, info] = graph_search(scenario, iter)
         % Select cheapest node for expansion and remove it
         cur_node_id = pq.pop();
         if (cur_node_id == -1)
-            ME = MException( ...
-                'MATLAB:graph_search:tree_exhausted' ...
-                ,'No more open nodes to explore' ...
-            );
-            throw(ME);
+            fprintf(2, 'No more open nodes to explore -- infeasible! Aborting...\n')
+            u = 0;
+            y_pred = 0;
+            info.is_feasible = 0;
+            return
         end
         
 
@@ -45,7 +46,7 @@ function [u, y_pred, info] = graph_search(scenario, iter)
             info.shapes = return_path_area(shapes_tmp, info.tree, cur_node_id);
             info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
             info.trim_indices = info.tree.trim(:,info.tree_path(2));
-            break
+            return
         else
             % Expand chosen node
             new_open_nodes = expand_node(...

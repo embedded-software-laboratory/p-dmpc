@@ -24,9 +24,9 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
     info.shapes = cell(scenario.nVeh,scenario.Hp);
     info.next_node = node(-1, zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), -1, -1);
     info.n_expanded = 0;
+    info.is_feasible = 1;
     
-    sub_controller = @(scenario, iter)...
-        graph_search(scenario, iter);
+    sub_controller = @scenario.sub_controller;
     
     for grp_idx = 1:length(groups)
         group = groups(grp_idx);
@@ -52,10 +52,14 @@ function [u, y_pred, info] = pb_controller(scenario, iter)
             % execute sub controller for 1-veh scenario
             [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
             
+            % Check if feasible
+            info.is_feasible = info.is_feasible && info_v.is_feasible;
+            if (~is_feasible), return, end
+
             % prepare output data
             info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
             info.n_expanded = info.n_expanded + info_v.tree.size();
-            info.next_node = set_node(info.next_node,[vehicle_idx],info_v);
+            info.next_node = set_node(info.next_node,vehicle_idx,info_v);
             info.shapes(vehicle_idx,:) = info_v.shapes(:);
             info.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1),info_v.tree_path(2),info_v.tree,scenario.mpa);
             info.trim_indices(vehicle_idx) = info_v.trim_indices(1);

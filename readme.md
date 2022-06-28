@@ -25,6 +25,11 @@ startup()
 eval_paper()
 ```
 This will take a while. The results are then found in the folder "results".
+
+### Requirements
+- MATLAB 2022a
+- MATLAB Toolboxes
+
 ### Acknowledgements
 This research is supported by the Deutsche Forschungsgemeinschaft (German Research Foundation) within the Priority Program SPP 1835 "Cooperative Interacting Automobiles" (grant number: KO 1430/17-1).
 
