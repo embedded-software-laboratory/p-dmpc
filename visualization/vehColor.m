@@ -16,19 +16,8 @@ function color = vehColor(index,priority_list)
                      1.0  1.0  0.0; % yellow
                      1.0  1.0  0.5; %   light yellow
                      1.0  1.0  1.0]; % white
-        nPriorities = length(unique(priority_list));
-
-        
-        n_threshold = 4; % minimum number of colors
-        nColors = max(nPriorities,n_threshold);
-        ys = linspace(0,1,nColors)';
-        zs = linspace(0,1,nColors)';
-%         vehColors = [ones(nColors,1),ys,zs];
-        CM = hot(max(nPriorities,n_threshold));
         
         pri = priority_list(index);
-        
-%         color = CM(pri,:);
         color = vehColors(pri,:);
     else
         vehColors = [0.8941    0.1020    0.1098;...
