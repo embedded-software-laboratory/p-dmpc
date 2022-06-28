@@ -290,7 +290,6 @@ while (~got_stop)
         end
     else
         disp('Already fall back successively Hp times, terminate the simulation')
-        disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
         break % break the while loop
     end
 
@@ -324,6 +323,7 @@ while (~got_stop)
     
 end
 
+disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
 %% save results
 
 % Delete varibales used for ROS 2 since some of them cannot be saved
@@ -338,6 +338,12 @@ result.scenario.ros_subscribers = [];
 
 result.mpa = scenario.mpa;
 % tic_start = tic;
+% check if file with the same name exists
+while isfile(result.output_path)
+    warning('File with the same name exists, timestamp will be added to the file name.')
+    result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
+end
+
 save(result.output_path,'result');
 disp(['Simulation results were saved under ' result.output_path])
 % disp(['Result was saved in ' num2str(toc(tic_start)) ' seconds.'])
