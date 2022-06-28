@@ -1,10 +1,10 @@
 %% evaluate parallel computation
 scenario_name = 'Commonroad';
 controller_name = 'RHC-Parl';
-trim_sest = 4;
+trim_sest = 9;
 Hp = 5;
 nVeh = 20;
-T_end = 20;
+T_end = 600;
 isParl = true;
 max_num_CLs = 4;
 strategy_consider_veh_without_ROW = '3';
