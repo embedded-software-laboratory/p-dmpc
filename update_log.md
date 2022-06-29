@@ -1,34 +1,35 @@
-This file is used to record the update events.
+# This file is used to record the update events.
 
-Format: date, author.
+## 2022-06-29, Jianye
+- Remove redandant points when generating reference path. Redandant points exist because the last point of each lanelet is identical to the first point of its successor lanelet. When concatenate lanelets, there will always be some same rows in the generated two-column matrix.
+- Code optimization of generate_ref_path
+    - Replace the function `getShortestDistance()` which slowly loops over all line segment of reference path with the funtion `get_arc_distance_to_endpoint()`
 
-Example: 2022-06-19, Jianye
-
-# 2022-06-26, Jianye
+## 2022-06-26, Jianye
 - Improve visualization when simulating
     - More hotkeys
     - Use different colors to show vehicle priorities
 - Let centralized circle_scenario work
 - Find another alternative function called `all_elem_cycles()` for the MATLAB build-in function `allcycles()` which is only supported in at least R2021a. Since the former runs much slower than the latter, an if condition is added such that the former will only be executed if MATLAB version is lower than R2021a. 
 
-# 2022-06-25, David
+## 2022-06-25, David
 - Added collision avoidance in Expert-Mode using reachability analysis
 - Adapted `TrafficInfo` to consider adjacent lanes in mixed traffic for coupling
 - Created startup function for mixed traffic starting a launch script
 - Added UI selection to differentiate between mixed traffic and completely autonomous traffic in CPM Lab mode
 
-# 2022-06-23, David and Jianye
+## 2022-06-23, David and Jianye
 - Created two functions `priority_assignment` and `priority_assignment_parl` to assign priorities for different strategies.
 - Adapted `pb_controller_parl` for different priority assignment strategies
 
-# 2022-06-23, Jianye
+## 2022-06-23, Jianye
 - Add more elements to ui
 - Adapt trim set ID to be successive. The ID of newly added trim should also have successive number to the existing IDs!
 
-# 2022-06-22, Jianye and David
+## 2022-06-22, Jianye and David
 - Let circle scenario run
 
-# 2022-06-19, David
+## 2022-06-19, David
 - Changes for CPM Lab mode
     - Implemented automated path update for autonomous and manual vehicles
     - Added first mixed traffic collision avoidance mode: manual vehicles get highest priority, collision avoidance based on coupling adjacency
@@ -37,7 +38,7 @@ Example: 2022-06-19, Jianye
         - collision avoidance between autonomous vehicles based on coupling adjacency
     - New class `G29ForceFeedback.m`: send custom ROS messages to Logitech G29 to set position and torque
 
-# 2022-06-19, Jianye
+## 2022-06-19, Jianye
 - Turned `get_road_data.m` to a class called `RoadData`, while the functionality is unchanged, but returns a object of this class containing all the necessary road information and some methods are added.
 - Created a class called `ControllResultsInfo`, which is used to initialize the variable `info` which is used to store the results of sub-controller.
 - Improved the fallback function called `pb_controller_fallback.m`
