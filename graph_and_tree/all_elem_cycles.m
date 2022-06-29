@@ -4,8 +4,10 @@ function [cycles, edgecycles] = all_elem_cycles(G)
 % but the first and last appears twice. 
 % 
 % This function is returns the same outputs of the MATLAB function
-% `allcycles()`, which is only supported for MATLAB verstion higher than
-% 2021a. Note that this function does not work for undirected graph.
+% `allcycles()`, which is only supported for MATLAB version higher or equal than
+% 2021a. 
+% 
+% Note that this function does not work for undirected graph.
 % 
 % INPUT:
 %   G: object of the MATLAB class `digraph`
@@ -19,7 +21,8 @@ function [cycles, edgecycles] = all_elem_cycles(G)
 % of a Directed Graph*
 % 
     
-    if ~isMATLABReleaseOlderThan("R2021a")
+    if ~verLessThan('matlab','9.10')
+        % if MATLAB version is newer or equal than R2021a, the build-in function `allcycle()` is supported, which is faster
         % use build-in function
         [cycles, edgecycles] = allcycles(G);
         return
