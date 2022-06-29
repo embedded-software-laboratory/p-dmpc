@@ -32,8 +32,6 @@ if is_sim_lab
 
     switch options.amount
         % specify vehicles IDs
-        case 2
-            vehicle_ids = [14,16];
         case 4
             vehicle_ids = [14,16,18,20];
         case 6

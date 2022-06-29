@@ -79,7 +79,7 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, va
                     if ~any(ismember(vehs_parl_local,[must_in_same_subset{:}]))
                         % not allow add repeated vehicles
                         must_in_same_subset(end+1) = {vehs_parl_local};
-                        disp(['Vehicle ' num2str(vehs_parl(1)) ' and ' num2str(vehs_parl(2)) ' must plan trajectories in sequence because they drive in parallel.'])
+                        % disp(['Vehicle ' num2str(vehs_parl(1)) ' and ' num2str(vehs_parl(2)) ' must plan trajectories in sequence because they drive in parallel.'])
                     else
                         warning('More than two vehicles are driving in parallel!')
                     end
