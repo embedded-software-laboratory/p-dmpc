@@ -171,7 +171,7 @@ approaches = {};
 for nVeh = 3:-1:1
     fprintf('Evaluating with %d vehicles crossing a circle.\n',nVeh);
     s = circle_scenario(nVeh);
-    results(nVeh) = run_simulation_if_scenario_changed(s,plot_online,0);
+    results(nVeh) = run_simulation(s,plot_online,0);
     approaches{nVeh} = sprintf('%d-circle',nVeh);
     plot_scenario(results(nVeh));
     if is_video_exported
