@@ -24,6 +24,16 @@ function scenario = communication_init(scenario, exp)
         % compiler are required (see
         % https://de.mathworks.com/help/ros/gs/ros-system-requirements.html
         % for more details according to your MATLAB version).
+        %
+        % Useful functions: 
+        % 1. pyenv % check python version used by MATLAB
+        % 2. pyenv('Version','requiredPythonVersionNumber') or pyenv('Version','fullPathOfPythonExe')
+        % 3. !cmake --version % CMake version 
+        % 4. mex -setup % set c language compiler
+        %
+        % Note that sometimes ros2genmsg fails although all denpendencies
+        % exist because the path where the custom messages are stored is
+        % too deep. Try to move them to shallower path and try again.
         ros2genmsg(path_custom_msg) 
     end
 
