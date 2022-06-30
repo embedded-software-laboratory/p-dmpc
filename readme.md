@@ -11,7 +11,7 @@
 
 This repository contains the source code for Receding Horizon Graph Search (RHGS), a MATLAB implementation of a graph-based receding horizon trajectory planner.
 
-The code is developed with MATLAB R2021a.
+The code is developed with MATLAB R2022a.
 To run a simulation:
 ```matlab
 startup()
