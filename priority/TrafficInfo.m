@@ -19,7 +19,7 @@ classdef TrafficInfo
 
     methods
         function obj = TrafficInfo(scenario, iter)
-            obj.nVeh = scenario.nVeh;
+            obj.nVeh = scenario.options.num_active_vehs;
             
             % initialize
             obj.directed_adjacency_old = zeros(obj.nVeh,obj.nVeh);
