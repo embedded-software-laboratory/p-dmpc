@@ -2,7 +2,6 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
 % RHC_INIT  Preprocessing step for RHC controller
 
     idx = indices();
-    iter_scenario = scenario;
     visualize_trajectory_index_lab = false;
     visualize_boundaries_lab = false;
 
@@ -173,9 +172,16 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
             iter.trim_indices = trims_measured;
         end
 
-        x0 = iter.x0(iVeh, idx.x);
-        y0 = iter.x0(iVeh, idx.y);
-        yaw0 = iter.x0(iVeh, idx.heading);
+        if scenario.options.is_single_HLC
+            x0 = iter.x0(iVeh, idx.x);
+            y0 = iter.x0(iVeh, idx.y);
+            yaw0 = iter.x0(iVeh, idx.heading);
+        else
+            % test
+            x0 = iter.x0(1, idx.x);
+            y0 = iter.x0(1, idx.y);
+            yaw0 = iter.x0(1, idx.heading);
+        end
         trim_current = iter.trim_indices(iVeh);
 
         iter.scenario.vehicles(iVeh).x_position = x0;
