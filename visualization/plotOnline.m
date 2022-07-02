@@ -169,7 +169,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     end
 
     % plot scenario adjacency
-    if visu.isShowCoupling
+    if visu.isShowCoupling && scenario.options.is_single_HLC
         x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
         if ~isempty(scenario.coupling_weights)
