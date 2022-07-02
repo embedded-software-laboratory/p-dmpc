@@ -328,8 +328,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 % Calculate reachable sets of other vehicles based on their
                 % current states and trims. Reachability analysis will be
                 % widely used in the parallel computation.
-                if scenario.options.is_single_HLC && ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-                    || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
+                if scenario.options.is_single_HLC && (((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
+                    || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized))
                     local_reachable_sets = scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
                 else
                     local_reachable_sets = scenario.mpa.local_reachable_sets_conv;
@@ -355,8 +355,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         % Get vehicle's occupied area of emergency braking maneuver
         % with normal offset
 
-        if scenario.options.is_single_HLC && ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-            || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
+        if scenario.options.is_single_HLC && (((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
+            || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized))
             mpa = scenario.vehicles(iVeh).vehicle_mpa;
         else
             mpa = scenario.mpa;
