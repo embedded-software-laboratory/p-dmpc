@@ -22,7 +22,7 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
 %   v_ref: reference speed
 
     % use index based on pose, as vehicle in Expert-Mode has no defined trajectory
-    if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+    if scenario.options.is_single_HLC && ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
         || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
         predicted_lanelets = match_pose_to_lane(scenario, x0, y0);
         reference = [];
@@ -30,8 +30,8 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
         return
     end
 
-    if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-        || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
+    if scenario.options.is_single_HLC && (((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
+        || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized))
         mpa = scenario.vehicles(iVeh).vehicle_mpa;
     else
         mpa = scenario.mpa;
