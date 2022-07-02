@@ -110,7 +110,11 @@ classdef TrafficInfo
             veh_info_i.position = [iter.x0(veh_i,indices().x), iter.x0(veh_i,indices().y)];
             veh_info_i.yaw = iter.x0(veh_i,indices().heading);
             veh_info_i.trim = iter.trim_indices(veh_i);
-            veh_info_i.length = scenario.vehicles(veh_i).Length;
+            if scenario.options.is_single_HLC
+                veh_info_i.length = scenario.vehicles(veh_i).Length;
+            else
+                veh_info_i.length = scenario.vehicles(1).Length;
+            end
             predicted_lanelets_i = iter.predicted_lanelets{veh_i};
 
             veh_info_j = struct('position',[],'yaw',[],'trim',[],'predicted_lanelet',[],'length',[],...
@@ -118,7 +122,11 @@ classdef TrafficInfo
             veh_info_j.position = [iter.x0(veh_j,indices().x), iter.x0(veh_j,indices().y)];
             veh_info_j.yaw = iter.x0(veh_j,indices().heading);
             veh_info_j.trim = iter.trim_indices(veh_j);
-            veh_info_j.length = scenario.vehicles(veh_j).Length;
+            if scenario.options.is_single_HLC
+                veh_info_j.length = scenario.vehicles(veh_j).Length;
+            else
+                veh_info_j.length = scenario.vehicles(1).Length;
+            end
             predicted_lanelets_j = iter.predicted_lanelets{veh_j};
 
             for pred_lan_i = predicted_lanelets_i                    
