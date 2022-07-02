@@ -118,7 +118,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback 
-                disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                disp(['Graph search exhausted for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
                 sub_graph_fallback = belonging_vector_total(vehicle_idx);
                 info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                 info.vehs_fallback = unique(info.vehs_fallback,'stable');
@@ -143,13 +143,13 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
         for vehicle_kdx = vehs_level_i
             if scenario.options.is_single_HLC
                 vehicle_k = vehicle_kdx;
-                if vehicle_k~=scenario.vehicles(1).ID
+            else
+                vehicle_k = 1;
+                if vehicle_kdx~=scenario.vehicles(1).ID
                 % if multiple HLCs are used, only the vehicle controlled by
                 % this HLC should send message 
                     continue
                 end
-            else
-                vehicle_k = 1;
             end
 
             if ismember(vehicle_k, info.vehs_fallback)
