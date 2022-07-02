@@ -233,7 +233,14 @@ classdef TrafficInfo
                             obj.coupling_info(count).is_drive_parallel = true; 
                             % calculate the STAC simply by dividing their distance minus their width by half the maximum speed
                             % todo: find a better heuristic to calculate the STAC for vehicles driving in parallel
-                            distance_to_collision = distance_two_vehs-(scenario.vehicles(veh_i).Width+scenario.vehicles(veh_j).Width)/2;
+                            if scenario.options.is_single_HLC
+                                Width_i = scenario.vehicles(veh_i).Width;
+                                Width_j = scenario.vehicles(veh_j).Width;
+                            else
+                                Width_i = scenario.vehicles(1).Width;
+                                Width_j = scenario.vehicles(1).Width;
+                            end
+                            distance_to_collision = distance_two_vehs-(Width_i+Width_j)/2;
                             assert(distance_to_collision>0)
                             STAC = distance_to_collision/max([scenario.mpa.trims.speed]./2);
                             STAC_adapted = STAC;
