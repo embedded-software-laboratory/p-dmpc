@@ -157,7 +157,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
     
 
     % states of other vehicles can be directed measured
-    iter.x0 = x_measured;
+    iter.x0 = repmat(x_measured,num_active_vehs,1);
     
     for iVeh=1:scenario.options.num_active_vehs
         if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
@@ -172,16 +172,10 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
             iter.trim_indices = trims_measured;
         end
 
-        if scenario.options.is_single_HLC
-            x0 = iter.x0(iVeh, idx.x);
-            y0 = iter.x0(iVeh, idx.y);
-            yaw0 = iter.x0(iVeh, idx.heading);
-        else
-            % test
-            x0 = iter.x0(1, idx.x);
-            y0 = iter.x0(1, idx.y);
-            yaw0 = iter.x0(1, idx.heading);
-        end
+        x0 = iter.x0(iVeh, idx.x);
+        y0 = iter.x0(iVeh, idx.y);
+        yaw0 = iter.x0(iVeh, idx.heading);
+
         trim_current = iter.trim_indices(iVeh);
 
         if scenario.options.is_single_HLC
