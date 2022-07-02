@@ -83,14 +83,16 @@ classdef Communication
 
         function latest_msg = read_message(~, sub, time_step)
             % Read message from the given time step
-            timeout = 20;      is_timeout = true;
+            timeout = 10;      is_timeout = true;
             read_start = tic;   read_time = toc(read_start);
             
             while read_time < timeout
-                if sub.LatestMessage.time_step == time_step
-%                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
-                    is_timeout = false;
-                    break
+                if ~isempty(sub.LatestMessage)
+                    if sub.LatestMessage.time_step == time_step
+    %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
+                        is_timeout = false;
+                        break
+                    end
                 end
                 read_time = toc(read_start);
                 pause(1e-4)

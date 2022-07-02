@@ -34,8 +34,8 @@ function scenario = communication_init(scenario, exp)
         % Note that sometimes ros2genmsg fails although all denpendencies
         % exist because the path where the custom messages are stored is
         % too deep. Try to move them to shallower path and try again.
-        disp('Generating ROS 2 custom message type... This may needs several minutes.')
-        ros2genmsg(path_custom_msg,'BuildConfiguration','fasterruns')
+        disp('Generating ROS 2 custom message type...')
+        ros2genmsg(path_custom_msg)
     end
 
 %     if sum(cellfun(@(c)strcmp(c,'ros_g29_force_feedback/ForceFeedback'), msgList))==0
