@@ -81,7 +81,16 @@ classdef Communication
             send(obj.publisher, obj.msg_to_be_sent);
         end
 
-        function latest_msg = read_message(~, sub, time_step)
+%         function obj = get_stored_msgs(obj)
+%             % get the stored messages
+%             global stored_msgs_global
+%             obj.stored_msgs = stored_msgs_global;
+%         end
+
+    end
+
+    methods(Static)
+        function latest_msg = read_message(sub, time_step)
             % Read message from the given time step
             timeout = 10;      is_timeout = true;
             read_start = tic;   read_time = toc(read_start);
@@ -105,13 +114,6 @@ classdef Communication
             % return the latest message
             latest_msg = sub.LatestMessage;
         end
-
-%         function obj = get_stored_msgs(obj)
-%             % get the stored messages
-%             global stored_msgs_global
-%             obj.stored_msgs = stored_msgs_global;
-%         end
-
     end
     
     
