@@ -157,7 +157,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
     
 
     % states of other vehicles can be directed measured
-    iter.x0 = repmat(x_measured,num_active_vehs,1);
+%     iter.x0 = repmat(x_measured,num_active_vehs,1); % debug
+    iter.x0 = x_measured;
     
     for iVeh=1:scenario.options.num_active_vehs
         if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
