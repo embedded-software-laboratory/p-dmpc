@@ -14,7 +14,7 @@ function result = get_result_struct(scenario)
     result.subcontroller_runtime_all_grps = cell(0,1); % subcontroller runtime of all parallel groups
     result.subcontroller_run_time_total = zeros(0,1); % subcontroller total runtime
     result.belonging_vector = cell(0,1); % belonging vector indicates to which groups one vehicle belongs
-    result.priority = zeros(scenario.nVeh,0);
+    result.priority = zeros(scenario.options.num_active_vehs,0);
     result.computation_levels = zeros(1,0);
     
     % create output directory and get the full path where the results will
