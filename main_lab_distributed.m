@@ -1,13 +1,31 @@
-function result = main(varargin)
+function result = main_lab_distributed(lab_veh_id)
 % MAIN  main function for graph-based receeding horizon control
+% INPUT: 
+%   lab_vehicle_id: (an initeger number) ID of the vehicle which is controlled by this HLC 
 
 if verLessThan('matlab','9.10')
     warning("Code is developed in MATLAB 2021a, prepare for backward incompatibilities.")
 end
 
-options = startOptions();
-options.is_single_HLC = true;
-options.num_active_vehs = options.amount;
+% options = startOptions(); % This does not work for NUC since we cannot
+% get access to them during running
+options.dt = 0.2;
+options.trim_set = 9;
+options.T_end = [];
+options.Hp = 5;
+options.isParl = true;
+options.max_num_CLs = 3;
+options.strategy_consider_veh_without_ROW = '4';
+options.strategy_enter_intersecting_area = '3';
+options.is_sim_lab = true;
+options.visu = [1,0];
+options.is_mixed_traffic = false;
+options.scenario = 'Commonroad';
+options.amount = length(lab_veh_id);
+options.isPB = true;
+options.priority = 'right_of_way_priority';
+options.is_single_HLC = false;
+options.num_active_vehs = 1; % total number of active vehicles in the lab
 
 is_sim_lab = options.is_sim_lab;
 
@@ -16,82 +34,44 @@ is_sim_lab = options.is_sim_lab;
 % first argument has to be 'sim'
 %is_sim_lab = (nargin == 0 || (nargin > 0 && strcmp(varargin{1},'sim')));
 
-if is_sim_lab
-    switch nargin
-        case 6
-            options = selection(varargin{2},varargin{3},varargin{4},varargin{5},varargin{6});
-        case 5
-            options = selection(varargin{2},varargin{3},varargin{4},varargin{5},1);
-        case 4
-            options = selection(varargin{2},varargin{3},varargin{4},1,1);            
-        case 3
-            options = selection(varargin{2},varargin{3},1,1,1); 
-        case 2 
-            options = selection(varargin{2},2,1,1,1);
-        otherwise
-            % former UI for Sim lab
-            %options = selection();
+disp('cpmlab')
+
+manualVehicle_id = 0;
+manualVehicle_id2 = 0;
+
+if options.is_mixed_traffic
+
+    % former UI for CPM Lab
+    %mixedTrafficOptions = mixedTrafficSelection();
+    options.isParl = false;
+    manualVehicle_id = options.manualVehicle_id;
+
+    if ~strcmp(manualVehicle_id, 'No MV')
+        manualVehicle_id = str2num(options.manualVehicle_id);
+        options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
+
+        if ~strcmp(options.manualVehicle_id2, 'No second MV')
+            manualVehicle_id2 = str2num(options.manualVehicle_id2);
+            options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
+        end
     end
 
-    switch options.amount
-        % specify vehicles IDs
-        case 4
-            vehicle_ids = [14,16,18,20];
-        case 6
-            vehicle_ids = [10,14,16,17,18,20]; 
-        otherwise
-            vehicle_ids = 1:options.amount; % default IDs
+    if options.collisionAvoidanceMode == 1
+        options.isParl = false;
+        options.priority = 'mixed_traffic_priority';
+    elseif options.collisionAvoidanceMode == 2 
+        options.isParl = true;
+        options.priority = 'right_of_way_priority';
+    else
+        options.isParl = true;
+        options.priority = 'mixed_traffic_priority';
     end
-
-    manualVehicle_id = 0;
-    manualVehicle_id2 = 0;
+else
     options.firstManualVehicleMode = 0;
     options.secondManualVehicleMode = 0;
     options.collisionAvoidanceMode = 0;
-    options.is_mixed_traffic = 0;
-    options.force_feedback_enabled = 0;
-
-else
-    disp('cpmlab')
-    vehicle_ids = [varargin{:}];
-    options.amount = numel(vehicle_ids);
-    options.isPB = true;
-    manualVehicle_id = 0;
-    manualVehicle_id2 = 0;
-
-    if options.is_mixed_traffic
-
-        % former UI for CPM Lab
-        %mixedTrafficOptions = mixedTrafficSelection();
-        options.isParl = false;
-        manualVehicle_id = options.manualVehicle_id;
-
-        if ~strcmp(manualVehicle_id, 'No MV')
-            manualVehicle_id = str2num(options.manualVehicle_id);
-            options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
-
-            if ~strcmp(options.manualVehicle_id2, 'No second MV')
-                manualVehicle_id2 = str2num(options.manualVehicle_id2);
-                options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
-            end
-        end
-
-        if options.collisionAvoidanceMode == 1
-            options.isParl = false;
-            options.priority = 'mixed_traffic_priority';
-        elseif options.collisionAvoidanceMode == 2 
-            options.isParl = true;
-            options.priority = 'right_of_way_priority';
-        else
-            options.isParl = true;
-            options.priority = 'mixed_traffic_priority';
-        end
-    else
-        options.firstManualVehicleMode = 0;
-        options.secondManualVehicleMode = 0;
-        options.collisionAvoidanceMode = 0;
-    end
 end
+
     
 % scenario = circle_scenario(options.amount,options.isPB);
 % scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
@@ -100,27 +80,27 @@ switch options.scenario
     case 'Circle_scenario'
         scenario = circle_scenario(options);
     case 'Commonroad'
-        scenario = commonroad(options, vehicle_ids, manualVehicle_id, manualVehicle_id2, is_sim_lab);  
+        scenario = commonroad(options, lab_veh_id, manualVehicle_id, manualVehicle_id2, is_sim_lab);  
 end
 
 scenario.name = options.scenario;
 scenario.priority_option = options.priority;
 scenario.manual_vehicle_id = manualVehicle_id;
 scenario.second_manual_vehicle_id = manualVehicle_id2;
-scenario.vehicle_ids = vehicle_ids;
+scenario.vehicle_ids = lab_veh_id;
 scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
 scenario.options = options;
 
-for iVeh = 1:scenario.options.amount
-    % initialize vehicle ids of all vehicles
-    scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
-end
-
+% for iVeh = 1:scenario.options.amount
+%     % initialize vehicle ids of all vehicles
+%     scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
+% end
+scenario.vehicles.ID = lab_veh_id;
  
 if is_sim_lab
     exp = SimLab(scenario, options);
 else
-    exp = CPMLab(scenario, vehicle_ids);
+    exp = CPMLab(scenario, lab_veh_id);
 end
 
 %% Setup
@@ -193,7 +173,7 @@ while (~got_stop)
             if (scenario.options.firstManualVehicleMode == 1)
                 wheelData = exp.getWheelData();
                 % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
-                modeHandler = GuidedMode(scenario,x0_measured,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
+                modeHandler = GuidedMode(scenario,x0_measured,scenario.manual_vehicle_id,lab_veh_id,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
                 scenario = modeHandler.scenario;
                 scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
                 speedProfileMPAsInitialized = true;
@@ -206,7 +186,7 @@ while (~got_stop)
 
             if (scenario.options.secondManualVehicleMode == 1)
                 % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
-                modeHandler = GuidedMode(scenario,x0_measured,scenario.second_manual_vehicle_id,vehicle_ids,cooldown_second_manual_vehicle_after_lane_change,speedProfileMPAsInitialized,gamepadData,false);
+                modeHandler = GuidedMode(scenario,x0_measured,scenario.second_manual_vehicle_id,lab_veh_id,cooldown_second_manual_vehicle_after_lane_change,speedProfileMPAsInitialized,gamepadData,false);
                 scenario = modeHandler.scenario;
                 scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
                 speedProfileMPAsInitialized = true;
@@ -238,7 +218,7 @@ while (~got_stop)
 
         % update the lanelet boundary for each vehicle
         for iVeh = 1:options.amount
-            scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(iVeh,1:2);
+            scenario.vehicles(iVeh).lanelet_boundary = iter.predicted_lanelet_boundary(lab_veh_id(iVeh),1:2);
         end
     else
         % for other scenarios, no lanelet boundary 
@@ -249,10 +229,10 @@ while (~got_stop)
     end
     
     % calculate the distance
-    distance = zeros(options.amount,options.amount);
+    distance = zeros(options.num_active_vehs,options.num_active_vehs);
     adjacency = scenario.adjacency(:,:,end);
 
-    for jVeh = 1:options.amount-1
+    for jVeh = 1:options.num_active_vehs-1
         adjacent_vehicle = find(adjacency(jVeh,:));
         adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > jVeh);
         for vehn = adjacent_vehicle

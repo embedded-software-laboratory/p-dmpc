@@ -52,7 +52,7 @@ classdef Communication
             end
         end
 
-        function send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas, is_fallback)
+        function send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas, is_fallback, vehs_fallback)
             % vehicle send message to its topic
             obj.msg_to_be_sent.time_step = int32(time_step);
             obj.msg_to_be_sent.vehicle_id = int32(obj.vehicle_id);
@@ -61,9 +61,11 @@ classdef Communication
 
             if nargin <= 5
                 is_fallback = false;
+                vehs_fallback = []; % empty if no vehicle should take fallback
             end
             
             obj.msg_to_be_sent.is_fallback = is_fallback; % whether vehicle should take fallback
+            obj.msg_to_be_sent.vehs_fallback = int32(vehs_fallback(:)); % which vehicles need to take fallback
 
             for i = 1:length(predicted_areas)
                 obj.msg_to_be_sent.predicted_areas(i).x = predicted_areas{i}(1,:)';
@@ -81,7 +83,7 @@ classdef Communication
 
         function latest_msg = read_message(~, sub, time_step)
             % Read message from the given time step
-            timeout = 0.5;      is_timeout = true;
+            timeout = 20;      is_timeout = true;
             read_start = tic;   read_time = toc(read_start);
             
             while read_time < timeout

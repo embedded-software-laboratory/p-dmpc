@@ -133,27 +133,34 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         end
     end
 
-    nVeh = scenario.nVeh;
+    nVeh = scenario.nVeh; % number of vehicles controlled by one HLC
+    num_active_vehs = scenario.options.num_active_vehs; % total number of active vehicles
     Hp = scenario.Hp;
     
     iter = struct;
     iter_scenario = scenario;
-    iter.referenceTrajectoryPoints = zeros(nVeh,Hp,2);
-    iter.referenceTrajectoryIndex = zeros(nVeh,Hp,1);
-    iter.x0 = zeros(nVeh, 4);                           % state
-    iter.trim_indices = zeros(nVeh, 1);                 % current trim
-    iter.vRef = zeros(nVeh,Hp);                         % reference speed  
-    iter.predicted_lanelets = cell(nVeh, 1);
-    iter.predicted_lanelet_boundary = cell(nVeh, 3);    % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
-    iter.reachable_sets = cell(nVeh, Hp);               % cells to store instances of MATLAB calss `polyshape`
-    iter.occupied_areas = cell(nVeh, 1);                % currently occupied areas with normal offset of vehicles 
-    iter.emergency_braking_maneuvers = cell(nVeh, 1);   % occupied area of emergency braking maneuver
+    % if multiple HLCs are used, each HLC calculate the reference
+    % trajectory and reference speed only for the vehicle controlled by it
+    % but other variables such as states, trims and so on will be
+    % calculated for all vehicles.
+    % To reduce code adaption, the dimension of all variables are the same 
+    % regardless whether single HLC is used or multiple HLCs are used.
+    iter.referenceTrajectoryPoints = zeros(num_active_vehs,Hp,2);
+    iter.referenceTrajectoryIndex = zeros(num_active_vehs,Hp,1);
+    iter.x0 = zeros(num_active_vehs, 4);                           % state
+    iter.trim_indices = zeros(num_active_vehs, 1);                 % current trim
+    iter.vRef = zeros(num_active_vehs,Hp);                         % reference speed  
+    iter.predicted_lanelets = cell(num_active_vehs, 1);
+    iter.predicted_lanelet_boundary = cell(num_active_vehs, 3);    % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
+    iter.reachable_sets = cell(num_active_vehs, Hp);               % cells to store instances of MATLAB calss `polyshape`
+    iter.occupied_areas = cell(num_active_vehs, 1);                % currently occupied areas with normal offset of vehicles 
+    iter.emergency_braking_maneuvers = cell(num_active_vehs, 1);   % occupied area of emergency braking maneuver
     
 
     % states of other vehicles can be directed measured
     iter.x0 = x_measured;
     
-    for iVeh=1:scenario.nVeh
+    for iVeh=1:scenario.options.num_active_vehs
         if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages

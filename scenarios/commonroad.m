@@ -77,18 +77,31 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     scenario.priority_option = options.priority;
     
     if options.isPB 
-       scenario.adjacency = zeros(nVeh,nVeh);
-       scenario.assignPrios = true;
-       nVeh_mpa = 1;
+        if options.is_single_HLC
+            scenario.adjacency = zeros(nVeh,nVeh);
+        else
+            % if single HLC is used, nVeh will always be one. The total
+            % number of active vehicles can be access by
+            % `options.num_active_vehs`.
+            assert(nVeh==1)
+            scenario.adjacency = zeros(options.num_active_vehs,options.num_active_vehs);
+        end
+        
+        scenario.assignPrios = true;
+        nVeh_mpa = 1;
 
-       if options.isParl
+        if options.isParl
             % if parallel computation is used
-            scenario.controller_name = strcat(scenario.controller_name, '-Parl');
+            if options.is_single_HLC
+                scenario.controller_name = strcat(scenario.controller_name, '-Parl');
+            else
+                scenario.controller_name = strcat(scenario.controller_name, '-Distributed');
+            end
             scenario.controller = @(s,i) pb_controller_parl(s,i);
-       else
+        else
            scenario.controller_name = strcat(scenario.controller_name, '-PB');
            scenario.controller = @(s,i) pb_controller(s,i);
-       end
+        end
     end
 
     recursive_feasibility = true;

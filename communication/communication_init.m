@@ -34,8 +34,16 @@ function scenario = communication_init(scenario, exp)
         % Note that sometimes ros2genmsg fails although all denpendencies
         % exist because the path where the custom messages are stored is
         % too deep. Try to move them to shallower path and try again.
-        ros2genmsg(path_custom_msg) 
+        disp('Generating ROS 2 custom message type... This may needs several minutes.')
+        ros2genmsg(path_custom_msg,'BuildConfiguration','fasterruns')
     end
+
+%     if sum(cellfun(@(c)strcmp(c,'ros_g29_force_feedback/ForceFeedback'), msgList))==0
+%         [file_path,~,~] = fileparts(mfilename('fullpath'));
+%         path_custom_msg = [file_path,filesep,'custom_msg_2'];
+%         ros2genmsg(path_custom_msg,'BuildConfiguration','fasterruns')
+%     end
+
 
     nVeh = scenario.nVeh;
     Hp = scenario.Hp;
@@ -58,7 +66,13 @@ function scenario = communication_init(scenario, exp)
     % time-consuming to create many subscribers. 
     % The subscribers will be used by all vehicles.
     disp('Creating ROS 2 subscribers...')
-    vehs_to_be_subscribed = [scenario.vehicles.ID];
+    if scenario.options.is_single_HLC
+        vehs_to_be_subscribed = [scenario.vehicles.ID];
+    else
+        % if multiple HLCs are used, vehicle IDs are assumed to be from 1
+        % to n.
+        vehs_to_be_subscribed = 1:scenario.options.num_active_vehs;
+    end
     scenario.ros_subscribers = create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
 
     duration = toc(start);
@@ -76,7 +90,8 @@ function scenario = communication_init(scenario, exp)
 
             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
             is_fallback = false; % whether vehicle should take fallback
-            scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback);   
+            vehs_fallback = [];
+            scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback, vehs_fallback);   
         end
     end
 end

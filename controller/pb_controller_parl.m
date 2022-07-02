@@ -30,6 +30,12 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
         vehs_level_i = CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
         
         for vehicle_idx = vehs_level_i
+            if ~scenario.options.is_single_HLC && vehicle_idx~=scenario.vehicles(1).ID
+                % if multiple HLCs are used, each HLC only caltulate the
+                % trajectory for one vehicle
+                assert(length(scenario.vehicles)==1)
+                continue
+            end
             if ismember(vehicle_idx, info.vehs_fallback)
                 % jump to next vehicle if the selected vehicle should take fallback
                 info.subcontroller_runtime(vehicle_idx) = 0;
@@ -40,7 +46,13 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             % only keep self
             filter_self = false(1,scenario.nVeh);
             filter_self(vehicle_idx) = true;
-            scenario_v = filter_scenario(scenario, filter_self);
+            
+            if scenario.options.is_single_HLC
+                scenario_v = filter_scenario(scenario, filter_self);
+            else
+                scenario_v = scenario;
+            end
+            
             iter_v = filter_iter(iter, filter_self);
 
             grp_idx = arrayfun(@(array) ismember(vehicle_idx,array.vertices), scenario_v.parl_groups_info);
@@ -129,11 +141,17 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
         % Trick: vehicles will wait for the last vehicle in the same computation level has planned 
         % to avoid receiving messages of the current time step from vehicles in the same computation level.         
         for vehicle_k = vehs_level_i
+            if ~scenario.options.is_single_HLC && vehicle_k~=scenario.vehicles(1).ID
+                % if multiple HLCs are used, only the vehicle controlled by
+                % this HLC should send message 
+                continue
+            end
             if ismember(vehicle_k, info.vehs_fallback)
                 % if the selected vehicle should take fallback
                 continue
             end
             msg_send_tic = tic;
+            
             predicted_trims = info.predicted_trims(vehicle_k,:); % including the current trim
             trim_current = predicted_trims(2);
 
@@ -145,9 +163,10 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             predicted_areas_k = info.shapes(vehicle_k,:);
             
             is_fallback = false;
+            vehs_fallback = [];
 
             % send message
-            send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, is_fallback);
+            send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, is_fallback, vehs_fallback);
             msg_send_time(vehicle_k) = toc(msg_send_tic);
         end
 
