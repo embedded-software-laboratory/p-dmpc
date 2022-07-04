@@ -28,13 +28,31 @@ classdef CPMLab < InterfaceExperiment
         g29_last_position
     end
     
+    properties
+        is_single_HLC % whether only one HLC is used
+        middleware_period_ms % get middleware period from LCC
+
+        % number of active vehicles in the lab (if we use multiple HLCs,
+        % this value is not known by each local HLC. They must access this
+        % value from LCC instead.)  
+        num_active_vehs
+
+        % vehicle index of the corresponding vehicle. This property is only
+        % interesting when multiple HLCs are used.
+        % Note that vehicle index is not the same as vehicle ID. For
+        % example, there are three vehicles with IDS [2,5,7]. The index of
+        % the vehicle with ID 5 would be 2.
+        veh_idx
+    end
+
     methods
-        function obj = CPMLab(scenario, vehicle_ids)
+        function obj = CPMLab(scenario, vehicle_ids, options)
             obj.vehicle_ids = vehicle_ids;
             obj.scenario = scenario;
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
+            obj.is_single_HLC = options.is_single_HLC;
         end
         
         function setup(obj)
@@ -121,31 +139,29 @@ classdef CPMLab < InterfaceExperiment
                     obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1", "sensor_msgs/Joy",@obj.gamepadCallback);
                 end
             end
-            
-            % TODO: get active vehicle IDs
-%             lab_vehicle_id = obj.vehicle_ids;
-%             assert(length(lab_vehicle_id)==1)
-%             
-%             disp(lab_vehicle_id);
-% 
-%             % Get important Parameter's from the LCC
-%             requester = ParameterRequester();
-% 
-%             parameter_name = 'active_vehicle_ids';
-%             parameter_vehicle_ids = requester.requestParameter( parameter_name );
-%             lab_vehicle_ids = parameter_vehicle_ids.values_int32;
-% 
-%             parameter_name = 'middleware_period_ms';
-%             parameter_middleware_period_ms = requester.requestParameter( parameter_name );
-%             middleware_period_ms = parameter_middleware_period_ms.value_uint64_t;
-% 
-%             % Get internal vehicle ID of our HLC
-%             % If we are the third vehicle in the lab_vehicle_ids list, then we are
-%             % vehicle ID 3 in our HLC.
-%             vehicle_id = find( lab_vehicle_ids == lab_vehicle_id );
-% 
-%             % Number of active vehicles
-%             no_of_vehicles = size( lab_vehicle_ids, 2 );
+
+            % Get important Parameter's from the LCC
+            requester = ParameterRequester();
+
+            % Get middleware period from LCC
+            parameter_name = 'middleware_period_ms';
+            parameter_middleware_period_ms = requester.requestParameter( parameter_name );
+            obj.middleware_period_ms = double(parameter_middleware_period_ms.value_uint64_t);
+
+            % Number of active vehicles. If multiple HLCs are used, the
+            % number of active vehicles should be accessed from LCC as
+            % itself has no global knowledge. 
+            parameter_name = 'active_vehicle_ids';
+            parameter_vehicle_ids = requester.requestParameter( parameter_name );
+            lab_vehicle_ids = parameter_vehicle_ids.values_int32;
+            obj.num_active_vehs = size( lab_vehicle_ids, 2 );
+
+            if ~obj.is_single_HLC
+                obj.veh_idx = find(obj.vehicle_ids==lab_vehicle_ids);
+            end
+
+%             obj.middleware_period_ms = 200;
+%             obj.num_active_vehs = 1;
         end
 
         function wheelData = getWheelData(obj)
@@ -255,14 +271,18 @@ classdef CPMLab < InterfaceExperiment
         end
         
         function [ x0, trim_indices ] = measure(obj, controller_init)
+%             start_measure = tic;
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
             if (sample_count > 1)
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
             
             % for first iteration use real poses
-            if controller_init == false
-                x0 = zeros(obj.scenario.nVeh,4);
+            if controller_init == false || ~obj.is_single_HLC
+                % if multiple HLCs are used, states of other vheicles can
+                % only be accessed from LLC but not from (local) node
+                % information
+                x0 = zeros(obj.num_active_vehs,4);
                 pose = [obj.sample(end).state_list.pose];
                 x0(:,1) = [pose.x];
                 x0(:,2) = [pose.y];
@@ -272,6 +292,8 @@ classdef CPMLab < InterfaceExperiment
             else
                 [ x0, trim_indices ] = obj.measure_node(obj.reader_vehicleStateList);
             end
+%             duration_m = toc(start_measure);
+            % disp(['Measure is done in ' num2str(duration_m) ' seconds.'])
         end
         
         function apply(obj, info, ~, k, scenario)

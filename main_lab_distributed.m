@@ -9,23 +9,25 @@ end
 
 % options = startOptions(); % This does not work for NUC since we cannot
 % get access to them during running
-options.dt = 0.2;
 options.trim_set = 9;
-options.T_end = [];
+options.dt = [];
+options.T_end = inf;
 options.Hp = 5;
 options.isParl = true;
 options.max_num_CLs = 3;
 options.strategy_consider_veh_without_ROW = '4';
 options.strategy_enter_intersecting_area = '3';
-options.is_sim_lab = true;
-options.visu = [1,0];
 options.is_mixed_traffic = false;
 options.scenario = 'Commonroad';
 options.amount = length(lab_veh_id);
 options.isPB = true;
 options.priority = 'right_of_way_priority';
 options.is_single_HLC = false;
-options.num_active_vehs = 2; % total number of active vehicles in the lab
+options.force_feedback_enabled = false;
+
+options.visu = [0,0];
+options.is_sim_lab = false;
+options.num_active_vehs = [];
 
 is_sim_lab = options.is_sim_lab;
 
@@ -100,7 +102,7 @@ scenario.vehicles.ID = lab_veh_id;
 if is_sim_lab
     exp = SimLab(scenario, options);
 else
-    exp = CPMLab(scenario, lab_veh_id);
+    exp = CPMLab(scenario, lab_veh_id, options);
 end
 
 %% Setup
@@ -113,10 +115,18 @@ cooldown_after_lane_change = 0;
 cooldown_second_manual_vehicle_after_lane_change = 0;
 controller_init = false;
 
+exp.setup();
+
+if ~options.is_single_HLC
+    options.num_active_vehs = exp.num_active_vehs; % total number of active vehicles in the lab
+    options.dt = exp.middleware_period_ms/1e3; % msec to sec
+    scenario.options = options; % update options
+    scenario.dt = options.dt;
+    scenario.adjacency = zeros(options.num_active_vehs,options.num_active_vehs);
+end
+
 % init result struct
 result = get_result_struct(scenario);
-
-exp.setup();
 
 scenario.k = k;
 
@@ -228,19 +238,6 @@ while (~got_stop)
 
     end
     
-    % calculate the distance
-    distance = zeros(options.num_active_vehs,options.num_active_vehs);
-    adjacency = scenario.adjacency(:,:,end);
-
-    for jVeh = 1:options.num_active_vehs-1
-        adjacent_vehicle = find(adjacency(jVeh,:));
-        adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > jVeh);
-        for vehn = adjacent_vehicle
-            distance(jVeh,vehn) = check_distance(iter,jVeh,vehn);
-        end
-    end
-    result.distance(:,:,k) = distance;
-    
     % dynamic scenario
     scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, k);
     result.iter_runtime(k) = toc(result.step_timer);
@@ -296,7 +293,17 @@ while (~got_stop)
     if options.isParl
         result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller runtime of each parallel group 
     end
-   
+    % calculate the distance
+    distance = zeros(options.num_active_vehs,options.num_active_vehs);
+    adjacency = scenario.adjacency(:,:,end);
+    for jVeh = 1:options.num_active_vehs-1
+        adjacent_vehicle = find(adjacency(jVeh,:));
+        adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > jVeh);
+        for vehn = adjacent_vehicle
+            distance(jVeh,vehn) = check_distance(iter,jVeh,vehn);
+        end
+    end
+    result.distance(:,:,k) = distance;
     % Apply control action
     % -------------------------------------------------------------------------
     exp.apply(info, result, k, scenario); 

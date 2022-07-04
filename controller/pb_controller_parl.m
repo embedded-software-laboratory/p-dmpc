@@ -173,6 +173,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 
             % send message
             send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, is_fallback, vehs_fallback);
+            disp(['Vehicle ' num2str(vehicle_kdx) ' finished message sending.'])
             msg_send_time(vehicle_k) = toc(msg_send_tic);
         end
 
