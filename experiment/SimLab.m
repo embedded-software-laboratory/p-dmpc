@@ -73,6 +73,13 @@ classdef SimLab < InterfaceExperiment
                     else
                         disp('Hide couplings weights.')
                     end
+                case 'return'
+                    obj.doOnlinePlot = ~obj.doOnlinePlot;
+                    if obj.doOnlinePlot 
+                        disp('Enable plotting.')
+                    else
+                        disp('Disable Plotting.')
+                    end
             end
         end
         
@@ -135,6 +142,7 @@ classdef SimLab < InterfaceExperiment
                 got_stop = true;
             end
             if  obj.k >= obj.scenario.k_end
+                disp('Simulation will be stopped as the defined simulation duration is reached.')
                 got_stop = true;
             end
         end

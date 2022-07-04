@@ -85,6 +85,7 @@ classdef Communication
                     break
                 end
                 read_time = toc(read_start);
+                pause(1e-4)
             end
 
             if is_timeout

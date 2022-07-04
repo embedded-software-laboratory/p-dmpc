@@ -14,6 +14,8 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     scenario.strategy_consider_veh_without_ROW = options.strategy_consider_veh_without_ROW;
     scenario.strategy_enter_intersecting_area = options.strategy_enter_intersecting_area;
 
+    scenario.is_allow_non_convex = true;
+
     scenario.name = 'Commonroad';
 %     scenario.trim_set = 4;
 %     scenario.dt = 0.2;

@@ -179,7 +179,7 @@ classdef MotionPrimitiveAutomaton
             disp('Note this only needs to be done once since later they will be saved to motion-primitive-automaton library offline.')
         
             n_trims = numel(obj.trims);
-            reachable_sets_local = cell(n_trims,Hp);
+            reachable_sets_local = repmat({polyshape},n_trims,Hp); % cell array with empty polyshapes
             reachable_sets_conv_local = cell(n_trims,Hp);
         
             % transform maneuver area to polyshape which is required when using
@@ -224,35 +224,36 @@ classdef MotionPrimitiveAutomaton
                     end
                     
                     % store the union of the reachable sets of the parent trims in the prediction horizon
-                    trimsInfo(i,t).reachable_sets = polyshape;
+%                     trimsInfo(i,t).reachable_sets = polyshape;
                     % store the union of the reachable sets of the parent trim
-                    reachable_sets_union = cell(1,length(trimsInfo(i,t).parentTrims));
+%                     reachable_sets_union = cell(1,length(trimsInfo(i,t).parentTrims));
                     
                     % loop through all parent trims
                     for j=1:length(trimsInfo(i,t).parentTrims)
-                        reachable_sets_union{j} = polyshape;
+%                         reachable_sets_union{j} = polyshape;
+                        if t==1
+                            x0 = 0;
+                            y0 = 0;
+                            yaw0 = 0;
+                        else
+                            x0 = trimsInfo(i,t-1).maneuvers{j}.xs(end);
+                            y0 = trimsInfo(i,t-1).maneuvers{j}.ys(end);
+                            yaw0 = trimsInfo(i,t-1).maneuvers{j}.yaws(end);
+                        end
+
                         % loop through all child trims
                         for k=1:trimsInfo(i,t).childNum(j)
                             trim_start = trimsInfo(i,t).parentTrims(j);
                             child_ordinal = sum(trimsInfo(i,t).childNum(1:j-1)) + k;
                             trim_end = trimsInfo(i,t).childTrims(child_ordinal);
-                            if t==1
-                                x0 = 0;
-                                y0 = 0;
-                                yaw0 = 0;
-                            else
-                                x0 = trimsInfo(i,t-1).maneuvers{j}.dx;
-                                y0 = trimsInfo(i,t-1).maneuvers{j}.dy;
-                                yaw0 = trimsInfo(i,t-1).maneuvers{j}.dyaw;
-                            end
             
                             % tranlates the local coordinates to global coordinates
                             [trimsInfo(i,t).maneuvers{child_ordinal}.xs, trimsInfo(i,t).maneuvers{child_ordinal}.ys] = ...
                                 translate_global(yaw0,x0,y0,obj.maneuvers{trim_start,trim_end}.xs,obj.maneuvers{trim_start,trim_end}.ys);
                             trimsInfo(i,t).maneuvers{child_ordinal}.yaws = yaw0 + obj.maneuvers{trim_start,trim_end}.yaws;
-                            trimsInfo(i,t).maneuvers{child_ordinal}.dx = trimsInfo(i,t).maneuvers{child_ordinal}.xs(end);
-                            trimsInfo(i,t).maneuvers{child_ordinal}.dy = trimsInfo(i,t).maneuvers{child_ordinal}.ys(end);
-                            trimsInfo(i,t).maneuvers{child_ordinal}.dyaw = trimsInfo(i,t).maneuvers{child_ordinal}.yaws(end);
+%                             trimsInfo(i,t).maneuvers{child_ordinal}.dx = trimsInfo(i,t).maneuvers{child_ordinal}.xs(end);
+%                             trimsInfo(i,t).maneuvers{child_ordinal}.dy = trimsInfo(i,t).maneuvers{child_ordinal}.ys(end);
+%                             trimsInfo(i,t).maneuvers{child_ordinal}.dyaw = trimsInfo(i,t).maneuvers{child_ordinal}.yaws(end);
             
                             % occupied area of the translated maneuvers
                             [area_x, area_y] = ...
@@ -261,14 +262,32 @@ classdef MotionPrimitiveAutomaton
                             trimsInfo(i,t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x,area_y,'Simplify',false);
             
                             % union of the reachable sets of one parent trim
-                            reachable_sets_union{j} = union(reachable_sets_union{j},trimsInfo(i,t).maneuvers{child_ordinal}.areaPoly);
+%                             reachable_sets_union{j} = union(reachable_sets_union{j},trimsInfo(i,t).maneuvers{child_ordinal}.areaPoly);
                         end
+
                         % union of the reachable sets of all parent trims
-                        trimsInfo(i,t).reachable_sets = union(trimsInfo(i,t).reachable_sets,reachable_sets_union{j});
-                        trimsInfo(i,t).reachable_sets_conv = convhull(trimsInfo(i,t).reachable_sets);
+%                         trimsInfo(i,t).reachable_sets = union(trimsInfo(i,t).reachable_sets,reachable_sets_union{j});
                     end
-                    reachable_sets_local{i,t} = trimsInfo(i,t).reachable_sets;
-                    reachable_sets_conv_local{i,t} = trimsInfo(i,t).reachable_sets_conv;
+
+                    
+                    
+                    % MATLAB function `union()` can union multiple polygons
+                    % at the same time, but the number should not be large
+                    % as it will run significantly slow.
+                    size_union = 15;
+                    n_union_times = ceil(length(trimsInfo(i,t).maneuvers)/size_union);
+                    for p = 1:n_union_times
+                        if p == n_union_times
+                            areaPolys = cellfun(@(c) [c.areaPoly], trimsInfo(i,t).maneuvers((p-1)*size_union+1:end));
+                        else
+                            areaPolys = cellfun(@(c) [c.areaPoly], trimsInfo(i,t).maneuvers((p-1)*size_union+1:p*size_union));
+                        end
+                        reachable_sets_local{i,t} = union([areaPolys,reachable_sets_local{i,t}]);
+                    end
+                    reachable_sets_conv_local{i,t} = convhull(reachable_sets_local{i,t}); % convexify
+
+%                     reachable_sets_local{i,t} = trimsInfo(i,t).reachable_sets;
+%                     reachable_sets_conv_local{i,t} = convhull(reachable_sets_local{i,t}); % convexify
 
                     % display progress
                     progress = ((i-1)*Hp + t)/(n_trims*Hp)*100; % percentage 

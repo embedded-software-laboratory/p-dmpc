@@ -307,8 +307,10 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                     || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
                     local_reachable_sets = scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
                 else
-                    local_reachable_sets = scenario.mpa.local_reachable_sets;
+                    local_reachable_sets = scenario.mpa.local_reachable_sets_conv;
                 end
+                % use convexified reachable sets to reduce computation time
+                % as they have far more less points
                 iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, scenario.is_allow_non_convex);
             end
         end

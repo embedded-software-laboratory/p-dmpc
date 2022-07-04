@@ -33,7 +33,7 @@ classdef EvaluationCommon
             obj.real_paths = cell(obj.nVeh,1);
             obj.path_tracking_errors = cell(obj.nVeh,1);
             obj.path_tracking_errors_MAE = zeros(obj.nVeh,1);
-            obj.total_runtime_per_step = zeros(obj.nVeh,1);
+            obj.total_runtime_per_step = zeros(0,1);
             obj.plot_option_real_path = struct('Color','b','LineStyle','-','LineWidth',1.0,'DisplayName','Real Path');
             obj.plot_option_ref_path = struct('Color','r','LineStyle','--','LineWidth',1.0,'DisplayName','Reference Path');
             
@@ -56,7 +56,8 @@ classdef EvaluationCommon
 
         function obj = get_total_runtime_per_step(obj)
             % Calculate the total runtime per step
-            obj.total_runtime_per_step = obj.result.subcontroller_run_time_total(:) + obj.result.iter_runtime(:);
+            assert( abs(length(obj.result.subcontroller_run_time_total)-length(obj.result.iter_runtime)) <= 1 )
+            obj.total_runtime_per_step = obj.result.subcontroller_run_time_total(1:obj.nSteps)' + obj.result.iter_runtime(1:obj.nSteps)';
         end
 
         function visualize_path(obj)
@@ -83,7 +84,8 @@ classdef EvaluationCommon
            veh_max_error = vehs_max_error(1);
            veh_min_error = vehs_min_error(1);
             s = obj.plot_path(obj.real_paths{veh_max_error},obj.path_tracking_errors{veh_max_error});
-            colorbar
+            c = colorbar;
+            c.Title.String = 'Path Tracking Error';
 %             obj.plot_option_real_path.DisplayName = 'Real Path with Maximum Error';
 %             p1 = plot(obj.real_paths{veh_max_error}(1,:),obj.real_paths{veh_max_error}(2,:),obj.plot_option_real_path);
             p2 = plot(obj.reference_paths{veh_max_error}(1,:),obj.reference_paths{veh_max_error}(2,:),obj.plot_option_ref_path);
