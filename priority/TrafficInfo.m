@@ -66,7 +66,14 @@ classdef TrafficInfo
                     area_overlap = area(overlap_reachable_sets);
                     if area_overlap > 1e-3 % a small threshold to tolerate measurement error of lenelet boundary
                         % the selected two vehicles are considered as coupled if their reachable sets overlap
-                        obj = obj.get_coupling_info(scenario,iter,veh_i,veh_j,overlap_reachable_sets);
+                        if ((scenario.vehicle_ids(veh_i) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+                            || (scenario.vehicle_ids(veh_i) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+                            % not necessary to determine collision point and ROW, as manual vehicle has highest priority
+                            obj.coupling_weights(veh_i,veh_j) = 1;
+                            continue
+                        else
+                            obj = obj.get_coupling_info(scenario,iter,veh_i,veh_j,overlap_reachable_sets);
+                        end
                     end  
                 end
             end

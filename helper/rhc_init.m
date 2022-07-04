@@ -193,13 +193,26 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         
         if strcmp(scenario.name, 'Commonroad')
 
-            % Vehicle in Expert-Mode does not consider boundaries
+            % Vehicle in Expert-Mode does only consider boundaries when assuming RSS
             if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
                 || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
 
                 iter.predicted_lanelets{iVeh} = predicted_lanelets;
                 iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
-                predicted_lanelet_boundary = cell(nVeh, 3);
+                predicted_lanelet_boundary = cell(1, 3);
+
+                if scenario.options.consider_RSS
+                    % conisder boundary of current lane
+                    left_bound = struct2cell(scenario.road_raw_data.lanelet(predicted_lanelets).leftBound.point);
+                    right_bound = struct2cell(scenario.road_raw_data.lanelet(predicted_lanelets).rightBound.point);
+                    left_bound = cell2mat(left_bound);
+                    right_bound = cell2mat(right_bound);
+
+                    for i = 1:length(scenario.road_raw_data.lanelet(predicted_lanelets).leftBound.point)
+                        predicted_lanelet_boundary{1}(:,i) = left_bound(:,:,i);
+                        predicted_lanelet_boundary{2}(:,i) = right_bound(:,:,i);
+                    end
+                end
             else
                 % Get the predicted lanelets of other vehicles
                 if scenario.options.isParl && ~scenario.vehicles(iVeh).autoUpdatedPath

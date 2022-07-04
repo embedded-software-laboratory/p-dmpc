@@ -73,6 +73,8 @@ else
                 manualVehicle_id2 = str2num(options.manualVehicle_id2);
                 options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
             end
+        else
+            manualVehicle_id = 0;
         end
 
         if options.collisionAvoidanceMode == 1
