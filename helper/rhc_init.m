@@ -309,9 +309,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 else
                     local_reachable_sets = scenario.mpa.local_reachable_sets_conv;
                 end
-                % use convexified reachable sets to reduce computation time
-                % as they have far more less points
-                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, scenario.is_allow_non_convex);
+                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), scenario.options.consider_RSS, predicted_lanelet_boundary, scenario.is_allow_non_convex);
             end
         end
 

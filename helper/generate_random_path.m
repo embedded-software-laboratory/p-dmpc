@@ -64,6 +64,10 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
         
         if laneChangeAllowed
             range = length(subsequent_lanes.lanelets_index);
+
+            if scenario.options.is_eval
+                rng(scenario.options.seed.Seed);
+            end
             index = randi(range);
             %disp(sprintf('range: %d, index: %d', range, index));
 

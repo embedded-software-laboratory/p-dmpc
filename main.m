@@ -5,7 +5,9 @@ if verLessThan('matlab','9.10')
     warning("Code is developed in MATLAB 2021a, prepare for backward incompatibilities.")
 end
 
-options = startOptions();
+%options = startOptions();
+[options, vehicle_ids] = eval_guided_mode(1);
+options.is_eval = true;
 is_sim_lab = options.is_sim_lab;
 
 %% Determine options
@@ -52,7 +54,9 @@ if is_sim_lab
 
 else
     disp('cpmlab')
-    vehicle_ids = [varargin{:}];
+    if ~options.is_eval
+        vehicle_ids = [varargin{:}];
+    end
     options.amount = numel(vehicle_ids);
     options.isPB = true;
     manualVehicle_id = 0;
@@ -174,7 +178,7 @@ while (~got_stop)
 
     scenario.k = k;
 
-    %disp(['>>> Time step ' num2str(scenario.k) ''])
+    disp(['>>> Time step ' num2str(scenario.k) ''])
 
 
     % Control

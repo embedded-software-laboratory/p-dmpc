@@ -1,4 +1,4 @@
-function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets, varargin)
+function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets, considerRSS, varargin)
 % GET_REACHABLE_SETS Calculate the reachable sets based on the current pose
 % and trim of the vehicle by tranlating the local reachable sets. If
 % vehicle's predicted lanelet boundary is available, the reachable sets
@@ -52,6 +52,12 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
                 polysort = sortregions(ploy_reachable_sets,'numsides','descend'); % sort by number of sides
                 ploy_reachable_sets = rmboundary(polysort,2:polysort.NumRegions);
             end       
+        end
+
+        if isempty(ploy_reachable_sets.Vertices) && considerRSS
+            % empy reachable set due to intersection with wrong lanelet boundary
+            % restore reachable set
+            ploy_reachable_sets = polyshape(reachable_set_x, reachable_set_y, 'Simplify', false);
         end
 
         if is_allow_non_convex
