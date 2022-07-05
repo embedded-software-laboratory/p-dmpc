@@ -158,16 +158,19 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
 
     % states of other vehicles can be directed measured
 %     iter.x0 = repmat(x_measured,num_active_vehs,1); % debug
-    iter.x0 = x_measured;
+%     iter.x0 = x_measured;
     
     for iVeh=1:scenario.options.num_active_vehs
         if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
-            latest_msg_i = scenario.vehicles(1).communicate.read_message(scenario.ros_subscribers{iVeh}, scenario.k-1);
+            latest_msg_i = scenario.vehicles(1).communicate.readMsg_trafficInfo(scenario.rosSubs_trafficInfo{iVeh,1}, scenario.k-1, scenario.dt);
 
             oldness_msg = scenario.k - latest_msg_i.time_step;
             iter.trim_indices(iVeh) = latest_msg_i.predicted_trims(oldness_msg+1);
+
+            % get states of vehicles
+            iter.x0(iVeh,:) = latest_msg_i.states(:)'; % to row vector
         else
             % if parallel computation is not used, other vehicles' trims are measured 
             iter.trim_indices = trims_measured;
@@ -376,6 +379,12 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         area_large_offset = mpa.emengency_braking_maneuvers{trim_current}.area_large_offset;
         [area_large_offset_x,area_large_offset_y] = translate_global(yaw0,x0,y0,area_large_offset(1,:),area_large_offset(2,:));
         iter.emergency_braking_maneuvers{iVeh}.area_large_offset = [area_large_offset_x;area_large_offset_y];
+    end
+
+    % Send message of time step at which all the latest messages from
+    % others are read and thus not needed anymore
+    for jVeh = 1:nVeh
+        scenario.vehicles(jVeh).communicate.sendMsg_timeStepAllMsgsAreRead(scenario.k);
     end
    
     % Determine Obstacle positions (x = x0 + v*t)

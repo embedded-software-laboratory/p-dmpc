@@ -38,15 +38,17 @@ function info = pb_controller_fallback(info, info_old, scenario)
             % send message
             predicted_trims = info.predicted_trims(veh_idx,:);
             trim_current = predicted_trims(1);
-            x0 = info.vehicle_fullres_path{veh_idx}(1,indices().x);
-            y0 = info.vehicle_fullres_path{veh_idx}(1,indices().y);
+            
+            states = info.vehicle_fullres_path{veh_idx}(1,:);
+            x0 = states(indices().x);
+            y0 = states(indices().y);
 
             [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, veh_idx, trim_current, x0, y0);
 
             is_fallback = true;
             
             % send message
-            send_message(scenario.vehicles(veh_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, info.shapes(veh_idx,:),is_fallback,vehs_fallback);
+            send_message(scenario.vehicles(veh_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, info.shapes(veh_idx,:),is_fallback,vehs_fallback,states);
         end
 
     end

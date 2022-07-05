@@ -1,4 +1,4 @@
-function result = main_lab_distributed(lab_veh_id)
+function result = main_sim_distributed(lab_veh_id)
 % MAIN  main function for graph-based receeding horizon control
 % INPUT: 
 %   lab_vehicle_id: (an initeger number) ID of the vehicle which is controlled by this HLC 
@@ -10,7 +10,6 @@ end
 % options = startOptions(); % This does not work for NUC since we cannot
 % get access to them during running
 options.trim_set = 9;
-options.dt = [];
 options.T_end = inf;
 options.Hp = 5;
 options.isParl = true;
@@ -25,9 +24,10 @@ options.priority = 'right_of_way_priority';
 options.is_single_HLC = false;
 options.force_feedback_enabled = false;
 
-options.visu = [0,0];
-options.is_sim_lab = false;
-options.num_active_vehs = [];
+options.dt = 0.2;
+options.visu = [1,0];
+options.is_sim_lab = true;
+options.num_active_vehs = 3;
 
 is_sim_lab = options.is_sim_lab;
 
@@ -100,7 +100,7 @@ scenario.options = options;
 scenario.vehicles.ID = lab_veh_id;
  
 if is_sim_lab
-    exp = SimLab(scenario, options);
+    exp = SimLab(scenario);
 else
     exp = CPMLab(scenario, lab_veh_id, options);
 end
@@ -117,7 +117,7 @@ controller_init = false;
 
 exp.setup();
 
-if ~options.is_single_HLC
+if ~options.is_single_HLC && ~is_sim_lab
     options.num_active_vehs = exp.num_active_vehs; % total number of active vehicles in the lab
     options.dt = exp.middleware_period_ms/1e3; % msec to sec
     scenario.options = options; % update options
@@ -167,7 +167,7 @@ while (~got_stop)
 
     scenario.k = k;
 
-    %disp(['>>> Time step ' num2str(scenario.k) ''])
+    disp(['>>> Time step ' num2str(scenario.k) ''])
 
 
     % Control
@@ -175,6 +175,8 @@ while (~got_stop)
      
     % Update the iteration data and sample reference trajectory
     [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
+
+    % send mess
     initialized_reference_path = true;
 
     if scenario.options.is_mixed_traffic
@@ -285,7 +287,6 @@ while (~got_stop)
     result.n_expanded(k) = info.n_expanded;
     result.priority(:,k) = scenario.priority_list;
     result.computation_levels(k) = info.computation_levels;
-    result.step_time(k) = toc(result.step_timer);
     if scenario.options.is_single_HLC
         % this information is available when only single HLC is used
         result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
@@ -304,6 +305,8 @@ while (~got_stop)
         end
     end
     result.distance(:,:,k) = distance;
+    
+    result.step_time(k) = toc(result.step_timer);
     % Apply control action
     % -------------------------------------------------------------------------
     exp.apply(info, result, k, scenario); 
@@ -322,6 +325,7 @@ disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
 empty_cells = cell(1,options.amount);
 
 result.scenario.rosSubs_trafficInfo = [];
+result.scenario.rosSubs_timeStepAllMsgsAreRead = [];
 [result.scenario.vehicles.communicate] = empty_cells{:};
 % for i_iter = 1:length(result.iteration_structs)
 %     result.iteration_structs{i_iter}.scenario = [];

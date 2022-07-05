@@ -31,15 +31,16 @@ if is_sim_lab
             %options = selection();
     end
 
-    switch options.amount
-        % specify vehicles IDs
-        case 4
-            vehicle_ids = [14,16,18,20];
-        case 6
-            vehicle_ids = [10,14,16,17,18,20]; 
-        otherwise
-            vehicle_ids = 1:options.amount; % default IDs
-    end
+%     switch options.amount
+%         % specify vehicles IDs
+%         case 4
+%             vehicle_ids = [14,16,18,20];
+%         case 6
+%             vehicle_ids = [10,14,16,17,18,20]; 
+%         otherwise
+%             vehicle_ids = 1:options.amount; % default IDs
+%     end
+    vehicle_ids = 1:options.amount; % default IDs
 
     manualVehicle_id = 0;
     manualVehicle_id2 = 0;
@@ -172,7 +173,7 @@ while (~got_stop)
     
     % Measurement
     % -------------------------------------------------------------------------
-    [x0_measured, trims_measured] = exp.measure(controller_init);% trims_measured： which trim  
+    [x0_measured, trims_measured] = exp.measure(controller_init);% trims_measured： which trim 
 
     % if a vehicle drives in Expert-Mode, the real poses are always needed
     if ~(scenario.options.is_mixed_traffic && (scenario.options.firstManualVehicleMode == 2 || scenario.options.secondManualVehicleMode == 2))
@@ -189,6 +190,7 @@ while (~got_stop)
      
     % Update the iteration data and sample reference trajectory
     [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
+
     initialized_reference_path = true;
 
     if scenario.options.is_mixed_traffic
@@ -312,11 +314,11 @@ while (~got_stop)
     result.n_expanded(k) = info.n_expanded;
     result.priority(:,k) = scenario.priority_list;
     result.computation_levels(k) = info.computation_levels;
-    result.step_time(k) = toc(result.step_timer);
     result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
     if options.isParl
         result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller runtime of each parallel group 
     end
+    result.step_time(k) = toc(result.step_timer);
    
     % Apply control action
     % -------------------------------------------------------------------------
@@ -335,7 +337,8 @@ disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
 % Create comma-separated list
 empty_cells = cell(1,options.amount);
 
-result.scenario.ros_subscribers = [];
+result.scenario.rosSubs_trafficInfo = [];
+result.scenario.rosSubs_timeStepAllMsgsAreRead = [];
 [result.scenario.vehicles.communicate] = empty_cells{:};
 % for i_iter = 1:length(result.iteration_structs)
 %     result.iteration_structs{i_iter}.scenario = [];
