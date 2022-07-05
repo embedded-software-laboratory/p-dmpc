@@ -6,7 +6,8 @@ if verLessThan('matlab','9.10')
 end
 
 %options = startOptions();
-[options, vehicle_ids] = eval_guided_mode(1);
+%[options, vehicle_ids] = eval_guided_mode(2);
+[options, vehicle_ids] = eval_expert_mode(1);
 options.is_eval = true;
 is_sim_lab = options.is_sim_lab;
 
