@@ -7,11 +7,11 @@ function [options, vehicle_ids] = eval_guided_mode(collisionAvoidanceMode)
     options.is_mixed_traffic = true;
     options.scenario = 'Commonroad';
 
-    vehicle_ids = [2,4,6,10,12,14];
-    options.manualVehicle_id = '2';
+    vehicle_ids = [1,3,5,7,9,11,13,15];
+    options.manualVehicle_id = '1';
     options.firstManualVehicleMode = '1';
     options.force_feedback_enabled = false;
-    options.manualVehicle_id2 = '10';
+    options.manualVehicle_id2 = '7';
     options.secondManualVehicleMode = '1';
     options.consider_RSS = false;
     

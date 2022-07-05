@@ -83,7 +83,7 @@ else
 
         if options.collisionAvoidanceMode == 1
             options.isParl = false;
-            options.priority = 'mixed_traffic_priority';
+            options.priority = 'right_of_way_priority';
         elseif options.collisionAvoidanceMode == 2 
             options.isParl = true;
             options.priority = 'right_of_way_priority';
