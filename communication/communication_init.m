@@ -73,7 +73,8 @@ function scenario = communication_init(scenario, exp)
         % to n.
         vehs_to_be_subscribed = 1:scenario.options.num_active_vehs;
     end
-    [scenario.rosSubs_trafficInfo, scenario.rosSubs_timeStepAllMsgsAreRead] = create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
+    [scenario.rosSubs_trafficInfo, scenario.rosSubs_timeStepAllMsgsAreRead, scenario.rosSubs_beginingEachTimeStep] = ...
+        create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
 
     duration = toc(start);
     disp(['Finished in ' num2str(duration) ' seconds.'])
@@ -95,14 +96,11 @@ function scenario = communication_init(scenario, exp)
             vehs_fallback = [];
 
             % Send message of traffic infomation
-            scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, ...
+            scenario.vehicles(jVeh).communicate.sendMsg_trafficInfo(scenario.k, predicted_trims, predicted_lanelets, ...
             predicted_occupied_areas, is_fallback, vehs_fallback, states);
 
-            % Send message of time step at which all the latest messages from
-            % others are read and thus not needed anymore
-            scenario.vehicles(jVeh).communicate.sendMsg_timeStepAllMsgsAreRead(scenario.k);
-            
-            disp(['Vehicle ' num2str(scenario.vehicles(jVeh).ID) ' finished message sending.'])
+%             % Send message of time step at which all the latest messages from others are read 
+%             scenario.vehicles(jVeh).communicate.sendMsg_timeStepAllMsgsAreRead(scenario.k);
         end
     end
 end

@@ -23,7 +23,10 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     set(0,'DefaultTextFontname', 'Verdana');
     set(0,'DefaultAxesFontName', 'Verdana');
 
-    if nargin < 3
+    if nargin < 3 || ~scenario.options.is_single_HLC
+        % if multiple HLCs are used, some future information of other
+        % vehicles is not available; thus only current information is
+        % visualized
         tick_now = 1;
     end
 
@@ -140,10 +143,23 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     end
 
     % Vehicle rectangles
-    for v=1:nVeh
-        veh = scenario.vehicles(v);
-        pos_step = result.trajectory_predictions{v,step_idx};
-        x = pos_step(tick_now,:);
+    for v=1:scenario.options.num_active_vehs
+        if scenario.options.is_single_HLC
+            veh = scenario.vehicles(v);
+        else
+            % assume other vehicles have the same dimension as the ego
+            % vehicle
+            veh = scenario.vehicles(1);
+        end
+
+        if scenario.options.is_single_HLC
+            pos_step = result.trajectory_predictions{v,step_idx};
+            x = pos_step(tick_now,:);
+        else
+            % if multiple HLCs are used, `result.trajectory_predictions` of
+            % other vehicles is not available  
+            x = iter.x0(v,:);
+        end
         vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
         patch(   vehiclePolygon(1,:)...
                 ,vehiclePolygon(2,:)...
@@ -169,9 +185,16 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     end
 
     % plot scenario adjacency
-    if visu.isShowCoupling && scenario.options.is_single_HLC
-        x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
-        x0 = cell2mat(x0);
+    if visu.isShowCoupling
+        if scenario.options.is_single_HLC
+            x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
+            x0 = cell2mat(x0);
+        else
+            % if multiple HLCs are used, `result.trajectory_predictions` of
+            % other vehicles is not available  
+            x0 = iter.x0;
+        end
+
         if ~isempty(scenario.coupling_weights)
             plot_coupling_lines(scenario.coupling_weights, x0, scenario.belonging_vector, scenario.coupling_info, 'ShowWeights', visu.isShowWeight)
         else

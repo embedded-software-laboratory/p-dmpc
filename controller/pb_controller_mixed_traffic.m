@@ -221,7 +221,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 predicted_areas = info.shapes(vehicle_idx,:);
 
                 % send message
-                send_message(scenario.vehicles(vehicle_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas);
+                sendMsg_trafficInfo(scenario.vehicles(vehicle_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas);
             end
             
         end

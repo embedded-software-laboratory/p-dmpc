@@ -46,9 +46,12 @@ function info = pb_controller_fallback(info, info_old, scenario)
             [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, veh_idx, trim_current, x0, y0);
 
             is_fallback = true;
-            
+
+            % Wait until others have finished reading unread messages before continuing to send messages
+            scenario.vehicles(veh_idx).communicate.waitUntilOthersFinishReading(scenario.rosSubs_timeStepAllMsgsAreRead,scenario.dt);
+
             % send message
-            send_message(scenario.vehicles(veh_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, info.shapes(veh_idx,:),is_fallback,vehs_fallback,states);
+            sendMsg_trafficInfo(scenario.vehicles(veh_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, info.shapes(veh_idx,:),is_fallback,vehs_fallback,states);
         end
 
     end

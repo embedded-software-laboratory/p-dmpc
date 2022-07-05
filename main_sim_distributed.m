@@ -27,7 +27,7 @@ options.force_feedback_enabled = false;
 options.dt = 0.2;
 options.visu = [1,0];
 options.is_sim_lab = true;
-options.num_active_vehs = 3;
+options.num_active_vehs = 4;
 
 is_sim_lab = options.is_sim_lab;
 
@@ -140,7 +140,7 @@ if options.isParl && strcmp(scenario.name, 'Commonroad')
     scenario = communication_init(scenario, exp);
 end
 
-vehs_fallback_times = zeros(1,scenario.options.amount); % record the number of successive fallback times of each vehicle 
+vehs_fallback_times = zeros(1,scenario.options.num_active_vehs); % record the number of successive fallback times of each vehicle 
 info_old = []; % old information for fallback
 total_fallback_times = 0; % total times of fallbacks
 
@@ -155,7 +155,17 @@ while (~got_stop)
     
     % increment interation counter
     k = k+1;
-    
+    scenario.k = k;
+    % disp(['>>> Time step ' num2str(scenario.k) ''])
+
+    if ~scenario.options.is_single_HLC
+        % send the current time step to synchronize between multiple HLCs
+        scenario.vehicles(1).communicate.sendMsg_beginingEachTimeStep(scenario.k);
+        % Synchronization: wait for other vehicles until all vehicles are
+        % at the begining of the same time step
+        scenario.vehicles(1).communicate.synchronize(scenario.rosSubs_beginingEachTimeStep, scenario.dt);
+    end    
+
     % Measurement
     % -------------------------------------------------------------------------
     [x0_measured, trims_measured] = exp.measure(controller_init);% trims_measured： which trim  
@@ -165,9 +175,7 @@ while (~got_stop)
         controller_init = true;
     end
 
-    scenario.k = k;
 
-    disp(['>>> Time step ' num2str(scenario.k) ''])
 
 
     % Control
@@ -251,7 +259,7 @@ while (~got_stop)
 
     %% fallback
     vehs_fallback_times(info.vehs_fallback) = vehs_fallback_times(info.vehs_fallback) + 1;
-    vehs_not_fallback = setdiff(1:scenario.options.amount, info.vehs_fallback);
+    vehs_not_fallback = setdiff(1:scenario.options.num_active_vehs, info.vehs_fallback);
     vehs_fallback_times(vehs_not_fallback) = 0; % reset
     
     % check whether at least one vehicle has fallen back Hp times successively
