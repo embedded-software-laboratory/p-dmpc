@@ -23,8 +23,12 @@ function [options, vehicle_ids] = eval_guided_mode(collisionAvoidanceMode)
     options.strategy_consider_veh_without_ROW = '2';
     options.strategy_enter_intersecting_area = '1';
 
+
     % workaround to generate repeatable random numbers
-    rng(20220705,'twister');
+    % use 3 to allow for lane changes of autonomous vehicles into the intersection, and 20220705 instead
+    %rng(20220705,'twister');
+    rng(3,'twister');
+
     test = randi(1);
     options.seed = rng;
     test = randi(1);

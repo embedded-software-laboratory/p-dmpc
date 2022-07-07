@@ -25,13 +25,13 @@ function eval_script()
             if ~action
                 switch action_sequence
                     case 0
-                        disp("started sending sequence: steering right");
+                        disp("sending sequence: steering right");
                     case 1
-                        disp("started sending sequence: steering left");
+                        disp("sending sequence: steering left");
                     case 2
-                        disp("started sending sequence: shift up");         
+                        disp("sending sequence: shift up");         
                     otherwise
-                        disp("started sending sequence: shift down");  
+                        disp("sending sequence: shift down");  
                 end
                 
                 counter = 1000;

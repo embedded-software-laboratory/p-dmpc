@@ -63,6 +63,12 @@ function reference = sampleReferenceTrajectory(nSamples, referenceTrajectory, ve
         remainingLength = norm(currentPoint-referenceTrajectory(TrajectoryIndex,:),2);
         
         if remainingLength > stepSize(i) || TrajectoryIndex == nLinePieces
+            
+            % lanelets have overlapping points, which cannot be used to normalize
+            while (referenceTrajectory(TrajectoryIndex,1) == referenceTrajectory(TrajectoryIndexLast,1) && referenceTrajectory(TrajectoryIndex,2) == referenceTrajectory(TrajectoryIndexLast,2) && TrajectoryIndexLast > 1)
+                TrajectoryIndexLast = TrajectoryIndexLast - 1;
+            end
+            
             %normalize is used to construct a unit vector wrt the line segment
             %if the remaining lenght is larger than step size, then make a
             %step further first until the remaining length is less than the
