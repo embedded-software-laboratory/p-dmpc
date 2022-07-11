@@ -38,7 +38,7 @@ function [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_ass
             % Strategy to let vehicle without the right-of-way enter the intersecting area
             % Ignore coupling edge if not allowed to enter the intersecting area because no collision is possible anymore
             [coupling_weights,lanelet_intersecting_areas,coupling_info] = ...
-                strategy_enter_intersecting_area(iter,coupling_info,coupling_weights,scenario.strategy_enter_intersecting_area,scenario.options.num_active_vehs);
+                strategy_enter_intersecting_area(iter,coupling_info,coupling_weights,scenario.strategy_enter_intersecting_area,scenario.nVeh);
 
         [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info,traffic_info.vehs_at_intersection);
 

@@ -73,7 +73,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
                 if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and
                     % set the predicted occupied areas as dynamic obstacles  
-                    latest_msg = scenario_v.vehicles(1).communicate.read_message(scenario_v.ros_subscribers{veh_with_HP_i}, scenario_v.k);
+                    latest_msg = read_message(scenario_v.vehicles.communicate, scenario_v.ros_subscribers{veh_with_HP_i}, scenario_v.k);
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                     oldness_msg = scenario_v.k - latest_msg.time_step;
                     if oldness_msg ~= 0
