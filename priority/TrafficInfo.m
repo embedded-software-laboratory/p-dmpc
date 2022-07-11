@@ -240,9 +240,6 @@ classdef TrafficInfo
                                 Width_i = scenario.vehicles(1).Width;
                                 Width_j = scenario.vehicles(1).Width;
                             end
-                            if ~scenario.options.is_single_HLC
-                                distance_two_vehs = 1;
-                            end
                             distance_to_collision = distance_two_vehs-(Width_i+Width_j)/2;
                             assert(distance_to_collision>0)
                             STAC = distance_to_collision/max([scenario.mpa.trims.speed]./2);
