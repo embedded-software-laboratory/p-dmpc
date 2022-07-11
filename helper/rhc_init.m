@@ -253,7 +253,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 end
 
                 % if there is a lane change in the random path, add the boundary of the lane before the change as the vehicle might be still on the lane before change
-                if scenario.options.is_single_HLC && scenario.manual_vehicle_id ~= scenario.vehicle_ids(iVeh) && scenario.second_manual_vehicle_id ~= scenario.vehicle_ids(iVeh)
+                if ~scenario.options.is_single_HLC && scenario.manual_vehicle_id ~= scenario.vehicle_ids(iVeh) && scenario.second_manual_vehicle_id ~= scenario.vehicle_ids(iVeh)
                     if ~isempty(scenario.vehicles(iVeh).lane_change_lanes)
                         scenario.vehicles(iVeh).lane_change_lanes = nonzeros(scenario.vehicles(iVeh).lane_change_lanes);
                         for i = 1:(length(scenario.vehicles(iVeh).lane_change_lanes)/2)
