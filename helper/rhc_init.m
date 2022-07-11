@@ -208,7 +208,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
             if iVeh == scenario.vehicles(1).ID
                 % only predict one vehicle's lanelets if multiple HLCs are
                 % used
-                [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario, 1, trim_current, x0, y0);
+                [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0);
                 % reference speed and path points
                 iter.vRef(iVeh,:) = v_ref;
                 
@@ -231,16 +231,9 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 predicted_lanelet_boundary = cell(nVeh, 3);
             else
                 % Get the predicted lanelets of other vehicles
-                if scenario.options.is_single_HLC
-                    if scenario.options.isParl && ~scenario.vehicles(iVeh).autoUpdatedPath
-                        % from received messages if parallel computation is used 
-                        predicted_lanelets= latest_msg_i.predicted_lanelets(:)'; % make row vector
-                    end
-                else
-                    if scenario.options.isParl
-                        % from received messages if parallel computation is used 
-                        predicted_lanelets= latest_msg_i.predicted_lanelets(:)'; % make row vector
-                    end
+                if scenario.options.isParl && ~scenario.vehicles(iVeh).autoUpdatedPath
+                    % from received messages if parallel computation is used 
+                    predicted_lanelets= latest_msg_i.predicted_lanelets(:)'; % make row vector
                 end
 
                 % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
