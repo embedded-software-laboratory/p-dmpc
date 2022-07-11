@@ -5,9 +5,6 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
     % manual_path.points_index: count the max index of reference points for each lanelets
 
     manual_path = struct;
-    
-    disp(sprintf('Manual Vehicle Id: %d', vehid));
-   
     lanelets_index_vehid = startPosition;  
     
     road_data = scenario.road_raw_data;
@@ -71,9 +68,7 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
         end
     end
 
-    for i = 1:length(manual_path.lanelets_index)
-        disp(sprintf('manual path entries: i: %d, entry: %d', i,manual_path.lanelets_index(i)));
-    end
+    disp(sprintf('id: %d, lanelets: [%s]', vehid, join(string(manual_path.lanelets_index))));
 
     %[lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(scenario.options.mixedTrafficScenarioLanelets); 
     % [lanelets, ~,~,~,scenario.lanelet_boundary,~,~] = get_road_data();

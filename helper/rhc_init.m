@@ -10,7 +10,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         if ~initialized_reference_path
             for iVeh = 1:scenario.nVeh
                 index = match_pose_to_lane(scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
-                disp(sprintf("veh ID: %d, index: %d", scenario.vehicle_ids(iVeh), index));
+                %disp(sprintf("veh ID: %d, index: %d", scenario.vehicle_ids(iVeh), index));
 
                 if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.firstManualVehicleMode == 1
@@ -223,6 +223,11 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
                 if scenario.vehicles(iVeh).lanes_before_update ~= zeros(1,2)
                     for i = 1:length(scenario.vehicles(iVeh).lanes_before_update)
+                        if ~ismember(scenario.vehicles(iVeh).lanelets_index(1), predicted_lanelets)
+                            % prevent that first lane is no longer considered when adding lanes before update later
+                            predicted_lanelets = [scenario.vehicles(iVeh).lanelets_index(1), predicted_lanelets];
+                        end
+
                         if ~ismember(scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets)
                             predicted_lanelets = [scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets];
                         end

@@ -7,9 +7,6 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
     random_path = struct;
     lane_change_indices = zeros(10,4);
     lane_change_lanes = zeros(10,2);
-    
-    disp(sprintf('Id: %d', vehid));
-   
     lanelets_index_vehid = startPosition;  
     
     road_data = scenario.road_raw_data;
@@ -107,9 +104,7 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
     %random_path.lanelets_index = [2,4,6,8,59,57,56,54,80,82,84,86,33,31,48,42,39,50,20,63,61,57,];
     %random_path.lanelets_index = [2,4,6,8,57,54,80,82,84,86,31,48,42,50,20,63,61,57];
 
-    for i = 1:length(random_path.lanelets_index)
-        disp(sprintf('random entries: i: %d, entry: %d', i,random_path.lanelets_index(i)));
-    end
+    disp(sprintf('id: %d, lanelets: [%s]', vehid, join(string(random_path.lanelets_index))));
 
     %[lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(scenario.options.mixedTrafficScenarioLanelets);
     % [lanelets, ~,~,~,scenario.lanelet_boundary,~,~] = get_road_data();
