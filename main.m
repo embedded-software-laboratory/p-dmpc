@@ -6,9 +6,6 @@ if verLessThan('matlab','9.10')
 end
 
 options = startOptions();
-options.is_single_HLC = true;
-options.num_active_vehs = options.amount;
-
 is_sim_lab = options.is_sim_lab;
 
 %% Determine options

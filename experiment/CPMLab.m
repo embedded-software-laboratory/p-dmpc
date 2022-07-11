@@ -122,30 +122,30 @@ classdef CPMLab < InterfaceExperiment
                 end
             end
             
-            % TODO: get active vehicle IDs
-%             lab_vehicle_id = obj.vehicle_ids;
-%             assert(length(lab_vehicle_id)==1)
-%             
-%             disp(lab_vehicle_id);
-% 
-%             % Get important Parameter's from the LCC
-%             requester = ParameterRequester();
-% 
-%             parameter_name = 'active_vehicle_ids';
-%             parameter_vehicle_ids = requester.requestParameter( parameter_name );
-%             lab_vehicle_ids = parameter_vehicle_ids.values_int32;
-% 
-%             parameter_name = 'middleware_period_ms';
-%             parameter_middleware_period_ms = requester.requestParameter( parameter_name );
-%             middleware_period_ms = parameter_middleware_period_ms.value_uint64_t;
-% 
-%             % Get internal vehicle ID of our HLC
-%             % If we are the third vehicle in the lab_vehicle_ids list, then we are
-%             % vehicle ID 3 in our HLC.
-%             vehicle_id = find( lab_vehicle_ids == lab_vehicle_id );
-% 
-%             % Number of active vehicles
-%             no_of_vehicles = size( lab_vehicle_ids, 2 );
+            % get active vehicle IDs
+            lab_vehicle_id = obj.vehicle_ids;
+            assert(length(lab_vehicle_id)==1)
+            
+            disp(lab_vehicle_id);
+
+            % Get important Parameter's from the LCC
+            requester = ParameterRequester();
+
+            parameter_name = 'active_vehicle_ids';
+            parameter_vehicle_ids = requester.requestParameter( parameter_name );
+            lab_vehicle_ids = parameter_vehicle_ids.values_int32;
+
+            parameter_name = 'middleware_period_ms';
+            parameter_middleware_period_ms = requester.requestParameter( parameter_name );
+            middleware_period_ms = parameter_middleware_period_ms.value_uint64_t;
+
+            % Get internal vehicle ID of our HLC
+            % If we are the third vehicle in the lab_vehicle_ids list, then we are
+            % vehicle ID 3 in our HLC.
+            vehicle_id = find( lab_vehicle_ids == lab_vehicle_id );
+
+            % Number of active vehicles
+            no_of_vehicles = size( lab_vehicle_ids, 2 );
         end
 
         function wheelData = getWheelData(obj)
