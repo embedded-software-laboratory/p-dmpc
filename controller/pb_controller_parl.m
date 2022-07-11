@@ -140,18 +140,12 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
         % Communicate data to other vehicles
         % Trick: vehicles will wait for the last vehicle in the same computation level has planned 
         % to avoid receiving messages of the current time step from vehicles in the same computation level.         
-        for vehicle_kdx = vehs_level_i
-            if scenario.options.is_single_HLC
-                vehicle_k = vehicle_kdx;
-                if vehicle_k~=scenario.vehicles(1).ID
+        for vehicle_k = vehs_level_i
+            if ~scenario.options.is_single_HLC && vehicle_k~=scenario.vehicles(1).ID
                 % if multiple HLCs are used, only the vehicle controlled by
                 % this HLC should send message 
-                    continue
-                end
-            else
-                vehicle_k = 1;
+                continue
             end
-
             if ismember(vehicle_k, info.vehs_fallback)
                 % if the selected vehicle should take fallback
                 continue
@@ -181,9 +175,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
     % total runtime of subcontroller
     info.subcontroller_runtime = info.subcontroller_runtime + msg_send_time + runtime_others;
     % Calculate the total runtime of each group
-    if scenario.options.is_single_HLC
-        info = get_run_time_total_all_grps(info, scenario.parl_groups_info, CL_based_hierarchy);
-    end
+    info = get_run_time_total_all_grps(info, scenario.parl_groups_info, CL_based_hierarchy);
 end
 
 
