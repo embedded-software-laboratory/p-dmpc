@@ -15,14 +15,9 @@ classdef SimLab < InterfaceExperiment
     end
     
     methods
-        function obj = SimLab(scenario)
-            obj.doOnlinePlot = scenario.options.visu(1);
-            if obj.doOnlinePlot && ~scenario.options.is_single_HLC && scenario.vehicle_ids ~= 1
-                % if multiple HLCs are used, only enable one HLC to do
-                % online plotting
-                obj.doOnlinePlot = 0;
-            end
-            obj.doExploration = scenario.options.visu(2);
+        function obj = SimLab(scenario, options)
+            obj.doOnlinePlot = options.visu(1);
+            obj.doExploration = options.visu(2);
             obj.scenario = scenario;
 
             % variables for key press callback
@@ -122,15 +117,16 @@ classdef SimLab < InterfaceExperiment
                 exploration_struct = [];
             end
             if obj.doOnlinePlot
+                % wait to simulate realtime plotting
+                pause(obj.scenario.dt-result.step_time(obj.k))
+
                 % visualize time step
                 tick_now = obj.scenario.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
-%             else
-%                 % pause so that `keyPressCallback()` can be executed in time
-%                 pause(0.001)
+            else
+                % pause so that `keyPressCallback()` can be executed in time
+                pause(0.001)
             end
-            % wait to simulate realtime plotting
-            pause(obj.scenario.dt-result.step_time(obj.k))
         end
         
         function got_stop = is_stop(obj)

@@ -321,7 +321,7 @@ disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
 % Create comma-separated list
 empty_cells = cell(1,options.amount);
 
-result.scenario.rosSubs_trafficInfo = [];
+result.scenario.ros_subscribers = [];
 [result.scenario.vehicles.communicate] = empty_cells{:};
 % for i_iter = 1:length(result.iteration_structs)
 %     result.iteration_structs{i_iter}.scenario = [];

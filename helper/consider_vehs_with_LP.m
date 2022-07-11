@@ -32,7 +32,7 @@ function scenario_v = consider_vehs_with_LP(scenario_v, iter, all_coupling_vehs_
                 
             case '5'
                 % consider old trajectory as dynamic obstacle
-                latest_msg = scenario_v.rosSubs_trafficInfo{veh_without_ROW,1}.LatestMessage;
+                latest_msg = scenario_v.ros_subscribers{veh_without_ROW}.LatestMessage;
                 if latest_msg.time_step > 0
                     % the message does not come from the initial time step
                     predicted_areas = arrayfun(@(array) {[array.x';array.y']}, latest_msg.predicted_areas);

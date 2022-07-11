@@ -73,7 +73,7 @@ function scenario = communication_init(scenario, exp)
         % to n.
         vehs_to_be_subscribed = 1:scenario.options.num_active_vehs;
     end
-    [scenario.rosSubs_trafficInfo, scenario.rosSubs_timeStepAllMsgsAreRead] = create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
+    scenario.ros_subscribers = create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
 
     duration = toc(start);
     disp(['Finished in ' num2str(duration) ' seconds.'])
@@ -83,25 +83,15 @@ function scenario = communication_init(scenario, exp)
         for jVeh = 1:nVeh
             predicted_trims = repmat(trims_measured(jVeh), 1, Hp+1); % current trim and predicted trims in the prediction horizon
 
-            states = x0_measured(jVeh,:);
-
-            x0 = states(indices().x); % vehicle position x
-            y0 = states(indices().y); % vehicle position y            
+            x0 = x0_measured(jVeh,indices().x); % vehicle position x
+            y0 = x0_measured(jVeh,indices().y); % vehicle position y
 
             predicted_lanelets = get_predicted_lanelets(scenario,jVeh,predicted_trims(1),x0,y0);
 
             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
             is_fallback = false; % whether vehicle should take fallback
             vehs_fallback = [];
-
-            % Send message of traffic infomation
-            scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, ...
-            predicted_occupied_areas, is_fallback, vehs_fallback, states);
-
-            % Send message of time step at which all the latest messages from
-            % others are read and thus not needed anymore
-            scenario.vehicles(jVeh).communicate.sendMsg_timeStepAllMsgsAreRead(scenario.k);
-            
+            scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback, vehs_fallback);   
             disp(['Vehicle ' num2str(scenario.vehicles(jVeh).ID) ' finished message sending.'])
         end
     end
