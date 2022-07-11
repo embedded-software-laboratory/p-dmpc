@@ -289,10 +289,7 @@ while (~got_stop)
     result.priority(:,k) = scenario.priority_list;
     result.computation_levels(k) = info.computation_levels;
     result.step_time(k) = toc(result.step_timer);
-    if scenario.options.is_single_HLC
-        % this information is available when only single HLC is used
-        result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
-    end
+    result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
     if options.isParl
         result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller runtime of each parallel group 
     end
