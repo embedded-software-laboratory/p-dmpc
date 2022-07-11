@@ -4,16 +4,12 @@ classdef Communication
     properties
         ros2_node;              % node of ROS 2
         vehicle_id;             % vehicle ID
-        pub_trafficInfo;            % publish traffic information (after graph search)
-        pub_beginingEachTimeStep    % publish the current time step at the begining of each time step
-        pub_timeStepAllMsgsAreRead; % publish the current time step immediately after all latest traffic information messages from others are read during each time step 
-        
-        publisher_c;            % vehicle as publisher to send message
+        publisher_a;            % vehicle as publisher to send message
+        publisher_b;            % vehicle as publisher to send message
         time_step = int32(0);   % time step
         stored_msgs;            % stored messages
-        msg_trafficInfo;       % initialize message type
-        msg_beginingEachTimeStep;       % initialize message type
-        msg_timeStepAllMsgsAreRead;       % initialize message type
+        msg_to_be_sent_a;       % initialize message type
+        msg_to_be_sent_b;       % initialize message type
         options;                % options to create publisher and subscriber
     end
     
@@ -39,52 +35,47 @@ classdef Communication
 
         function obj = create_publisher(obj)
             % workaround to be able to create publisher in the lab
-            obj.pub_trafficInfo = ros2publisher(obj.ros2_node,"/parameter_events");
+            obj.publisher_a = ros2publisher(obj.ros2_node,"/parameter_events");
             % create publisher: each vehicle send message only to its own topic with name '/vehicle_ID'
 
             % Main topic: predicted trajectory, trims, lanelets and so on
-            topic_name_a = ['/vehicle_',num2str(obj.vehicle_id),'_trafficInfo']; 
+            topic_name_a = ['/vehicle_',num2str(obj.vehicle_id),'_a']; 
             % Subtopic: timestep at which all the latest messages from others
             % are read and not needed anymore so that others can feel free
             % to send their newest message (this precondition is to be
             % fulfilled because only the latest messages from others are
             % available. In other word, we do not need to save old
             % messages)
-            topic_name_b = ['/vehicle_',num2str(obj.vehicle_id),'_timeStepAllMsgsAreRead']; 
-            topic_name_c = ['/vehicle_',num2str(obj.vehicle_id),'_beginingEachTimeStep']; 
+            topic_name_b = ['/vehicle_',num2str(obj.vehicle_id),'_b']; 
 
-            [obj.pub_trafficInfo, obj.msg_trafficInfo] = ros2publisher(obj.ros2_node, topic_name_a, "veh_msgs/Traffic", obj.options);
-            [obj.pub_timeStepAllMsgsAreRead, obj.msg_beginingEachTimeStep] = ros2publisher(obj.ros2_node, topic_name_b, "std_msgs/Int32", obj.options);
-            [obj.pub_beginingEachTimeStep, obj.msg_timeStepAllMsgsAreRead] = ros2publisher(obj.ros2_node, topic_name_c, "std_msgs/Int32", obj.options);
+            [obj.publisher_a, obj.msg_to_be_sent_a] = ros2publisher(obj.ros2_node, topic_name_a, "veh_msgs/Traffic", obj.options);
+            [obj.publisher_b, obj.msg_to_be_sent_b] = ros2publisher(obj.ros2_node, topic_name_b, "std_msgs/Int32", obj.options);
         end
 
-        function [rosSubs_trafficInfo,rosSubs_timeStepAllMsgsAreRead,rosSubs_beginingEachTimeStep] = create_subscriber(obj, vehs_to_be_subscribed)
-            num_subs = length(vehs_to_be_subscribed);
-            rosSubs_trafficInfo = cell(num_subs, 1);
-            rosSubs_timeStepAllMsgsAreRead = cell(num_subs, 1);
-            rosSubs_beginingEachTimeStep = cell(num_subs, 1);
+        function [rosSubs_trafficInfo,rosSubs_timeStepAllMsgsAreRead] = create_subscriber(obj, vehs_to_be_subscribed)
 
+            rosSubs_trafficInfo = cell(length(vehs_to_be_subscribed), 1);
+            rosSubs_timeStepAllMsgsAreRead = cell(length(vehs_to_be_subscribed), 1);
             % create subscribers: all topics should be subscribed
-            for i = 1:num_subs
+            for i = 1:length(vehs_to_be_subscribed)
                 veh_id = vehs_to_be_subscribed(i);
-                topic_name_a = ['/vehicle_',num2str(veh_id),'_trafficInfo'];
-                topic_name_b = ['/vehicle_',num2str(veh_id),'_timeStepAllMsgsAreRead']; 
-                topic_name_c = ['/vehicle_',num2str(veh_id),'_beginingEachTimeStep']; 
+                topic_name_a = ['/vehicle_',num2str(veh_id),'_a']; % main topic: predicted trajectory, trims, lanelets and so on
+                topic_name_b = ['/vehicle_',num2str(veh_id),'_b']; % subtopic: timestep at which all the latest messages from others are read and not needed anymore
+
 %                 callback = {@(msg) disp(msg)}; % callback function which will be executed automatically when receiving new message 
 %                 obj.subscribe{iVeh} = ros2subscriber(obj.ros2_node,topic_name_subscribe,"veh_msgs/Traffic",@callback_when_receiving_message,options);
 %                 obj.subscribe{iVeh} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Traffic", options);
                 rosSubs_trafficInfo{i,1} = ros2subscriber(obj.ros2_node, topic_name_a, "veh_msgs/Traffic", obj.options);
                 rosSubs_timeStepAllMsgsAreRead{i,1} = ros2subscriber(obj.ros2_node, topic_name_b, "std_msgs/Int32", obj.options);
-                rosSubs_beginingEachTimeStep{i,1} = ros2subscriber(obj.ros2_node, topic_name_c, "std_msgs/Int32", obj.options);
             end
         end
 
-        function sendMsg_trafficInfo(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas, is_fallback, vehs_fallback, states)
+        function send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas, is_fallback, vehs_fallback, states)
             % Send message of traffic information
-            obj.msg_trafficInfo.time_step = int32(time_step);
-            obj.msg_trafficInfo.vehicle_id = int32(obj.vehicle_id);
-            obj.msg_trafficInfo.predicted_trims = int32(predicted_trims(:));
-            obj.msg_trafficInfo.predicted_lanelets = int32(predicted_lanelets(:));
+            obj.msg_to_be_sent_a.time_step = int32(time_step);
+            obj.msg_to_be_sent_a.vehicle_id = int32(obj.vehicle_id);
+            obj.msg_to_be_sent_a.predicted_trims = int32(predicted_trims(:));
+            obj.msg_to_be_sent_a.predicted_lanelets = int32(predicted_lanelets(:));
 
             if nargin <= 5
                 is_fallback = false;
@@ -92,15 +83,15 @@ classdef Communication
                 states = [];
             end
             
-            obj.msg_trafficInfo.is_fallback = is_fallback; % whether vehicle should take fallback
-            obj.msg_trafficInfo.vehs_fallback = int32(vehs_fallback(:)); % which vehicles need to take fallback
+            obj.msg_to_be_sent_a.is_fallback = is_fallback; % whether vehicle should take fallback
+            obj.msg_to_be_sent_a.vehs_fallback = int32(vehs_fallback(:)); % which vehicles need to take fallback
 
             for i = 1:length(predicted_areas)
-                obj.msg_trafficInfo.predicted_areas(i).x = predicted_areas{i}(1,:)';
-                obj.msg_trafficInfo.predicted_areas(i).y = predicted_areas{i}(2,:)';
+                obj.msg_to_be_sent_a.predicted_areas(i).x = predicted_areas{i}(1,:)';
+                obj.msg_to_be_sent_a.predicted_areas(i).y = predicted_areas{i}(2,:)';
             end
 
-            obj.msg_trafficInfo.states = states(:)'; % vehicle states [x;y;yaw;speed]
+            obj.msg_to_be_sent_a.states = states(:)'; % vehicle states [x;y;yaw;speed]
 
             % comment out if vehicles send their reachable sets to others
 %             for j = 1:length(reachable_sets)
@@ -108,22 +99,14 @@ classdef Communication
 %                 msg.reachable_sets(j).y = vehicle.reachable_sets{j}.Vertices(:,2);
 %             end
 
-            send(obj.pub_trafficInfo, obj.msg_trafficInfo);
+            send(obj.publisher_a, obj.msg_to_be_sent_a);
         end
 
         function sendMsg_timeStepAllMsgsAreRead(obj,time_step)
-            % Send the current time step (should be sent immediately after
-            % all the latest traffic information messages from others are
-            % read and thus are not needed anymore)
-            obj.msg_timeStepAllMsgsAreRead.data = int32(time_step);
-            send(obj.pub_timeStepAllMsgsAreRead, obj.msg_timeStepAllMsgsAreRead);
-        end
-
-        function sendMsg_beginingEachTimeStep(obj,time_step)
-            % Send the current time step (should be sent at the begining of
-            % each time step)
-            obj.msg_beginingEachTimeStep.data = int32(time_step);
-            send(obj.pub_beginingEachTimeStep, obj.msg_beginingEachTimeStep);
+            % Send time step at which all the latest messages are read and thus
+            % not needed anymore
+            obj.msg_to_be_sent_b.data = int32(time_step);
+            send(obj.publisher_b, obj.msg_to_be_sent_b);
         end
 
         function latest_msg = readMsg_trafficInfo(obj, sub, time_step, dt)
@@ -131,7 +114,7 @@ classdef Communication
             if nargin==2
                 dt = 0.2;
             end
-            timeout = 10;
+            timeout = dt;
 
             is_timeout = true;
             read_start = tic;   read_time = toc(read_start);
@@ -161,57 +144,10 @@ classdef Communication
         function synchronize(obj, subs, dt)
             % Synchronizes the networked control system according to the
             % timestamp of their messages send via ROS2
-            if nargin <= 2
-                dt = 0.2;
-            end
-            timeout = dt;
-            has_printed_msg = false;
-
-            syn_start = tic;
-
-            % Firstly, wait until there exist messages from all
-            % vehicles (useful for initial timestep)
-            exist_any_empty_msg = any(cellfun(@(c) isempty(c.LatestMessage),subs));
-            if exist_any_empty_msg
-                obj.waitUntilNoEmptyMsg(subs)
-            end
-            
-            while true             
-                % Then check their timestamp
-                time_steps = cellfun(@(c)[c.LatestMessage.data],subs);
-
-                % Vehicle should wait as long as its time step to read all the latest
-                % messages from others is not the smallest
-                if min(time_steps) == time_steps(obj.vehicle_id)
-                    delayed_steps = max(time_steps) - min(time_steps);
-                    if delayed_steps == 0
-                        disp(['All vehicles are at the begining of time step ' num2str(min(time_steps)) '. Synchronization time: ' num2str(toc(syn_start)) ' seconds.'])
-                    else
-                        disp(['The ego vehicle is delayed for ' num2str(delayed_steps) ' time step(s). Synchronization time: ' num2str(toc(syn_start)) ' seconds.'])
-                    end
-
-                    return
-                end
-
-                if toc(syn_start) >= timeout
-                    if ~has_printed_msg
-                        disp(['Already synchronized for ' num2str(toc(syn_start)) ' seconds. Some vehicles are still in the old time step...'])
-                        has_printed_msg = true; % only print once
-                    end
-                end
-
-                pause(1e-4)
-            end
-        end
-
-        function waitUntilOthersFinishReading(obj, subs, dt)
-            % Wait until all vehicles have read the latest messages sent by
-            % others
             if nargin==1
                 dt = 0.2;
             end
             timeout = dt;
-            has_printed_msg = false;
 
             syn_start = tic;
 
@@ -222,6 +158,8 @@ classdef Communication
                 obj.waitUntilNoEmptyMsg(subs)
             end
             
+%             count = 1;
+
             while true             
                 % Then check their timestamp
                 time_steps = cellfun(@(c)[c.LatestMessage.data],subs);
@@ -232,15 +170,14 @@ classdef Communication
                     disp(['All vehicles have read from others. Synchronization time: ' num2str(toc(syn_start)) ' seconds.'])
                     return
                 end
+                
+                pause(1e-4)
 
                 if toc(syn_start) >= timeout
-                    if ~has_printed_msg
-                        disp(['Already synchronized for ' num2str(toc(syn_start)) ' seconds. Waiting for others to read unread messages...'])
-                        has_printed_msg = true; % only print once
-                    end
+                    disp(['Already synchronized for ' num2str(toc(syn_start)) ' seconds. Some vehicles still have not read from others.'])
+                    pause(2)
+%                     count = count*5;
                 end
-
-                pause(1e-4)
             end
         end
 

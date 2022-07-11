@@ -23,7 +23,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         predicted_lanelets = index;
 
                         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                        scenario.vehicles(iVeh).communicate.sendMsg_trafficInfo(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
+                        scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
                         continue
                     end     
                 elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
@@ -38,7 +38,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         predicted_lanelets = index;
 
                         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                        scenario.vehicles(iVeh).communicate.sendMsg_trafficInfo(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
+                        scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
                         continue
                     end      
                 else
@@ -71,7 +71,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                     predicted_lanelets = get_predicted_lanelets(scenario,iVeh,predicted_trims(1),x0,y0);
 
                     predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                    scenario.vehicles(iVeh).communicate.sendMsg_trafficInfo(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
+                    scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
                 end        
             end
         else
@@ -156,11 +156,9 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
     iter.emergency_braking_maneuvers = cell(num_active_vehs, 1);   % occupied area of emergency braking maneuver
     
 
-    % states of other vehicles can be directed measured if parallel
-    % computation is not used
-    if ~scenario.options.isParl
-        iter.x0 = x_measured;
-    end
+    % states of other vehicles can be directed measured
+%     iter.x0 = repmat(x_measured,num_active_vehs,1); % debug
+%     iter.x0 = x_measured;
     
     for iVeh=1:scenario.options.num_active_vehs
         if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
@@ -385,10 +383,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
 
     % Send message of time step at which all the latest messages from
     % others are read and thus not needed anymore
-    if scenario.options.isParl
-        for jVeh = 1:nVeh
-            scenario.vehicles(jVeh).communicate.sendMsg_timeStepAllMsgsAreRead(scenario.k);
-        end
+    for jVeh = 1:nVeh
+        scenario.vehicles(jVeh).communicate.sendMsg_timeStepAllMsgsAreRead(scenario.k);
     end
    
     % Determine Obstacle positions (x = x0 + v*t)

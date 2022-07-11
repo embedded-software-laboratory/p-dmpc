@@ -176,12 +176,14 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             is_fallback = false;
             vehs_fallback = [];
 
-            % Wait until others have finished reading unread messages before continuing to send messages
-            scenario.vehicles(vehicle_k).communicate.waitUntilOthersFinishReading(scenario.rosSubs_timeStepAllMsgsAreRead,scenario.dt);
+            % synchronize such that vehicles will wait for others until all the
+            % latest messages are read by them before continuing to send messages
+            scenario.vehicles(vehicle_k).communicate.synchronize(scenario.rosSubs_timeStepAllMsgsAreRead,scenario.dt);
 
-            % Send message
-            sendMsg_trafficInfo(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, ...
+            % send message
+            send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, ...
                 predicted_lanelets, predicted_areas_k, is_fallback, vehs_fallback, states_next);
+            disp(['Vehicle ' num2str(vehicle_kdx) ' finished message sending.'])
             msg_send_time(vehicle_k) = toc(msg_send_tic);
         end
 

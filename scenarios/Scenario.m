@@ -54,8 +54,7 @@ classdef Scenario
         coupling_weights = [];          % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
         coupling_info;                  % couling information of each coupling pair
         rosSubs_trafficInfo = {};              % ROS 2 subscribers (read messages of traffic information from other vehicles)
-        rosSubs_timeStepAllMsgsAreRead = {}    % ROS 2 subscribers (read messages of time step which are send after all the latest messages from others are read and thus not needed anymore)
-        rosSubs_beginingEachTimeStep = {}      % ROS 2 subscribers (read messages of time step which are send at the begining of each time step)
+        rosSubs_timeStepAllMsgsAreRead = {}    % ROS 2 subscribers (read messages of time step at which all the latest messages from others are read and thus not needed anymore)
         max_num_CLs                             % max number of computation levels to limit the total planning time in each time step (used in the parallel computation)
         mixedTrafficCollisionAvoidanceMode = 0; % mode for collision avoidance in CPM Lab Mode with manual vehicles
         priority_list = [];             % priority list of vehicles; a smaller value for a higher priority

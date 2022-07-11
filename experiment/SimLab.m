@@ -123,15 +123,14 @@ classdef SimLab < InterfaceExperiment
             end
             if obj.doOnlinePlot
                 % visualize time step
-                tick_now = 1; % plot of next time step. set to 1 for plot of current time step
+                tick_now = obj.scenario.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
 %             else
 %                 % pause so that `keyPressCallback()` can be executed in time
 %                 pause(0.001)
             end
             % wait to simulate realtime plotting
-%             pause(obj.scenario.dt-result.step_time(obj.k))
-%             disp(['Paused ' num2str(obj.scenario.dt-result.step_time(obj.k)) ' seconds.'])
+            pause(obj.scenario.dt-result.step_time(obj.k))
         end
         
         function got_stop = is_stop(obj)

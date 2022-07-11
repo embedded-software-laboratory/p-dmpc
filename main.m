@@ -123,7 +123,7 @@ for iVeh = 1:scenario.options.amount
 end
 
 if is_sim_lab
-    exp = SimLab(scenario);
+    exp = SimLab(scenario, options);
 else
     exp = CPMLab(scenario, vehicle_ids, options);
 end
