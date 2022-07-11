@@ -25,7 +25,7 @@ options.amount = length(lab_veh_id);
 options.isPB = true;
 options.priority = 'right_of_way_priority';
 options.is_single_HLC = false;
-options.num_active_vehs = 2; % total number of active vehicles in the lab
+options.num_active_vehs = 1; % total number of active vehicles in the lab
 
 is_sim_lab = options.is_sim_lab;
 

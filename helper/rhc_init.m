@@ -164,7 +164,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
-            latest_msg_i = scenario.vehicles(1).communicate.read_message(scenario.ros_subscribers{iVeh}, scenario.k-1);
+            latest_msg_i = read_message(scenario.vehicles(iVeh).communicate, scenario.ros_subscribers{iVeh}, scenario.k-1);
 
             oldness_msg = scenario.k - latest_msg_i.time_step;
             iter.trim_indices(iVeh) = latest_msg_i.predicted_trims(oldness_msg+1);
