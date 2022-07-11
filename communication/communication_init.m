@@ -92,7 +92,6 @@ function scenario = communication_init(scenario, exp)
             is_fallback = false; % whether vehicle should take fallback
             vehs_fallback = [];
             scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback, vehs_fallback);   
-            disp(['Vehicle ' num2str(scenario.vehicles(jVeh).ID) ' finished message sending.'])
         end
     end
 end

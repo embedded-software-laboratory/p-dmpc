@@ -83,7 +83,6 @@ function [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_ass
 
     % update properties of scenario 
     scenario.directed_coupling = directed_adjacency;
-    scenario.adjacency = (directed_adjacency+directed_adjacency')~=0; % symmetric adjacency
     scenario.priority_list = priority_list;
     scenario.last_vehs_at_intersection = vehs_at_intersection;
     % visualize the coupling between vehicles

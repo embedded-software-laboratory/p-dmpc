@@ -6,6 +6,8 @@ if verLessThan('matlab','9.10')
 end
 
 options = startOptions();
+options.is_single_HLC = true;
+options.num_active_vehs = options.amount;
 
 is_sim_lab = options.is_sim_lab;
 
@@ -93,14 +95,7 @@ end
     
 % scenario = circle_scenario(options.amount,options.isPB);
 % scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
-options.is_single_HLC = true;
-% number of active vehicles in the lab. 
-% If only a single HLC is used, options.num_active_vehs would equals to
-% options.amount.
-% If multiple HLC is used, options.amount will be one while
-% options.num_active_vehs will be the real number of vehicles.
-options.num_active_vehs = options.amount;
-
+ 
 switch options.scenario
     case 'Circle_scenario'
         scenario = circle_scenario(options);
@@ -121,10 +116,11 @@ for iVeh = 1:scenario.options.amount
     scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
 end
 
+ 
 if is_sim_lab
     exp = SimLab(scenario, options);
 else
-    exp = CPMLab(scenario, vehicle_ids, options);
+    exp = CPMLab(scenario, vehicle_ids);
 end
 
 %% Setup
@@ -346,7 +342,7 @@ result.mpa = scenario.mpa;
 % check if file with the same name exists
 while isfile(result.output_path)
     warning('File with the same name exists, timestamp will be added to the file name.')
-    result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMM'), '.mat']; % move '.mat' to end
+    result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
 end
 
 save(result.output_path,'result');
