@@ -77,7 +77,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         else
             for iVeh = 1:scenario.nVeh
                 scenario.vehicles(iVeh).autoUpdatedPath = false;
-                for i = 1:Length(scenario.vehicles(iVeh).predicted_lanelets)
+                for i = 1:length(scenario.vehicles(iVeh).predicted_lanelets)
                     % if last lane is reached, then lane will be automatically updated
                     if scenario.vehicles(iVeh).predicted_lanelets(i) == scenario.vehicles(iVeh).lanelets_index(end-1)
                         if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh) && ~scenario.updated_manual_vehicle_path
@@ -103,7 +103,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         end
 
                         % save lanes before update to add for boundaries
-                        if scenario.vehicles(iVeh).autoUpdatedPath && Length(scenario.vehicles(iVeh).lanelets_index) > 3
+                        if scenario.vehicles(iVeh).autoUpdatedPath && length(scenario.vehicles(iVeh).lanelets_index) > 3
                             scenario.vehicles(iVeh).lanes_before_update(1,1) = scenario.vehicles(iVeh).lanelets_index(end-2);
                             scenario.vehicles(iVeh).lanes_before_update(1,2) = scenario.vehicles(iVeh).lanelets_index(end-3);
                         end
@@ -245,7 +245,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
 
                 % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
                 if scenario.options.is_single_HLC && scenario.vehicles(iVeh).lanes_before_update ~= zeros(1,2)
-                    for i = 1:Length(scenario.vehicles(iVeh).lanes_before_update)
+                    for i = 1:length(scenario.vehicles(iVeh).lanes_before_update)
                         if ~ismember(scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets)
                             predicted_lanelets = [scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets];
                         end
@@ -256,9 +256,9 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 if scenario.options.is_single_HLC && scenario.manual_vehicle_id ~= scenario.vehicle_ids(iVeh) && scenario.second_manual_vehicle_id ~= scenario.vehicle_ids(iVeh)
                     if ~isempty(scenario.vehicles(iVeh).lane_change_lanes)
                         scenario.vehicles(iVeh).lane_change_lanes = nonzeros(scenario.vehicles(iVeh).lane_change_lanes);
-                        for i = 1:(Length(scenario.vehicles(iVeh).lane_change_lanes)/2)
+                        for i = 1:(length(scenario.vehicles(iVeh).lane_change_lanes)/2)
                             beforeLaneChange = scenario.vehicles(iVeh).lanelets_index(scenario.vehicles(iVeh).lane_change_lanes(i));
-                            laneChange = scenario.vehicles(iVeh).lanelets_index(scenario.vehicles(iVeh).lane_change_lanes(i+(Length(scenario.vehicles(iVeh).lane_change_lanes))/2));
+                            laneChange = scenario.vehicles(iVeh).lanelets_index(scenario.vehicles(iVeh).lane_change_lanes(i+(length(scenario.vehicles(iVeh).lane_change_lanes))/2));
                             if ~ismember(beforeLaneChange, predicted_lanelets) && ismember(laneChange, predicted_lanelets)
                                 predicted_lanelets = [beforeLaneChange, predicted_lanelets];
                             end
@@ -274,7 +274,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 if visualize_trajectory_index_lab
                     % visualize trajectory index
                     visualization_point = 0;
-                    for i = 1:Length(iter.referenceTrajectoryPoints(iVeh,:,:))
+                    for i = 1:length(iter.referenceTrajectoryPoints(iVeh,:,:))
                         point.x = iter.referenceTrajectoryPoints(iVeh,i,1);
                         point.y = iter.referenceTrajectoryPoints(iVeh,i,2);
                         visualization_point = point;
@@ -296,7 +296,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
 
                 if visualize_boundaries_lab
                     % visualize boundaries
-                    for i = 1:Length(predicted_lanelet_boundary{1,1})
+                    for i = 1:length(predicted_lanelet_boundary{1,1})
                         left_boundary = predicted_lanelet_boundary{1,1};
                         leftPoint.x = left_boundary(1,i);
                         leftPoint.y = left_boundary(2,i);
@@ -309,7 +309,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         exp.visualize(visualization_command);
                     end
 
-                    for i = 1:Length(predicted_lanelet_boundary{1,2})
+                    for i = 1:length(predicted_lanelet_boundary{1,2})
                         right_boundary = predicted_lanelet_boundary{1,2};
                         rightPoint.x = right_boundary(1,i);
                         rightPoint.y = right_boundary(2,i);
@@ -341,24 +341,14 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         end
 
         % get each vehicle's currently occupied area
-        if scenario.options.is_single_HLC
-            Length = scenario.vehicles(iVeh).Length;
-            Width = scenario.vehicles(iVeh).Width;
-        else
-            % if multiple HLCs are used, only the controlled vehicle's
-            % length and width are known; thus, other vehicles are assumed to
-            % have the same length and width as the controlled vehicle
-            Length = scenario.vehicles(1).Length;
-            Width = scenario.vehicles(1).Width;
-        end
-        x_rec1 = [-1, -1,  1,  1, -1] * (Length/2 + scenario.offset); % repeat the first entry to enclose the shape
-        y_rec1 = [-1,  1,  1, -1, -1] * (Width/2 + scenario.offset);
+        x_rec1 = [-1, -1,  1,  1, -1] * (scenario.vehicles(iVeh).Length/2 + scenario.offset); % repeat the first entry to enclose the shape
+        y_rec1 = [-1,  1,  1, -1, -1] * (scenario.vehicles(iVeh).Width/2 + scenario.offset);
         % calculate displacement of model shape
         [x_rec2, y_rec2] = translate_global(yaw0, x0, y0, x_rec1, y_rec1);
         iter.occupied_areas{iVeh}.normal_offset = [x_rec2; y_rec2];
 
-        x_rec1_without_offset = [-1, -1,  1,  1, -1] * (Length/2); % repeat the first entry to enclose the shape
-        y_rec1_without_offset = [-1,  1,  1, -1, -1] * (Width/2);
+        x_rec1_without_offset = [-1, -1,  1,  1, -1] * (scenario.vehicles(iVeh).Length/2); % repeat the first entry to enclose the shape
+        y_rec1_without_offset = [-1,  1,  1, -1, -1] * (scenario.vehicles(iVeh).Width/2);
         [x_rec2_without_offset, y_rec2_without_offset] = translate_global(yaw0, x0, y0, x_rec1_without_offset, y_rec1_without_offset);
         iter.occupied_areas{iVeh}.without_offset = [x_rec2_without_offset; y_rec2_without_offset];
 
