@@ -184,47 +184,31 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         end
         trim_current = iter.trim_indices(iVeh);
 
-        if scenario.options.is_single_HLC
-            iter.scenario.vehicles(iVeh).x_position = x0;
-            iter.scenario.vehicles(iVeh).y_position = y0;
-        end
+        iter.scenario.vehicles(iVeh).x_position = x0;
+        iter.scenario.vehicles(iVeh).y_position = y0;
 
         % Get the predicted lanelets of other vehicles
         % Byproducts: reference path and reference speed profile
-        if scenario.options.is_single_HLC
-            [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0);
-            if ~((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
-                || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
-                % reference speed and path points
-                iter.vRef(iVeh,:) = v_ref;
-                
-                % equidistant points on the reference trajectory.
-                iter.referenceTrajectoryPoints(iVeh,:,:) = reference.ReferencePoints;
-                iter.referenceTrajectoryIndex(iVeh,:,:) = reference.ReferenceIndex;
-    
-                iter_scenario.vehicles(iVeh).last_trajectory_index = reference.ReferenceIndex(end);
-            end
-        else
-            if iVeh == scenario.vehicles(1).ID
-                % only predict one vehicle's lanelets if multiple HLCs are
-                % used
-                [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0);
-                % reference speed and path points
-                iter.vRef(iVeh,:) = v_ref;
-                
-                % equidistant points on the reference trajectory.
-                iter.referenceTrajectoryPoints(iVeh,:,:) = reference.ReferencePoints;
-                iter.referenceTrajectoryIndex(iVeh,:,:) = reference.ReferenceIndex;
-    
-                iter_scenario.vehicles(iVeh).last_trajectory_index = reference.ReferenceIndex(end);
-            end
+        [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0);
+%             iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,iter.trim_indices(iVeh));
+
+        if ~((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+            || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+            % reference speed and path points
+            iter.vRef(iVeh,:) = v_ref;
+            
+            % equidistant points on the reference trajectory.
+            iter.referenceTrajectoryPoints(iVeh,:,:) = reference.ReferencePoints;
+            iter.referenceTrajectoryIndex(iVeh,:,:) = reference.ReferenceIndex;
+
+            iter_scenario.vehicles(iVeh).last_trajectory_index = reference.ReferenceIndex(end);
         end
         
         if strcmp(scenario.name, 'Commonroad')
 
             % Vehicle in Expert-Mode does not consider boundaries
-            if scenario.options.is_single_HLC && (((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
-                || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2)))
+            if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+                || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
 
                 iter.predicted_lanelets{iVeh} = predicted_lanelets;
                 iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
@@ -237,7 +221,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 end
 
                 % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
-                if scenario.options.is_single_HLC && scenario.vehicles(iVeh).lanes_before_update ~= zeros(1,2)
+                if scenario.vehicles(iVeh).lanes_before_update ~= zeros(1,2)
                     for i = 1:length(scenario.vehicles(iVeh).lanes_before_update)
                         if ~ismember(scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets)
                             predicted_lanelets = [scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets];
@@ -246,7 +230,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 end
 
                 % if there is a lane change in the random path, add the boundary of the lane before the change as the vehicle might be still on the lane before change
-                if ~scenario.options.is_single_HLC && scenario.manual_vehicle_id ~= scenario.vehicle_ids(iVeh) && scenario.second_manual_vehicle_id ~= scenario.vehicle_ids(iVeh)
+                if ~scenario.options.is_sim_lab && scenario.manual_vehicle_id ~= scenario.vehicle_ids(iVeh) && scenario.second_manual_vehicle_id ~= scenario.vehicle_ids(iVeh)
                     if ~isempty(scenario.vehicles(iVeh).lane_change_lanes)
                         scenario.vehicles(iVeh).lane_change_lanes = nonzeros(scenario.vehicles(iVeh).lane_change_lanes);
                         for i = 1:(length(scenario.vehicles(iVeh).lane_change_lanes)/2)
@@ -260,9 +244,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 end
 
                 iter.predicted_lanelets{iVeh} = predicted_lanelets;
-                if scenario.options.is_single_HLC
-                    iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
-                end
+                iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
                 
                 if visualize_trajectory_index_lab
                     % visualize trajectory index
@@ -321,7 +303,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 % Calculate reachable sets of other vehicles based on their
                 % current states and trims. Reachability analysis will be
                 % widely used in the parallel computation.
-                if scenario.options.is_single_HLC && ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
+                if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
                     || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
                     local_reachable_sets = scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
                 else
@@ -348,7 +330,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         % Get vehicle's occupied area of emergency braking maneuver
         % with normal offset
 
-        if scenario.options.is_single_HLC && ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
+        if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
             || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
             mpa = scenario.vehicles(iVeh).vehicle_mpa;
         else
