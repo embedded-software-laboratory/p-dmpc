@@ -215,6 +215,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 % equidistant points on the reference trajectory.
                 iter.referenceTrajectoryPoints(iVeh,:,:) = reference.ReferencePoints;
                 iter.referenceTrajectoryIndex(iVeh,:,:) = reference.ReferenceIndex;
+    
+                iter_scenario.vehicles(iVeh).last_trajectory_index = reference.ReferenceIndex(end);
             end
         end
         
