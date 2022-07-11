@@ -37,7 +37,7 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
                 - tril(ones(ntrims-1),-2);
     
         case 3
-            %% 4 trims: two speeds (0 and 0.75 m/s), three steering
+            %% 4 trims: two speeds (0 and 0.75 m/s), three steering (-pi/9 and pi/9)
             steering = (-1:1) * pi/9;
             ntrims = numel(steering)+1;
             trim_inputs = zeros(ntrims,2);
@@ -187,6 +187,15 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
             trim_adjacency(2:end,2:end) = trim_adjacency(2:end,2:end) ...
                 - triu(ones(ntrims-1),2)...
                 - tril(ones(ntrims-1),-2);
+        case 11
+            %% 4 trims: two speeds (0 and 0.1 m/s), three steering (-pi/18 and pi/18)
+            steering = (-1:1) * pi/9;
+            ntrims = numel(steering)+1;
+            trim_inputs = zeros(ntrims,2);
+            trim_inputs(2:end,1) = steering;
+            trim_inputs(2:end,2) = 0.1;
+            % All states connected
+            trim_adjacency = ones(ntrims);
     end
 %     visualize_trims(trim_inputs,trim_adjacency)
 end

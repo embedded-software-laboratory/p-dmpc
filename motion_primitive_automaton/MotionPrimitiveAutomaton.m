@@ -11,6 +11,8 @@ classdef MotionPrimitiveAutomaton
         recursive_feasibility
         local_reachable_sets        % local reachable sets of each trim (possibly non-convex)
         local_reachable_sets_conv;  % Convexified local reachable sets of each trim
+        local_center_trajectory     % local trajcetory of the center point
+        local_reachable_sets_CP     % local reachable sets of the center point
         emengency_braking_maneuvers % cell(n_trims, 1), local occupied area of emergency braking maneuver
         shortest_paths_to_max_speed     % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with maximum speed
         shortest_paths_to_equilibrium   % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
@@ -104,7 +106,9 @@ classdef MotionPrimitiveAutomaton
                 
             % For parallel computation, reachability analysis are used
             if options.isParl
-                [obj.local_reachable_sets, obj.local_reachable_sets_conv] = reachability_analysis_offline(obj,N);
+                is_calculate_reachable_sets_of_CP = true; % whether to calculate center point's reachable sets
+                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP] = ...
+                    reachability_analysis_offline(obj,N,is_calculate_reachable_sets_of_CP);
             end
             
             save_mpa(obj,mpa_full_path); % save mpa to library
@@ -152,7 +156,7 @@ classdef MotionPrimitiveAutomaton
             end
         end
 
-        function [reachable_sets_local, reachable_sets_conv_local] = reachability_analysis_offline(obj, Hp)
+        function [reachable_sets_local, reachable_sets_conv_local, center_trajectory, reachable_sets_CP] = reachability_analysis_offline(obj, Hp, is_calculate_reachable_sets_of_CP)
             % Calculate local reachable sets starting from a certain trim,
             % which can be used for online reachability analysis
             % 
@@ -160,6 +164,8 @@ classdef MotionPrimitiveAutomaton
             %   obj: motion primitive automaton calss
             %   
             %   Hp: prediction horizon
+            %
+            %   is_calculate_reachable_sets_of_CP: whether to calculate center point's reachable sets
             % 
             % OUTPUT:
             %   reachable_sets_local: cell [n_trims x Hp]. The union of local reachable
@@ -169,18 +175,20 @@ classdef MotionPrimitiveAutomaton
             %   of local reachable sets 
             
             offline_computation_start = tic;
-            threshold_Hp = 5;
+            threshold_Hp = 6;
             if Hp > threshold_Hp
-                disp(['Computing the reachable sets now...' newline ...
+                disp(['Computing reachable sets now...' newline ...
                     'Since the prediction horizon is ' num2str(Hp) ' (more than ' num2str(threshold_Hp) '), it may take several minutes.'])
             else
                 disp('Computing local offline reachable sets now...')
             end
-            disp('Note this only needs to be done once since later they will be saved to motion-primitive-automaton library offline.')
+            disp('Note this only needs to be done once as later they will be saved to motion-primitive-automaton library.')
         
             n_trims = numel(obj.trims);
             reachable_sets_local = repmat({polyshape},n_trims,Hp); % cell array with empty polyshapes
             reachable_sets_conv_local = cell(n_trims,Hp);
+            center_trajectory = cell(n_trims,Hp);
+            reachable_sets_CP = repmat({polyshape},n_trims,Hp);
         
             % transform maneuver area to polyshape which is required when using
             % MATLAB function `union`
@@ -222,15 +230,9 @@ classdef MotionPrimitiveAutomaton
                         trimsInfo(i,t).childTrims = [trimsInfo(i,t).childTrims find_child];
                         trimsInfo(i,t).childNum = [trimsInfo(i,t).childNum length(find_child)];
                     end
-                    
-                    % store the union of the reachable sets of the parent trims in the prediction horizon
-%                     trimsInfo(i,t).reachable_sets = polyshape;
-                    % store the union of the reachable sets of the parent trim
-%                     reachable_sets_union = cell(1,length(trimsInfo(i,t).parentTrims));
-                    
+                                        
                     % loop through all parent trims
                     for j=1:length(trimsInfo(i,t).parentTrims)
-%                         reachable_sets_union{j} = polyshape;
                         if t==1
                             x0 = 0;
                             y0 = 0;
@@ -251,28 +253,17 @@ classdef MotionPrimitiveAutomaton
                             [trimsInfo(i,t).maneuvers{child_ordinal}.xs, trimsInfo(i,t).maneuvers{child_ordinal}.ys] = ...
                                 translate_global(yaw0,x0,y0,obj.maneuvers{trim_start,trim_end}.xs,obj.maneuvers{trim_start,trim_end}.ys);
                             trimsInfo(i,t).maneuvers{child_ordinal}.yaws = yaw0 + obj.maneuvers{trim_start,trim_end}.yaws;
-%                             trimsInfo(i,t).maneuvers{child_ordinal}.dx = trimsInfo(i,t).maneuvers{child_ordinal}.xs(end);
-%                             trimsInfo(i,t).maneuvers{child_ordinal}.dy = trimsInfo(i,t).maneuvers{child_ordinal}.ys(end);
-%                             trimsInfo(i,t).maneuvers{child_ordinal}.dyaw = trimsInfo(i,t).maneuvers{child_ordinal}.yaws(end);
-            
+
                             % occupied area of the translated maneuvers
                             [area_x, area_y] = ...
                                 translate_global(yaw0,x0,y0,obj.maneuvers{trim_start,trim_end}.area(1,:),obj.maneuvers{trim_start,trim_end}.area(2,:));
                             trimsInfo(i,t).maneuvers{child_ordinal}.area = [area_x;area_y];
                             trimsInfo(i,t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x,area_y,'Simplify',false);
-            
-                            % union of the reachable sets of one parent trim
-%                             reachable_sets_union{j} = union(reachable_sets_union{j},trimsInfo(i,t).maneuvers{child_ordinal}.areaPoly);
                         end
-
-                        % union of the reachable sets of all parent trims
-%                         trimsInfo(i,t).reachable_sets = union(trimsInfo(i,t).reachable_sets,reachable_sets_union{j});
                     end
-
-                    
                     
                     % MATLAB function `union()` can union multiple polygons
-                    % at the same time, but the number should not be large
+                    % at the same time, but the number should not be very large
                     % as it will run significantly slow.
                     size_union = 15;
                     n_union_times = ceil(length(trimsInfo(i,t).maneuvers)/size_union);
@@ -286,8 +277,13 @@ classdef MotionPrimitiveAutomaton
                     end
                     reachable_sets_conv_local{i,t} = convhull(reachable_sets_local{i,t}); % convexify
 
-%                     reachable_sets_local{i,t} = trimsInfo(i,t).reachable_sets;
-%                     reachable_sets_conv_local{i,t} = convhull(reachable_sets_local{i,t}); % convexify
+                    if is_calculate_reachable_sets_of_CP
+                        % calculate trajectory and convexified reachable sets of the center point
+                        center_trajectory{i,t} = cellfun(@(c) [c.xs;c.ys], trimsInfo(i,t).maneuvers,'UniformOutput',false);
+                        center_tra_xy = [center_trajectory{i,t}{:}];
+                        idx_center_tra_conv= convhull(center_tra_xy(1,:),center_tra_xy(2,:));
+                        reachable_sets_CP{i,t} = polyshape(center_tra_xy(1,idx_center_tra_conv),center_tra_xy(2,idx_center_tra_conv));
+                    end
 
                     % display progress
                     progress = ((i-1)*Hp + t)/(n_trims*Hp)*100; % percentage 
