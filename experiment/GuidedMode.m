@@ -102,7 +102,7 @@ classdef GuidedMode
 
                             % find out successor in reference path
                             for j = 1:(length(lanelets) - 1)
-                                if lanelets(j) == index
+                                if lanelets(j) == index(1)
                                     index_successor = lanelets(j+1);
                                 end
                             end
@@ -128,7 +128,7 @@ classdef GuidedMode
 
                             % find out successor in reference path
                             for j = 1:(length(lanelets) - 1)
-                                    if lanelets(j) == index
+                                    if lanelets(j) == index(1)
                                         index_successor = lanelets(j+1);
                                     end
                             end

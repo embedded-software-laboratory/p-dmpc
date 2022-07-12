@@ -9,6 +9,7 @@ options = startOptions();
 %[options, vehicle_ids] = eval_guided_mode(1);
 %[options, vehicle_ids] = eval_expert_mode(1);
 options.is_eval = false;
+options.visualize_reachable_set = false;
 is_sim_lab = options.is_sim_lab;
 
 %% Determine options
@@ -91,6 +92,7 @@ else
         else
             options.isParl = true;
             options.priority = 'mixed_traffic_priority';
+            options.visualize_reachable_set = true;
         end
     else
         options.firstManualVehicleMode = 0;
@@ -188,6 +190,15 @@ while (~got_stop)
     % Update the iteration data and sample reference trajectory
     [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
     initialized_reference_path = true;
+
+    % visualize reachabel set of vehicle in Expert-Mode
+    for iVeh = 1:scenario.nVeh 
+        if options.visualize_reachable_set && ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+            || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+            [visualization_command] = lab_visualize_polygon(scenario, iter.reachable_sets{iVeh, end}.Vertices, iVeh);
+            exp.visualize(visualization_command);
+        end
+    end
 
     if scenario.options.is_mixed_traffic
         if scenario.manual_vehicle_id ~= 0

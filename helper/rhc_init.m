@@ -15,7 +15,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.firstManualVehicleMode == 1
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
-                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false);
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1), false);
                     else
                         % Communicate predicted trims, predicted lanelets and areas to other vehicles
                         predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
@@ -30,7 +30,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.secondManualVehicleMode == 1
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
-                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false);
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1), false);
                     else
                         % Communicate predicted trims, predicted lanelets and areas to other vehicles
                         predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
@@ -44,7 +44,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                     end      
                 else
                     % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                    [updated_ref_path, scenario, scenario.vehicles(iVeh).lane_change_indices, scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index);
+                    [updated_ref_path, scenario, scenario.vehicles(iVeh).lane_change_indices, scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1));
                 end
                 
                 updatedRefPath = updated_ref_path.path;
@@ -202,15 +202,24 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 predicted_lanelet_boundary = cell(1, 3);
 
                 if scenario.options.consider_RSS
-                    % conisder boundary of current lane
-                    left_bound = struct2cell(scenario.road_raw_data.lanelet(predicted_lanelets).leftBound.point);
-                    right_bound = struct2cell(scenario.road_raw_data.lanelet(predicted_lanelets).rightBound.point);
-                    left_bound = cell2mat(left_bound);
-                    right_bound = cell2mat(right_bound);
+                    % conisder boundary of predicted lanes
+                    leftBound = [];
+                    rightBound = [];
+                    for i = 1:length(predicted_lanelets)
+                        left_bound = struct2cell(scenario.road_raw_data.lanelet(predicted_lanelets(i)).leftBound.point);
+                        right_bound = struct2cell(scenario.road_raw_data.lanelet(predicted_lanelets(i)).rightBound.point);
+                        left_bound = cell2mat(left_bound);
+                        right_bound = cell2mat(right_bound);
 
-                    for i = 1:length(scenario.road_raw_data.lanelet(predicted_lanelets).leftBound.point)
-                        predicted_lanelet_boundary{1}(:,i) = left_bound(:,:,i);
-                        predicted_lanelet_boundary{2}(:,i) = right_bound(:,:,i);
+                        for j = 1:length(scenario.road_raw_data.lanelet(predicted_lanelets(i)).leftBound.point)
+                            leftBound = [leftBound left_bound(:,:,j)];
+                            rightBound = [rightBound right_bound(:,:,j)];
+                        end
+                    end
+
+                    for i = 1:length(leftBound)
+                        predicted_lanelet_boundary{1}(:,i) = leftBound(:,i);
+                        predicted_lanelet_boundary{2}(:,i) = rightBound(:,i);
                     end
                 end
             else

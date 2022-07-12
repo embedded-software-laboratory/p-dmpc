@@ -38,6 +38,12 @@ function index = match_pose_to_lane(scenario, vehicle_x, vehicle_y, iVeh)
                 else
                     index = road_data.lanelet(i).idAttribute;
                 end
+            elseif squared_distance == min_distance
+                if useLaneletIndex && ~ismember(lanelets(i), index)
+                    index = [index lanelets(i)];
+                elseif ~ismember(road_data.lanelet(i).idAttribute, index)
+                    index = [index road_data.lanelet(i).idAttribute];
+                end
             end
         end
 

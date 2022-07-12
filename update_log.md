@@ -1,5 +1,9 @@
 # This file is used to record the update events.
 
+## 2022-07-12, David
+- Added function to visualize polygons in the LCC, e.g., to visualize the reachable set of a vehicle
+- Optimization for `match_pose_to_lane()`
+
 ## 2022-06-29, Jianye
 - Remove redandant points when generating reference path. Redandant points exist because the last point of each lanelet is identical to the first point of its successor lanelet. When concatenate lanelets, there will always be some same rows in the generated two-column matrix.
 - Code optimization of generate_ref_path
