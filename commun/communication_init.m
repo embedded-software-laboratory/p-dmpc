@@ -12,19 +12,47 @@ function scenario = communication_init(scenario, exp)
 %   scenario: instance of the class Scenario with instance of the class
 %   Communication added to it
 
-
     % generate custom message type (for vehicle communication) if not exist
     msgList = ros2("msg","list"); % get all ROS 2 message types
+    [file_path,~,~] = fileparts(mfilename('fullpath'));
     if sum(cellfun(@(c)strcmp(c,'veh_msgs/Traffic'), msgList))==0
         % if the message type 'veh_msgs/Traffic' does not exist 
-        [file_path,~,~] = fileparts(mfilename('fullpath'));
-        path_custom_msg = [file_path,filesep,'custom_msg'];
+        path_custom_msg = [file_path,filesep,'cust1'];
         
-        % Generate custom messages. NOTE that Python, CMake, and a C++
-        % compiler are required (see
+        % Generate custom messages. NOTE that Python, CMake, and a C++ compiler are required (see
         % https://de.mathworks.com/help/ros/gs/ros-system-requirements.html
-        % for more details according to your MATLAB version).
-        ros2genmsg(path_custom_msg) 
+        % for more details according to your own MATLAB version).
+        %
+        % Useful functions: 
+        % 1. pyenv % check python version used by MATLAB
+        % 2. pyenv('Version','requiredPythonVersionNumber') or pyenv('Version','fullPathOfPythonExe')
+        % 3. !cmake --version % CMake version 
+        % 4. mex -setup % set c language compiler
+        %
+        % Note that sometimes ros2genmsg fails although all denpendencies
+        % exist because the path where the custom messages are stored is
+        % too deep. Try to move them to shallower path and try again.
+        disp('Generating ROS 2 custom message type...')
+        try
+            ros2genmsg(path_custom_msg)
+        catch ME
+            disp(['If all environments for ros2genmsg() are prepared but still failed, try to move the whole folder to a ' ...
+                'shallower path and run again if you use Windows machine, which sadly has a max path limit constraint.'])
+            throw(ME)
+        end
+    end
+
+    if sum(cellfun(@(c)strcmp(c,'ros_g29_force_feedback/ForceFeedback'), msgList))==0
+        if ~scenario.options.is_sim_lab    
+            if ispc
+                error('You are using a Windows machine, please do not select lab mode!')
+            end
+            % This message type is only needed for lab mode but not
+            % simulation mode
+            path_custom_msg = [file_path,filesep,'cust2'];
+            disp('Generating ROS 2 custom message type...')
+            ros2genmsg(path_custom_msg)
+        end
     end
 
     nVeh = scenario.nVeh;
