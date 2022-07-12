@@ -1,9 +1,13 @@
 # This file is used to record the update events.
 
+## 2022-07-12, Jianye
+- Add instructions about how to configure MATLAB to run `ros2genmsg()` to readme
+- Find way to avoid error because of max path limit of Windows when running `ros2genmsg()`
+
 ## 2022-06-29, Jianye
-- Remove redandant points when generating reference path. Redandant points exist because the last point of each lanelet is identical to the first point of its successor lanelet. When concatenate lanelets, there will always be some same rows in the generated two-column matrix.
+- Remove redundant points when generating reference path. Redundant points exist because the last point of each lanelet is identical to the first point of its successor lanelet. When concatenate lanelets, there will always be some same rows in the generated two-column matrix.
 - Code optimization of generate_ref_path
-    - Replace the function `getShortestDistance()` which slowly loops over all line segment of reference path with the funtion `get_arc_distance_to_endpoint()`
+    - Replace the function `getShortestDistance()` which slowly loops over all line segment of reference path with the function `get_arc_distance_to_endpoint()`
 
 ## 2022-06-26, Jianye
 - Improve visualization when simulating
