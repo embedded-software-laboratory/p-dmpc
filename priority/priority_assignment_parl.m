@@ -1,6 +1,7 @@
 function [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_assignment_parl(scenario, iter)
     % assign priorities to vehicles when parallel computation is used
     right_of_way = false;
+    lanelet_intersecting_areas = [];
     switch scenario.priority_option
         case 'topo_priority' 
             [CL_based_hierarchy, directed_adjacency, priority_list] = topo_priority().priority(scenario); 
@@ -14,7 +15,7 @@ function [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_ass
             vehs_at_intersection = [];
         
         case 'random_priority'  
-            [CL_based_hierarchy, directed_adjacency, priority_list, parl_groups_info] = random_priority().priority(scenario.options); 
+            [parl_groups_info, CL_based_hierarchy, directed_adjacency, priority_list] = random_priority().priority(scenario.options); 
             vehs_at_intersection = [];
 
         case 'FCA_priority' 
@@ -24,23 +25,22 @@ function [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_ass
             obj = mixed_traffic_priority(scenario);
             [CL_based_hierarchy, directed_adjacency] = obj.priority();
             vehs_at_intersection = [];
-            lanelet_intersecting_areas = [];
     end
 
-    if strcmp(scenario.priority_option,'right_of_way_priority') || strcmp(scenario.priority_option,'mixed_traffic_priority')
+    if strcmp(scenario.priority_option,'right_of_way_priority') || strcmp(scenario.priority_option,'mixed_traffic_priority') || strcmp(scenario.priority_option,'random_priority')
         traffic_info = TrafficInfo(scenario, iter);
 
         coupling_weights = traffic_info.coupling_weights;
         coupling_weights_origin = coupling_weights; % make a copy
         coupling_info = traffic_info.coupling_info;
         
-        if right_of_way
+        if strcmp(scenario.priority_option,'right_of_way_priority') || strcmp(scenario.priority_option,'random_priority')
             % Strategy to let vehicle without the right-of-way enter the intersecting area
             % Ignore coupling edge if not allowed to enter the intersecting area because no collision is possible anymore
             [coupling_weights,lanelet_intersecting_areas,coupling_info] = ...
                 strategy_enter_intersecting_area(iter,coupling_info,coupling_weights,scenario.strategy_enter_intersecting_area,scenario.nVeh);
 
-        [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info,traffic_info.vehs_at_intersection);
+            [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info,traffic_info.vehs_at_intersection);
 
             % form parallel CL_based_hierarchy
             [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');

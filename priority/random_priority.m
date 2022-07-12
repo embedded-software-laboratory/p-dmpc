@@ -28,7 +28,6 @@ classdef  random_priority < interface_priority
             
             n_grps = ceil(nVeh/options.max_num_CLs);
             parl_groups_info(n_grps) = struct('vertices',[],'num_CLs',[]);
-            CL_based_hierarchy(options.max_num_CLs) = struct('members',[],'predecessors',[]); % gather vehicles that are in the same computation level 
             directed_adjacency = zeros(nVeh,nVeh);
 
             random_arr = randperm(nVeh,nVeh);
@@ -52,15 +51,18 @@ classdef  random_priority < interface_priority
             num_CLs_all = cellfun(@(s) {length(s)}, {parl_groups_info.vertices});
             [parl_groups_info.num_CLs] = num_CLs_all{:};
 
+            num_CLs = max([parl_groups_info.num_CLs]);
+            CL_based_hierarchy(num_CLs) = struct('members',[],'predecessors',[]); % gather vehicles that are in the same computation level 
+
             % determine computation level based hierarchy
-            for level_i = 1:options.max_num_CLs
+            for level_i = 1:num_CLs
                 for grp_i = 1:n_grps
                     if level_i <= parl_groups_info(grp_i).num_CLs
                         CL_based_hierarchy(level_i).members = [CL_based_hierarchy(level_i).members,...
                             parl_groups_info(grp_i).vertices(level_i)];
                     end
                 end
-                if level_i < options.max_num_CLs
+                if level_i < num_CLs
                     % members of the current computation level is the
                     % predecessors of the next computation level
                     CL_based_hierarchy(level_i+1).predecessors = CL_based_hierarchy(level_i).members;
