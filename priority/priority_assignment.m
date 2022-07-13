@@ -14,7 +14,7 @@ function [veh_at_intersection, groups, directed_adjacency, priority_list] = prio
             veh_at_intersection = [];
     
         case 'random_priority'  
-            [groups, directed_adjacency, priority_list] = random_priority().priority(scenario.options); 
+            [~, groups, directed_adjacency, priority_list] = random_priority().priority(scenario.options); 
             veh_at_intersection = [];
     
         case 'FCA_priority' 

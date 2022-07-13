@@ -10,12 +10,12 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         if ~initialized_reference_path
             for iVeh = 1:scenario.nVeh
                 index = match_pose_to_lane(scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
-                disp(sprintf("veh ID: %d, index: %d", scenario.vehicle_ids(iVeh), index));
+                %disp(sprintf("veh ID: %d, index: %d", scenario.vehicle_ids(iVeh), index));
 
                 if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.firstManualVehicleMode == 1
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
-                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false);
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1), false);
                     else
                         % Communicate predicted trims, predicted lanelets and areas to other vehicles
                         predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
@@ -30,7 +30,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.secondManualVehicleMode == 1
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
-                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index, false);
+                        [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1), false);
                     else
                         % Communicate predicted trims, predicted lanelets and areas to other vehicles
                         predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
@@ -44,7 +44,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                     end      
                 else
                     % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                    [updated_ref_path, scenario, scenario.vehicles(iVeh).lane_change_indices, scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index);
+                    [updated_ref_path, scenario, scenario.vehicles(iVeh).lane_change_indices, scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1));
                 end
                 
                 updatedRefPath = updated_ref_path.path;
@@ -193,13 +193,35 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         
         if strcmp(scenario.name, 'Commonroad')
 
-            % Vehicle in Expert-Mode does not consider boundaries
+            % Vehicle in Expert-Mode does only consider boundaries when assuming RSS
             if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
                 || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
 
                 iter.predicted_lanelets{iVeh} = predicted_lanelets;
                 iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
-                predicted_lanelet_boundary = cell(nVeh, 3);
+                predicted_lanelet_boundary = cell(1, 3);
+
+                if scenario.options.consider_RSS
+                    % conisder boundary of predicted lanes
+                    leftBound = [];
+                    rightBound = [];
+                    for i = 1:length(predicted_lanelets)
+                        left_bound = struct2cell(scenario.road_raw_data.lanelet(predicted_lanelets(i)).leftBound.point);
+                        right_bound = struct2cell(scenario.road_raw_data.lanelet(predicted_lanelets(i)).rightBound.point);
+                        left_bound = cell2mat(left_bound);
+                        right_bound = cell2mat(right_bound);
+
+                        for j = 1:length(scenario.road_raw_data.lanelet(predicted_lanelets(i)).leftBound.point)
+                            leftBound = [leftBound left_bound(:,:,j)];
+                            rightBound = [rightBound right_bound(:,:,j)];
+                        end
+                    end
+
+                    for i = 1:length(leftBound)
+                        predicted_lanelet_boundary{1}(:,i) = leftBound(:,i);
+                        predicted_lanelet_boundary{2}(:,i) = rightBound(:,i);
+                    end
+                end
             else
                 % Get the predicted lanelets of other vehicles
                 if scenario.options.isParl && ~scenario.vehicles(iVeh).autoUpdatedPath
@@ -210,6 +232,11 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
                 if scenario.vehicles(iVeh).lanes_before_update ~= zeros(1,2)
                     for i = 1:length(scenario.vehicles(iVeh).lanes_before_update)
+                        if ~ismember(scenario.vehicles(iVeh).lanelets_index(1), predicted_lanelets)
+                            % prevent that first lane is no longer considered when adding lanes before update later
+                            predicted_lanelets = [scenario.vehicles(iVeh).lanelets_index(1), predicted_lanelets];
+                        end
+
                         if ~ismember(scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets)
                             predicted_lanelets = [scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets];
                         end
@@ -296,9 +323,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 else
                     local_reachable_sets = scenario.mpa.local_reachable_sets_conv;
                 end
-                % use convexified reachable sets to reduce computation time
-                % as they have far more less points
-                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, scenario.is_allow_non_convex);
+                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), scenario.options.consider_RSS, predicted_lanelet_boundary, scenario.is_allow_non_convex);
             end
         end
 

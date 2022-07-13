@@ -70,6 +70,7 @@ try %#ok<TRYNC>
     ui.EnvironmentButtonGroup.SelectedObject = ui.EnvironmentButtonGroup.Buttons(previousSelection.environmentSelection);
     ui.TrafficModeButtonGroup.SelectedObject =  ui.TrafficModeButtonGroup.Buttons(previousSelection.trafficModeSelection);
     ui.ForceFeedbackFirstMVButtonGroup.SelectedObject = ui.ForceFeedbackFirstMVButtonGroup.Buttons(previousSelection.forceFeedbackSelection);
+    ui.ConsiderRSSRulesButtonGroup.SelectedObject = ui.ConsiderRSSRulesButtonGroup.Buttons(previousSelection.considerRSSSelection);
     ui.FirstManualVehicleMVIDListBox.Value = previousSelection.firstManualVehicleIDSelection;
     ui.ControlModeFirstMVListBox.Value = previousSelection.controlModeSelection;
     ui.SecondMVIDListBox.Value = previousSelection.secondManualVehicleIDSelection;
@@ -130,6 +131,7 @@ collisionAvoidanceSelection = ui.CollisionAvoidanceListBox.Value;
 environmentSelection = get_environment_selection(ui);
 trafficModeSelection = get_traffic_mode_selection(ui);
 forceFeedbackSelection = get_force_feedback_selection(ui);
+considerRSSSelection = get_rss_selection(ui);
 
 scenarioSelection = ui.ScenarioListBox.Value;
 controlStrategySelection = ui.ControlStrategyListBox.Value;
@@ -154,7 +156,7 @@ strategy_consider_veh_without_ROWSelection = ui.HowShouldVehiclewiththeRightofWa
 strategy_enter_intersecting_areaSelection = ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Value;
 
 save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'collisionAvoidanceSelection',...
-    'environmentSelection', 'trafficModeSelection', 'forceFeedbackSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
+    'environmentSelection', 'trafficModeSelection', 'forceFeedbackSelection', 'considerRSSSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
     'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_intersecting_areaSelection');
 
 
@@ -189,6 +191,8 @@ labOptions.is_sim_lab = ~get_environment_selection(ui, true);
 labOptions.is_mixed_traffic = get_traffic_mode_selection(ui, true);
 
 labOptions.force_feedback_enabled = get_force_feedback_selection(ui, true);
+
+labOptions.consider_RSS = get_rss_selection(ui, true);
 
 controlStrategyHelper = controlStrategy{...
     strcmp({controlStrategy{:, 2}}, controlStrategySelection),...
@@ -279,6 +283,16 @@ function out = get_force_feedback_selection(ui, output_as_bool)
     end
 end
 
+function out = get_rss_selection(ui, output_as_bool)
+    % selection of environment
+    out = ui.ConsiderRSSRulesButtonGroup.SelectedObject == ui.ConsiderRSSRulesButtonGroup.Buttons;
+    
+    % is force feedback selected
+    if nargin > 1 && output_as_bool
+        out = isequal([1 0], out);
+    end
+end
+
 function out = get_first_manual_vehicle_selection(ui)
     % true if no manual vehicle selected
     out = strcmp(ui.FirstManualVehicleMVIDListBox.Value, 'No MV');
@@ -323,6 +337,7 @@ function setCpmLabElementsVisibility(ui)
         ui.ControlModeSecondMVListBox.Enable = 'Off';
         ui.CollisionAvoidanceListBox.Enable = 'Off';
         ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
+        ui.ConsiderRSSRulesButtonGroup.Visible = 'Off';
 
         ui.ScenarioListBox.Enable = 'On';
         ui.ControlStrategyListBox.Enable = 'On';
@@ -342,6 +357,7 @@ function setMixedTrafficElementsVisibility(ui)
         ui.ControlModeSecondMVListBox.Enable = 'On';
         ui.CollisionAvoidanceListBox.Enable = 'On';
         ui.ForceFeedbackFirstMVButtonGroup.Visible = 'On';
+        ui.ConsiderRSSRulesButtonGroup.Visible = 'On';
 
         ui.ScenarioListBox.Enable = 'Off';
         ui.ControlStrategyListBox.Enable = 'Off';
@@ -356,6 +372,7 @@ function setMixedTrafficElementsVisibility(ui)
         ui.ControlModeSecondMVListBox.Enable = 'Off';
         ui.CollisionAvoidanceListBox.Enable = 'Off';
         ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
+        ui.ConsiderRSSRulesButtonGroup.Visible = 'Off';
 
         ui.ScenarioListBox.Enable = 'On';
         ui.ControlStrategyListBox.Enable = 'On';
@@ -374,6 +391,7 @@ function setControlModesVisibility(ui)
         ui.ControlModeSecondMVListBox.Enable = 'Off';
         ui.CollisionAvoidanceListBox.Enable = 'Off';
         ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
+        ui.ConsiderRSSRulesButtonGroup.Visible = 'Off';
     else
         ui.ControlModeFirstMVListBox.Enable = 'On';
         ui.SecondMVIDListBox.Enable = 'On'; 
@@ -393,8 +411,10 @@ end
 function setForceFeedbackVisibility(ui)
     if get_first_control_mode_selection(ui)
         ui.ForceFeedbackFirstMVButtonGroup.Visible = 'On';
+        ui.ConsiderRSSRulesButtonGroup.Visible = 'Off';
     else
         ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
+        ui.ConsiderRSSRulesButtonGroup.Visible = 'On';
     end
 end
 

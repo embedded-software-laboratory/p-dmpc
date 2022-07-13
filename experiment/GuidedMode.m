@@ -93,7 +93,7 @@ classdef GuidedMode
                 if modeHandler.steering > 0.4 || (scenario.options.force_feedback_enabled && modeHandler.LeftLaneChangeButton == 1)
                     disp("entered steering left");
                     % find out current lane of manual vehicle
-                    index = match_pose_to_lane(scenario, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y));
+                    index = match_pose_to_lane(scenario, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y), vehicle_iteration_index);
                     index_successor = 0;
 
                     for iVeh = 1:scenario.nVeh
@@ -102,13 +102,9 @@ classdef GuidedMode
 
                             % find out successor in reference path
                             for j = 1:(length(lanelets) - 1)
-                                if lanelets(j) == index
+                                if lanelets(j) == index(1)
                                     index_successor = lanelets(j+1);
                                 end
-                            end
-
-                            if (index_successor == 0)
-                                disp("error when finding successor of current lane");
                             end
 
                             iteration_index = iVeh;
@@ -123,7 +119,7 @@ classdef GuidedMode
                 elseif modeHandler.steering < -0.4 || (scenario.options.force_feedback_enabled && modeHandler.RightLaneChangeButton == 1)
                     disp("entered steering right");
                     % find out current lane of manual vehicle
-                    index = match_pose_to_lane(scenario, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y));
+                    index = match_pose_to_lane(scenario, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y), vehicle_iteration_index);
                     index_successor = 0;
 
                     for iVeh = 1:scenario.nVeh
@@ -132,13 +128,9 @@ classdef GuidedMode
 
                             % find out successor in reference path
                             for j = 1:(length(lanelets) - 1)
-                                    if lanelets(j) == index
+                                    if lanelets(j) == index(1)
                                         index_successor = lanelets(j+1);
                                     end
-                            end
-
-                            if (index_successor == 0)
-                                disp("error when finding successor of current lane");
                             end
 
                             iteration_index = iVeh;
@@ -153,7 +145,7 @@ classdef GuidedMode
             end
 
             if (laneID ~= 0)
-                disp(sprintf("laneID: %d", laneID));
+                %disp(sprintf("laneID: %d", laneID));
                 % generate manual path with lane as start index
                 % maybe current lane has to be start value of lane -> has to be evaluated
                 % function to generate random path for autonomous vehicles based on CPM Lab road geometry

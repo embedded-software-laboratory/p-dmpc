@@ -104,6 +104,10 @@ function [arc_distance, arc_length, x_projected, y_projected, projection_distanc
         end        
     end
 
+    % If the index of the next point on the curve that is adjacent to the
+    % closest point on the curve to the target point smaller than two, we
+    % change it to two to fullfill the requirement of another function.
+    idx_next = max(2,idx_next);
 
     % add the projected point to the shortened curve 
     if lambda<1

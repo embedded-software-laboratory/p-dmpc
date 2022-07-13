@@ -18,20 +18,20 @@ function laneID = find_lane_for_change(scenario, index_successor, turnLeft)
         % hardcode values to get from outer circle to crossing
         elseif index_successor == 5
             laneID = 23;
-        elseif index_successor == 7
-            laneID = 9;
-        elseif index_successor == 27
-            laneID = 41;
+        %elseif index_successor == 7
+            %laneID = 9;
+        %elseif index_successor == 27
+            %laneID = 41;
         elseif index_successor == 29
             laneID = 48;
-        elseif index_successor == 53
-            laneID = 67;
+        %elseif index_successor == 53
+            %laneID = 67;
         elseif index_successor == 55
             laneID = 74;
         elseif index_successor == 83
             laneID = 101;
-        elseif index_successor == 85
-            laneID = 87;
+        %elseif index_successor == 85
+            %laneID = 87;
         else
             laneID = 0;
         end
