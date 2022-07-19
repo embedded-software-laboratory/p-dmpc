@@ -17,14 +17,17 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
                         [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1), false);
                     else
-                        % Communicate predicted trims, predicted lanelets and areas to other vehicles
-                        predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
+                        if scenario.options.isParl
+                            % Communicate predicted trims, predicted lanelets and areas to other vehicles
+                            predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
 
-                        % use index, as vehicle in Expert-Mode has no defined trajectory
-                        predicted_lanelets = index;
+                            % use index, as vehicle in Expert-Mode has no defined trajectory
+                            predicted_lanelets = index;
 
-                        predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                        scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
+                            predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+                            scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas); 
+                        end
+
                         continue
                     end     
                 elseif scenario.second_manual_vehicle_id == scenario.vehicle_ids(iVeh)
@@ -32,14 +35,17 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
                         [updated_ref_path, scenario] = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1), false);
                     else
-                        % Communicate predicted trims, predicted lanelets and areas to other vehicles
-                        predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
+                        if scenario.options.isParl
+                            % Communicate predicted trims, predicted lanelets and areas to other vehicles
+                            predicted_trims = repmat(trims_measured(iVeh), 1, scenario.Hp+1); % current trim and predicted trims in the prediction horizon
 
-                        % use index, as vehicle in Expert-Mode has no defined trajectory
-                        predicted_lanelets = index;
+                            % use index, as vehicle in Expert-Mode has no defined trajectory
+                            predicted_lanelets = index;
 
-                        predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                        scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
+                            predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+                            scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
+                        end
+                        
                         continue
                     end      
                 else

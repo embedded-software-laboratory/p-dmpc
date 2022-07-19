@@ -51,7 +51,7 @@ function expert_mode(manual_vehicle_id, force_feedback_enabled)
             throttle = (-1) * wheelData.brake;
         end
 
-        wheelData.steering = 1.5 * wheelData.steering;
+        wheelData.steering = 1.2 * wheelData.steering;
 
         if throttle > 0.5
             throttle = 0.5;
