@@ -66,7 +66,7 @@ runtime_others_tic = tic;
                 adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
                 
                 % only two strategies are supported if parallel computation is not used
-                assert(strcmp(scenario_v.strategy_consider_veh_without_ROW,'2')==true || strcmp(scenario_v.strategy_consider_veh_without_ROW,'3')==true)
+                assert(any(strcmp(scenario_v.strategy_consider_veh_without_ROW,{'1','2','3'})))
                 scenario_v = consider_vehs_with_LP(scenario_v, iter, adjacent_vehicle_lower_priority);
             end
 
