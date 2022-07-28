@@ -176,7 +176,7 @@ function [coupling_weights,lanelet_intersecting_areas,coupling_info] = strategy_
             end
 
             % ignore coupling 
-            % disp(['Ignore coupling from vehicle ' num2str(veh_with_ROW) ' to ' num2str(veh_without_ROW) ' by forbidding the latter to enter the intersecting area of their lanelets.'])
+            disp(['Ignore coupling from vehicle ' num2str(veh_with_ROW) ' to ' num2str(veh_without_ROW) ' by forbidding the latter to enter the intersecting area of their lanelets.'])
             coupling_info(i).is_ignored = true; % ignore coupling since no collision if possible anymore
             coupling_weights(veh_with_ROW,veh_without_ROW) = 0;
             % store intersecting area for later use
@@ -219,7 +219,8 @@ function [coupling_weights,coupling_info] = check_and_break_circle(coupling_weig
         while ~isempty(edges)
             % find the edge with lowest weight
             edges_all = unique([edges{:}],'stable');
-            [~,edge_sorted] = sort(Graph.Edges.Weight(edges_all),'ascend');
+            [~,edge_idx] = sort(Graph.Edges.Weight(edges_all),'ascend');
+            edge_sorted = edges_all(edge_idx);
     
             count = 1; is_stop = false;
             while true

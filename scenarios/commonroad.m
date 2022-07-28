@@ -72,7 +72,7 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     scenario.vehicles(1).y_start = 1.775;
     scenario.vehicles(1).yaw_start = 0;
 
-    scenario.vehicles(2).x_start = 2.31;
+    scenario.vehicles(2).x_start = 2.32;
     scenario.vehicles(2).y_start = 1.41;
     scenario.vehicles(2).yaw_start = deg2rad(100);
 
