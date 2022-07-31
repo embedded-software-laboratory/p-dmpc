@@ -3,20 +3,23 @@ classdef EvaluationCommon
     %   Detailed explanation goes here
     
     properties
-        result
-        nVeh
-        nSteps
-        results_full_path
-        reference_paths
-        real_paths
+        result      % simulation/experimental results
+        nVeh        % number of vehicles
+        nSteps      % number of time steps
+        dt          % sample time
+        t_total     % total running time
+        results_full_path   % path where the results are stored
+        reference_paths     % reference path of each vehicle
+        real_paths          % real path of each vehicle
         path_tracking_errors
         path_tracking_errors_MAE % mean absolute error 
         iter_runtime_per_step % calculate reachable sets, pridicted lanelets and reference trajectory
-        subcontroller_runtime_per_step % two big parts: graph search, priority assignment 
+        subcontroller_runtime_per_step % two big parts: graph search, priority assignment
+        average_speed_each % average speed of each vehicle during the whole time
+        average_speed_all % average speed of all vehicles during the whole time
         total_runtime_per_step
         plot_option_real_path
         plot_option_ref_path
-
     end
 
     properties (Dependent)
@@ -31,6 +34,8 @@ classdef EvaluationCommon
             obj.result = result;
             obj.nVeh = result.scenario.nVeh;
             obj.nSteps = length(result.iteration_structs);
+            obj.dt = obj.result.scenario.dt;
+            obj.t_total = obj.nSteps*obj.dt;
             obj.reference_paths = cell(obj.nVeh,1);
             obj.real_paths = cell(obj.nVeh,1);
             obj.path_tracking_errors = cell(obj.nVeh,1);
@@ -38,7 +43,6 @@ classdef EvaluationCommon
             obj.total_runtime_per_step = zeros(0,1);
             obj.plot_option_real_path = struct('Color','b','LineStyle','-','LineWidth',1.0,'DisplayName','Real Path');
             obj.plot_option_ref_path = struct('Color','r','LineStyle','--','LineWidth',1.0,'DisplayName','Reference Path');
-            
         end
         
         function obj = get_path_tracking_errors(obj)
@@ -64,6 +68,16 @@ classdef EvaluationCommon
             obj.total_runtime_per_step = obj.iter_runtime_per_step + obj.subcontroller_runtime_per_step;
         end
 
+        function obj = get_average_speeds(obj)
+            % Calculates the average speed of each vehicle
+            % note that we use reference path but not real path
+            ref_paths_diff = cellfun(@(c) diff(c,1,2),obj.reference_paths,'UniformOutput',false);
+            distances = cellfun(@(c) sum(sqrt(c(1,:).^2+c(2,:).^2)),ref_paths_diff);
+            obj.average_speed_each = distances./obj.t_total;
+            obj.average_speed_all = mean(obj.average_speed_each);
+        end
+
+
         function visualize_path(obj)
             % visualize reference path and real path
             figure() 
@@ -87,17 +101,19 @@ classdef EvaluationCommon
 
            veh_max_error = vehs_max_error(1);
            veh_min_error = vehs_min_error(1);
-            s = obj.plot_path(obj.real_paths{veh_max_error},obj.path_tracking_errors{veh_max_error});
+            s_max = obj.plot_path(obj.real_paths{veh_max_error},obj.path_tracking_errors{veh_max_error});
+            s_min = obj.plot_path(obj.real_paths{veh_min_error},obj.path_tracking_errors{veh_min_error});
             c = colorbar;
             c.Title.String = 'Path Tracking Error';
 %             obj.plot_option_real_path.DisplayName = 'Real Path with Maximum Error';
 %             p1 = plot(obj.real_paths{veh_max_error}(1,:),obj.real_paths{veh_max_error}(2,:),obj.plot_option_real_path);
-            p2 = plot(obj.reference_paths{veh_max_error}(1,:),obj.reference_paths{veh_max_error}(2,:),obj.plot_option_ref_path);
+            p_max = plot(obj.reference_paths{veh_max_error}(1,:),obj.reference_paths{veh_max_error}(2,:),obj.plot_option_ref_path);
+            p_min = plot(obj.reference_paths{veh_min_error}(1,:),obj.reference_paths{veh_min_error}(2,:),obj.plot_option_ref_path);
 %             obj.plot_option_real_path.DisplayName = 'Real Path with Minimum Error';
 %             p3 = plot(obj.real_paths{veh_min_error}(1,:),obj.real_paths{veh_min_error}(2,:),obj.plot_option_real_path);
 %             p4 = plot(obj.reference_paths{veh_min_error}(1,:),obj.reference_paths{veh_min_error}(2,:),obj.plot_option_ref_path);
 %             legend('Reference Path','Real Path')
-            legend([s,p2],{'Real Path','Reference Path'})
+            legend([s_max,s_min,p_max,p_min],{'Real Path (max error)','Real Path (min error)','Reference Path (max error)','Reference Path (min error)'})
         end
 
         function s = plot_path(~,path,error)
