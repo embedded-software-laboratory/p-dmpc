@@ -7,6 +7,7 @@ classdef MotionPrimitiveAutomaton
         transition_matrix_single    % Matrix (nTrims x nTrims x horizon_length)
         trim_tuple                  % Matrix with trim indices ((nTrims1*nTrims2*...) x nVehicles)
         transition_matrix           % binary Matrix (if maneuverTuple exist according to trims) (nTrimTuples x nTrimTuples x horizon_length)
+        transition_matrix_mean_speed% nTrims-by-nTrims matrix, each entry is the mean speed of the two connected trims
         distance_to_equilibrium     % Distance in graph from current state to equilibrium state (nTrims x 1)
         recursive_feasibility
         local_reachable_sets        % local reachable sets of each trim (possibly non-convex)
@@ -35,7 +36,7 @@ classdef MotionPrimitiveAutomaton
             end
 
             % for example: MPA_trims12_Hp6, MPA_trims12_Hp6_parl_non-convex
-            mpa_instance_name = FileNameConstructor.get_mpa_name(trim_ID,N,options.isParl,is_allow_non_convex);
+            mpa_instance_name = FileNameConstructor.get_mpa_name(trim_ID,N,dt,options.isParl,is_allow_non_convex);
 
             mpa_full_path = fullfile(folder_target,mpa_instance_name);
 
@@ -56,6 +57,16 @@ classdef MotionPrimitiveAutomaton
             
             obj.transition_matrix_single = zeros([size(trim_adjacency),N]);
             obj.transition_matrix_single(:,:,:) = repmat(trim_adjacency,1,1,N);
+
+            obj.transition_matrix_mean_speed = zeros(size(trim_adjacency));
+
+            for iTrim = 1:length(trim_inputs)
+                for jTrim = 1:length(trim_inputs)
+                    if trim_adjacency(iTrim,jTrim)~=0
+                        obj.transition_matrix_mean_speed(iTrim,jTrim) = (trim_inputs(iTrim,2) + trim_inputs(jTrim,2)) / 2;
+                    end
+                end
+            end
             
             % trim struct array
             % BicycleModel
@@ -494,14 +505,10 @@ classdef MotionPrimitiveAutomaton
                 reachable_sets_conv_local_HpHalf{ii,1} = convhull(reachable_sets_local_HpHalf{ii,1}); % convexify
             end
 
-            figure 
-            hold on 
-            load('Copy_of_MPA_trims9_Hp5_parl_non-convex.mat','mpa')
             for i=1:n_trims
                 for t=Hp_half+1:Hp
                     trimInfo = trimsInfo(i,t-Hp_half);
                     areaPolys = repmat(polyshape,1,length(trimInfo.maneuvers));
-%                     plot(mpa.local_reachable_sets{i,t})
                     for j=1:length(trimInfo.maneuvers)
                         parentTrim = trimInfo.childTrims(j);
                         if t==Hp
@@ -513,8 +520,6 @@ classdef MotionPrimitiveAutomaton
                         end
 
                         areaPolys(j) = polyshape(area_x,area_y,'Simplify',false);
-%                         plot(trimInfo.maneuvers{j}.xs,trimInfo.maneuvers{j}.ys)
-%                         plot(trimsInfo(i,t).areaPolys(j))
                     end
                     % union polyshapes
                     n_union_times = ceil(length(areaPolys)/size_union);
@@ -526,7 +531,6 @@ classdef MotionPrimitiveAutomaton
                         end
                         reachable_sets_local{i,t} = union([areaPolys_tmp,reachable_sets_local{i,t}]);
                     end
-%                     plot(reachable_sets_local{i,t})
                     reachable_sets_conv_local{i,t} = convhull(reachable_sets_local{i,t}); % convexify
 
                     % display progress
@@ -686,6 +690,7 @@ classdef MotionPrimitiveAutomaton
                     trim_leader_next = shortest_path_to_equilibrium(count_trim);
                     speed_leader_next = obj.trims(trim_leader_next).speed;
                     a_leader = (speed_leader_next - speed_leader)/time_step; % acceleration (negative value)
+                    assert(a_leader<=0)
                     % traveled distance of the current time step (assume linear acceleration) 
                     distance_traveled_leader_tmp = distance_traveled(speed_leader, a_leader, time_step);
                 else
@@ -699,6 +704,7 @@ classdef MotionPrimitiveAutomaton
                     trim_follower_next = shortest_path_to_max_speed(count_trim);
                     speed_follower_next = obj.trims(trim_follower_next).speed;
                     a_follower = (speed_follower_next - speed_follower)/time_step; % acceleration (positive value)
+                    assert(a_follower>=0)
                     distance_traveled_follower_tmp = distance_traveled(speed_follower, a_follower, time_step); 
                 else
                     speed_follower_next = max_speed;
@@ -712,7 +718,7 @@ classdef MotionPrimitiveAutomaton
                     % the follower catchs the leader at this time step
                     is_catch = true;
                     % solve the quadratic equation to get the accumulating time of this time step
-                    r = roots([1/2*(a_follower+a_leader), speed_follower-speed_leader, -distance_remaining]); 
+                    r = roots([1/2*(a_follower-a_leader), speed_follower-speed_leader, -distance_remaining]); 
                     assert(isreal(r)==true)
                     time_accumulate = max(r); % choose the positive one
                     % update the traveled distance of the current time step 
@@ -765,13 +771,14 @@ classdef MotionPrimitiveAutomaton
             % compute the shortest path from the current trim to the trim(s) with maximum speed
             max_speed = max([obj.trims.speed]);
             max_speed_trims = find([obj.trims.speed]==max_speed); % find all the trims with the maximum speed
-    
-            graph_trims = graph(obj.transition_matrix_single(:,:,1));
-            shortest_distances_to_max_speed = distances(graph_trims,trim_current,max_speed_trims); % shortest path between two single nodes
+
+            graph_weighted = graph(1./obj.transition_matrix_mean_speed);
+            
+            shortest_distances_to_max_speed = distances(graph_weighted,trim_current,max_speed_trims); % shortest path between two single nodes
             % find the one which has the minimal distance to the trims with the maximum speed
             [~,idx] = min(shortest_distances_to_max_speed); 
             max_speed_trim = max_speed_trims(idx);
-            shortest_path_to_max_speed = shortestpath(graph_trims,trim_current,max_speed_trim); % shortest path between two single nodes
+            shortest_path_to_max_speed = shortestpath(graph_weighted,trim_current,max_speed_trim); % shortest path between two single nodes
         end
     end
 end

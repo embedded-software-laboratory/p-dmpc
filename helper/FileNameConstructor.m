@@ -17,13 +17,13 @@ classdef FileNameConstructor
     end
 
     methods (Static)
-        function mpa_instance_name = get_mpa_name(trim_ID,Hp,isParl,is_allow_non_convex)
+        function mpa_instance_name = get_mpa_name(trim_ID,Hp,dt,isParl,is_allow_non_convex)
             % GET_MPA_NAME Construct name for the file to which a object of the
             % class MPA is saved.
             % Example:  MPA_trims12_Hp6
             %           MPA_trims12_Hp6_parl_non-convex
 
-            mpa_instance_name = ['MPA_','trims',num2str(trim_ID),'_Hp',num2str(Hp)];
+            mpa_instance_name = ['MPA_','trims',num2str(trim_ID),'_Hp',num2str(Hp),'_T',num2str(dt)];
 
             if isParl
                 mpa_instance_name = [mpa_instance_name,'_parl'];                
@@ -37,12 +37,12 @@ classdef FileNameConstructor
         end
 
         function results_full_path = get_results_full_path(scenario_name,controller_name,trim_ID,...
-                Hp,nVeh,T_end,isParl,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_intersecting_area)
+                Hp,dt,nVeh,T_end,isParl,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_intersecting_area)
             % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
             % results are saved.
             results_folder = strrep(strcat(scenario_name, '_', controller_name),' ','_');
 
-            results_name = ['trims',num2str(trim_ID),'_Hp',num2str(Hp),'_nVeh',num2str(nVeh),'_T',num2str(T_end)];
+            results_name = ['trims',num2str(trim_ID),'_Hp',num2str(Hp),'_T',num2str(dt),'_nVeh',num2str(nVeh),'_T',num2str(T_end)];
 
             if isParl
                 results_name = [results_name,'_maxCLs',num2str(max_num_CLs),...

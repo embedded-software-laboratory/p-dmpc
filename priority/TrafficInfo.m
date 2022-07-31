@@ -29,10 +29,13 @@ classdef TrafficInfo
                 'lanelet_relationship',[],'STAC',[],'is_at_intersection',[],'is_drive_parallel',[],'is_ignored',[]); 
 
             % estimate traffic information
-            obj = obj.estimate_traffic_info(scenario,iter);
+            obj = obj.estimate_traffic_status(scenario,iter);
         end
         
-        function obj = estimate_traffic_info(obj, scenario, iter)
+        function obj = estimate_traffic_status(obj, scenario, iter)
+            % This function estimates traffic status
+
+            % get previous coupling matrix
             if scenario.k>1
                 for i = 1:length([scenario.coupling_info.veh_with_ROW])
                     veh_with_ROW = scenario.coupling_info(i).veh_with_ROW;
@@ -58,7 +61,7 @@ classdef TrafficInfo
                     x_j = bound_boxes_x(veh_j,:);
                     y_j = bound_boxes_y(veh_j,:);
                     % use rectangles to approximate their reachable sets for a quick check
-                    if x_i(1)>x_j(2) || y_i(1)>y_j(2) || x_i(2)<x_j(1) || y_i(2)<y_j(1)
+                    if x_i(1)>=x_j(2) || y_i(1)>=y_j(2) || x_i(2)<=x_j(1) || y_i(2)<=y_j(1)
                         % reachable sets are not overlapping
                         continue
                     end

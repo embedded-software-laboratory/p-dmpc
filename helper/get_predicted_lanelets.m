@@ -43,7 +43,7 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
     v_ref = get_max_speed(mpa, trim_current);
     
     % Find equidistant points on the reference trajectory.
-    reference = sampleReferenceTrajectory(...
+    [reference,curTrajectoryIndex] = sampleReferenceTrajectory(...
         Hp, ...                             % number of prediction steps
         scenario.vehicles(iVeh).referenceTrajectory, ...    % total reference path
         x0, ...                                             % vehicle position x
@@ -56,6 +56,7 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
     );
 
     ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
+    ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle 
 
     if strcmp(scenario.name,'Commonroad')
         predicted_lanelets_idx = [];
