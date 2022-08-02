@@ -2,7 +2,6 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
 % RHC_INIT  Preprocessing step for RHC controller
 
     idx = indices();
-    iter_scenario = scenario;
     visualize_trajectory_index_lab = false;
     visualize_boundaries_lab = false;
 

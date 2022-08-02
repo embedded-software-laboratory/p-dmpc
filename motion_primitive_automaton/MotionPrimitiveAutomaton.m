@@ -690,7 +690,7 @@ classdef MotionPrimitiveAutomaton
                     trim_leader_next = shortest_path_to_equilibrium(count_trim);
                     speed_leader_next = obj.trims(trim_leader_next).speed;
                     a_leader = (speed_leader_next - speed_leader)/time_step; % acceleration (negative value)
-                    assert(a_leader<=0)
+                    % assert(a_leader<=0)
                     % traveled distance of the current time step (assume linear acceleration) 
                     distance_traveled_leader_tmp = distance_traveled(speed_leader, a_leader, time_step);
                 else
@@ -704,7 +704,7 @@ classdef MotionPrimitiveAutomaton
                     trim_follower_next = shortest_path_to_max_speed(count_trim);
                     speed_follower_next = obj.trims(trim_follower_next).speed;
                     a_follower = (speed_follower_next - speed_follower)/time_step; % acceleration (positive value)
-                    assert(a_follower>=0)
+                    % assert(a_follower>=0)
                     distance_traveled_follower_tmp = distance_traveled(speed_follower, a_follower, time_step); 
                 else
                     speed_follower_next = max_speed;

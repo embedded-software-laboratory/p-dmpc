@@ -29,8 +29,7 @@ classdef EvaluationCommon
     methods
         function obj = EvaluationCommon(results_full_path)
             obj.results_full_path = results_full_path;
-            load(obj.results_full_path,'result')
-            disp(result)
+            load(obj.results_full_path,'result');
             obj.result = result;
             obj.nVeh = result.scenario.nVeh;
             obj.nSteps = length(result.iteration_structs);

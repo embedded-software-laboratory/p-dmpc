@@ -42,7 +42,7 @@ classdef FileNameConstructor
             % results are saved.
             results_folder = strrep(strcat(scenario_name, '_', controller_name),' ','_');
 
-            results_name = ['trims',num2str(trim_ID),'_Hp',num2str(Hp),'_T',num2str(dt),'_nVeh',num2str(nVeh),'_T',num2str(T_end)];
+            results_name = ['trims',num2str(trim_ID),'_Hp',num2str(Hp),'_dt',num2str(dt),'_nVeh',num2str(nVeh),'_T',num2str(T_end)];
 
             if isParl
                 results_name = [results_name,'_maxCLs',num2str(max_num_CLs),...
@@ -61,10 +61,6 @@ classdef FileNameConstructor
                 mkdir(folder_target)
             end        
             results_full_path = fullfile(folder_target,results_name);
-
         end
-
-
-
     end
 end

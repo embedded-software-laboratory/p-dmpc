@@ -51,7 +51,7 @@ function info = graph_search(scenario, iter)
 %                 ,'No more open nodes to explore' ...
 %             );
 %             throw(ME);
-%             disp(['Graph search exhausted for vehicle with ID: ' num2str(scenario.vehicles.ID) ', at time step: ' num2str(scenario.k) '.'])
+            info.n_expanded = info.tree.size();
             info.is_exhausted = true;
             break
         end

@@ -324,6 +324,7 @@ while (~got_stop)
     if options.isParl
         result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller runtime of each parallel group 
     end
+    
    
     % Apply control action
     % -------------------------------------------------------------------------
@@ -334,7 +335,7 @@ while (~got_stop)
     got_stop = exp.is_stop() || got_stop;
     
 end
-
+result.total_fallback_times = total_fallback_times;
 disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
 %% save results
 

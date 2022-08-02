@@ -56,7 +56,7 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
     );
 
     ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
-    ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle 
+%     ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle 
 
     if strcmp(scenario.name,'Commonroad')
         predicted_lanelets_idx = [];
