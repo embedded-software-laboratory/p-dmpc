@@ -30,13 +30,13 @@ function info = graph_search(scenario, iter)
         % 2. InterX: works for both convex and non-convex polygons
         method = 'InterX';
         % if 'InterX' is used, all obstacles can be vectorized to speed up the collision checking 
-        [vehicle_obstacles, lanelet_boundary, lanelet_intersecting_areas] = vectorize_all_obstacles(scenario);
+        [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(scenario);
     else
         method = 'sat';
         % vectorization is currently not supported for 'sat'
         vehicle_obstacles = [];
         lanelet_boundary = [];
-        lanelet_intersecting_areas = [];
+        lanelet_crossing_areas = [];
 %             method = 'InterX';
     end
 
@@ -57,7 +57,7 @@ function info = graph_search(scenario, iter)
         end
 
         % Eval edge        
-        [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id, vehicle_obstacles, lanelet_boundary, lanelet_intersecting_areas, method); % two methods: 'sat' or 'InterX'
+        [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
         
         if ~is_valid
             % could remove node from tree here

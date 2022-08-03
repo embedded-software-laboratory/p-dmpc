@@ -5,7 +5,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 % distributed controllers in a for-loop. 
 
     runtime_others_tic = tic;
-    [scenario,CL_based_hierarchy,lanelet_intersecting_areas] = priority_assignment_parl(scenario, iter);
+    [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(scenario, iter);
 
     nVeh = scenario.nVeh;
     Hp = scenario.Hp;
@@ -15,6 +15,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
     
     % initialize variable to store control results
     info = ControllResultsInfo(nVeh, Hp, [scenario.vehicles.ID]);
+    n_expended = zeros(nVeh,1);
 
     % graph-search to select the optimal motion primitive
     sub_controller = @(scenario, iter)...
@@ -22,7 +23,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 
     directed_graph = digraph(scenario.directed_coupling);
     [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
-    
+
     runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
     msg_send_time = zeros(nVeh,1);
 
@@ -79,13 +80,13 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
                 end
             end
 
-            if ~strcmp(scenario.strategy_enter_intersecting_area,'1')
+            if ~strcmp(scenario.strategy_enter_lanelet_crossing_area,'1')
                 % Set lanelet intersecting areas as static obstacles if vehicle with lower priorities is not allowed to enter those area
-                scenario_v.lanelet_intersecting_areas = lanelet_intersecting_areas{vehicle_idx};
-                if isempty(scenario_v.lanelet_intersecting_areas)
-                    scenario_v.lanelet_intersecting_areas = {}; % convert from 'double' to 'cell'
+                scenario_v.lanelet_crossing_areas = lanelet_crossing_areas{vehicle_idx};
+                if isempty(scenario_v.lanelet_crossing_areas)
+                    scenario_v.lanelet_crossing_areas = {}; % convert from 'double' to 'cell'
                 end
-                assert(iscell(scenario_v.lanelet_intersecting_areas));
+                assert(iscell(scenario_v.lanelet_crossing_areas));
             end
 
             % consider coupled vehicles with lower priorities
@@ -101,12 +102,13 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 
             
             % execute sub controller for 1-veh scenario
+%             tic
             info_v = sub_controller(scenario_v, iter_v);
-
+%             toc
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback 
-                disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
                 sub_graph_fallback = belonging_vector_total(vehicle_idx);
                 info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                 info.vehs_fallback = unique(info.vehs_fallback,'stable');
@@ -115,7 +117,18 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
                 info = store_control_info(info, info_v, scenario);
             end
             info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
+            n_expended(vehicle_idx) = info_v.tree.size();
 
+            if info.subcontroller_runtime(vehicle_idx)>=0.06
+                disp('')
+                if info.subcontroller_runtime(vehicle_idx)>=0.08
+                    disp('')
+                    if info.subcontroller_runtime(vehicle_idx)>=0.1
+                        disp('')
+                    end
+               
+                end
+            end
             if scenario.k>=2
 %                 plot_obstacles(scenario_v)
 %                 pause(0.5)
@@ -157,6 +170,8 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
     info.subcontroller_runtime = info.subcontroller_runtime + msg_send_time + runtime_others;
     % Calculate the total runtime of each group
     info = get_run_time_total_all_grps(info, scenario.parl_groups_info, CL_based_hierarchy);
+%     disp(n_expended)
+%     disp(info.subcontroller_runtime')
 end
 
 

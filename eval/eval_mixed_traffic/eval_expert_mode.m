@@ -21,7 +21,7 @@ function [options, vehicle_ids] = eval_guided_mode(consider_RSS)
         options.dt = 0.2;
         options.max_num_CLs = 4;
         options.strategy_consider_veh_without_ROW = '2';
-        options.strategy_enter_intersecting_area = '1';
+        options.strategy_enter_lanelet_crossing_area = '1';
     
         % workaround to generate repeatable random numbers
         rng(20220705,'twister');

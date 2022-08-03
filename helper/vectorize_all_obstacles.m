@@ -1,4 +1,4 @@
-function [vehicle_obstacles, lanelet_boundary, lanelet_intersecting_areas] = vectorize_all_obstacles(scenario)
+function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(scenario)
 % VECTORIZE_ALL_OBSTACLES This function vectorizes all obstacles, including
 % static and dynamic obstacles as well as lanelet boundaries, to 
 % a single two-row matrix. The first row is for x-coordinates and the
@@ -13,12 +13,12 @@ function [vehicle_obstacles, lanelet_boundary, lanelet_intersecting_areas] = vec
 % 
 %   lanelet_boundary: two-row matrix
 % 
-%   lanelet_intersecting_areas: cell array with Hp subcells. Each subcell
+%   lanelet_crossing_areas: cell array with Hp subcells. Each subcell
 %   corresponds to intersecting areas of two vehicles' lanelets in a certain
 %   prediction horizon.
 % 
     vehicle_obstacles = cell(1,scenario.Hp);
-    lanelet_intersecting_areas = cell(1,scenario.Hp);
+    lanelet_crossing_areas = cell(1,scenario.Hp);
 
     % get static occupied areas of the considered vehicles
     current_occupied_areas = scenario.obstacles;
@@ -26,8 +26,8 @@ function [vehicle_obstacles, lanelet_boundary, lanelet_intersecting_areas] = vec
 
     % Preprocess intersecting areas of lanelets
     % Add column [nan;nan] to separate different obstacles
-    check_closeness(scenario.lanelet_intersecting_areas)
-    lanelet_intersecting_areas_tmp = cellfun(@(c)[c,[nan;nan]],scenario.lanelet_intersecting_areas,'UniformOutput',false); 
+    check_closeness(scenario.lanelet_crossing_areas)
+    lanelet_crossing_areas_tmp = cellfun(@(c)[c,[nan;nan]],scenario.lanelet_crossing_areas,'UniformOutput',false); 
 
     % Preprocess lanelet boundary
     % 1. Add column [nan;nan] to separate left and right boundaries 
@@ -61,7 +61,7 @@ function [vehicle_obstacles, lanelet_boundary, lanelet_intersecting_areas] = vec
         % all obstacles, include static obstacles, dynamic obstacles and lanelet boundaries
         vehicle_obstacles{iStep} = [veh_obstacles_polygons{:}];
         lanelet_boundary = [lanelet_boundary_tmp{:}];
-        lanelet_intersecting_areas{iStep} = [lanelet_intersecting_areas_tmp{:}];
+        lanelet_crossing_areas{iStep} = [lanelet_crossing_areas_tmp{:}];
     end
 end
 

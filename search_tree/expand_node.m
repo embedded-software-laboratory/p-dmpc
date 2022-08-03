@@ -13,6 +13,14 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     k_exp = curK+1;
     cur_trim_id = tuple2index(curTrim(:),trim_length);
     successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
+
+%     if iter.blocked_vehs && cur_trim_id==1
+%         % if the vehicle is blocked because it is not allowed to enter its lanelet crossing area, we limit
+%         % the number of successor trims of the equilibrium trim by constraining the steering angle to reduce grach searching time
+%         small_angle_trims = find(abs([scenario.mpa.trims.steering]) <= 0.12);
+%         successor_trim_ids = intersect(small_angle_trims,successor_trim_ids);
+%     end
+    
     for iVeh = 1 : scenario.nVeh
         if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
             || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
@@ -84,6 +92,13 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
                               expY(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,2)] ) ...
                 - d_traveled_max)^2;
             end
+            
+%             % vectorize the for-loop that calculates the cost-to-go (if
+%             needed)
+%             distancesTraveledMax = cumsum(scenario.dt*iter.vRef(iVeh,k_exp+1:end));
+%             distancesXy = [expX(iVeh,iTrim);expY(iVeh,iTrim)] - [iter.referenceTrajectoryPoints(iVeh,k_exp+1:end,1);iter.referenceTrajectoryPoints(iVeh,k_exp+1:end,2)];
+%             straightLineDistances = sqrt(sum(distancesXy.^2,1));
+%             expH(iTrim) = sum((distancesTraveledMax-straightLineDistances).^2);
         end
     end
     new_open_nodes = add_nodes(info.tree,iNode,expX,expY,expYaw,expTrim,expK,expG,expH);

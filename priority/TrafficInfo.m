@@ -10,6 +10,7 @@ classdef TrafficInfo
         vehs_at_intersection    % (vector) vehicles at intersection
         time_enter_intersection % (vector) time at which vehicle enter intersection. Value is inf if vehicle is not at intersection
         nVeh                    % total number of vehicles
+        priority_option         % right_of_way_priority/random_priority/constant_priority
     end
 
     properties (Constant)
@@ -20,6 +21,7 @@ classdef TrafficInfo
     methods
         function obj = TrafficInfo(scenario, iter)
             obj.nVeh = scenario.nVeh;
+            obj.priority_option = scenario.priority_option;
             
             % initialize
             obj.directed_adjacency_old = zeros(obj.nVeh,obj.nVeh);
@@ -264,11 +266,13 @@ classdef TrafficInfo
                         obj.coupling_weights(veh_i,veh_j) = obj.weighting_function(STAC_adapted, obj.sensitive_factor); 
                         obj.coupling_info(count).veh_with_ROW = veh_i;  
                         obj.coupling_info(count).veh_without_ROW = veh_j; 
+%                         disp(['Vehicle ' num2str(veh_i) ' now has the ROW over vehicle ' num2str(veh_j) '.'])
                     else
                         % vehicle_j has the right-of-way
                         obj.coupling_weights(veh_j,veh_i) = obj.weighting_function(STAC_adapted, obj.sensitive_factor); 
                         obj.coupling_info(count).veh_with_ROW = veh_j;
                         obj.coupling_info(count).veh_without_ROW = veh_i;
+%                         disp(['Vehicle ' num2str(veh_j) ' now has the ROW over vehicle ' num2str(veh_i) '.'])
                     end
                     stop_flag = true;
                     break  
@@ -398,38 +402,49 @@ classdef TrafficInfo
         % earilier has the right-of-way.
         
             has_ROW = [];
-            
-            if is_at_intersection
-                if obj.time_enter_intersection(veh_i) < obj.time_enter_intersection(veh_j)
-                    has_ROW = true; 
-                elseif obj.time_enter_intersection(veh_i) > obj.time_enter_intersection(veh_j)
-                    has_ROW = false; 
-                else
-                    % vehicle which has the right-of-way before will
-                    % continually has the right-of-way
-                    if obj.directed_adjacency_old(veh_i,veh_j) == 1
-                        has_ROW = true; 
-                    elseif obj.directed_adjacency_old(veh_j,veh_i) == 1
-                        has_ROW = false;
-                    else
-                        has_ROW = [];
+
+            switch obj.priority_option
+                case 'right_of_way_priority'
+                    if is_at_intersection
+                        if obj.time_enter_intersection(veh_i) < obj.time_enter_intersection(veh_j)
+                            has_ROW = true; 
+                        elseif obj.time_enter_intersection(veh_i) > obj.time_enter_intersection(veh_j)
+                            has_ROW = false; 
+                        else
+                            % vehicle which has the right-of-way before will
+                            % continually has the right-of-way
+                            if obj.directed_adjacency_old(veh_i,veh_j) == 1
+                                has_ROW = true; 
+                            elseif obj.directed_adjacency_old(veh_j,veh_i) == 1
+                                has_ROW = false;
+                            else
+                                has_ROW = [];
+                            end
+                        end
                     end
-                end
+                
+                    if isempty(has_ROW)
+                        % if they are not coupled at previous time step, vehicle closer to the collision point is the leader
+                        if distance_to_collision_i < distance_to_collision_j
+                            has_ROW = true; 
+                        else
+                            has_ROW = false; 
+                        end
+            
+                        % for forking lenelts, vehicle closer to the collision point is the follower
+                        if is_forking_lanelets
+                            has_ROW = ~has_ROW;
+                        end
+                    end
+                case 'random_priority'
+                    % generate randomly a zero or one, where one for has
+                    % the right-of-way
+                    has_ROW = randi([0,1])==1;
+                case 'constant_priority'
+                    % vheicle with lower ID has the right-of-way
+                    has_ROW = (veh_i < veh_j);
             end
-        
-            if isempty(has_ROW)
-                % if they are not coupled at previous time step, vehicle closer to the collision point is the leader
-                if distance_to_collision_i < distance_to_collision_j
-                    has_ROW = true; 
-                else
-                    has_ROW = false; 
-                end
-    
-                % for forking lenelts, vehicle closer to the collision point is the follower
-                if is_forking_lanelets
-                    has_ROW = ~has_ROW;
-                end
-            end
+            
         end
 
         
@@ -542,7 +557,7 @@ classdef TrafficInfo
                             if strcmp(obj.coupling_info(k_coupling).lanelet_relationship, LaneletRelationshipType.type_3)...
                                     || strcmp(obj.coupling_info(k_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
                                 % check if the coupled vehicle and the vehicle to be inherited are at merging or intersecting lanelets
-                                disp(['After inheriting right-of-way from vehicle ' num2str(veh_to_inherit) ', ' num2str(iVeh) ' now has the right-of-way over ' num2str(veh_with_ROW_j) '.'])
+                                % disp(['After inheriting right-of-way from vehicle ' num2str(veh_to_inherit) ', ' num2str(iVeh) ' now has the right-of-way over ' num2str(veh_with_ROW_j) '.'])
                                 % update coupling direction
                                 coupling_weights_adjusted(veh_with_ROW_j,iVeh) = 0;
                                 coupling_weights_adjusted(iVeh,veh_with_ROW_j) = obj.coupling_weights(veh_with_ROW_j,iVeh);

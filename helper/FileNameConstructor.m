@@ -37,16 +37,19 @@ classdef FileNameConstructor
         end
 
         function results_full_path = get_results_full_path(scenario_name,controller_name,trim_ID,...
-                Hp,dt,nVeh,T_end,isParl,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_intersecting_area)
+                Hp,dt,nVeh,T_end,priority_option,isParl,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area)
             % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
             % results are saved.
             results_folder = strrep(strcat(scenario_name, '_', controller_name),' ','_');
+            if isstring(priority_option)
+                priority_option = char(priority_option);
+            end
 
-            results_name = ['trims',num2str(trim_ID),'_Hp',num2str(Hp),'_dt',num2str(dt),'_nVeh',num2str(nVeh),'_T',num2str(T_end)];
+            results_name = ['trims',num2str(trim_ID),'_Hp',num2str(Hp),'_dt',num2str(dt),'_nVeh',num2str(nVeh),'_T',num2str(T_end),'_',priority_option];
 
             if isParl
                 results_name = [results_name,'_maxCLs',num2str(max_num_CLs),...
-                    '_ConsiderVehWithoutROW',strategy_consider_veh_without_ROW,'_EnterIntersectingArea',strategy_enter_intersecting_area];
+                    '_ConsiderVehWithoutROW',strategy_consider_veh_without_ROW,'_EnterLaneletCrossingArea',strategy_enter_lanelet_crossing_area];
             end
 
             results_name = [results_name, '.mat'];

@@ -305,6 +305,11 @@ while (~got_stop)
         break % break the while loop
     end
 
+    if max(vehs_fallback_times)>=2
+        % enable online plotting if two or more successive fallbacks occur
+        exp.doOnlinePlot = true;
+    end
+
     info_old = info; % save variable in case of fallback
     %% save result
     result.controller_runtime(k) = toc(controller_timer);
@@ -324,6 +329,7 @@ while (~got_stop)
     if options.isParl
         result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller runtime of each parallel group 
     end
+    result.vehs_fallback{k} = info.vehs_fallback;
     
    
     % Apply control action
@@ -352,10 +358,10 @@ result.scenario.ros_subscribers = [];
 result.mpa = scenario.mpa;
 % tic_start = tic;
 % check if file with the same name exists
-while isfile(result.output_path)
-    warning('File with the same name exists, timestamp will be added to the file name.')
-    result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
-end
+% while isfile(result.output_path)
+%     warning('File with the same name exists, timestamp will be added to the file name.')
+%     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
+% end
 
 save(result.output_path,'result');
 disp(['Simulation results were saved under ' result.output_path])

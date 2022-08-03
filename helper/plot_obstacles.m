@@ -22,7 +22,7 @@ function plot_obstacles(data)
             plot_cell_array_of_shapes(data.obstacles)
             plot_cell_array_of_shapes(data.dynamic_obstacle_area)
             plot_cell_array_of_shapes(data.dynamic_obstacle_reachableSets)
-            plot_cell_array_of_shapes(data.lanelet_intersecting_areas)
+            plot_cell_array_of_shapes(data.lanelet_crossing_areas)
         else
             warning('Not supported data type.')
         end

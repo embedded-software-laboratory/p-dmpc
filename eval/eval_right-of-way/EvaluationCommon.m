@@ -3,21 +3,36 @@ classdef EvaluationCommon
     %   Detailed explanation goes here
     
     properties
-        result      % simulation/experimental results
         nVeh        % number of vehicles
         nSteps      % number of time steps
         dt          % sample time
         t_total     % total running time
         results_full_path   % path where the results are stored
+        
+        path_tracking_errors_MAE % mean absolute error
+        path_tracking_error_average % average path tracking error
+
+        nodes_expanded_per_step % expanded nodes when graph searching
+        nodes_expanded_average % expanded nodes average over steps
+        
+        runtime_iter_per_step % calculate reachable sets, pridicted lanelets and reference trajectory
+        runtime_subcontroller_per_step % two big parts: graph search, priority assignment
+        runtime_total_per_step % total runtime per step
+        runtime_average % average runtime
+        runtime_max % maximum top n runtime
+        
+        average_speed_each_veh % average speed of each vehicle per step
+        average_speed % average speed of all vehicles per step
+
+        fallback_times % total fallback times
+        fallback_rate % fallback rate: fallback_times/nSteps
+    end
+
+    properties (Access=private)
         reference_paths     % reference path of each vehicle
         real_paths          % real path of each vehicle
-        path_tracking_errors
-        path_tracking_errors_MAE % mean absolute error 
-        iter_runtime_per_step % calculate reachable sets, pridicted lanelets and reference trajectory
-        subcontroller_runtime_per_step % two big parts: graph search, priority assignment
-        average_speed_each % average speed of each vehicle during the whole time
-        average_speed_all % average speed of all vehicles during the whole time
-        total_runtime_per_step
+        path_tracking_errors % path tracking errors
+
         plot_option_real_path
         plot_option_ref_path
     end
@@ -30,41 +45,52 @@ classdef EvaluationCommon
         function obj = EvaluationCommon(results_full_path)
             obj.results_full_path = results_full_path;
             load(obj.results_full_path,'result');
-            obj.result = result;
             obj.nVeh = result.scenario.nVeh;
             obj.nSteps = length(result.iteration_structs);
-            obj.dt = obj.result.scenario.dt;
+            obj.dt = result.scenario.dt;
             obj.t_total = obj.nSteps*obj.dt;
             obj.reference_paths = cell(obj.nVeh,1);
             obj.real_paths = cell(obj.nVeh,1);
             obj.path_tracking_errors = cell(obj.nVeh,1);
             obj.path_tracking_errors_MAE = zeros(obj.nVeh,1);
-            obj.total_runtime_per_step = zeros(0,1);
+            obj.runtime_total_per_step = zeros(0,1);
             obj.plot_option_real_path = struct('Color','b','LineStyle','-','LineWidth',1.0,'DisplayName','Real Path');
             obj.plot_option_ref_path = struct('Color','r','LineStyle','--','LineWidth',1.0,'DisplayName','Reference Path');
+
+            obj = obj.get_path_tracking_errors(result);
+            obj = obj.get_runtime_per_step(result);
+            obj = obj.get_average_speeds;
+
+            obj.fallback_times = result.total_fallback_times;
+            obj.fallback_rate = obj.fallback_times/obj.nSteps;
         end
         
-        function obj = get_path_tracking_errors(obj)
+        function obj = get_path_tracking_errors(obj,result)
             % Calculate the path tracking error
             for iVeh = 1:obj.nVeh
                 for iIter = 1:obj.nSteps
-                    obj.reference_paths{iVeh}(:,iIter) = reshape(obj.result.iteration_structs{iIter}.referenceTrajectoryPoints(iVeh,1,:),2,[]);
-                    obj.real_paths{iVeh}(:,iIter) = obj.result.vehicle_path_fullres{iVeh,iIter}(end,1:2)';
+                    obj.reference_paths{iVeh}(:,iIter) = reshape(result.iteration_structs{iIter}.referenceTrajectoryPoints(iVeh,1,:),2,[]);
+                    obj.real_paths{iVeh}(:,iIter) = result.vehicle_path_fullres{iVeh,iIter}(end,1:2)';
                     obj.path_tracking_errors{iVeh}(:,iIter) = sqrt(sum((obj.real_paths{iVeh}(:,iIter) - obj.reference_paths{iVeh}(:,iIter)).^2,1));
                 end
                 obj.path_tracking_errors_MAE(iVeh) = mean(obj.path_tracking_errors{iVeh});
             end
+            obj.path_tracking_error_average = mean(obj.path_tracking_errors_MAE);
             
-            obj.visualize_path()
-
+%             obj.visualize_path()
         end
 
-        function obj = get_total_runtime_per_step(obj)
+        function obj = get_runtime_per_step(obj,result)
             % Calculate the total runtime per step
-            assert( abs(length(obj.result.subcontroller_run_time_total)-length(obj.result.iter_runtime)) <= 1 )
-            obj.iter_runtime_per_step = obj.result.iter_runtime(1:obj.nSteps)';
-            obj.subcontroller_runtime_per_step = obj.result.subcontroller_run_time_total(1:obj.nSteps)';
-            obj.total_runtime_per_step = obj.iter_runtime_per_step + obj.subcontroller_runtime_per_step;
+            assert( abs(length(result.subcontroller_run_time_total)-length(result.iter_runtime)) <= 1 )
+            obj.runtime_iter_per_step = result.iter_runtime(1:obj.nSteps)';
+            obj.runtime_subcontroller_per_step = result.subcontroller_run_time_total(1:obj.nSteps)';
+            obj.runtime_total_per_step = obj.runtime_iter_per_step + obj.runtime_subcontroller_per_step;
+            obj.runtime_average = sum(obj.runtime_total_per_step)/obj.nSteps;
+            obj.runtime_max = maxk(obj.runtime_total_per_step,10);
+
+            obj.nodes_expanded_per_step = result.n_expanded;
+            obj.nodes_expanded_average = mean(obj.nodes_expanded_per_step);
         end
 
         function obj = get_average_speeds(obj)
@@ -72,8 +98,8 @@ classdef EvaluationCommon
             % note that we use reference path but not real path
             ref_paths_diff = cellfun(@(c) diff(c,1,2),obj.reference_paths,'UniformOutput',false);
             distances = cellfun(@(c) sum(sqrt(c(1,:).^2+c(2,:).^2)),ref_paths_diff);
-            obj.average_speed_each = distances./obj.t_total;
-            obj.average_speed_all = mean(obj.average_speed_each);
+            obj.average_speed_each_veh = distances./obj.t_total;
+            obj.average_speed = mean(obj.average_speed_each_veh);
         end
 
 
@@ -87,11 +113,11 @@ classdef EvaluationCommon
             xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
             ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
         
-            xlim(obj.result.scenario.plot_limits(1,:));
-            ylim(obj.result.scenario.plot_limits(2,:));
+            xlim(result.scenario.plot_limits(1,:));
+            ylim(result.scenario.plot_limits(2,:));
             daspect([1 1 1])
 
-            plot_lanelets(obj.result.scenario.lanelets,obj.result.scenario.name)
+            plot_lanelets(result.scenario.lanelets,result.scenario.name)
 
             % get vehicle that has maximum path tracking error
             [~,vehs_max_error] = maxk(obj.path_tracking_errors_MAE,5);

@@ -12,7 +12,7 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     scenario.isParl = options.isParl;
     scenario.max_num_CLs = options.max_num_CLs;
     scenario.strategy_consider_veh_without_ROW = options.strategy_consider_veh_without_ROW;
-    scenario.strategy_enter_intersecting_area = options.strategy_enter_intersecting_area;
+    scenario.strategy_enter_lanelet_crossing_area = options.strategy_enter_lanelet_crossing_area;
 
     scenario.is_allow_non_convex = true;
 

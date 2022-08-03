@@ -4,7 +4,7 @@ classdef Scenario
     properties
         vehicles = [];                   % array of Vehicle objects
         obstacles = {};                  % static obstacles = {[xs;ys],...}
-        lanelet_intersecting_areas = {}; % intersecting area of one vehicle's lanelet with another vehicle's lanelet
+        lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
         nVeh = 0;
         name = 'UnnamedScenario';
         controller_name = 'RHC';
@@ -64,11 +64,11 @@ classdef Scenario
                                              % '3': consider the occupied area of emergency braking maneuver as static obstacle 
                                              % '4': consider one-step reachable sets as static obstacle
                                              % '5': consider old trajectory as dynamic obstacle
-        strategy_enter_intersecting_area % Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
-                                        % '1': no constraint on entering the intersecting area 
-                                        % '2': not allowed to enter the intersecting area if they are coupled at intersecting lanelets of the intersection
-                                        % '3': not allowed to enter the intersecting area if they are coupled at intersecting or merging lanelets of the intersection
-                                        % '4': not allowed to enter the intersecting area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
+        strategy_enter_lanelet_crossing_area % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
+                                        % '1': no constraint on entering the crossing area 
+                                        % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
+                                        % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
+                                        % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
         
         time_enter_intersection = []; % time step when vehicle enters the intersection
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center

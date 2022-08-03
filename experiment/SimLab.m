@@ -2,7 +2,6 @@ classdef SimLab < InterfaceExperiment
 % SIMLAB    Instance of experiment interface used for simulation in matlab.
     
     properties (Access=private)
-        doOnlinePlot
         doExploration
         fig
         resolution
@@ -12,6 +11,7 @@ classdef SimLab < InterfaceExperiment
 
     properties
         visu % struct to store logical variables indicating whether to show vehicle ID/priority/coupling/coupling weights
+        doOnlinePlot
     end
     
     methods
