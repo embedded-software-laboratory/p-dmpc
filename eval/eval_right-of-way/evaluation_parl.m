@@ -5,11 +5,11 @@ trim_sest = 9;
 Hp = 5;
 dt = 0.2;
 nVeh = 20;
-T_end = 1000;
+T_end = 30;
 priority_option = 'right_of_way_priority';
 isParl = true;
 max_num_CLs = 2;
-strategy_consider_veh_without_ROW = '1';
+strategy_consider_veh_without_ROW = '3';
 strategy_enter_lanelet_crossing_area = '4';
 results_full_path = FileNameConstructor.get_results_full_path(scenario_name,controller_name,trim_sest,...
                 Hp,dt,nVeh,T_end,priority_option,isParl,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area);

@@ -1,4 +1,4 @@
-function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets, considerRSS, varargin)
+function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets, considerRSS, predicted_lanelet_boundary, is_allow_non_convex)
 % GET_REACHABLE_SETS Calculate the reachable sets based on the current pose
 % and trim of the vehicle by tranlating the local reachable sets. If
 % vehicle's predicted lanelet boundary is available, the reachable sets
@@ -16,9 +16,10 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
 %   reachable_sets: cell(1,Hp), the reachable sets in the defined predition horizon
 % 
 
-    % Process optional input and Name-Value pair options
-    [x0, y0, yaw0, local_reachable_sets, predicted_lanelet_boundary, is_allow_non_convex] = ...
-        parse_inputs(x0, y0, yaw0, local_reachable_sets, varargin{:});
+%     % take roughly 15% of computation time
+%     % Process optional input and Name-Value pair options
+%     [x0, y0, yaw0, local_reachable_sets, predicted_lanelet_boundary, is_allow_non_convex] = ...
+%         parse_inputs(x0, y0, yaw0, local_reachable_sets, varargin{:});
 
     Hp = size(local_reachable_sets, 2);
     reachable_sets = cell(1, Hp);

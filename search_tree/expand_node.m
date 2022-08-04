@@ -22,9 +22,13 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
 %     end
     
     for iVeh = 1 : scenario.nVeh
-        if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-            || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
-            manual_successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
+        if strcmp(scenario.priority_option,'mixed_traffic_priority')
+            % first check if mixed_traffic_priority is used to make a short
+            % circuit
+            if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
+                || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
+                manual_successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
+            end
         end
     end
     nTrims = numel(successor_trim_ids);
@@ -47,15 +51,21 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             itrim2 = expTrim(iVeh,iTrim);
 
             % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-            if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
-                || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
-                id = manual_successor_trim_ids(iTrim);
-                expTrim(:,iTrim) = trim_tuple(id,:);
-                itrim1 = curTrim(iVeh);
-                itrim2 = expTrim(iVeh,iTrim);
-
-                mpa = scenario.vehicles(iVeh).vehicle_mpa;
-                maneuver = mpa.maneuvers{itrim1, itrim2};
+            if strcmp(scenario.priority_option,'mixed_traffic_priority')
+                % first check if mixed_traffic_priority is used to make a short
+                % circuit
+                if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
+                    || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
+                    id = manual_successor_trim_ids(iTrim);
+                    expTrim(:,iTrim) = trim_tuple(id,:);
+                    itrim1 = curTrim(iVeh);
+                    itrim2 = expTrim(iVeh,iTrim);
+    
+                    mpa = scenario.vehicles(iVeh).vehicle_mpa;
+                    maneuver = mpa.maneuvers{itrim1, itrim2};
+                else
+                    maneuver = scenario.mpa.maneuvers{itrim1, itrim2};
+                end
             else
                 maneuver = scenario.mpa.maneuvers{itrim1, itrim2};
             end
@@ -71,13 +81,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             % iter.reference is of size (scenario.nVeh,scenario.Hp,2)
             % Distance to reference trajectory points squared to conform with
             % J = (x-x_ref)' Q (x-x_ref)
-            expG(iTrim) = expG(iTrim) ...
-                + norm(...
-                    [expX(iVeh,iTrim)...
-                        - iter.referenceTrajectoryPoints(iVeh,k_exp,1);...
-                    expY(iVeh,iTrim)...
-                        - iter.referenceTrajectoryPoints(iVeh,k_exp,2)]...
-            )^2;
+            expG(iTrim) = expG(iTrim) + norm([expX(iVeh,iTrim) - iter.referenceTrajectoryPoints(iVeh,k_exp,1);expY(iVeh,iTrim) - iter.referenceTrajectoryPoints(iVeh,k_exp,2)])^2;
 
 
             % Cost to go
@@ -87,10 +91,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             for i_t = 1:time_steps_to_go
                 d_traveled_max = d_traveled_max...
                     + scenario.dt*iter.vRef(iVeh,k_exp+i_t);
-                expH(iTrim) = expH(iTrim)...
-                    + (norm( [expX(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,1);...
-                              expY(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,2)] ) ...
-                - d_traveled_max)^2;
+                expH(iTrim) = expH(iTrim) + (norm( [expX(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,1); expY(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,2)] ) - d_traveled_max)^2;
             end
             
 %             % vectorize the for-loop that calculates the cost-to-go (if

@@ -45,10 +45,15 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
         t2 = cTrim(iVeh);
 
         % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-        if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
-            || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
-            mpa = scenario.vehicles(iVeh).vehicle_mpa;
-            maneuver = mpa.maneuvers{t1,t2};
+        if strcmp(scenario.priority_option,'mixed_traffic_priority')
+            % first check if mixed_traffic_priority is used to make a short circuit
+            if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
+                || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
+                mpa = scenario.vehicles(iVeh).vehicle_mpa;
+                maneuver = mpa.maneuvers{t1,t2};
+            else
+                maneuver = scenario.mpa.maneuvers{t1,t2};
+            end
         else
             maneuver = scenario.mpa.maneuvers{t1,t2};
         end
@@ -90,7 +95,9 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
 
             case 'InterX'
                 assert(scenario.nVeh==1) % if not 1, code adaption is needed                
-                % shape must be closed!
+                % Note1: Shape must be closed!
+                % Note2: The collision check order is important.
+                % Normally, check collision with lanelet boundary last would be better.
                 if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
                     % check collision with vehicle obstacles
                     is_valid = false;
