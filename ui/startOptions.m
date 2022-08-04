@@ -104,6 +104,12 @@ try %#ok<TRYNC>
     
     % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
     ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Value = previousSelection.strategy_enter_crossing_areaSelection ;
+
+    % Whether save result
+    ui.SaveresultCheckBox.Value = previousSelection.isSaveResult;
+
+    % Custom file name
+    ui.CustomfilenameEditField.Value = previousSelection.customResultName;
 end
 
 %% Trigger UI change handles
@@ -154,10 +160,14 @@ max_num_CLsSelection = ui.MaxComputationLevelsSpinner.Value;
 strategy_consider_veh_without_ROWSelection = ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Value;
 % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
 strategy_enter_crossing_areaSelection = ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Value;
+% Whether save result
+isSaveResult = ui.SaveresultCheckBox.Value;
+% Custom file name
+customResultName = ui.CustomfilenameEditField.Value;
 
 save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'collisionAvoidanceSelection',...
     'environmentSelection', 'trafficModeSelection', 'forceFeedbackSelection', 'considerRSSSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
-    'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection');
+    'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection','isSaveResult','customResultName');
 
 
 
@@ -247,6 +257,16 @@ labOptions.strategy_consider_veh_without_ROW = strategy_consider_veh_without_ROW
 
 % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
 labOptions.strategy_enter_lanelet_crossing_area = strategy_enter_crossing_areaSelection;
+
+% Whether save result
+labOptions.isSaveResult = ui.SaveresultCheckBox.Value;
+
+if ~labOptions.isSaveResult
+    disp('As required, simulation/Experiment Results will not be saved.')
+end
+
+% Custom file name to save result
+labOptions.customResultName = ui.CustomfilenameEditField.Value;
 
 % close app
 ui.delete;

@@ -1,4 +1,5 @@
 %% evaluate parallel computation
+customResultName = '';
 scenario_name = 'Commonroad';
 controller_name = 'RHC-Parl';
 trim_sest = 9;
@@ -11,7 +12,7 @@ isParl = true;
 max_num_CLs = 2;
 strategy_consider_veh_without_ROW = '3';
 strategy_enter_lanelet_crossing_area = '4';
-results_full_path = FileNameConstructor.get_results_full_path(scenario_name,controller_name,trim_sest,...
+results_full_path = FileNameConstructor.get_results_full_path(customResultName,scenario_name,controller_name,trim_sest,...
                 Hp,dt,nVeh,T_end,priority_option,isParl,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area);
 % evaluation = EvaluationCommon(results_full_path);
 % disp(['Average run time: ' num2str(mean(evaluation.subcontroller_runtime_per_step)) ' seconds.'])
@@ -20,11 +21,24 @@ evaluation = EvaluationCommon(results_full_path);
 % eval_before_2 = struct(evaluation_before);
 disp(['Average run time: ' num2str(mean(evaluation.runtime_average)) ' seconds.'])
 disp(['Maximum 8 average run time: ' mat2str(round(evaluation.runtime_max,3)) ' seconds.'])
-
+%% evaluation of different maximum allowed number of computation level
+max_num_CLs_all = 1:10;
+load('options.mat','options')
+for i_CL = 1:length(max_num_CLs_all)
+    options.T_end = 20;
+    options.amount = 20;
+    options.max_num_CLs = max_num_CLs_all(i_CL);
+    options.isSaveResult = true;
+    options.customResultName = '';
+    main(options);
+    disp([num2str(i_CL) ': done.'])
+    pause(5) % pause to cool the machine
+end
 %% compare different maximum number of groups
 max_num_CLs_all = 1:10;
 evaluations = cell(1,length(max_num_CLs_all));
 for i_CL = 1:length(max_num_CLs_all)
+    customResultName = '';
     max_num_CLs = max_num_CLs_all(i_CL);
     scenario_name = 'Commonroad';
     controller_name = 'RHC-Parl';
@@ -32,13 +46,14 @@ for i_CL = 1:length(max_num_CLs_all)
     Hp = 5;
     dt = 0.2;
     nVeh = 20;
-    T_end = 30;
+    T_end = 20;
+    priority_option = 'right_of_way_priority';
     isParl = true;
 %     max_num_CLs = 4;
     strategy_consider_veh_without_ROW = '3';
     strategy_enter_lanelet_crossing_area = '4';
-    results_full_path = FileNameConstructor.get_results_full_path(scenario_name,controller_name,trim_sest,...
-                    Hp,dt,nVeh,T_end,isParl,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area);
+    results_full_path = FileNameConstructor.get_results_full_path(customResultName,scenario_name,controller_name,trim_sest,...
+                    Hp,dt,nVeh,T_end,priority_option,isParl,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area);
     evaluations{i_CL} = EvaluationCommon(results_full_path);
     disp(['Average run time: ' num2str(evaluations{i_CL}.runtime_average) ' seconds.'])
     disp(['Maximum 8 average run time: ' mat2str(round(evaluations{i_CL}.runtime_max,3)) ' seconds.'])

@@ -62,6 +62,8 @@ function scenario = communication_init(scenario, exp)
     [x0_measured, trims_measured] = exp.measure(false);
 
     start = tic; 
+%     topicList = ros2("topic","list");
+%     nodeList = ros2("node","list");
     disp('Creating ROS 2 publishers...')
     for iVeh = 1:nVeh
         scenario.vehicles(iVeh).communicate = Communication(); % create instance of the Comunication class

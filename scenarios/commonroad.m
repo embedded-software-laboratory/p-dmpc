@@ -31,8 +31,10 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     scenario.lanelet_boundary = road_data.lanelet_boundary;
     scenario.road_raw_data = road_data.road_raw_data;
     scenario.lanelet_relationships  = road_data.lanelet_relationships;
-
+    
     nVeh = options.amount;
+    scenario.loop_times = zeros(1,nVeh);
+    scenario.loop_steps = zeros(1,nVeh);
     for iveh = 1:nVeh
         
         veh = Vehicle();

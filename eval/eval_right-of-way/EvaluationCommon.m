@@ -77,7 +77,7 @@ classdef EvaluationCommon
             end
             obj.path_tracking_error_average = mean(obj.path_tracking_errors_MAE);
             
-%             obj.visualize_path()
+            obj.visualize_path(result)
         end
 
         function obj = get_runtime_per_step(obj,result)
@@ -103,7 +103,7 @@ classdef EvaluationCommon
         end
 
 
-        function visualize_path(obj)
+        function visualize_path(obj,result)
             % visualize reference path and real path
             figure() 
             hold on
@@ -127,18 +127,14 @@ classdef EvaluationCommon
            veh_max_error = vehs_max_error(1);
            veh_min_error = vehs_min_error(1);
             s_max = obj.plot_path(obj.real_paths{veh_max_error},obj.path_tracking_errors{veh_max_error});
-            s_min = obj.plot_path(obj.real_paths{veh_min_error},obj.path_tracking_errors{veh_min_error});
+            
             c = colorbar;
             c.Title.String = 'Path Tracking Error';
-%             obj.plot_option_real_path.DisplayName = 'Real Path with Maximum Error';
-%             p1 = plot(obj.real_paths{veh_max_error}(1,:),obj.real_paths{veh_max_error}(2,:),obj.plot_option_real_path);
             p_max = plot(obj.reference_paths{veh_max_error}(1,:),obj.reference_paths{veh_max_error}(2,:),obj.plot_option_ref_path);
-            p_min = plot(obj.reference_paths{veh_min_error}(1,:),obj.reference_paths{veh_min_error}(2,:),obj.plot_option_ref_path);
-%             obj.plot_option_real_path.DisplayName = 'Real Path with Minimum Error';
-%             p3 = plot(obj.real_paths{veh_min_error}(1,:),obj.real_paths{veh_min_error}(2,:),obj.plot_option_real_path);
-%             p4 = plot(obj.reference_paths{veh_min_error}(1,:),obj.reference_paths{veh_min_error}(2,:),obj.plot_option_ref_path);
-%             legend('Reference Path','Real Path')
-            legend([s_max,s_min,p_max,p_min],{'Real Path (max error)','Real Path (min error)','Reference Path (max error)','Reference Path (min error)'})
+            legend([s_max,p_max],{'Real Path (max error)','Reference Path (max error)'})
+%             s_min = obj.plot_path(obj.real_paths{veh_min_error},obj.path_tracking_errors{veh_min_error});
+%             p_min = plot(obj.reference_paths{veh_min_error}(1,:),obj.reference_paths{veh_min_error}(2,:),obj.plot_option_ref_path);
+%             legend([s_max,s_min,p_max,p_min],{'Real Path (max error)','Real Path (min error)','Reference Path (max error)','Reference Path (min error)'})
         end
 
         function s = plot_path(~,path,error)

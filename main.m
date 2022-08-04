@@ -5,7 +5,12 @@ if verLessThan('matlab','9.10')
     warning("Code is developed in MATLAB 2021a, prepare for backward incompatibilities.")
 end
 
-options = startOptions();
+if nargin == 0
+    options = startOptions();
+elseif nargin == 1
+    options = varargin{1};
+end
+% 
 %[options, vehicle_ids] = eval_guided_mode(1);
 %[options, vehicle_ids] = eval_expert_mode(1);
 options.is_eval = false;
@@ -344,30 +349,29 @@ end
 result.total_fallback_times = total_fallback_times;
 disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
 %% save results
-
-% Delete varibales used for ROS 2 since some of them cannot be saved
-% Create comma-separated list
-empty_cells = cell(1,options.amount);
-
-result.scenario.ros_subscribers = [];
-[result.scenario.vehicles.communicate] = empty_cells{:};
-% for i_iter = 1:length(result.iteration_structs)
-%     result.iteration_structs{i_iter}.scenario = [];
-% end
-
-result.mpa = scenario.mpa;
-% tic_start = tic;
-% check if file with the same name exists
-% while isfile(result.output_path)
-%     warning('File with the same name exists, timestamp will be added to the file name.')
-%     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
-% end
-
-save(result.output_path,'result');
-disp(['Simulation results were saved under ' result.output_path])
-% disp(['Result was saved in ' num2str(toc(tic_start)) ' seconds.'])
+if options.isSaveResult
+    % Delete varibales used for ROS 2 since some of them cannot be saved
+    % Create comma-separated list
+    empty_cells = cell(1,options.amount);
+    
+    result.scenario.ros_subscribers = [];
+    [result.scenario.vehicles.communicate] = empty_cells{:};
+    % for i_iter = 1:length(result.iteration_structs)
+    %     result.iteration_structs{i_iter}.scenario = [];
+    % end
+    
+    result.mpa = scenario.mpa;
+    % check if file with the same name exists
+    % while isfile(result.output_path)
+    %     warning('File with the same name exists, timestamp will be added to the file name.')
+    %     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
+    % end
+    
+    save(result.output_path,'result');
+    disp(['Simulation results were saved under ' result.output_path])
+else
+    disp('As required, simulation/Experiment Results were not saved.')
 % exportVideo( result );
-exp.end_run()
-
 end
+exp.end_run()
 
