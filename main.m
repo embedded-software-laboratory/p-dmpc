@@ -1,11 +1,19 @@
-function result = main(varargin)
+function [result,scenario] = main(varargin)
 % MAIN  main function for graph-based receeding horizon control
 
 if verLessThan('matlab','9.10')
     warning("Code is developed in MATLAB 2021a, prepare for backward incompatibilities.")
 end
 
-options = startOptions();
+if nargin == 0
+    options = startOptions();
+elseif nargin ~= 0
+    find_options = cellfun(@(c) isa(c,'OptionsMain'), varargin);
+    if any(find_options)
+        options = varargin{find_options};
+    end
+end
+% 
 %[options, vehicle_ids] = eval_guided_mode(1);
 %[options, vehicle_ids] = eval_expert_mode(1);
 options.is_eval = false;
@@ -18,20 +26,22 @@ is_sim_lab = options.is_sim_lab;
 %is_sim_lab = (nargin == 0 || (nargin > 0 && strcmp(varargin{1},'sim')));
 
 if is_sim_lab
-    switch nargin
-        case 6
-            options = selection(varargin{2},varargin{3},varargin{4},varargin{5},varargin{6});
-        case 5
-            options = selection(varargin{2},varargin{3},varargin{4},varargin{5},1);
-        case 4
-            options = selection(varargin{2},varargin{3},varargin{4},1,1);            
-        case 3
-            options = selection(varargin{2},varargin{3},1,1,1); 
-        case 2 
-            options = selection(varargin{2},2,1,1,1);
-        otherwise
-            % former UI for Sim lab
-            %options = selection();
+    if ~any(find_options)
+        switch nargin
+            case 6
+                options = selection(varargin{2},varargin{3},varargin{4},varargin{5},varargin{6});
+            case 5
+                options = selection(varargin{2},varargin{3},varargin{4},varargin{5},1);
+            case 4
+                options = selection(varargin{2},varargin{3},varargin{4},1,1);            
+            case 3
+                options = selection(varargin{2},varargin{3},1,1,1); 
+            case 2 
+                options = selection(varargin{2},2,1,1,1);
+            otherwise
+                % former UI for Sim lab
+                %options = selection();
+        end
     end
 
     switch options.amount
@@ -149,6 +159,26 @@ scenario.k = k;
 % turn off warning if intersections are detected and fixed, collinear points or
 % overlapping points are removed when using MATLAB function `polyshape`
 warning('off','MATLAB:polyshape:repairedBySimplify')
+
+if nargin ~= 0
+    find_scenario = cellfun(@(c) isa(c,'Scenario'), varargin);
+    if any(find_scenario)
+        if length(varargin{find_scenario}.ros_subscribers) == scenario.options.amount
+            % if ROS 2 subscribers and publishers are given as input, store them
+            for iiVeh = 1:scenario.options.amount
+                scenario.vehicles(iiVeh).communicate = varargin{find_scenario}.vehicles(iiVeh).communicate;
+            end
+            scenario.ros_subscribers = varargin{find_scenario}.ros_subscribers;
+        end
+    end
+end
+% if nargin >= 2 && isa(varargin{2},'Scenario') && ~isempty(varargin{2}.ros_subscribers)
+%     % if ROS 2 subscribers and publishers are given as input, store them
+%     for iiVeh = 1:scenario.options.amount
+%         scenario.vehicles(iiVeh).communicate = varargin{2}.vehicles(iiVeh).communicate;
+%     end
+%     scenario.ros_subscribers = varargin{2}.ros_subscribers;
+% end
 
 if options.isParl && strcmp(scenario.name, 'Commonroad')
     % In parallel computation, vehicles communicate via ROS 2
@@ -305,6 +335,12 @@ while (~got_stop)
         break % break the while loop
     end
 
+%     if max(vehs_fallback_times)>=2
+%         % enable online plotting if two or more successive fallbacks occur
+%         exp.doOnlinePlot = true;
+%         exp.paused = true;
+%     end
+
     info_old = info; % save variable in case of fallback
     %% save result
     result.controller_runtime(k) = toc(controller_timer);
@@ -324,6 +360,8 @@ while (~got_stop)
     if options.isParl
         result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller runtime of each parallel group 
     end
+    result.vehs_fallback{k} = info.vehs_fallback;
+    
    
     % Apply control action
     % -------------------------------------------------------------------------
@@ -334,33 +372,32 @@ while (~got_stop)
     got_stop = exp.is_stop() || got_stop;
     
 end
-
+result.total_fallback_times = total_fallback_times;
 disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
 %% save results
-
-% Delete varibales used for ROS 2 since some of them cannot be saved
-% Create comma-separated list
-empty_cells = cell(1,options.amount);
-
-result.scenario.ros_subscribers = [];
-[result.scenario.vehicles.communicate] = empty_cells{:};
-% for i_iter = 1:length(result.iteration_structs)
-%     result.iteration_structs{i_iter}.scenario = [];
-% end
-
-result.mpa = scenario.mpa;
-% tic_start = tic;
-% check if file with the same name exists
-while isfile(result.output_path)
-    warning('File with the same name exists, timestamp will be added to the file name.')
-    result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
-end
-
-save(result.output_path,'result');
-disp(['Simulation results were saved under ' result.output_path])
-% disp(['Result was saved in ' num2str(toc(tic_start)) ' seconds.'])
+if options.isSaveResult
+    % Delete varibales used for ROS 2 since some of them cannot be saved
+    % Create comma-separated list
+    empty_cells = cell(1,options.amount);
+    
+    result.scenario.ros_subscribers = [];
+    [result.scenario.vehicles.communicate] = empty_cells{:};
+    % for i_iter = 1:length(result.iteration_structs)
+    %     result.iteration_structs{i_iter}.scenario = [];
+    % end
+    
+    result.mpa = scenario.mpa;
+    % check if file with the same name exists
+    % while isfile(result.output_path)
+    %     warning('File with the same name exists, timestamp will be added to the file name.')
+    %     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
+    % end
+    
+    save(result.output_path,'result');
+    disp(['Simulation results were saved under ' result.output_path])
+else
+    disp('As required, simulation/Experiment Results were not saved.')
 % exportVideo( result );
-exp.end_run()
-
 end
+exp.end_run()
 

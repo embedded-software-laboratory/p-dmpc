@@ -11,7 +11,7 @@ function scenario = circle_scenario(options)
     scenario.isParl = options.isParl;
     scenario.max_num_CLs = options.max_num_CLs;
     scenario.strategy_consider_veh_without_ROW = options.strategy_consider_veh_without_ROW; % may irrelevant for circle scenario
-    scenario.strategy_enter_intersecting_area = options.strategy_enter_intersecting_area; % may irrelevant for circle scenario
+    scenario.strategy_enter_lanelet_crossing_area = options.strategy_enter_lanelet_crossing_area; % may irrelevant for circle scenario
     scenario.is_allow_non_convex = false;
 
     radius = 2;

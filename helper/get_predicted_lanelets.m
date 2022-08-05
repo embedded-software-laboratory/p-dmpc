@@ -1,4 +1,4 @@
-function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0)
+function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0)
 % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
 % based on vehile's current states and reference path. 
 % 
@@ -43,7 +43,7 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
     v_ref = get_max_speed(mpa, trim_current);
     
     % Find equidistant points on the reference trajectory.
-    reference = sampleReferenceTrajectory(...
+    [reference,curTrajectoryIndex] = sampleReferenceTrajectory(...
         Hp, ...                             % number of prediction steps
         scenario.vehicles(iVeh).referenceTrajectory, ...    % total reference path
         x0, ...                                             % vehicle position x
@@ -56,6 +56,7 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
     );
 
     ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
+%     ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle 
 
     if strcmp(scenario.name,'Commonroad')
         predicted_lanelets_idx = [];
@@ -80,6 +81,12 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
         end
 
         predicted_lanelets = scenario.vehicles(iVeh).lanelets_index(predicted_lanelets_idx);
+%         if predicted_lanelets(1) == scenario.vehicles(iVeh).lanelets_index(1) && abs(scenario.k-scenario.loop_steps(iVeh))>20
+%             % vehicle finishes a loop
+%             scenario.loop_times(iVeh) = scenario.loop_times(iVeh) + 1;
+%             % record the time step
+%             scenario.loop_steps(iVeh) = scenario.k;
+%         end
     else
         predicted_lanelets = [];
     end

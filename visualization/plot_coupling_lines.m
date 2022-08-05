@@ -35,7 +35,7 @@ function plot_coupling_lines(M, x0, varargin)
         adjacent_vehicles = find(M(v,:) ~= 0);
 
         % plot couplings that are ignored by letting vehicles without
-        % right-of-way not enter the lanelet intersecting area
+        % right-of-way not enter the lanelet crossing area
         if ~isempty(coupling_info)
             find_self = [coupling_info.veh_with_ROW] == v;
             find_ignored = [coupling_info.is_ignored] == true;

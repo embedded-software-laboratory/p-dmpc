@@ -102,8 +102,17 @@ try %#ok<TRYNC>
     % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
     ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Value = previousSelection.strategy_consider_veh_without_ROWSelection;
     
-    % Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
-    ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Value = previousSelection.strategy_enter_intersecting_areaSelection ;
+    % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
+    ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Value = previousSelection.strategy_enter_crossing_areaSelection ;
+
+    % Whether save result
+    ui.SaveresultCheckBox.Value = previousSelection.isSaveResult;
+
+    % Custom file name
+    ui.CustomfilenameEditField.Value = previousSelection.customResultName;
+
+    % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
+    ui.AllowInheritingtheRightofWayCheckBox.Value = previousSelection.isAllowInheritROW;
 end
 
 %% Trigger UI change handles
@@ -152,20 +161,29 @@ T_endSelection = ui.SimulationDurationsSpinner.Value;
 max_num_CLsSelection = ui.MaxComputationLevelsSpinner.Value;
 % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
 strategy_consider_veh_without_ROWSelection = ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Value;
-% Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
-strategy_enter_intersecting_areaSelection = ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Value;
-
+% Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
+strategy_enter_crossing_areaSelection = ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Value;
+% Whether save result
+isSaveResult = ui.SaveresultCheckBox.Value;
+% Custom file name
+customResultName = ui.CustomfilenameEditField.Value;
+% Whether vehicles are allowed to inherit the right-of-way from their front vehicles
+isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
 save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'collisionAvoidanceSelection',...
     'environmentSelection', 'trafficModeSelection', 'forceFeedbackSelection', 'considerRSSSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
-    'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_intersecting_areaSelection');
+    'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection', ...
+    'isSaveResult','customResultName','isAllowInheritROW');
 
 
 
 % save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection',...
 %     'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', 'isParlSelection',...
-%     'dtSelection','HpSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_intersecting_areaSelection');
+%     'dtSelection','HpSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection');
 
 %% Convert to legacy/outputs
+% initialize
+labOptions = OptionsMain;
+
 labOptions.manualVehicle_id = firstManualVehicleID{...
     strcmp({firstManualVehicleID{:, 1}}, firstManualVehicleIDSelection),...
     1};
@@ -245,8 +263,21 @@ labOptions.max_num_CLs = max_num_CLsSelection;
 % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
 labOptions.strategy_consider_veh_without_ROW = strategy_consider_veh_without_ROWSelection;
 
-% Strategy to let vehicle without the right-of-way enter the intersecting area of its lanelet with lanelet of its coupled vehicle
-labOptions.strategy_enter_intersecting_area = strategy_enter_intersecting_areaSelection;
+% Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
+labOptions.strategy_enter_lanelet_crossing_area = strategy_enter_crossing_areaSelection;
+
+% Whether save result
+labOptions.isSaveResult = ui.SaveresultCheckBox.Value;
+
+if ~labOptions.isSaveResult
+    disp('As required, simulation/Experiment Results will not be saved.')
+end
+
+% Custom file name to save result
+labOptions.customResultName = ui.CustomfilenameEditField.Value;
+
+% Whether vehicles are allowed to inherit the right-of-way from their front vehicles
+labOptions.isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
 
 % close app
 ui.delete;
@@ -434,14 +465,14 @@ function callbackParlSelected(ui)
     if strcmp(ui.ParallelComputationListBox.Value,'yes')
         ui.MaxComputationLevelsSpinner.Enable = 'on';
         ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'on';
-        ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Enable = 'on';
+        ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'on';
 %         ui.PriorityAssignmentMethodListBox.Value = ui.PriorityAssignmentMethodListBox.Items{2};
 
         ui.Label_4.Visible = 'Off';
     else
         ui.MaxComputationLevelsSpinner.Enable = 'off';
         ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'off';
-        ui.VehiclewithoutrightofwayEntersLaneletIntersectingAreaListBox.Enable = 'off';
+        ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'off';
 
         ui.Label_4.Text = sprintf("If parallel computation is not used, the maximum allowed number of computation levels is irrelevant.");
         ui.Label_4.Visible = 'On';
