@@ -110,6 +110,9 @@ try %#ok<TRYNC>
 
     % Custom file name
     ui.CustomfilenameEditField.Value = previousSelection.customResultName;
+
+    % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
+    ui.AllowInheritingtheRightofWayCheckBox.Value = previousSelection.isAllowInheritROW;
 end
 
 %% Trigger UI change handles
@@ -164,10 +167,12 @@ strategy_enter_crossing_areaSelection = ui.VehiclewithoutrightofwayEntersLanelet
 isSaveResult = ui.SaveresultCheckBox.Value;
 % Custom file name
 customResultName = ui.CustomfilenameEditField.Value;
-
+% Whether vehicles are allowed to inherit the right-of-way from their front vehicles
+isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
 save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'collisionAvoidanceSelection',...
     'environmentSelection', 'trafficModeSelection', 'forceFeedbackSelection', 'considerRSSSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
-    'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection','isSaveResult','customResultName');
+    'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection', ...
+    'isSaveResult','customResultName','isAllowInheritROW');
 
 
 
@@ -176,6 +181,9 @@ save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', '
 %     'dtSelection','HpSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection');
 
 %% Convert to legacy/outputs
+% initialize
+labOptions = OptionsMain;
+
 labOptions.manualVehicle_id = firstManualVehicleID{...
     strcmp({firstManualVehicleID{:, 1}}, firstManualVehicleIDSelection),...
     1};
@@ -267,6 +275,9 @@ end
 
 % Custom file name to save result
 labOptions.customResultName = ui.CustomfilenameEditField.Value;
+
+% Whether vehicles are allowed to inherit the right-of-way from their front vehicles
+labOptions.isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
 
 % close app
 ui.delete;

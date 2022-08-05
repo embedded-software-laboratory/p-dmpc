@@ -1,4 +1,4 @@
-function result = main(varargin)
+function [result,scenario] = main(varargin)
 % MAIN  main function for graph-based receeding horizon control
 
 if verLessThan('matlab','9.10')
@@ -7,8 +7,11 @@ end
 
 if nargin == 0
     options = startOptions();
-elseif nargin == 1
-    options = varargin{1};
+elseif nargin ~= 0
+    find_options = cellfun(@(c) isa(c,'OptionsMain'), varargin);
+    if any(find_options)
+        options = varargin{find_options};
+    end
 end
 % 
 %[options, vehicle_ids] = eval_guided_mode(1);
@@ -23,20 +26,22 @@ is_sim_lab = options.is_sim_lab;
 %is_sim_lab = (nargin == 0 || (nargin > 0 && strcmp(varargin{1},'sim')));
 
 if is_sim_lab
-    switch nargin
-        case 6
-            options = selection(varargin{2},varargin{3},varargin{4},varargin{5},varargin{6});
-        case 5
-            options = selection(varargin{2},varargin{3},varargin{4},varargin{5},1);
-        case 4
-            options = selection(varargin{2},varargin{3},varargin{4},1,1);            
-        case 3
-            options = selection(varargin{2},varargin{3},1,1,1); 
-        case 2 
-            options = selection(varargin{2},2,1,1,1);
-        otherwise
-            % former UI for Sim lab
-            %options = selection();
+    if ~any(find_options)
+        switch nargin
+            case 6
+                options = selection(varargin{2},varargin{3},varargin{4},varargin{5},varargin{6});
+            case 5
+                options = selection(varargin{2},varargin{3},varargin{4},varargin{5},1);
+            case 4
+                options = selection(varargin{2},varargin{3},varargin{4},1,1);            
+            case 3
+                options = selection(varargin{2},varargin{3},1,1,1); 
+            case 2 
+                options = selection(varargin{2},2,1,1,1);
+            otherwise
+                % former UI for Sim lab
+                %options = selection();
+        end
     end
 
     switch options.amount
@@ -154,6 +159,26 @@ scenario.k = k;
 % turn off warning if intersections are detected and fixed, collinear points or
 % overlapping points are removed when using MATLAB function `polyshape`
 warning('off','MATLAB:polyshape:repairedBySimplify')
+
+if nargin ~= 0
+    find_scenario = cellfun(@(c) isa(c,'Scenario'), varargin);
+    if any(find_scenario)
+        if length(varargin{find_scenario}.ros_subscribers) == scenario.options.amount
+            % if ROS 2 subscribers and publishers are given as input, store them
+            for iiVeh = 1:scenario.options.amount
+                scenario.vehicles(iiVeh).communicate = varargin{find_scenario}.vehicles(iiVeh).communicate;
+            end
+            scenario.ros_subscribers = varargin{find_scenario}.ros_subscribers;
+        end
+    end
+end
+% if nargin >= 2 && isa(varargin{2},'Scenario') && ~isempty(varargin{2}.ros_subscribers)
+%     % if ROS 2 subscribers and publishers are given as input, store them
+%     for iiVeh = 1:scenario.options.amount
+%         scenario.vehicles(iiVeh).communicate = varargin{2}.vehicles(iiVeh).communicate;
+%     end
+%     scenario.ros_subscribers = varargin{2}.ros_subscribers;
+% end
 
 if options.isParl && strcmp(scenario.name, 'Commonroad')
     % In parallel computation, vehicles communicate via ROS 2
@@ -310,10 +335,11 @@ while (~got_stop)
         break % break the while loop
     end
 
-    if max(vehs_fallback_times)>=2
-        % enable online plotting if two or more successive fallbacks occur
-        exp.doOnlinePlot = true;
-    end
+%     if max(vehs_fallback_times)>=2
+%         % enable online plotting if two or more successive fallbacks occur
+%         exp.doOnlinePlot = true;
+%         exp.paused = true;
+%     end
 
     info_old = info; % save variable in case of fallback
     %% save result

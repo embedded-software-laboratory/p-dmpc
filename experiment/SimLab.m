@@ -5,13 +5,13 @@ classdef SimLab < InterfaceExperiment
         doExploration
         fig
         resolution
-        paused
         abort
     end
 
     properties
         visu % struct to store logical variables indicating whether to show vehicle ID/priority/coupling/coupling weights
         doOnlinePlot
+        paused
     end
     
     methods
@@ -25,11 +25,12 @@ classdef SimLab < InterfaceExperiment
             obj.abort = false;
 
             obj.visu.isShowVehID = true;
-            obj.visu.isShowPriority = false;
+            obj.visu.isShowPriority = true;
             obj.visu.isShowCoupling = true;
             obj.visu.isShowWeight = false;
             obj.visu.colormap = []; % n-by-3 matrix containing RGB values
             obj.visu.colorbar = []; % object of the MATLAB class ColorBar
+            obj.visu.isShowHotkeyDescription = false; % is show description of hotkeys
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
         end
