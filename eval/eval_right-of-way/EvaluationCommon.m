@@ -24,8 +24,8 @@ classdef EvaluationCommon
         average_speed_each_veh % average speed of each vehicle per step
         average_speed % average speed of all vehicles per step
 
-        fallback_times % total fallback times
-        fallback_rate % fallback rate: fallback_times/nSteps
+        fallback_times % total fallback times of all vehicles. Note that this is not the number of time steps when fallbacks occur
+        fallback_rate % fallback rate: fallback_times/nSteps/nVeh
     end
 
     properties (Access=private)
@@ -61,8 +61,13 @@ classdef EvaluationCommon
             obj = obj.get_runtime_per_step(result);
             obj = obj.get_average_speeds;
 
-            obj.fallback_times = result.total_fallback_times;
-            obj.fallback_rate = obj.fallback_times/obj.nSteps;
+            obj.fallback_times = 0;
+            for i = 1:length(result.vehs_fallback)
+                if ~isempty(result.vehs_fallback{i})
+                    obj.fallback_times = obj.fallback_times + length(result.vehs_fallback{i});
+                end
+            end
+            obj.fallback_rate = obj.fallback_times/obj.nSteps/obj.nVeh;
         end
         
         function obj = get_path_tracking_errors(obj,result)
@@ -77,7 +82,7 @@ classdef EvaluationCommon
             end
             obj.path_tracking_error_average = mean(obj.path_tracking_errors_MAE);
             
-            obj.visualize_path(result)
+%             obj.visualize_path(result)
         end
 
         function obj = get_runtime_per_step(obj,result)
@@ -86,11 +91,25 @@ classdef EvaluationCommon
             obj.runtime_iter_per_step = result.iter_runtime(1:obj.nSteps)';
             obj.runtime_subcontroller_per_step = result.subcontroller_run_time_total(1:obj.nSteps)';
             obj.runtime_total_per_step = obj.runtime_iter_per_step + obj.runtime_subcontroller_per_step;
-            obj.runtime_average = sum(obj.runtime_total_per_step)/obj.nSteps;
-            obj.runtime_max = maxk(obj.runtime_total_per_step,10);
+
+            % Find outliers
+            outliers = find(isoutlier(obj.runtime_total_per_step));
+            disp(['Find ' num2str(length(outliers)) ' outliers.'])
+%             % set outliers to average values
+%             obj.runtime_total_per_step(outliers) = obj.runtime_average;
+            % ignore the first several steps as they may have higher values
+            % in computation time due to the just-in-time (JIT) compilation
+            if obj.nSteps > 20
+                steps_ignored = 3;
+            else
+                steps_ignored = 1;
+            end
+            obj.runtime_average = sum(obj.runtime_total_per_step(steps_ignored+1:end))/(obj.nSteps-steps_ignored);
+            obj.runtime_max = maxk(obj.runtime_total_per_step(steps_ignored+1:end),10); 
 
             obj.nodes_expanded_per_step = result.n_expanded;
             obj.nodes_expanded_average = mean(obj.nodes_expanded_per_step);
+            
         end
 
         function obj = get_average_speeds(obj)

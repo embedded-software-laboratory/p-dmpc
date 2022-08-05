@@ -63,46 +63,48 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         colormap("hot"); % set colormap
     end
 
-    % show description of hotkey
-    find_text_hotkey = findall(gcf,'Type','text','Tag','hotkey');
-    if isempty(find_text_hotkey)
-        HotkeyDesc = {'Hotkey:';
-                      '{\itp}: show/hide priority colorbar';
-                      '{\iti}: show/hide vehicle IDs';
-                      '{\itc}: show/hide coupling lines';
-                      '{\itw}: show/hide coupling weights';
-                      '{\itspace}: pause/start simulation';
-                      '{\itreturn}: disable/enable plotting';
-                      '{\itesc}: end simulation'};
-        if strcmp(scenario.name,'Commonroad')
-            x_text_hotkey = scenario.plot_limits(1,1) - 1.5;
-            y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
-        elseif strcmp(scenario.name,'Circle_scenario')
-            x_text_hotkey = scenario.plot_limits(1,1) - 2.0;
-            y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
-        else
-            % to be define according to the specific scenario
-            x_text_hotkey = scenario.plot_limits(1,1) - 1.5;
-            y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
+    if visu.isShowHotkeyDescription
+        % show description of hotkey
+        find_text_hotkey = findall(gcf,'Type','text','Tag','hotkey');
+        if isempty(find_text_hotkey)
+            HotkeyDesc = {'Hotkey:';
+                          '{\itp}: show/hide priority colorbar';
+                          '{\iti}: show/hide vehicle IDs';
+                          '{\itc}: show/hide coupling lines';
+                          '{\itw}: show/hide coupling weights';
+                          '{\itspace}: pause/start simulation';
+                          '{\itreturn}: disable/enable plotting';
+                          '{\itesc}: end simulation'};
+            if strcmp(scenario.name,'Commonroad')
+                x_text_hotkey = scenario.plot_limits(1,1) - 1.5;
+                y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
+            elseif strcmp(scenario.name,'Circle_scenario')
+                x_text_hotkey = scenario.plot_limits(1,1) - 2.0;
+                y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
+            else
+                % to be define according to the specific scenario
+                x_text_hotkey = scenario.plot_limits(1,1) - 1.5;
+                y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
+            end
+            text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
         end
-        text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
     end
 
     get_colormap = get(gcf,'Colormap');
 
     % get colors
     n_priorities = length(unique(priority_list)); % number of different priorities
-    n_colors_min = 6; % minimum number of colors
+    n_colors_min = 5; % minimum number of colors
     n_colors = max(n_colors_min,n_priorities); 
-    sticks = round(linspace(1,size(get_colormap,1),n_colors));
-    vehColor = get_colormap(sticks,:); % evenly sample from colormap
+    sticks = round(linspace(1,size(get_colormap,1),n_colors+1));
+    vehColor = get_colormap(sticks(2:end),:); % evenly sample from colormap
     
     find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
     if visu.isShowPriority
         if isempty(find_colorbar)
-            priority_colorbar = colorbar('Tag','priority_colorbar');
+            priority_colorbar = colorbar('Tag','priority_colorbar','FontName','Verdana','FontSize',9);
             priority_colorbar.Title.String = '              Priority \newline(low value for high priority)'; % todo: find way to center the first line instead of using many spaces
-            priority_colorbar.Title.FontSize = 12;
+            priority_colorbar.Title.FontSize = 9;
             priority_colorbar.Ticks = 1:n_colors; % only show integer ticks
         else
             find_colorbar.Visible = 'on';
