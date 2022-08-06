@@ -93,7 +93,7 @@ classdef Scenario
             result = floor(obj.T_end/obj.dt);
         end
         function result = get.tick_per_step(obj)
-            result = obj.dt/obj.time_per_tick;
+            result = round(obj.dt/obj.time_per_tick);
         end
         function result = get.Hu(obj)
             result = obj.Hp;

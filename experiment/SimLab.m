@@ -126,7 +126,7 @@ classdef SimLab < InterfaceExperiment
                 plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
             else
                 % pause so that `keyPressCallback()` can be executed in time
-                pause(0.001)
+                pause(0.01)
             end
         end
         

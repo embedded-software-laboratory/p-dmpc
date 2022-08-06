@@ -103,9 +103,14 @@ function [coupling_weights,lanelet_crossing_areas,coupling_info,iter] = strategy
     predicted_lanelet_boundary = iter.predicted_lanelet_boundary(:,3);
 
     for i = 1:length([coupling_info.veh_with_ROW])
+        % rear-end collision at the same lanelet or successive lanelets
+        % cannot be avoid by this strategy
         is_rear_end_collision = strcmp(coupling_info(i).collision_type, CollisionType.type_1);
+        is_same_lanelet = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_6);
+        is_logitudinal_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_1);
+        
         % only side-impact collision should be ignore by this strategy
-        if is_rear_end_collision
+        if is_rear_end_collision && (is_same_lanelet || is_logitudinal_lanelets)
             continue
         end
 
@@ -113,8 +118,6 @@ function [coupling_weights,lanelet_crossing_areas,coupling_info,iter] = strategy
         veh_without_ROW = coupling_info(i).veh_without_ROW;
 
         is_at_intersection = coupling_info(i).is_at_intersection;
-        is_side_impact_collision = strcmp(coupling_info(i).collision_type, CollisionType.type_2);
-        assert(is_side_impact_collision)
         is_intersecting_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_5);
         is_merging_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_3);
 

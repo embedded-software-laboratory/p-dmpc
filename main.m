@@ -1,18 +1,19 @@
-function [result,scenario] = main(varargin)
+function [result,scenario,options] = main(varargin)
 % MAIN  main function for graph-based receeding horizon control
 
 if verLessThan('matlab','9.10')
     warning("Code is developed in MATLAB 2021a, prepare for backward incompatibilities.")
 end
 
-if nargin == 0
+% check if options are given as input
+find_options = cellfun(@(c) isa(c,'OptionsMain'), varargin);
+    
+if any(find_options)
+    options = varargin{find_options};
+else
     options = startOptions();
-elseif nargin ~= 0
-    find_options = cellfun(@(c) isa(c,'OptionsMain'), varargin);
-    if any(find_options)
-        options = varargin{find_options};
-    end
 end
+
 % 
 %[options, vehicle_ids] = eval_guided_mode(1);
 %[options, vehicle_ids] = eval_expert_mode(1);
@@ -160,25 +161,17 @@ scenario.k = k;
 % overlapping points are removed when using MATLAB function `polyshape`
 warning('off','MATLAB:polyshape:repairedBySimplify')
 
-if nargin ~= 0
-    find_scenario = cellfun(@(c) isa(c,'Scenario'), varargin);
-    if any(find_scenario)
-        if length(varargin{find_scenario}.ros_subscribers) == scenario.options.amount
-            % if ROS 2 subscribers and publishers are given as input, store them
-            for iiVeh = 1:scenario.options.amount
-                scenario.vehicles(iiVeh).communicate = varargin{find_scenario}.vehicles(iiVeh).communicate;
-            end
-            scenario.ros_subscribers = varargin{find_scenario}.ros_subscribers;
+% check if scenario iss given as input
+find_scenario = cellfun(@(c) isa(c,'Scenario'), varargin);
+if any(find_scenario)
+    if length(varargin{find_scenario}.ros_subscribers) == scenario.options.amount
+        % if ROS 2 subscribers and publishers are given as input, store them
+        for iiVeh = 1:scenario.options.amount
+            scenario.vehicles(iiVeh).communicate = varargin{find_scenario}.vehicles(iiVeh).communicate;
         end
+        scenario.ros_subscribers = varargin{find_scenario}.ros_subscribers;
     end
 end
-% if nargin >= 2 && isa(varargin{2},'Scenario') && ~isempty(varargin{2}.ros_subscribers)
-%     % if ROS 2 subscribers and publishers are given as input, store them
-%     for iiVeh = 1:scenario.options.amount
-%         scenario.vehicles(iiVeh).communicate = varargin{2}.vehicles(iiVeh).communicate;
-%     end
-%     scenario.ros_subscribers = varargin{2}.ros_subscribers;
-% end
 
 if options.isParl && strcmp(scenario.name, 'Commonroad')
     % In parallel computation, vehicles communicate via ROS 2

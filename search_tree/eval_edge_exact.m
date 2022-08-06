@@ -82,9 +82,12 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
 
         iStep = cK;
 
-%         if scenario.k>4 && scenario.vehicles.ID==18 && iStep>=5
+        if scenario.k>=67 && scenario.vehicles.ID==16
 %             disp('')
-%         end
+            if t1==5 && t2==1
+                disp('')
+            end
+        end
 
         switch method
             case 'sat'
@@ -108,7 +111,7 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
                     is_valid = false;
                     return
                 end
-                if InterX(shapes_without_offset{iVeh}, lanelet_boundary)
+                if InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
                     % check collision with lanelet obstacles
                     is_valid = false;
                     return

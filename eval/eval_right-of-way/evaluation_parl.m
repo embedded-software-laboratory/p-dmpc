@@ -24,26 +24,26 @@ disp(['Average run time: ' num2str(mean(evaluation.runtime_average)) ' seconds.'
 disp(['Maximum 8 average run time: ' mat2str(round(evaluation.runtime_max,3)) ' seconds.'])
 %% Generate data: different maximum allowed number of computation level with not considering of lower-priority vehicles
 max_num_CLs_all = 1:10;
-load('options.mat','options')
+load('optionsMain.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
     options.scenario = 'Commonroad';
     options.trim_set = 9;
     options.Hp = 5;
-    options.dt = 0.2;
+    options.dt = 0.3;
     options.amount = 20;
-    options.T_end = 20;
+    options.T_end = 30;
     options.priority = 'right_of_way_priority';
     options.isParl = true;
     options.isAllowInheritROW = true;
     options.max_num_CLs = max_num_CLs_all(i_CL);
-    options.strategy_consider_veh_without_ROW = '1';
+    options.strategy_consider_veh_without_ROW = '3';
     options.strategy_enter_lanelet_crossing_area = '4';
     options.isSaveResult = true;
-    if i_CL==1 && ~exist('scenario','var')
-        [~,scenario] = main(options);
+    if exist('options','var') && exist('scenario','var')
+        [~,scenario,options] = main(options,scenario);
     else
-        [~,scenario] = main(options,scenario);
+        [~,scenario,options] = main();
     end
     disp([num2str(i_CL) ': done.'])
     disp('Pausing...')
@@ -52,7 +52,7 @@ end
 disp('Done.')
 %% Generate data: different maximum allowed number of computation level with considering of the current occupied sets of lower-priority vehicles
 max_num_CLs_all = 1:10;
-load('options.mat','options')
+load('optionsMain.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
     options.scenario = 'Commonroad';
@@ -80,7 +80,7 @@ end
 disp('Done.')
 %% Generate data: different maximum allowed number of computation level with considering of the emergency braking maneuver of lower-priority vehicles
 max_num_CLs_all = 4:4;
-load('options.mat','options')
+load('optionsMain.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
     options.scenario = 'Commonroad';
@@ -108,7 +108,7 @@ end
 disp('Done.')
 %% Generate data: different maximum allowed number of computation level with considering of the one-step-shifted  emergency braking maneuver of lower-priority vehicles
 max_num_CLs_all = 1:10;
-load('options.mat','options')
+load('optionsMain.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
     options.scenario = 'Commonroad';
@@ -136,7 +136,7 @@ end
 disp('Done.')
 %% Generate data: different maximum allowed number of computation level with considering of the one-step reachable sets of vehicles with lower priorities
 max_num_CLs_all = 1:10;
-load('options.mat','options')
+load('optionsMain.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
     options.scenario = 'Commonroad';
