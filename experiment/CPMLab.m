@@ -353,7 +353,9 @@ classdef CPMLab < InterfaceExperiment
                     end
                 end
 
-                obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
+                if ~is_manual_vehicle
+                    obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
+                end
 
                 if obj.scenario.options.force_feedback_enabled && scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id
                     obj.g29_last_position = obj.g29_handler.g29_send_message(obj.sample(end).state_list(iVeh).steering_servo, 0.3, obj.g29_last_position);                 
