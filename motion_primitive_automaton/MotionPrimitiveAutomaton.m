@@ -17,6 +17,7 @@ classdef MotionPrimitiveAutomaton
         emengency_braking_maneuvers % cell(n_trims, 1), local occupied area of emergency braking maneuver
         shortest_paths_to_max_speed     % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with maximum speed
         shortest_paths_to_equilibrium   % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
+        special_trims                   % struct, store which trim corresponds to turn most left/right and go straight; if multiple trims, choose the one with the smallest speed
     end
     
     methods
@@ -81,7 +82,37 @@ classdef MotionPrimitiveAutomaton
                 obj.trims(i) = generate_trim(model, trim_inputs(i,:));
             end
             
-            
+            % get special trims
+            obj.special_trims = struct('go_straight',[],'turn_left_most',[],'turn_right_most',[],'equilibrium',[]);
+            obj.special_trims.equilibrium = find([obj.trims.steering]==0 & [obj.trims.speed]==0);
+            steering_zero = 0; % go straight
+            steering_max = max([obj.trims.steering]); % turn left 
+            steering_min = min([obj.trims.steering]); % turn right
+            special_steerings = [steering_zero,steering_max,steering_min];
+
+            for iTurn = 1:length(special_steerings)
+                special_steering = special_steerings(iTurn);
+                find_target_steering_trims = find([obj.trims.steering]==special_steering);
+                if iTurn==1
+                    % delete equilibrium of go-straight trims
+                    find_target_steering_trims = setdiff(find_target_steering_trims,obj.special_trims.equilibrium);
+                end
+                if length(find_target_steering_trims)>1
+                    % if multiple trims have the maximum steering angle, choose the one with the smallest speed
+                    [~,idx_special_steering_min_speed] = min([obj.trims(find_target_steering_trims).speed]);
+                else
+                    idx_special_steering_min_speed = 1;
+                end
+                switch iTurn
+                    case 1
+                        obj.special_trims.go_straight = find_target_steering_trims(idx_special_steering_min_speed);
+                    case 2
+                        obj.special_trims.turn_left_most = find_target_steering_trims(idx_special_steering_min_speed);
+                    case 3
+                        obj.special_trims.turn_right_most = find_target_steering_trims(idx_special_steering_min_speed);
+                end
+            end            
+
             % maneuver cell/struct matrix
             for i = 1:n_trims
                 for j = 1:n_trims

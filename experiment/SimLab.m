@@ -25,7 +25,7 @@ classdef SimLab < InterfaceExperiment
             obj.abort = false;
 
             obj.visu.isShowVehID = true;
-            obj.visu.isShowPriority = true;
+            obj.visu.isShowPriority = false;
             obj.visu.isShowCoupling = true;
             obj.visu.isShowWeight = false;
             obj.visu.colormap = []; % n-by-3 matrix containing RGB values

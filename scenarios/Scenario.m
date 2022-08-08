@@ -36,7 +36,8 @@ classdef Scenario
         plot_limits = [-10,10;-10,10];          % default fallback if not defined
         adjacency;                              % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
         semi_adjacency;                         % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two semi-adjacent lanelets and their distance are smaller enough
-        directed_coupling;
+        directed_coupling;                      % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
+        directed_coupling_reduced;              % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
         assignPrios = false;
         isParl = false                  % if use parallel computation (logical variable)
         vehicle_to_lanelet;
@@ -52,6 +53,7 @@ classdef Scenario
         k;                              % simulation steps
         priority_option;
         coupling_weights = [];          % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
+        coupling_weights_reduced = [];  % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas
         coupling_info;                  % couling information of each coupling pair
         ros_subscribers = {};           % ROS 2 subscribers (used to read messages from other vehicles)
         max_num_CLs                     % max number of computation levels to limit the total planning time in each time step (used in the parallel computation)
