@@ -47,8 +47,8 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             grp_idx = arrayfun(@(array) ismember(vehicle_idx,array.vertices), scenario_v.parl_groups_info);
             all_vehs_same_grp = scenario_v.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
 
-            all_coupled_vehs_with_HP = find(scenario_v.directed_coupling(:,vehicle_idx)==1)'; % all coupled vehicles with higher priorities
-            all_coupled_vehs_with_LP = find(scenario_v.directed_coupling(vehicle_idx,:)==1); % all coupled vehicles with lower priorities
+            all_coupled_vehs_with_HP = find(scenario_v.directed_coupling_reduced(:,vehicle_idx)==1)'; % all coupled vehicles with higher priorities
+            all_coupled_vehs_with_LP = find(scenario_v.directed_coupling_reduced(vehicle_idx,:)==1); % all coupled vehicles with lower priorities
  
             coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp); % coupled vehicles with higher priorities in the same group
             coupled_vehs_other_grps_with_HP = setdiff(all_coupled_vehs_with_HP, coupled_vehs_same_grp_with_HP); % coupled vehicles with higher priorities in other groups

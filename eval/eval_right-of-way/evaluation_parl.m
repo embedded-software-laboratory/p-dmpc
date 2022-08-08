@@ -18,13 +18,14 @@ results_full_path = FileNameConstructor.get_results_full_path(customResultName,s
 % evaluation = EvaluationCommon(results_full_path);
 % disp(['Average run time: ' num2str(mean(evaluation.subcontroller_runtime_per_step)) ' seconds.'])
 % disp(['Maximum 8 average run time: ' mat2str(round(maxk(evaluation.subcontroller_runtime_per_step,8),3)) ' seconds.'])
-evaluation = EvaluationCommon(results_full_path);
+evaluation = EvaluationCommon('boundaryCheckBeforeImprovement');
+evaluation = EvaluationCommon('boundaryCheckAfterImprovement');
 % eval_before_2 = struct(evaluation_before);
 disp(['Average run time: ' num2str(mean(evaluation.runtime_average)) ' seconds.'])
 disp(['Maximum 8 average run time: ' mat2str(round(evaluation.runtime_max,3)) ' seconds.'])
 %% Generate data: different maximum allowed number of computation level with not considering of lower-priority vehicles
 max_num_CLs_all = 1:10;
-load('optionsMain.mat','options')
+% load('optionsMain.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
     options.scenario = 'Commonroad';
@@ -37,7 +38,7 @@ for i_CL = 1:length(max_num_CLs_all)
     options.isParl = true;
     options.isAllowInheritROW = true;
     options.max_num_CLs = max_num_CLs_all(i_CL);
-    options.strategy_consider_veh_without_ROW = '3';
+    options.strategy_consider_veh_without_ROW = '1';
     options.strategy_enter_lanelet_crossing_area = '4';
     options.isSaveResult = true;
     if exist('options','var') && exist('scenario','var')
@@ -52,7 +53,7 @@ end
 disp('Done.')
 %% Generate data: different maximum allowed number of computation level with considering of the current occupied sets of lower-priority vehicles
 max_num_CLs_all = 1:10;
-load('optionsMain.mat','options')
+% load('optionsMain.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
     options.scenario = 'Commonroad';
@@ -79,8 +80,8 @@ for i_CL = 1:length(max_num_CLs_all)
 end
 disp('Done.')
 %% Generate data: different maximum allowed number of computation level with considering of the emergency braking maneuver of lower-priority vehicles
-max_num_CLs_all = 4:4;
-load('optionsMain.mat','options')
+max_num_CLs_all = 1:10;
+% load('optionsMain.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
     options.scenario = 'Commonroad';
@@ -164,7 +165,7 @@ end
 disp('Done.')
 
 %% plot: compare different maximum number of groups
-max_num_CLs_all = 1:20;
+max_num_CLs_all = 1:10;
 evaluations = cell(1,length(max_num_CLs_all));
 for i_CL = 1:length(max_num_CLs_all)
     customResultName = '';
@@ -270,7 +271,7 @@ hold on
 plot(x_speed,runtime_max,'-r*','LineWidth',1,'DisplayName','Maximum runtime per step [s]')
 text(x_speed,runtime_max,num2str(runtime_max','%.2f'),'VerticalAlignment','bottom','HorizontalAlignment','center','FontSize',9,'FontName','Times New Roman'); 
 %% Box plot
-max_num_CLs_all = 1:20;
+max_num_CLs_all = 1:10;
 evaluations = cell(1,length(max_num_CLs_all));
 for i_CL = 1:length(max_num_CLs_all)
     customResultName = '';
@@ -362,15 +363,17 @@ else
     print(fig,full_path,'-dpdf','-r0');
     print(fig,full_path,'-dsvg','-r0');
 end
-%% example
-err = [6, 3, 1; 1, 3, 4];
-y=[69,123,137; 74, 62, 21];
-figure
-bar(y)
-set(gca, 'XTickLabel', {'Cats' 'Dogs'});
-hold on
-errorbar(y, err, '.')
-ylabel('Mean Error');
-ylim([20 140]);
-legend('response to novel cats', 'response to novel dogs');
-saveas(gcf,['bar_2', '.jpg'])
+%% Improve boundary check
+e_before_improvement = EvaluationCommon('boundaryCheckBeforeImprovement_ConsiderVehWithoutROW1');
+e_after_improvement = EvaluationCommon('boundaryCheckAfterImprovement_ConsiderVehWithoutROW1');
+disp('--------Before improving boundary checking:')
+disp(['Average run time: ' num2str(mean(e_before_improvement.runtime_average)) ' seconds.'])
+disp(['Top 8 maximum runtime: ' mat2str(round(e_before_improvement.runtime_max,3)) ' seconds.'])
+disp(['Average expanded nodes: ' num2str(e_before_improvement.nodes_expanded_average) '.'])
+disp(['Average speed: ' num2str(e_before_improvement.average_speed) ' [m/s]'])
+
+disp('--------After improving boundary checking:')
+disp(['Average run time: ' num2str(mean(e_after_improvement.runtime_average)) ' seconds.'])
+disp(['Top 8 maximum runtime: ' mat2str(round(e_after_improvement.runtime_max,3)) ' seconds.'])
+disp(['Average expanded nodes: ' num2str(e_after_improvement.nodes_expanded_average) '.'])
+disp(['Average speed: ' num2str(e_after_improvement.average_speed) ' [m/s]'])
