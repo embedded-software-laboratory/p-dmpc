@@ -18,13 +18,13 @@ results_full_path = FileNameConstructor.get_results_full_path(customResultName,s
 % evaluation = EvaluationCommon(results_full_path);
 % disp(['Average run time: ' num2str(mean(evaluation.subcontroller_runtime_per_step)) ' seconds.'])
 % disp(['Maximum 8 average run time: ' mat2str(round(maxk(evaluation.subcontroller_runtime_per_step,8),3)) ' seconds.'])
-evaluation = EvaluationCommon('boundaryCheckBeforeImprovement');
+evaluation = EvaluationCommon('test');
 evaluation = EvaluationCommon('boundaryCheckAfterImprovement');
 % eval_before_2 = struct(evaluation_before);
 disp(['Average run time: ' num2str(mean(evaluation.runtime_average)) ' seconds.'])
 disp(['Maximum 8 average run time: ' mat2str(round(evaluation.runtime_max,3)) ' seconds.'])
 %% Generate data: different maximum allowed number of computation level with not considering of lower-priority vehicles
-max_num_CLs_all = 1:10;
+max_num_CLs_all = 1:20;
 % load('optionsMain.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
@@ -32,63 +32,7 @@ for i_CL = 1:length(max_num_CLs_all)
     options.trim_set = 9;
     options.Hp = 5;
     options.dt = 0.3;
-    options.amount = 20;
-    options.T_end = 30;
-    options.priority = 'right_of_way_priority';
-    options.isParl = true;
-    options.isAllowInheritROW = true;
-    options.max_num_CLs = max_num_CLs_all(i_CL);
-    options.strategy_consider_veh_without_ROW = '1';
-    options.strategy_enter_lanelet_crossing_area = '4';
-    options.isSaveResult = true;
-    if exist('options','var') && exist('scenario','var')
-        [~,scenario,options] = main(options,scenario);
-    else
-        [~,scenario,options] = main();
-    end
-    disp([num2str(i_CL) ': done.'])
-    disp('Pausing...')
-    pause(3) % pause to cool the machine
-end
-disp('Done.')
-%% Generate data: different maximum allowed number of computation level with considering of the current occupied sets of lower-priority vehicles
-max_num_CLs_all = 1:10;
-% load('optionsMain.mat','options')
-for i_CL = 1:length(max_num_CLs_all)
-    options.customResultName = '';
-    options.scenario = 'Commonroad';
-    options.trim_set = 9;
-    options.Hp = 5;
-    options.dt = 0.2;
-    options.amount = 20;
-    options.T_end = 20;
-    options.priority = 'right_of_way_priority';
-    options.isParl = true;
-    options.isAllowInheritROW = true;
-    options.max_num_CLs = max_num_CLs_all(i_CL);
-    options.strategy_consider_veh_without_ROW = '2';
-    options.strategy_enter_lanelet_crossing_area = '4';
-    options.isSaveResult = true;
-    if i_CL==1 && ~exist('scenario','var')
-        [~,scenario] = main(options);
-    else
-        [~,scenario] = main(options,scenario);
-    end
-    disp([num2str(i_CL) ': done.'])
-    disp('Pausing...')
-    pause(3) % pause to cool the machine
-end
-disp('Done.')
-%% Generate data: different maximum allowed number of computation level with considering of the emergency braking maneuver of lower-priority vehicles
-max_num_CLs_all = 1:10;
-% load('optionsMain.mat','options')
-for i_CL = 1:length(max_num_CLs_all)
-    options.customResultName = '';
-    options.scenario = 'Commonroad';
-    options.trim_set = 9;
-    options.Hp = 5;
-    options.dt = 0.2;
-    options.amount = 20;
+    options.amount = 15;
     options.T_end = 20;
     options.priority = 'right_of_way_priority';
     options.isParl = true;
@@ -96,67 +40,14 @@ for i_CL = 1:length(max_num_CLs_all)
     options.max_num_CLs = max_num_CLs_all(i_CL);
     options.strategy_consider_veh_without_ROW = '3';
     options.strategy_enter_lanelet_crossing_area = '4';
-    options.isSaveResult = true;
-    if i_CL==1 && ~exist('scenario','var')
-        [~,scenario] = main(options);
+    options.isSaveResult = false;
+    options.visu = [false,false];
+    if exist('options','var') && exist('scenario','var')
+        [~,scenario,options] = main(options,scenario);
+        
     else
-        [~,scenario] = main(options,scenario);
-    end
-    disp([num2str(i_CL) ': done.'])
-    disp('Pausing...')
-    pause(3) % pause to cool the machine
-end
-disp('Done.')
-%% Generate data: different maximum allowed number of computation level with considering of the one-step-shifted  emergency braking maneuver of lower-priority vehicles
-max_num_CLs_all = 1:10;
-load('optionsMain.mat','options')
-for i_CL = 1:length(max_num_CLs_all)
-    options.customResultName = '';
-    options.scenario = 'Commonroad';
-    options.trim_set = 9;
-    options.Hp = 5;
-    options.dt = 0.2;
-    options.amount = 20;
-    options.T_end = 20;
-    options.priority = 'right_of_way_priority';
-    options.isParl = true;
-    options.isAllowInheritROW = true;
-    options.max_num_CLs = max_num_CLs_all(i_CL);
-    options.strategy_consider_veh_without_ROW = '4';
-    options.strategy_enter_lanelet_crossing_area = '4';
-    options.isSaveResult = true;
-    if i_CL==1 && ~exist('scenario','var')
-        [~,scenario] = main(options);
-    else
-        [~,scenario] = main(options,scenario);
-    end
-    disp([num2str(i_CL) ': done.'])
-    disp('Pausing...')
-    pause(3) % pause to cool the machine
-end
-disp('Done.')
-%% Generate data: different maximum allowed number of computation level with considering of the one-step reachable sets of vehicles with lower priorities
-max_num_CLs_all = 1:10;
-load('optionsMain.mat','options')
-for i_CL = 1:length(max_num_CLs_all)
-    options.customResultName = '';
-    options.scenario = 'Commonroad';
-    options.trim_set = 9;
-    options.Hp = 5;
-    options.dt = 0.2;
-    options.amount = 20;
-    options.T_end = 20;
-    options.priority = 'right_of_way_priority';
-    options.isParl = true;
-    options.isAllowInheritROW = true;
-    options.max_num_CLs = max_num_CLs_all(i_CL);
-    options.strategy_consider_veh_without_ROW = '5';
-    options.strategy_enter_lanelet_crossing_area = '4';
-    options.isSaveResult = true;
-    if i_CL==1 && ~exist('scenario','var')
-        [~,scenario] = main(options);
-    else
-        [~,scenario] = main(options,scenario);
+        [~,scenario,options] = main(options);
+        [~,scenario,options] = main();
     end
     disp([num2str(i_CL) ': done.'])
     disp('Pausing...')
@@ -165,7 +56,7 @@ end
 disp('Done.')
 
 %% plot: compare different maximum number of groups
-max_num_CLs_all = 1:10;
+max_num_CLs_all = 1:20;
 evaluations = cell(1,length(max_num_CLs_all));
 for i_CL = 1:length(max_num_CLs_all)
     customResultName = '';
@@ -271,7 +162,7 @@ hold on
 plot(x_speed,runtime_max,'-r*','LineWidth',1,'DisplayName','Maximum runtime per step [s]')
 text(x_speed,runtime_max,num2str(runtime_max','%.2f'),'VerticalAlignment','bottom','HorizontalAlignment','center','FontSize',9,'FontName','Times New Roman'); 
 %% Box plot
-max_num_CLs_all = 1:10;
+max_num_CLs_all = 1:20;
 evaluations = cell(1,length(max_num_CLs_all));
 for i_CL = 1:length(max_num_CLs_all)
     customResultName = '';
