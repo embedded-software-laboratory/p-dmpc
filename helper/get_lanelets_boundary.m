@@ -37,9 +37,12 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
 
         left_bound_cell = cellfun(@(c)c{1}(1:end-1,:)', predicted_lanelet_boundaries, 'UniformOutput',false);
         left_bound = [left_bound_cell{:}];
+        left_bound = [left_bound,predicted_lanelet_boundaries{end}{1}(end,:)']; % add the endpoint
 
         right_bound_cell = cellfun(@(c)c{2}(1:end-1,:)', predicted_lanelet_boundaries, 'UniformOutput',false);
         right_bound = [right_bound_cell{:}];
+        right_bound = [right_bound,predicted_lanelet_boundaries{end}{2}(end,:)']; % add the endpoint
+
 
         % add several points of predecessor lanelet to ensure the whole
         % vehicle body is inside its lanelet boundary
@@ -67,6 +70,7 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
         % 'Simplify' to false to save computation time
         lanelet_boundary{3} = polyshape(x,y,'Simplify',false);
         assert(lanelet_boundary{3}.NumRegions==1)
+%         plot_obstacles(lanelet_boundary{3})
     else
         % determine the boundaries for each vehicle
         left_bound = cellfun(@(c)c{1}', predicted_lanelet_boundaries, 'UniformOutput',false);

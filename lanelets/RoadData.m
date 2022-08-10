@@ -227,14 +227,15 @@ classdef RoadData
             semi_adjacency_lanelets = triu(semi_adjacency_lanelets,1) + triu(semi_adjacency_lanelets,1)' + eye(nLanelets);
         end
 
-        function lanelet_boundary = get_lanelet_boundary(obj)
+        function lanelet_boundary_extended = get_lanelet_boundary(obj)
         % returns lanelet boundaries
             nLanelets = length(obj.lanelets);
             road_lanelets = obj.road_raw_data.lanelet;
+            share_boundary_with = cell(nLanelets,1);
         
-            lanelet_boundary = cell(1,nLanelets);
+            lanelet_boundary_tmp = cell(1,nLanelets);
             for i = 1:nLanelets 
-                share_boundary_with = i; % which lanelets have the same boundary
+                share_boundary_with_i = i; % which lanelets have the same boundary
         
                 [adjacentLeft_i, adjacentRight_i, ~, predecessors_adjacentLeft_i, predecessors_adjacentRight_i,...
                     ~, successors_adjacentLeft_i, successors_adjacentRight_i] = obj.get_all_adjacent_lanelets(i, road_lanelets);
@@ -251,12 +252,12 @@ classdef RoadData
                 if ~isempty(adjacentLeft_i) && strcmp(road_lanelets(i).adjacentLeft.drivingDirAttribute,'same') 
                     left_bound_x = obj.lanelets{adjacentLeft_i}(:,LaneletInfo.lx);
                     left_bound_y = obj.lanelets{adjacentLeft_i}(:,LaneletInfo.ly);
-                    share_boundary_with = [share_boundary_with,adjacentLeft_i];
+                    share_boundary_with_i = [share_boundary_with_i,adjacentLeft_i];
         
                 elseif ~isempty(adjacentRight_i) && strcmp(road_lanelets(i).adjacentRight.drivingDirAttribute,'same')
                     right_bound_x = obj.lanelets{adjacentRight_i}(:,LaneletInfo.rx);
                     right_bound_y = obj.lanelets{adjacentRight_i}(:,LaneletInfo.ry);
-                    share_boundary_with = [share_boundary_with,adjacentRight_i];
+                    share_boundary_with_i = [share_boundary_with_i,adjacentRight_i];
                 end
                 
                 % find all merging lanelets
@@ -271,12 +272,12 @@ classdef RoadData
                             % extend the current lanelet's left boundary to the left boundary of the adjacent left lanelet of the merging lanelet 
                             left_bound_x = obj.lanelets{adjacentLeft_merging}(:,LaneletInfo.lx);
                             left_bound_y = obj.lanelets{adjacentLeft_merging}(:,LaneletInfo.ly);
-                            share_boundary_with = [share_boundary_with,i_merging,adjacentLeft_merging];
+                            share_boundary_with_i = [share_boundary_with_i,i_merging,adjacentLeft_merging];
                         else
                             % otherwise extend the current lanelet's left boundary to the left boundary of the merging lanelet 
                             left_bound_x = obj.lanelets{i_merging}(:,LaneletInfo.lx);
                             left_bound_y = obj.lanelets{i_merging}(:,LaneletInfo.ly);
-                            share_boundary_with = [share_boundary_with,i_merging];
+                            share_boundary_with_i = [share_boundary_with_i,i_merging];
                         end                
                     end
         
@@ -287,12 +288,12 @@ classdef RoadData
                             % extend the current lanelet's right boundary to the right boundary of the adjacent right lanelet of the merging lanelet 
                             right_bound_x = obj.lanelets{adjacentRight_merging}(:,LaneletInfo.rx);
                             right_bound_y = obj.lanelets{adjacentRight_merging}(:,LaneletInfo.ry);
-                            share_boundary_with = [share_boundary_with,i_merging,adjacentRight_merging];
+                            share_boundary_with_i = [share_boundary_with_i,i_merging,adjacentRight_merging];
                         else
                             % otherwise extend the current lanelet's right boundary to the right boundary of the merging lanelet 
                             right_bound_x = obj.lanelets{i_merging}(:,LaneletInfo.rx);
                             right_bound_y = obj.lanelets{i_merging}(:,LaneletInfo.ry);
-                            share_boundary_with = [share_boundary_with,i_merging];
+                            share_boundary_with_i = [share_boundary_with_i,i_merging];
                         end                
                     end
         
@@ -310,12 +311,12 @@ classdef RoadData
                             % extend the current lanelet's left boundary to the left boundary of the adjacent left lanelet of the forking lanelet 
                             left_bound_x = obj.lanelets{adjacentLeft_forking}(:,LaneletInfo.lx);
                             left_bound_y = obj.lanelets{adjacentLeft_forking}(:,LaneletInfo.ly);
-                            share_boundary_with = [share_boundary_with,i_forking,adjacentLeft_forking];
+                            share_boundary_with_i = [share_boundary_with_i,i_forking,adjacentLeft_forking];
                         else
                             % otherwise extend the current lanelet's left boundary to the left boundary of the forking lanelet 
                             left_bound_x = obj.lanelets{i_forking}(:,LaneletInfo.lx);
                             left_bound_y = obj.lanelets{i_forking}(:,LaneletInfo.ly);
-                            share_boundary_with = [share_boundary_with,i_forking];
+                            share_boundary_with_i = [share_boundary_with_i,i_forking];
                         end                
                     end
         
@@ -326,12 +327,12 @@ classdef RoadData
                             % extend the current lanelet's right boundary to the right boundary of the adjacent right lanelet of the forking lanelet 
                             right_bound_x = obj.lanelets{adjacentRight_forking}(:,LaneletInfo.rx);
                             right_bound_y = obj.lanelets{adjacentRight_forking}(:,LaneletInfo.ry);
-                            share_boundary_with = [share_boundary_with,i_forking,adjacentRight_forking];
+                            share_boundary_with_i = [share_boundary_with_i,i_forking,adjacentRight_forking];
                         else
                             % otherwise extend the current lanelet's right boundary to the right boundary of the forking lanelet 
                             right_bound_x = obj.lanelets{i_forking}(:,LaneletInfo.rx);
                             right_bound_y = obj.lanelets{i_forking}(:,LaneletInfo.ry);
-                            share_boundary_with = [share_boundary_with,i_forking];
+                            share_boundary_with_i = [share_boundary_with_i,i_forking];
                         end                
                     end
         
@@ -340,20 +341,282 @@ classdef RoadData
                 left_bound = [left_bound_x(:),left_bound_y(:)];
                 right_bound = [right_bound_x(:),right_bound_y(:)];
            
-                lanelet_boundary{i} = {left_bound,right_bound};
+                lanelet_boundary_tmp{i} = {left_bound,right_bound};
         
                 % convert to MATLAB polyshape object for later use (set 'Simplify' to true to remove colinear points)        
                 bound_x = [left_bound_x;right_bound_x(end:-1:1)];
                 bound_y = [left_bound_y;right_bound_y(end:-1:1)];
-                lanelet_boundary{i}{3} = polyshape(bound_x,bound_y,'Simplify',true);
-        
-        %         % Narrowed lanelet boundaries, used to check if two vehicles' predicted lanelets boundaries overlap. 
-        %         % Without narrowing, two lanelets are considered as overlap if they only share the same boundary
-        %         narrow_fac = 0.98;
-        %         bound_x_narrowed = narrow_fac*(bound_x-mean(bound_x)) + mean(bound_x);
-        %         bound_y_narrowed = narrow_fac*(bound_y-mean(bound_y)) + mean(bound_y);
-        %         lanelet_boundary{i}{4} = polyshape(bound_x_narrowed,bound_y_narrowed,'Simplify',true);
-            end 
+                lanelet_boundary_tmp{i}{3} = polyshape(bound_x,bound_y,'Simplify',true);
+
+                share_boundary_with{i} = sort(share_boundary_with_i,'ascend');
+            end
+
+            % if two lanelets share some part of area, they should have
+            % the same boundary
+            for j = 1:nLanelets
+                share_boundary_with_j = share_boundary_with{j};
+                find_lanelets_share_boundary_with_j = find(cellfun(@(c) ismember(j,c),share_boundary_with));
+                lanelets_all_j = unique([share_boundary_with{find_lanelets_share_boundary_with_j}]);
+                lanelets_all_j = sort(lanelets_all_j,'ascend');
+                find_lanelet_with_same_boundary = find(cellfun(@(c) length(lanelets_all_j)==length(c)&&all(lanelets_all_j==c),share_boundary_with));
+                for k = find_lanelet_with_same_boundary(:)'
+                    if length(share_boundary_with_j)<length(share_boundary_with{k})
+                        % exclude self and lanelet with exactly the same
+                        % lanelet boundary
+                        lanelet_boundary_tmp(j) = lanelet_boundary_tmp(k);
+                        share_boundary_with(j) = share_boundary_with(k);
+                        break
+                    end
+                end
+            end
+
+            % If the closing (opening) of merging (forking) lanelets are
+            % different, make them become the same to avoid sudden change
+            % of lanelet boundaries
+            
+            lanelet_boundary_extended = lanelet_boundary_tmp;
+            is_extend = false(nLanelets,1);
+            for iL = 1:nLanelets
+                disp(iL)
+                if is_extend(iL)
+                    % avoid repeated entending
+                    continue
+                end
+                lanelet_boundary_i = lanelet_boundary_tmp{iL};
+
+                % find merging lanelets
+                iMs = obj.find_adjacent_lanelets_with_certain_relationship(iL,obj.lanelet_relationships,LaneletRelationshipType.type_3);
+                for iM_idx=1:length(iMs)
+                    iM = iMs(iM_idx);
+                    lanelet_boundary_iM = lanelet_boundary_tmp{iM};
+                    if norm(lanelet_boundary_i{1}(end,:)-lanelet_boundary_iM{1}(end,:))>1e-2 || norm(lanelet_boundary_i{2}(end,:)-lanelet_boundary_iM{2}(end,:))>1e-2
+                        % If left end points or right end points are not identical
+                        is_extend(iL) = true;
+                        % Find the point of intersection of their lanelet boundaries
+                        % Its own left boundary and merging lanelet's right boundary
+                        POI_l_r = InterX(lanelet_boundary_i{1}',lanelet_boundary_iM{2}',true);
+                        if ~isempty(POI_l_r)
+                            assert(size(POI_l_r,2)==1) % if multiple POI, code adaption is needed
+                            % Left-right boundary intersect
+                            % straight line connecting the POI and the end
+                            % point of the left boundary of the merging
+                            % lanelet
+                            straight_line = [POI_l_r,lanelet_boundary_iM{1}(end,:)'];
+                            % check if the line intersects with the its own left lanelet boundary
+                            POI_line_left = InterX(lanelet_boundary_i{1}',straight_line,true);
+                            % delete the POI if it is very closed to the POI 
+                            % of its own right boundary and merging lanelet's left boundary
+                            points_deleted = false(1,size(POI_line_left,2));
+                            for iPOI = 1:size(POI_line_left,2)
+                                distance_POI = sqrt(sum((POI_line_left-POI_l_r).^2,1));
+                                if distance_POI < 1e-2
+                                    points_deleted(iPOI) = true;
+                                end
+                            end
+                            POI_line_left = POI_line_left(:,~points_deleted);
+
+                            if ~isempty(POI_line_left)
+                                if size(POI_line_left,2)>1
+                                    % if multiple POI, delete the one that is very colsed to the POI 
+                                    % of its own left boundary and merging lanelet's right boundary
+                                    [~,idx_del] = min(sum((POI_line_left-POI_l_r).^2,1));
+                                    POI_line_left(:,idx_del) = [];
+                                    assert(size(POI_line_left,2)==1)
+                                end
+                                [~,idx_min_2] = mink(sum((lanelet_boundary_i{1}'-POI_line_left).^2,1),2);
+                                assert(abs(idx_min_2(1)-idx_min_2(2))==1)
+                                n_sample = size(lanelet_boundary_i{1},1) - min(idx_min_2);
+                                x_sampled = linspace(POI_line_left(1),lanelet_boundary_iM{1}(end,1),n_sample);
+                                y_sampled = linspace(POI_line_left(2),lanelet_boundary_iM{1}(end,2),n_sample);
+                            else
+                                [~,idx_min_2] = mink(sum((lanelet_boundary_i{1}'-POI_l_r).^2,1),2);
+                                assert(abs(idx_min_2(1)-idx_min_2(2))==1)
+                                n_sample = size(lanelet_boundary_i{1},1) - min(idx_min_2);
+                                x_sampled = linspace(POI_l_r(1),lanelet_boundary_iM{1}(end,1),n_sample);
+                                y_sampled = linspace(POI_l_r(2),lanelet_boundary_iM{1}(end,2),n_sample);
+                            end
+                            lanelet_boundary_i{1} = [lanelet_boundary_i{1}(1:min(idx_min_2),:);[x_sampled;y_sampled]'];
+                        end
+
+                        % its own right boundary and merging lanelet's left boundary
+                        POI_r_l = InterX(lanelet_boundary_i{2}',lanelet_boundary_iM{1}',true);
+                        if ~isempty(POI_r_l)
+                            assert(size(POI_r_l,2)==1) % if multiple POI, code adaption is needed
+                            % right-left boundary intersect
+                            % straight line connecting the POI and the end
+                            % point of the left boundary of the merging
+                            % lanelet
+                            straight_line = [POI_r_l,lanelet_boundary_iM{2}(end,:)'];
+
+                            % check if the line intersects with the its own right lanelet boundary
+                            POI_line_right = InterX(lanelet_boundary_i{2}',straight_line,true);
+
+                            % delete the POI if it is very closed to the POI 
+                            % of its own right boundary and merging lanelet's left boundary
+                            points_deleted = false(1,size(POI_line_right,2));
+                            for iPOI = 1:size(POI_line_right,2)
+                                distance_POI = sqrt(sum((POI_line_right-POI_r_l).^2,1));
+                                if distance_POI < 1e-2
+                                    points_deleted(iPOI) = true;
+                                end
+                            end
+                            POI_line_right = POI_line_right(:,~points_deleted);
+
+                            if ~isempty(POI_line_right)
+                                if size(POI_line_right,2)>1
+                                    % if multiple POI, delete the one that is very colsed to the POI 
+                                    % of its own left boundary and merging lanelet's right boundary
+                                    [~,idx_del] = min(sum((POI_line_right-POI_r_l).^2,1));
+                                    POI_line_right(:,idx_del) = [];
+                                    assert(size(POI_line_right,2)==1)
+                                end
+                                [~,idx_min_2] = mink(sum((lanelet_boundary_i{2}'-POI_line_right).^2,1),2);
+                                assert(abs(idx_min_2(1)-idx_min_2(2))==1)
+                                n_sample = size(lanelet_boundary_i{2},1) - min(idx_min_2);
+                                x_sampled = linspace(POI_line_right(1),lanelet_boundary_iM{2}(end,1),n_sample);
+                                y_sampled = linspace(POI_line_right(2),lanelet_boundary_iM{2}(end,2),n_sample);
+%                                 lanelet_boundary_i{2} = [lanelet_boundary_i{2}(1:min(idx_min_2),:);POI_line_right';lanelet_boundary_iM{2}(end,:)];
+                            else
+                                [~,idx_min_2] = mink(sum((lanelet_boundary_i{2}'-POI_r_l).^2,1),2);
+                                assert(abs(idx_min_2(1)-idx_min_2(2))==1)
+                                n_sample = size(lanelet_boundary_i{1},1) - min(idx_min_2);
+                                x_sampled = linspace(POI_r_l(1),lanelet_boundary_iM{2}(end,1),n_sample);
+                                y_sampled = linspace(POI_r_l(2),lanelet_boundary_iM{2}(end,2),n_sample);
+%                                 lanelet_boundary_i{2} = [lanelet_boundary_i{2}(1:min(idx_min_2),:);POI_r_l';lanelet_boundary_iM{2}(end,:)];
+                            end
+                            lanelet_boundary_i{2} = [lanelet_boundary_i{2}(1:min(idx_min_2),:);[x_sampled;y_sampled]'];
+                        end
+                    end
+                    break
+                end
+                
+                % find forking lanelets
+                iFs = obj.find_adjacent_lanelets_with_certain_relationship(iL,obj.lanelet_relationships,LaneletRelationshipType.type_4);
+                for iF_idx=1:length(iFs)
+                    iF = iFs(iF_idx);
+                    lanelet_boundary_iF = lanelet_boundary_tmp{iF};
+                    if norm(lanelet_boundary_i{1}(1,:)-lanelet_boundary_iF{1}(1,:))>1e-2 || norm(lanelet_boundary_i{2}(1,:)-lanelet_boundary_iF{2}(1,:))>1e-2
+                        % If left start points or right start points are not identical
+                        is_extend(iL) = true;
+                        % Find the point of intersection of their lanelet boundaries
+                        % Its own left boundary and forking lanelet's right boundary
+                        POI_l_r = InterX(lanelet_boundary_i{1}',lanelet_boundary_iF{2}',true);
+                        if ~isempty(POI_l_r)
+                            assert(size(POI_l_r,2)==1) % if multiple POI, code adaption is needed
+                            % Left-right boundary intersect
+                            
+                            % Straight line connecting the POI and the end
+                            % point of the left boundary of the forking
+                            % lanelet
+                            straight_line = [POI_l_r,lanelet_boundary_iF{1}(1,:)'];
+                            % check if the line intersects with the its own left lanelet boundary
+                            POI_line_left = InterX(lanelet_boundary_i{1}',straight_line,true);
+                            points_deleted = false(1,size(POI_line_left,2));
+                            for iPOI = 1:size(POI_line_left,2)
+                                distance_POI = sqrt(sum((POI_line_left-POI_l_r).^2,1));
+                                if distance_POI < 1e-2
+                                    points_deleted(iPOI) = true;
+                                end
+                            end
+                            POI_line_left = POI_line_left(:,~points_deleted);
+
+                            if ~isempty(POI_line_left)
+                                if size(POI_line_left,2)>1
+                                    % if multiple POI, delete the one that is very colsed to the POI 
+                                    % of its own left boundary and forking lanelet's right boundary
+                                    [~,idx_del] = min(sum((POI_line_left-POI_l_r).^2,1));
+                                    POI_line_left(:,idx_del) = [];
+                                    assert(size(POI_line_left,2)==1)
+                                end
+                                [~,idx_min_2] = mink(sum((lanelet_boundary_i{1}'-POI_line_left).^2,1),2);
+                                assert(abs(idx_min_2(1)-idx_min_2(2))==1)
+                                n_sample = min(idx_min_2);
+                                x_sampled = linspace(lanelet_boundary_iF{1}(1,1),POI_line_left(1),n_sample);
+                                y_sampled = linspace(lanelet_boundary_iF{1}(1,2),POI_line_left(2),n_sample);
+%                                 lanelet_boundary_i{1} = [lanelet_boundary_iF{1}(1,:);POI_line_left';lanelet_boundary_i{1}(max(idx_min_2):end,:)];
+                            else
+                                [~,idx_min_2] = mink(sum((lanelet_boundary_i{1}'-POI_l_r).^2,1),2);
+                                assert(abs(idx_min_2(1)-idx_min_2(2))==1)
+                                n_sample = min(idx_min_2);
+                                x_sampled = linspace(lanelet_boundary_iF{1}(1,1),POI_l_r(1),n_sample);
+                                y_sampled = linspace(lanelet_boundary_iF{1}(1,2),POI_l_r(2),n_sample);
+%                                 lanelet_boundary_i{1} = [lanelet_boundary_iF{1}(1,:);POI_l_r';lanelet_boundary_i{1}(max(idx_min_2):end,:)];
+                            end
+                            lanelet_boundary_i{1} = [[x_sampled;y_sampled]';lanelet_boundary_i{1}(max(idx_min_2):end,:)];
+                        end
+
+                        % its own right boundary and forking lanelet's left boundary
+                        POI_r_l = InterX(lanelet_boundary_i{2}',lanelet_boundary_iF{1}',true);
+                        if ~isempty(POI_r_l)
+                            assert(size(POI_r_l,2)==1) % if multiple POI, code adaption is needed
+                            % right-left boundary intersect
+                            % straight line connecting the POI and the end
+                            % point of the left boundary of the forking
+                            % lanelet
+                            straight_line = [POI_r_l,lanelet_boundary_iF{2}(1,:)'];
+
+                            % check if the line intersects with the its own right lanelet boundary
+                            POI_line_right = InterX(lanelet_boundary_i{2}',straight_line,true);
+
+                            % delete the POI if it is very closed to the POI 
+                            % of its own right boundary and forking lanelet's left boundary
+                            points_deleted = false(1,size(POI_line_right,2));
+                            for iPOI = 1:size(POI_line_right,2)
+                                distance_POI = sqrt(sum((POI_line_right-POI_r_l).^2,1));
+                                if distance_POI < 1e-2
+                                    points_deleted(iPOI) = true;
+                                end
+                            end
+                            POI_line_right = POI_line_right(:,~points_deleted);
+                                    
+                            if ~isempty(POI_line_right)
+                                if size(POI_line_right,2)>1
+                                    % if multiple POI, delete the one that is very colsed to the POI 
+                                    % of its own left boundary and forking lanelet's right boundary
+                                    POI_line_right(:,idx_del) = [];
+                                    assert(size(POI_line_right,2)==1)
+                                end
+                                [~,idx_min_2] = mink(sum((lanelet_boundary_i{2}'-POI_line_right).^2,1),2);
+                                assert(abs(idx_min_2(1)-idx_min_2(2))==1)
+                                n_sample = min(idx_min_2);
+                                x_sampled = linspace(lanelet_boundary_iF{2}(1,1),POI_line_right(1),n_sample);
+                                y_sampled = linspace(lanelet_boundary_iF{2}(1,2),POI_line_right(2),n_sample);
+%                                 lanelet_boundary_i{2} = [lanelet_boundary_iF{2}(1,:);POI_line_right';lanelet_boundary_i{2}(max(idx_min_2):end,:)];
+                            else
+                                [~,idx_min_2] = mink(sum((lanelet_boundary_i{2}'-POI_r_l).^2,1),2);
+                                assert(abs(idx_min_2(1)-idx_min_2(2))==1)
+                                n_sample = min(idx_min_2);
+                                x_sampled = linspace(lanelet_boundary_iF{2}(1,1),POI_r_l(1),n_sample);
+                                y_sampled = linspace(lanelet_boundary_iF{2}(1,2),POI_r_l(2),n_sample);
+%                                 lanelet_boundary_i{2} = [lanelet_boundary_iF{2}(1,:);POI_r_l';lanelet_boundary_i{2}(max(idx_min_2):end,:)];
+                            end
+                            lanelet_boundary_i{2} = [[x_sampled;y_sampled]';lanelet_boundary_i{2}(max(idx_min_2):end,:)];
+                        end
+                    end
+                    break
+                end
+
+                % extend lanelet boundary
+                if is_extend(iL)
+                    lanelet_boundary_extended{iL} = lanelet_boundary_i;
+                    lanelet_boundary_extended{iL}{3} = polyshape([lanelet_boundary_i{1};lanelet_boundary_i{2}(end:-1:1,:)]);
+                    % those lanelets sharing exactly the same boundary should
+                    % also be extended
+                    find_lan_share_same_boundary = find(cellfun(@(c) length(c)==length(share_boundary_with{iL})&&all(c==share_boundary_with{iL}),share_boundary_with));
+                    find_lan_share_same_boundary = setdiff(find_lan_share_same_boundary,iL); % exclude self
+                    if ~isempty(find_lan_share_same_boundary)
+                        is_extend(find_lan_share_same_boundary) = true;
+                        lanelet_boundary_extended(find_lan_share_same_boundary) = lanelet_boundary_extended(iL);
+%                         plot(lanelet_boundary_extended{find_lan_share_same_boundary}{3})
+                    end
+                    % left boundary has the same number of points as the
+                    % right boundary
+                    assert(size(lanelet_boundary_extended{iL}{1},1)==size(lanelet_boundary_extended{iL}{2},1))
+                end
+%                 pause(1)
+%                 plot(lanelet_boundary_extended{iL}{3})
+            end
+
         end
 
         function intersection_lanelets = get_intersection_lanelets(obj)
