@@ -18,6 +18,7 @@ classdef MotionPrimitiveAutomaton
         shortest_paths_to_max_speed     % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with maximum speed
         shortest_paths_to_equilibrium   % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
         special_trims                   % struct, store which trim corresponds to turn most left/right and go straight; if multiple trims, choose the one with the smallest speed
+        special_maneuvers               % cell(n_trims, 1), special maneuvers, such as most-left trun, most-left trun twice, most-right turn, most-right turn twice
     end
     
     methods
@@ -111,7 +112,7 @@ classdef MotionPrimitiveAutomaton
                     case 3
                         obj.special_trims.turn_right_most = find_target_steering_trims(idx_special_steering_min_speed);
                 end
-            end            
+            end
 
             % maneuver cell/struct matrix
             for i = 1:n_trims
@@ -124,6 +125,8 @@ classdef MotionPrimitiveAutomaton
                 obj.shortest_paths_to_equilibrium{i,1} = get_shortest_path_to_equilibrium(obj,i);
                 obj.emengency_braking_maneuvers{i,1} = get_emergency_braking_maneuver(obj,i);
             end
+
+            obj.special_maneuvers = generate_special_maneuvers(obj);
 
             % compute distance to equilibrium state
             eq_states = find(trim_inputs(:,2)==0);            
@@ -810,6 +813,56 @@ classdef MotionPrimitiveAutomaton
             [~,idx] = min(shortest_distances_to_max_speed); 
             max_speed_trim = max_speed_trims(idx);
             shortest_path_to_max_speed = shortestpath(graph_weighted,trim_current,max_speed_trim); % shortest path between two single nodes
+        end
+
+        function special_maneuvers = generate_special_maneuvers(obj)
+            % generate special maneuvers starting from the equilibrium trim, such as most-left trun, most-left trun twice, most-right turn, most-right turn twice
+            special_maneuvers = struct('go_straight',[],'go_straight_twice',[],'most_left',[],'most_left_twice',[],'most_right',[],'most_right_twice',[]);
+
+            % go straight
+            m_straight_1 = obj.maneuvers{obj.special_trims.equilibrium,obj.special_trims.go_straight};
+            m_straight_2 = obj.maneuvers{obj.special_trims.go_straight,obj.special_trims.go_straight};
+            special_maneuvers.go_straight = m_straight_1.area_without_offset;
+
+            % position
+            s_straight_2 = sin(m_straight_1.dyaw);
+            c_straight_2 = cos(m_straight_1.dyaw);
+            x_straight_2 = c_straight_2*m_straight_2.area_without_offset(1,:) - s_straight_2*m_straight_2.area_without_offset(2,:) + m_straight_1.dx;
+            y_straight_2 = s_straight_2*m_straight_2.area_without_offset(1,:) + c_straight_2*m_straight_2.area_without_offset(2,:) + m_straight_1.dy;
+            special_maneuvers.go_straight_twice = [x_straight_2;y_straight_2];
+
+            % combine, use a column [nan;nan] to sperate two areas
+            special_maneuvers.go_straight_twice = [special_maneuvers.go_straight,[nan;nan],special_maneuvers.go_straight_twice];
+
+            % most left turn
+            m_left_1 = obj.maneuvers{obj.special_trims.equilibrium,obj.special_trims.turn_left_most};
+            m_left_2 = obj.maneuvers{obj.special_trims.turn_left_most,obj.special_trims.turn_left_most};
+            special_maneuvers.most_left = m_left_1.area_without_offset;
+
+            % position
+            s_left_2 = sin(m_left_1.dyaw);
+            c_left_2 = cos(m_left_1.dyaw);
+            x_left_2 = c_left_2*m_left_2.area_without_offset(1,:) - s_left_2*m_left_2.area_without_offset(2,:) + m_left_1.dx;
+            y_left_2 = s_left_2*m_left_2.area_without_offset(1,:) + c_left_2*m_left_2.area_without_offset(2,:) + m_left_1.dy;
+            special_maneuvers.most_left_twice = [x_left_2;y_left_2];
+
+            % combine, use a column [nan;nan] to sperate two areas
+            special_maneuvers.most_left_twice = [special_maneuvers.most_left,[nan;nan],special_maneuvers.most_left_twice];
+
+            m_right_1 = obj.maneuvers{obj.special_trims.equilibrium,obj.special_trims.turn_right_most};
+            m_right_2 = obj.maneuvers{obj.special_trims.turn_right_most,obj.special_trims.turn_right_most};
+            special_maneuvers.most_right = m_right_1.area_without_offset;
+
+            % position
+            s_right_2 = sin(m_right_1.dyaw);
+            c_right_2 = cos(m_right_1.dyaw);
+            x_right_2 = c_right_2*m_right_2.area_without_offset(1,:) - s_right_2*m_right_2.area_without_offset(2,:) + m_right_1.dx;
+            y_right_2 = s_right_2*m_right_2.area_without_offset(1,:) + c_right_2*m_right_2.area_without_offset(2,:) + m_right_1.dy;
+            special_maneuvers.most_right_twice = [x_right_2;y_right_2];
+
+            % combine, use a column [nan;nan] to sperate two areas
+            special_maneuvers.most_right_twice = [special_maneuvers.most_right,[nan;nan],special_maneuvers.most_right_twice];
+
         end
     end
 end

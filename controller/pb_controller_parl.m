@@ -90,10 +90,10 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             end
 
             % consider coupled vehicles with lower priorities
-            scenario_v = consider_vehs_with_LP(scenario_v, iter, all_coupled_vehs_with_LP);
+            scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupled_vehs_with_LP);
 
-            if scenario.k>=66 || scenario.k==87
-                if scenario_v.vehicles.ID==5 || scenario_v.vehicles.ID==7
+            if scenario.k>=90
+                if scenario_v.vehicles.ID==7
                     disp('')
 %                     plot_obstacles(scenario_v)
 %                     pause(0.5)
@@ -134,7 +134,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 %                 pause(0.5)
 %                 plot_obstacles(info_v.shapes)
 %                 pause(0.5)
-%                 graphs_visualization(belonging_vector, coupling_weights, 'ShowWeights', true)
+%                 graphs_visualization(scenario.belonging_vector, scenario.coupling_weights, 'ShowWeights', true)
             end
         end
         

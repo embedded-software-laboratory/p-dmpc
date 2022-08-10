@@ -121,28 +121,32 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
                         % colliding with its lanelet boundary. This is done by
                         % checking the left most left/right and go straight
                         % maneuver. At least one of them should be
-                        % collision-free with lanelet boundary
+                        % collision-free with lanelet boundary.
+                        % Sometimes one step left turn is collision free
+                        % with lanelet boundary, but no feasible trim can
+                        % be found for the second step. Therefore, we check two-step
+                        % turning maneuvers.
                         x_Hp = c*maneuver.dx - s*maneuver.dy + pX(iVeh);
                         y_Hp = s*maneuver.dx + c*maneuver.dy + pY(iVeh);
                         yaw_Hp = maneuver.dyaw + pYaw;
                         s_Hp = sin(yaw_Hp);
                         c_Hp = cos(yaw_Hp);
 
-                        maneuver_straight = scenario.mpa.maneuvers{t2,scenario.mpa.special_trims.go_straight};
-                        go_straight_x = c_Hp*maneuver_straight.area_without_offset(1,:) - s_Hp*maneuver_straight.area_without_offset(2,:) + x_Hp;
-                        go_straight_y = s_Hp*maneuver_straight.area_without_offset(1,:) + c_Hp*maneuver_straight.area_without_offset(2,:) + y_Hp;
+                        area_straight = scenario.mpa.special_maneuvers.go_straight_twice;
+                        go_straight_x = c_Hp*area_straight(1,:) - s_Hp*area_straight(2,:) + x_Hp;
+                        go_straight_y = s_Hp*area_straight(1,:) + c_Hp*area_straight(2,:) + y_Hp;
                         shape_go_straight = [go_straight_x;go_straight_y];
                         if InterX(shape_go_straight, lanelet_boundary)
                             % go straight is not collision-free with lanelet boundary
-                            maneuver_left = scenario.mpa.maneuvers{t2,scenario.mpa.special_trims.turn_left_most};
-                            turn_left_x = c_Hp*maneuver_left.area_without_offset(1,:) - s_Hp*maneuver_left.area_without_offset(2,:) + x_Hp;
-                            turn_left_y = s_Hp*maneuver_left.area_without_offset(1,:) + c_Hp*maneuver_left.area_without_offset(2,:) + y_Hp;
+                            area_left = scenario.mpa.special_maneuvers.most_left_twice;
+                            turn_left_x = c_Hp*area_left(1,:) - s_Hp*area_left(2,:) + x_Hp;
+                            turn_left_y = s_Hp*area_left(1,:) + c_Hp*area_left(2,:) + y_Hp;
                             shape_turn_left = [turn_left_x;turn_left_y];
                             if InterX(shape_turn_left, lanelet_boundary)
                                 % turn left most maneuver is also not collision-free with lanelet boundary
-                                maneuver_right = scenario.mpa.maneuvers{t2,scenario.mpa.special_trims.turn_right_most};
-                                turn_right_x = c_Hp*maneuver_right.area_without_offset(1,:) - s_Hp*maneuver_right.area_without_offset(2,:) + x_Hp;
-                                turn_right_y = s_Hp*maneuver_right.area_without_offset(1,:) + c_Hp*maneuver_right.area_without_offset(2,:) + y_Hp;
+                                area_right = scenario.mpa.special_maneuvers.most_right_twice;
+                                turn_right_x = c_Hp*area_right(1,:) - s_Hp*area_right(2,:) + x_Hp;
+                                turn_right_y = s_Hp*area_right(1,:) + c_Hp*area_right(2,:) + y_Hp;
                                 shape_turn_right = [turn_right_x;turn_right_y];
                                 if InterX(shape_turn_right, lanelet_boundary)
                                     % turn right most maneuver is still not collision-free with lanelet boundary

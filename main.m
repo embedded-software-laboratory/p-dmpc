@@ -328,7 +328,8 @@ while (~got_stop)
         break % break the while loop
     end
 
-%     if max(vehs_fallback_times)>=2
+%     if scenario.k==289 ...
+% %             || max(vehs_fallback_times)>=2
 %         % enable online plotting if two or more successive fallbacks occur
 %         exp.doOnlinePlot = true;
 %         exp.paused = true;

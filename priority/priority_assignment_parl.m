@@ -58,7 +58,7 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     scenario.parl_groups_info = parl_groups_info;
     scenario.belonging_vector = belonging_vector;
     scenario.directed_coupling = directed_adjacency;
-    scenario.directed_coupling_reduced = (coupling_weights_reduced ~= 0);
+    scenario.directed_coupling_reduced = (scenario.coupling_weights_reduced ~= 0);
     scenario.priority_list = priority_list;
     scenario.last_vehs_at_intersection = vehs_at_intersection;
 
@@ -171,14 +171,6 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
                 lanelet_crossing_areas{veh_forbid}(end+1) = {[x_tmp';y_tmp']};
             end
 
-            % vehicle are considered as blocked if at least one of their reference
-            % trajectory points are inside their lanelet crossing areas
-%             [ref_traj_in,~] = inpolygon(iter.referenceTrajectoryPoints(veh_forbid,:,1),iter.referenceTrajectoryPoints(veh_forbid,:,2), ...
-%                 lanelet_crossing_area_x,lanelet_crossing_area_y);
-%             if any(ref_traj_in)
-%                 iter.blocked_vehs(veh_forbid) = true;
-%             end
-
             % subtract the crossing area from vehicle's lanelet boundary 
             predicted_lanelet_boundary{veh_forbid} = subtract(predicted_lanelet_boundary{veh_forbid}, iter.predicted_lanelet_boundary{veh_free,3});
 
@@ -191,36 +183,6 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
             
         end
     end
-
-    % block vehicle if it has a blocked and coupled front vehicle
-%     are_rear_end_collisions = strcmp({coupling_info.collision_type},CollisionType.type_1);
-%     for j = 1:length([coupling_info.veh_with_ROW])
-%         is_rear_end_collision = strcmp(coupling_info(j).collision_type, CollisionType.type_1);
-%         % only interest in rear-end collision where the front vehicle is blocked
-%         if is_rear_end_collision && iter.blocked_vehs(coupling_info(j).veh_with_ROW)
-%             % block vehicle without ROW
-%             veh_without_ROW_j = coupling_info(j).veh_without_ROW;
-%             iter.blocked_vehs(veh_without_ROW_j) = true;
-%             disp(['Vehicle ' num2str(veh_without_ROW_j) ' is blocked because its front vehicle is blocked.'])
-%             % iteratively find if more vehicles should be blocked because they drive
-%             % successively behind the newly blocked vehicle
-%             while true
-%                 find_couplings = [coupling_info.veh_with_ROW]==veh_without_ROW_j & are_rear_end_collisions;
-%                 vehs_without_ROW = [coupling_info(find_couplings).veh_without_ROW];
-%                 if isempty(vehs_without_ROW)
-%                     break
-%                 else
-%                     % in case that multiple vehicles drive behind, block the
-%                     % closest one (the one with the lowest STAT)
-%                     [~,idx_lowest_STAC] = min([coupling_info(find_couplings).STAC]);
-%                     veh_without_ROW_j = vehs_without_ROW(idx_lowest_STAC);
-%                     iter.blocked_vehs(veh_without_ROW_j) = true;
-%                 end
-%             end                
-%         end
-%     end
-    
-
 end
 
 
