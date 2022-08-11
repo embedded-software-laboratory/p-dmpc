@@ -14,11 +14,10 @@ classdef MotionPrimitiveAutomaton
         local_reachable_sets_conv;  % Convexified local reachable sets of each trim
         local_center_trajectory     % local trajcetory of the center point
         local_reachable_sets_CP     % local reachable sets of the center point
-        emengency_braking_maneuvers % cell(n_trims, 1), local occupied area of emergency braking maneuver
         shortest_paths_to_max_speed     % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with maximum speed
         shortest_paths_to_equilibrium   % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
-        special_trims                   % struct, store which trim corresponds to turn most left/right and go straight; if multiple trims, choose the one with the smallest speed
-        special_maneuvers               % cell(n_trims, 1), special maneuvers, such as most-left trun, most-left trun twice, most-right turn, most-right turn twice
+        emergency_trims                   % cell(n_trims, 1), store which trim corresponds to emergency left/right; if multiple trims, choose the one with the lowest speed
+        emergency_maneuvers               % cell(n_trims, 1), emergency left/right/braking maneuvers
     end
     
     methods
@@ -82,37 +81,6 @@ classdef MotionPrimitiveAutomaton
             for i = 1:n_trims
                 obj.trims(i) = generate_trim(model, trim_inputs(i,:));
             end
-            
-            % get special trims
-            obj.special_trims = struct('go_straight',[],'turn_left_most',[],'turn_right_most',[],'equilibrium',[]);
-            obj.special_trims.equilibrium = find([obj.trims.steering]==0 & [obj.trims.speed]==0);
-            steering_zero = 0; % go straight
-            steering_max = max([obj.trims.steering]); % turn left 
-            steering_min = min([obj.trims.steering]); % turn right
-            special_steerings = [steering_zero,steering_max,steering_min];
-
-            for iTurn = 1:length(special_steerings)
-                special_steering = special_steerings(iTurn);
-                find_target_steering_trims = find([obj.trims.steering]==special_steering);
-                if iTurn==1
-                    % delete equilibrium of go-straight trims
-                    find_target_steering_trims = setdiff(find_target_steering_trims,obj.special_trims.equilibrium);
-                end
-                if length(find_target_steering_trims)>1
-                    % if multiple trims have the maximum steering angle, choose the one with the smallest speed
-                    [~,idx_special_steering_min_speed] = min([obj.trims(find_target_steering_trims).speed]);
-                else
-                    idx_special_steering_min_speed = 1;
-                end
-                switch iTurn
-                    case 1
-                        obj.special_trims.go_straight = find_target_steering_trims(idx_special_steering_min_speed);
-                    case 2
-                        obj.special_trims.turn_left_most = find_target_steering_trims(idx_special_steering_min_speed);
-                    case 3
-                        obj.special_trims.turn_right_most = find_target_steering_trims(idx_special_steering_min_speed);
-                end
-            end
 
             % maneuver cell/struct matrix
             for i = 1:n_trims
@@ -123,10 +91,63 @@ classdef MotionPrimitiveAutomaton
                 end
                 obj.shortest_paths_to_max_speed{i,1} = get_shortest_path_to_max_speed(obj,i);
                 obj.shortest_paths_to_equilibrium{i,1} = get_shortest_path_to_equilibrium(obj,i);
-                obj.emengency_braking_maneuvers{i,1} = get_emergency_braking_maneuver(obj,i);
             end
 
-            obj.special_maneuvers = generate_special_maneuvers(obj);
+            % get emergency trims and maneuvers
+            obj.emergency_trims = cell(n_trims,1);
+            obj.emergency_maneuvers = cell(n_trims,1);
+
+            equilibrium_trim = find([obj.trims.steering]==0 & [obj.trims.speed]==0);
+            for jTrim = 1:n_trims
+                connected_trims = find(obj.transition_matrix_single(jTrim,:,1));
+
+                % find emergency left turn maneuver
+                [steering_max,~] = max([obj.trims(connected_trims).steering]); % turn left 
+                steering_max_trims = connected_trims([obj.trims(connected_trims).steering]==steering_max);
+                if length(steering_max_trims)>1
+                    % if multiple trims, choose the one with the lowest speed
+                    [~,max_steering_min_speed_trim] = min([obj.trims(steering_max_trims).speed]);
+                    obj.emergency_trims{jTrim}.emergency_left = steering_max_trims(max_steering_min_speed_trim);
+                else
+                    obj.emergency_trims{jTrim}.emergency_left = steering_max_trims;
+                end
+
+                % find emergency right turn maneuver
+                [steering_min,~] = min([obj.trims(connected_trims).steering]); % turn right 
+                steering_min_trims = connected_trims([obj.trims(connected_trims).steering]==steering_min);
+                if length(steering_min_trims)>1
+                    % if multiple trims, choose the one with the lowest speed
+                    [~,min_steering_min_speed_trim] = min([obj.trims(steering_min_trims).speed]);
+                    obj.emergency_trims{jTrim}.emergency_right = steering_min_trims(min_steering_min_speed_trim);
+                else
+                    obj.emergency_trims{jTrim}.emergency_right = steering_min_trims;
+                end
+
+                % find emergency braking maneuver
+                [~,min_speed_trim] = min([obj.trims(connected_trims).speed]); % if multiple trims with zero speed, need to decide which one to choose as emergency braking maneuver
+                obj.emergency_trims{jTrim}.emergency_braking = min_speed_trim;
+                
+                % generate emergency maneuvers
+                obj.emergency_maneuvers{jTrim}.left_area = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_left}.area;
+                obj.emergency_maneuvers{jTrim}.left_area_without_offset = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_left}.area_without_offset;
+                obj.emergency_maneuvers{jTrim}.right_area = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_right}.area;
+                obj.emergency_maneuvers{jTrim}.right_area_without_offset = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_right}.area_without_offset;
+                obj.emergency_maneuvers{jTrim}.braking_area = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_braking}.area;
+                obj.emergency_maneuvers{jTrim}.braking_area_without_offset = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_braking}.area_without_offset;
+                if jTrim==equilibrium_trim
+                    % for equilibrium trim, add a go straight maneuver
+                    go_straight_trims = find([obj.trims.steering]==0);
+                    go_straight_trims = setdiff(go_straight_trims,equilibrium_trim); % exclude self
+                    if length(go_straight_trims)>1
+                        % if multiple trims, choose the one with the lowest
+                        % speed
+                        [~,go_straight_trim] = min([obj.trims(go_straight_trims).speed]);
+                    else
+                        go_straight_trim = go_straight_trims;
+                    end
+                    obj.emergency_maneuvers{jTrim}.go_straight_area = obj.maneuvers{jTrim,go_straight_trim}.area_without_offset;
+                end
+            end
 
             % compute distance to equilibrium state
             eq_states = find(trim_inputs(:,2)==0);            
@@ -783,23 +804,6 @@ classdef MotionPrimitiveAutomaton
             end
         end
 
-        function emengency_braking_maneuver = get_emergency_braking_maneuver(obj,trim_current)
-            % Returns the occupied area of emergency braking maneuver for
-            % the given trim
-            shortest_path_to_equilibrium = obj.shortest_paths_to_equilibrium{trim_current};
-            if length(shortest_path_to_equilibrium)==1
-                % vehicle already at the equilibrium trim
-                trim_next_LP = trim_current;
-            else
-                trim_next_LP = shortest_path_to_equilibrium(2);
-            end
-            
-            % local shape to global shape
-            emengency_braking_maneuver.area = obj.maneuvers{trim_current,trim_next_LP}.area;
-            emengency_braking_maneuver.area_without_offset = obj.maneuvers{trim_current,trim_next_LP}.area_without_offset;
-            emengency_braking_maneuver.area_large_offset = obj.maneuvers{trim_current,trim_next_LP}.area_large_offset;
-        end
-
         function shortest_path_to_max_speed = get_shortest_path_to_max_speed(obj,trim_current)
             % Returns the shortest path in the trim graph from the current trim to the trim with maximum speed
             % compute the shortest path from the current trim to the trim(s) with maximum speed
@@ -815,55 +819,6 @@ classdef MotionPrimitiveAutomaton
             shortest_path_to_max_speed = shortestpath(graph_weighted,trim_current,max_speed_trim); % shortest path between two single nodes
         end
 
-        function special_maneuvers = generate_special_maneuvers(obj)
-            % generate special maneuvers starting from the equilibrium trim, such as most-left trun, most-left trun twice, most-right turn, most-right turn twice
-            special_maneuvers = struct('go_straight',[],'go_straight_twice',[],'most_left',[],'most_left_twice',[],'most_right',[],'most_right_twice',[]);
-
-            % go straight
-            m_straight_1 = obj.maneuvers{obj.special_trims.equilibrium,obj.special_trims.go_straight};
-            m_straight_2 = obj.maneuvers{obj.special_trims.go_straight,obj.special_trims.go_straight};
-            special_maneuvers.go_straight = m_straight_1.area_without_offset;
-
-            % position
-            s_straight_2 = sin(m_straight_1.dyaw);
-            c_straight_2 = cos(m_straight_1.dyaw);
-            x_straight_2 = c_straight_2*m_straight_2.area_without_offset(1,:) - s_straight_2*m_straight_2.area_without_offset(2,:) + m_straight_1.dx;
-            y_straight_2 = s_straight_2*m_straight_2.area_without_offset(1,:) + c_straight_2*m_straight_2.area_without_offset(2,:) + m_straight_1.dy;
-            special_maneuvers.go_straight_twice = [x_straight_2;y_straight_2];
-
-            % combine, use a column [nan;nan] to sperate two areas
-            special_maneuvers.go_straight_twice = [special_maneuvers.go_straight,[nan;nan],special_maneuvers.go_straight_twice];
-
-            % most left turn
-            m_left_1 = obj.maneuvers{obj.special_trims.equilibrium,obj.special_trims.turn_left_most};
-            m_left_2 = obj.maneuvers{obj.special_trims.turn_left_most,obj.special_trims.turn_left_most};
-            special_maneuvers.most_left = m_left_1.area_without_offset;
-
-            % position
-            s_left_2 = sin(m_left_1.dyaw);
-            c_left_2 = cos(m_left_1.dyaw);
-            x_left_2 = c_left_2*m_left_2.area_without_offset(1,:) - s_left_2*m_left_2.area_without_offset(2,:) + m_left_1.dx;
-            y_left_2 = s_left_2*m_left_2.area_without_offset(1,:) + c_left_2*m_left_2.area_without_offset(2,:) + m_left_1.dy;
-            special_maneuvers.most_left_twice = [x_left_2;y_left_2];
-
-            % combine, use a column [nan;nan] to sperate two areas
-            special_maneuvers.most_left_twice = [special_maneuvers.most_left,[nan;nan],special_maneuvers.most_left_twice];
-
-            m_right_1 = obj.maneuvers{obj.special_trims.equilibrium,obj.special_trims.turn_right_most};
-            m_right_2 = obj.maneuvers{obj.special_trims.turn_right_most,obj.special_trims.turn_right_most};
-            special_maneuvers.most_right = m_right_1.area_without_offset;
-
-            % position
-            s_right_2 = sin(m_right_1.dyaw);
-            c_right_2 = cos(m_right_1.dyaw);
-            x_right_2 = c_right_2*m_right_2.area_without_offset(1,:) - s_right_2*m_right_2.area_without_offset(2,:) + m_right_1.dx;
-            y_right_2 = s_right_2*m_right_2.area_without_offset(1,:) + c_right_2*m_right_2.area_without_offset(2,:) + m_right_1.dy;
-            special_maneuvers.most_right_twice = [x_right_2;y_right_2];
-
-            % combine, use a column [nan;nan] to sperate two areas
-            special_maneuvers.most_right_twice = [special_maneuvers.most_right,[nan;nan],special_maneuvers.most_right_twice];
-
-        end
     end
 end
 

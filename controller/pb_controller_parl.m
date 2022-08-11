@@ -92,8 +92,8 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             % consider coupled vehicles with lower priorities
             scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupled_vehs_with_LP);
 
-            if scenario.k>=90
-                if scenario_v.vehicles.ID==7
+            if scenario.k>=1
+                if scenario_v.vehicles.ID==14
                     disp('')
 %                     plot_obstacles(scenario_v)
 %                     pause(0.5)
@@ -119,22 +119,10 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
             n_expended(vehicle_idx) = info_v.tree.size();
 
-            if info.subcontroller_runtime(vehicle_idx)>=0.06
-                disp('')
-                if info.subcontroller_runtime(vehicle_idx)>=0.08
-                    disp('')
-                    if info.subcontroller_runtime(vehicle_idx)>=0.1
-                        disp('')
-                    end
-               
-                end
-            end
-            if scenario.k>=2
-%                 plot_obstacles(scenario_v)
-%                 pause(0.5)
-%                 plot_obstacles(info_v.shapes)
-%                 pause(0.5)
-%                 graphs_visualization(scenario.belonging_vector, scenario.coupling_weights, 'ShowWeights', true)
+            if scenario.k==inf
+                plot_obstacles(scenario_v)
+                plot_obstacles(info_v.shapes)
+                graphs_visualization(scenario.belonging_vector, scenario.coupling_weights, 'ShowWeights', true)
             end
         end
         

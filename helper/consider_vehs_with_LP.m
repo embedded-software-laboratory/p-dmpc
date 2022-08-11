@@ -27,21 +27,30 @@ function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_c
                 % possibility). Cases that vehicles drive successively are not
                 % included to avoid that vehicles behind push vehicles in
                 % front to move forward.
-                find_coupling = [scenario_v.coupling_info.veh_with_ROW]==vehicle_idx & [scenario_v.coupling_info.veh_without_ROW]==veh_without_ROW;
-                if scenario_v.k==261
-                    disp('')
+                switch scenario_v.priority_option
+                    case 'right_of_way_priority'
+                        find_coupling = [scenario_v.coupling_info.veh_with_ROW]==vehicle_idx & [scenario_v.coupling_info.veh_without_ROW]==veh_without_ROW;
+                        if scenario_v.k==261
+                            disp('')
+                        end
+                        if ~scenario_v.coupling_info(find_coupling).is_ignored &&...
+                                (strcmp(scenario_v.coupling_info(find_coupling).lanelet_relationship,LaneletRelationshipType.type_5) ||...
+                                strcmp(scenario_v.coupling_info(find_coupling).lanelet_relationship,LaneletRelationshipType.type_3) ||...
+                                scenario_v.coupling_info(find_coupling).is_drive_parallel)
+                            % the emergency braking maneuver is only considered if
+                            % two coupled vehicles are at merging or corssing lanelets and their coupling is not ignored
+                            scenario_v.obstacles{end+1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;
+                        end
+                    otherwise
+                        scenario_v.obstacles{end+1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;
                 end
-                if ~scenario_v.coupling_info(find_coupling).is_ignored && strcmp(scenario_v.coupling_info(find_coupling).collision_type,CollisionType.type_2) &&...
-                        ~strcmp(scenario_v.coupling_info(find_coupling).lanelet_relationship,LaneletRelationshipType.type_4)
-                    scenario_v.obstacles{end+1} = iter.emergency_braking_maneuvers{veh_without_ROW}.area;
-                end
+
             case '4'
                 % consider one-step reachable sets as static obstacle
                 reachable_sets = iter.reachable_sets{veh_without_ROW,1};
                 % get boundary of the polygon
                 [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
                 scenario_v.obstacles(end+1) = {[x_reachable_sets';y_reachable_sets']};
-                
             case '5'
                 % consider old trajectory as dynamic obstacle
                 latest_msg = scenario_v.ros_subscribers{veh_without_ROW}.LatestMessage;

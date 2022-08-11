@@ -1,4 +1,4 @@
-function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
+function [is_valid, shapes] = eval_edge_exact(scenario, iter, tree, iNode, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
 % EVAL_EDGE_EXACT   Evaluate if step is valid.
 % 
 % INPUT:
@@ -18,7 +18,7 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
 %   shapes: occupied area of the vehicle if the selected node is chosen
 % 
 
-    if nargin < 7
+    if nargin < 8
         method = 'sat'; % use the default method, separating axis theorem, to check if collide
     end
 
@@ -119,32 +119,27 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
                     if iStep==scenario.Hp
                         % at the last time step, check if vehicle could still move forward while not
                         % colliding with its lanelet boundary. This is done by
-                        % checking the left most left/right and go straight
-                        % maneuver. At least one of them should be
+                        % checking the emergency left/right maneuvers. At least one of them should be
                         % collision-free with lanelet boundary.
-                        % Sometimes one step left turn is collision free
-                        % with lanelet boundary, but no feasible trim can
-                        % be found for the second step. Therefore, we check two-step
-                        % turning maneuvers.
                         x_Hp = c*maneuver.dx - s*maneuver.dy + pX(iVeh);
                         y_Hp = s*maneuver.dx + c*maneuver.dy + pY(iVeh);
                         yaw_Hp = maneuver.dyaw + pYaw;
                         s_Hp = sin(yaw_Hp);
                         c_Hp = cos(yaw_Hp);
 
-                        area_straight = scenario.mpa.special_maneuvers.go_straight_twice;
+                        area_straight = scenario.mpa.emergency_maneuvers{t2}.go_straight_area;
                         go_straight_x = c_Hp*area_straight(1,:) - s_Hp*area_straight(2,:) + x_Hp;
                         go_straight_y = s_Hp*area_straight(1,:) + c_Hp*area_straight(2,:) + y_Hp;
                         shape_go_straight = [go_straight_x;go_straight_y];
                         if InterX(shape_go_straight, lanelet_boundary)
                             % go straight is not collision-free with lanelet boundary
-                            area_left = scenario.mpa.special_maneuvers.most_left_twice;
+                            area_left = scenario.mpa.emergency_maneuvers{t2}.left_area_without_offset;
                             turn_left_x = c_Hp*area_left(1,:) - s_Hp*area_left(2,:) + x_Hp;
                             turn_left_y = s_Hp*area_left(1,:) + c_Hp*area_left(2,:) + y_Hp;
                             shape_turn_left = [turn_left_x;turn_left_y];
                             if InterX(shape_turn_left, lanelet_boundary)
                                 % turn left most maneuver is also not collision-free with lanelet boundary
-                                area_right = scenario.mpa.special_maneuvers.most_right_twice;
+                                area_right = scenario.mpa.emergency_maneuvers{t2}.right_area_without_offset;
                                 turn_right_x = c_Hp*area_right(1,:) - s_Hp*area_right(2,:) + x_Hp;
                                 turn_right_y = s_Hp*area_right(1,:) + c_Hp*area_right(2,:) + y_Hp;
                                 shape_turn_right = [turn_right_x;turn_right_y];

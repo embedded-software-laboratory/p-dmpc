@@ -89,8 +89,12 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
         is_logitudinal_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_1);
         
         % only side-impact collision should be ignore by this strategy
-        if is_rear_end_collision && (is_same_lanelet || is_logitudinal_lanelets)
+        if is_rear_end_collision
             continue
+        end
+
+        if strcmp(coupling_info(i).collision_type, CollisionType.type_2) && ~strcmp(coupling_info(i).lanelet_relationship,LaneletRelationshipType.type_5)
+            disp('')
         end
 
         veh_with_ROW = coupling_info(i).veh_with_ROW;
@@ -124,16 +128,6 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
             
             % get the crossing area of two vehicles' lanelet
             lanelet_crossing_area = intersect(predicted_lanelet_boundary{veh_without_ROW}, iter.predicted_lanelet_boundary{veh_with_ROW,3});
-
-%             if lanelet_crossing_area.NumRegions <= 1
-%                 [lanelet_crossing_area_x, lanelet_crossing_area_y] = boundary(lanelet_crossing_area);
-%                 lanelet_crossing_area = [lanelet_crossing_area_x';lanelet_crossing_area_y'];
-%             else
-%                 warning(['The crossing area of the lanelets of vehicles' num2str(veh_with_ROW) 'and ' ...
-%                     num2str(veh_without_ROW) ' has unexpectedly ' num2str(lanelet_crossing_area.NumRegions) ' regions.' newline ...
-%                     'The coupling will not be ignored.'])
-%                 continue
-%             end
 
             [lanelet_crossing_area_x, lanelet_crossing_area_y] = boundary(lanelet_crossing_area);
             % if vehicle without the right-of-way cannot avoid entering the

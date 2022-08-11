@@ -164,12 +164,12 @@ warning('off','MATLAB:polyshape:repairedBySimplify')
 % check if scenario iss given as input
 find_scenario = cellfun(@(c) isa(c,'Scenario'), varargin);
 if any(find_scenario)
-    if length(varargin{find_scenario}.ros_subscribers) == scenario.options.amount
+    if length(varargin{find_scenario}.ros_subscribers) >= scenario.options.amount
         % if ROS 2 subscribers and publishers are given as input, store them
         for iiVeh = 1:scenario.options.amount
             scenario.vehicles(iiVeh).communicate = varargin{find_scenario}.vehicles(iiVeh).communicate;
         end
-        scenario.ros_subscribers = varargin{find_scenario}.ros_subscribers;
+        scenario.ros_subscribers = varargin{find_scenario}.ros_subscribers(1:scenario.options.amount);
     end
 end
 

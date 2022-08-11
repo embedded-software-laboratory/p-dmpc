@@ -15,10 +15,10 @@ strategy_consider_veh_without_ROW = '3';
 strategy_enter_lanelet_crossing_area = '4';
 results_full_path = FileNameConstructor.get_results_full_path(customResultName,scenario_name,controller_name,trim_set,...
                 Hp,dt,nVeh,T_end,priority_option,isParl,isAllowInheritROW,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area);
-% evaluation = EvaluationCommon(results_full_path);
+% evaluation = EvaluationParl(results_full_path);
 % disp(['Average run time: ' num2str(mean(evaluation.subcontroller_runtime_per_step)) ' seconds.'])
 % disp(['Maximum 8 average run time: ' mat2str(round(maxk(evaluation.subcontroller_runtime_per_step,8),3)) ' seconds.'])
-evaluation = EvaluationCommon(results_full_path);
+evaluation = EvaluationParl(results_full_path);
 % eval_before_2 = struct(evaluation_before);
 disp(['Average run time: ' num2str(mean(evaluation.runtime_average)) ' seconds.'])
 disp(['Maximum 8 average run time: ' mat2str(round(evaluation.runtime_max,3)) ' seconds.'])
@@ -68,7 +68,7 @@ for i_CL = 1:length(max_num_CLs_all)
     strategy_enter_lanelet_crossing_area = '4';
     results_full_path = FileNameConstructor.get_results_full_path(customResultName,scenario_name,controller_name,trim_set,...
                     Hp,dt,nVeh,T_end,priority_option,isParl,isAllowInheritROW,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area);
-    evaluations{i_CL} = EvaluationCommon(results_full_path);
+    evaluations{i_CL} = EvaluationParl(results_full_path);
     disp(i_CL)
 %     disp(['Average run time: ' num2str(evaluations{i_CL}.runtime_average) ' seconds.'])
 %     disp(['Maximum 8 average run time: ' mat2str(round(evaluations{i_CL}.runtime_max,3)) ' seconds.'])
@@ -174,7 +174,7 @@ for i_CL = 1:length(max_num_CLs_all)
     strategy_enter_lanelet_crossing_area = '4';
     results_full_path = FileNameConstructor.get_results_full_path(customResultName,scenario_name,controller_name,trim_set,...
                     Hp,dt,nVeh,T_end,priority_option,isParl,isAllowInheritROW,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area);
-    evaluations{i_CL} = EvaluationCommon(results_full_path);
+    evaluations{i_CL} = EvaluationParl(results_full_path);
     disp(i_CL)
 %     disp(['Average run time: ' num2str(evaluations{i_CL}.runtime_average) ' seconds.'])
 %     disp(['Maximum 8 average run time: ' mat2str(round(evaluations{i_CL}.runtime_max,3)) ' seconds.'])

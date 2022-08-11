@@ -120,16 +120,18 @@ classdef TrafficInfo
             stop_flag = false;
             count = length([obj.coupling_info.veh_with_ROW]) + 1; % for the next coupling infomation 
 
-            veh_info_i = struct('position',[],'yaw',[],'trim',[],'predicted_lanelet',[],'length',[],...
+            veh_info_i = struct('ID',[],'position',[],'yaw',[],'trim',[],'predicted_lanelet',[],'length',[],...
                 'lanelet_x',[],'lanelet_y',[]);
+            veh_info_i.ID = veh_i;
             veh_info_i.position = [iter.x0(veh_i,indices().x), iter.x0(veh_i,indices().y)];
             veh_info_i.yaw = iter.x0(veh_i,indices().heading);
             veh_info_i.trim = iter.trim_indices(veh_i);
             veh_info_i.length = scenario.vehicles(veh_i).Length;
             predicted_lanelets_i = iter.predicted_lanelets{veh_i};
 
-            veh_info_j = struct('position',[],'yaw',[],'trim',[],'predicted_lanelet',[],'length',[],...
+            veh_info_j = struct('ID',[],'position',[],'yaw',[],'trim',[],'predicted_lanelet',[],'length',[],...
                 'lanelet_x',[],'lanelet_y',[]);
+            veh_info_j.ID = veh_j;
             veh_info_j.position = [iter.x0(veh_j,indices().x), iter.x0(veh_j,indices().y)];
             veh_info_j.yaw = iter.x0(veh_j,indices().heading);
             veh_info_j.trim = iter.trim_indices(veh_j);
@@ -230,9 +232,6 @@ classdef TrafficInfo
                             [distance_to_collision_j, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(veh_info_j.position(1), veh_info_j.position(2), curve_x_j, curve_y_j);
                         end
     
-                        if veh_i==7 && veh_j==19
-                            disp('')
-                        end
                         % determine who is the leader 
                         has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking);
     
@@ -369,7 +368,7 @@ classdef TrafficInfo
                 [arc_distance_i, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(veh_info_i.position(1), veh_info_i.position(2), veh_info_j.lanelet_x, veh_info_j.lanelet_y);
                 [arc_distance_j, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(veh_info_j.position(1), veh_info_j.position(2), veh_info_j.lanelet_x, veh_info_j.lanelet_y); 
 
-                safety_factor = 1.5;
+                safety_factor = 1;
                 if abs(arc_distance_i-arc_distance_j) > safety_factor*(veh_info_i.length+veh_info_j.length)/2
 %                 if norm([x_projected_i,y_projected_i]-veh_info_j.position) > wheelbase_mean && norm([x_projected_j,y_projected_j]-veh_info_i.position) > wheelbase_mean
                     collision_type.is_rear_end = true;
@@ -415,7 +414,7 @@ classdef TrafficInfo
                             end
                         end
                     end
-                
+
                     if isempty(has_ROW)
                         % if they are not coupled at previous time step, vehicle closer to the collision point is the leader
                         if distance_to_collision_i < distance_to_collision_j
@@ -549,9 +548,6 @@ classdef TrafficInfo
                                 % check if the coupled vehicle and the vehicle to be inherited are at merging or intersecting lanelets
                                 disp(['After inheriting right-of-way from vehicle ' num2str(veh_to_inherit) ', ' num2str(iVeh) ' now has the right-of-way over ' num2str(veh_with_ROW_j) '.'])
                                 % update coupling direction
-%                                 if veh_with_ROW_j==19 && iVeh==7
-%                                     disp('')
-%                                 end
                                 coupling_weights_adjusted(veh_with_ROW_j,iVeh) = 0;
                                 coupling_weights_adjusted(iVeh,veh_with_ROW_j) = obj.coupling_weights(veh_with_ROW_j,iVeh);
                                 if veh_with_ROW_j==obj.coupling_info(j_coupling).veh_with_ROW
@@ -605,33 +601,39 @@ classdef TrafficInfo
             point_f_j = approximated_line_f(position_j(1),position_j(2),s_j,c_j,length_j);
             point_r_j = approximated_line_r(position_j(1),position_j(2),s_j,c_j,length_j);
 
+%             % the projected point is on the target line if 0<=lambda<=1
+%             if ((lambda_f_i>=0 && lambda_f_i<=1) || (lambda_r_i>=0 && lambda_r_i<=1)) &&...
+%                     ((lambda_f_j>=0 && lambda_f_j<=1) || (lambda_r_j>=0 && lambda_r_j<=1))
+%                 is_drive_parallel_tmp = true;
+%             else
+%                 is_drive_parallel_tmp = false;
+%             end
+
             % projection of two points of one line onto another line
             [~,~,~,lambda_f_i,~] = Projection2D(point_f_j(1),point_f_j(2),point_r_j(1),point_r_j(2),point_f_i(1),point_f_i(2));
-            [~,~,~,lambda_r_i,~] = Projection2D(point_f_j(1),point_f_j(2),point_r_j(1),point_r_j(2),point_r_i(1),point_r_i(2));
-            [~,~,~,lambda_f_j,~] = Projection2D(point_f_i(1),point_f_i(2),point_r_i(1),point_r_i(2),point_f_j(1),point_f_j(2));
-            [~,~,~,lambda_r_j,~] = Projection2D(point_f_i(1),point_f_i(2),point_r_i(1),point_r_i(2),point_r_j(1),point_r_j(2)); 
-            % the projected point is on the target line if 0<=lambda<=1
-            if ((lambda_f_i>=0 && lambda_f_i<=1) || (lambda_r_i>=0 && lambda_r_i<=1)) &&...
-                    ((lambda_f_j>=0 && lambda_f_j<=1) || (lambda_r_j>=0 && lambda_r_j<=1))
-                is_drive_parallel_tmp = true;
-            else
-                is_drive_parallel_tmp = false;
-            end
             if lambda_f_i>=0 && lambda_f_i<=1
+                [~,~,~,lambda_f_j,~] = Projection2D(point_f_i(1),point_f_i(2),point_r_i(1),point_r_i(2),point_f_j(1),point_f_j(2));
                 if lambda_f_j>=0 && lambda_f_j<=1
                     is_drive_parallel = true;
-                elseif lambda_r_j>=0 && lambda_r_j<=1
-                    is_drive_parallel = true;
+                else
+                    [~,~,~,lambda_r_j,~] = Projection2D(point_f_i(1),point_f_i(2),point_r_i(1),point_r_i(2),point_r_j(1),point_r_j(2)); 
+                    if lambda_r_j>=0 && lambda_r_j<=1
+                        is_drive_parallel = true;
+                    end
                 end
-            elseif lambda_r_i>=0 && lambda_r_i<=1
-                if lambda_f_j>=0 && lambda_f_j<=1
-                    is_drive_parallel = true;
-                elseif lambda_r_j>=0 && lambda_r_j<=1
-                    is_drive_parallel = true;
+            else
+                [~,~,~,lambda_r_i,~] = Projection2D(point_f_j(1),point_f_j(2),point_r_j(1),point_r_j(2),point_r_i(1),point_r_i(2));
+                if lambda_r_i>=0 && lambda_r_i<=1
+                    [~,~,~,lambda_f_j,~] = Projection2D(point_f_i(1),point_f_i(2),point_r_i(1),point_r_i(2),point_f_j(1),point_f_j(2));
+                    if lambda_f_j>=0 && lambda_f_j<=1
+                        is_drive_parallel = true;
+                    else
+                        [~,~,~,lambda_r_j,~] = Projection2D(point_f_i(1),point_f_i(2),point_r_i(1),point_r_i(2),point_r_j(1),point_r_j(2)); 
+                        if lambda_r_j>=0 && lambda_r_j<=1
+                            is_drive_parallel = true;
+                        end
+                    end
                 end
-            end
-            if is_drive_parallel~=is_drive_parallel_tmp
-                disp('')
             end
         end 
     end
