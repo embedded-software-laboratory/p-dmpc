@@ -15,11 +15,11 @@ strategy_consider_veh_without_ROW = '3';
 strategy_enter_lanelet_crossing_area = '4';
 results_full_path = FileNameConstructor.get_results_full_path(customResultName,scenario_name,controller_name,trim_set,...
                 Hp,dt,nVeh,T_end,priority_option,isParl,isAllowInheritROW,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area);
-% evaluation = EvaluationCommon(results_full_path);
+% evaluation = EvaluationParl(results_full_path);
 % disp(['Average run time: ' num2str(mean(evaluation.subcontroller_runtime_per_step)) ' seconds.'])
 % disp(['Maximum 8 average run time: ' mat2str(round(maxk(evaluation.subcontroller_runtime_per_step,8),3)) ' seconds.'])
-evaluation = EvaluationCommon('test');
-evaluation = EvaluationCommon('boundaryCheckAfterImprovement');
+evaluation = EvaluationParl('test_a');
+evaluation = EvaluationParl('boundaryCheckAfterImprovement');
 % eval_before_2 = struct(evaluation_before);
 disp(['Average run time: ' num2str(mean(evaluation.runtime_average)) ' seconds.'])
 disp(['Maximum 8 average run time: ' mat2str(round(evaluation.runtime_max,3)) ' seconds.'])
@@ -48,7 +48,7 @@ for i_CL = 1:length(max_num_CLs_all)
     strategy_enter_lanelet_crossing_area = '4';
     results_full_path = FileNameConstructor.get_results_full_path(customResultName,scenario_name,controller_name,trim_set,...
                     Hp,dt,nVeh,T_end,priority_option,isParl,isAllowInheritROW,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area);
-    evaluations{i_CL} = EvaluationCommon(results_full_path);
+    evaluations{i_CL} = EvaluationParl(results_full_path);
     disp(i_CL)
 %     disp(['Average run time: ' num2str(evaluations{i_CL}.runtime_average) ' seconds.'])
 %     disp(['Maximum 8 average run time: ' mat2str(round(evaluations{i_CL}.runtime_max,3)) ' seconds.'])
@@ -115,8 +115,8 @@ hold on
 plot(x_speed,runtime_max,'-r*','LineWidth',1,'DisplayName','Maximum runtime per step [s]')
 text(x_speed,runtime_max,num2str(runtime_max','%.2f'),'VerticalAlignment','bottom','HorizontalAlignment','center','FontSize',9,'FontName','Times New Roman'); 
 %% Improve boundary check
-e_before_improvement = EvaluationCommon('boundaryCheckBeforeImprovement_ConsiderVehWithoutROW1');
-e_after_improvement = EvaluationCommon('boundaryCheckAfterImprovement_ConsiderVehWithoutROW1');
+e_before_improvement = EvaluationParl('boundaryCheckBeforeImprovement_ConsiderVehWithoutROW1');
+e_after_improvement = EvaluationParl('boundaryCheckAfterImprovement_ConsiderVehWithoutROW1');
 disp('--------Before improving boundary checking:')
 disp(['Average run time: ' num2str(mean(e_before_improvement.runtime_average)) ' seconds.'])
 disp(['Top 8 maximum runtime: ' mat2str(round(e_before_improvement.runtime_max,3)) ' seconds.'])

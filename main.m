@@ -49,8 +49,8 @@ if is_sim_lab
         % specify vehicles IDs
         case 4
             vehicle_ids = [14,16,18,20];
-        case 6
-            vehicle_ids = [10,14,16,17,18,20]; 
+%         case 6
+%             vehicle_ids = [10,14,16,17,18,20]; 
         otherwise
             vehicle_ids = 1:options.amount; % default IDs
     end

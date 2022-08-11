@@ -106,7 +106,7 @@ function [is_valid, shapes] = eval_edge_exact(scenario, iter, tree, iNode, vehic
                     is_valid = false;
                     return
                 end
-                if InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas{iStep})
+                if InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
                     % check collision with crossing area of lanelets
                     is_valid = false;
                     return
