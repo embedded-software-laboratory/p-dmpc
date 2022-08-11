@@ -146,7 +146,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
     iter.predicted_lanelet_boundary = cell(nVeh, 3);    % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
     iter.reachable_sets = cell(nVeh, Hp);               % cells to store instances of MATLAB calss `polyshape`
     iter.occupied_areas = cell(nVeh, 1);                % currently occupied areas with normal offset of vehicles 
-    iter.emergency_braking_maneuvers = cell(nVeh, 1);   % occupied area of emergency braking maneuver
+    iter.emergency_maneuvers = cell(nVeh, 1);   % occupied area of emergency braking maneuver
     
 
     % states of other vehicles can be directed measured
@@ -279,7 +279,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
 
             
                 % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
-                predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.options.is_sim_lab);
+                predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.vehicles(iVeh).lanelets_index, scenario.options.is_sim_lab);
                 iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
 
                 if visualize_boundaries_lab
@@ -348,17 +348,22 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
             mpa = scenario.mpa;
         end
 
-        area = mpa.emengency_braking_maneuvers{trim_current}.area;
-        [area_x,area_y] = translate_global(yaw0,x0,y0,area(1,:),area(2,:));
-        iter.emergency_braking_maneuvers{iVeh}.area = [area_x;area_y];
-        % without offset
-        area_without_offset = mpa.emengency_braking_maneuvers{trim_current}.area_without_offset;
-        [area_without_offset_x,area_without_offset_y] = translate_global(yaw0,x0,y0,area_without_offset(1,:),area_without_offset(2,:));
-        iter.emergency_braking_maneuvers{iVeh}.area_without_offset = [area_without_offset_x;area_without_offset_y];
-        % with large offset
-        area_large_offset = mpa.emengency_braking_maneuvers{trim_current}.area_large_offset;
-        [area_large_offset_x,area_large_offset_y] = translate_global(yaw0,x0,y0,area_large_offset(1,:),area_large_offset(2,:));
-        iter.emergency_braking_maneuvers{iVeh}.area_large_offset = [area_large_offset_x;area_large_offset_y];
+        % emergency left maneuver (without offset)
+        turn_left_area_without_offset = mpa.emergency_maneuvers{trim_current}.left_area_without_offset;
+        [turn_left_area_without_offset_x,turn_left_area_without_offset_y] = translate_global(yaw0,x0,y0,turn_left_area_without_offset(1,:),turn_left_area_without_offset(2,:));
+        iter.emergency_maneuvers{iVeh}.left_area_without_offset = [turn_left_area_without_offset_x;turn_left_area_without_offset_y];
+        % emergency right maneuver (without offset)
+        turn_right_area_without_offset = mpa.emergency_maneuvers{trim_current}.right_area_without_offset;
+        [turn_right_area_without_offset_x,turn_right_area_without_offset_y] = translate_global(yaw0,x0,y0,turn_right_area_without_offset(1,:),turn_right_area_without_offset(2,:));
+        iter.emergency_maneuvers{iVeh}.right_area_without_offset = [turn_right_area_without_offset_x;turn_right_area_without_offset_y];
+        % emergency braking maneuver (without offset)
+        braking_area_without_offset = mpa.emergency_maneuvers{trim_current}.braking_area_without_offset;
+        [turn_braking_area_without_offset_x,turn_braking_area_without_offset_y] = translate_global(yaw0,x0,y0,braking_area_without_offset(1,:),braking_area_without_offset(2,:));
+        iter.emergency_maneuvers{iVeh}.braking_area_without_offset = [turn_braking_area_without_offset_x;turn_braking_area_without_offset_y];
+        % emergency braking maneuver (with normal offset)
+        braking_area = mpa.emergency_maneuvers{trim_current}.braking_area;
+        [turn_braking_area_x,turn_braking_area_y] = translate_global(yaw0,x0,y0,braking_area(1,:),braking_area(2,:));
+        iter.emergency_maneuvers{iVeh}.braking_area = [turn_braking_area_x;turn_braking_area_y];
     end
    
     % Determine Obstacle positions (x = x0 + v*t)

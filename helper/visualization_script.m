@@ -4,14 +4,17 @@ road_data = RoadData().get_road_data();
 
 %% plot lanelets
 figure()
-plot_lanelets(road_data.lanelets,'Commonroad');
 plotRoadSetup;
+
+plot_lanelets(road_data.lanelets,'Commonroad');
+
 
 %% plot lanelet boundaries
 figure()
-lanelet_boundary_poly = cellfun(@(c)[c{3}],road_data.lanelet_boundary);
-plot(lanelet_boundary_poly)
 plotRoadSetup;
+lanelet_boundary_poly = cellfun(@(c)[c{3}],road_data.lanelet_boundary);
+plot_lanelets(road_data.lanelets,'Commonroad');
+plot(lanelet_boundary_poly)
 
 %% local function
 function plotRoadSetup()

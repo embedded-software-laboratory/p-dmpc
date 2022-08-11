@@ -25,7 +25,7 @@ classdef SimLab < InterfaceExperiment
             obj.abort = false;
 
             obj.visu.isShowVehID = true;
-            obj.visu.isShowPriority = true;
+            obj.visu.isShowPriority = false;
             obj.visu.isShowCoupling = true;
             obj.visu.isShowWeight = false;
             obj.visu.colormap = []; % n-by-3 matrix containing RGB values
@@ -127,7 +127,7 @@ classdef SimLab < InterfaceExperiment
                 plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
             else
                 % pause so that `keyPressCallback()` can be executed in time
-                pause(0.001)
+                pause(0.01)
             end
         end
         

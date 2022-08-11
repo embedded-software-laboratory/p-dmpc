@@ -69,30 +69,30 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
         veh.yaw_goal = yaw(2:end);
         scenario.vehicles = [scenario.vehicles, veh];
     end
-
-    scenario.vehicles(1).x_start = 2.0;
-    scenario.vehicles(1).y_start = 1.775;
-    scenario.vehicles(1).yaw_start = 0;
-
-    scenario.vehicles(2).x_start = 2.32;
-    scenario.vehicles(2).y_start = 1.41;
-    scenario.vehicles(2).yaw_start = deg2rad(100);
-
-    scenario.vehicles(3).x_start = 1.555;
-    scenario.vehicles(3).y_start = 1.775;
-    scenario.vehicles(3).yaw_start = 0;
-
-    scenario.vehicles(4).x_start = 2.025;
-    scenario.vehicles(4).y_start = 2.48;
-    scenario.vehicles(4).yaw_start = deg2rad(270);
-    
-    scenario.vehicles(5).x_start = 2.175;
-    scenario.vehicles(5).y_start = 2.67;
-    scenario.vehicles(5).yaw_start = deg2rad(280);
-
-    scenario.vehicles(6).x_start = 2.89;
-    scenario.vehicles(6).y_start = 2.075;
-    scenario.vehicles(6).yaw_start = deg2rad(180);
+%       % example in paper
+%     scenario.vehicles(1).x_start = 2.0;
+%     scenario.vehicles(1).y_start = 1.775;
+%     scenario.vehicles(1).yaw_start = 0;
+% 
+%     scenario.vehicles(2).x_start = 2.32;
+%     scenario.vehicles(2).y_start = 1.41;
+%     scenario.vehicles(2).yaw_start = deg2rad(100);
+% 
+%     scenario.vehicles(3).x_start = 1.555;
+%     scenario.vehicles(3).y_start = 1.775;
+%     scenario.vehicles(3).yaw_start = 0;
+% 
+%     scenario.vehicles(4).x_start = 2.025;
+%     scenario.vehicles(4).y_start = 2.48;
+%     scenario.vehicles(4).yaw_start = deg2rad(270);
+%     
+%     scenario.vehicles(5).x_start = 2.175;
+%     scenario.vehicles(5).y_start = 2.67;
+%     scenario.vehicles(5).yaw_start = deg2rad(280);
+% 
+%     scenario.vehicles(6).x_start = 2.89;
+%     scenario.vehicles(6).y_start = 2.075;
+%     scenario.vehicles(6).yaw_start = deg2rad(180);
 
     scenario.plot_limits = [0,4.5;0,4];  
     scenario.nVeh = nVeh;

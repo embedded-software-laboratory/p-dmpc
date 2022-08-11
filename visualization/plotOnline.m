@@ -174,8 +174,8 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     if visu.isShowCoupling
         x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
-        if ~isempty(scenario.coupling_weights)
-            plot_coupling_lines(scenario.coupling_weights, x0, scenario.belonging_vector, scenario.coupling_info, 'ShowWeights', visu.isShowWeight)
+        if ~isempty(scenario.coupling_weights_reduced)
+            plot_coupling_lines(scenario.coupling_weights_reduced, x0, scenario.belonging_vector, scenario.coupling_info, 'ShowWeights', visu.isShowWeight)
         else
             plot_coupling_lines(scenario.directed_coupling, x0, [], [], 'ShowWeights', visu.isShowWeight)
         end

@@ -54,7 +54,7 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks, i
     
     % with larger offset: for the last step of prediction horizon
     x_rec1_larger_offset = [-1, -1,  1,  1] * (veh.Length/2 + 0.05);
-    y_rec1_larger_offset = [-1,  1,  1, -1] * (veh.Width/2 + 0); % 0.01 -> 0
+    y_rec1_larger_offset = [-1,  1,  1, -1] * (veh.Width/2 + 0.01); % 0.01 -> 0
     % calculate displacement of model shape
     [x_rec2_larger_offset, y_rec2_larger_offset] = translate_global(maneuver.dyaw, maneuver.dx, maneuver.dy, x_rec1_larger_offset, y_rec1_larger_offset);
     signum = sign(maneuver.dyaw);

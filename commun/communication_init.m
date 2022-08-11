@@ -103,5 +103,6 @@ function scenario = communication_init(scenario, exp)
             scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback);   
         end
     end
+    pause(0.2) % ensure ROS messages are received
 end
 

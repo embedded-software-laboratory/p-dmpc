@@ -1,4 +1,4 @@
-classdef EvaluationCommon
+classdef EvaluationParl
     %EVALUATIONCOMMON Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -42,13 +42,16 @@ classdef EvaluationCommon
     end
     
     methods
-        function obj = EvaluationCommon(results_full_path)
+        function obj = EvaluationParl(results_full_path)
             obj.results_full_path = results_full_path;
             load(obj.results_full_path,'result');
             obj.nVeh = result.scenario.nVeh;
             obj.nSteps = length(result.iteration_structs);
             obj.dt = result.scenario.dt;
             obj.t_total = obj.nSteps*obj.dt;
+            if abs(obj.t_total-result.scenario.T_end)>obj.dt
+                warning('Simulation stops before reaching the specific time.')
+            end
             obj.reference_paths = cell(obj.nVeh,1);
             obj.real_paths = cell(obj.nVeh,1);
             obj.path_tracking_errors = cell(obj.nVeh,1);

@@ -4,18 +4,17 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     traffic_info = TrafficInfo(scenario, iter);
 
     coupling_weights = traffic_info.coupling_weights;
-    coupling_weights_origin = coupling_weights; % make a copy
     coupling_info = traffic_info.coupling_info;
     if any(strcmp(scenario.priority_option,{'right_of_way_priority','constant_priority','random_priority'}))
         % Strategy to let vehicle without the right-of-way enter the crossing area
         % Ignore coupling edge if not allowed to enter the crossing area because no collision is possible anymore
-        [coupling_weights,lanelet_crossing_areas,coupling_info,iter] = ...
+        [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = ...
             strategy_enter_lanelet_crossing_area(iter,coupling_info,coupling_weights,scenario.strategy_enter_lanelet_crossing_area,scenario.nVeh);
 
-        [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info,traffic_info.vehs_at_intersection);
+        [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupling_weights_reduced,coupling_weights,coupling_info,traffic_info.vehs_at_intersection);
 
         % form parallel CL_based_hierarchy
-        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
+        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_reduced, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
 
     elseif strcmp(scenario.priority_option,'mixed_traffic_priority')
         obj = mixed_traffic_priority(scenario);
@@ -49,72 +48,59 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     priority_list = right_of_way_priority().get_priority(CL_based_hierarchy);
 
     scenario.coupling_weights = coupling_weights;
+    scenario.coupling_weights_reduced = coupling_weights_reduced;
     scenario.time_enter_intersection = traffic_info.time_enter_intersection;
     scenario.coupling_info = coupling_info;
-    directed_adjacency = (coupling_weights ~= 0);
+    directed_adjacency = (scenario.coupling_weights ~= 0);
     vehs_at_intersection = traffic_info.vehs_at_intersection;
 
     % update properties of scenario 
     scenario.parl_groups_info = parl_groups_info;
     scenario.belonging_vector = belonging_vector;
     scenario.directed_coupling = directed_adjacency;
+    scenario.directed_coupling_reduced = (scenario.coupling_weights_reduced ~= 0);
     scenario.priority_list = priority_list;
     scenario.last_vehs_at_intersection = vehs_at_intersection;
+
     % visualize the coupling between vehicles
     % plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
     % visualize the directed graph  
     % figure(); plot(Graph,'LineWidth',1,'EdgeLabel',round(Graph.Edges.Weight,2))
-%     switch scenario.priority_option
-%         case 'topo_priority' 
-%             [CL_based_hierarchy, directed_adjacency, priority_list] = topo_priority().priority(scenario); 
-%             vehs_at_intersection = [];
-%         
-%         case 'right_of_way_priority'
-%             right_of_way = true;
-% 
-%         case 'constant_priority' 
-%             [CL_based_hierarchy, directed_adjacency, priority_list, belonging_vector] = constant_priority().priority(scenario); 
-%             vehs_at_intersection = [];
-%         
-%         case 'random_priority'  
-%             [parl_groups_info, CL_based_hierarchy, directed_adjacency, priority_list, belonging_vector] = random_priority().priority(scenario.options); 
-%             vehs_at_intersection = [];
-% 
-%         case 'FCA_priority' 
-%             [vehs_at_intersection, CL_based_hierarchy, directed_adjacency, priority_list] = FCA_priority().priority(scenario,iter);
-%     
-%         case 'mixed_traffic_priority'
-% 
-%     end
-
-%     if strcmp(scenario.priority_option,'right_of_way_priority') || strcmp(scenario.priority_option,'mixed_traffic_priority')
-
-
-
 end
 
 %% local function
-function [coupling_weights,lanelet_crossing_areas,coupling_info,iter] = strategy_enter_lanelet_crossing_area(iter,coupling_info,coupling_weights,strategy_enter_lanelet_crossing_area,nVeh)
+function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = strategy_enter_lanelet_crossing_area(iter,coupling_info,coupling_weights,strategy_enter_lanelet_crossing_area,nVeh)
     % This function implement the strategies of letting vehicle enter
     % the crossing area, which is the overlapping area of two
     % vehicles' lanelet boundaries. Four strategies are existed.
+
+    % reduced coupling weights after forbidding vehicles entering their
+    % lanelet crossing areas
+    coupling_weights_reduced = coupling_weights;
 
     lanelet_crossing_areas = cell(nVeh,1);
     predicted_lanelet_boundary = iter.predicted_lanelet_boundary(:,3);
 
     for i = 1:length([coupling_info.veh_with_ROW])
+        % rear-end collision at the same lanelet or successive lanelets
+        % cannot be avoid by this strategy
         is_rear_end_collision = strcmp(coupling_info(i).collision_type, CollisionType.type_1);
+        is_same_lanelet = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_6);
+        is_logitudinal_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_1);
+        
         % only side-impact collision should be ignore by this strategy
         if is_rear_end_collision
             continue
+        end
+
+        if strcmp(coupling_info(i).collision_type, CollisionType.type_2) && ~strcmp(coupling_info(i).lanelet_relationship,LaneletRelationshipType.type_5)
+            disp('')
         end
 
         veh_with_ROW = coupling_info(i).veh_with_ROW;
         veh_without_ROW = coupling_info(i).veh_without_ROW;
 
         is_at_intersection = coupling_info(i).is_at_intersection;
-        is_side_impact_collision = strcmp(coupling_info(i).collision_type, CollisionType.type_2);
-        assert(is_side_impact_collision)
         is_intersecting_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_5);
         is_merging_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_3);
 
@@ -142,16 +128,6 @@ function [coupling_weights,lanelet_crossing_areas,coupling_info,iter] = strategy
             
             % get the crossing area of two vehicles' lanelet
             lanelet_crossing_area = intersect(predicted_lanelet_boundary{veh_without_ROW}, iter.predicted_lanelet_boundary{veh_with_ROW,3});
-
-%             if lanelet_crossing_area.NumRegions <= 1
-%                 [lanelet_crossing_area_x, lanelet_crossing_area_y] = boundary(lanelet_crossing_area);
-%                 lanelet_crossing_area = [lanelet_crossing_area_x';lanelet_crossing_area_y'];
-%             else
-%                 warning(['The crossing area of the lanelets of vehicles' num2str(veh_with_ROW) 'and ' ...
-%                     num2str(veh_without_ROW) ' has unexpectedly ' num2str(lanelet_crossing_area.NumRegions) ' regions.' newline ...
-%                     'The coupling will not be ignored.'])
-%                 continue
-%             end
 
             [lanelet_crossing_area_x, lanelet_crossing_area_y] = boundary(lanelet_crossing_area);
             % if vehicle without the right-of-way cannot avoid entering the
@@ -182,20 +158,12 @@ function [coupling_weights,lanelet_crossing_areas,coupling_info,iter] = strategy
             % ignore coupling 
             % disp(['Ignore coupling from vehicle ' num2str(veh_with_ROW) ' to ' num2str(veh_without_ROW) ' by forbidding the latter to enter the crossing area of their lanelets.'])
             coupling_info(i).is_ignored = true; % ignore coupling since no collision if possible anymore
-            coupling_weights(veh_with_ROW,veh_without_ROW) = 0;
+            coupling_weights_reduced(veh_with_ROW,veh_without_ROW) = 0;
             % store lanelet crossing area for later use
             for iRegion = 1:lanelet_crossing_area.NumRegions
                 [x_tmp,y_tmp] = boundary(lanelet_crossing_area,iRegion);
                 lanelet_crossing_areas{veh_forbid}(end+1) = {[x_tmp';y_tmp']};
             end
-
-            % vehicle are considered as blocked if at least one of their reference
-            % trajectory points are inside their lanelet crossing areas
-%             [ref_traj_in,~] = inpolygon(iter.referenceTrajectoryPoints(veh_forbid,:,1),iter.referenceTrajectoryPoints(veh_forbid,:,2), ...
-%                 lanelet_crossing_area_x,lanelet_crossing_area_y);
-%             if any(ref_traj_in)
-%                 iter.blocked_vehs(veh_forbid) = true;
-%             end
 
             % subtract the crossing area from vehicle's lanelet boundary 
             predicted_lanelet_boundary{veh_forbid} = subtract(predicted_lanelet_boundary{veh_forbid}, iter.predicted_lanelet_boundary{veh_free,3});
@@ -209,41 +177,11 @@ function [coupling_weights,lanelet_crossing_areas,coupling_info,iter] = strategy
             
         end
     end
-
-    % block vehicle if it has a blocked and coupled front vehicle
-%     are_rear_end_collisions = strcmp({coupling_info.collision_type},CollisionType.type_1);
-%     for j = 1:length([coupling_info.veh_with_ROW])
-%         is_rear_end_collision = strcmp(coupling_info(j).collision_type, CollisionType.type_1);
-%         % only interest in rear-end collision where the front vehicle is blocked
-%         if is_rear_end_collision && iter.blocked_vehs(coupling_info(j).veh_with_ROW)
-%             % block vehicle without ROW
-%             veh_without_ROW_j = coupling_info(j).veh_without_ROW;
-%             iter.blocked_vehs(veh_without_ROW_j) = true;
-%             disp(['Vehicle ' num2str(veh_without_ROW_j) ' is blocked because its front vehicle is blocked.'])
-%             % iteratively find if more vehicles should be blocked because they drive
-%             % successively behind the newly blocked vehicle
-%             while true
-%                 find_couplings = [coupling_info.veh_with_ROW]==veh_without_ROW_j & are_rear_end_collisions;
-%                 vehs_without_ROW = [coupling_info(find_couplings).veh_without_ROW];
-%                 if isempty(vehs_without_ROW)
-%                     break
-%                 else
-%                     % in case that multiple vehicles drive behind, block the
-%                     % closest one (the one with the lowest STAT)
-%                     [~,idx_lowest_STAC] = min([coupling_info(find_couplings).STAC]);
-%                     veh_without_ROW_j = vehs_without_ROW(idx_lowest_STAC);
-%                     iter.blocked_vehs(veh_without_ROW_j) = true;
-%                 end
-%             end                
-%         end
-%     end
-    
-
 end
 
 
 %% local function
-function [coupling_weights,coupling_info] = check_and_break_circle(coupling_weights,coupling_weights_origin,coupling_info,vehs_at_intersection)
+function [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupling_weights_reduced,coupling_weights,coupling_info,vehs_at_intersection)
     % This function break coupling circle if exist any:
     % 1. If possible, coupling edge between vehicles at the
     % intersection will not be broke
@@ -251,7 +189,7 @@ function [coupling_weights,coupling_info] = check_and_break_circle(coupling_weig
 
     edge_to_invert = {};
     % directed Graph
-    Graph = digraph(coupling_weights);
+    Graph = digraph(coupling_weights_reduced);
     
     if ~isdag(Graph)
         % get cycles in the directed graph
@@ -282,15 +220,15 @@ function [coupling_weights,coupling_info] = check_and_break_circle(coupling_weig
             end
             
             edge_to_invert{end+1} = [vertex_start,vertex_end];
-            coupling_weights(vertex_start,vertex_end) = 0; % break the coupling edge
+            coupling_weights_reduced(vertex_start,vertex_end) = 0; % break the coupling edge
             
-            Graph = digraph(coupling_weights);
+            Graph = digraph(coupling_weights_reduced);
             [~, edges] = all_elem_cycles(Graph);
         end
     end
 
     % recover the coupling edge by comparing their computation levels
-    [valid,L] = kahn(coupling_weights); % calculate computation levels using kahn algorithm(topological ordering)
+    [valid,L] = kahn(coupling_weights_reduced); % calculate computation levels using kahn algorithm(topological ordering)
     assert(valid==true)
 
     for i = 1:length(edge_to_invert)
@@ -300,7 +238,7 @@ function [coupling_weights,coupling_info] = check_and_break_circle(coupling_weig
         level_end = find(L(:,vertex_end)~=0);
         if level_start > level_end
             % the broken edge is recovered but the direction is inverted
-            coupling_weights(vertex_end,vertex_start) = coupling_weights_origin(vertex_start,vertex_end);
+            coupling_weights_reduced(vertex_end,vertex_start) = coupling_weights(vertex_start,vertex_end);
 
             % swap leader and follower
             find_vertex_start = find([coupling_info.veh_with_ROW]==vertex_start);
@@ -313,7 +251,7 @@ function [coupling_weights,coupling_info] = check_and_break_circle(coupling_weig
             disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is inverted.'])
         else
             % the broken edge is recovered and the direction is maintained
-            coupling_weights(vertex_start,vertex_end) = coupling_weights_origin(vertex_start,vertex_end);
+            coupling_weights_reduced(vertex_start,vertex_end) = coupling_weights(vertex_start,vertex_end);
             disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is not inverted.'])
         end
     end
