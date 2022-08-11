@@ -65,7 +65,7 @@ for i_dt = 1:length(dt_s)
         strategy_enter_lanelet_crossing_area = '4';
         results_full_path = FileNameConstructor.get_results_full_path(customResultName,scenario_name,controller_name,trim_set,...
                         Hp,dt,nVeh,T_end,priority_option,isParl,isAllowInheritROW,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area);
-        evaluations{i_dt,i_CL} = EvaluationCommon(results_full_path);
+        evaluations{i_dt,i_CL} = EvaluationParl(results_full_path);
         disp(i_CL)
     %     disp(['Average run time: ' num2str(evaluations{i_CL}.runtime_average) ' seconds.'])
     %     disp(['Top 8 maximum runtime: ' mat2str(round(evaluations{i_CL}.runtime_max,3)) ' seconds.'])

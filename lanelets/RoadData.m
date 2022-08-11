@@ -108,11 +108,7 @@ classdef RoadData
                     predecessors_i, predecessors_adjacentLeft_i, predecessors_adjacentRight_i,...
                     successors_i, successors_adjacentLeft_i, successors_adjacentRight_i] = obj.get_all_adjacent_lanelets(i, road_lanelets);
         
-                for j=i+1:nLanelets % no reapted check
-        %             if i==29 && j==48
-        %                 disp('debug')
-        %             end
-        
+                for j=i+1:nLanelets % no reapted check        
                     % initialize variables for predecessors, successors, adjacent left and adjacent right lanelet of lanelet_j
                     [adjacentLeft_j, adjacentRight_j, predecessors_j, ~, ~,successors_j, ~, ~] = obj.get_all_adjacent_lanelets(j, road_lanelets);
                     
@@ -377,7 +373,6 @@ classdef RoadData
             lanelet_boundary_extended = lanelet_boundary_tmp;
             is_extend = false(nLanelets,1);
             for iL = 1:nLanelets
-                disp(iL)
                 if is_extend(iL)
                     % avoid repeated entending
                     continue
