@@ -131,64 +131,64 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
         
             [lanelet_crossing_area_x, lanelet_crossing_area_y] = boundary(lanelet_crossing_area);
 
-
-%             % check if at least one emergency (braking/left turn/right turn) maneuver is collision-free with lanelet crossing area 
-%             if any(inpolygon(iter.emergency_maneuvers{veh_without_ROW}.braking_area_without_offset(1,:),iter.emergency_maneuvers{veh_without_ROW}.braking_area_without_offset(2,:), ...
-%                     lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
-%                 any(inpolygon(iter.emergency_maneuvers{veh_without_ROW}.left_area_without_offset(1,:),iter.emergency_maneuvers{veh_without_ROW}.left_area_without_offset(2,:), ...
-%                     lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
-%                 any(inpolygon(iter.emergency_maneuvers{veh_without_ROW}.right_area_without_offset(1,:),iter.emergency_maneuvers{veh_without_ROW}.right_area_without_offset(2,:), ...
-%                     lanelet_crossing_area_x,lanelet_crossing_area_y))
-%                 % The vehicle without the ROW must be allowed to enter the
-%                 % lanelet crossing area since all its emergency meneuvers
-%                 % will collide with this area. In this case, we check if
-%                 % vehicle with the ROW could be forbidded to enter.
-%                 if any(inpolygon(iter.emergency_maneuvers{veh_with_ROW}.braking_area_without_offset(1,:),iter.emergency_maneuvers{veh_with_ROW}.braking_area_without_offset(2,:), ...
-%                         lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
-%                     any(inpolygon(iter.emergency_maneuvers{veh_with_ROW}.left_area_without_offset(1,:),iter.emergency_maneuvers{veh_with_ROW}.left_area_without_offset(2,:), ...
-%                         lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
-%                     any(inpolygon(iter.emergency_maneuvers{veh_with_ROW}.right_area_without_offset(1,:),iter.emergency_maneuvers{veh_with_ROW}.right_area_without_offset(2,:), ...
-%                         lanelet_crossing_area_x,lanelet_crossing_area_y))
-%                     % The vehicle with the ROW must also be allowed to enter 
-%                     % disp(['Both vehicle ' num2str(veh_with_ROW) ' and ' num2str(veh_without_ROW) ' have entered the crossing area, thus the coupling cannot be ignored.'])
-%                     continue
-%                 else
-%                     % vehicle with the ROW could be forbidded to enter while vehicle without the ROW could not: swap their ROW and forbid vehicle with the ROW to enter
-%                     % disp(['Swap right-of-way: vehicle ' num2str(veh_without_ROW) ' now has right-of-way over ' num2str(veh_with_ROW) '.'])
-%                     veh_forbid = veh_with_ROW;
-%                     veh_free = veh_without_ROW;
-%                     [coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW] = swap(coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW);
-%                 end
-%             else
-%                 % forbid vehicle without the ROW to enter
-%                 veh_forbid = veh_without_ROW;
-%                 veh_free = veh_with_ROW;
-%             end
-
-            % if vehicle without the right-of-way cannot avoid entering the
-            % crossing area (emergency breaking meneuver), the coupling is not allowed to be ignored anymore
-            [in_i,~] = inpolygon(iter.occupied_areas{veh_without_ROW}.without_offset(1,:),iter.occupied_areas{veh_without_ROW}.without_offset(2,:),...
-                lanelet_crossing_area_x,lanelet_crossing_area_y);
-            if any(in_i)
-                % vehicle without right-of-way has already entered
-                % the crossing area: check if vehicle with ROW has entered this area
-                [in_j,~] = inpolygon(iter.occupied_areas{veh_with_ROW}.without_offset(1,:),iter.occupied_areas{veh_with_ROW}.without_offset(2,:),...
-                    lanelet_crossing_area_x,lanelet_crossing_area_y);
-                    if any(in_j)
-                        % vehicle with right-of-way has also entered the crossing area: coupling cannot be ignored
-                        % disp(['Both vehicle ' num2str(veh_with_ROW) ' and ' num2str(veh_without_ROW) ' have entered the crossing area, thus the coupling cannot be ignored.'])
-                        continue
-                    else
-                        % disp(['Swap right-of-way: vehicle ' num2str(veh_without_ROW) ' now has right-of-way over ' num2str(veh_with_ROW) '.'])
-                        veh_forbid = veh_with_ROW;
-                        veh_free = veh_without_ROW;
-                        [coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW] = ...
-                            swap(coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW);
-                    end
+            
+            % check if at least one emergency (braking/left turn/right turn) maneuver is collision-free with lanelet crossing area 
+            if any(inpolygon(iter.emergency_maneuvers{veh_without_ROW}.braking_area_without_offset(1,:),iter.emergency_maneuvers{veh_without_ROW}.braking_area_without_offset(2,:), ...
+                    lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
+                any(inpolygon(iter.emergency_maneuvers{veh_without_ROW}.left_area_without_offset(1,:),iter.emergency_maneuvers{veh_without_ROW}.left_area_without_offset(2,:), ...
+                    lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
+                any(inpolygon(iter.emergency_maneuvers{veh_without_ROW}.right_area_without_offset(1,:),iter.emergency_maneuvers{veh_without_ROW}.right_area_without_offset(2,:), ...
+                    lanelet_crossing_area_x,lanelet_crossing_area_y))
+                % The vehicle without the ROW must be allowed to enter the
+                % lanelet crossing area since all its emergency meneuvers
+                % will collide with this area. In this case, we check if
+                % vehicle with the ROW could be forbidded to enter.
+                if any(inpolygon(iter.emergency_maneuvers{veh_with_ROW}.braking_area_without_offset(1,:),iter.emergency_maneuvers{veh_with_ROW}.braking_area_without_offset(2,:), ...
+                        lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
+                    any(inpolygon(iter.emergency_maneuvers{veh_with_ROW}.left_area_without_offset(1,:),iter.emergency_maneuvers{veh_with_ROW}.left_area_without_offset(2,:), ...
+                        lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
+                    any(inpolygon(iter.emergency_maneuvers{veh_with_ROW}.right_area_without_offset(1,:),iter.emergency_maneuvers{veh_with_ROW}.right_area_without_offset(2,:), ...
+                        lanelet_crossing_area_x,lanelet_crossing_area_y))
+                    % The vehicle with the ROW must also be allowed to enter 
+                    % disp(['Both vehicle ' num2str(veh_with_ROW) ' and ' num2str(veh_without_ROW) ' have entered the crossing area, thus the coupling cannot be ignored.'])
+                    continue
+                else
+                    % vehicle with the ROW could be forbidded to enter while vehicle without the ROW could not: swap their ROW and forbid vehicle with the ROW to enter
+                    % disp(['Swap right-of-way: vehicle ' num2str(veh_without_ROW) ' now has right-of-way over ' num2str(veh_with_ROW) '.'])
+                    veh_forbid = veh_with_ROW;
+                    veh_free = veh_without_ROW;
+                    [coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW] = swap(coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW);
+                end
             else
+                % forbid vehicle without the ROW to enter
                 veh_forbid = veh_without_ROW;
                 veh_free = veh_with_ROW;
             end
+
+%             % if vehicle without the right-of-way cannot avoid entering the
+%             % crossing area (emergency breaking meneuver), the coupling is not allowed to be ignored anymore
+%             [in_i,~] = inpolygon(iter.occupied_areas{veh_without_ROW}.without_offset(1,:),iter.occupied_areas{veh_without_ROW}.without_offset(2,:),...
+%                 lanelet_crossing_area_x,lanelet_crossing_area_y);
+%             if any(in_i)
+%                 % vehicle without right-of-way has already entered
+%                 % the crossing area: check if vehicle with ROW has entered this area
+%                 [in_j,~] = inpolygon(iter.occupied_areas{veh_with_ROW}.without_offset(1,:),iter.occupied_areas{veh_with_ROW}.without_offset(2,:),...
+%                     lanelet_crossing_area_x,lanelet_crossing_area_y);
+%                     if any(in_j)
+%                         % vehicle with right-of-way has also entered the crossing area: coupling cannot be ignored
+%                         % disp(['Both vehicle ' num2str(veh_with_ROW) ' and ' num2str(veh_without_ROW) ' have entered the crossing area, thus the coupling cannot be ignored.'])
+%                         continue
+%                     else
+%                         % disp(['Swap right-of-way: vehicle ' num2str(veh_without_ROW) ' now has right-of-way over ' num2str(veh_with_ROW) '.'])
+%                         veh_forbid = veh_with_ROW;
+%                         veh_free = veh_without_ROW;
+%                         [coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW] = ...
+%                             swap(coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW);
+%                     end
+%             else
+%                 veh_forbid = veh_without_ROW;
+%                 veh_free = veh_with_ROW;
+%             end
 
             % ignore coupling 
             % disp(['Ignore the coupling from vehicle ' num2str(veh_free) ' to ' num2str(veh_forbid) ' by forbidding the latter to enter the crossing area of their lanelets.'])
