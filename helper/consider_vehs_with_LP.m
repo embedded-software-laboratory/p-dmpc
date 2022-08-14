@@ -33,10 +33,13 @@ function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_c
                         if scenario_v.k==261
                             disp('')
                         end
-                        if ~scenario_v.coupling_info(find_coupling).is_ignored && strcmp(scenario_v.coupling_info(find_coupling).collision_type,CollisionType.type_2)
+                        if ~scenario_v.coupling_info(find_coupling).is_ignored && strcmp(scenario_v.coupling_info(find_coupling).collision_type,CollisionType.type_2) ...
+                                && strcmp(scenario_v.coupling_info(find_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
                             % the emergency braking maneuver is only considered if
-                            % two coupled vehicles have side-impact collision that is not ignored
+                            % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
                             scenario_v.obstacles{end+1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;
+                        else
+                            scenario_v.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
                         end
                     otherwise
                         scenario_v.obstacles{end+1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;

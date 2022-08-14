@@ -18,6 +18,7 @@ classdef MotionPrimitiveAutomaton
         shortest_paths_to_equilibrium   % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
         emergency_trims                   % cell(n_trims, 1), store which trim corresponds to emergency left/right; if multiple trims, choose the one with the lowest speed
         emergency_maneuvers               % cell(n_trims, 1), emergency left/right/braking maneuvers
+        trims_stop                          % trims with zero speed
     end
     
     methods
@@ -82,6 +83,8 @@ classdef MotionPrimitiveAutomaton
                 obj.trims(i) = generate_trim(model, trim_inputs(i,:));
             end
 
+            % trims with zero speed
+            obj.trims_stop = find([obj.trims.speed]==0);
             % maneuver cell/struct matrix
             for i = 1:n_trims
                 for j = 1:n_trims
@@ -127,13 +130,25 @@ classdef MotionPrimitiveAutomaton
                 [~,min_speed_trim] = min([obj.trims(connected_trims).speed]); % if multiple trims with zero speed, need to decide which one to choose as emergency braking maneuver
                 obj.emergency_trims{jTrim}.emergency_braking = min_speed_trim;
                 
-                % generate emergency maneuvers
+                % Generate emergency maneuvers
+                % Emergency left turn for one step and two steps
                 obj.emergency_maneuvers{jTrim}.left_area = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_left}.area;
-                obj.emergency_maneuvers{jTrim}.left_area_without_offset = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_left}.area_without_offset;
+                m_left = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_left};
+                obj.emergency_maneuvers{jTrim}.left_area_without_offset = m_left.area_without_offset;
+                [x_left_twice,y_left_twice] = translate_global(m_left.dyaw,m_left.dx,m_left.dy,m_left.area_without_offset(1,:),m_left.area_without_offset(2,:));
+                obj.emergency_maneuvers{jTrim}.leftTwice_area_without_offset = [x_left_twice;y_left_twice];
+
+                % Emergency left turn for one step and two steps
                 obj.emergency_maneuvers{jTrim}.right_area = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_right}.area;
-                obj.emergency_maneuvers{jTrim}.right_area_without_offset = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_right}.area_without_offset;
+                m_right = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_right};
+                obj.emergency_maneuvers{jTrim}.right_area_without_offset = m_right.area_without_offset;
+                [x_right_twice,y_right_twice] = translate_global(m_right.dyaw,m_right.dx,m_right.dy,m_right.area_without_offset(1,:),m_right.area_without_offset(2,:));
+                obj.emergency_maneuvers{jTrim}.rightTwice_area_without_offset = [x_right_twice;y_right_twice];
+
+                % Emergency braking for one step
                 obj.emergency_maneuvers{jTrim}.braking_area = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_braking}.area;
                 obj.emergency_maneuvers{jTrim}.braking_area_without_offset = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_braking}.area_without_offset;
+
                 if jTrim==equilibrium_trim
                     % for equilibrium trim, add a go straight maneuver
                     go_straight_trims = find([obj.trims.steering]==0);
@@ -818,7 +833,6 @@ classdef MotionPrimitiveAutomaton
             max_speed_trim = max_speed_trims(idx);
             shortest_path_to_max_speed = shortestpath(graph_weighted,trim_current,max_speed_trim); % shortest path between two single nodes
         end
-
     end
 end
 

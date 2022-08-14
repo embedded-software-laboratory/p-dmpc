@@ -24,13 +24,11 @@ classdef SimLab < InterfaceExperiment
             obj.paused = false;
             obj.abort = false;
 
-            obj.visu.isShowVehID = true;
-            obj.visu.isShowPriority = false;
-            obj.visu.isShowCoupling = true;
-            obj.visu.isShowWeight = false;
-            obj.visu.colormap = []; % n-by-3 matrix containing RGB values
-            obj.visu.colorbar = []; % object of the MATLAB class ColorBar
-            obj.visu.isShowHotkeyDescription = false; % is show description of hotkeys
+            obj.visu.isShowVehID = true;                % is show vehicle IDs
+            obj.visu.isShowPriority = false;            % is show priority colorbar
+            obj.visu.isShowCoupling = true;             % is show coupling edges
+            obj.visu.isShowWeight = false;              % is show coupling weights
+            obj.visu.isShowHotkeyDescription = false;   % is show description of hotkeys
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
         end

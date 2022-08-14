@@ -36,32 +36,51 @@ classdef FileNameConstructor
             mpa_instance_name = [mpa_instance_name,'.mat'];
         end
 
-        function results_full_path = get_results_full_path(customResultName,scenario_name,controller_name,trim_ID,...
-                Hp,dt,nVeh,T_end,priority_option,isParl,isAllowInheritROW,max_num_CLs,strategy_consider_veh_without_ROW,strategy_enter_lanelet_crossing_area)
+        function results_full_path = get_results_full_path(options)
             % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
             % results are saved.
-            results_folder = strrep(strcat(scenario_name, '_', controller_name),' ','_');
-            if isstring(priority_option)
-                priority_option = char(priority_option);
+            if options.isParl
+                controller_name = 'RHC-Parl';
+            else
+                controller_name = 'RHC';
             end
 
-            if isempty(customResultName)
+            if isstring(options.priority)
+                options.priority = char(options.priority);
+            end
+
+            if isempty(options.customResultName)
                 % use default name
-                results_name = ['trims',num2str(trim_ID),'_Hp',num2str(Hp),'_dt',num2str(dt),'_nVeh',num2str(nVeh),'_T',num2str(T_end),'_',priority_option];
+                results_name = ['trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_dt',num2str(options.dt),'_nVeh',num2str(options.amount),'_T',num2str(options.T_end),'_',options.priority];
     
-                if isParl
-                    results_name = [results_name,'_maxCLs',num2str(max_num_CLs),...
-                        '_ConsiderVehWithoutROW',strategy_consider_veh_without_ROW,'_EnterLaneletCrossingArea',strategy_enter_lanelet_crossing_area];
+                if options.isParl
+                    results_name = [results_name,'_maxCLs',num2str(options.max_num_CLs),...
+                        '_ConsiderVehWithoutROW',options.strategy_consider_veh_without_ROW,'_EnterLaneletCrossingArea',options.strategy_enter_lanelet_crossing_area];                 
                 end
 
-                if isAllowInheritROW
+                if options.isAllowInheritROW
                     results_name = [results_name,'_inherit'];
+                end
+
+                if options.is_free_flow
+                    results_name = [results_name,'_freeFlow'];
+                end
+
+                if ~strcmp(options.fallback_type,'localFallback')
+                    % local fallback is the default fallback strategy
+                    results_name = [results_name,'_',options.fallback_type];
+                end
+
+                if options.isSaveResultReduced
+                    results_name = [results_name,'_reduced'];
+                    
                 end
             else
                 % use custom name 
-                results_name = customResultName;
+                results_name = options.customResultName;
             end
 
+            results_folder = strrep(strcat(options.scenario, '_', controller_name),' ','_');
             results_name = [results_name, '.mat'];
 
             [file_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file

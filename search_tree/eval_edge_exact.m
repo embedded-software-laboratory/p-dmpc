@@ -1,4 +1,4 @@
-function [is_valid, shapes] = eval_edge_exact(scenario, iter, tree, iNode, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
+function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
 % EVAL_EDGE_EXACT   Evaluate if step is valid.
 % 
 % INPUT:
@@ -18,7 +18,7 @@ function [is_valid, shapes] = eval_edge_exact(scenario, iter, tree, iNode, vehic
 %   shapes: occupied area of the vehicle if the selected node is chosen
 % 
 
-    if nargin < 8
+    if nargin < 7
         method = 'sat'; % use the default method, separating axis theorem, to check if collide
     end
 
@@ -101,16 +101,21 @@ function [is_valid, shapes] = eval_edge_exact(scenario, iter, tree, iNode, vehic
                 % Note1: Shape must be closed!
                 % Note2: The collision check order is important.
                 % Normally, check collision with lanelet boundary last would be better.
-                if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
-                    % check collision with vehicle obstacles
-                    is_valid = false;
-                    return
+                if ~scenario.options.is_free_flow
+                    % In free flow mode, vehicles do not need to consider
+                    % other vehicles
+                    if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
+                        % check collision with vehicle obstacles
+                        is_valid = false;
+                        return
+                    end
+                    if InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
+                        % check collision with crossing area of lanelets
+                        is_valid = false;
+                        return
+                    end
                 end
-                if InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
-                    % check collision with crossing area of lanelets
-                    is_valid = false;
-                    return
-                end
+
                 if InterX(shapes_without_offset{iVeh}, lanelet_boundary)
                     % check collision with lanelet obstacles
                     is_valid = false;
@@ -133,13 +138,13 @@ function [is_valid, shapes] = eval_edge_exact(scenario, iter, tree, iNode, vehic
                         shape_go_straight = [go_straight_x;go_straight_y];
                         if InterX(shape_go_straight, lanelet_boundary)
                             % go straight is not collision-free with lanelet boundary
-                            area_left = scenario.mpa.emergency_maneuvers{t2}.left_area_without_offset;
+                            area_left = scenario.mpa.emergency_maneuvers{t2}.leftTwice_area_without_offset;
                             turn_left_x = c_Hp*area_left(1,:) - s_Hp*area_left(2,:) + x_Hp;
                             turn_left_y = s_Hp*area_left(1,:) + c_Hp*area_left(2,:) + y_Hp;
                             shape_turn_left = [turn_left_x;turn_left_y];
                             if InterX(shape_turn_left, lanelet_boundary)
                                 % turn left most maneuver is also not collision-free with lanelet boundary
-                                area_right = scenario.mpa.emergency_maneuvers{t2}.right_area_without_offset;
+                                area_right = scenario.mpa.emergency_maneuvers{t2}.rightTwice_area_without_offset;
                                 turn_right_x = c_Hp*area_right(1,:) - s_Hp*area_right(2,:) + x_Hp;
                                 turn_right_y = s_Hp*area_right(1,:) + c_Hp*area_right(2,:) + y_Hp;
                                 shape_turn_right = [turn_right_x;turn_right_y];

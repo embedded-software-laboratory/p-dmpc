@@ -65,7 +65,7 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     % visualize the coupling between vehicles
     % plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
     % visualize the directed graph  
-    % figure(); plot(Graph,'LineWidth',1,'EdgeLabel',round(Graph.Edges.Weight,2))
+    % figure(); plot(digraph(coupling_weights),'LineWidth',1)
 end
 
 %% local function
@@ -85,8 +85,6 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
         % rear-end collision at the same lanelet or successive lanelets
         % cannot be avoid by this strategy
         is_rear_end_collision = strcmp(coupling_info(i).collision_type, CollisionType.type_1);
-        is_same_lanelet = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_6);
-        is_logitudinal_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_1);
         
         % only side-impact collision should be ignore by this strategy
         if is_rear_end_collision
@@ -206,8 +204,9 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
             num_regions = predicted_lanelet_boundary{veh_forbid}.NumRegions;
             if num_regions > 1
                 % if multiple regions, only keep the one that is closest to vehicle
-                poly_sort = sortregions(predicted_lanelet_boundary{veh_forbid},'centroid','descend','ReferencePoint',[iter.x0(veh_forbid,indices().x),iter.x0(veh_forbid,indices().y)]); 
-                predicted_lanelet_boundary{veh_forbid} = rmboundary(poly_sort, 2:num_regions);
+                poly_sort = sortregions(predicted_lanelet_boundary{veh_forbid},'centroid','ascend','ReferencePoint',[iter.x0(veh_forbid,indices().x),iter.x0(veh_forbid,indices().y)]);
+                R = regions(poly_sort);
+                predicted_lanelet_boundary{veh_forbid} = R(1);
             end
             
         end
@@ -281,8 +280,6 @@ function [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupl
             coupling_i = intersect(find_vertex_start,find_vertex_end);
             coupling_info(coupling_i).veh_with_ROW = vertex_end;
             coupling_info(coupling_i).veh_without_ROW = vertex_start;
-            [coupling_info(coupling_i).veh_with_ROW, coupling_info(coupling_i).veh_without_ROW] = ...
-                swap(coupling_info(coupling_i).veh_with_ROW, coupling_info(coupling_i).veh_without_ROW);
             disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is inverted.'])
         else
             % the broken edge is recovered and the direction is maintained

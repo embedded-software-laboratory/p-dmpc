@@ -239,7 +239,7 @@ classdef TrafficInfo
                             % calculate the STAC simply by dividing their distance minus their width by half the maximum speed
                             % todo: find a better heuristic to calculate the STAC for vehicles driving in parallel
                             distance_to_collision = distance_two_vehs-(scenario.vehicles(veh_i).Width+scenario.vehicles(veh_j).Width)/2;
-                            assert(distance_to_collision>0)
+%                             assert(distance_to_collision>0)
                             STAC = distance_to_collision/max([scenario.mpa.trims.speed]./2);
                             STAC_adapted = STAC;
                         else
@@ -258,9 +258,6 @@ classdef TrafficInfo
                     end
     
                     % store coupling information
-                    if is_drive_parallel
-                        disp('')
-                    end
                     obj.coupling_info(count).is_drive_parallel = is_drive_parallel; 
                     obj.coupling_info(count).STAC = STAC;
                     obj.coupling_info(count).lanelet_relationship = lanelet_relationship.type;
@@ -345,8 +342,8 @@ classdef TrafficInfo
             lanelet_type.is_same = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_6);
 
             % get collision_type type based on lanelet_type
-            if lanelet_type.is_same || lanelet_type.is_successive || lanelet_type.is_forking
-                % For two vehicles dirve at the same, successive or forking lanelets, both two collision types are possible: 
+            if lanelet_type.is_same || lanelet_type.is_successive || lanelet_type.is_left_or_right || lanelet_type.is_forking
+                % For two vehicles dirve at the same, successive, left/right adjacent, or forking lanelets, both two collision types are possible: 
                 % 1. Side-impact collision: if their distance is less than the mean length of the two vehicles
                 % 2. Rear-end collision: otherwise
 %                         if norm(veh_info_i.position-veh_info_j.position) < (veh_info_i.length+veh_info_j.length)/2
@@ -546,7 +543,7 @@ classdef TrafficInfo
                             if strcmp(obj.coupling_info(k_coupling).lanelet_relationship, LaneletRelationshipType.type_3)...
                                     || strcmp(obj.coupling_info(k_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
                                 % check if the coupled vehicle and the vehicle to be inherited are at merging or intersecting lanelets
-                                disp(['After inheriting right-of-way from vehicle ' num2str(veh_to_inherit) ', ' num2str(iVeh) ' now has the right-of-way over ' num2str(veh_with_ROW_j) '.'])
+                                % disp(['After inheriting right-of-way from vehicle ' num2str(veh_to_inherit) ', ' num2str(iVeh) ' now has the right-of-way over ' num2str(veh_with_ROW_j) '.'])
                                 % update coupling direction
                                 coupling_weights_adjusted(veh_with_ROW_j,iVeh) = 0;
                                 coupling_weights_adjusted(iVeh,veh_with_ROW_j) = obj.coupling_weights(veh_with_ROW_j,iVeh);

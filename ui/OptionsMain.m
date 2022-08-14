@@ -26,10 +26,16 @@ classdef OptionsMain
         strategy_consider_veh_without_ROW       % one of the following: {'1','2','3','4','5'}, strategy of letting higher-priority vehicles consider their coupled vehicles with lower priorities
         strategy_enter_lanelet_crossing_area    % one of the following: {'1','2','3','4'}, strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
         isSaveResult            % true/false, is save result
+        isSaveResultReduced = false; % true/false, is save reduced result but not full to save disk space (useful for a long run of simulation)
         customResultName        % string or char, custom file name to save result
         isAllowInheritROW       % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
         is_eval                 % true/false, 
         visualize_reachable_set % true/false, 
+        is_free_flow = false;   % true/false, if true, vehicles do not need to consider other vehicles.
+        fallback_type = 'localFallback'; % one of the following {'no','local','global'}, 
+                                    % 'no' for disable fallback; 
+                                    % 'global' means once a vehicle triggers fallback, all other vehicles must also take fallback.
+                                    % 'local' means once a vehicle triggers fallback, only vehicles that have direct or undirected couplings with it will take fallabck. 
     end
 
     methods
@@ -66,6 +72,7 @@ classdef OptionsMain
             obj.isAllowInheritROW = options.isAllowInheritROW;
             obj.is_eval = options.is_eval;
             obj.visualize_reachable_set = options.visualize_reachable_set;
+            obj.is_free_flow = options.is_free_flow;
         end
     end
 end
@@ -102,3 +109,5 @@ end
 % options.visualize_reachable_set = false;
 
 % optionsMain = OptionsMain().assign_data(options)
+% % call main.m
+% main(optionsMain)

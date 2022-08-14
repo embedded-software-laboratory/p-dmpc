@@ -13,7 +13,8 @@ if any(find_options)
 else
     options = startOptions();
 end
-
+% options.fallback_type = 'globalFallback';
+% options.fallback_type = 'localFallback';
 % 
 %[options, vehicle_ids] = eval_guided_mode(1);
 %[options, vehicle_ids] = eval_expert_mode(1);
@@ -183,6 +184,10 @@ vehs_fallback_times = zeros(1,scenario.options.amount); % record the number of s
 info_old = []; % old information for fallback
 total_fallback_times = 0; % total times of fallbacks
 
+threshold_stop_steps = 30; % if a vehicle steps more than this number of time steps, a deadlock is considered to have occur
+vehs_stop_time_steps = inf(options.amount,1); % record the number of time steps that vehicles continually stop
+is_deadlock = false;
+
 if scenario.options.firstManualVehicleMode == 2 || scenario.options.secondManualVehicleMode == 2
     %r = rosrate(100000);
 end
@@ -202,7 +207,10 @@ while (~got_stop)
 
     scenario.k = k;
 
-    disp(['>>> Time step ' num2str(scenario.k) ''])
+    if mod(k,10)==0
+        % only display 0, 10, 20, ...
+        disp(['>>> Time step ' num2str(scenario.k)])
+    end
 
 
     % Control
@@ -305,27 +313,36 @@ while (~got_stop)
     [info, scenario] = scenario.controller(scenario_tmp, iter);
 
     %% fallback
-    vehs_fallback_times(info.vehs_fallback) = vehs_fallback_times(info.vehs_fallback) + 1;
-    vehs_not_fallback = setdiff(1:scenario.options.amount, info.vehs_fallback);
-    vehs_fallback_times(vehs_not_fallback) = 0; % reset
-    
-    % check whether at least one vehicle has fallen back Hp times successively
-    if max(vehs_fallback_times) < scenario.Hp
-        if ~isempty(info.vehs_fallback)
-            real_vehicles = zeros(1,length(info.vehs_fallback));
-
-            for i=1:length(info.vehs_fallback)
-                real_vehicles(i) = scenario.vehicle_ids(info.vehs_fallback(i));
-            end
-
-            disp_tmp = sprintf('%d,',real_vehicles); disp_tmp(end) = [];
-            disp(['*** Vehicles ' disp_tmp ' take fallback.']) % use * to highlight this message
-            info = pb_controller_fallback(info, info_old, scenario);
-            total_fallback_times = total_fallback_times + 1;
+    if strcmp(options.fallback_type,'noFallback')
+        % disable fallback
+        if any(info.is_exhausted)
+            disp('Fallback is disabled. Simulation ends.')
+            break
         end
     else
-        disp('Already fall back successively Hp times, terminate the simulation')
-        break % break the while loop
+        vehs_fallback_times(info.vehs_fallback) = vehs_fallback_times(info.vehs_fallback) + 1;
+        vehs_not_fallback = setdiff(1:scenario.options.amount, info.vehs_fallback);
+        vehs_fallback_times(vehs_not_fallback) = 0; % reset
+        
+        % check whether at least one vehicle has fallen back Hp times successively
+        if max(vehs_fallback_times) < scenario.Hp
+            if ~isempty(info.vehs_fallback)
+                real_vehicles = zeros(1,length(info.vehs_fallback));
+    
+                for i=1:length(info.vehs_fallback)
+                    real_vehicles(i) = scenario.vehicle_ids(info.vehs_fallback(i));
+                end
+    
+                disp_tmp = sprintf('%d,',real_vehicles); disp_tmp(end) = [];
+                disp(['*** Vehicles ' disp_tmp ' take fallback.']) % use * to highlight this message
+                info = pb_controller_fallback(info, info_old, scenario);
+                total_fallback_times = total_fallback_times + 1;
+
+            end
+        else
+            disp('Already fall back successively Hp times, terminate the simulation')
+            break % break the while loop
+        end
     end
 
 %     if scenario.k==289 ...
@@ -355,8 +372,39 @@ while (~got_stop)
         result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller runtime of each parallel group 
     end
     result.vehs_fallback{k} = info.vehs_fallback;
+
+    % check if deadlock occurs
+    vehs_stop = any(ismember(info.trim_indices,scenario.mpa.trims_stop),2); % vehicles stop at the current time step
+    vehs_stop_time_steps(~vehs_stop) = inf; % reset others
+
+    vehs_stop_successively = vehs_stop_time_steps<k & vehs_stop; % vehicles stop both at the current and previous time step
+    vehs_stop_newly = ~vehs_stop_successively & vehs_stop;
+    vehs_stop_time_steps(vehs_stop_newly) = k;
     
-   
+    % if more than one third of vehicles stop for more than a defined time, deadlock is considered to have occur
+    [min_stop_step,veh_deadlock] = mink(vehs_stop_time_steps,ceil(options.amount/3)); 
+    max_stop_steps = k - min_stop_step(end);
+    if max_stop_steps > threshold_stop_steps
+        % a deadlock is considered to have occur if a vehicle stops continually more than a certain number time steps
+        warning(['Deadlock occurs since vehicle ' num2str(veh_deadlock(1)) ' stops for a long time.'])
+        result.t_total = min_stop_step(1)*scenario.dt;
+        result.nSteps = result.t_total;
+        is_deadlock = true;
+
+        % delete all data collected after deadlock
+        fieldnames_r = fieldnames(result);
+        nColumns = size(result.iteration_structs,2);
+        for iField = 1:length(fieldnames_r)
+            filedName = fieldnames_r{iField};
+            if size(result.(filedName),2) == nColumns
+                % delete
+                result.(filedName)(:,min_stop_step(1):end) = [];
+            end
+        end
+
+        break
+    end
+    
     % Apply control action
     % -------------------------------------------------------------------------
     exp.apply(info, result, k, scenario); 
@@ -366,8 +414,15 @@ while (~got_stop)
     got_stop = exp.is_stop() || got_stop;
     
 end
+result.is_deadlock = is_deadlock;
 result.total_fallback_times = total_fallback_times;
 disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
+if ~is_deadlock
+    result.t_total = k*scenario.dt;
+    result.nSteps = k;
+end
+disp(['Total runtime: ' num2str(round(result.t_total,2)) ' seconds.'])
+
 %% save results
 if options.isSaveResult
     % Delete varibales used for ROS 2 since some of them cannot be saved
@@ -386,7 +441,14 @@ if options.isSaveResult
     %     warning('File with the same name exists, timestamp will be added to the file name.')
     %     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
     % end
-    
+    if options.isSaveResultReduced
+        result_reduced.output_path = result.output_path;
+        result_reduced.scenario = result.scenario;
+        result_reduced.t_total = result.t_total;
+        result_reduced.vehs_fallback = result.vehs_fallback;
+        result_reduced.is_deadlock = result.is_deadlock;
+        result = result_reduced;
+    end
     save(result.output_path,'result');
     disp(['Simulation results were saved under ' result.output_path])
 else

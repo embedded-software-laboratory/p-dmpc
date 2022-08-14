@@ -77,8 +77,6 @@ classdef Scenario
         distance_threshold_intersection = [1.1]; % vector with length numOfIntersection, threshold of distance from a vehicle's position to the intersection center point exceed which a vehicle is considered as entering the intersection
         belonging_vector; % a column vector whose value indicate which group each vehicle belongs to 
         parl_groups_info; % struct, store information of parallel groups 
-        loop_times          % 1-by-nVeh vector, how many loops has each vehicle already driven
-        loop_steps          % 1-by-nVeh vector, time step when each vehicle finished its last loop
     end
     
     properties (Dependent)

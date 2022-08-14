@@ -81,12 +81,6 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
         end
 
         predicted_lanelets = scenario.vehicles(iVeh).lanelets_index(predicted_lanelets_idx);
-%         if predicted_lanelets(1) == scenario.vehicles(iVeh).lanelets_index(1) && abs(scenario.k-scenario.loop_steps(iVeh))>20
-%             % vehicle finishes a loop
-%             scenario.loop_times(iVeh) = scenario.loop_times(iVeh) + 1;
-%             % record the time step
-%             scenario.loop_steps(iVeh) = scenario.k;
-%         end
     else
         predicted_lanelets = [];
     end

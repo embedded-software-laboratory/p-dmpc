@@ -51,7 +51,8 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
             if ploy_reachable_sets.NumRegions > 1
                 % Remove unexpected small regions resulting from the intersection of the lanelet boundaries and reachable sets
                 polysort = sortregions(ploy_reachable_sets,'numsides','descend'); % sort by number of sides
-                ploy_reachable_sets = rmboundary(polysort,2:polysort.NumRegions);
+                R = regions(polysort);
+                ploy_reachable_sets = R(1);
             end       
         end
 
@@ -67,6 +68,7 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
             % convexify reachable sets if non-convex polygons are not allowed
             reachable_sets{t} = convhull(ploy_reachable_sets); 
         end
+        
     end
 
 end

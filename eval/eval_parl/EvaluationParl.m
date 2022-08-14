@@ -3,6 +3,7 @@ classdef EvaluationParl
     %   Detailed explanation goes here
     
     properties
+        options
         nVeh        % number of vehicles
         nSteps      % number of time steps
         dt          % sample time
@@ -23,9 +24,12 @@ classdef EvaluationParl
         
         average_speed_each_veh % average speed of each vehicle per step
         average_speed % average speed of all vehicles per step
+        sum_speeds_all_vehicles % sum of speeds of all vehicles
 
         fallback_times % total fallback times of all vehicles. Note that this is not the number of time steps when fallbacks occur
         fallback_rate % fallback rate: fallback_times/nSteps/nVeh
+
+        is_deadlock % true/false, if deadlock occurs
     end
 
     properties (Access=private)
@@ -35,6 +39,7 @@ classdef EvaluationParl
 
         plot_option_real_path
         plot_option_ref_path
+        free_flow_speed % free flow speed
     end
 
     properties (Dependent)
@@ -42,27 +47,46 @@ classdef EvaluationParl
     end
     
     methods
-        function obj = EvaluationParl(results_full_path)
-            obj.results_full_path = results_full_path;
+        function obj = EvaluationParl(input)
+            if isstring(input) || ischar(input)
+                % .mat data name
+                obj.results_full_path = input;
+            else
+                % construct file name from options
+                obj.results_full_path = FileNameConstructor.get_results_full_path(input);
+            end
             load(obj.results_full_path,'result');
+
             obj.nVeh = result.scenario.nVeh;
-            obj.nSteps = length(result.iteration_structs);
+
+            if ~result.scenario.options.isSaveResultReduced
+                obj.nSteps = length(result.iteration_structs);
+                obj.reference_paths = cell(obj.nVeh,1);
+                obj.real_paths = cell(obj.nVeh,1);
+                obj.path_tracking_errors = cell(obj.nVeh,1);
+                obj.path_tracking_errors_MAE = zeros(obj.nVeh,1);
+                obj.runtime_total_per_step = zeros(0,1);
+                obj.plot_option_real_path = struct('Color','b','LineStyle','-','LineWidth',1.0,'DisplayName','Real Path');
+                obj.plot_option_ref_path = struct('Color','r','LineStyle','--','LineWidth',1.0,'DisplayName','Reference Path');
+            else
+                obj.nSteps = length(result.vehs_fallback);
+            end
             obj.dt = result.scenario.dt;
-            obj.t_total = obj.nSteps*obj.dt;
+
+            if isfield(result,'t_total')
+                obj.t_total = result.t_total;
+            else
+                obj.t_total = obj.dt*obj.nSteps;
+            end
             if abs(obj.t_total-result.scenario.T_end)>obj.dt
                 warning('Simulation stops before reaching the specific time.')
             end
-            obj.reference_paths = cell(obj.nVeh,1);
-            obj.real_paths = cell(obj.nVeh,1);
-            obj.path_tracking_errors = cell(obj.nVeh,1);
-            obj.path_tracking_errors_MAE = zeros(obj.nVeh,1);
-            obj.runtime_total_per_step = zeros(0,1);
-            obj.plot_option_real_path = struct('Color','b','LineStyle','-','LineWidth',1.0,'DisplayName','Real Path');
-            obj.plot_option_ref_path = struct('Color','r','LineStyle','--','LineWidth',1.0,'DisplayName','Reference Path');
 
-            obj = obj.get_path_tracking_errors(result);
-            obj = obj.get_runtime_per_step(result);
-            obj = obj.get_average_speeds;
+            if ~result.scenario.options.isSaveResultReduced
+                obj = obj.get_path_tracking_errors(result);
+                obj = obj.get_runtime_per_step(result);
+                obj = obj.get_average_speeds;
+            end
 
             obj.fallback_times = 0;
             for i = 1:length(result.vehs_fallback)
@@ -71,6 +95,12 @@ classdef EvaluationParl
                 end
             end
             obj.fallback_rate = obj.fallback_times/obj.nSteps/obj.nVeh;
+
+            if isfield(result,'is_deadlock')
+                obj.is_deadlock = result.is_deadlock;
+            else
+                obj.is_deadlock = false;
+            end
         end
         
         function obj = get_path_tracking_errors(obj,result)
@@ -122,6 +152,15 @@ classdef EvaluationParl
             distances = cellfun(@(c) sum(sqrt(c(1,:).^2+c(2,:).^2)),ref_paths_diff);
             obj.average_speed_each_veh = distances./obj.t_total;
             obj.average_speed = mean(obj.average_speed_each_veh);
+            obj.sum_speeds_all_vehicles = sum(obj.average_speed_each_veh);
+
+%             % get sampleTime_FFS
+%             [~,obj.free_flow_speed] = FreeFlowSpeed;
+%             if ~obj.options.is_free_flow
+%                 obj.travel_time_index = obj.average_speed/obj.free_flow_speed(num2str(obj.dt));
+%             else
+%                 obj.travel_time_index = 1;
+%             end
         end
 
 
@@ -168,5 +207,29 @@ classdef EvaluationParl
         
     end
 
+    methods(Static)
+        function save_fig(fig,file_name)
+            % save fig to pdf
+%             set(fig,'Units','centimeters');
+%             pos = get(fig,'Position');
+%             set(fig,'PaperPositionMode','Auto','PaperUnits','centimeters','PaperSize',[pos(3), pos(4)])
+            
+            [file_path,~,~] = fileparts(mfilename('fullpath'));
+            folder_target = fullfile(file_path,'fig');
+            if ~isfolder(folder_target)
+                % create target folder if not exist
+                mkdir(folder_target)
+            end
+            
+            file_name_svg = [file_name '.svg'];
+            file_name_pdf = [file_name '.pdf'];
+            full_path_svg = fullfile(folder_target,file_name_svg);
+            full_path_pdf = fullfile(folder_target,file_name_pdf);
+    
+            print(fig,full_path_pdf,'-dpdf','-r0');
+            print(fig,full_path_svg,'-dsvg','-r0');
+           
+        end
+    end
 end
 
