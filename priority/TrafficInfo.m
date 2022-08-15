@@ -173,89 +173,78 @@ classdef TrafficInfo
                     % current distance between two vehicles
                     distance_two_vehs = norm(veh_info_i.position-veh_info_j.position,2);
 
-                    % estimate the STAC and coupling weight
-                    if collision_type.is_rear_end
-                        % If the same lanelet or successive (relationship type 1) lanelets or adjacent left/right lanelets (relationship type 2) -> rear-end collision
-                        obj.coupling_info(count).collision_type = CollisionType.type_1;
-    
-                        % the same lanelet ot successive lanelet or forking lanelets
-                        collision_point = lanelet_relationship.point;
-                        distance_to_collision_i = norm(veh_info_i.position-collision_point,2);
-                        distance_to_collision_j = norm(veh_info_j.position-collision_point,2);
-                        
-                        % determine who is the leader 
-                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking);
-                        
-                        if has_ROW                        
-                            trim_with_ROW = veh_info_i.trim; trim_without_ROW = veh_info_j.trim;
-                        else
-                            trim_with_ROW = veh_info_j.trim; trim_without_ROW = veh_info_i.trim;
-                        end
-    
-                        % calculate the shortest time to achieve a collision
-                        [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, trim_with_ROW, trim_without_ROW, distance_two_vehs, scenario.dt);
-                        STAC_adapted = STAC + waiting_time;
-    
-                    elseif collision_type.is_side_impact
-                        obj.coupling_info(count).collision_type = CollisionType.type_2; % side-impact collision
-    
-                        % For side-impact collision, we calculate the adapted STAC, which is the sum of the actual STAC and a waiting time. 
-                        % The calculation procedure is the following: Firstly, the actual STAC is the shortest time needed to achieve a 
-                        % collision at the point of intersection. This is calculated by letting both vehicles take a full acceleration to 
-                        % arrive at the point of intersection. The first arrived vehicle has to stop at the point of intersection and wait 
-                        % for the second arrived vehicle, where the waiting time is the second part of the adapted STAC.
-                        collision_point = lanelet_relationship.point;
-                        if ~is_find_lanelet_relationship || lanelet_type.is_same || lanelet_type.is_successive || lanelet_type.is_forking
-                            distance_to_collision_i = norm(veh_info_i.position-collision_point);
-                            distance_to_collision_j = norm(veh_info_j.position-collision_point);
-                        else
-                            % from a curve to calculate the arc diatance between vehicle's current position and the collision point, 
-                            % which starts from the starting point of the lanelet and ends at the collision point 
-                            if lanelet_type.is_merging || lanelet_type.is_left_or_right
-                                % collision point of the merging lanelets is both lanelets' endpoint, thus the target curve is the whole lanelet
-                                curve_x_i = veh_info_i.lanelet_x; curve_y_i = veh_info_i.lanelet_y;
-                                curve_x_j = veh_info_j.lanelet_x; curve_y_j = veh_info_j.lanelet_y;
-                            elseif lanelet_type.is_intersecting 
-                                % Collision point of the intersecting lanelets is the crosspoint, which could be in the middle of the lanelets
-                                % First, find the two closest points to the crosspoint on the lanelet
-                                squared_distances_to_crosspoint_i = sum(([veh_info_i.lanelet_x,veh_info_i.lanelet_y]-collision_point).^2,2);
-                                [~,idx_closest_two_point_i] = mink(squared_distances_to_crosspoint_i,2,1);
-                                squared_distances_to_crosspoint_j = sum(([veh_info_j.lanelet_x,veh_info_j.lanelet_y]-collision_point).^2,2);
-                                [~,idx_closest_two_point_j] = mink(squared_distances_to_crosspoint_j,2,1);
-                                % the endpoint of the curve is the collision point and the adjacent left point is the one among the closest two points with a smaller index  
-                                curve_x_i = [veh_info_i.lanelet_x(1:min(idx_closest_two_point_i));collision_point(1)]; curve_y_i = [veh_info_i.lanelet_y(1:min(idx_closest_two_point_i));collision_point(2)];
-                                curve_x_j = [veh_info_j.lanelet_x(1:min(idx_closest_two_point_j));collision_point(1)]; curve_y_j = [veh_info_j.lanelet_y(1:min(idx_closest_two_point_j));collision_point(2)];
-                            end
-    
-                            % calculate the arc length from the vehicle's current position to the collision point
-                            [distance_to_collision_i, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(veh_info_i.position(1), veh_info_i.position(2), curve_x_i, curve_y_i);
-                            [distance_to_collision_j, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(veh_info_j.position(1), veh_info_j.position(2), curve_x_j, curve_y_j);
-                        end
-    
-                        % determine who is the leader 
-                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking);
-    
-                        if is_drive_parallel
-                            % calculate the STAC simply by dividing their distance minus their width by half the maximum speed
-                            % todo: find a better heuristic to calculate the STAC for vehicles driving in parallel
-                            distance_to_collision = distance_two_vehs-(scenario.vehicles(veh_i).Width+scenario.vehicles(veh_j).Width)/2;
-%                             assert(distance_to_collision>0)
-                            STAC = distance_to_collision/max([scenario.mpa.trims.speed]./2);
-                            STAC_adapted = STAC;
-                        else
-                            time_to_collision_point_i = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_i.trim,distance_to_collision_i,scenario.dt);
-                            time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_j.trim,distance_to_collision_j,scenario.dt);
-                            % the first arrived vehicle will wait for the second arrived vehicle to "achieve" a collision.
-                            % Here we ignore the fact that the first arrived vehicle should also decelerate to stop at the
-                            % point of intersection, which could be added to todo list to improve the exactness.
-                            waiting_time = abs(time_to_collision_point_i-time_to_collision_point_j);
-                            % actual STAC
-                            STAC = max(time_to_collision_point_i,time_to_collision_point_j);
-                            % adapted STAC
-                            STAC_adapted = STAC + waiting_time;   
+                    collision_point = lanelet_relationship.point;
+                    
+                    % Determine which vehicle has the ROW
+                    if is_find_lanelet_relationship && (lanelet_type.is_crossing || lanelet_type.is_merging)
+                        % For crossing or merging lanelets, the vehicle that can arrive the collision point in a shorter time has the ROW
+                        % Note that for some special cases, two vehicles are coupled but their lanelets have no relationship 
+
+                        % Form a curve to calculate the arc diatance between vehicle's current position and the collision point, 
+                        % which starts from the starting point of the lanelet and ends at the collision point 
+                        if lanelet_type.is_merging 
+                            % collision point of the merging lanelets is both lanelets' endpoint, thus the target curve is the whole lanelet
+                            curve_x_i = veh_info_i.lanelet_x; curve_y_i = veh_info_i.lanelet_y;
+                            curve_x_j = veh_info_j.lanelet_x; curve_y_j = veh_info_j.lanelet_y;
+                        elseif lanelet_type.is_crossing 
+                            % Collision point of the crossing lanelets is the crosspoint, which could be on the middle of the lanelets
+                            % First, find the two closest points to the crosspoint on the lanelet
+                            squared_distances_to_crosspoint_i = sum(([veh_info_i.lanelet_x,veh_info_i.lanelet_y]-collision_point).^2,2);
+                            [~,idx_closest_two_point_i] = mink(squared_distances_to_crosspoint_i,2,1);
+                            squared_distances_to_crosspoint_j = sum(([veh_info_j.lanelet_x,veh_info_j.lanelet_y]-collision_point).^2,2);
+                            [~,idx_closest_two_point_j] = mink(squared_distances_to_crosspoint_j,2,1);
+                            % the endpoint of the curve is the collision point and the adjacent left point is the one among the closest two points with a smaller index  
+                            curve_x_i = [veh_info_i.lanelet_x(1:min(idx_closest_two_point_i));collision_point(1)]; curve_y_i = [veh_info_i.lanelet_y(1:min(idx_closest_two_point_i));collision_point(2)];
+                            curve_x_j = [veh_info_j.lanelet_x(1:min(idx_closest_two_point_j));collision_point(1)]; curve_y_j = [veh_info_j.lanelet_y(1:min(idx_closest_two_point_j));collision_point(2)];
                         end
 
+                        % calculate the arc length from the vehicle's current position to the collision point
+                        [distance_to_collision_i, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(veh_info_i.position(1), veh_info_i.position(2), curve_x_i, curve_y_i);
+                        [distance_to_collision_j, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(veh_info_j.position(1), veh_info_j.position(2), curve_x_j, curve_y_j);
+
+                        time_to_collision_point_i = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_i.trim,distance_to_collision_i,scenario.dt);
+                        time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_j.trim,distance_to_collision_j,scenario.dt);
+                        % determine which vehicle has the ROW 
+                        % trick: a shorter time to collision point corresponds to a shorter distance to collision point, thus no code adaption is need
+                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, time_to_collision_point_i, time_to_collision_point_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking);
+                        
+                        % Calculate the shortest time to achieve a collision and the waiting time.
+                        % The first arrived vehicle will wait for the second arrived vehicle to "achieve" a collision.
+                        % Here we ignore the fact that the first arrived vehicle should also decelerate to stop at the
+                        % point of intersection, which could be added to todo list to improve the exactness.
+                        % The coupling weight depends both on the STAC and the waiting time 
+                        STAC = max(time_to_collision_point_i,time_to_collision_point_j);
+                        waiting_time = abs(time_to_collision_point_i-time_to_collision_point_j);
+                    else
+                        % For other lanelets, such as successive, left/right adjacent lanelets, the vehicle that can arrive at 
+                        % the collision point in a shorter time has also a shorter distance to the collision point (the vehicle behind should catch the vehicle in front) 
+                        distance_to_collision_i = norm(veh_info_i.position-collision_point);
+                        distance_to_collision_j = norm(veh_info_j.position-collision_point);
+                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking);
+                        
+                        % Calculate the shortest time to achieve a collision and the waiting time
+                        if has_ROW               
+                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_i.trim, veh_info_j.trim, distance_two_vehs, scenario.dt);
+                        else
+                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_j.trim, veh_info_i.trim, distance_two_vehs, scenario.dt);
+                        end
                     end
+
+                    % store the collision type
+                    if collision_type.is_rear_end
+                        obj.coupling_info(count).collision_type = CollisionType.type_1;
+                    elseif collision_type.is_side_impact
+                        obj.coupling_info(count).collision_type = CollisionType.type_2; % side-impact collision
+%                         if is_drive_parallel
+%                             % calculate the STAC simply by dividing their distance minus their width by half the maximum speed
+%                             % todo: find a better heuristic to calculate the STAC for vehicles driving in parallel
+%                             distance_to_collision = distance_two_vehs-(scenario.vehicles(veh_i).Width+scenario.vehicles(veh_j).Width)/2;
+% %                             assert(distance_to_collision>0)
+%                             STAC = distance_to_collision/max([scenario.mpa.trims.speed]./2);
+%                         end
+                    end
+
+                    STAC_adapted = STAC + waiting_time; % adapted STAC
     
                     % store coupling information
                     obj.coupling_info(count).is_drive_parallel = is_drive_parallel; 
@@ -289,7 +278,7 @@ classdef TrafficInfo
                 get_collision_and_lanelet_type(obj,veh_info_i,veh_info_j,is_last_lan_pair,lanelet_relationships,overlap_reachable_sets, is_mixed_traffic)
         
             % initialize
-            lanelet_type = struct('is_same',false,'is_left_or_right',false,'is_forking',false,'is_merging',false,'is_intersecting',false,'is_successive',false);
+            lanelet_type = struct('is_same',false,'is_left_or_right',false,'is_forking',false,'is_merging',false,'is_crossing',false,'is_successive',false);
             collision_type = struct('is_rear_end',false,'is_side_impact',false);
             is_continue = false;
             lanelet_relationship = struct('type',[],'point',[]); 
@@ -322,7 +311,7 @@ classdef TrafficInfo
                         % 3. Set collision type to be side-impact collision (normally lanelet relationship will always be found for rear-end collision)
         %                 disp(['No lanelet relationship can be found for coupled vehicle ' num2str(veh_i) ' and ' num2str(veh_j) '.' newline...
         %                     'Centroid of the overlapping area of their reachable sets will be used as collision point.'])        
-                        lanelet_relationship.type = LaneletRelationshipType.type_5; % intersecting lanelets
+                        lanelet_relationship.type = LaneletRelationshipType.type_5; % crossing lanelets
                         [x_centroid,y_centroid] = centroid(overlap_reachable_sets);
                         lanelet_relationship.point = [x_centroid,y_centroid];
                     else
@@ -338,7 +327,7 @@ classdef TrafficInfo
             lanelet_type.is_left_or_right = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_2);
             lanelet_type.is_merging = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_3);
             lanelet_type.is_forking = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_4);
-            lanelet_type.is_intersecting = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_5);
+            lanelet_type.is_crossing = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_5);
             lanelet_type.is_same = strcmp(lanelet_relationship.type, LaneletRelationshipType.type_6);
 
             % get collision_type type based on lanelet_type
@@ -353,7 +342,7 @@ classdef TrafficInfo
                 else
                     collision_type.is_rear_end = true;
                 end
-            elseif lanelet_type.is_intersecting
+            elseif lanelet_type.is_crossing
                 % Only side-impact collision is possible at intersection lanelets
                 collision_type.is_side_impact = true;
             elseif lanelet_type.is_merging || (is_mixed_traffic && lanelet_type.is_left_or_right)
@@ -535,14 +524,14 @@ classdef TrafficInfo
                     
                     if strcmp(obj.coupling_info(j_coupling).lanelet_relationship, LaneletRelationshipType.type_3)...
                             || strcmp(obj.coupling_info(j_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
-                        % check if the coupled vehicle and the selected vehicle are at merging or intersecting lanelets
+                        % check if the coupled vehicle and the selected vehicle are at merging or crossing lanelets
                         find_vehs_to_inherit = obj.coupling_weights(vehs_inherit,veh_with_ROW_j)~=0;
                         find_vehs_to_inherit = vehs_inherit(find_vehs_to_inherit);
                         for veh_to_inherit = find_vehs_to_inherit(:)'
                             k_coupling = all(all_coupling_pairs-[veh_to_inherit;veh_with_ROW_j]==0,1);
                             if strcmp(obj.coupling_info(k_coupling).lanelet_relationship, LaneletRelationshipType.type_3)...
                                     || strcmp(obj.coupling_info(k_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
-                                % check if the coupled vehicle and the vehicle to be inherited are at merging or intersecting lanelets
+                                % check if the coupled vehicle and the vehicle to be inherited are at merging or crossing lanelets
                                 % disp(['After inheriting right-of-way from vehicle ' num2str(veh_to_inherit) ', ' num2str(iVeh) ' now has the right-of-way over ' num2str(veh_with_ROW_j) '.'])
                                 % update coupling direction
                                 coupling_weights_adjusted(veh_with_ROW_j,iVeh) = 0;
@@ -597,7 +586,8 @@ classdef TrafficInfo
             s_j = sin(yaw_j); c_j = cos(yaw_j);
             point_f_j = approximated_line_f(position_j(1),position_j(2),s_j,c_j,length_j);
             point_r_j = approximated_line_r(position_j(1),position_j(2),s_j,c_j,length_j);
-
+            
+            % compact code but needs more computation
 %             % the projected point is on the target line if 0<=lambda<=1
 %             if ((lambda_f_i>=0 && lambda_f_i<=1) || (lambda_r_i>=0 && lambda_r_i<=1)) &&...
 %                     ((lambda_f_j>=0 && lambda_f_j<=1) || (lambda_r_j>=0 && lambda_r_j<=1))
@@ -606,6 +596,7 @@ classdef TrafficInfo
 %                 is_drive_parallel_tmp = false;
 %             end
 
+            % less compact, but computationally faster 
             % projection of two points of one line onto another line
             [~,~,~,lambda_f_i,~] = Projection2D(point_f_j(1),point_f_j(2),point_r_j(1),point_r_j(2),point_f_i(1),point_f_i(2));
             if lambda_f_i>=0 && lambda_f_i<=1

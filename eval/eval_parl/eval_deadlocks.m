@@ -2,8 +2,8 @@
     % 1. Higher-priority vehicles consider emergency braking maneuver of
     % lowr-priority vehicles
     % 2. 
-strategy_feasibility = {{'3','4'},{'3','1'},{'1','1'}};
-nVeh_s = 26:35;
+strategy_feasibility = {{'3','4'},{'1','1'}};
+nVeh_s = 18:2:34;
 
 e_feasibility_differentNumVehs = cell(length(strategy_feasibility),1);
 
@@ -22,12 +22,12 @@ options.max_num_CLs = 3;
 options.priority = 'right_of_way_priority';
 options.isPB = true;
 options.isParl = true;
-options.isAllowInheritROW = true;
+options.isAllowInheritROW = false;
 options.isSaveResult = true;
 options.visu = [false,false];
 options.is_eval = false;
 options.visualize_reachable_set = false;
-options.isAllowInheritROW = false;
+
 
 for i = 1:length(strategy_feasibility)
     for j = 1:length(nVeh_s)
@@ -63,62 +63,63 @@ set(0,'DefaultAxesFontName', 'Times New Roman');
 set(0,'defaultTextFontSize',7)
 set(0,'defaultAxesFontSize',7)
 
-file_name = 'feasibilityAndDeadlocks_dfferentNumVehs';
-
-t_total_s = cellfun(@(c) c.t_total, e_feasibility_differentNumVehs);
+max_runtime_s = cellfun(@(c) c.t_total, e_feasibility_differentNumVehs);
 % speed_average_s = cellfun(@(c) c.average_speed, e_feasibility_differentNumVehs);
 fallback_rate_s = cellfun(@(c) c.fallback_rate, e_feasibility_differentNumVehs);
 % speed_sum_s = cellfun(@(c) c.sum_speeds_all_vehicles, e_feasibility_differentNumVehs);
 
-plot_options_improve_both = struct('LineWidth',.5,'Marker','*','MarkerSize',4);
-plot_options_improve_feasibility = struct('LineWidth',.5,'Marker','o','MarkerSize',4);
-plot_options_no_improvement = struct('LineWidth',.5,'Marker','square','MarkerSize',4);
-legend_ = {sprintf('Feasibility improved and\ndeadlocks avoided'),'Only feasibility improved','None'};
-fig_x = 5;     fig_y = 7; % [cm]
+fig_x = 6;     fig_y = 4; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
 
-fig = figure('Name',file_name);
+fig = figure('Name','improveFeasibility');
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
     'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
 
-t_fig = tiledlayout(2,1,'Padding','tight','TileSpacing','tight');
+t_fig = tiledlayout(1,2,'Padding','none','TileSpacing','compact');
 X_string = {'Before','After'};
 X_cat = categorical(X_string);
 
-% total run time
 nexttile
-plot(nVeh_s,t_total_s(1,:),plot_options_improve_both);
-hold on 
-plot(nVeh_s,t_total_s(2,:),plot_options_improve_feasibility);
-plot(nVeh_s,t_total_s(3,:),plot_options_no_improvement);
+% 1. max. number of vehicles
+b1 = bar(X_cat,nVeh_s);
 grid on
-xlabel({'$n_{veh}$','(a). Maximum runtime.'},'Interpreter','latex')
-ylabel('$t_{max}\:[s]$','Interpreter','latex')
-xlim([min(nVeh_s) max(nVeh_s)])
-legend(legend_,'Orientation','vertical','Location','northoutside','FontSize',7)
-% xticks(nVeh_s)
+xtips1 = b1(1).XEndPoints;
+ytips1 = b1(1).YEndPoints;
+labels1 = string(b1(1).YData);
+text(xtips1,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
+ylim([0 38])
+xlabel({'(a). Maximum allowed number of vehicles.'})
+ylabel('$n_{veh}^{max}$','Interpreter','latex')
 
-% fallback rate
 nexttile
-plot(nVeh_s,fallback_rate_s(1,:),plot_options_improve_both);
-hold on 
-plot(nVeh_s,fallback_rate_s(2,:),plot_options_improve_feasibility);
-plot(nVeh_s,fallback_rate_s(3,:),plot_options_no_improvement);
+% 2. speed
+b2 = bar(X_cat,[speed_average_s,speed_sum_s]);
 grid on
-xlabel({'$n_{veh}$','(c). Fallback rate.'},'Interpreter','latex')
-ylabel('$p_{FR}\:[\%]$','Interpreter','latex')
-xlim([min(nVeh_s) max(nVeh_s)])
+xtips1 = b2(1).XEndPoints;
+ytips1 = b2(1).YEndPoints;
+labels1 = string(round(b2(1).YData,2));
+text(xtips1-0.03,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
+xtips2 = b2(2).XEndPoints;
+ytips2 = b2(2).YEndPoints;
+labels2 = string(round(b2(2).YData,2));
+text(xtips2,ytips2,labels2,'HorizontalAlignment','center','VerticalAlignment','bottom')
+xlabel('(b). Average speed and sum of speeds.')
+ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
+legend({'Average','Sum'},'Location','best')
+ylim([0 27])
 
 % save fig
+file_name = 'improveFeasibility_differentNumVehs';
 e_feasibility_differentNumVehs{1}.save_fig(fig,file_name)
 %% Generate data: strategieis to improve feasibilities (same number of vehicles)
     % 1. Higher-priority vehicles consider emergency braking maneuver of
     % lowr-priority vehicles
     % 2. 
-strategy_feasibility = {{'3','4'},{'3','1'},{'1','1'}};
+strategy_feasibility = {{'3','1'},{'1','1'}};
+nVeh_s = [18,18];
 
 e_feasibility_sameNumVehs = cell(1,length(strategy_feasibility));
 
@@ -131,18 +132,18 @@ options.scenario = 'Commonroad';
 options.trim_set = 9;
 options.Hp = 5;
 
-options.T_end = 30;
+options.T_end = 20;
 options.dt = 0.2;
 options.max_num_CLs = 3;
 options.priority = 'right_of_way_priority';
 options.isPB = true;
 options.isParl = true;
-options.isAllowInheritROW = false;
+options.isAllowInheritROW = true;
 options.isSaveResult = true;
 options.visu = [false,false];
 options.is_eval = false;
 options.visualize_reachable_set = false;
-options.amount = 18;
+options.amount = nVeh_s(end);
 
 for i = 1:length(strategy_feasibility)
     options.strategy_consider_veh_without_ROW = strategy_feasibility{i}{1};
@@ -167,14 +168,6 @@ for i = 1:length(strategy_feasibility)
 
     disp([num2str(i) ': done.'])
 end
-
-% get free flow speed, i.e., the speed that vehicles could travel if they are not influenced by others
-% vehicles
-if exist('Scenario','var')
-    free_flow_speed = FreeFlowSpeed(scenario);
-else
-    free_flow_speed = FreeFlowSpeed();
-end
 disp('--------Finished--------')
 
 %% Plot
@@ -183,61 +176,80 @@ set(0,'DefaultAxesFontName', 'Times New Roman');
 set(0,'defaultTextFontSize',9)
 set(0,'defaultAxesFontSize',9)
 
-file_name = 'feasibilityAndDeadlocks_sameNumVehs';
+nVeh_s = cellfun(@(c) c.nVeh, e_feasibility_sameNumVehs);
+speed_average_s = cellfun(@(c) c.average_speed, e_feasibility_sameNumVehs);
+speed_sum_s = cellfun(@(c) c.sum_speeds_all_vehicles, e_feasibility_sameNumVehs);
 
-speed_average_s = cellfun(@(c) c.average_speed_each_veh, e_feasibility_sameNumVehs, 'UniformOutput', false);
-grp_speed = cell2mat(arrayfun(@(i){i*ones(numel(speed_average_s{i}),1)},(1:numel(speed_average_s))')); 
+runtime_s = cellfun(@(c) c.runtime_total_per_step, e_feasibility_sameNumVehs, 'UniformOutput',false);
+grp_runtime = cell2mat(arrayfun(@(i){i*ones(numel(runtime_s{i}),1)},(1:numel(runtime_s))')); 
 
-computation_time_s = cellfun(@(c) c.runtime_total_per_step, e_feasibility_sameNumVehs, 'UniformOutput', false);
-grp_computation_time = cell2mat(arrayfun(@(i){i*ones(numel(computation_time_s{i}),1)},(1:numel(computation_time_s))')); 
-
-fallback_rate_s = cellfun(@(c) c.fallback_rate, e_feasibility_sameNumVehs);
-
-fig_x = 5.5;     fig_y = 10; % [cm]
+fig_x = 11.5;     fig_y = 5; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
 
-fig = figure('Name','priorityAssignment');
+fig = figure('Name','improveFeasibility');
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
     'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
 
-t_fig = tiledlayout(3,1,'Padding','none','TileSpacing','compact');
-X_string = {'Both','Only feasi.','None'};
+t_fig = tiledlayout(1,4,'Padding','none','TileSpacing','compact');
+X_string = {'With','Without'};
 X_cat = categorical(X_string);
-X_cat = reordercats(X_cat,X_string);
 
 nexttile
-% average speed
-boxplot(vertcat(speed_average_s{:}),grp_speed,'Colors','k','OutlierSize',4,'Labels',X_string);
+% 1. max. number of vehicles
+b1 = bar(X_cat,nVeh_s(1:2));
 grid on
-free_flow_speed_i = free_flow_speed.free_flow_speed(free_flow_speed.sample_time==options.dt);
-y_line_FFS = yline(free_flow_speed_i,'--b','LineWidth',0.5);
-legend([y_line_FFS],{'Free flow speed'},'FontSize',5,'Location','southeast','Interpreter','latex')
+xtips1 = b1(1).XEndPoints;
+ytips1 = b1(1).YEndPoints;
+labels1 = string(b1(1).YData);
+text(xtips1,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
+ylim([0 38])
+xlabel({'(a). Max. allowed number of vehicles.'})
+ylabel('$n_{veh}^{max}$','Interpreter','latex')
 
-xlabel('(a). Average speed of each vehicle.')
+nexttile
+% 2. speed
+b2 = bar(X_cat,[speed_average_s(2:3),speed_sum_s(2:3)]);
+grid on
+xtips1 = b2(1).XEndPoints;
+ytips1 = b2(1).YEndPoints;
+labels1 = string(round(b2(1).YData,2));
+text(xtips1-0.03,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
+xtips2 = b2(2).XEndPoints;
+ytips2 = b2(2).YEndPoints;
+labels2 = string(round(b2(2).YData,2));
+text(xtips2,ytips2,labels2,'HorizontalAlignment','center','VerticalAlignment','bottom')
+xlabel('(b). Average speed and sum of speeds.')
 ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
+legend({'Average','Sum'},'Location','best')
+ylim([0 20])
 
 nexttile
-% computation time per step
-boxplot(vertcat(computation_time_s{:}),grp_computation_time,'Colors','k','OutlierSize',4,'Labels',X_string);
+% collision-free runtime (simulation ends at time step 11000. Totally 59
+% time steps involve fallbacks. Assume half of vehicles take fallback at
+% those time steps in average) 
+collision_free_runtime = [11000,154]*options.dt./60;
+fallback_rate_s = [59/11000*0.5,e_feasibility_sameNumVehs{end}.fallback_rate]*100;
+b3 = bar(X_cat,collision_free_runtime);
 grid on
-hold on
-y_line_dt = yline(options.dt,'b--','LineWidth',.5);
-ylim([0 0.21])
-xlabel('(b). Computation time per step.')
-ylabel('$t_c\:[s]$','Interpreter','latex')
-legend(y_line_dt,'Sample time','Location','southeast')
+xtips3 = b3(1).XEndPoints;
+ytips3 = b3(1).YEndPoints;
+labels3 = string(round(b3(1).YData,2));
+text(xtips3,ytips3,labels3,'HorizontalAlignment','center','VerticalAlignment','bottom')
+ylim([0 42])
+xlabel({'$n_{veh}$','(c). Maximum runtime.'},'Interpreter','latex')
+ylabel('$t_{max}\:[s]$','Interpreter','latex')
 
 nexttile
 % fallback rate
 plot(X_cat,fallback_rate_s,'-*k','LineWidth',0.5,'MarkerSize',4)
-grid on
-xlabel({'(c). Fallback rate.'},'Interpreter','latex')
-ylabel('$p_{FR}\:[\%]$','Interpreter','latex')
+ylabel('Fallback rate $[\%]$','Interpreter','latex')
+xlabel(t_fig,'Improvement of Feasibility','FontSize',9,'FontName','Times New Roman')
 
 % save fig
+file_name = 'improveFeasibility_sameNumVehs';
 e_feasibility_sameNumVehs{1}.save_fig(fig,file_name)
 
 

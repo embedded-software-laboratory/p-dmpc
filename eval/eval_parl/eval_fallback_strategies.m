@@ -13,13 +13,13 @@ options.scenario = 'Commonroad';
 options.trim_set = 9;
 options.Hp = 5;
 
-options.T_end = 99999;
+options.T_end = 300;
 options.dt = 0.2;
 options.max_num_CLs = 3;
 options.priority = 'right_of_way_priority';
 options.isPB = true;
 options.isParl = true;
-options.isAllowInheritROW = true;
+options.isAllowInheritROW = false;
 options.isSaveResult = true;
 options.isSaveResultReduced = false;
 options.visu = [false,false];

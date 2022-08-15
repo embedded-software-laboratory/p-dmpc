@@ -81,6 +81,8 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
     lanelet_crossing_areas = cell(nVeh,1);
     predicted_lanelet_boundary = iter.predicted_lanelet_boundary(:,3);
 
+    couplings_ignored = zeros(nVeh,nVeh);
+
     for i = 1:length([coupling_info.veh_with_ROW])
         % rear-end collision at the same lanelet or successive lanelets
         % cannot be avoid by this strategy
@@ -155,7 +157,6 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
                     % disp(['Swap right-of-way: vehicle ' num2str(veh_without_ROW) ' now has right-of-way over ' num2str(veh_with_ROW) '.'])
                     veh_forbid = veh_with_ROW;
                     veh_free = veh_without_ROW;
-                    [coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW] = swap(coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW);
                 end
             else
                 % forbid vehicle without the ROW to enter
@@ -188,9 +189,21 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
 %                 veh_free = veh_with_ROW;
 %             end
 
-            % ignore coupling 
+            % check if coupling could be ignored
+%             couplings_ignored(veh_free,veh_forbid) = 1;
+%             [is_valid,L] = kahn(couplings_ignored);
+%             if ~is_valid
+%                 % coupling cannot be ignored as it results in a cycle
+%                 couplings_ignored(veh_free,veh_forbid) = 0;
+%                 continue
+%             end
+
             % disp(['Ignore the coupling from vehicle ' num2str(veh_free) ' to ' num2str(veh_forbid) ' by forbidding the latter to enter the crossing area of their lanelets.'])
             coupling_info(i).is_ignored = true; % ignore coupling since no collision if possible anymore
+            % update
+            coupling_info(i).veh_with_ROW = veh_free;
+            coupling_info(i).veh_without_ROW = veh_forbid;
+
             coupling_weights_reduced(veh_with_ROW,veh_without_ROW) = 0;
             % store lanelet crossing area for later use
             for iRegion = 1:lanelet_crossing_area.NumRegions
