@@ -14,7 +14,7 @@ options.dt = 0.2;
 options.T_end = 20;
 options.isPB = true;
 options.isParl = true;
-options.isAllowInheritROW = true;
+options.isAllowInheritROW = false;
 options.max_num_CLs = 3;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '4';
@@ -192,7 +192,6 @@ grp_speed = cell2mat(arrayfun(@(i){i*ones(numel(speed_average_s{i}),1)},(1:numel
 
 computation_time_s = cellfun(@(c) c.runtime_total_per_step, e_sameNumVehs, 'UniformOutput', false);
 grp_computation_time = cell2mat(arrayfun(@(i){i*ones(numel(computation_time_s{i}),1)},(1:numel(computation_time_s))')); 
-
 
 fallback_rate_s = cellfun(@(c) c.fallback_rate, e_sameNumVehs);
 

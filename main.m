@@ -184,7 +184,7 @@ vehs_fallback_times = zeros(1,scenario.options.amount); % record the number of s
 info_old = []; % old information for fallback
 total_fallback_times = 0; % total times of fallbacks
 
-threshold_stop_steps = 30; % if a vehicle steps more than this number of time steps, a deadlock is considered to have occur
+threshold_stop_steps = 20; % if a vehicle steps more than this number of time steps, a deadlock is considered to have occur
 vehs_stop_time_steps = inf(options.amount,1); % record the number of time steps that vehicles continually stop
 is_deadlock = false;
 
@@ -334,7 +334,7 @@ while (~got_stop)
                 end
     
                 disp_tmp = sprintf('%d,',real_vehicles); disp_tmp(end) = [];
-                disp(['*** Vehicles ' disp_tmp ' take fallback.']) % use * to highlight this message
+                % disp(['*** Vehicles ' disp_tmp ' take fallback.']) % use * to highlight this message
                 info = pb_controller_fallback(info, info_old, scenario);
                 total_fallback_times = total_fallback_times + 1;
 

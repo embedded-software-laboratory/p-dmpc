@@ -92,8 +92,8 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             % consider coupled vehicles with lower priorities
             scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupled_vehs_with_LP);
 
-            if scenario.k >= 128
-                if vehicle_idx == 11 || vehicle_idx == 2|| vehicle_idx == 8
+            if scenario.k >= 80
+                if vehicle_idx == 12 || vehicle_idx == 23 || vehicle_idx == 20
                     disp('')
                 end
             end
@@ -106,7 +106,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback 
-                disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                % disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
 
                 switch scenario.options.fallback_type
                     case 'localFallback'

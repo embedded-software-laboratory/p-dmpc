@@ -26,7 +26,7 @@ classdef SimLab < InterfaceExperiment
 
             obj.visu.isShowVehID = true;                % is show vehicle IDs
             obj.visu.isShowPriority = false;            % is show priority colorbar
-            obj.visu.isShowCoupling = true;             % is show coupling edges
+            obj.visu.isShowCoupling = false;             % is show coupling edges
             obj.visu.isShowWeight = false;              % is show coupling weights
             obj.visu.isShowHotkeyDescription = false;   % is show description of hotkeys
 
