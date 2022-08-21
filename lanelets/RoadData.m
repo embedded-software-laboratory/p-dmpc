@@ -54,10 +54,13 @@ classdef RoadData
             [road_data.lanelet_relationships,road_data.adjacency_lanelets,road_data.semi_adjacency_lanelets] = road_data.get_lanelet_relationships();
         
             % get lanelet boundaries
-            road_data.lanelet_boundary = road_data.get_lanelet_boundary();
+            [road_data.lanelet_boundary,share_boundary_with] = road_data.get_lanelet_boundary();
         
             % get IDs of lanelets at the intersection
             road_data.intersection_lanelets = road_data.get_intersection_lanelets();
+
+            % update lanelet relationships
+            road_data = road_data.update_lanelet_relationships(share_boundary_with);
 
             % save all the road data
             save(road_data.road_full_path,'road_data','-mat')
@@ -85,7 +88,7 @@ classdef RoadData
         function [lanelet_relationships,adjacency_lenelets,semi_adjacency_lanelets] = get_lanelet_relationships(obj)
         % Determine the relationship between each lanelet-pair.
         % We classify five types of relationship.
-        % 1. successive 
+        % 1. crossing 
         % 2. adjacent left or right in the same direction
         % 3. merging 
         % 4. forking
@@ -108,37 +111,50 @@ classdef RoadData
                     predecessors_i, predecessors_adjacentLeft_i, predecessors_adjacentRight_i,...
                     successors_i, successors_adjacentLeft_i, successors_adjacentRight_i] = obj.get_all_adjacent_lanelets(i, road_lanelets);
         
-                for j=i+1:nLanelets % no reapted check        
+                for j=i+1:nLanelets % no reapted check
+                    if ~isempty(lanelet_relationships{i,j})
+                        continue
+                    end
                     % initialize variables for predecessors, successors, adjacent left and adjacent right lanelet of lanelet_j
                     [adjacentLeft_j, adjacentRight_j, predecessors_j, ~, ~,successors_j, ~, ~] = obj.get_all_adjacent_lanelets(j, road_lanelets);
                     
                     % check relationship 
-                    if sum(ismember(j,predecessors_i))>=1
+                    if any(ismember(j,predecessors_i))
                         % lanelet_j is the predecessor of lanelet_i -> logitudinal-adjacent lanelets 
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_1;
                         % store the endpoint of the front lanelet
                         lanelet_relationships{i,j}.point = [obj.lanelets{i}(end,LaneletInfo.cx),obj.lanelets{i}(end,LaneletInfo.cy)];
-                    elseif sum(ismember(i,predecessors_j))>=1
+                    elseif any(ismember(i,predecessors_j))
                         % lanelet_i is the predecessor of lanelet_j -> logitudinal-adjacent lanelets 
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_1;
                         % store the endpoint of the front lanelet
                         lanelet_relationships{i,j}.point = [obj.lanelets{j}(end,LaneletInfo.cx),obj.lanelets{j}(end,LaneletInfo.cy)];
-                    elseif sum(ismember(j,predecessors_adjacentLeft_i))>=1
+                    elseif any(ismember(adjacentLeft_i,predecessors_j)) || any(ismember(adjacentRight_i,predecessors_j))
+                        % lanelet_i's adjacent lanelet is the predecessor of lanelet_j -> logitudinal-adjacent lanelets 
+                        lanelet_relationships{i,j}.type = LaneletRelationshipType.type_1;
+                        % store the endpoint of the front lanelet
+                        lanelet_relationships{i,j}.point = [obj.lanelets{j}(end,LaneletInfo.cx),obj.lanelets{j}(end,LaneletInfo.cy)];
+                    elseif any(ismember(adjacentLeft_i,successors_j)) || any(ismember(adjacentRight_i,successors_j))
+                        % lanelet_i's adjacent lanelet is the successor of lanelet_j -> logitudinal-adjacent lanelets 
+                        lanelet_relationships{i,j}.type = LaneletRelationshipType.type_1;
+                        % store the endpoint of the front lanelet
+                        lanelet_relationships{i,j}.point = [obj.lanelets{i}(end,LaneletInfo.cx),obj.lanelets{i}(end,LaneletInfo.cy)];
+                    elseif any(ismember(j,predecessors_adjacentLeft_i))
                         % lanelet_j is the adjacent left lanelet of lanelet_i's predecessor -> logitudinal-adjacent lanelets
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_1;
                         % store the endpoint of the front lanelet
                         lanelet_relationships{i,j}.point = [obj.lanelets{i}(end,LaneletInfo.lx),obj.lanelets{i}(end,LaneletInfo.ly)];
-                    elseif sum(ismember(j,successors_adjacentLeft_i))>=1
+                    elseif any(ismember(j,successors_adjacentLeft_i))
                         % lanelet_j is the adjacent left lanelet of lanelet_i's successor -> logitudinal-adjacent lanelets
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_1;
                         % store the endpoint of the front lanelet
                         lanelet_relationships{i,j}.point = [obj.lanelets{j}(end,LaneletInfo.rx),obj.lanelets{j}(end,LaneletInfo.ry)];
-                    elseif sum(ismember(j,predecessors_adjacentRight_i))>=1
+                    elseif any(ismember(j,predecessors_adjacentRight_i))
                         % lanelet_j is the adjacent right lanelet of lanelet_i's predecessor -> logitudinal-adjacent lanelets
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_1;
                         % store the endpoint of the front lanelet
                         lanelet_relationships{i,j}.point = [obj.lanelets{i}(end,LaneletInfo.rx),obj.lanelets{i}(end,LaneletInfo.ry)];
-                    elseif sum(ismember(j,successors_adjacentRight_i))>=1
+                    elseif any(ismember(j,successors_adjacentRight_i))
                         % lanelet_j is the adjacent right lanelet of lanelet_i's successor -> logitudinal-adjacent lanelets
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_1;
                         % store the endpoint of the front lanelet
@@ -163,32 +179,48 @@ classdef RoadData
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_2;
                         % which point to store is not interesting for lanelets with this kind of relationship
                         lanelet_relationships{i,j}.point = [obj.lanelets{i}(end,LaneletInfo.lx),obj.lanelets{i}(end,LaneletInfo.ly)];
-                    elseif sum(ismember(successors_i,successors_j))>=1
+                    elseif any(ismember(successors_i,successors_j))
                         % two lanelets have the same successor -> merging lanelets 
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_3;
                         % store the merging point (endpoint of one lanelet's center line) 
                         lanelet_relationships{i,j}.point = [obj.lanelets{i}(end,LaneletInfo.cx),obj.lanelets{i}(end,LaneletInfo.cy)];
-                    elseif sum(ismember(successors_j,successors_adjacentLeft_i))>=1 && sum(ismember(predecessors_i,predecessors_j))==0
+                        % Their adjacent left/right lanelets are also merging lanelets if exist
+                        if ~isempty(adjacentLeft_i) && ~isempty(adjacentRight_j)
+                            L_R = [adjacentLeft_i,adjacentRight_j];
+                            lanelet_relationships(min(L_R),max(L_R)) = lanelet_relationships(i,j);
+                        elseif ~isempty(adjacentRight_i) && ~isempty(adjacentLeft_j)
+                            R_L = [adjacentRight_i,adjacentLeft_j];
+                            lanelet_relationships(min(R_L),max(R_L)) = lanelet_relationships(i,j);
+                        end
+                    elseif any(ismember(successors_j,successors_adjacentLeft_i)) && all(~ismember(predecessors_i,predecessors_j))
                         % the successor of lanelet_j is the adjacent left lanelet of lanelet_i's successor && they do not have the same predecessor -> merging lanelets
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_3;
                         % store the merging point (endpoint of lenelet_j's right boundary) 
                         lanelet_relationships{i,j}.point = [obj.lanelets{j}(end,LaneletInfo.rx),obj.lanelets{j}(end,LaneletInfo.ry)];
-                    elseif sum(ismember(successors_j,successors_adjacentRight_i))>=1 && sum(ismember(predecessors_i,predecessors_j))==0
+                    elseif any(ismember(successors_j,successors_adjacentRight_i)) && all(~ismember(predecessors_i,predecessors_j))
                         % the successor of lanelet_j is the adjacent right lanelet of lanelet_i's successor && they do not have the same predecessor -> merging lanelets
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_3;
                         % store the merging point (endpoint of lenelet_j's left boundary)
                         lanelet_relationships{i,j}.point = [obj.lanelets{j}(end,LaneletInfo.lx),obj.lanelets{j}(end,LaneletInfo.ly)];
-                    elseif sum(ismember(predecessors_i,predecessors_j))>=1
+                    elseif any(ismember(predecessors_i,predecessors_j))
                         % two lanelets have the same predecessor -> forking lanelets
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_4;
                         % store the forking point (starting point of one lanelet's center line) 
                         lanelet_relationships{i,j}.point = [obj.lanelets{i}(1,LaneletInfo.cx),obj.lanelets{i}(1,LaneletInfo.cy)];
-                    elseif sum(ismember(predecessors_j,predecessors_adjacentLeft_i))>=1 && sum(ismember(successors_i,successors_j))==0
+                        % Their adjacent left/right lanelets are also forking lanelets if exist
+                        if ~isempty(adjacentLeft_i) && ~isempty(adjacentRight_j)
+                            L_R = [adjacentLeft_i,adjacentRight_j];
+                            lanelet_relationships(min(L_R),max(L_R)) = lanelet_relationships(i,j);
+                        elseif ~isempty(adjacentRight_i) && ~isempty(adjacentLeft_j)
+                            R_L = [adjacentRight_i,adjacentLeft_j];
+                            lanelet_relationships(min(R_L),max(R_L)) = lanelet_relationships(i,j);
+                        end
+                    elseif any(ismember(predecessors_j,predecessors_adjacentLeft_i)) && all(~ismember(successors_i,successors_j))
                         % the predecessor of lanelet_j is the adjacent left lanelet of lanelet_i's predecessor && they do not have the same successor -> forking lanelets
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_4;
                         % store the forking point (starting point of lenelet_j's right boundary) 
                         lanelet_relationships{i,j}.point = [obj.lanelets{j}(1,LaneletInfo.rx),obj.lanelets{j}(1,LaneletInfo.ry)];
-                    elseif sum(ismember(predecessors_j,predecessors_adjacentRight_i))>=1 && sum(ismember(successors_i,successors_j))==0
+                    elseif any(ismember(predecessors_j,predecessors_adjacentRight_i)) && all(~ismember(successors_i,successors_j))
                         % the predecessor of lanelet_j is the adjacent left lanelet of lanelet_i's predecessor && they do not have the same successor -> forking lanelets
                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_4;
                         % store the forking point (starting point of lenelet_j's left boundary)
@@ -216,14 +248,14 @@ classdef RoadData
                             semi_adjacency_lanelets(i,j) = 0;
                         end
                     end     
-                end
+                end                    
             end
             % extract only the elements above the main diagonal, make the matrix symmetrical and add self as adjacency 
             adjacency_lenelets = triu(adjacency_lenelets,1) + triu(adjacency_lenelets,1)' + eye(nLanelets);
             semi_adjacency_lanelets = triu(semi_adjacency_lanelets,1) + triu(semi_adjacency_lanelets,1)' + eye(nLanelets);
         end
 
-        function lanelet_boundary_extended = get_lanelet_boundary(obj)
+        function [lanelet_boundary_extended, share_boundary_with] = get_lanelet_boundary(obj)
         % returns lanelet boundaries
             nLanelets = length(obj.lanelets);
             road_lanelets = obj.road_raw_data.lanelet;
@@ -261,7 +293,7 @@ classdef RoadData
                 % merging lanelets can be considered as adjacent lanelet when their predecessors are adjacent
                 for i_merging = merging_lanelets 
                     [adjacentLeft_merging, adjacentRight_merging, predecessors_i_merging, ~, ~, ~, ~, ~] = obj.get_all_adjacent_lanelets(i_merging, road_lanelets);
-                    if sum(ismember(predecessors_i_merging,predecessors_adjacentLeft_i))>=1
+                    if any(ismember(predecessors_i_merging,predecessors_adjacentLeft_i))
                         % the adjacent left lanelet of the current lanelet's predecessor is the merging lanelet's predecessor -> extend left boundary 
                         if ~isempty(adjacentLeft_merging) && strcmp(road_lanelets(i_merging).adjacentLeft.drivingDirAttribute,'same')
                             % if the merging lenelet has adjacent left lanelet ->
@@ -277,7 +309,7 @@ classdef RoadData
                         end                
                     end
         
-                    if sum(ismember(predecessors_i_merging,predecessors_adjacentRight_i))>=1
+                    if any(ismember(predecessors_i_merging,predecessors_adjacentRight_i))
                         % the adjacent right lanelet of the current lanelet's predecessor is the merging lanelet's predecessor -> extend right boundary 
                         if ~isempty(adjacentRight_merging) && strcmp(road_lanelets(i_merging).adjacentRight.drivingDirAttribute,'same')
                             % if the merging lenelet has adjacent right lanelet ->
@@ -300,7 +332,7 @@ classdef RoadData
                 % forking lanelets can be considered as adjacent lanelet when their successors are adjacent 
                 for i_forking = forking_lanelets 
                     [adjacentLeft_forking, adjacentRight_forking, ~, ~, ~, successors_i_forking, ~, ~] = obj.get_all_adjacent_lanelets(i_forking, road_lanelets);
-                    if sum(ismember(successors_i_forking,successors_adjacentLeft_i))>=1
+                    if any(ismember(successors_i_forking,successors_adjacentLeft_i))
                         % the adjacent left lanelet of the current lanelet's successor is the forking lanelet's successor -> extend left boundary 
                         if ~isempty(adjacentLeft_forking) && strcmp(road_lanelets(i_forking).adjacentLeft.drivingDirAttribute,'same')
                             % if the forking lenelet has adjacent left lanelet ->
@@ -316,7 +348,7 @@ classdef RoadData
                         end                
                     end
         
-                    if sum(ismember(successors_i_forking,successors_adjacentRight_i))>=1
+                    if any(ismember(successors_i_forking,successors_adjacentRight_i))
                         % the adjacent right lanelet of the current lanelet's successor is the forking lanelet's successor -> extend right boundary 
                         if ~isempty(adjacentRight_forking) && strcmp(road_lanelets(i_forking).adjacentRight.drivingDirAttribute,'same')
                             % if the forking lenelet has adjacent right lanelet ->
@@ -627,9 +659,29 @@ classdef RoadData
                 end
             end
         end
-
-
-
+        
+        function obj = update_lanelet_relationships(obj,share_boundary_with)
+            % Add more lanelets that have relationship with others
+            % Lanelets that share the same lanelet boundary should have the
+            % same relationship
+            nLanelets = length(obj.lanelets);
+            for iLan = 1:nLanelets-1
+                for jLan = iLan+1:nLanelets
+                    if ~isempty(obj.lanelet_relationships{iLan,jLan})
+                        share_boundary_with_i = setdiff(share_boundary_with{iLan},iLan); % exclude self
+                        share_boundary_with_j = setdiff(share_boundary_with{jLan},jLan); % exclude self
+                        for iShare = share_boundary_with_i
+                            for jShare = share_boundary_with_j
+                                ijShare = [iShare,jShare];
+                                if isempty(obj.lanelet_relationships{min(ijShare),max(ijShare)}) && iShare~=jShare && ~all(ismember(ijShare,obj.intersection_lanelets))
+                                    obj.lanelet_relationships{min(ijShare),max(ijShare)} = obj.lanelet_relationships{iLan,jLan};
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
     end
 
 
