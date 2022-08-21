@@ -39,7 +39,7 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
         veh.trim_config = 1;
 
         if is_sim_lab || ~scenario.options.is_mixed_traffic
-            ref_path = generate_ref_path(vehicle_ids(iveh), scenario.lanelets);% function to generate refpath based on CPM Lab road geometry
+            ref_path = generate_ref_path_loop(vehicle_ids(iveh), scenario.lanelets);% function to generate refpath based on CPM Lab road geometry
             %[ref_path, scenario] = generate_random_path(scenario, vehicle_ids(iveh), 20, (vehicle_ids(iveh)+31));
         else
             if (mVehid == vehicle_ids(iveh) || m2Vehid == vehicle_ids(iveh))
