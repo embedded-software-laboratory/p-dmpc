@@ -5,7 +5,10 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 % distributed controllers in a for-loop. 
 
     runtime_others_tic = tic;
+    
+    assign_priority_timer = tic;
     [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(scenario, iter);
+    scenario.timer.assign_priority = toc(assign_priority_timer);
 
     nVeh = scenario.nVeh;
     Hp = scenario.Hp;
@@ -23,9 +26,22 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 
     directed_graph = digraph(scenario.directed_coupling);
     [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
+    
+    scenario.num_couplings_between_grps = 0; % number of couplings between groups
+    scenario.num_couplings_between_grps_ignored = 0; % ignored number of couplings between groups by using lanelet crossing lanelets
+    for iCoupling = 1:length([scenario.coupling_info.veh_with_ROW])
+        veh_ij = [scenario.coupling_info(iCoupling).veh_with_ROW,scenario.coupling_info(iCoupling).veh_without_ROW];
+        is_same_grp = any(cellfun(@(c) all(ismember(veh_ij,c)),{scenario.parl_groups_info.vertices}));
+        if ~is_same_grp
+            scenario.num_couplings_between_grps = scenario.num_couplings_between_grps + 1;
+            if scenario.coupling_info(iCoupling).is_ignored
+                scenario.num_couplings_between_grps_ignored = scenario.num_couplings_between_grps_ignored + 1;
+            end
+        end
+    end
 
     runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
-    msg_send_time = zeros(nVeh,1);
+    msg_send_time = zeros(1,nVeh);
 
     for level_j = 1:length(CL_based_hierarchy)
         vehs_level_i = CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
@@ -33,7 +49,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
         for vehicle_idx = vehs_level_i
             if ismember(vehicle_idx, info.vehs_fallback)
                 % jump to next vehicle if the selected vehicle should take fallback
-                info.subcontroller_runtime(vehicle_idx) = 0;
+                info.runtime_graph_search_each_veh(vehicle_idx) = 0;
                 continue
             end
             subcontroller_timer = tic;
@@ -92,8 +108,8 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             % consider coupled vehicles with lower priorities
             scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupled_vehs_with_LP);
 
-            if scenario.k >= 80
-                if vehicle_idx == 12 || vehicle_idx == 23 || vehicle_idx == 20
+            if scenario.k >= 1
+                if vehicle_idx == 21 || vehicle_idx == 11
                     disp('')
                 end
             end
@@ -106,7 +122,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback 
-                % disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
 
                 switch scenario.options.fallback_type
                     case 'localFallback'
@@ -126,7 +142,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             else
                 info = store_control_info(info, info_v, scenario);
             end
-            info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
+            info.runtime_graph_search_each_veh(vehicle_idx) = toc(subcontroller_timer);
             n_expended(vehicle_idx) = info_v.tree.size();
 
             if scenario.k==inf
@@ -164,12 +180,10 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 
     end
 
-    % total runtime of subcontroller
-    info.subcontroller_runtime = info.subcontroller_runtime + msg_send_time + runtime_others;
+    
+    info.runtime_graph_search_each_veh = info.runtime_graph_search_each_veh + msg_send_time;
     % Calculate the total runtime of each group
-    info = get_run_time_total_all_grps(info, scenario.parl_groups_info, CL_based_hierarchy);
-%     disp(n_expended)
-%     disp(info.subcontroller_runtime')
+    info = get_run_time_total_all_grps(info, scenario.parl_groups_info, CL_based_hierarchy, runtime_others);
 end
 
 

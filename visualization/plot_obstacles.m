@@ -1,4 +1,4 @@
-function plot_obstacles(data)
+function plot_obstacles(data,plot_options)
     % PLOT_OBSTACLES Plot obstacles.
     % 
     % INPUT:
@@ -11,18 +11,30 @@ function plot_obstacles(data)
     %       array.
     % 
     
+        if nargin == 1
+            plot_options = [];
+        end
+        if isempty(data)
+            disp('Empty data!')
+            return
+        end
+
         if ismatrix(data) && isnumeric(data)
-            plot_shape(data)
+            plot_shape(data,plot_options)
         elseif strcmp(class(data),'polyshape')
             plot(data,'LineWidth',1.0)
         elseif iscell(data)
-            plot_cell_array_of_shapes(data)
+            if isempty(data{1})
+                disp('Empty data!')
+                return
+            end
+            plot_cell_array_of_shapes(data,plot_options)
         elseif strcmp(class(data), 'Scenario')
             % if input is an instance of the class "Scenario"
-            plot_cell_array_of_shapes(data.obstacles)
-            plot_cell_array_of_shapes(data.dynamic_obstacle_area)
-            plot_cell_array_of_shapes(data.dynamic_obstacle_reachableSets)
-            plot_cell_array_of_shapes(data.lanelet_crossing_areas)
+            plot_cell_array_of_shapes(data.obstacles,plot_options)
+            plot_cell_array_of_shapes(data.dynamic_obstacle_area,plot_options)
+            plot_cell_array_of_shapes(data.dynamic_obstacle_reachableSets,plot_options)
+            plot_cell_array_of_shapes(data.lanelet_crossing_areas,plot_options)
         else
             warning('Not supported data type.')
         end
@@ -31,7 +43,7 @@ function plot_obstacles(data)
     
     
     %% local function
-    function plot_cell_array_of_shapes(shapes)
+    function plot_cell_array_of_shapes(shapes,plot_options)
     % Plot shapes contained in a cell array
     %     CM = jet(Hp); % colormap
         hold on
@@ -41,7 +53,7 @@ function plot_obstacles(data)
                 if strcmp(class(shape),'polyshape')
                     plot(shape)
                 else
-                    plot_shape(shape)
+                    plot_shape(shape,plot_options)
                 end
             end
         end
@@ -49,8 +61,12 @@ function plot_obstacles(data)
     
     
     %% local function
-    function plot_shape(shape)
-        plot(shape(1,:),shape(2,:),'LineWidth',1.0);
+    function plot_shape(shape,plot_options)
+        if ~isempty(plot_options)
+            plot(shape(1,:),shape(2,:),plot_options);
+        else
+            plot(shape(1,:),shape(2,:),'LineWidth',1.0);
+        end
     end
     
     

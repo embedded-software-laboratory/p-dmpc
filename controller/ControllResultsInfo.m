@@ -5,13 +5,18 @@ classdef ControllResultsInfo
     properties
         tree                            % object of the class `Tree`
         tree_path                       % tree path
-        subcontroller_runtime           % sub-controller running time of each vehicle
-        subcontroller_runtime_all_grps  % sub-controller running time of all vehicle groups
+        runtime_subcontroller_max       % subcontroller runtime, equals to the maximum one among all groups
+        runtime_subcontroller_each_veh  % subcontroller runtime of each vehicle
+        runtime_subcontroller_each_grp  % subcontroller runtime of each group
+        runtime_graph_search_each_veh   % graph search time of each vehicle
+        runtime_graph_search_each_grp   % graph search time of each group
+        runtime_graph_search_max        % graph search time, equals to the maximum one among all groups
         n_expanded                      % sum of number of times that nodes are expended during graph searching of all vehicles
         next_node                       % next node information
         shapes                          % predicted occupied areas of all prediction horizons
         vehicle_fullres_path            % predicted trajectory of the next time step
         predicted_trims                 % predicted trims of all prediction horizon (including the current trim)
+        trim_indices                    % predicted trim of the next time step
         y_predicted                     % predicted trajectory
         computation_levels              % actual number of computation levels of the whole system
         vehs_fallback                   % vehicles that need to take fallback
@@ -20,8 +25,7 @@ classdef ControllResultsInfo
     end
 
     properties (Dependent)
-        trim_indices                    % predicted trim of the next time step
-        subcontroller_run_time_total    % sub-controller running time of the whole system
+        
     end
 
     properties (SetAccess=private)
@@ -43,7 +47,7 @@ classdef ControllResultsInfo
 
             obj.tree = cell(nVeh,1);
             obj.tree_path = zeros(nVeh,Hp+1);
-            obj.subcontroller_runtime = zeros(nVeh,1); 
+            obj.runtime_subcontroller_max = zeros(nVeh,1); 
             obj.n_expanded = 0;
             obj.next_node = node(-1, zeros(nVeh,1), zeros(nVeh,1), zeros(nVeh,1), zeros(nVeh,1), -1, -1);
             obj.shapes = cell(nVeh,Hp);                   
@@ -54,18 +58,6 @@ classdef ControllResultsInfo
             obj.vehs_fallback = [];
             obj.is_exhausted = false(nVeh,1);
             obj.u = zeros(nVeh,1); 
-        end
-
-        function trim_indices = get.trim_indices(obj)
-            % Predicted trim of the next time step
-            trim_indices = obj.predicted_trims(:,2);
-        end
-
-        function subcontroller_run_time_total = get.subcontroller_run_time_total(obj)
-            % the subcontroller time of the whole system in each time step
-            % depends on the maximum subcontroller time used by each
-            % parallel group  
-            subcontroller_run_time_total = max(obj.subcontroller_runtime_all_grps);
         end
 
         function obj = store_control_info(obj, info_v, scenario)
@@ -93,15 +85,18 @@ classdef ControllResultsInfo
 %                 obj.trim_indices = info_v.trim_indices; % dependent variable
                 obj.y_predicted = info_v.y_predicted(:); % store the information of the predicted output
             end
+
+            % Predicted trim of the next time step
+            obj.trim_indices = obj.predicted_trims(:,2);
         end
 
-        function obj = get_run_time_total_all_grps(obj, parl_groups_info, CL_based_hierarchy)
+        function obj = get_run_time_total_all_grps(obj, parl_groups_info, CL_based_hierarchy, runtime_others)
         % Calculate the total runtime: in each parallel group, only one vehicle in each computation
         % level will be counted, this is the one with the maximum runtime 
         
             n_grps = length(parl_groups_info); % number of parallel groups
         
-            run_time_total_all_grps = zeros(1,n_grps); % subcontroller time of each group
+            obj.runtime_graph_search_each_grp = zeros(1,n_grps); % subcontroller time of each group
         
             for grp_i = 1:n_grps
                 vehs_in_grp_i = parl_groups_info(grp_i).vertices;
@@ -112,12 +107,19 @@ classdef ControllResultsInfo
         
                     % take the maximum runtime among vehicles in the same group and in the same computation level
                     if ~isempty(vehs_in_same_level)
-                        run_time_total_all_grps(grp_i) = run_time_total_all_grps(grp_i) + max(obj.subcontroller_runtime(vehs_in_same_level));
+%                         run_time_total_all_grps(grp_i) = run_time_total_all_grps(grp_i) + max(obj.subcontroller_runtime(vehs_in_same_level));
+                        obj.runtime_graph_search_each_grp(grp_i) = obj.runtime_graph_search_each_grp(grp_i) + max(obj.runtime_graph_search_each_veh(vehs_in_same_level));
                     end
                 end
             end
+
+            % graph search time depends on the maximum graph search time of all groups 
+            obj.runtime_graph_search_max = max(obj.runtime_graph_search_each_grp);
     
-            obj.subcontroller_runtime_all_grps = run_time_total_all_grps;
+            obj.runtime_subcontroller_each_veh = obj.runtime_graph_search_each_veh + runtime_others;
+            obj.runtime_subcontroller_each_grp = obj.runtime_graph_search_each_grp + runtime_others;
+            obj.runtime_subcontroller_max = obj.runtime_graph_search_max + runtime_others;
+
             obj.computation_levels = length(CL_based_hierarchy);
         
         end

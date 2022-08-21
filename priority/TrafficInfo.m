@@ -206,7 +206,7 @@ classdef TrafficInfo
                         time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_j.trim,distance_to_collision_j,scenario.dt);
                         % determine which vehicle has the ROW 
                         % trick: a shorter time to collision point corresponds to a shorter distance to collision point, thus no code adaption is need
-                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, time_to_collision_point_i, time_to_collision_point_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking);
+                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, time_to_collision_point_i, time_to_collision_point_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario.random_seed);
                         
                         % Calculate the shortest time to achieve a collision and the waiting time.
                         % The first arrived vehicle will wait for the second arrived vehicle to "achieve" a collision.
@@ -220,7 +220,7 @@ classdef TrafficInfo
                         % the collision point in a shorter time has also a shorter distance to the collision point (the vehicle behind should catch the vehicle in front) 
                         distance_to_collision_i = norm(veh_info_i.position-collision_point);
                         distance_to_collision_j = norm(veh_info_j.position-collision_point);
-                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking);
+                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario.random_seed);
                         
                         % Calculate the shortest time to achieve a collision and the waiting time
                         if has_ROW               
@@ -252,17 +252,26 @@ classdef TrafficInfo
                     obj.coupling_info(count).lanelet_relationship = lanelet_relationship.type;
                     obj.coupling_info(count).is_ignored = false; % whether the coupling is ignored  
                     if has_ROW
+%                         if scenario.k>=3
+%                             % Calculate the "optimal" coupling weight
+%                             obj.coupling_weights(veh_i,veh_j) = get_optimal_coupling_weight(scenario,iter,veh_i,veh_j);
+%                         end
                         % vehicle_i has the right-of-way
                         obj.coupling_weights(veh_i,veh_j) = obj.weighting_function(STAC_adapted, obj.sensitive_factor); 
                         obj.coupling_info(count).veh_with_ROW = veh_i;  
                         obj.coupling_info(count).veh_without_ROW = veh_j; 
 %                         disp(['Vehicle ' num2str(veh_i) ' now has the ROW over vehicle ' num2str(veh_j) '.'])
                     else
+%                         if scenario.k>=3
+%                             % Calculate the "optimal" coupling weight
+%                             obj.coupling_weights(veh_j,veh_i) = get_optimal_coupling_weight(scenario,iter,veh_j,veh_i);
+%                         end
                         % vehicle_j has the right-of-way
                         obj.coupling_weights(veh_j,veh_i) = obj.weighting_function(STAC_adapted, obj.sensitive_factor); 
                         obj.coupling_info(count).veh_with_ROW = veh_j;
                         obj.coupling_info(count).veh_without_ROW = veh_i;
 %                         disp(['Vehicle ' num2str(veh_j) ' now has the ROW over vehicle ' num2str(veh_i) '.'])
+                        
                     end
                     stop_flag = true;
                     break
@@ -371,7 +380,7 @@ classdef TrafficInfo
         end
 
 
-        function has_ROW = determine_who_has_ROW(obj, veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_at_intersection, is_forking_lanelets)
+        function has_ROW = determine_who_has_ROW(obj, veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_at_intersection, is_forking_lanelets, random_seed)
         % Determine whos has the right-of-way. 
         % Vehicle enters the intersection earlier has the right-of-way. If both
         % vheicle enter the intersection at the same time, right-of-way is given to
@@ -417,7 +426,7 @@ classdef TrafficInfo
                 case 'random_priority'
                     % generate randomly a zero or one, where one for has
                     % the right-of-way
-                    has_ROW = randi([0,1])==1;
+                    has_ROW = randi(random_seed,[0,1])==1;
                 case 'constant_priority'
                     % vheicle with lower ID has the right-of-way
                     has_ROW = (veh_i < veh_j);

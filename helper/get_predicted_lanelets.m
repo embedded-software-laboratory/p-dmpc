@@ -84,4 +84,8 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
     else
         predicted_lanelets = [];
     end
+
+%     if iVeh==3 && all(ismember(predicted_lanelets,[86,34]))
+%         disp('') % debug
+%     end
 end

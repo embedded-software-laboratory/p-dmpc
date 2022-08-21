@@ -31,6 +31,7 @@ function info = graph_search(scenario, iter)
         method = 'InterX';
         % if 'InterX' is used, all obstacles can be vectorized to speed up the collision checking 
         [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(scenario);
+%         lanelet_boundary = {};
     else
         method = 'sat';
         % vectorization is currently not supported for 'sat'
@@ -56,12 +57,17 @@ function info = graph_search(scenario, iter)
             break
         end
 
-        % Eval edge        
+        % Eval edge
         [is_valid, shapes] = eval_edge_exact(scenario, info.tree, cur_node_id, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
         
         if ~is_valid
             % could remove node from tree here
+%             plot_options = struct('Color',[0.4940 0.1840 0.5560],'LineWidth',0.30);
+%             plot_obstacles(shapes,plot_options) % visualize the invalid shape
             continue
+%         else
+%             plot_options = struct('Color','r','LineWidth',0.75);
+%             plot_obstacles(shapes,plot_options) % visualize the valid shape
         end
         
         shapes_tmp(:,cur_node_id) = shapes;

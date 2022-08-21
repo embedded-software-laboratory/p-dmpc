@@ -29,6 +29,7 @@ classdef Vehicle
         paddle_counter      = 2;    % initial speed profile
         vehicle_mpa;                % instance of the class `MotionPrimitiveAutomaton`
         last_trajectory_index = 10; % initial trajectory index
+        ref_path_loop_idx           % totally 7 loops of paths are designed
     end
     
     methods

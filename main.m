@@ -5,6 +5,8 @@ if verLessThan('matlab','9.10')
     warning("Code is developed in MATLAB 2021a, prepare for backward incompatibilities.")
 end
 
+random_seed = RandStream('mt19937ar'); % for reproducibility
+
 % check if options are given as input
 find_options = cellfun(@(c) isa(c,'OptionsMain'), varargin);
     
@@ -46,14 +48,22 @@ if is_sim_lab
         end
     end
 
-    switch options.amount
-        % specify vehicles IDs
-        case 4
-            vehicle_ids = [14,16,18,20];
-%         case 6
-%             vehicle_ids = [10,14,16,17,18,20]; 
-        otherwise
-            vehicle_ids = 1:options.amount; % default IDs
+    if isempty(options.veh_ids)
+        switch options.amount
+            % specify vehicles IDs
+            case 2
+                vehicle_ids = [16,18];
+            case 4
+                vehicle_ids = [14,16,18,20];
+    %         case 6
+    %             vehicle_ids = [10,14,16,17,18,20]; 
+            otherwise
+%                 vehicle_ids = 1:options.amount; % default IDs
+                vehicle_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+                options.veh_ids = vehicle_ids;
+        end
+    else
+        vehicle_ids = options.veh_ids;
     end
 
     manualVehicle_id = 0;
@@ -110,7 +120,7 @@ else
         options.collisionAvoidanceMode = 0;
     end
 end
-    
+
 % scenario = circle_scenario(options.amount,options.isPB);
 % scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
  
@@ -120,7 +130,7 @@ switch options.scenario
     case 'Commonroad'
         scenario = commonroad(options, vehicle_ids, manualVehicle_id, manualVehicle_id2, is_sim_lab);  
 end
-
+scenario.random_seed = random_seed;
 scenario.name = options.scenario;
 scenario.priority_option = options.priority;
 scenario.manual_vehicle_id = manualVehicle_id;
@@ -317,6 +327,8 @@ while (~got_stop)
         % disable fallback
         if any(info.is_exhausted)
             disp('Fallback is disabled. Simulation ends.')
+            result.distance(:,:,k) = [];
+            result.iter_runtime(k) = [];
             break
         end
     else
@@ -337,20 +349,12 @@ while (~got_stop)
                 % disp(['*** Vehicles ' disp_tmp ' take fallback.']) % use * to highlight this message
                 info = pb_controller_fallback(info, info_old, scenario);
                 total_fallback_times = total_fallback_times + 1;
-
             end
         else
             disp('Already fall back successively Hp times, terminate the simulation')
             break % break the while loop
         end
     end
-
-%     if scenario.k==289 ...
-% %             || max(vehs_fallback_times)>=2
-%         % enable online plotting if two or more successive fallbacks occur
-%         exp.doOnlinePlot = true;
-%         exp.paused = true;
-%     end
 
     info_old = info; % save variable in case of fallback
     %% save result
@@ -361,15 +365,23 @@ while (~got_stop)
     result.iteration_structs{k} = iter;
     result.trajectory_predictions(:,k) = info.y_predicted;
     result.controller_outputs{k} = info.u;
-    result.subcontroller_runtime(:,k) = info.subcontroller_runtime;
+    result.subcontroller_runtime_each_veh(:,k) = info.runtime_subcontroller_each_veh;
     result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
     result.n_expanded(k) = info.n_expanded;
     result.priority(:,k) = scenario.priority_list;
     result.computation_levels(k) = info.computation_levels;
     result.step_time(k) = toc(result.step_timer);
-    result.subcontroller_run_time_total(k) = info.subcontroller_run_time_total;
+
+    result.runtime_subcontroller_max(k) = info.runtime_subcontroller_max;
+    result.runtime_graph_search_max(k) = info.runtime_graph_search_max;
     if options.isParl
-        result.subcontroller_runtime_all_grps{k} = info.subcontroller_runtime_all_grps; % subcontroller runtime of each parallel group 
+        result.determine_couplings_time(k) = scenario.timer.determine_couplings;
+        result.group_vehs_time(k) = scenario.timer.group_vehs;
+        result.assign_priority_time(k) = scenario.timer.assign_priority;
+        result.num_couplings(k) = nnz(scenario.directed_coupling);
+        result.num_couplings_ignored(k) = nnz(scenario.directed_coupling) - nnz(scenario.directed_coupling_reduced);
+        result.num_couplings_between_grps(k) = scenario.num_couplings_between_grps;
+        result.num_couplings_between_grps_ignored(k) = scenario.num_couplings_between_grps_ignored;
     end
     result.vehs_fallback{k} = info.vehs_fallback;
 
@@ -436,6 +448,18 @@ if options.isSaveResult
     % end
     
     result.mpa = scenario.mpa;
+
+    % Delete unimportant data
+    for iIter = 1:length(result.iteration_structs)
+        result.iteration_structs{iIter}.predicted_lanelet_boundary = [];
+        result.iteration_structs{iIter}.predicted_lanelets = [];
+        result.iteration_structs{iIter}.reachable_sets = [];
+        result.iteration_structs{iIter}.occupied_areas = [];
+        result.iteration_structs{iIter}.emergency_maneuvers = [];
+    end
+    result.scenario.mpa = [];
+    result.scenario.speed_profile_mpas = [];
+
     % check if file with the same name exists
     % while isfile(result.output_path)
     %     warning('File with the same name exists, timestamp will be added to the file name.')

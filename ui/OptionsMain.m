@@ -36,6 +36,8 @@ classdef OptionsMain
                                     % 'no' for disable fallback; 
                                     % 'global' means once a vehicle triggers fallback, all other vehicles must also take fallback.
                                     % 'local' means once a vehicle triggers fallback, only vehicles that have direct or undirected couplings with it will take fallabck. 
+        veh_ids = [];               % vehicle IDs
+        random_idx = [];            % integer, random choose different vehicles
     end
 
     methods

@@ -227,6 +227,12 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
             trim_adjacency = blkdiag(trim_adjacency,1);
             trim_adjacency(end,:) = 1;
             trim_adjacency(:,end) = 1;
+        case 13
+            %% 3 trims (test)
+            trim_inputs = [0,0;
+                           pi/4,0.8;
+                           -pi/4,0.8];
+            trim_adjacency = ones(3);
     end
 %     visualize_trims(trim_inputs,trim_adjacency)
 end
@@ -246,9 +252,9 @@ function visualize_trims(trim_inputs,trim_adjacency)
         text(p.XData(i)+0.8, p.YData(i), num2str(node_names(i)), 'FontSize', 20);
     end
 % 
-%     xlim([-45,45])
-%     ylim([-0.1,1.0])
-    xlabel('\fontsize{14}Steering Angle \delta [\circ]','Interpreter','tex');
-    ylabel('\fontsize{14}Speed \nu [m/s]','Interpreter','tex');
+    xlim([-40,40])
+    ylim([-0.1,1.0])
+    xlabel('Steering Angle $\delta\:[\circ]$','Interpreter','latex','FontName','Times New Roman');
+    ylabel('Speed $\nu\:[m/s]$','Interpreter','latex','FontName','Times New Roman');
     grid on
 end

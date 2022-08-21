@@ -355,19 +355,19 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         end
 
         % emergency left maneuver (without offset)
-        turn_left_area_without_offset = mpa.emergency_maneuvers{trim_current}.left_area_without_offset;
+        turn_left_area_without_offset = mpa.emergency_maneuvers{trim_current}.left{1};
         [turn_left_area_without_offset_x,turn_left_area_without_offset_y] = translate_global(yaw0,x0,y0,turn_left_area_without_offset(1,:),turn_left_area_without_offset(2,:));
         iter.emergency_maneuvers{iVeh}.left_area_without_offset = [turn_left_area_without_offset_x;turn_left_area_without_offset_y];
         % emergency right maneuver (without offset)
-        turn_right_area_without_offset = mpa.emergency_maneuvers{trim_current}.right_area_without_offset;
+        turn_right_area_without_offset = mpa.emergency_maneuvers{trim_current}.right{1};
         [turn_right_area_without_offset_x,turn_right_area_without_offset_y] = translate_global(yaw0,x0,y0,turn_right_area_without_offset(1,:),turn_right_area_without_offset(2,:));
         iter.emergency_maneuvers{iVeh}.right_area_without_offset = [turn_right_area_without_offset_x;turn_right_area_without_offset_y];
         % emergency braking maneuver (without offset)
-        braking_area_without_offset = mpa.emergency_maneuvers{trim_current}.braking_area_without_offset;
+        braking_area_without_offset = mpa.emergency_maneuvers{trim_current}.braking_without_offset;
         [turn_braking_area_without_offset_x,turn_braking_area_without_offset_y] = translate_global(yaw0,x0,y0,braking_area_without_offset(1,:),braking_area_without_offset(2,:));
         iter.emergency_maneuvers{iVeh}.braking_area_without_offset = [turn_braking_area_without_offset_x;turn_braking_area_without_offset_y];
         % emergency braking maneuver (with normal offset)
-        braking_area = mpa.emergency_maneuvers{trim_current}.braking_area;
+        braking_area = mpa.emergency_maneuvers{trim_current}.braking_with_offset;
         [turn_braking_area_x,turn_braking_area_y] = translate_global(yaw0,x0,y0,braking_area(1,:),braking_area(2,:));
         iter.emergency_maneuvers{iVeh}.braking_area = [turn_braking_area_x;turn_braking_area_y];
     end

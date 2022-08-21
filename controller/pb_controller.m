@@ -95,11 +95,8 @@ runtime_others_tic = tic;
 
     end
 
-    % total runtime of subcontroller
-    info.subcontroller_runtime = info.subcontroller_runtime + runtime_others;
-
     % calculate the total runtime: only one vehicle in each computation level will be counted, this is the one with the maximum runtime 
     parl_groups_info = struct('vertices',1:nVeh,'num_CLs',computation_levels,'path_info',[]); % one group
-    info = get_run_time_total_all_grps(info, parl_groups_info, groups);
+    info = get_run_time_total_all_grps(info, parl_groups_info, groups, runtime_others);
 end
 

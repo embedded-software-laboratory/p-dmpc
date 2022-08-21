@@ -6,6 +6,19 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
     
     % Process optional input and Name-Value pair options
     [M, max_num_CLs, coupling_info, method] = parse_inputs(M, varargin{:});
+    if max_num_CLs == 1
+        nVeh = length(M);
+        
+        belonging_vector = 1:nVeh;
+        parl_groups = struct('members',[],'predecessors',[]);
+        parl_groups.members = 1:nVeh;
+        subgraphs_info(nVeh) = struct('vertices',[],'num_CLs',[],'path_info',[]);
+        for i = 1:nVeh
+            subgraphs_info(i).vertices = i;
+        end
+        return
+    end
+
 
     % partition the supergraph to subgraphs with a certain upper graph size.
     % The sum of weights of edges connecting subgraphs is the objective value and should be minimized.

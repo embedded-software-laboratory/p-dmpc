@@ -16,20 +16,30 @@ classdef EvaluationParl
         nodes_expanded_per_step % expanded nodes when graph searching
         nodes_expanded_average % expanded nodes average over steps
         
-        runtime_iter_per_step % calculate reachable sets, pridicted lanelets and reference trajectory
-        runtime_subcontroller_per_step % two big parts: graph search, priority assignment
+        runtime_determine_couplings % runtime of determination of couplings (note that the runtime of reachability analysis is included) 
+        runtime_assign_priority % runtime of assignment of priorities
+        runtime_group_vehs % runtime of grouping vehicles
+        runtime_graph_search % runtime of graph search
         runtime_total_per_step % total runtime per step
-        runtime_average % average runtime
-        runtime_max % maximum top n runtime
+        runtime_total_average % average runtime
+        runtime_max % average of maximum top n runtime
         
         average_speed_each_veh % average speed of each vehicle per step
         average_speed % average speed of all vehicles per step
         sum_speeds_all_vehicles % sum of speeds of all vehicles
 
+        num_couplings                       % average number of couplings between vehicles
+        num_couplings_ignored               % average number of couplings reduced by lanelet crossing area
+        num_couplings_between_grps          % average number of couplings between groups
+        num_couplings_between_grps_ignored  % average number of couplings between groups reduced by lanelet crossing area
+
+        CLs_num_max % maximum number of actual computation levels
+
         fallback_times % total fallback times of all vehicles. Note that this is not the number of time steps when fallbacks occur
         fallback_rate % fallback rate: fallback_times/nSteps/nVeh
 
         is_deadlock % true/false, if deadlock occurs
+        steps_ignored = 3; % the first several steps are ignored due to their possiblly higher computation time (see MATLAB just-in-time (JIT) compilation)
     end
 
     properties (Access=private)
@@ -54,6 +64,7 @@ classdef EvaluationParl
             else
                 % construct file name from options
                 obj.results_full_path = FileNameConstructor.get_results_full_path(input);
+                obj.options = input;
             end
             load(obj.results_full_path,'result');
 
@@ -88,6 +99,14 @@ classdef EvaluationParl
                 obj = obj.get_average_speeds;
             end
 
+            % Number of couplings
+            obj.num_couplings = mean(result.num_couplings);
+            obj.num_couplings_ignored = mean(result.num_couplings_ignored);
+            obj.num_couplings_between_grps = mean(result.num_couplings_between_grps);
+            obj.num_couplings_between_grps_ignored = mean(result.num_couplings_between_grps_ignored);
+
+            obj.CLs_num_max = max(result.computation_levels);
+
             obj.fallback_times = 0;
             for i = 1:length(result.vehs_fallback)
                 if ~isempty(result.vehs_fallback{i})
@@ -120,10 +139,8 @@ classdef EvaluationParl
 
         function obj = get_runtime_per_step(obj,result)
             % Calculate the total runtime per step
-            assert( abs(length(result.subcontroller_run_time_total)-length(result.iter_runtime)) <= 1 )
-            obj.runtime_iter_per_step = result.iter_runtime(1:obj.nSteps)';
-            obj.runtime_subcontroller_per_step = result.subcontroller_run_time_total(1:obj.nSteps)';
-            obj.runtime_total_per_step = obj.runtime_iter_per_step + obj.runtime_subcontroller_per_step;
+            assert( abs(length(result.runtime_subcontroller_max)-length(result.iter_runtime)) <= 1 )
+            obj.runtime_total_per_step = result.iter_runtime(1:obj.nSteps)' + result.runtime_subcontroller_max(1:obj.nSteps)';
 
             % Find outliers
             outliers = find(isoutlier(obj.runtime_total_per_step));
@@ -132,17 +149,20 @@ classdef EvaluationParl
 %             obj.runtime_total_per_step(outliers) = obj.runtime_average;
             % ignore the first several steps as they may have higher values
             % in computation time due to the just-in-time (JIT) compilation
-            if obj.nSteps > 20
-                steps_ignored = 3;
-            else
-                steps_ignored = 1;
-            end
-            obj.runtime_average = sum(obj.runtime_total_per_step(steps_ignored+1:end))/(obj.nSteps-steps_ignored);
-            obj.runtime_max = maxk(obj.runtime_total_per_step(steps_ignored+1:end),10); 
+
+            obj.runtime_total_average = sum(obj.runtime_total_per_step(obj.steps_ignored+1:obj.nSteps))/(obj.nSteps-obj.steps_ignored);
+            
+            n_max = 1;
+            obj.runtime_max = mean(maxk(obj.runtime_total_per_step(obj.steps_ignored+1:obj.nSteps),n_max)); 
+
+            obj.runtime_graph_search = max(result.runtime_graph_search_max(obj.steps_ignored+1:obj.nSteps));
+            obj.runtime_determine_couplings = max(result.determine_couplings_time(obj.steps_ignored+1:obj.nSteps) + result.iter_runtime(obj.steps_ignored+1:obj.nSteps));
+            % in order to assign priorities, determination of couplings is needed 
+            obj.runtime_assign_priority = max(result.assign_priority_time(obj.steps_ignored+1:obj.nSteps) + result.iter_runtime(obj.steps_ignored+1:obj.nSteps));
+            obj.runtime_group_vehs = max(result.group_vehs_time(obj.steps_ignored+1:obj.nSteps));
 
             obj.nodes_expanded_per_step = result.n_expanded;
             obj.nodes_expanded_average = mean(obj.nodes_expanded_per_step);
-            
         end
 
         function obj = get_average_speeds(obj)

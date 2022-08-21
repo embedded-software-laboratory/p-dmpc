@@ -14,13 +14,6 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     cur_trim_id = tuple2index(curTrim(:),trim_length);
     successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
 
-%     if iter.blocked_vehs && cur_trim_id==1
-%         % if the vehicle is blocked because it is not allowed to enter its lanelet crossing area, we limit
-%         % the number of successor trims of the equilibrium trim by constraining the steering angle to reduce grach searching time
-%         small_angle_trims = find(abs([scenario.mpa.trims.steering]) <= 0.12);
-%         successor_trim_ids = intersect(small_angle_trims,successor_trim_ids);
-%     end
-    
     for iVeh = 1 : scenario.nVeh
         if strcmp(scenario.priority_option,'mixed_traffic_priority')
             % first check if mixed_traffic_priority is used to make a short
@@ -102,5 +95,10 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
 %             expH(iTrim) = sum((distancesTraveledMax-straightLineDistances).^2);
         end
     end
+%     expG = ones(1,nTrims);
+%     expG(1) = -2;
+%     expG(2) = -2;
+%     expH = 0*ones(1,nTrims);
+%     expH(1) = -2;
     new_open_nodes = add_nodes(info.tree,iNode,expX,expY,expYaw,expTrim,expK,expG,expH);
 end

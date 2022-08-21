@@ -1,8 +1,10 @@
 function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(scenario, iter)
     % assign priorities to vehicles when parallel computation is used
     lanelet_crossing_areas = [];
+    
+    determine_couplings_timer = tic;
     traffic_info = TrafficInfo(scenario, iter);
-
+    
     coupling_weights = traffic_info.coupling_weights;
     coupling_info = traffic_info.coupling_info;
     if any(strcmp(scenario.priority_option,{'right_of_way_priority','constant_priority','random_priority'}))
@@ -12,11 +14,15 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
             strategy_enter_lanelet_crossing_area(iter,coupling_info,coupling_weights,scenario.strategy_enter_lanelet_crossing_area,scenario.nVeh);
 
         [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupling_weights_reduced,coupling_weights,coupling_info,traffic_info.vehs_at_intersection);
+        scenario.timer.determine_couplings = toc(determine_couplings_timer);
 
+        group_vehs = tic;
         % form parallel CL_based_hierarchy
         [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_reduced, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
-
+        scenario.timer.group_vehs = toc(group_vehs);
+        
     elseif strcmp(scenario.priority_option,'mixed_traffic_priority')
+        scenario.timer.determine_couplings = toc(determine_couplings_timer);
         obj = mixed_traffic_priority(scenario);
         [CL_based_hierarchy, directed_adjacency] = obj.priority();
         indexVehicleExpertMode = 0;
@@ -36,12 +42,12 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
                 coupling_weights_copy(indexVehicleExpertMode, i) = 0;
             end
         end
-
         [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_copy, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
-
     else
         warning([scenario.priority_option ' is not supported if parallel computation is used. Right_of_way_priority will be used instead.'])
     end
+    
+
     % Assign prrority according to computation level
     % Vehicles with higher priorities plan trajectory before vehicles
     % with lower priorities
@@ -51,14 +57,13 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     scenario.coupling_weights_reduced = coupling_weights_reduced;
     scenario.time_enter_intersection = traffic_info.time_enter_intersection;
     scenario.coupling_info = coupling_info;
-    directed_adjacency = (scenario.coupling_weights ~= 0);
     vehs_at_intersection = traffic_info.vehs_at_intersection;
 
     % update properties of scenario 
     scenario.parl_groups_info = parl_groups_info;
     scenario.belonging_vector = belonging_vector;
-    scenario.directed_coupling = directed_adjacency;
-    scenario.directed_coupling_reduced = (scenario.coupling_weights_reduced ~= 0);
+    scenario.directed_coupling = (coupling_weights ~= 0);
+    scenario.directed_coupling_reduced = (coupling_weights_reduced ~= 0);
     scenario.priority_list = priority_list;
     scenario.last_vehs_at_intersection = vehs_at_intersection;
 
@@ -93,12 +98,12 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
             continue
         end
 
-        if strcmp(coupling_info(i).collision_type, CollisionType.type_2) && ~strcmp(coupling_info(i).lanelet_relationship,LaneletRelationshipType.type_5)
-            disp('')
-        end
-
         veh_with_ROW = coupling_info(i).veh_with_ROW;
         veh_without_ROW = coupling_info(i).veh_without_ROW;
+
+        if all(ismember([veh_with_ROW,veh_without_ROW],[31,28]))
+            disp('')
+        end
 
         is_at_intersection = coupling_info(i).is_at_intersection;
         is_intersecting_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_5);

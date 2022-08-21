@@ -73,7 +73,10 @@ classdef FileNameConstructor
 
                 if options.isSaveResultReduced
                     results_name = [results_name,'_reduced'];
-                    
+                end
+
+                if ~isempty(options.random_idx)
+                    results_name = [results_name,'_random',num2str(options.random_idx)];
                 end
             else
                 % use custom name 

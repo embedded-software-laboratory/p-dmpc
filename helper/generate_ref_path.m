@@ -76,7 +76,7 @@ ref_path = struct;
             ref_path.lanelets_index = [104,78,63,61,57,55,53,79,81,83,87,89];
         
         case 21
-            ref_path.lanelets_index = [93,81,83,85,33,31,29,41,39,50,102,91];;
+            ref_path.lanelets_index = [93,81,83,85,33,31,29,41,39,50,102,91];
        
         case 22
             ref_path.lanelets_index = [65,77,63,61,57,55,67];
@@ -89,9 +89,9 @@ ref_path = struct;
             
         case 25
             ref_path.lanelets_index = [1,3,5,7,59,57,55,53,79,81,83,85,33,31,29,27];
-            
+
         case 26
-            ref_path.lanelets_index = [66,71,19,14,16,22,5,7,59,57,74,68];
+            ref_path.lanelets_index = [19,14,16,22,5,7,59,57,74,68,66,71];
             
         case 27
             ref_path.lanelets_index = [83,85,33,31,29,27,1,3,5,9,11,72,91,93,81];
@@ -113,10 +113,12 @@ ref_path = struct;
 %             
         case 33
             ref_path.lanelets_index = [61,57,55,53,79,81,83,85,33,31,29,41,39,20,63];
+        
         case 34
             ref_path.lanelets_index = [16,22,5,7,59,57,74,68,66,71,19,14];
+
         case 35
-            ref_path.lanelets_index = [19,14,16,22,5,7,59,57,74,68,66,71];
+            ref_path.lanelets_index = [66,71,19,14,16,22,5,7,59,57,74,68];
     end 
 
     lanelets_target = lanelets(ref_path.lanelets_index);
@@ -148,32 +150,3 @@ ref_path = struct;
     ref_path.points_index = n_cumsum_lanelets_length - n_cumsum_redandant(n_cumsum_lanelets_length);
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

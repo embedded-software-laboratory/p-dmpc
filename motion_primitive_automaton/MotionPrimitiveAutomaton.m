@@ -97,72 +97,7 @@ classdef MotionPrimitiveAutomaton
             end
 
             % get emergency trims and maneuvers
-            obj.emergency_trims = cell(n_trims,1);
-            obj.emergency_maneuvers = cell(n_trims,1);
-
-            equilibrium_trim = find([obj.trims.steering]==0 & [obj.trims.speed]==0);
-            for jTrim = 1:n_trims
-                connected_trims = find(obj.transition_matrix_single(jTrim,:,1));
-
-                % find emergency left turn maneuver
-                [steering_max,~] = max([obj.trims(connected_trims).steering]); % turn left 
-                steering_max_trims = connected_trims([obj.trims(connected_trims).steering]==steering_max);
-                if length(steering_max_trims)>1
-                    % if multiple trims, choose the one with the lowest speed
-                    [~,max_steering_min_speed_trim] = min([obj.trims(steering_max_trims).speed]);
-                    obj.emergency_trims{jTrim}.emergency_left = steering_max_trims(max_steering_min_speed_trim);
-                else
-                    obj.emergency_trims{jTrim}.emergency_left = steering_max_trims;
-                end
-
-                % find emergency right turn maneuver
-                [steering_min,~] = min([obj.trims(connected_trims).steering]); % turn right 
-                steering_min_trims = connected_trims([obj.trims(connected_trims).steering]==steering_min);
-                if length(steering_min_trims)>1
-                    % if multiple trims, choose the one with the lowest speed
-                    [~,min_steering_min_speed_trim] = min([obj.trims(steering_min_trims).speed]);
-                    obj.emergency_trims{jTrim}.emergency_right = steering_min_trims(min_steering_min_speed_trim);
-                else
-                    obj.emergency_trims{jTrim}.emergency_right = steering_min_trims;
-                end
-
-                % find emergency braking maneuver
-                [~,min_speed_trim] = min([obj.trims(connected_trims).speed]); % if multiple trims with zero speed, need to decide which one to choose as emergency braking maneuver
-                obj.emergency_trims{jTrim}.emergency_braking = min_speed_trim;
-                
-                % Generate emergency maneuvers
-                % Emergency left turn for one step and two steps
-                obj.emergency_maneuvers{jTrim}.left_area = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_left}.area;
-                m_left = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_left};
-                obj.emergency_maneuvers{jTrim}.left_area_without_offset = m_left.area_without_offset;
-                [x_left_twice,y_left_twice] = translate_global(m_left.dyaw,m_left.dx,m_left.dy,m_left.area_without_offset(1,:),m_left.area_without_offset(2,:));
-                obj.emergency_maneuvers{jTrim}.leftTwice_area_without_offset = [x_left_twice;y_left_twice];
-
-                % Emergency left turn for one step and two steps
-                obj.emergency_maneuvers{jTrim}.right_area = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_right}.area;
-                m_right = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_right};
-                obj.emergency_maneuvers{jTrim}.right_area_without_offset = m_right.area_without_offset;
-                [x_right_twice,y_right_twice] = translate_global(m_right.dyaw,m_right.dx,m_right.dy,m_right.area_without_offset(1,:),m_right.area_without_offset(2,:));
-                obj.emergency_maneuvers{jTrim}.rightTwice_area_without_offset = [x_right_twice;y_right_twice];
-
-                % Emergency braking for one step
-                obj.emergency_maneuvers{jTrim}.braking_area = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_braking}.area;
-                obj.emergency_maneuvers{jTrim}.braking_area_without_offset = obj.maneuvers{jTrim,obj.emergency_trims{jTrim}.emergency_braking}.area_without_offset;
-
-                if jTrim==equilibrium_trim
-                    % for equilibrium trim, add a go straight maneuver
-                    go_straight_trims = find([obj.trims.steering]==0);
-                    go_straight_trims = setdiff(go_straight_trims,equilibrium_trim); % exclude self
-                    if length(go_straight_trims)>1
-                        % if multiple trims, choose the one with the lowest
-                        % speed
-                        [~,go_straight_trim] = min([obj.trims(go_straight_trims).speed]);
-                    else
-                        go_straight_trim = go_straight_trims;
-                    end
-                    obj.emergency_maneuvers{jTrim}.go_straight_area = obj.maneuvers{jTrim,go_straight_trim}.area_without_offset;
-                end
-            end
+            [obj.emergency_trims, obj.emergency_maneuvers] = get_emergency_maneuvers(obj);
 
             % compute distance to equilibrium state
             eq_states = find(trim_inputs(:,2)==0);            
@@ -833,6 +768,95 @@ classdef MotionPrimitiveAutomaton
             max_speed_trim = max_speed_trims(idx);
             shortest_path_to_max_speed = shortestpath(graph_weighted,trim_current,max_speed_trim); % shortest path between two single nodes
         end
+
+        function [emergency_trims,emergency_maneuvers] = get_emergency_maneuvers(obj)
+            n_trims = length(obj.trims);
+            Hp = size(obj.transition_matrix_single,3);
+            emergency_trims = cell(n_trims,1);
+            emergency_maneuvers = cell(n_trims,1);
+
+            equilibrium_trim = find([obj.trims.steering]==0 & [obj.trims.speed]==0);
+            for jTrim = 1:n_trims
+                connected_trims = find(obj.transition_matrix_single(jTrim,:,1));
+
+                % find emergency left turn maneuver
+                [steering_max,~] = max([obj.trims(connected_trims).steering]); % turn left 
+                steering_max_trims = connected_trims([obj.trims(connected_trims).steering]==steering_max);
+                if length(steering_max_trims)>1
+                    % if multiple trims, choose the one with the lowest speed
+                    [~,max_steering_min_speed_trim] = min([obj.trims(steering_max_trims).speed]);
+                    emergency_trims{jTrim}.emergency_left = steering_max_trims(max_steering_min_speed_trim);
+                else
+                    emergency_trims{jTrim}.emergency_left = steering_max_trims;
+                end
+
+                % find emergency right turn maneuver
+                [steering_min,~] = min([obj.trims(connected_trims).steering]); % turn right 
+                steering_min_trims = connected_trims([obj.trims(connected_trims).steering]==steering_min);
+                if length(steering_min_trims)>1
+                    % if multiple trims, choose the one with the lowest speed
+                    [~,min_steering_min_speed_trim] = min([obj.trims(steering_min_trims).speed]);
+                    emergency_trims{jTrim}.emergency_right = steering_min_trims(min_steering_min_speed_trim);
+                else
+                    emergency_trims{jTrim}.emergency_right = steering_min_trims;
+                end
+
+                % find emergency braking maneuver
+                [~,min_speed_trim] = min([obj.trims(connected_trims).speed]); % if multiple trims with zero speed, need to decide which one to choose as emergency braking maneuver
+                emergency_trims{jTrim}.emergency_braking = min_speed_trim;
+                
+                % Generate emergency maneuvers for Hp time steps
+                emergency_maneuvers_times = Hp;
+                
+                trims_emergency_left = [jTrim,repmat(emergency_trims{jTrim}.emergency_left,1,emergency_maneuvers_times)];
+                % initial states
+                x0 = 0; y0 = 0; yaw0 = 0;
+                for t = 1:length(trims_emergency_left)-1
+                    cur_trim = trims_emergency_left(t);
+                    next_trim = trims_emergency_left(t+1);
+                    m = obj.maneuvers{cur_trim,next_trim};
+                    [area_x,area_y] = translate_global(yaw0,x0,y0,m.area_without_offset(1,:),m.area_without_offset(2,:));
+                    emergency_maneuvers{jTrim}.left{t} = [area_x;area_y];
+                    % update states
+                    [x0,y0] = translate_global(yaw0,x0,y0,m.dx,m.dy);
+                    yaw0 = yaw0 + m.dyaw;
+                end
+
+                trims_emergency_right = [jTrim,repmat(emergency_trims{jTrim}.emergency_right,1,emergency_maneuvers_times)];
+                % initial states
+                x0 = 0; y0 = 0; yaw0 = 0;
+                for t = 1:length(trims_emergency_right)-1
+                    cur_trim = trims_emergency_right(t);
+                    next_trim = trims_emergency_right(t+1);
+                    m = obj.maneuvers{cur_trim,next_trim};
+                    [area_x,area_y] = translate_global(yaw0,x0,y0,m.area_without_offset(1,:),m.area_without_offset(2,:));
+                    emergency_maneuvers{jTrim}.right{t} = [area_x;area_y];
+                    % update states
+                    [x0,y0] = translate_global(yaw0,x0,y0,m.dx,m.dy);
+                    yaw0 = yaw0 + m.dyaw;
+                end
+
+                % Emergency braking for one step
+                emergency_maneuvers{jTrim}.braking_with_offset = obj.maneuvers{jTrim,emergency_trims{jTrim}.emergency_braking}.area;
+                emergency_maneuvers{jTrim}.braking_without_offset = obj.maneuvers{jTrim,emergency_trims{jTrim}.emergency_braking}.area_without_offset;
+
+                if jTrim==equilibrium_trim
+                    % for equilibrium trim, add a go straight maneuver
+                    go_straight_trims = find([obj.trims.steering]==0);
+                    go_straight_trims = setdiff(go_straight_trims,equilibrium_trim); % exclude self
+                    if length(go_straight_trims)>1
+                        % if multiple trims, choose the one with the lowest
+                        % speed
+                        [~,go_straight_trim] = min([obj.trims(go_straight_trims).speed]);
+                    else
+                        go_straight_trim = go_straight_trims;
+                    end
+                    emergency_maneuvers{jTrim}.go_straight = obj.maneuvers{jTrim,go_straight_trim}.area_without_offset;
+                end
+            end
+        end
+
+
     end
 end
 

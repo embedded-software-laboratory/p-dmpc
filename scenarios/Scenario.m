@@ -77,6 +77,10 @@ classdef Scenario
         distance_threshold_intersection = [1.1]; % vector with length numOfIntersection, threshold of distance from a vehicle's position to the intersection center point exceed which a vehicle is considered as entering the intersection
         belonging_vector; % a column vector whose value indicate which group each vehicle belongs to 
         parl_groups_info; % struct, store information of parallel groups 
+        timer;            % struct, used to store computation time of different parts
+        num_couplings_between_grps; % number of couplings between parallel groups
+        num_couplings_between_grps_ignored; % reduced number of couplings between groups by using lanelet crossing lanelets
+        random_seed = RandStream('mt19937ar'); % for reproducibility
     end
     
     properties (Dependent)
