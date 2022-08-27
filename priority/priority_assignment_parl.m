@@ -7,26 +7,26 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     
     coupling_weights = traffic_info.coupling_weights;
     coupling_info = traffic_info.coupling_info;
-    if any(strcmp(scenario.priority_option,{'right_of_way_priority','constant_priority','random_priority'}))
+    if any(strcmp(scenario.options.priority,{'right_of_way_priority','constant_priority','random_priority'}))
         % Strategy to let vehicle without the right-of-way enter the crossing area
         % Ignore coupling edge if not allowed to enter the crossing area because no collision is possible anymore
         [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = ...
-            strategy_enter_lanelet_crossing_area(iter,coupling_info,coupling_weights,scenario.strategy_enter_lanelet_crossing_area,scenario.nVeh);
+            strategy_enter_lanelet_crossing_area(iter,coupling_info,coupling_weights,scenario.options.strategy_enter_lanelet_crossing_area,scenario.options.amount);
 
         [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupling_weights_reduced,coupling_weights,coupling_info,traffic_info.vehs_at_intersection);
         scenario.timer.determine_couplings = toc(determine_couplings_timer);
 
         group_vehs = tic;
         % form parallel CL_based_hierarchy
-        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_reduced, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
+        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_reduced, scenario.options.max_num_CLs, coupling_info, 'method', 's-t-cut');
         scenario.timer.group_vehs = toc(group_vehs);
         
-    elseif strcmp(scenario.priority_option,'mixed_traffic_priority')
+    elseif strcmp(scenario.options.priority,'mixed_traffic_priority')
         scenario.timer.determine_couplings = toc(determine_couplings_timer);
         obj = mixed_traffic_priority(scenario);
         [CL_based_hierarchy, directed_adjacency] = obj.priority();
         indexVehicleExpertMode = 0;
-        for j = 1:scenario.nVeh
+        for j = 1:scenario.options.amount
             if ((scenario.vehicle_ids(j) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
                 || (scenario.vehicle_ids(j) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
                 indexVehicleExpertMode = j;
@@ -42,9 +42,9 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
                 coupling_weights_copy(indexVehicleExpertMode, i) = 0;
             end
         end
-        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_copy, scenario.max_num_CLs, coupling_info, 'method', 's-t-cut');
+        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_copy, scenario.options.max_num_CLs, coupling_info, 'method', 's-t-cut');
     else
-        warning([scenario.priority_option ' is not supported if parallel computation is used. Right_of_way_priority will be used instead.'])
+        warning([scenario.options.priority ' is not supported if parallel computation is used. Right_of_way_priority will be used instead.'])
     end
     
 

@@ -8,7 +8,7 @@ function [vehs_at_intersection, coupling_weights, coupling_info, time_enter_inte
 % achieve a collision (STAC)" will be calculated, whilea a lower STAC means
 % a higher coupling degree. 
 
-    nVeh = scenario.nVeh;
+    nVeh = scenario.options.amount;
     lanelets = scenario.lanelets;
     lanelet_relationships = scenario.lanelet_relationships;
 
@@ -116,7 +116,7 @@ function [vehs_at_intersection, coupling_weights, coupling_info, time_enter_inte
                             % current distance between two vehicles
                             distance_two_vehs = norm(position_i-position_j,2);
                             % calculate the shortest time to achieve a collision
-                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, trim_leader, trim_follower, distance_two_vehs, scenario.dt);
+                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, trim_leader, trim_follower, distance_two_vehs, scenario.options.dt);
                             STAC_adapted = STAC + waiting_time;
 
                         elseif collision_type.is_side_impact
@@ -158,8 +158,8 @@ function [vehs_at_intersection, coupling_weights, coupling_info, time_enter_inte
                             % determine who is the leader 
                             is_leader = determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_both_at_intersection, time_enter_intersection, directed_adjacency_old, lanelet_type.is_forking);
 
-                            time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa,trim_i,distance_to_collision_i,scenario.dt);
-                            time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa,trim_j,distance_to_collision_j,scenario.dt);
+                            time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa,trim_i,distance_to_collision_i,scenario.options.dt);
+                            time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa,trim_j,distance_to_collision_j,scenario.options.dt);
 
                             % the first arrived vehicle will wait for the second arrived vehicle to "achieve" a collision.
                             % Here we ignore the fact that the first arrived vehicle should also decelerate to stop at the

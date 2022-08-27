@@ -15,8 +15,8 @@ function [u, y_pred, info] = pb_controller_parl_backup(scenario, iter)
 
     % extract the needed data from structure to single variable, since parfor is 'unfriendly' to
     % structure variable
-    Hp = scenario.Hp;
-    nVeh = scenario.nVeh; % total number of vehicles
+    Hp = scenario.options.Hp;
+    nVeh = scenario.options.amount; % total number of vehicles
     scenario_mpa = scenario.mpa;
 
     % get planning groups and their predecessors

@@ -2,7 +2,7 @@ function [info,scenario] = centralized_controller(scenario, iter)
 % CENTRALIZED_CONTROLLER    Plan trajectory for one time step using a centralized controller.
 
     % initialize variable to store control results
-    info = ControllResultsInfo(scenario.nVeh, scenario.Hp, [scenario.vehicles.ID]);
+    info = ControllResultsInfo(scenario.options.amount, scenario.options.Hp, [scenario.vehicles.ID]);
     
     sub_controller = @(scenario, iter)...
         graph_search(scenario, iter);
@@ -15,7 +15,7 @@ function [info,scenario] = centralized_controller(scenario, iter)
         % undirected couplings with this vehicle will take fallback 
         disp(['Graph search exhausted at time step: ' num2str(scenario.k) '.'])
         % all vehicles fall back
-        info.vehs_fallback = 1:scenario.nVeh;
+        info.vehs_fallback = 1:scenario.options.amount;
         info.is_exhausted(info.vehs_fallback) = true;
     else
         % prepare output data

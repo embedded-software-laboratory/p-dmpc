@@ -13,7 +13,7 @@ for i = 1 : nResults
     % make sure only one controller runtime is stored in the struct
     assert(size(results(i).controller_runtime, 1) == 1);
     runtimes = [runtimes, results(i).controller_runtime'];
-    nVehicles = [nVehicles, results(i).scenario.nVeh];
+    nVehicles = [nVehicles, results(i).scenario.options.amount];
 end
 
 [~,order] = sort(nVehicles);

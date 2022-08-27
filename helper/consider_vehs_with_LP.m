@@ -11,7 +11,7 @@ function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_c
         veh_without_ROW = all_coupling_vehs_without_ROW(i_LP);
         
         % stategies to let vehicle with the right-of-way consider vehicle without the right-of-way
-        switch scenario_v.strategy_consider_veh_without_ROW
+        switch scenario_v.options.strategy_consider_veh_without_ROW
             case '1'
                 % do not consider
 
@@ -27,7 +27,7 @@ function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_c
                 % possibility). Cases that vehicles drive successively are not
                 % included to avoid that vehicles behind push vehicles in
                 % front to move forward.
-                switch scenario_v.priority_option
+                switch scenario_v.options.priority
                     case 'right_of_way_priority'
                         find_coupling = [scenario_v.coupling_info.veh_with_ROW]==vehicle_idx & [scenario_v.coupling_info.veh_without_ROW]==veh_without_ROW;
                         if scenario_v.k==261

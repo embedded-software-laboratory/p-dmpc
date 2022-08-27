@@ -10,8 +10,8 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
     [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(scenario, iter);
     scenario.timer.assign_priority = toc(assign_priority_timer);
 
-    nVeh = scenario.nVeh;
-    Hp = scenario.Hp;
+    nVeh = scenario.options.amount;
+    Hp = scenario.options.Hp;
 
     % visualize the coupling between vehicles
     % plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
@@ -55,7 +55,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             subcontroller_timer = tic;
 
             % only keep self
-            filter_self = false(1,scenario.nVeh);
+            filter_self = false(1,scenario.options.amount);
             filter_self(vehicle_idx) = true;
             scenario_v = filter_scenario(scenario, filter_self);
             iter_v = filter_iter(iter, filter_self);
@@ -88,15 +88,34 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
                     end
                     scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
                 else
-                    % if the selected vehicle is not in the same group, add their reachable sets as dynamic obstacles 
-                    reachable_sets_i = iter.reachable_sets(veh_with_HP_i,:);
-                    % turn polyshape to plain array (repeat the first row to enclosed the shape)
-                    reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
-                    scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
+                    % if the selected vehicle is not in the same group
+                    if scenario.options.isDealPredictionInconsistency
+                        % add their reachable sets as dynamic obstacles to deal
+                        % with the prediction inconsistency
+                        reachable_sets_i = iter.reachable_sets(veh_with_HP_i,:);
+                        % turn polyshape to plain array (repeat the first row to enclosed the shape)
+                        reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
+                        scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
+                    else
+                        % otherwise add one-step delayed trajectories as dynamic obstacles
+                        if scenario_v.k>1
+                            % the old trajectories are available from the second time step onwards
+                            old_msg = read_message(scenario_v.vehicles.communicate, scenario_v.ros_subscribers{veh_with_HP_i}, scenario_v.k-1);
+                            predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, old_msg.predicted_areas);
+                            oldness_msg = scenario_v.k - old_msg.time_step;
+                            if oldness_msg ~= 0
+                                % consider the oldness of the message: delete the
+                                % first n entries and repeat the last entry for n times
+                                predicted_areas_i = del_first_rpt_last(predicted_areas_i',oldness_msg);
+                            end
+                            scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
+                        end
+                    end
+
                 end
             end
 
-            if ~strcmp(scenario.strategy_enter_lanelet_crossing_area,'1')
+            if ~strcmp(scenario.options.strategy_enter_lanelet_crossing_area,'1')
                 % Set lanelet intersecting areas as static obstacles if vehicle with lower priorities is not allowed to enter those area
                 scenario_v.lanelet_crossing_areas = lanelet_crossing_areas{vehicle_idx};
                 if isempty(scenario_v.lanelet_crossing_areas)
@@ -109,7 +128,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupled_vehs_with_LP);
 
             if scenario.k >= 1
-                if vehicle_idx == 21 || vehicle_idx == 11
+                if vehicle_idx == 9 || vehicle_idx == 12
                     disp('')
                 end
             end
@@ -122,7 +141,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback 
-                disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
 
                 switch scenario.options.fallback_type
                     case 'localFallback'

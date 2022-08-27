@@ -21,8 +21,8 @@ classdef TrafficInfo
 
     methods
         function obj = TrafficInfo(scenario, iter)
-            obj.nVeh = scenario.nVeh;
-            obj.priority_option = scenario.priority_option;
+            obj.nVeh = scenario.options.amount;
+            obj.priority_option = scenario.options.priority;
             
             % initialize
             obj.directed_adjacency_old = zeros(obj.nVeh,obj.nVeh);
@@ -202,8 +202,8 @@ classdef TrafficInfo
                         [distance_to_collision_i, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(veh_info_i.position(1), veh_info_i.position(2), curve_x_i, curve_y_i);
                         [distance_to_collision_j, ~, ~, ~, ~, ~] = get_arc_distance_to_endpoint(veh_info_j.position(1), veh_info_j.position(2), curve_x_j, curve_y_j);
 
-                        time_to_collision_point_i = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_i.trim,distance_to_collision_i,scenario.dt);
-                        time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_j.trim,distance_to_collision_j,scenario.dt);
+                        time_to_collision_point_i = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_i.trim,distance_to_collision_i,scenario.options.dt);
+                        time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_j.trim,distance_to_collision_j,scenario.options.dt);
                         % determine which vehicle has the ROW 
                         % trick: a shorter time to collision point corresponds to a shorter distance to collision point, thus no code adaption is need
                         has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, time_to_collision_point_i, time_to_collision_point_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario.random_seed);
@@ -224,9 +224,9 @@ classdef TrafficInfo
                         
                         % Calculate the shortest time to achieve a collision and the waiting time
                         if has_ROW               
-                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_i.trim, veh_info_j.trim, distance_two_vehs, scenario.dt);
+                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_i.trim, veh_info_j.trim, distance_two_vehs, scenario.options.dt);
                         else
-                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_j.trim, veh_info_i.trim, distance_two_vehs, scenario.dt);
+                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_j.trim, veh_info_i.trim, distance_two_vehs, scenario.options.dt);
                         end
                     end
 

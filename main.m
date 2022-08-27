@@ -59,8 +59,17 @@ if is_sim_lab
     %             vehicle_ids = [10,14,16,17,18,20]; 
             otherwise
 %                 vehicle_ids = 1:options.amount; % default IDs
-                vehicle_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+                if options.max_num_CLs == 1
+                    % if allowed computation is only 1, the first 8
+                    % vehicles will not be used to avoid infeasibility at
+                    % the first time step as there may be vehicles being
+                    % very colse to others
+                    vehicle_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
+                else
+                    vehicle_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+                end
                 options.veh_ids = vehicle_ids;
+                
         end
     else
         vehicle_ids = options.veh_ids;
@@ -132,19 +141,17 @@ switch options.scenario
 end
 scenario.random_seed = random_seed;
 scenario.name = options.scenario;
-scenario.priority_option = options.priority;
 scenario.manual_vehicle_id = manualVehicle_id;
 scenario.second_manual_vehicle_id = manualVehicle_id2;
 scenario.vehicle_ids = vehicle_ids;
 scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
-scenario.options = options;
+% scenario.options = options;
 
 for iVeh = 1:scenario.options.amount
     % initialize vehicle ids of all vehicles
     scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
 end
 
- 
 if is_sim_lab
     exp = SimLab(scenario, options);
 else
@@ -230,8 +237,29 @@ while (~got_stop)
     [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
     initialized_reference_path = true;
 
+    if ~options.isDealPredictionInconsistency
+        % if prediction inconsistency is not dealt, extra collision checking is needed
+        is_collision_occur = false;
+        for iiVeh = 1:options.amount-1
+            for jjVeh = iiVeh+1:options.amount
+                if InterX(iter.occupied_areas{iiVeh}.normal_offset,iter.occupied_areas{jjVeh}.normal_offset)
+                    warning(['Collision between vehicle ' num2str(iiVeh) ' and vehicle ' num2str(jjVeh) ' occur! Simulation ends.'])
+                    is_collision_occur = true;
+                    break
+                end
+            end
+            if is_collision_occur 
+                break
+            end
+        end
+    
+        if is_collision_occur 
+            break
+        end
+    end
+
     % visualize reachabel set of vehicle in Expert-Mode
-    for iVeh = 1:scenario.nVeh 
+    for iVeh = 1:scenario.options.amount 
         if options.visualize_reachable_set && ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
             || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
             [visualization_command] = lab_visualize_polygon(scenario, iter.reachable_sets{iVeh, end}.Vertices, iVeh);
@@ -337,7 +365,7 @@ while (~got_stop)
         vehs_fallback_times(vehs_not_fallback) = 0; % reset
         
         % check whether at least one vehicle has fallen back Hp times successively
-        if max(vehs_fallback_times) < scenario.Hp
+        if max(vehs_fallback_times) < scenario.options.Hp
             if ~isempty(info.vehs_fallback)
                 real_vehicles = zeros(1,length(info.vehs_fallback));
     
@@ -399,7 +427,7 @@ while (~got_stop)
     if max_stop_steps > threshold_stop_steps
         % a deadlock is considered to have occur if a vehicle stops continually more than a certain number time steps
         warning(['Deadlock occurs since vehicle ' num2str(veh_deadlock(1)) ' stops for a long time.'])
-        result.t_total = min_stop_step(1)*scenario.dt;
+        result.t_total = min_stop_step(1)*scenario.options.dt;
         result.nSteps = result.t_total;
         is_deadlock = true;
 
@@ -430,7 +458,7 @@ result.is_deadlock = is_deadlock;
 result.total_fallback_times = total_fallback_times;
 disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
 if ~is_deadlock
-    result.t_total = k*scenario.dt;
+    result.t_total = k*scenario.options.dt;
     result.nSteps = k;
 end
 disp(['Total runtime: ' num2str(round(result.t_total,2)) ' seconds.'])

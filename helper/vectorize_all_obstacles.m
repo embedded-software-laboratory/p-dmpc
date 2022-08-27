@@ -17,7 +17,7 @@ function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, lanelet] 
 %   corresponds to intersecting areas of two vehicles' lanelets in a certain
 %   prediction horizon.
 % 
-    vehicle_obstacles = cell(1,scenario.Hp);
+    vehicle_obstacles = cell(1,scenario.options.Hp);
 
     % get static occupied areas of the considered vehicles
     current_occupied_areas = scenario.obstacles;
@@ -38,7 +38,7 @@ function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, lanelet] 
     [~, n_occupiedAreas_Hp] = size(scenario.dynamic_obstacle_area);
     [~, n_reachableSets_Hp] = size(scenario.dynamic_obstacle_reachableSets);
 
-    for iStep = 1:scenario.Hp
+    for iStep = 1:scenario.options.Hp
         % get predicted occupied areas of the coupling vehicles in the current time step
         if iStep <= n_occupiedAreas_Hp
             predicted_occpuied_areas = scenario.dynamic_obstacle_area(:,iStep)';

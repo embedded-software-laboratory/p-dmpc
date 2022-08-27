@@ -63,22 +63,21 @@ function scenario = lanelet_scenario4(isPB,isParl,isROS)
     veh.referenceTrajectory = unique([veh_lanelets(:,LaneletInfo.cx),veh_lanelets(:,LaneletInfo.cy)],'rows','stable');
     scenario.vehicles = [scenario.vehicles, veh];
 
-    scenario.plot_limits = c*[-20,20;-20,20];
-    scenario.nVeh = numel(scenario.vehicles);
-    scenario.name = sprintf('%i-intersection', scenario.nVeh);
+    scenario.options.plot_limits = c*[-20,20;-20,20];
+    scenario.name = sprintf('%i-intersection', scenario.options.amount);
 
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
 
    
-    nVeh_mpa = scenario.nVeh;
-    scenario.isParl = logical(isParl); % is use parallel computation
+    nVeh_mpa = scenario.options.amount;
+    scenario.options.isParl = logical(isParl); % is use parallel computation
     
     if isPB
        scenario.adjacency = coupling_adjacency_lanelets(scenario.vehicle_to_lanelet, collision);
        scenario.assignPrios = true;
        scenario.controller_name = strcat(scenario.controller_name, '-PB');
 
-       if scenario.isParl % use parallel trajectory planning
+       if scenario.options.isParl % use parallel trajectory planning
            scenario.controller = @(s,i) pb_controller_parl(s,i);
            if isROS
                scenario.controller = @(s,i) pb_controller_parl_ROS(s,i);
@@ -91,18 +90,7 @@ function scenario = lanelet_scenario4(isPB,isParl,isROS)
     end
 
     recursive_feasibility = true;
-    scenario.mpa = MotionPrimitiveAutomaton(...
-        scenario.model...
-        , scenario.trim_set...
-        , scenario.offset...
-        , scenario.dt...
-        , nVeh_mpa...
-        , scenario.Hp...
-        , scenario.tick_per_step...
-        , recursive_feasibility...
-        , scenario.is_allow_non_convex...
-        , options...
-    );
+    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
     
 
 end

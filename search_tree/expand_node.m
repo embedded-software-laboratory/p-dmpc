@@ -1,7 +1,7 @@
 function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
 % EXPAND_NODE   Expand node in search tree and return succeeding nodes.
     trim_tuple = scenario.mpa.trim_tuple;
-    trim_length = length(scenario.mpa.trims)*ones(1, scenario.nVeh);
+    trim_length = length(scenario.mpa.trims)*ones(1, scenario.options.amount);
     
     curX     = info.tree.x(:,iNode);
     curY     = info.tree.y(:,iNode);
@@ -14,8 +14,8 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     cur_trim_id = tuple2index(curTrim(:),trim_length);
     successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
 
-    for iVeh = 1 : scenario.nVeh
-        if strcmp(scenario.priority_option,'mixed_traffic_priority')
+    for iVeh = 1 : scenario.options.amount
+        if strcmp(scenario.options.priority,'mixed_traffic_priority')
             % first check if mixed_traffic_priority is used to make a short
             % circuit
             if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
@@ -26,25 +26,25 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     end
     nTrims = numel(successor_trim_ids);
     
-    expX     = zeros(scenario.nVeh,nTrims);
-    expY     = zeros(scenario.nVeh,nTrims);
-    expYaw   = zeros(scenario.nVeh,nTrims);
-    expTrim  = zeros(scenario.nVeh,nTrims);
+    expX     = zeros(scenario.options.amount,nTrims);
+    expY     = zeros(scenario.options.amount,nTrims);
+    expYaw   = zeros(scenario.options.amount,nTrims);
+    expTrim  = zeros(scenario.options.amount,nTrims);
     expK     = k_exp*ones(1,nTrims);
     expG     = curG*ones(1,nTrims);
     expH     = zeros(1,nTrims);
     
 
-    time_steps_to_go = scenario.Hp - k_exp;
+    time_steps_to_go = scenario.options.Hp - k_exp;
     for iTrim = 1:nTrims
         id = successor_trim_ids(iTrim);
         expTrim(:,iTrim) = trim_tuple(id,:);
-        for iVeh = 1 : scenario.nVeh
+        for iVeh = 1 : scenario.options.amount
             itrim1 = curTrim(iVeh);
             itrim2 = expTrim(iVeh,iTrim);
 
             % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-            if strcmp(scenario.priority_option,'mixed_traffic_priority')
+            if strcmp(scenario.options.priority,'mixed_traffic_priority')
                 % first check if mixed_traffic_priority is used to make a short
                 % circuit
                 if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
@@ -71,7 +71,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             expYaw(iVeh,iTrim) = curYaw(iVeh) + maneuver.dyaw;
 
             % Cost to come
-            % iter.reference is of size (scenario.nVeh,scenario.Hp,2)
+            % iter.reference is of size (scenario.options.amount,scenario.options.Hp,2)
             % Distance to reference trajectory points squared to conform with
             % J = (x-x_ref)' Q (x-x_ref)
             expG(iTrim) = expG(iTrim) + norm([expX(iVeh,iTrim) - iter.referenceTrajectoryPoints(iVeh,k_exp,1);expY(iVeh,iTrim) - iter.referenceTrajectoryPoints(iVeh,k_exp,2)])^2;
@@ -83,13 +83,13 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             d_traveled_max = 0;
             for i_t = 1:time_steps_to_go
                 d_traveled_max = d_traveled_max...
-                    + scenario.dt*iter.vRef(iVeh,k_exp+i_t);
+                    + scenario.options.dt*iter.vRef(iVeh,k_exp+i_t);
                 expH(iTrim) = expH(iTrim) + (norm( [expX(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,1); expY(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,2)] ) - d_traveled_max)^2;
             end
             
 %             % vectorize the for-loop that calculates the cost-to-go (if
 %             needed)
-%             distancesTraveledMax = cumsum(scenario.dt*iter.vRef(iVeh,k_exp+1:end));
+%             distancesTraveledMax = cumsum(scenario.options.dt*iter.vRef(iVeh,k_exp+1:end));
 %             distancesXy = [expX(iVeh,iTrim);expY(iVeh,iTrim)] - [iter.referenceTrajectoryPoints(iVeh,k_exp+1:end,1);iter.referenceTrajectoryPoints(iVeh,k_exp+1:end,2)];
 %             straightLineDistances = sqrt(sum(distancesXy.^2,1));
 %             expH(iTrim) = sum((distancesTraveledMax-straightLineDistances).^2);

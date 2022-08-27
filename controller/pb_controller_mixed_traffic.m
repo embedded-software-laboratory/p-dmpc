@@ -2,7 +2,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
-    if strcmp(scenario.priority_option, 'mixed_traffic_priority')
+    if strcmp(scenario.options.priority, 'mixed_traffic_priority')
         obj = mixed_traffic_priority(scenario);
         [groups, directed_adjacency] = obj.priority(); 
         right_of_way = false;
@@ -16,7 +16,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
     members_list = horzcat(groups.members);
     
     nVeh = length(members_list); 
-    Hp = scenario.Hp;
+    Hp = scenario.options.Hp;
 
     priority_list = zeros(1,nVeh);
     prio = 1;
@@ -84,7 +84,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 end
 
                 % only keep self
-                filter_self = false(1,scenario.nVeh);
+                filter_self = false(1,scenario.options.amount);
                 filter_self(vehicle_idx) = true;
                 scenario_v = filter_scenario(scenario, filter_self);
                 iter_v = filter_iter(iter, filter_self);
@@ -153,7 +153,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 autonomous_vehicles_adjacent = intersect(autonomous_vehicle_indices,veh_adjacent);
 
                 % Filter out vehicles with lower or same priority.
-                priority_filter = false(1,scenario.nVeh);
+                priority_filter = false(1,scenario.options.amount);
                 priority_filter(autonomous_vehicles_adjacent) = true; % keep all with higher priority
                 priority_filter(vehicle_idx) = true; % keep self
                 scenario_filtered = filter_scenario(scenario, priority_filter);
@@ -185,7 +185,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
             else
                 % manually-controlled vehicles do not prevent collisions automatically
                  % only keep self
-                filter_self = false(1,scenario.nVeh);
+                filter_self = false(1,scenario.options.amount);
                 filter_self(vehicle_idx) = true;
                 scenario_v = filter_scenario(scenario, filter_self);
                 iter_v = filter_iter(iter, filter_self);

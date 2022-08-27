@@ -48,7 +48,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
         scenario.vehicles(iVeh).referenceTrajectory, ...    % total reference path
         x0, ...                                             % vehicle position x
         y0, ...                                             % vehicle position y
-        v_ref*scenario.dt, ...                                       % distance traveled in one timestep
+        v_ref*scenario.options.dt, ...                                       % distance traveled in one timestep
         scenario.vehicles(iVeh).autoUpdatedPath, ...        % if the path has been updated automatically
         scenario.options.isParl, ...                        % parallel computation
         scenario.vehicles(iVeh).last_trajectory_index, ...  % last trajectory index of vehicle

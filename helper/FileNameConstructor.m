@@ -17,19 +17,19 @@ classdef FileNameConstructor
     end
 
     methods (Static)
-        function mpa_instance_name = get_mpa_name(trim_ID,Hp,dt,isParl,is_allow_non_convex)
+        function mpa_instance_name = get_mpa_name(options)
             % GET_MPA_NAME Construct name for the file to which a object of the
             % class MPA is saved.
             % Example:  MPA_trims12_Hp6
             %           MPA_trims12_Hp6_parl_non-convex
 
-            mpa_instance_name = ['MPA_','trims',num2str(trim_ID),'_Hp',num2str(Hp),'_T',num2str(dt)];
+            mpa_instance_name = ['MPA_','trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_T',num2str(options.dt)];
 
-            if isParl
+            if options.isParl
                 mpa_instance_name = [mpa_instance_name,'_parl'];                
             end
 
-            if is_allow_non_convex
+            if options.is_allow_non_convex
                 mpa_instance_name = [mpa_instance_name,'_non-convex'];
             end
 
@@ -77,6 +77,10 @@ classdef FileNameConstructor
 
                 if ~isempty(options.random_idx)
                     results_name = [results_name,'_random',num2str(options.random_idx)];
+                end
+
+                if ~options.isDealPredictionInconsistency
+                    results_name = [results_name,'_notDealWithPredictionInconsistency'];
                 end
             else
                 % use custom name 

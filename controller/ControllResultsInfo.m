@@ -78,7 +78,7 @@ classdef ControllResultsInfo
                 % for centralized control
                 obj.tree = info_v.tree; % only for node explorationslee
                 obj.n_expanded = obj.n_expanded + info_v.tree.size();
-                obj.next_node = set_node(obj.next_node,1:scenario.nVeh,info_v);
+                obj.next_node = set_node(obj.next_node,1:scenario.options.amount,info_v);
                 obj.shapes = info_v.shapes;
                 obj.vehicle_fullres_path = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, scenario)';
                 obj.predicted_trims = info_v.predicted_trims; % store the planned trims in the future Hp time steps

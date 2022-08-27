@@ -24,7 +24,16 @@ classdef OptionsMain
         T_end           % scalar, simulation duration
         max_num_CLs     % integer, maximum allowerd number of computation levels
         strategy_consider_veh_without_ROW       % one of the following: {'1','2','3','4','5'}, strategy of letting higher-priority vehicles consider their coupled vehicles with lower priorities
+                                                    % '1': do not consider 
+                                                    % '2': consider currently occupied area as static obstacle
+                                                    % '3': consider the occupied area of emergency braking maneuver as static obstacle 
+                                                    % '4': consider one-step reachable sets as static obstacle
+                                                    % '5': consider old trajectory as dynamic obstacle
         strategy_enter_lanelet_crossing_area    % one of the following: {'1','2','3','4'}, strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
+                                                    % '1': no constraint on entering the crossing area 
+                                                    % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
+                                                    % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
+                                                    % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
         isSaveResult            % true/false, is save result
         isSaveResultReduced = false; % true/false, is save reduced result but not full to save disk space (useful for a long run of simulation)
         customResultName        % string or char, custom file name to save result
@@ -38,6 +47,18 @@ classdef OptionsMain
                                     % 'local' means once a vehicle triggers fallback, only vehicles that have direct or undirected couplings with it will take fallabck. 
         veh_ids = [];               % vehicle IDs
         random_idx = [];            % integer, random choose different vehicles
+        isDealPredictionInconsistency = true; % true/false, if ture, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
+        is_allow_non_convex = true; % true/false, whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
+        recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
+        time_per_tick = 0.01;
+        offset = 0.01;
+        plot_limits = [-10,10;-10,10];          % default fallback if not defined
+    end
+
+    properties(Dependent)
+        tick_per_step % number of data points per step
+        k_end % total number of steps
+        Hu % control horizon
     end
 
     methods
@@ -76,6 +97,19 @@ classdef OptionsMain
             obj.visualize_reachable_set = options.visualize_reachable_set;
             obj.is_free_flow = options.is_free_flow;
         end
+
+        function result = get.tick_per_step(obj)
+            result = round(obj.dt/obj.time_per_tick);
+        end
+
+        function result = get.k_end(obj)
+            result = floor(obj.T_end/obj.dt);
+        end
+
+        function result = get.Hu(obj)
+            result = obj.Hp;
+        end
+
     end
 end
 

@@ -2,7 +2,7 @@ function scenario = moving_obstacle_scenario()
 % MOVING_OBSTACLE_SCENARIO     Constructor for moving obstacle scenario
 
     scenario = Scenario();
-    scenario.trim_set = 3;
+    scenario.options.trim_set = 3;
     veh = Vehicle();
     radius = 3;
     center_x = 2.25;
@@ -16,27 +16,14 @@ function scenario = moving_obstacle_scenario()
     veh.trim_config = 1;
     veh.referenceTrajectory = [veh.x_start veh.y_start;veh.x_goal veh.y_goal];
     scenario.vehicles = veh;
-    scenario.nVeh = 1;
-    scenario.Hp = 5;
-    scenario.T_end = 14;
+    scenario.options.Hp = 5;
     
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     
-    scenario.plot_limits = [-3.5,6.5;-1.5,1.5];
+    scenario.options.plot_limits = [-3.5,6.5;-1.5,1.5];
     
     recursive_feasibility = true;
-    scenario.mpa = MotionPrimitiveAutomaton(...
-        scenario.model...
-        , scenario.trim_set...
-        , scenario.offset...
-        , scenario.dt...
-        , scenario.nVeh...
-        , scenario.Hp...
-        , scenario.tick_per_step...
-        , recursive_feasibility...
-        , scenario.is_allow_non_convex...
-        , options...
-    );
+    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
 
     x1_obs = veh.x_start + 4;
     x2_obs = x1_obs + 1.5;
@@ -47,7 +34,7 @@ function scenario = moving_obstacle_scenario()
     dist_obs = 1.7;
     speed_obs = 0.75;
     
-    dist_dt = speed_obs*scenario.dt; % distance traveled per timestep
+    dist_dt = speed_obs*scenario.options.dt; % distance traveled per timestep
     width_obs = 0.5;
     length_obs = 0.5;
     length_coll_area = length_obs+dist_dt;

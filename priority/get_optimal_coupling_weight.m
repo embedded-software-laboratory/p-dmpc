@@ -11,11 +11,11 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
     h = findobj('LineWidth',0.75); % delete shapes plotted during graph searching 
     delete(h)
     % Filter scenario and iter
-    filter_self = false(1,scenario.nVeh);
+    filter_self = false(1,scenario.options.amount);
     filter_self(veh_j) = true;
     scenario_v = filter_scenario(scenario,filter_self);
     % Reduce the prediction horizon by one
-    scenario_v.Hp = scenario_v.Hp - 1;
+    scenario_v.options.Hp = scenario_v.options.Hp - 1;
     % Add reachable sets as dynamic obstacles
     reachable_sets_i = iter.reachable_sets(veh_i,2:end);
     reachable_sets_i_full = iter.reachable_sets(veh_i,:);

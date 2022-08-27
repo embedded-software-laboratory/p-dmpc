@@ -8,7 +8,10 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
 % achieve a collision (STAC)" will be calculated, whilea a lower STAC means
 % a higher coupling degree. 
 
-    nVeh = scenario.nVeh;
+    % threshold of distance from a vehicle's position to the intersection center point exceed which a vehicle is considered as entering the intersection
+    distance_threshold_intersection = 1.1;
+    
+    nVeh = scenario.options.amount;
 
     % previous directed adjacency matrix
     directed_adjacency_old = zeros(nVeh,nVeh); 
@@ -32,7 +35,7 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
     % vehicles are considered as at the intersection if their distances to
     % the intersection center point is smaller than a certain value
     distances_to_intersection_center = sqrt(sum((iter.x0(:,1:2) - scenario.intersection_center).^2,2));
-    all_veh_at_intersection = find(distances_to_intersection_center < scenario.distance_threshold_intersection);
+    all_veh_at_intersection = find(distances_to_intersection_center < distance_threshold_intersection);
 
     new_veh_at_intersection = setdiff(all_veh_at_intersection, last_vehs_at_intersection);
     if ~isempty(new_veh_at_intersection)
@@ -108,8 +111,8 @@ function [all_veh_at_intersection, coupling_weights, coupling_info, time_enter_i
                 distance_to_collision_i = norm(collision_point-position_i);
                 distance_to_collision_j = norm(collision_point-position_j);
 
-                time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa, trim_i, distance_to_collision_i, scenario.dt);
-                time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa, trim_j, distance_to_collision_j, scenario.dt);
+                time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa, trim_i, distance_to_collision_i, scenario.options.dt);
+                time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa, trim_j, distance_to_collision_j, scenario.options.dt);
 
                 % determine leader-follower relationship
                 if ismember(veh_i,all_veh_at_intersection) && ismember(veh_j,all_veh_at_intersection)

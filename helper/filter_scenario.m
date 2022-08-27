@@ -19,5 +19,5 @@ function scenario = filter_scenario(scenario, vehicle_filter)
     if ~isempty(scenario.vehicle_to_lanelet)
         scenario.vehicle_to_lanelet = scenario.vehicle_to_lanelet(vehicle_filter,:);
     end
-    scenario.nVeh = sum(vehicle_filter);
+    scenario.options.amount = sum(vehicle_filter);
 end

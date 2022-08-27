@@ -5,9 +5,9 @@ framerate = 30;
 resolution = [1920 1080];
 scenario = result.scenario;
 nSteps = nnz(result.controller_runtime);
-frame_per_step = framerate*scenario.dt;
+frame_per_step = framerate*scenario.options.dt;
 
-frame_ticks = round(linspace(2,scenario.tick_per_step+1,frame_per_step));
+frame_ticks = round(linspace(2,scenario.options.tick_per_step+1,frame_per_step));
 
 fig = figure('Visible','Off'...
             ,'Color',[1 1 1]...

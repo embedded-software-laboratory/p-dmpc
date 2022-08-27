@@ -22,16 +22,16 @@ function [u, y_pred, info, scenario] = pb_controller_parl(scenario, iter)
     groups(2).coupled_with_same_grp = {[],[2]};
     groups(2).coupled_with_other_grps = {[4],[1]};
 
-    y_pred = cell(scenario.nVeh,1);
-    u = zeros(scenario.nVeh,1);
+    y_pred = cell(scenario.options.amount,1);
+    u = zeros(scenario.options.amount,1);
     info = struct;
-    info.vehicle_fullres_path = cell(scenario.nVeh,1);
-    info.trim_indices = (-1)*ones(scenario.nVeh,1);
-    info.subcontroller_runtime = zeros(scenario.nVeh,1);
-    info.shapes = cell(scenario.nVeh,scenario.Hp);
-    info.next_node = node(-1, zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), zeros(scenario.nVeh,1), -1, -1);
+    info.vehicle_fullres_path = cell(scenario.options.amount,1);
+    info.trim_indices = (-1)*ones(scenario.options.amount,1);
+    info.subcontroller_runtime = zeros(scenario.options.amount,1);
+    info.shapes = cell(scenario.options.amount,scenario.options.Hp);
+    info.next_node = node(-1, zeros(scenario.options.amount,1), zeros(scenario.options.amount,1), zeros(scenario.options.amount,1), zeros(scenario.options.amount,1), -1, -1);
     info.n_expanded = 0;
-    info.predicted_trims = zeros(scenario.nVeh,scenario.Hp+1); % trims planned in the next Hp time steps (including starting trim)
+    info.predicted_trims = zeros(scenario.options.amount,scenario.options.Hp+1); % trims planned in the next Hp time steps (including starting trim)
     
     sub_controller = @(scenario, iter)...
         graph_search(scenario, iter);
@@ -45,10 +45,10 @@ function [u, y_pred, info, scenario] = pb_controller_parl(scenario, iter)
 
             
             % Filter out vehicles with lower or same priority.
-            priority_filter_same_grp = false(1,scenario.nVeh);
+            priority_filter_same_grp = false(1,scenario.options.amount);
             priority_filter_same_grp(group.coupled_with_same_grp{grp_member_idx}) = true; % keep all with higher priority
             priority_filter_same_grp(vehicle_idx) = true; % keep self
-            priority_filter_other_grps = false(1,scenario.nVeh);
+            priority_filter_other_grps = false(1,scenario.options.amount);
             priority_filter_other_grps(group.coupled_with_other_grps{grp_member_idx}) = true; % keep all coupled vehicle with higher priority
 
             scenario_filtered_same_grp = filter_scenario(scenario, priority_filter_same_grp);

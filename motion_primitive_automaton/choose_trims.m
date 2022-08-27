@@ -229,10 +229,18 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
             trim_adjacency(:,end) = 1;
         case 13
             %% 3 trims (test)
+            speed_max = 0.8;
+            angle_max = pi/6;
             trim_inputs = [0,0;
-                           pi/4,0.8;
-                           -pi/4,0.8];
-            trim_adjacency = ones(3);
+                           -angle_max,speed_max;
+                           0,speed_max;
+                           angle_max,speed_max];
+            trim_adjacency = zeros(size(trim_inputs,1));
+            trim_adjacency(1,[2,3,4]) = 1;
+            trim_adjacency(2,3) = 1;
+            trim_adjacency(3,4) = 1;
+            trim_adjacency = trim_adjacency + trim_adjacency';
+
     end
 %     visualize_trims(trim_inputs,trim_adjacency)
 end

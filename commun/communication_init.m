@@ -55,8 +55,8 @@ function scenario = communication_init(scenario, exp)
         end
     end
 
-    nVeh = scenario.nVeh;
-    Hp = scenario.Hp;
+    nVeh = scenario.options.amount;
+    Hp = scenario.options.Hp;
 
     % measure vehicles' initial poses and trims
     [x0_measured, trims_measured] = exp.measure(false);

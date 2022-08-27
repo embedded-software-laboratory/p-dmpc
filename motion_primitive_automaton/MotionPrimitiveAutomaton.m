@@ -22,13 +22,18 @@ classdef MotionPrimitiveAutomaton
     end
     
     methods
-        function obj = MotionPrimitiveAutomaton(model, trim_ID, offset, dt, nveh, N, nTicks, recursive_feasibility, is_allow_non_convex, options)
+        function obj = MotionPrimitiveAutomaton(model, options)
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
             %   read as: rows are start trims and columns are end trims
             % N is the horizon length
-
+            
+            if options.isPB
+                nVeh_mpa = 1;
+            else
+                nVeh_mpa = options.amount;
+            end
             % path of the MPA
             [file_path,~,~] = fileparts(mfilename('fullpath'));
             folder_target = [file_path,filesep,'library'];
@@ -38,7 +43,7 @@ classdef MotionPrimitiveAutomaton
             end
 
             % for example: MPA_trims12_Hp6, MPA_trims12_Hp6_parl_non-convex
-            mpa_instance_name = FileNameConstructor.get_mpa_name(trim_ID,N,dt,options.isParl,is_allow_non_convex);
+            mpa_instance_name = FileNameConstructor.get_mpa_name(options);
 
             mpa_full_path = fullfile(folder_target,mpa_instance_name);
 
@@ -52,13 +57,13 @@ classdef MotionPrimitiveAutomaton
                 return
             end
 
-            obj.recursive_feasibility = recursive_feasibility;
+            obj.recursive_feasibility = options.recursive_feasibility;
                         
-            [trim_inputs, trim_adjacency] = choose_trims(trim_ID);
+            [trim_inputs, trim_adjacency] = choose_trims(options.trim_set);
             n_trims = length(trim_inputs);
             
-            obj.transition_matrix_single = zeros([size(trim_adjacency),N]);
-            obj.transition_matrix_single(:,:,:) = repmat(trim_adjacency,1,1,N);
+            obj.transition_matrix_single = zeros([size(trim_adjacency),options.Hp]);
+            obj.transition_matrix_single(:,:,:) = repmat(trim_adjacency,1,1,options.Hp);
 
             obj.transition_matrix_mean_speed = zeros(size(trim_adjacency));
 
@@ -89,7 +94,7 @@ classdef MotionPrimitiveAutomaton
             for i = 1:n_trims
                 for j = 1:n_trims
                     if obj.transition_matrix_single(i,j,1)
-                        obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), offset, dt, nTicks, is_allow_non_convex);
+                        obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), options);
                     end
                 end
                 obj.shortest_paths_to_max_speed{i,1} = get_shortest_path_to_max_speed(obj,i);
@@ -105,26 +110,26 @@ classdef MotionPrimitiveAutomaton
             obj.distance_to_equilibrium = distances(adj_trims,eq_states);
 
             % compute trim tuple (vertices)
-            trim_index_list = cell(nveh,1);
+            trim_index_list = cell(nVeh_mpa,1);
             [trim_index_list{:}] = deal(1:n_trims);
             obj.trim_tuple = cartprod(trim_index_list{:});
             
-            if recursive_feasibility
+            if options.recursive_feasibility
                 obj.transition_matrix_single = compute_time_varying_transition_matrix(obj);
             end
 
             % compute maneuver matrix for trimProduct
-            obj.transition_matrix = compute_product_maneuver_matrix(obj,nveh,N);
+            obj.transition_matrix = compute_product_maneuver_matrix(obj,nVeh_mpa,options.Hp);
             
             % variables to store reachable sets in different time steps
-            obj.local_reachable_sets = cell(n_trims,N);
-            obj.local_reachable_sets_conv = cell(n_trims,N);
+            obj.local_reachable_sets = cell(n_trims,options.Hp);
+            obj.local_reachable_sets_conv = cell(n_trims,options.Hp);
                 
             % For parallel computation, reachability analysis are used
             if options.isParl
                 is_calculate_reachable_sets_of_CP = false; % whether to calculate center point's reachable sets
                 [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP] = ...
-                    reachability_analysis_offline_DP(obj,N,is_calculate_reachable_sets_of_CP);
+                    reachability_analysis_offline_DP(obj,options.Hp,is_calculate_reachable_sets_of_CP);
             end
             
             save_mpa(obj,mpa_full_path); % save mpa to library

@@ -11,8 +11,8 @@ runtime_others_tic = tic;
     % construct the priority list
     computation_levels = length(groups); 
     
-    nVeh = scenario.nVeh; 
-    Hp = scenario.Hp;
+    nVeh = scenario.options.amount; 
+    Hp = scenario.options.Hp;
 
     % update properties of scenario
     scenario.directed_coupling = directed_adjacency;
@@ -48,7 +48,7 @@ runtime_others_tic = tic;
             predecessors = intersect(group.predecessors,veh_adjacent);
 
             % Filter out vehicles with lower or same priority.
-            priority_filter = false(1,scenario.nVeh);
+            priority_filter = false(1,scenario.options.amount);
             priority_filter(predecessors) = true; % keep all with higher priority
             priority_filter(vehicle_idx) = true; % keep self
             scenario_filtered = filter_scenario(scenario, priority_filter);
@@ -62,11 +62,11 @@ runtime_others_tic = tic;
             [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(predecessors,:));
             
             % add adjacent vehicles with lower priorities as static obstacles
-            if strcmp(scenario.priority_option, 'right_of_way_priority')
+            if strcmp(scenario.options.priority, 'right_of_way_priority')
                 adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
                 
                 % only two strategies are supported if parallel computation is not used
-                assert(any(strcmp(scenario_v.strategy_consider_veh_without_ROW,{'1','2','3'})))
+                assert(any(strcmp(scenario_v.options.strategy_consider_veh_without_ROW,{'1','2','3'})))
                 scenario_v = consider_vehs_with_LP(scenario_v, iter, adjacent_vehicle_lower_priority);
             end
 

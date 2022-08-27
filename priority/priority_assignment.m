@@ -1,6 +1,6 @@
 function [veh_at_intersection, groups, directed_adjacency, priority_list] = priority_assignment(scenario,iter)
     right_of_way = false;
-    switch scenario.priority_option
+    switch scenario.options.priority
         case 'topo_priority' 
             [groups, directed_adjacency, priority_list] = topo_priority().priority(scenario); 
             veh_at_intersection = [];

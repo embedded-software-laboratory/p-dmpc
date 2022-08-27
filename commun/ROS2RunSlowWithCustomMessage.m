@@ -5,7 +5,7 @@
 msgList = ros2("msg","list"); % get all ROS 2 message types
 
 % Custom message type
-custom_msg_type = "veh_msgs/Traffic";
+custom_msg_type = "test_a/TestB";
 if sum(cellfun(@(c)strcmp(c,custom_msg_type), msgList))==0
     % if the message type 'veh_msgs/Traffic' does not exist
     [file_path,~,~] = fileparts(mfilename('fullpath'));
@@ -14,6 +14,8 @@ if sum(cellfun(@(c)strcmp(c,custom_msg_type), msgList))==0
     disp('Generating ROS 2 custom message type...')
     try
         ros2genmsg(path_custom_msg)
+        addpath(fullfile(path_custom_msg,'matlab_msg_gen',computer('arch'),'install','m'));
+        savepath;
     catch ME
         disp(['If all environments for ros2genmsg() are prepared but it still failed, try to move the whole folder to a ' ...
             'shallower path and run again if you use Windows machine, which sadly has a maximum path limit constraint.'])
@@ -22,6 +24,7 @@ if sum(cellfun(@(c)strcmp(c,custom_msg_type), msgList))==0
 else
     disp('Message type already exists.')
 end
+
 
 %% A MWE to show that ROS 2 runs slow with custom message
 

@@ -3,24 +3,19 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
 
     scenario = Scenario();
 
+    options.recursive_feasibility = true;
     % read from optionos
     scenario.options = options; 
-    scenario.dt = options.dt;
-    scenario.trim_set = options.trim_set;
-    scenario.T_end = options.T_end;
-    scenario.Hp = options.Hp;
-    scenario.isParl = options.isParl;
-    scenario.max_num_CLs = options.max_num_CLs;
-    scenario.strategy_consider_veh_without_ROW = options.strategy_consider_veh_without_ROW;
-    scenario.strategy_enter_lanelet_crossing_area = options.strategy_enter_lanelet_crossing_area;
+    scenario.options.dt = options.dt;
+    scenario.options.trim_set = options.trim_set;
+    scenario.options.Hp = options.Hp;
 
-    scenario.is_allow_non_convex = true;
+    options.is_allow_non_convex = true;
 
     scenario.name = 'Commonroad';
-%     scenario.trim_set = 4;
-%     scenario.dt = 0.2;
-%     scenario.T_end = 20;
-%     scenario.Hp = 6;
+%     scenario.options.trim_set = 4;
+%     scenario.options.dt = 0.2;
+%     scenario.options.Hp = 6;
 
     % get road data
     road_data = RoadData().get_road_data();
@@ -92,18 +87,14 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
 %     scenario.vehicles(6).y_start = 2.075;
 %     scenario.vehicles(6).yaw_start = deg2rad(180);
 
-    scenario.plot_limits = [0,4.5;0,4];  
-    scenario.nVeh = nVeh;
+    scenario.options.plot_limits = [0,4.5;0,4];
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
-    nVeh_mpa = scenario.nVeh;
     
     scenario.name = options.scenario;
-    scenario.priority_option = options.priority;
     
     if options.isPB 
        scenario.adjacency = zeros(nVeh,nVeh);
        scenario.assignPrios = true;
-       nVeh_mpa = 1;
 
        if options.isParl
             % if parallel computation is used
@@ -115,19 +106,8 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
        end
     end
 
-    recursive_feasibility = true;
-    scenario.mpa = MotionPrimitiveAutomaton(...
-        scenario.model...
-        , scenario.trim_set...
-        , scenario.offset...
-        , scenario.dt...
-        , nVeh_mpa...
-        , scenario.Hp...
-        , scenario.tick_per_step...
-        , recursive_feasibility...
-        , scenario.is_allow_non_convex...
-        , options...
-    );
+    
+    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
 
     % initialize speed profile vector, currently 3 speed profiles are available
     scenario.speed_profile_mpas = [scenario.mpa, scenario.mpa, scenario.mpa];

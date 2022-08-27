@@ -30,7 +30,7 @@ classdef SimLab < InterfaceExperiment
             obj.visu.isShowWeight = false;              % is show coupling weights
             obj.visu.isShowHotkeyDescription = false;   % is show description of hotkeys
 
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
+            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
         end
         
         function keyPressCallback(obj, ~, eventdata)
@@ -97,7 +97,7 @@ classdef SimLab < InterfaceExperiment
         end
 
         function update(obj)
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
+            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
         end
         
         function [ x0, trim_indices ] = measure(obj, ~)
@@ -117,11 +117,11 @@ classdef SimLab < InterfaceExperiment
             end
             if obj.doOnlinePlot
                 % wait to simulate realtime plotting
-                pause(obj.scenario.dt-result.step_time(obj.k))
+                pause(obj.scenario.options.dt-result.step_time(obj.k))
 
                 % visualize time step
-%                 tick_now = obj.scenario.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
-                tick_now = 1; % plot of next time step. set to 1 for plot of current time step
+                tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
+%                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
                 plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
             else
                 % pause so that `keyPressCallback()` can be executed in time
@@ -144,7 +144,7 @@ classdef SimLab < InterfaceExperiment
                 disp('Aborted.');
                 got_stop = true;
             end
-            if  obj.k >= obj.scenario.k_end
+            if  obj.k >= obj.scenario.options.k_end
                 disp('Simulation will be stopped as the defined simulation duration is reached.')
                 got_stop = true;
             end
