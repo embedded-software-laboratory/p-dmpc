@@ -5,7 +5,7 @@ function [options, vehicle_ids] = eval_guided_mode(collisionAvoidanceMode)
     options.collisionAvoidanceMode = collisionAvoidanceMode;
     options.is_sim_lab = false;
     options.is_mixed_traffic = true;
-    options.scenario = 'Commonroad';
+    options.scenario_name = 'Commonroad';
 
     if collisionAvoidanceMode == 1
         vehicle_ids = [1,2,3,5,6,7,9,10,11,13,14,15];

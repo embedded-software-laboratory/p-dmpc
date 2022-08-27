@@ -160,7 +160,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 iter_filtered = filter_iter(iter, priority_filter);
 
                 self_index = sum(priority_filter(1:vehicle_idx));        
-                v2o_filter = true(1,scenario_filtered.nVeh);
+                v2o_filter = true(1,scenario_filtered.options.amount);
                 v2o_filter(self_index) = false;
 
                 % add predicted trajecotries of vehicles with higher priority as dynamic obstacle

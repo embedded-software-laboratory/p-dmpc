@@ -27,7 +27,7 @@ max_num_CLs_all = 1:10;
 load('options.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
-    options.scenario = 'Commonroad';
+    options.scenario_name = 'Commonroad';
     options.trim_set = 9;
     options.Hp = 5;
     options.dt = 0.2;
@@ -55,7 +55,7 @@ max_num_CLs_all = 1:10;
 load('options.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
-    options.scenario = 'Commonroad';
+    options.scenario_name = 'Commonroad';
     options.trim_set = 9;
     options.Hp = 5;
     options.dt = 0.2;
@@ -83,7 +83,7 @@ max_num_CLs_all = 4:4;
 load('options.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
-    options.scenario = 'Commonroad';
+    options.scenario_name = 'Commonroad';
     options.trim_set = 9;
     options.Hp = 5;
     options.dt = 0.2;
@@ -111,7 +111,7 @@ max_num_CLs_all = 1:10;
 load('options.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
-    options.scenario = 'Commonroad';
+    options.scenario_name = 'Commonroad';
     options.trim_set = 9;
     options.Hp = 5;
     options.dt = 0.2;
@@ -139,7 +139,7 @@ max_num_CLs_all = 1:10;
 load('options.mat','options')
 for i_CL = 1:length(max_num_CLs_all)
     options.customResultName = '';
-    options.scenario = 'Commonroad';
+    options.scenario_name = 'Commonroad';
     options.trim_set = 9;
     options.Hp = 5;
     options.dt = 0.2;

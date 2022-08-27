@@ -183,7 +183,7 @@ options.isParl = strcmp(isParl{isParl_option,2},'yes');
 options.angles = scenarios{vehicle_amount,2};
 options.amount = vehicle_amount;
 options.visu = possPlots{plot_option,3};
-options.scenario = scenarioName{scenario_option,2};
+options.scenario_name = scenarioName{scenario_option,2};
 options.priority = priorityAssignment{priority_option,2};
 
 

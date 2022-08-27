@@ -69,7 +69,7 @@ function scenario = intersection_scenario(options)
    
     nVeh_mpa = scenario.options.amount;
 
-    scenario.name = options.scenario;
+    scenario.name = options.scenario_name;
     
     if options.isPB
        scenario.adjacency = coupling_adjacency_lanelets(scenario.vehicle_to_lanelet, collision);
@@ -80,7 +80,6 @@ function scenario = intersection_scenario(options)
        nVeh_mpa = 1;
     end
 
-    recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
     
 end

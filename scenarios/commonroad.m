@@ -6,16 +6,10 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     options.recursive_feasibility = true;
     % read from optionos
     scenario.options = options; 
-    scenario.options.dt = options.dt;
-    scenario.options.trim_set = options.trim_set;
-    scenario.options.Hp = options.Hp;
 
     options.is_allow_non_convex = true;
 
     scenario.name = 'Commonroad';
-%     scenario.options.trim_set = 4;
-%     scenario.options.dt = 0.2;
-%     scenario.options.Hp = 6;
 
     % get road data
     road_data = RoadData().get_road_data();
@@ -90,7 +84,7 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     scenario.options.plot_limits = [0,4.5;0,4];
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     
-    scenario.name = options.scenario;
+    scenario.name = options.scenario_name;
     
     if options.isPB 
        scenario.adjacency = zeros(nVeh,nVeh);

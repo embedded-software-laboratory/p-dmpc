@@ -33,6 +33,10 @@ classdef FileNameConstructor
                 mpa_instance_name = [mpa_instance_name,'_non-convex'];
             end
 
+            if ~options.isPB
+                mpa_instance_name = [mpa_instance_name,'_centralized_nVeh' num2str(options.amount)];
+            end
+
             mpa_instance_name = [mpa_instance_name,'.mat'];
         end
 
@@ -87,7 +91,7 @@ classdef FileNameConstructor
                 results_name = options.customResultName;
             end
 
-            results_folder = strrep(strcat(options.scenario, '_', controller_name),' ','_');
+            results_folder = strrep(strcat(options.scenario_name, '_', controller_name),' ','_');
             results_name = [results_name, '.mat'];
 
             [file_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file

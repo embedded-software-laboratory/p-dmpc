@@ -55,7 +55,7 @@ runtime_others_tic = tic;
             iter_filtered = filter_iter(iter, priority_filter);
 
             self_index = sum(priority_filter(1:vehicle_idx));        
-            v2o_filter = true(1,scenario_filtered.nVeh);
+            v2o_filter = true(1,scenario_filtered.options.amount);
             v2o_filter(self_index) = false;
 
             % add predicted trajecotries of vehicles with higher priority as dynamic obstacle
@@ -90,7 +90,7 @@ runtime_others_tic = tic;
             else
                 info = store_control_info(info, info_v, scenario);
             end
-            info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
+            info.runtime_graph_search_each_veh(vehicle_idx) = toc(subcontroller_timer);
         end
 
     end

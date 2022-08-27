@@ -22,7 +22,9 @@ function [info,scenario] = centralized_controller(scenario, iter)
         info = store_control_info(info, info_v, scenario);
     end
 
-    info.subcontroller_runtime = toc(subcontroller_timer);
+    info.runtime_subcontroller_each_veh = toc(subcontroller_timer);
     % for centralize controller, all vehicles are in the same group
-    info.subcontroller_runtime_all_grps = info.subcontroller_runtime;
+    info.runtime_subcontroller_each_grp = info.runtime_subcontroller_each_veh;
+    info.runtime_subcontroller_max = info.runtime_subcontroller_each_veh;
+    info.runtime_graph_search_max = info.runtime_subcontroller_each_veh;
 end

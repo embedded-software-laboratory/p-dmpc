@@ -16,7 +16,7 @@ classdef OptionsMain
         amount          % integer, number of vehicles
         visu            % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
         isParl          % true/false, is use parallel computation
-        scenario        % one of the follows: {'Circle_scenario','Commonroad'}
+        scenario_name   % one of the follows: {'Circle_scenario','Commonroad'}
         priority        % one of the following: {'topo_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority'}, defines which priority assignmen strategy is used
         dt              % scalar, sample time
         Hp              % scalar, prediction horizon
@@ -81,7 +81,7 @@ classdef OptionsMain
             obj.amount = options.amount;
             obj.visu = options.visu;
             obj.isParl = options.isParl;
-            obj.scenario = options.scenario;
+            obj.scenario = options.scenario_name;
             obj.priority = options.priority;
             obj.dt = options.dt;
             obj.Hp = options.Hp;
@@ -129,7 +129,7 @@ end
 % options.amount = 3;
 % options.visu = [true,false];
 % options.isParl = false;
-% options.scenario = 'Commonroad';
+% options.scenario_name = 'Commonroad';
 % options.priority = 'right_of_way_priority';
 % options.dt = 0.2;
 % options.Hp = 5;

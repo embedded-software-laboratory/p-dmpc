@@ -22,7 +22,6 @@ function scenario = moving_obstacle_scenario()
     
     scenario.options.plot_limits = [-3.5,6.5;-1.5,1.5];
     
-    recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
 
     x1_obs = veh.x_start + 4;

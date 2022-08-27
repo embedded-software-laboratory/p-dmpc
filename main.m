@@ -133,14 +133,14 @@ end
 % scenario = circle_scenario(options.amount,options.isPB);
 % scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
  
-switch options.scenario
+switch options.scenario_name
     case 'Circle_scenario'
         scenario = circle_scenario(options);
     case 'Commonroad'
         scenario = commonroad(options, vehicle_ids, manualVehicle_id, manualVehicle_id2, is_sim_lab);  
 end
 scenario.random_seed = random_seed;
-scenario.name = options.scenario;
+scenario.name = options.scenario_name;
 scenario.manual_vehicle_id = manualVehicle_id;
 scenario.second_manual_vehicle_id = manualVehicle_id2;
 scenario.vehicle_ids = vehicle_ids;
@@ -402,7 +402,7 @@ while (~got_stop)
 
     result.runtime_subcontroller_max(k) = info.runtime_subcontroller_max;
     result.runtime_graph_search_max(k) = info.runtime_graph_search_max;
-    if options.isParl
+    if options.isParl && strcmp(scenario.options.scenario_name,'Commonroad')
         result.determine_couplings_time(k) = scenario.timer.determine_couplings;
         result.group_vehs_time(k) = scenario.timer.group_vehs;
         result.assign_priority_time(k) = scenario.timer.assign_priority;

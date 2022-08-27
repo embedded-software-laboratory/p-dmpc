@@ -51,6 +51,5 @@ function scenario = lanelet_scenario2(isPB)
        nVeh_mpa = 1;
     end
 
-    recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
 end

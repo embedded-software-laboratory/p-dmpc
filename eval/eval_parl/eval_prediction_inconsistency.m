@@ -5,7 +5,7 @@ options = OptionsMain;
 options.consider_RSS = false;
 options.is_sim_lab = true;
 options.customResultName = '';
-options.scenario = 'Commonroad';
+options.scenario_name = 'Commonroad';
 options.trim_set = 9;
 options.Hp = 6;
 

@@ -20,7 +20,6 @@ function scenario = horizon_obstacle_scenario(N, d_obstacle)
     
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     
-    recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
     
     scenario.name = sprintf( ...

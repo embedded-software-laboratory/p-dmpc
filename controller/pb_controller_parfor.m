@@ -70,7 +70,7 @@ function [u, y_pred, info] = pb_controller_parl_backup(scenario, iter)
     
                 self_index = sum(priority_filter(1:vehicle_idx)); % why 1:vehicle_idx?
                 self_index = sum(priority_filter);  
-                v2o_filter = true(1,scenario_filtered.nVeh);
+                v2o_filter = true(1,scenario_filtered.options.amount);
                 v2o_filter(self_index) = false;
     
                 % add predicted trajecotries as obstacle

@@ -1,6 +1,8 @@
 function scenario = circle_scenario(options)
 % CIRCLE_SCENARIO   Constructor for scenario with vehicles circular arranged heading to the center of the circle.
     options.is_allow_non_convex = false;
+    options.recursive_feasibility = true;
+    
     if options.amount <= 2
         options.plot_limits = [-0.5,5;1.5,2.5];
     else
@@ -9,9 +11,6 @@ function scenario = circle_scenario(options)
     scenario = Scenario();
     % read from optionos
     scenario.options = options; 
-    scenario.options.dt = options.dt;
-    scenario.options.trim_set = options.trim_set;
-    scenario.options.Hp = options.Hp;
 
     radius = 2;
     nVeh = options.amount;
@@ -49,9 +48,7 @@ function scenario = circle_scenario(options)
 
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
 
-    scenario.name = options.scenario;
-   
-    nVeh_mpa = scenario.options.amount;
+    scenario.name = options.scenario_name;
     
     if options.isPB
         % undirected coupling adjacency is complete
@@ -63,8 +60,6 @@ function scenario = circle_scenario(options)
        end
        scenario.controller_name = strcat(scenario.controller_name, '-PB');
        scenario.controller = @(s,i) pb_controller(s,i);
-
-       nVeh_mpa = 1;
     else
         % no coupling?
         scenario.adjacency = zeros(nVeh,nVeh);
@@ -73,6 +68,5 @@ function scenario = circle_scenario(options)
         scenario.priority_list = ones(1,nVeh);
     end
 
-    recursive_feasibility = true;
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
 end
