@@ -92,6 +92,10 @@ CT_determine_couplings = cellfun(@(c) c.runtime_determine_couplings, e_CLs);
 % CT_determine_couplings = average_random_simulations(CT_determine_couplings);
 CT_determine_couplings = max(CT_determine_couplings,[],1);
 
+CT_determine_couplings_average = cellfun(@(c) c.runtime_determine_couplings_average, e_CLs);
+% CT_determine_couplings = average_random_simulations(CT_determine_couplings);
+CT_determine_couplings_average = max(CT_determine_couplings_average,[],1);
+
 CT_assign_priority = cellfun(@(c) c.runtime_assign_priority, e_CLs);
 % CT_assign_priority = average_random_simulations(CT_assign_priority);
 CT_assign_priority = max(CT_assign_priority,[],1);
@@ -99,6 +103,9 @@ CT_assign_priority = max(CT_assign_priority,[],1);
 CT_graph_search = cellfun(@(c) c.runtime_graph_search, e_CLs);
 % CT_graph_search = average_random_simulations(CT_graph_search);
 CT_graph_search = max(CT_graph_search,[],1);
+CT_graph_search_average = cellfun(@(c) c.runtime_graph_search_average, e_CLs);
+% CT_graph_search = average_random_simulations(CT_graph_search);
+CT_graph_search_average = max(CT_graph_search_average,[],1);
 
 CT_total_each_step_tmp = cellfun(@(c) c.runtime_total_per_step, e_CLs, 'UniformOutput',false);
 CT_total_each_step = cell(1,length(max_num_CLs_all));
@@ -137,6 +144,11 @@ fallback_rate = average_random_simulations(fallback_rate);
 % average speed
 speed_average = cellfun(@(c) c.average_speed, e_CLs);
 speed_average = average_random_simulations(speed_average);
+speed_max = cellfun(@(c) c.max_speed, e_CLs);
+speed_max = average_random_simulations(speed_max);
+speed_min = cellfun(@(c) c.min_speed, e_CLs);
+speed_min = average_random_simulations(speed_min);
+
 
 speed_each_veh_tmp = cellfun(@(c) c.average_speed_each_veh, e_CLs, 'UniformOutput',false);
 speed_each_veh = cell(1,length(max_num_CLs_all));
@@ -145,78 +157,93 @@ for i = 1:size(speed_each_veh_tmp,2)
 end
 grp_speed_each_veh = cell2mat(arrayfun(@(i){i*ones(numel(speed_each_veh{i}),1)},(1:numel(speed_each_veh))')); 
 
-clear plot_line_options
-plot_line_options(1) = struct('LineWidth',0.5,'Color','#A2142F','LineStyle','-','Marker','*','MarkerSize',4);
-plot_line_options(2) = struct('LineWidth',0.5,'Color','#7E2F8E','LineStyle','-','Marker','^','MarkerSize',4);
-plot_line_options(3) = struct('LineWidth',0.5,'Color','#0072BD','LineStyle','-','Marker','o','MarkerSize',4);
-plot_line_options(4) = struct('LineWidth',0.5,'Color','#D95319','LineStyle','-','Marker','v','MarkerSize',4);
-plot_line_options(5) = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','-','Marker','s','MarkerSize',4);
-plot_line_options(6) = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-','Marker','d','MarkerSize',4);
+plot_line_options = {};
+plot_line_options{1}{1} = struct('LineWidth',0.5,'Color','#A2142F','LineStyle','-','Marker','*','MarkerSize',4); % average
+plot_line_options{1}{2} = struct('LineWidth',0.5,'Color','#A2142F','LineStyle','-.','Marker','*','MarkerSize',4);% maximum
+plot_line_options{2}{1} = struct('LineWidth',0.5,'Color','#7E2F8E','LineStyle','-','Marker','^','MarkerSize',4);
+plot_line_options{2}{2} = struct('LineWidth',0.5,'Color','#7E2F8E','LineStyle','-.','Marker','^','MarkerSize',4);
+plot_line_options{3}{1} = struct('LineWidth',0.5,'Color','#0072BD','LineStyle','-','Marker','o','MarkerSize',4);
+plot_line_options{3}{2} = struct('LineWidth',0.5,'Color','#0072BD','LineStyle','-.','Marker','o','MarkerSize',4);
+plot_line_options{4}{1} = struct('LineWidth',0.5,'Color','#D95319','LineStyle','-','Marker','v','MarkerSize',4);
+plot_line_options{4}{2} = struct('LineWidth',0.5,'Color','#D95319','LineStyle','-.','Marker','v','MarkerSize',4);
+plot_line_options{5}{1} = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','-','Marker','s','MarkerSize',4);
+plot_line_options{5}{2} = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','-.','Marker','s','MarkerSize',4);
+plot_line_options{6}{1} = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-','Marker','d','MarkerSize',4);
+plot_line_options{6}{2} = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-.','Marker','d','MarkerSize',4);
 
-fig_x = 12.5;     fig_y = 10; % [cm]
+fig_x = 10;     fig_y = 13; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
 
-file_name = 'evalAllowedNumberOfCLs';
+file_name = 'evalCLs';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
     'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
 
-t_fig = tiledlayout(2,3,'Padding','loose','TileSpacing','compact');
+t_fig = tiledlayout(3,2,'Padding','compact','TileSpacing','compact');
 
 % plot computation time
 nexttile(1,[2,1])
 grid on
 hold on
-p(1) = plot(categorical(max_num_CLs_all),CT_total_max,plot_line_options(1));
-p(2) = plot(categorical(max_num_CLs_all),CT_total_average,plot_line_options(2));
-p(3) = plot(categorical(max_num_CLs_all),CT_graph_search,plot_line_options(3));
-p(4) = plot(categorical(max_num_CLs_all),CT_assign_priority,plot_line_options(4));
-p(5) = plot(categorical(max_num_CLs_all),CT_determine_couplings,plot_line_options(5));
-p(6) = plot(categorical(max_num_CLs_all),CT_group_vehs,plot_line_options(6));
+clear p
+p(1) = plot(categorical(max_num_CLs_all),CT_total_max,plot_line_options{1}{2});
+p(2) = plot(categorical(max_num_CLs_all),CT_total_average,plot_line_options{1}{1});
+p(3) = plot(categorical(max_num_CLs_all),CT_graph_search,plot_line_options{2}{2});
+p(4) = plot(categorical(max_num_CLs_all),CT_graph_search_average,plot_line_options{2}{1});
+% p(4) = plot(categorical(max_num_CLs_all),CT_assign_priority,plot_line_options(4));
+p(5) = plot(categorical(max_num_CLs_all),CT_determine_couplings,plot_line_options{3}{2});
+p(6) = plot(categorical(max_num_CLs_all),CT_determine_couplings_average,plot_line_options{3}{1});
+% p(6) = plot(categorical(max_num_CLs_all),CT_group_vehs,plot_line_options(6));
 % plot line indicating the sample time 
 p(7) = yline(options.dt,'--b','LineWidth',0.5);
-ylim([0,0.25])
-legend(p,{'Total (max.)','Total (avg.)','Trajectory planning (max.)','Priority assignment (max.)','Coupling determination (max.)','Vehicle grouping (max.)','Sample time'},'Location','northoutside')
-xlabel({'$n_{CLs}$','(a) Computation time per step.'},'Interpreter','latex');
+ylim([0,0.3])
+legend(p,{'Total (max.)','Total (avg.)','Trajectory (max.)','Trajectory (avg.)', ...
+    'Coupling (max.)','Coupling (avg.)','Sample time'},'FontSize',7,'Location','best');
+
+xlabel({'(a) Computation time per step.'},'Interpreter','latex');
 ylabel('$t_c\:[s]$','Interpreter','latex')
 
+% average number of couplings
+nexttile(2,[2,1])
+grid on
+hold on
+clear c
+c(1) = plot(categorical(max_num_CLs_all),num_couplings,plot_line_options{1}{1});
+c(2) = plot(categorical(max_num_CLs_all),num_couplings_ignored,plot_line_options{1}{2});
+c(3) = plot(categorical(max_num_CLs_all),num_couplings_between_grps,plot_line_options{2}{1});
+c(4) = plot(categorical(max_num_CLs_all),num_couplings_between_grps_ignored,plot_line_options{2}{2});
+legend(c,{'Total','Ignored (total)','Between groups','Ignored (between g.)'},'FontSize',7,'Location','south')
+xlabel({'(b) Number of couplings.'},'Interpreter','latex')
+ylabel('$\overline{n}_{c}$','Interpreter','latex')
+
 % maximum allowed and actual number of computation levels
-nexttile(2)
+nexttile(5)
 grid on 
 hold on
-p_CLs(1) = plot(categorical(max_num_CLs_all),max_num_CLs_all,plot_line_options(1));
-p_CLs(2) = plot(categorical(max_num_CLs_all),CLs_num_max,plot_line_options(5));
-legend(p_CLs,{'Allowed','Actual (max.)'},'Location','northoutside')
-xlabel({'(b) Actual computation levels.'},'Interpreter','latex');
+p_CLs(1) = plot(categorical(max_num_CLs_all),max_num_CLs_all,plot_line_options{1}{1});
+p_CLs(2) = plot(categorical(max_num_CLs_all),CLs_num_max,plot_line_options{2}{1});
+legend(p_CLs,{'Allowed','Actual'},'FontSize',7,'Location','best')
+xlabel({'$n_{CLs}$','(c) Computation levels.'},'Interpreter','latex');
 ylabel('$n_{CLs}$','Interpreter','latex')
 
 % average speed
-nexttile(5)
+nexttile(6)
 grid on
 hold on
-p_average_speed = plot(categorical(max_num_CLs_all),speed_average,plot_line_options(2));
+clear p_speed
+p_speed(1) = plot(categorical(max_num_CLs_all),speed_average,plot_line_options{1}{1});
 free_flow_speed_i = free_flow_speed.free_flow_speed(free_flow_speed.sample_time==options.dt);
-y_line_FFS = yline(free_flow_speed_i,'--b','LineWidth',0.5);
-legend([y_line_FFS,p_average_speed],{'Free-flow','Average'},'FontSize',5,'Location','best','Interpreter','latex')
+p_speed(2) = yline(free_flow_speed_i,'--b','LineWidth',0.5);
+legend(p_speed,{'Average','Free-flow'},'FontSize',7,'Location','layout','Interpreter','latex')
 
-xlabel({'$n_{CLs}$','(c) Average speed.'},'Interpreter','latex')
+xlabel({'$n_{CLs}$','(d) Average speed.'},'Interpreter','latex')
 ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
-ylim([0.5,0.775])
+ylim([0.55,0.75])
 
-% average number of couplings
-nexttile(3,[2,1])
-grid on
-hold on
-c(1) = plot(categorical(max_num_CLs_all),num_couplings,plot_line_options(1));
-c(2) = plot(categorical(max_num_CLs_all),num_couplings_ignored,plot_line_options(2));
-c(3) = plot(categorical(max_num_CLs_all),num_couplings_between_grps,plot_line_options(3));
-c(4) = plot(categorical(max_num_CLs_all),num_couplings_between_grps_ignored,plot_line_options(4));
-legend(c,{'Total','Ignored couplings','Couplings between groups','Ignored couplings between groups'},'Location','northoutside')
-xlabel({'$n_{CLs}$','(d) Average number of couplings.'},'Interpreter','latex')
-ylabel('$\overline{n}_{c}$','Interpreter','latex')
+
 
 % plot fallback rate 
 % nexttile
@@ -225,7 +252,7 @@ ylabel('$\overline{n}_{c}$','Interpreter','latex')
 % plot(categorical(max_num_CLs_all),fallback_rate,'-*k','LineWidth',0.5,'MarkerSize',4) 
 % ylim([0,3])
 % xlabel({'$n_{CLs}$','(c) Fallback rate.'},'Interpreter','latex')
-% ylabel('$p_{FB}\:[\%]$','Interpreter','latex')
+% ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 
 % save fig
 e_CLs{1}.save_fig(fig,file_name)

@@ -1,7 +1,6 @@
 %% Evaluate the vehicle prioritizing algorithm: maximum number of vehicles
 priority_assign_options = {'right_of_way_priority','random_priority','constant_priority'};
 
-
 % prepare simulation options
 options = OptionsMain;
 options.consider_RSS = false;
@@ -66,8 +65,8 @@ disp('--------Finished--------')
 %% Plot
 set(0,'DefaultTextFontname', 'Times New Roman');
 set(0,'DefaultAxesFontName', 'Times New Roman');
-set(0,'DefaultTextFontSize',9)
-set(0,'DefaultAxesFontSize',9)
+set(0,'defaultTextFontSize',11)
+set(0,'defaultAxesFontSize',11)
 
 nVeh_s = cellfun(@(c) c.nVeh, e_differentNumVehs);
 speed_average_s = cellfun(@(c) c.average_speed, e_differentNumVehs);
@@ -124,7 +123,7 @@ plot_line_options(6) = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-',
 
 
 
-fig_x = 6;     fig_y = 10; % [cm]
+fig_x = 8;     fig_y = 12; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
@@ -135,11 +134,12 @@ set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
     'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
 
-t_fig = tiledlayout(3,1,'Padding','compact','TileSpacing','compact');
+t_fig = tiledlayout(2,1,'Padding','compact','TileSpacing','compact');
 X_string = {'STAC-based','Random','Constant'};
 X_cat = categorical(X_string);
 X_cat = reordercats(X_cat,X_string);
 
+% maximum controllable vehicles
 nexttile
 b1 = bar(X_cat,nVeh_s);
 grid on
@@ -152,40 +152,41 @@ ylabel('$n_{veh}^{max}$','Interpreter','latex')
 ylim([0 48])
 xtickangle(0)
 
+% average speed
 nexttile
 b2 = bar(X_cat,[speed_average_s,speed_sum_s]);
 grid on
 xtips1 = b2(1).XEndPoints;
 ytips1 = b2(1).YEndPoints;
 labels1 = string(round(b2(1).YData,2));
-text(xtips1-0.03,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
+text(xtips1,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
 xtips2 = b2(2).XEndPoints;
 ytips2 = b2(2).YEndPoints;
 labels2 = string(round(b2(2).YData,2));
 text(xtips2,ytips2,labels2,'HorizontalAlignment','center','VerticalAlignment','bottom')
 xlabel('(b). Average speed and sum of speeds.')
-ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
+ylabel('$\overline{v},v_{sum}\:[m/s]$','Interpreter','latex')
 legend({'Average','Sum'},'Location','northeast')
-ylim([0 27])
+ylim([0 25])
 xtickangle(0)
 
-% plot computation time
-nexttile
-b3 = bar(X_cat,[CT_total_average,CT_total_max]);
-grid on
-xtips1 = b3(1).XEndPoints;
-ytips1 = b3(1).YEndPoints;
-labels1 = string(round(b3(1).YData,2));
-text(xtips1-0.03,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
-xtips2 = b3(2).XEndPoints;
-ytips2 = b3(2).YEndPoints;
-labels2 = string(round(b3(2).YData,2));
-text(xtips2,ytips2,labels2,'HorizontalAlignment','center','VerticalAlignment','bottom')
-legend({'Average','Maximum'},'Location','northeast')
-xlabel({'(c) Total computation time per step.'},'Interpreter','latex');
-ylabel('$t_c\:[s]$','Interpreter','latex')
-ylim([0,0.42])
-xtickangle(0)
+% % plot computation time
+% nexttile
+% b3 = bar(X_cat,[CT_total_average,CT_total_max]);
+% grid on
+% xtips1 = b3(1).XEndPoints;
+% ytips1 = b3(1).YEndPoints;
+% labels1 = string(round(b3(1).YData,2));
+% text(xtips1-0.03,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
+% xtips2 = b3(2).XEndPoints;
+% ytips2 = b3(2).YEndPoints;
+% labels2 = string(round(b3(2).YData,2));
+% text(xtips2,ytips2,labels2,'HorizontalAlignment','center','VerticalAlignment','bottom')
+% legend({'Average','Maximum'},'Location','northeast')
+% xlabel({'(c) Total computation time per step.'},'Interpreter','latex');
+% ylabel('$t_c\:[s]$','Interpreter','latex')
+% ylim([0,0.42])
+% xtickangle(0)
 % title(t_fig,'Allowed number of computation levels: 3','FontSize',9,'FontName','Times New Roman')
 % xlabel(t_fig,{'Priority Assignment Strategies'},'FontSize',9,'FontName','Times New Roman')
 
@@ -250,8 +251,8 @@ disp('--------Finished--------')
 %% Plot
 set(0,'DefaultTextFontname', 'Times New Roman');
 set(0,'DefaultAxesFontName', 'Times New Roman');
-set(0,'defaultTextFontSize',9)
-set(0,'defaultAxesFontSize',9)
+set(0,'defaultTextFontSize',11)
+set(0,'defaultAxesFontSize',11)
 
 speed_average_s = cellfun(@(c) c.average_speed_each_veh, e_sameNumVehs, 'UniformOutput', false);
 grp_speed = cell2mat(arrayfun(@(i){i*ones(numel(speed_average_s{i}),1)},(1:numel(speed_average_s))')); 
@@ -262,7 +263,7 @@ grp_computation_time = cell2mat(arrayfun(@(i){i*ones(numel(computation_time_s{i}
 
 fallback_rate_s = cellfun(@(c) c.fallback_rate, e_sameNumVehs);
 
-fig_x = 5.5;     fig_y = 5; % [cm]
+fig_x = 8;     fig_y = 8; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;

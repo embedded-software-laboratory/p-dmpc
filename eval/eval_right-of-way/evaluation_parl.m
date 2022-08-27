@@ -297,8 +297,8 @@ end
 %%
 set(0,'DefaultTextFontname', 'Times New Roman');
 set(0,'DefaultAxesFontName', 'Times New Roman');
-set(0,'defaultTextFontSize',9)
-set(0,'defaultAxesFontSize',9)
+set(0,'defaultTextFontSize',11)
+set(0,'defaultAxesFontSize',11)
 label_options = {'FontSize',9,'FontName','Times New Roman','Interpreter','latex'};
 runtime_s = cellfun(@(c) c.runtime_total_per_step, evaluations, 'UniformOutput',false);
 runtime_average = cellfun(@(c) c.runtime_average, evaluations);

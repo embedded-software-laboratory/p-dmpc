@@ -172,15 +172,29 @@ load('MPA_trims9_Hp5_T0.2_parl_non-convex.mat','mpa')
 set(0,'DefaultTextFontname', 'Times New Roman');
 set(0,'DefaultAxesFontName', 'Times New Roman');
 
-set(0,'DefaultTextFontsize', 9)
-set(0,'DefaultAxesFontsize', 9)
+set(0,'DefaultTextFontsize',11)
+set(0,'DefaultAxesFontsize',11)
 
+options_trim_cur = struct('LineWidth',0.5,'Color',[0.4660 0.6740 0.1880],'LineStyle','-');
+options_trim_cur_local = struct('LineWidth',0.5,'Color',[0.4660 0.6740 0.1880],'LineStyle','--');
+options_trim_next = struct('LineWidth',0.5,'Color',[0 0.4470 0.7410],'LineStyle','-');
+options_trim_next_local = struct('LineWidth',0.5,'Color',[0 0.4470 0.7410],'LineStyle','--');
+options_transition = struct('LineWidth',0.5,'Color',[0.6350 0.0780 0.1840],'LineStyle','-');
+options_transition_local = struct('LineWidth',0.5,'Color',[0.6350 0.0780 0.1840],'LineStyle','--');
+options_motion_primitive = struct('LineWidth',1,'Color',[0.4940 0.1840 0.5560],'LineStyle','-');
+options_motion_primitive_local = struct('LineWidth',1,'Color',[0.4940 0.1840 0.5560],'LineStyle',':');
+fig_x = 16;     fig_y = 5.5; % [cm]
+x_margin = 0;   y_margin = 0; 
+fig_x_position = fig_x - 2*x_margin;
+fig_y_position = fig_y - 2*y_margin;
 
+file_name = 'motionPrimitives';
+fig = figure('Name',file_name);
+set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
+set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
+    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
 
-figure
-hold on
-grid on
-axis equal
+t_fig = tiledlayout(1,1,'Padding','loose','TileSpacing','loose');
 
 xlabel('$x\:[m]$','Interpreter','latex');
 ylabel('$y\:[m]$','Interpreter','latex');
@@ -192,23 +206,49 @@ m = mpa.maneuvers{trim_initial,trim_next};
 
 offset = 0.01;
 
-area_initial_local = transformedRectangle(0,0,0,veh.Length+2*offset,veh.Width+2*offset);
+area_initial_local = transformedRectangle(0,0,0,veh.Length,veh.Width);
 area_initial_local = [area_initial_local,area_initial_local(:,1)]; % close shape
-area_next_local = transformedRectangle(m.dx,m.dy,m.dyaw, veh.Length+2*offset,veh.Width+2*offset);
+area_initial_local_with_offset = transformedRectangle(0,0,0,veh.Length+2*offset,veh.Width+2*offset);
+area_initial_local_with_offset = [area_initial_local_with_offset,area_initial_local_with_offset(:,1)]; % close shape
+area_next_local = transformedRectangle(m.dx,m.dy,m.dyaw, veh.Length,veh.Width);
 area_next_local = [area_next_local,area_next_local(:,1)]; % close shape
+area_next_local_with_offset = transformedRectangle(m.dx,m.dy,m.dyaw, veh.Length+2*offset,veh.Width+2*offset);
+area_next_local_with_offset = [area_next_local_with_offset,area_next_local_with_offset(:,1)]; % close shape
 
-p(1) = plot(area_initial_local(1,:),area_initial_local(2,:),'LineWidth',0.2,'Color','r','LineStyle','--');
-p(2) = plot(area_next_local(1,:),area_next_local(2,:),'LineWidth',0.2,'Color','b','LineStyle','--');
-p(3) = plot(m.area(1,:),m.area(2,:),'LineWidth',0.4,'Color','g','LineStyle','-.');
+hold on
+grid on
+axis equal
+box on
+clear p
+arrow_length = 0.2;
+quiver(0,0,0.2,0,'AutoScale','off','MaxHeadSize',0.5,'LineWidth',0.5,'Color',[0.4660 0.6740 0.1880],'LineStyle','--');
+quiver(m.dx,m.dy,arrow_length*cos(m.dyaw),arrow_length*sin(m.dyaw),'AutoScale','off','MaxHeadSize',0.5,'LineWidth',0.5,'Color',[0 0.4470 0.7410],'LineStyle','--');
 
-initial_states = [0.4,0.2,pi/4];
-area_initial_global = transformedRectangle(initial_states(1),initial_states(2),initial_states(3),veh.Length+2*offset,veh.Width+2*offset);
+p(1) = plot(area_initial_local(1,:),area_initial_local(2,:),options_trim_cur_local);
+p(2) = plot(area_next_local(1,:),area_next_local(2,:),options_trim_next_local);
+p(3) = plot(m.xs,m.ys,options_motion_primitive_local);
+p(4) = plot(m.area(1,:),m.area(2,:),options_transition_local);
+plot(m.area_without_offset(1,:),m.area_without_offset(2,:),options_transition_local);
+
+initial_states = [0.6,-0.2,pi/4];
+area_initial_global = transformedRectangle(initial_states(1),initial_states(2),initial_states(3),veh.Length,veh.Width);
 area_initial_global = [area_initial_global,area_initial_global(:,1)]; % close shape
-
-p(4) = plot(area_initial_global(1,:),area_initial_global(2,:),'LineWidth',0.2,'Color','r','LineStyle','-.');
+[area_next_global_x,area_next_global_y] = translate_global(initial_states(3),initial_states(1),initial_states(2),area_next_local(1,:),area_next_local(2,:));
+[MP_global_x,MP_global_y] = translate_global(initial_states(3),initial_states(1),initial_states(2),m.xs,m.ys);
+MP_global_yaw = m.yaws + initial_states(3);
+quiver(initial_states(1),initial_states(2),0.2*cos(initial_states(3)),0.2*sin(initial_states(3)),'AutoScale','off','MaxHeadSize',0.5,'LineWidth',0.5,'Color',[0.4660 0.6740 0.1880]);
+quiver(MP_global_x(end),MP_global_y(end),0.2*cos(MP_global_yaw(end)),0.2*sin(MP_global_yaw(end)),'AutoScale','off','MaxHeadSize',0.5,'LineWidth',0.5,'Color',[0 0.4470 0.7410]);
+p(5) = plot(area_initial_global(1,:),area_initial_global(2,:),options_trim_cur);
+p(6) = plot(area_next_global_x,area_next_global_y,options_trim_next);
 [area_trans_x, area_trans_y] = translate_global(initial_states(3),initial_states(1),initial_states(2),m.area(1,:),m.area(2,:));
 area_trans = [area_trans_x;area_trans_y];
-p(5) = plot(area_trans_x,area_trans_y,'LineWidth',0.2,'Color','g','LineStyle','-');
+p(7) = plot(MP_global_x,MP_global_y,options_motion_primitive);
+p(8) = plot(area_trans_x,area_trans_y,options_transition);
 
-p(6) = quiver(initial_states(1),initial_states(2),0.2*sin(initial_states(3)),0.2*cos(initial_states(3)),'AutoScale','off','LineWidth',0.2,'Color','r');
-legend(p,{'Trim 8 (local)','Trim 9 (local)','Transition from trim 8 to 9 (local)','Initial position','Transition from trim 8 to 9','Yaw angle'},'Location','northwest')
+legend(p,{'Vehicle at trim 8 (local)','Vehicle at trim 9 (local)','Motion primitive from trim 8 to 9','Occupied set of the motion primitive', ...
+    'Vehicle at trim 8 (global)','Vehicle at trim 9 (global)','Translated motion primitive','Translated occupied set'},'Location','westoutside','Interpreter','latex')
+
+xlim([-0.2 0.9])
+ylim([-0.4 0.2])
+EvaluationParl.save_fig(fig,file_name)
+%% visualize local reachable sets

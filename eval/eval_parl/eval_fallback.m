@@ -1,6 +1,6 @@
 %% Generate data: local/global/no fallback
 fallback_types = {'localFallback','globalFallback','noFallback'};
-nVeh_s = 20:5:40;
+nVeh_s = 20:2:40;
 
 % prepare simulation options
 options = OptionsMain;
@@ -9,7 +9,7 @@ options.is_sim_lab = true;
 options.customResultName = '';
 options.scenario = 'Commonroad';
 options.trim_set = 9;
-options.Hp = 5;
+options.Hp = 6;
 
 options.T_end = 300;
 options.dt = 0.2;
@@ -17,7 +17,7 @@ options.max_num_CLs = 3;
 options.priority = 'right_of_way_priority';
 options.isPB = true;
 options.isParl = true;
-options.isAllowInheritROW = true;
+options.isAllowInheritROW = false;
 options.isSaveResult = true;
 options.isSaveResultReduced = false;
 options.visu = [false,false];
@@ -27,7 +27,7 @@ options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '4';
 
 % Random choose different vehicles three times
-random_times = 1;
+random_times = 3;
 e_fallback_strategies = cell(length(fallback_types)*random_times,length(nVeh_s));
 n_simulations = numel(e_fallback_strategies);
 count = 0;
@@ -37,10 +37,10 @@ for iFallback = 1:length(fallback_types)
         options.fallback_type = fallback_types{iFallback};
         options.amount = nVeh_s(iVeh);
 
-        rng(options.amount)
+        random_seed = RandStream('mt19937ar');
         for iRandom=1:random_times
             options.random_idx =  iRandom;
-            options.veh_ids = sort(randperm(40,options.amount));
+            options.veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
     
             full_path = FileNameConstructor.get_results_full_path(options);
             if isfile(full_path)
@@ -67,8 +67,8 @@ disp('--------Finished--------')
 %% Plot
 set(0,'DefaultTextFontname', 'Times New Roman');
 set(0,'DefaultAxesFontName', 'Times New Roman');
-set(0,'defaultTextFontSize',9)
-set(0,'defaultAxesFontSize',9)
+set(0,'defaultTextFontSize',11)
+set(0,'defaultAxesFontSize',11)
 
 average_random_simulations = @(data) reshape(mean(reshape(data,random_times,[]),1),length(fallback_types),[]);
 
@@ -99,7 +99,7 @@ fallback_rate = average_random_simulations(fallback_rate);
 speed_average = cellfun(@(c) c.average_speed, e_fallback_strategies);
 speed_average = average_random_simulations(speed_average);
 
-fig_x = 13;     fig_y = 6; % [cm]
+fig_x = 8;     fig_y = 10; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
@@ -115,8 +115,7 @@ set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
     'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
 
-legend_ = {'local fallback','global fallback','no fallback'};
-t_fig = tiledlayout(1,3,'Padding','tight','TileSpacing','tight');
+t_fig = tiledlayout(3,1,'Padding','compact','TileSpacing','tight');
 
 % total run time
 nexttile
@@ -125,10 +124,10 @@ hold on
 plot(nVeh_s,t_total(2,:),plot_options_globalFB);
 plot(nVeh_s,t_total(3,:),plot_options_noFB);
 grid on
-xlabel({'$n_{veh}$','(a). Maximum runtime.'},'Interpreter','latex')
+xlabel({'(a). Maximum runtime.'},'Interpreter','latex')
 ylabel('$t_{max}\:[s]$','Interpreter','latex')
 xlim([min(nVeh_s) max(nVeh_s)])
-% xticks(nVeh_s)
+xticks(nVeh_s)
 
 % average speed
 nexttile
@@ -137,10 +136,12 @@ hold on
 plot(nVeh_s,speed_average(2,:),plot_options_globalFB);
 plot(nVeh_s,speed_average(3,:),plot_options_noFB);
 grid on
-legend(legend_,'Orientation','horizontal','Location','northoutside')
-xlabel({'$n_{veh}$','(b). Average speed of all vehicles.'},'Interpreter','latex')
+l = legend({'Local fallback','Global fallback','Fallback not allowed'},'Orientation','horizontal','NumColumns',2);
+l.Layout.Tile = 'north';
+xlabel({'(b). Average speed of all vehicles.'},'Interpreter','latex')
 ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
 xlim([min(nVeh_s) max(nVeh_s)])
+xticks(nVeh_s)
 
 % fallback rate
 nexttile
@@ -149,9 +150,10 @@ hold on
 plot(nVeh_s,fallback_rate(2,:),plot_options_globalFB);
 plot(nVeh_s,fallback_rate(3,:),plot_options_noFB);
 grid on
-xlabel({'$n_{veh}$','(c). Fallback rate.'},'Interpreter','latex')
-ylabel('$p_{FR}\:[\%]$','Interpreter','latex')
+xlabel({'$n_{veh}$','(c). Average fallback rate.'},'Interpreter','latex')
+ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 xlim([min(nVeh_s) max(nVeh_s)])
+xticks(nVeh_s)
 
 % xlabel(t_fig,'Compare different fallback strategies','FontSize',9,'FontName','Times New Roman')
 % save fig

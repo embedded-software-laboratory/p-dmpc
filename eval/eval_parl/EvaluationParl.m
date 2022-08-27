@@ -3,29 +3,35 @@ classdef EvaluationParl
     %   Detailed explanation goes here
     
     properties
-        options
-        nVeh        % number of vehicles
-        nSteps      % number of time steps
-        dt          % sample time
-        t_total     % total running time
+        options             % simulation options
+        nVeh                % number of vehicles
+        nSteps              % number of time steps
+        dt                  % sample time
+        t_total             % total running time
         results_full_path   % path where the results are stored
         
-        path_tracking_errors_MAE % mean absolute error
+        path_tracking_errors_MAE    % mean absolute error
         path_tracking_error_average % average path tracking error
 
-        nodes_expanded_per_step % expanded nodes when graph searching
-        nodes_expanded_average % expanded nodes average over steps
+        nodes_expanded_per_step     % expanded nodes when graph searching
+        nodes_expanded_average      % expanded nodes average over steps
         
-        runtime_determine_couplings % runtime of determination of couplings (note that the runtime of reachability analysis is included) 
-        runtime_assign_priority % runtime of assignment of priorities
-        runtime_group_vehs % runtime of grouping vehicles
-        runtime_graph_search % runtime of graph search
-        runtime_total_per_step % total runtime per step
-        runtime_total_average % average runtime
-        runtime_max % average of maximum top n runtime
+        runtime_determine_couplings         % runtime of determination of couplings (note that the runtime of reachability analysis is included) 
+        runtime_determine_couplings_average % average runtime of determination of couplings (note that the runtime of reachability analysis is included) 
+        runtime_assign_priority             % runtime of assignment of priorities
+        runtime_assign_priority_average     % average runtime of assignment of priorities
+        runtime_group_vehs                  % runtime of grouping vehicles
+        runtime_group_vehs_average          % average runtime of grouping vehicles
+        runtime_graph_search                % runtime of graph search
+        runtime_graph_search_average        % average runtime of graph search
+        runtime_total_per_step              % total runtime per step
+        runtime_total_average               % average runtime
+        runtime_max                         % average of maximum top n runtime
         
-        average_speed_each_veh % average speed of each vehicle per step
-        average_speed % average speed of all vehicles per step
+        average_speed_each_veh  % average speed of each vehicle per step
+        average_speed           % average speed of all vehicles per step
+        max_speed               % maximum speed of all vehicles
+        min_speed               % minimum speed of all vehicles
         sum_speeds_all_vehicles % sum of speeds of all vehicles
 
         num_couplings                       % average number of couplings between vehicles
@@ -33,23 +39,23 @@ classdef EvaluationParl
         num_couplings_between_grps          % average number of couplings between groups
         num_couplings_between_grps_ignored  % average number of couplings between groups reduced by lanelet crossing area
 
-        CLs_num_max % maximum number of actual computation levels
+        CLs_num_max     % maximum number of actual computation levels
 
-        fallback_times % total fallback times of all vehicles. Note that this is not the number of time steps when fallbacks occur
-        fallback_rate % fallback rate: fallback_times/nSteps/nVeh
+        fallback_times  % total fallback times of all vehicles. Note that this is not the number of time steps when fallbacks occur
+        fallback_rate   % fallback rate: fallback_times/nSteps/nVeh
 
-        is_deadlock % true/false, if deadlock occurs
-        steps_ignored = 3; % the first several steps are ignored due to their possiblly higher computation time (see MATLAB just-in-time (JIT) compilation)
+        is_deadlock         % true/false, if deadlock occurs
+        steps_ignored = 1;  % the first several steps are ignored due to their possiblly higher computation time (see MATLAB just-in-time (JIT) compilation)
     end
 
     properties (Access=private)
-        reference_paths     % reference path of each vehicle
-        real_paths          % real path of each vehicle
-        path_tracking_errors % path tracking errors
+        reference_paths         % reference path of each vehicle
+        real_paths              % real path of each vehicle
+        path_tracking_errors    % path tracking errors
 
         plot_option_real_path
         plot_option_ref_path
-        free_flow_speed % free flow speed
+        free_flow_speed         % free flow speed
     end
 
     properties (Dependent)
@@ -57,7 +63,7 @@ classdef EvaluationParl
     end
     
     methods
-        function obj = EvaluationParl(input)
+        function obj = EvaluationParl(input,T_interval)
             if isstring(input) || ischar(input)
                 % .mat data name
                 obj.results_full_path = input;
@@ -68,10 +74,16 @@ classdef EvaluationParl
             end
             load(obj.results_full_path,'result');
 
-            obj.nVeh = result.scenario.nVeh;
+            obj.nVeh = result.scenario.options.amount;
+            obj.dt = result.scenario.options.dt;
 
             if ~result.scenario.options.isSaveResultReduced
-                obj.nSteps = length(result.iteration_structs);
+                if nargin==2
+                    obj.steps_ignored = max(obj.steps_ignored,floor(T_interval(1)/obj.dt));
+                    obj.nSteps = min(floor(T_interval(2)/obj.dt),length(result.iteration_structs));
+                else
+                    obj.nSteps = length(result.iteration_structs);
+                end
                 obj.reference_paths = cell(obj.nVeh,1);
                 obj.real_paths = cell(obj.nVeh,1);
                 obj.path_tracking_errors = cell(obj.nVeh,1);
@@ -82,16 +94,12 @@ classdef EvaluationParl
             else
                 obj.nSteps = length(result.vehs_fallback);
             end
-            obj.dt = result.scenario.dt;
+            
 
-            if isfield(result,'t_total')
-                obj.t_total = result.t_total;
-            else
-                obj.t_total = obj.dt*obj.nSteps;
-            end
-            if abs(obj.t_total-result.scenario.T_end)>obj.dt
-                warning('Simulation stops before reaching the specific time.')
-            end
+            obj.t_total = obj.dt*(obj.nSteps-obj.steps_ignored+1);
+%             if abs(obj.t_total-result.scenario.options.T_end)>obj.dt
+%                 warning('Simulation stops before reaching the specific time.')
+%             end
 
             if ~result.scenario.options.isSaveResultReduced
                 obj = obj.get_path_tracking_errors(result);
@@ -100,20 +108,20 @@ classdef EvaluationParl
             end
 
             % Number of couplings
-            obj.num_couplings = mean(result.num_couplings);
-            obj.num_couplings_ignored = mean(result.num_couplings_ignored);
-            obj.num_couplings_between_grps = mean(result.num_couplings_between_grps);
-            obj.num_couplings_between_grps_ignored = mean(result.num_couplings_between_grps_ignored);
+            obj.num_couplings = mean(result.num_couplings(obj.steps_ignored:obj.nSteps));
+            obj.num_couplings_ignored = mean(result.num_couplings_ignored(obj.steps_ignored:obj.nSteps));
+            obj.num_couplings_between_grps = mean(result.num_couplings_between_grps(obj.steps_ignored:obj.nSteps));
+            obj.num_couplings_between_grps_ignored = mean(result.num_couplings_between_grps_ignored(obj.steps_ignored:obj.nSteps));
 
-            obj.CLs_num_max = max(result.computation_levels);
+            obj.CLs_num_max = max(result.computation_levels(obj.steps_ignored:obj.nSteps));
 
             obj.fallback_times = 0;
-            for i = 1:length(result.vehs_fallback)
+            for i = obj.steps_ignored:obj.nSteps
                 if ~isempty(result.vehs_fallback{i})
                     obj.fallback_times = obj.fallback_times + length(result.vehs_fallback{i});
                 end
             end
-            obj.fallback_rate = obj.fallback_times/obj.nSteps/obj.nVeh;
+            obj.fallback_rate = obj.fallback_times/(obj.nSteps-obj.steps_ignored+1)/obj.nVeh;
 
             if isfield(result,'is_deadlock')
                 obj.is_deadlock = result.is_deadlock;
@@ -125,10 +133,11 @@ classdef EvaluationParl
         function obj = get_path_tracking_errors(obj,result)
             % Calculate the path tracking error
             for iVeh = 1:obj.nVeh
-                for iIter = 1:obj.nSteps
-                    obj.reference_paths{iVeh}(:,iIter) = reshape(result.iteration_structs{iIter}.referenceTrajectoryPoints(iVeh,1,:),2,[]);
-                    obj.real_paths{iVeh}(:,iIter) = result.vehicle_path_fullres{iVeh,iIter}(end,1:2)';
-                    obj.path_tracking_errors{iVeh}(:,iIter) = sqrt(sum((obj.real_paths{iVeh}(:,iIter) - obj.reference_paths{iVeh}(:,iIter)).^2,1));
+                for iIter = obj.steps_ignored:obj.nSteps
+                    i = iIter - obj.steps_ignored + 1;
+                    obj.reference_paths{iVeh}(:,i) = reshape(result.iteration_structs{iIter}.referenceTrajectoryPoints(iVeh,1,:),2,[]);
+                    obj.real_paths{iVeh}(:,i) = result.vehicle_path_fullres{iVeh,iIter}(end,1:2)';
+                    obj.path_tracking_errors{iVeh}(:,i) = sqrt(sum((obj.real_paths{iVeh}(:,i) - obj.reference_paths{iVeh}(:,i)).^2,1));
                 end
                 obj.path_tracking_errors_MAE(iVeh) = mean(obj.path_tracking_errors{iVeh});
             end
@@ -140,7 +149,7 @@ classdef EvaluationParl
         function obj = get_runtime_per_step(obj,result)
             % Calculate the total runtime per step
             assert( abs(length(result.runtime_subcontroller_max)-length(result.iter_runtime)) <= 1 )
-            obj.runtime_total_per_step = result.iter_runtime(1:obj.nSteps)' + result.runtime_subcontroller_max(1:obj.nSteps)';
+            obj.runtime_total_per_step = result.iter_runtime(obj.steps_ignored:obj.nSteps)' + result.runtime_subcontroller_max(obj.steps_ignored:obj.nSteps)';
 
             % Find outliers
             outliers = find(isoutlier(obj.runtime_total_per_step));
@@ -150,18 +159,29 @@ classdef EvaluationParl
             % ignore the first several steps as they may have higher values
             % in computation time due to the just-in-time (JIT) compilation
 
-            obj.runtime_total_average = sum(obj.runtime_total_per_step(obj.steps_ignored+1:obj.nSteps))/(obj.nSteps-obj.steps_ignored);
-            
+            obj.runtime_total_average = sum(obj.runtime_total_per_step)/(obj.nSteps-obj.steps_ignored+1);
+           
             n_max = 1;
-            obj.runtime_max = mean(maxk(obj.runtime_total_per_step(obj.steps_ignored+1:obj.nSteps),n_max)); 
-
-            obj.runtime_graph_search = max(result.runtime_graph_search_max(obj.steps_ignored+1:obj.nSteps));
-            obj.runtime_determine_couplings = max(result.determine_couplings_time(obj.steps_ignored+1:obj.nSteps) + result.iter_runtime(obj.steps_ignored+1:obj.nSteps));
+            obj.runtime_max = mean(maxk(obj.runtime_total_per_step,n_max)); 
+            
+            obj.runtime_graph_search_average = mean(result.runtime_graph_search_max(obj.steps_ignored:obj.nSteps));
+            obj.runtime_graph_search = max(result.runtime_graph_search_max(obj.steps_ignored:obj.nSteps));
+            
+%             runtime_max_step = find(obj.runtime_max==obj.runtime_total_per_step);
+%             runtime_graph_search_step = find(obj.runtime_graph_search==result.runtime_graph_search_max);
+%             if runtime_max_step ~= runtime_graph_search_step
+%                 disp('')
+%             end
+            
+            obj.runtime_determine_couplings = max(result.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_determine_couplings_average = mean(result.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
             % in order to assign priorities, determination of couplings is needed 
-            obj.runtime_assign_priority = max(result.assign_priority_time(obj.steps_ignored+1:obj.nSteps) + result.iter_runtime(obj.steps_ignored+1:obj.nSteps));
-            obj.runtime_group_vehs = max(result.group_vehs_time(obj.steps_ignored+1:obj.nSteps));
+            obj.runtime_assign_priority = max(result.assign_priority_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_assign_priority_average = mean(result.assign_priority_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_group_vehs = max(result.group_vehs_time(obj.steps_ignored:obj.nSteps));
+            obj.runtime_group_vehs_average = mean(result.group_vehs_time(obj.steps_ignored:obj.nSteps));
 
-            obj.nodes_expanded_per_step = result.n_expanded;
+            obj.nodes_expanded_per_step = result.n_expanded(obj.steps_ignored:obj.nSteps);
             obj.nodes_expanded_average = mean(obj.nodes_expanded_per_step);
         end
 
@@ -172,6 +192,8 @@ classdef EvaluationParl
             distances = cellfun(@(c) sum(sqrt(c(1,:).^2+c(2,:).^2)),ref_paths_diff);
             obj.average_speed_each_veh = distances./obj.t_total;
             obj.average_speed = mean(obj.average_speed_each_veh);
+            obj.min_speed = min(obj.average_speed_each_veh);
+            obj.max_speed = max(obj.average_speed_each_veh);
             obj.sum_speeds_all_vehicles = sum(obj.average_speed_each_veh);
 
 %             % get sampleTime_FFS
@@ -194,8 +216,8 @@ classdef EvaluationParl
             xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
             ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
         
-            xlim(result.scenario.plot_limits(1,:));
-            ylim(result.scenario.plot_limits(2,:));
+            xlim(result.scenario.options.plot_limits(1,:));
+            ylim(result.scenario.options.plot_limits(2,:));
             daspect([1 1 1])
 
             plot_lanelets(result.scenario.lanelets,result.scenario.name)
