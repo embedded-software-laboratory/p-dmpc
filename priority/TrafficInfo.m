@@ -4,13 +4,14 @@ classdef TrafficInfo
     % at the intersection and when did they enter the intersection
 
     properties
-        coupling_weights        % (nVeh-by-nVeh matrix) coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
-        directed_adjacency_old  % (nVeh-by-nVeh matrix) previous directed adjacency matrix
-        coupling_info           % (struct, length equals to number of coupling pair) information of each two coupled vehicles
-        vehs_at_intersection    % (vector) vehicles at intersection
-        time_enter_intersection % (vector) time at which vehicle enter intersection. Value is inf if vehicle is not at intersection
-        nVeh                    % total number of vehicles
-        priority_option         % right_of_way_priority/random_priority/constant_priority
+        coupling_weights            % (nVeh-by-nVeh matrix) coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
+        coupling_weights_optimal    % "optimal" coupling weights
+        directed_adjacency_old      % (nVeh-by-nVeh matrix) previous directed adjacency matrix
+        coupling_info               % (struct, length equals to number of coupling pair) information of each two coupled vehicles
+        vehs_at_intersection        % (vector) vehicles at intersection
+        time_enter_intersection     % (vector) time at which vehicle enter intersection. Value is inf if vehicle is not at intersection
+        nVeh                        % total number of vehicles
+        priority_option             % right_of_way_priority/random_priority/constant_priority
     end
 
     properties (Constant)
@@ -27,6 +28,9 @@ classdef TrafficInfo
             % initialize
             obj.directed_adjacency_old = zeros(obj.nVeh,obj.nVeh);
             obj.coupling_weights = zeros(obj.nVeh,obj.nVeh); 
+            if scenario.options.is_calculate_optimal_coupling_weight
+                obj.coupling_weights_optimal = zeros(obj.nVeh,obj.nVeh); 
+            end
             % ROW stands for right-of-way
             obj.coupling_info = struct('veh_with_ROW',[],'veh_without_ROW',[],'collision_type',[],...
                 'lanelet_relationship',[],'STAC',[],'is_at_intersection',[],'is_drive_parallel',[],'is_ignored',[]); 
@@ -235,13 +239,6 @@ classdef TrafficInfo
                         obj.coupling_info(count).collision_type = CollisionType.type_1;
                     elseif collision_type.is_side_impact
                         obj.coupling_info(count).collision_type = CollisionType.type_2; % side-impact collision
-%                         if is_drive_parallel
-%                             % calculate the STAC simply by dividing their distance minus their width by half the maximum speed
-%                             % todo: find a better heuristic to calculate the STAC for vehicles driving in parallel
-%                             distance_to_collision = distance_two_vehs-(scenario.vehicles(veh_i).Width+scenario.vehicles(veh_j).Width)/2;
-% %                             assert(distance_to_collision>0)
-%                             STAC = distance_to_collision/max([scenario.mpa.trims.speed]./2);
-%                         end
                     end
 
                     STAC_adapted = STAC + waiting_time; % adapted STAC
@@ -252,26 +249,23 @@ classdef TrafficInfo
                     obj.coupling_info(count).lanelet_relationship = lanelet_relationship.type;
                     obj.coupling_info(count).is_ignored = false; % whether the coupling is ignored  
                     if has_ROW
-%                         if scenario.k>=3
-%                             % Calculate the "optimal" coupling weight
-%                             obj.coupling_weights(veh_i,veh_j) = get_optimal_coupling_weight(scenario,iter,veh_i,veh_j);
-%                         end
                         % vehicle_i has the right-of-way
                         obj.coupling_weights(veh_i,veh_j) = obj.weighting_function(STAC_adapted, obj.sensitive_factor); 
+                        if scenario.options.is_calculate_optimal_coupling_weight
+                            % Calculate the "optimal" coupling weight
+                            obj.coupling_weights_optimal(veh_i,veh_j) = get_optimal_coupling_weight(scenario,iter,veh_i,veh_j);                            
+                        end                        
                         obj.coupling_info(count).veh_with_ROW = veh_i;  
                         obj.coupling_info(count).veh_without_ROW = veh_j; 
-%                         disp(['Vehicle ' num2str(veh_i) ' now has the ROW over vehicle ' num2str(veh_j) '.'])
                     else
-%                         if scenario.k>=3
-%                             % Calculate the "optimal" coupling weight
-%                             obj.coupling_weights(veh_j,veh_i) = get_optimal_coupling_weight(scenario,iter,veh_j,veh_i);
-%                         end
                         % vehicle_j has the right-of-way
                         obj.coupling_weights(veh_j,veh_i) = obj.weighting_function(STAC_adapted, obj.sensitive_factor); 
+                        if scenario.options.is_calculate_optimal_coupling_weight
+                            % Calculate the "optimal" coupling weight
+                            obj.coupling_weights_optimal(veh_j,veh_i) = get_optimal_coupling_weight(scenario,iter,veh_j,veh_i);
+                        end
                         obj.coupling_info(count).veh_with_ROW = veh_j;
                         obj.coupling_info(count).veh_without_ROW = veh_i;
-%                         disp(['Vehicle ' num2str(veh_j) ' now has the ROW over vehicle ' num2str(veh_i) '.'])
-                        
                     end
                     stop_flag = true;
                     break

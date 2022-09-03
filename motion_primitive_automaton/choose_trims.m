@@ -235,7 +235,7 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
                            -angle_max,speed_max;
                            0,speed_max;
                            angle_max,speed_max];
-            trim_adjacency = zeros(size(trim_inputs,1));
+            trim_adjacency = 0.5*eye(size(trim_inputs,1));
             trim_adjacency(1,[2,3,4]) = 1;
             trim_adjacency(2,3) = 1;
             trim_adjacency(3,4) = 1;

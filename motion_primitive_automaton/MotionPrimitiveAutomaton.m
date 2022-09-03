@@ -19,10 +19,14 @@ classdef MotionPrimitiveAutomaton
         emergency_trims                   % cell(n_trims, 1), store which trim corresponds to emergency left/right; if multiple trims, choose the one with the lowest speed
         emergency_maneuvers               % cell(n_trims, 1), emergency left/right/braking maneuvers
         trims_stop                          % trims with zero speed
+        offline_reachability_computation_time % computation time of the offline reachability analysis
+    end
+
+    properties(Access=protected)
     end
     
     methods
-        function obj = MotionPrimitiveAutomaton(model, options)
+        function [obj,trimsInfo] = MotionPrimitiveAutomaton(model, options)
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
@@ -50,7 +54,8 @@ classdef MotionPrimitiveAutomaton
             % if the needed MPA is alread exist in the library, simply load
             % it, otherwise it will be calculated and saved to the library.
             % Note: if MPA properties are changed, then reload all MPAs!
-            if isfile(mpa_full_path)
+            if isfile(mpa_full_path) && options.is_load_mpa && nargout==1 
+                % if number of function output arguments is not one, do not load offline MPA as the second output is not available offline 
                 load(mpa_full_path,"mpa");
                 obj = mpa;
                 disp('Offline MPA was found and loaded.')
@@ -95,11 +100,23 @@ classdef MotionPrimitiveAutomaton
                 for j = 1:n_trims
                     if obj.transition_matrix_single(i,j,1)
                         obj.maneuvers{i,j} = generate_maneuver(model, obj.trims(i), obj.trims(j), options);
+                        % transform maneuver area to polyshape
+                        obj.maneuvers{i,j}.areaPoly = polyshape(obj.maneuvers{i,j}.area(1,:),obj.maneuvers{i,j}.area(2,:),'Simplify',false);
                     end
                 end
                 obj.shortest_paths_to_max_speed{i,1} = get_shortest_path_to_max_speed(obj,i);
                 obj.shortest_paths_to_equilibrium{i,1} = get_shortest_path_to_equilibrium(obj,i);
             end
+
+%             % transform maneuver area to polyshape which is required when using
+%             % MATLAB function `union`
+%             for i=1:n_trims
+%                 child_trims = find(obj.transition_matrix_single(i,:,1));
+%                 for idx=1:length(child_trims)
+%                     j = child_trims(idx);
+%                     
+%                 end
+%             end
 
             % get emergency trims and maneuvers
             [obj.emergency_trims, obj.emergency_maneuvers] = get_emergency_maneuvers(obj);
@@ -126,13 +143,24 @@ classdef MotionPrimitiveAutomaton
             obj.local_reachable_sets_conv = cell(n_trims,options.Hp);
                 
             % For parallel computation, reachability analysis are used
+            offline_RA = tic;
             if options.isParl
                 is_calculate_reachable_sets_of_CP = false; % whether to calculate center point's reachable sets
-                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP] = ...
-                    reachability_analysis_offline_DP(obj,options.Hp,is_calculate_reachable_sets_of_CP);
+                if options.is_use_dynamic_programming
+                    % use dynamic programming
+                    [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
+                        reachability_analysis_offline_DP(obj,options.Hp,is_calculate_reachable_sets_of_CP);
+                else
+                    % otherwise use brute-force algorithm
+                    [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
+                        reachability_analysis_offline(obj,options.Hp,is_calculate_reachable_sets_of_CP);
+                end
             end
+            obj.offline_reachability_computation_time = toc(offline_RA);
             
-            save_mpa(obj,mpa_full_path); % save mpa to library
+            if options.is_save_mpa
+                save_mpa(obj,mpa_full_path); % save mpa to library
+            end
             
         end
     
@@ -177,7 +205,7 @@ classdef MotionPrimitiveAutomaton
             end
         end
 
-        function [reachable_sets_local, reachable_sets_conv_local, center_trajectory, reachable_sets_CP] = reachability_analysis_offline(obj, Hp, is_calculate_reachable_sets_of_CP)
+        function [reachable_sets_local, reachable_sets_conv_local, center_trajectory, reachable_sets_CP, trimsInfo] = reachability_analysis_offline(obj, Hp, is_calculate_reachable_sets_of_CP)
             % Calculate local reachable sets starting from a certain trim,
             % which can be used for online reachability analysis
             % 
@@ -210,16 +238,6 @@ classdef MotionPrimitiveAutomaton
             reachable_sets_conv_local = cell(n_trims,Hp);
             center_trajectory = cell(n_trims,Hp);
             reachable_sets_CP = repmat({polyshape},n_trims,Hp);
-        
-            % transform maneuver area to polyshape which is required when using
-            % MATLAB function `union`
-            for i=1:n_trims
-                child_trims = find(obj.transition_matrix_single(i,:,1));
-                for idx=1:length(child_trims)
-                    j = child_trims(idx);
-                    obj.maneuvers{i,j}.areaPoly = polyshape(obj.maneuvers{i,j}.area(1,:),obj.maneuvers{i,j}.area(2,:),'Simplify',false);
-                end
-            end
 
             trimsInfo = struct;
 
@@ -318,7 +336,7 @@ classdef MotionPrimitiveAutomaton
 
 
 
-        function [reachable_sets_local, reachable_sets_conv_local, center_trajectory, reachable_sets_CP] = reachability_analysis_offline_DP(obj, Hp, is_calculate_reachable_sets_of_CP)
+        function [reachable_sets_local, reachable_sets_conv_local, center_trajectory, reachable_sets_CP, trimsInfo] = reachability_analysis_offline_DP(obj, Hp, is_calculate_reachable_sets_of_CP)
             % Calculate local reachable sets starting from a certain trim using dynamic programming,
             % which can be used for online reachability analysis
             % 
@@ -355,16 +373,6 @@ classdef MotionPrimitiveAutomaton
             reachable_sets_conv_local_HpHalf = cell(n_trims,1);
             center_trajectory = cell(n_trims,Hp);
             reachable_sets_CP = repmat({polyshape},n_trims,Hp);
-        
-            % transform maneuver area to polyshape which is required when using
-            % MATLAB function `union`
-            for i=1:n_trims
-                child_trims = find(obj.transition_matrix_single(i,:,1));
-                for idx=1:length(child_trims)
-                    j = child_trims(idx);
-                    obj.maneuvers{i,j}.areaPoly = polyshape(obj.maneuvers{i,j}.area(1,:),obj.maneuvers{i,j}.area(2,:),'Simplify',false);
-                end
-            end
 
             trimsInfo = struct;
             trimsInfoHpHalf = struct;
@@ -458,61 +466,63 @@ classdef MotionPrimitiveAutomaton
             
             % assume that Hp_half is the final time step and thus
             % the child trim must end with the equilibrium trim
-            for ii = 1:n_trims
-                tt = Hp_half;
-                
-                % parent trims are unchanged, only child trims are reducted
-                trimsInfoHpHalf(ii,1).parentTrims = trimsInfo(ii,tt).parentTrims;
-                % variable to store all child trims of the parent trims
-                trimsInfoHpHalf(ii,1).childTrims = [];
-                trimsInfoHpHalf(ii,1).childNum = [];
-                % find child trims of the parent trims
-                for i_Trim=1:length(trimsInfoHpHalf(ii,1).parentTrims)
-                    find_child = find(obj.transition_matrix_single(trimsInfoHpHalf(ii,1).parentTrims(i_Trim),:,end));
-                    trimsInfoHpHalf(ii,1).childTrims = [trimsInfoHpHalf(ii,1).childTrims find_child];
-                    trimsInfoHpHalf(ii,1).childNum = [trimsInfoHpHalf(ii,1).childNum length(find_child)];
-                end
-
-                % loop through all parent trims
-                for j=1:length(trimsInfoHpHalf(ii,1).parentTrims)
-                    if tt==1
-                        x0 = 0;
-                        y0 = 0;
-                        yaw0 = 0;
-                    else
-                        x0 = trimsInfo(ii,tt-1).maneuvers{j}.xs(end);
-                        y0 = trimsInfo(ii,tt-1).maneuvers{j}.ys(end);
-                        yaw0 = trimsInfo(ii,tt-1).maneuvers{j}.yaws(end);
+            if Hp>1
+                for ii = 1:n_trims
+                    tt = Hp_half;
+                    
+                    % parent trims are unchanged, only child trims are reducted
+                    trimsInfoHpHalf(ii,1).parentTrims = trimsInfo(ii,tt).parentTrims;
+                    % variable to store all child trims of the parent trims
+                    trimsInfoHpHalf(ii,1).childTrims = [];
+                    trimsInfoHpHalf(ii,1).childNum = [];
+                    % find child trims of the parent trims
+                    for i_Trim=1:length(trimsInfoHpHalf(ii,1).parentTrims)
+                        find_child = find(obj.transition_matrix_single(trimsInfoHpHalf(ii,1).parentTrims(i_Trim),:,end));
+                        trimsInfoHpHalf(ii,1).childTrims = [trimsInfoHpHalf(ii,1).childTrims find_child];
+                        trimsInfoHpHalf(ii,1).childNum = [trimsInfoHpHalf(ii,1).childNum length(find_child)];
                     end
-                    % loop through all child trims
-                    for k=1:trimsInfoHpHalf(ii,1).childNum(j)
-                        trim_start = trimsInfoHpHalf(ii,1).parentTrims(j);
-                        child_ordinal = sum(trimsInfoHpHalf(ii,1).childNum(1:j-1)) + k;
-                        trim_end = trimsInfoHpHalf(ii,1).childTrims(child_ordinal);
-        
-                        % tranlates the local coordinates to global coordinates
-                        [trimsInfoHpHalf(ii,1).maneuvers{child_ordinal}.xs, trimsInfoHpHalf(ii,1).maneuvers{child_ordinal}.ys] = ...
-                            translate_global(yaw0,x0,y0,obj.maneuvers{trim_start,trim_end}.xs,obj.maneuvers{trim_start,trim_end}.ys);
-                        trimsInfoHpHalf(ii,1).maneuvers{child_ordinal}.yaws = yaw0 + obj.maneuvers{trim_start,trim_end}.yaws;
-
-                        % occupied area of the translated maneuvers
-                        [area_x, area_y] = ...
-                            translate_global(yaw0,x0,y0,obj.maneuvers{trim_start,trim_end}.area(1,:),obj.maneuvers{trim_start,trim_end}.area(2,:));
-                        trimsInfoHpHalf(ii,1).maneuvers{child_ordinal}.area = [area_x;area_y];
-                        trimsInfoHpHalf(ii,1).maneuvers{child_ordinal}.areaPoly = polyshape(area_x,area_y,'Simplify',false);
+    
+                    % loop through all parent trims
+                    for j=1:length(trimsInfoHpHalf(ii,1).parentTrims)
+                        if tt==1
+                            x0 = 0;
+                            y0 = 0;
+                            yaw0 = 0;
+                        else
+                            x0 = trimsInfo(ii,tt-1).maneuvers{j}.xs(end);
+                            y0 = trimsInfo(ii,tt-1).maneuvers{j}.ys(end);
+                            yaw0 = trimsInfo(ii,tt-1).maneuvers{j}.yaws(end);
+                        end
+                        % loop through all child trims
+                        for k=1:trimsInfoHpHalf(ii,1).childNum(j)
+                            trim_start = trimsInfoHpHalf(ii,1).parentTrims(j);
+                            child_ordinal = sum(trimsInfoHpHalf(ii,1).childNum(1:j-1)) + k;
+                            trim_end = trimsInfoHpHalf(ii,1).childTrims(child_ordinal);
+            
+                            % tranlates the local coordinates to global coordinates
+                            [trimsInfoHpHalf(ii,1).maneuvers{child_ordinal}.xs, trimsInfoHpHalf(ii,1).maneuvers{child_ordinal}.ys] = ...
+                                translate_global(yaw0,x0,y0,obj.maneuvers{trim_start,trim_end}.xs,obj.maneuvers{trim_start,trim_end}.ys);
+                            trimsInfoHpHalf(ii,1).maneuvers{child_ordinal}.yaws = yaw0 + obj.maneuvers{trim_start,trim_end}.yaws;
+    
+                            % occupied area of the translated maneuvers
+                            [area_x, area_y] = ...
+                                translate_global(yaw0,x0,y0,obj.maneuvers{trim_start,trim_end}.area(1,:),obj.maneuvers{trim_start,trim_end}.area(2,:));
+                            trimsInfoHpHalf(ii,1).maneuvers{child_ordinal}.area = [area_x;area_y];
+                            trimsInfoHpHalf(ii,1).maneuvers{child_ordinal}.areaPoly = polyshape(area_x,area_y,'Simplify',false);
+                        end
                     end
-                end
-
-                n_union_times = ceil(length(trimsInfoHpHalf(ii,1).maneuvers)/size_union);
-                for p = 1:n_union_times
-                    if p == n_union_times
-                        areaPolys_tmp = cellfun(@(c) [c.areaPoly], trimsInfoHpHalf(ii,1).maneuvers((p-1)*size_union+1:end));
-                    else
-                        areaPolys_tmp = cellfun(@(c) [c.areaPoly], trimsInfoHpHalf(ii,1).maneuvers((p-1)*size_union+1:p*size_union));
+    
+                    n_union_times = ceil(length(trimsInfoHpHalf(ii,1).maneuvers)/size_union);
+                    for p = 1:n_union_times
+                        if p == n_union_times
+                            areaPolys_tmp = cellfun(@(c) [c.areaPoly], trimsInfoHpHalf(ii,1).maneuvers((p-1)*size_union+1:end));
+                        else
+                            areaPolys_tmp = cellfun(@(c) [c.areaPoly], trimsInfoHpHalf(ii,1).maneuvers((p-1)*size_union+1:p*size_union));
+                        end
+                        reachable_sets_local_HpHalf{ii,1} = union([areaPolys_tmp,reachable_sets_local_HpHalf{ii,1}]);
                     end
-                    reachable_sets_local_HpHalf{ii,1} = union([areaPolys_tmp,reachable_sets_local_HpHalf{ii,1}]);
+                    reachable_sets_conv_local_HpHalf{ii,1} = convhull(reachable_sets_local_HpHalf{ii,1}); % convexify
                 end
-                reachable_sets_conv_local_HpHalf{ii,1} = convhull(reachable_sets_local_HpHalf{ii,1}); % convexify
             end
 
             for i=1:n_trims

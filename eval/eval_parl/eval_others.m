@@ -167,8 +167,20 @@ else
 end
 e_test = EvaluationParl(options);
 %% Motion primitives
-load('MPA_trims9_Hp5_T0.2_parl_non-convex.mat','mpa')
-% 
+options = OptionsMain;
+options.scenario_name = 'Commonroad';
+options.trim_set = 9;
+options.Hp = 5;
+options.amount = 20;
+options.isPB = true;
+options.isParl = true;
+options.dt = 0.2;
+options.recursive_feasibility = true;
+
+veh = Vehicle;
+model = BicycleModel(veh.Lf,veh.Lr);
+mpa = MotionPrimitiveAutomaton(model,options);
+
 set(0,'DefaultTextFontname', 'Times New Roman');
 set(0,'DefaultAxesFontName', 'Times New Roman');
 
@@ -252,3 +264,192 @@ xlim([-0.2 0.9])
 ylim([-0.4 0.2])
 EvaluationParl.save_fig(fig,file_name)
 %% visualize local reachable sets
+options = OptionsMain;
+options.scenario_name = 'Commonroad';
+options.trim_set = 13;
+options.Hp = 4;
+options.amount = 20;
+options.isPB = true;
+options.isParl = true;
+options.dt = 0.2;
+options.recursive_feasibility = true;
+options.is_use_dynamic_programming = false;
+
+veh = Vehicle;
+model = BicycleModel(veh.Lf,veh.Lr);
+[mpa,trimsInfo] = MotionPrimitiveAutomaton(model,options);
+
+set(0,'DefaultTextFontname', 'Times New Roman');
+set(0,'DefaultAxesFontName', 'Times New Roman');
+
+set(0,'DefaultTextFontsize',11)
+set(0,'DefaultAxesFontsize',11)
+
+options_RS = {};
+options_RS{1} = struct('LineWidth',0.5,'Color','k','LineStyle','-');
+options_RS{2} = struct('LineWidth',0.5,'Color','k','LineStyle','--');
+options_RS{3} = struct('LineWidth',0.5,'Color','k','LineStyle','-.');
+options_RS{4} = struct('LineWidth',0.5,'Color','k','LineStyle',':');
+
+% color map
+CM = {[0.6350 0.0780 0.1840],[0.9290 0.6940 0.1250],[0 0.4470 0.7410],[0.4940 0.1840 0.5560]};
+
+fig_x = 14;     fig_y = 7.5; % [cm]
+x_margin = 0;   y_margin = 0; 
+fig_x_position = fig_x - 2*x_margin;
+fig_y_position = fig_y - 2*y_margin;
+
+file_name = 'localReachableSets';
+fig = figure('Name',file_name);
+set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
+set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
+    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
+
+t_fig = tiledlayout(1,1,'Padding','loose','TileSpacing','loose');
+
+hold on
+grid on
+axis equal
+box on
+
+xlabel('$x\:[m]$','Interpreter','latex');
+ylabel('$y\:[m]$','Interpreter','latex');
+
+
+Hp_half = ceil(options.Hp/2); % for time step greater then half of the prediction horizon, dynamic programming is used to save computation time
+
+trim_root = 1;
+scatter_size = 8;
+scatter(0,0,scatter_size,CM{trim_root},'filled')
+n_trims = numel(mpa.trims);
+
+% plot trajectories (brute-force)
+for t = Hp_half+1:options.Hp
+    maneuvers = trimsInfo(trim_root,t).maneuvers;
+    for iM = 1:length(maneuvers)
+        m = maneuvers{iM};
+        childTrim = trimsInfo(trim_root,t).childTrims(iM);
+        plot(m.xs,m.ys,'LineWidth',0.2,'LineStyle','-','Color',[0 0 0 0.1])
+    end
+end
+
+% plot trajectories (dynamic programming)
+for t = 1:Hp_half
+    maneuvers = trimsInfo(trim_root,t).maneuvers;
+    for iM = 1:length(maneuvers)
+        m = maneuvers{iM};
+        childTrim = trimsInfo(trim_root,t).childTrims(iM);
+        plot(m.xs,m.ys,'LineWidth',0.2,'LineStyle','-','Color','k')
+    end
+end
+clear sc;
+clear p_RS_local
+% plot nodes
+for t = 1:Hp_half
+    maneuvers = trimsInfo(trim_root,t).maneuvers;
+    for iM = 1:length(maneuvers)
+        m = maneuvers{iM};
+        childTrim = trimsInfo(trim_root,t).childTrims(iM);
+        sc(childTrim) = scatter(m.xs(end),m.ys(end),scatter_size,CM{childTrim},'filled');
+    end
+    [RS_local_x,RS_local_y] = boundary(mpa.local_reachable_sets{trim_root,t});
+    p_RS_local(t) = plot(RS_local_x,RS_local_y,options_RS{t});
+end
+
+for t = Hp_half+1:options.Hp
+    % brute-force
+    maneuvers = trimsInfo(trim_root,t).maneuvers;
+    for iM = 1:length(maneuvers)
+        m = maneuvers{iM};
+        childTrim = trimsInfo(trim_root,t).childTrims(iM);
+        scatter(m.xs(end),m.ys(end),scatter_size,CM{childTrim},'filled','MarkerFaceAlpha',0.075);
+    end
+    % dynamic programming
+    [RS_local_x,RS_local_y] = boundary(mpa.local_reachable_sets{trim_root,t});
+    p_RS_local(t) = plot(RS_local_x,RS_local_y,options_RS{t});
+end
+legend([sc,p_RS_local],{'Node with trim 1','Node with trim 2','Node with trim 3','Node with trim 4', ...
+    'Reachable set at time step 1','Reachable set at time step 2','Reachable set at time step 3','Reachable set at time step 4'},'Location','east')
+% legend({})
+ymax = 0.5;
+xlim([-0.2 1.8])
+ylim([-ymax ymax])
+yticks(-ymax:0.2:ymax)
+EvaluationParl.save_fig(fig,file_name)
+
+%% translate and rotate the local reachable sets
+options = OptionsMain;
+options.scenario_name = 'Commonroad';
+options.trim_set = 13;
+options.Hp = 4;
+options.amount = 20;
+options.isPB = true;
+options.isParl = true;
+options.dt = 0.2;
+options.recursive_feasibility = true;
+options.is_use_dynamic_programming = false;
+
+veh = Vehicle;
+model = BicycleModel(veh.Lf,veh.Lr);
+[mpa,trimsInfo] = MotionPrimitiveAutomaton(model,options);
+
+set(0,'DefaultTextFontname', 'Times New Roman');
+set(0,'DefaultAxesFontName', 'Times New Roman');
+
+set(0,'DefaultTextFontsize',11)
+set(0,'DefaultAxesFontsize',11)
+transparent = 0.3;
+options_veh_area_local = struct('LineWidth',0.5,'Color',[0 0.4470 0.7410 transparent],'LineStyle','-');
+options_veh_area_global = struct('LineWidth',0.5,'Color',[0 0.4470 0.7410],'LineStyle','-');
+options_RS_local = {};
+options_RS_local{1} = struct('LineWidth',0.5,'Color',[0.75 0.75 0.75],'LineStyle','-');
+options_RS_local{2} = struct('LineWidth',0.5,'Color',[0.75 0.75 0.75],'LineStyle','--');
+options_RS_local{3} = struct('LineWidth',0.5,'Color',[0.75 0.75 0.75],'LineStyle','-.');
+options_RS_local{4} = struct('LineWidth',0.5,'Color',[0.75 0.75 0.75],'LineStyle',':');
+options_RS_global = {};
+options_RS_global{1} = struct('LineWidth',0.5,'Color',[0 0 0],'LineStyle','-');
+options_RS_global{2} = struct('LineWidth',0.5,'Color',[0 0 0],'LineStyle','--');
+options_RS_global{3} = struct('LineWidth',0.5,'Color',[0 0 0],'LineStyle','-.');
+options_RS_global{4} = struct('LineWidth',0.5,'Color',[0 0 0],'LineStyle',':');
+
+fig_x = 14;     fig_y = 7.5; % [cm]
+x_margin = 0;   y_margin = 0; 
+fig_x_position = fig_x - 2*x_margin;
+fig_y_position = fig_y - 2*y_margin;
+
+file_name = 'globalReachableSets';
+fig = figure('Name',file_name);
+set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
+set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
+    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
+
+t_fig = tiledlayout(1,1,'Padding','tight','TileSpacing','none');
+
+hold on
+grid on
+axis equal
+box on
+
+xlabel('$x\:[m]$','Interpreter','latex');
+ylabel('$y\:[m]$','Interpreter','latex');
+
+x0 = [1,-0.4,pi/6];
+veh_area_initial_local = transformedRectangle(0,0,0,veh.Length,veh.Width);
+veh_area_initial_local = [veh_area_initial_local,veh_area_initial_local(:,1)]; % close shape
+veh_area_initial_global = transformedRectangle(x0(1),x0(2),x0(3),veh.Length,veh.Width);
+veh_area_initial_global = [veh_area_initial_global,veh_area_initial_global(:,1)]; % close shape
+clear p
+p(1) = plot(veh_area_initial_local(1,:),veh_area_initial_local(2,:),options_veh_area_local);
+p(2) = plot(veh_area_initial_global(1,:),veh_area_initial_global(2,:),options_veh_area_global);
+arrow_length = 0.18;
+quiver(x0(1),x0(2),arrow_length*cos(x0(3)),arrow_length*sin(x0(3)),'off','Color',[0 0.4470 0.7410],'MaxHeadSize',0.5)
+q = quiver(0,0,arrow_length*cos(0),arrow_length*sin(0),'off','Color',[0.6980 0.8314 0.9216],'MaxHeadSize',0.5);
+clear p_RS
+for t = 1:options.Hp
+    [RS_local_x,RS_local_y] = boundary(mpa.local_reachable_sets{trim_root,t});
+    p_RS(t) = plot(RS_local_x,RS_local_y,options_RS_local{t});
+    [RS_global_x,RS_global_y] = translate_global(x0(3),x0(1),x0(2),RS_local_x',RS_local_y');
+    p_RS(t) = plot(RS_global_x,RS_global_y,options_RS_global{t});
+end
+legend(p,{'Vehicle at trim 1 (local)','Vehicle at trim 1 (global)'},'Location','northeast')
+EvaluationParl.save_fig(fig,file_name)

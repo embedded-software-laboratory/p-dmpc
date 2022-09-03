@@ -6,6 +6,7 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     traffic_info = TrafficInfo(scenario, iter);
     
     coupling_weights = traffic_info.coupling_weights;
+    scenario.coupling_weights_optimal = traffic_info.coupling_weights_optimal;
     coupling_info = traffic_info.coupling_info;
     if any(strcmp(scenario.options.priority,{'right_of_way_priority','constant_priority','random_priority'}))
         % Strategy to let vehicle without the right-of-way enter the crossing area

@@ -153,7 +153,7 @@ for iVeh = 1:scenario.options.amount
 end
 
 if is_sim_lab
-    exp = SimLab(scenario, options);
+    exp = SimLab(scenario);
 else
     exp = CPMLab(scenario, vehicle_ids);
 end
@@ -197,6 +197,7 @@ if options.isParl && strcmp(scenario.name, 'Commonroad')
     scenario = communication_init(scenario, exp);
 end
 
+% return 
 vehs_fallback_times = zeros(1,scenario.options.amount); % record the number of successive fallback times of each vehicle 
 info_old = []; % old information for fallback
 total_fallback_times = 0; % total times of fallbacks
@@ -402,6 +403,7 @@ while (~got_stop)
 
     result.runtime_subcontroller_max(k) = info.runtime_subcontroller_max;
     result.runtime_graph_search_max(k) = info.runtime_graph_search_max;
+    result.directed_coupling{k} = scenario.directed_coupling;
     if options.isParl && strcmp(scenario.options.scenario_name,'Commonroad')
         result.determine_couplings_time(k) = scenario.timer.determine_couplings;
         result.group_vehs_time(k) = scenario.timer.group_vehs;
@@ -410,6 +412,13 @@ while (~got_stop)
         result.num_couplings_ignored(k) = nnz(scenario.directed_coupling) - nnz(scenario.directed_coupling_reduced);
         result.num_couplings_between_grps(k) = scenario.num_couplings_between_grps;
         result.num_couplings_between_grps_ignored(k) = scenario.num_couplings_between_grps_ignored;
+        result.belonging_vector(:,k) = scenario.belonging_vector;
+        result.coupling_weights_reduced{k} = scenario.coupling_weights_reduced;
+        result.coupling_info{k} = scenario.coupling_info;
+        result.coupling_weights_optimal{k} = scenario.coupling_weights_optimal;
+        result.parl_groups_info{k} = scenario.parl_groups_info;
+        result.lanelet_crossing_areas{k} = scenario.lanelet_crossing_areas;
+        scenario.lanelet_crossing_areas = {};
     end
     result.vehs_fallback{k} = info.vehs_fallback;
 
@@ -478,29 +487,24 @@ if options.isSaveResult
     result.mpa = scenario.mpa;
 
     % Delete unimportant data
-    for iIter = 1:length(result.iteration_structs)
-        result.iteration_structs{iIter}.predicted_lanelet_boundary = [];
-        result.iteration_structs{iIter}.predicted_lanelets = [];
-        result.iteration_structs{iIter}.reachable_sets = [];
-        result.iteration_structs{iIter}.occupied_areas = [];
-        result.iteration_structs{iIter}.emergency_maneuvers = [];
+    if options.isSaveResultReduced
+        for iIter = 1:length(result.iteration_structs)
+            result.iteration_structs{iIter}.predicted_lanelet_boundary = [];
+            result.iteration_structs{iIter}.predicted_lanelets = [];
+            result.iteration_structs{iIter}.reachable_sets = [];
+            result.iteration_structs{iIter}.occupied_areas = [];
+            result.iteration_structs{iIter}.emergency_maneuvers = [];
+        end
+        result.scenario.mpa = [];
+        result.scenario.speed_profile_mpas = [];
     end
-    result.scenario.mpa = [];
-    result.scenario.speed_profile_mpas = [];
 
     % check if file with the same name exists
     % while isfile(result.output_path)
     %     warning('File with the same name exists, timestamp will be added to the file name.')
     %     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
     % end
-    if options.isSaveResultReduced
-        result_reduced.output_path = result.output_path;
-        result_reduced.scenario = result.scenario;
-        result_reduced.t_total = result.t_total;
-        result_reduced.vehs_fallback = result.vehs_fallback;
-        result_reduced.is_deadlock = result.is_deadlock;
-        result = result_reduced;
-    end
+
     save(result.output_path,'result');
     disp(['Simulation results were saved under ' result.output_path])
 else

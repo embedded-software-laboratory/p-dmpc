@@ -203,6 +203,8 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
     info.runtime_graph_search_each_veh = info.runtime_graph_search_each_veh + msg_send_time;
     % Calculate the total runtime of each group
     info = get_run_time_total_all_grps(info, scenario.parl_groups_info, CL_based_hierarchy, runtime_others);
+
+    scenario.lanelet_crossing_areas = lanelet_crossing_areas;
 end
 
 

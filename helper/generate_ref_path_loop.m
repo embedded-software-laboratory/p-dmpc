@@ -102,6 +102,8 @@ ref_path = struct;
             loop = 7; starting_lanelet = 83;
         case 40
             loop = 7; starting_lanelet = 89;
+        case 41
+            loop = 5; starting_lanelet = 71;
     end 
 
     ref_path_loop = ref_path_loops{loop};

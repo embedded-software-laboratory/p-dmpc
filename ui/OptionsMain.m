@@ -35,7 +35,7 @@ classdef OptionsMain
                                                     % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
                                                     % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
         isSaveResult            % true/false, is save result
-        isSaveResultReduced = false; % true/false, is save reduced result but not full to save disk space (useful for a long run of simulation)
+        isSaveResultReduced = true; % true/false, if true, reduced result will be save to save disk space (useful for a long run of simulation)
         customResultName        % string or char, custom file name to save result
         isAllowInheritROW       % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
         is_eval                 % true/false, 
@@ -53,6 +53,15 @@ classdef OptionsMain
         time_per_tick = 0.01;
         offset = 0.01;
         plot_limits = [-10,10;-10,10];          % default fallback if not defined
+        is_use_dynamic_programming = true; % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
+
+        % MPA
+        is_save_mpa = true; % true/false, the offline computed MPA will be saved if true
+        is_load_mpa = true; % true/false, the offline computed MPA  will be load if exists
+        is_calculate_optimal_coupling_weight = false; % true/false, whether to calculate the "optimal" coupling weight
+
+        optionsPlotOnline = OptionsPlotOnline; % setup for online plotting
+        bound_reachable_sets = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
     end
 
     properties(Dependent)

@@ -37,6 +37,10 @@ classdef FileNameConstructor
                 mpa_instance_name = [mpa_instance_name,'_centralized_nVeh' num2str(options.amount)];
             end
 
+            if options.is_use_dynamic_programming
+                mpa_instance_name = [mpa_instance_name,'_DP'];
+            end
+
             mpa_instance_name = [mpa_instance_name,'.mat'];
         end
 
@@ -75,8 +79,8 @@ classdef FileNameConstructor
                     results_name = [results_name,'_',options.fallback_type];
                 end
 
-                if options.isSaveResultReduced
-                    results_name = [results_name,'_reduced'];
+                if ~options.isSaveResultReduced
+                    results_name = [results_name,'_fullResult'];
                 end
 
                 if ~isempty(options.random_idx)
@@ -85,6 +89,14 @@ classdef FileNameConstructor
 
                 if ~options.isDealPredictionInconsistency
                     results_name = [results_name,'_notDealWithPredictionInconsistency'];
+                end
+
+                if options.is_calculate_optimal_coupling_weight
+                    results_name = [results_name,'_optimalWeight'];
+                end
+
+                if ~options.bound_reachable_sets
+                    results_name = [results_name,'_unboundedRS'];
                 end
             else
                 % use custom name 

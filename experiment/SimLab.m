@@ -15,20 +15,16 @@ classdef SimLab < InterfaceExperiment
     end
     
     methods
-        function obj = SimLab(scenario, options)
-            obj.doOnlinePlot = options.visu(1);
-            obj.doExploration = options.visu(2);
+        function obj = SimLab(scenario)
+            obj.doOnlinePlot = scenario.options.visu(1);
+            obj.doExploration = scenario.options.visu(2);
             obj.scenario = scenario;
 
             % variables for key press callback
             obj.paused = false;
             obj.abort = false;
 
-            obj.visu.isShowVehID = true;                % is show vehicle IDs
-            obj.visu.isShowPriority = false;            % is show priority colorbar
-            obj.visu.isShowCoupling = false;             % is show coupling edges
-            obj.visu.isShowWeight = false;              % is show coupling weights
-            obj.visu.isShowHotkeyDescription = false;   % is show description of hotkeys
+            obj.visu = scenario.options.optionsPlotOnline;
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
         end
@@ -120,8 +116,8 @@ classdef SimLab < InterfaceExperiment
                 pause(obj.scenario.options.dt-result.step_time(obj.k))
 
                 % visualize time step
-                tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
-%                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
+%                 tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
+                tick_now = 1; % plot of next time step. set to 1 for plot of current time step
                 plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
             else
                 % pause so that `keyPressCallback()` can be executed in time

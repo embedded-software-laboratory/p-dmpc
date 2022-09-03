@@ -45,7 +45,9 @@ classdef EvaluationParl
         fallback_rate   % fallback rate: fallback_times/nSteps/nVeh
 
         is_deadlock         % true/false, if deadlock occurs
-        steps_ignored = 1;  % the first several steps are ignored due to their possiblly higher computation time (see MATLAB just-in-time (JIT) compilation)
+        steps_ignored = 4;  % the first several steps are ignored due to their possiblly higher computation time (see MATLAB just-in-time (JIT) compilation)
+
+        belonging_vector % indicates which group each vehicle belongs to
     end
 
     properties (Access=private)
@@ -77,23 +79,22 @@ classdef EvaluationParl
             obj.nVeh = result.scenario.options.amount;
             obj.dt = result.scenario.options.dt;
 
-            if ~result.scenario.options.isSaveResultReduced
-                if nargin==2
-                    obj.steps_ignored = max(obj.steps_ignored,floor(T_interval(1)/obj.dt));
-                    obj.nSteps = min(floor(T_interval(2)/obj.dt),length(result.iteration_structs));
-                else
-                    obj.nSteps = length(result.iteration_structs);
-                end
-                obj.reference_paths = cell(obj.nVeh,1);
-                obj.real_paths = cell(obj.nVeh,1);
-                obj.path_tracking_errors = cell(obj.nVeh,1);
-                obj.path_tracking_errors_MAE = zeros(obj.nVeh,1);
-                obj.runtime_total_per_step = zeros(0,1);
-                obj.plot_option_real_path = struct('Color','b','LineStyle','-','LineWidth',1.0,'DisplayName','Real Path');
-                obj.plot_option_ref_path = struct('Color','r','LineStyle','--','LineWidth',1.0,'DisplayName','Reference Path');
+            if nargin==2
+                obj.steps_ignored = max(obj.steps_ignored,floor(T_interval(1)/obj.dt));
+                obj.nSteps = min(floor(T_interval(2)/obj.dt),length(result.iteration_structs));
             else
-                obj.nSteps = length(result.vehs_fallback);
+                obj.nSteps = length(result.iteration_structs);
             end
+            obj.reference_paths = cell(obj.nVeh,1);
+            obj.real_paths = cell(obj.nVeh,1);
+            obj.path_tracking_errors = cell(obj.nVeh,1);
+            obj.path_tracking_errors_MAE = zeros(obj.nVeh,1);
+            obj.runtime_total_per_step = zeros(0,1);
+            obj.plot_option_real_path = struct('Color','b','LineStyle','-','LineWidth',1.0,'DisplayName','Real Path');
+            obj.plot_option_ref_path = struct('Color','r','LineStyle','--','LineWidth',1.0,'DisplayName','Reference Path');
+
+            obj.nSteps = length(result.vehs_fallback);
+
             
 
             obj.t_total = obj.dt*(obj.nSteps-obj.steps_ignored+1);
@@ -101,11 +102,9 @@ classdef EvaluationParl
 %                 warning('Simulation stops before reaching the specific time.')
 %             end
 
-            if ~result.scenario.options.isSaveResultReduced
-                obj = obj.get_path_tracking_errors(result);
-                obj = obj.get_runtime_per_step(result);
-                obj = obj.get_average_speeds;
-            end
+            obj = obj.get_path_tracking_errors(result);
+            obj = obj.get_runtime_per_step(result);
+            obj = obj.get_average_speeds;
 
             % Number of couplings
             obj.num_couplings = mean(result.num_couplings(obj.steps_ignored:obj.nSteps));
@@ -114,6 +113,8 @@ classdef EvaluationParl
             obj.num_couplings_between_grps_ignored = mean(result.num_couplings_between_grps_ignored(obj.steps_ignored:obj.nSteps));
 
             obj.CLs_num_max = max(result.computation_levels(obj.steps_ignored:obj.nSteps));
+
+            obj.belonging_vector = result.belonging_vector;
 
             obj.fallback_times = 0;
             for i = obj.steps_ignored:obj.nSteps

@@ -44,6 +44,7 @@ classdef Scenario
         last_vehs_at_intersection = [];  % store information about which vehicles were at the intersection in the last time step
         k;                              % simulation steps
         coupling_weights = [];          % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
+        coupling_weights_optimal = [];  % "optimal" coupling weights
         coupling_weights_reduced = [];  % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas
         coupling_info;                  % couling information of each coupling pair
         ros_subscribers = {};           % ROS 2 subscribers (used to read messages from other vehicles)

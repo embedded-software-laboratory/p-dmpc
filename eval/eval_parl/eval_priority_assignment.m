@@ -76,7 +76,6 @@ computation_time_s = cellfun(@(c) c.runtime_max, e_differentNumVehs, 'UniformOut
 grp_computation_time = cell2mat(arrayfun(@(i){i*ones(numel(computation_time_s{i}),1)},(1:numel(computation_time_s))')); 
 
 
-
 % computation time of different parts
 CT_group_vehs = cellfun(@(c) c.runtime_group_vehs, e_differentNumVehs);
 CT_determine_couplings = cellfun(@(c) c.runtime_determine_couplings, e_differentNumVehs);
@@ -123,18 +122,18 @@ plot_line_options(6) = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-',
 
 
 
-fig_x = 8;     fig_y = 12; % [cm]
-x_margin = 0;   y_margin = 0; 
-fig_x_position = fig_x - 2*x_margin;
-fig_y_position = fig_y - 2*y_margin;
+fig_x = 15;     fig_y = 6; % [cm]
+x_margin = 0.1;   y_margin = 0.05; 
+fig_x_position = fig_x - x_margin;
+fig_y_position = fig_y;
 
 file_name = 'evalPriorityAssignment_differentNumVehs';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
-    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
+    'PaperPosition', [0 y_margin fig_x_position fig_y_position])
 
-t_fig = tiledlayout(2,1,'Padding','compact','TileSpacing','compact');
+t_fig = tiledlayout(1,2,'Padding','tight','TileSpacing','compact');
 X_string = {'STAC-based','Random','Constant'};
 X_cat = categorical(X_string);
 X_cat = reordercats(X_cat,X_string);
@@ -159,7 +158,7 @@ grid on
 xtips1 = b2(1).XEndPoints;
 ytips1 = b2(1).YEndPoints;
 labels1 = string(round(b2(1).YData,2));
-text(xtips1,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
+text(xtips1-0.02,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
 xtips2 = b2(2).XEndPoints;
 ytips2 = b2(2).YEndPoints;
 labels2 = string(round(b2(2).YData,2));
@@ -263,16 +262,16 @@ grp_computation_time = cell2mat(arrayfun(@(i){i*ones(numel(computation_time_s{i}
 
 fallback_rate_s = cellfun(@(c) c.fallback_rate, e_sameNumVehs);
 
-fig_x = 8;     fig_y = 8; % [cm]
+fig_x = 6;     fig_y = 6; % [cm]
 x_margin = 0;   y_margin = 0; 
-fig_x_position = fig_x - 2*x_margin;
-fig_y_position = fig_y - 2*y_margin;
+fig_x_position = fig_x - x_margin;
+fig_y_position = fig_y - y_margin;
 
 file_name = 'evalPriorityAssignment_sameNumVehs';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
-    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
+    'PaperPosition', [-0.15 -0.15 fig_x_position+0.35 fig_y_position+0.3])
 
 t_fig = tiledlayout(1,1,'Padding','compact','TileSpacing','compact');
 X_string = {'STAC-based','Random','Constant'};
@@ -286,6 +285,7 @@ hAx=gca;
 xtk=hAx.XTick;  
 grid on
 hold on
+box on
 % p = plot(xtk,horzcat(speed_average_s{:}));
 s = scatter(xtk,speed_average,12,'filled','o','MarkerFaceColor',[0 0.4470 0.7410]);
 
