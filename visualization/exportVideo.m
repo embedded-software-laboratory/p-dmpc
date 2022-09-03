@@ -1,14 +1,18 @@
-function exportVideo( result )
+function exportVideo(result,videoExportSetup)
 % EXPORTVIDEO   Export Video from results of simulation.
-
-framerate = 30;
 resolution = [1920 1080];
 scenario = result.scenario;
 nSteps = nnz(result.controller_runtime);
-frame_per_step = framerate*scenario.options.dt;
 
-frame_ticks = round(linspace(2,scenario.options.tick_per_step+1,frame_per_step));
-
+if nargin>1
+    framerate = videoExportSetup.framerate;
+    frame_ticks = 1;
+else
+    framerate = 30;
+    frame_per_step = framerate*scenario.options.dt;
+    frame_ticks = round(linspace(2,scenario.options.tick_per_step+1,frame_per_step));
+end
+% 
 fig = figure('Visible','Off'...
             ,'Color',[1 1 1]...
             ,'units','pixel'...
@@ -17,16 +21,10 @@ fig = figure('Visible','Off'...
 
 [target_folder,vid_name,~] = fileparts(result.output_path);
 
-visu = struct( ...
-    'isShowVehID',true, ...
-    'isShowPriority',true, ...
-    'isShowCoupling',true, ...
-    'isShowWeight',false);
-
 test_mode = false;
 if test_mode
     exp.k = 1;
-    plotOnline(result,1,1,[],visu); %#ok<UNRCH>
+    plotOnline(result,1,1,[],scenario.options.optionsPlotOnline); %#ok<UNRCH>
     set_figure_properties(fig,'video');
     frame = getframe(fig);
     imwrite(frame,['output\video_', vid_name, '.png']);
@@ -45,7 +43,7 @@ wb = waitbar(0, 'Exporting video ...','Name','Video Export Progress');
 for step_idx = 1:nSteps
     for frame_idx = frame_ticks
         clf
-        plotOnline(result,step_idx,frame_idx,[],visu);
+        plotOnline(result,step_idx,frame_idx,[],scenario.options.optionsPlotOnline);
         set_figure_properties(fig,'video');
         frame = getframe(fig);
         writeVideo(v,frame);

@@ -18,11 +18,11 @@ function plot_coupling_lines(M, x0, varargin)
 % 
     
     % Process optional input and Name-Value pair options
-    [M, x0, belonging_vector, coupling_info, ShowWeights] = parse_inputs(M, x0, varargin{:});
+    [M, x0, belonging_vector, coupling_info, coupling_visu] = parse_inputs(M, x0, varargin{:});
     
     % if the given matrix is adjacency matrix but not edge-weights matrix
     if all(M==1|M==0,"all")
-        ShowWeights = false;
+        coupling_visu.isShowValue = false;
     end
     
     nVeh = length(M);
@@ -48,7 +48,7 @@ function plot_coupling_lines(M, x0, varargin)
                     ignored_x = x0(i_ignored,:);
                     MaxHeadSize = 0.3/norm([ignored_x(1)-x(1),ignored_x(2)-x(2)]); % to keep the arrow size 
                     % couplings that are ignored will be shown in grey solid lines
-                    quiver(x(1),x(2),ignored_x(1)-x(1),ignored_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color',color_minor,'LineStyle','-','MaxHeadSize',MaxHeadSize)
+                    quiver(x(1),x(2),ignored_x(1)-x(1),ignored_x(2)-x(2),'AutoScale','off','LineWidth',coupling_visu.LineWidth,'Color',color_minor,'LineStyle','-','MaxHeadSize',MaxHeadSize)
                 end
             end
         end
@@ -60,16 +60,16 @@ function plot_coupling_lines(M, x0, varargin)
             MaxHeadSize = 0.3/norm([adj_x(1)-x(1),adj_x(2)-x(2)]); % to keep the arrow size 
             if ~isempty(belonging_vector) && belonging_vector(v) ~= belonging_vector(adj_v)
                 % couplings between groups will be shown in black dashed lines.
-                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color',color_main,'LineStyle',':','MaxHeadSize',MaxHeadSize)
+                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',coupling_visu.LineWidth,'Color',color_main,'LineStyle',':','MaxHeadSize',MaxHeadSize)
             else
                 % couplings inside a group will be shown in black solid lines
-                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',1,'Color',color_main,'LineStyle','-','MaxHeadSize',MaxHeadSize)
+                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',coupling_visu.LineWidth,'Color',color_main,'LineStyle','-','MaxHeadSize',MaxHeadSize)
             end
 
-            if ShowWeights
+            if coupling_visu.isShowValue
                 % plot coupling weights
                 text((x(1)+adj_x(1))/2,(x(2)+adj_x(2))/2,...
-                    num2str(round(M(v,adj_v),2)),'FontSize', 12, 'LineWidth',1,'Color',color_main);
+                    num2str(round(M(v,adj_v),2)),'FontSize', coupling_visu.FontSize, 'LineWidth',coupling_visu.LineWidth,'Color',color_main);
             end
         end
     end
@@ -78,12 +78,12 @@ function plot_coupling_lines(M, x0, varargin)
 end
 
 %% local function
-function [M, x0, belonging_vector, coupling_info, ShowWeights] = parse_inputs(M, x0, varargin)
+function [M, x0, belonging_vector, coupling_info, coupling_visu] = parse_inputs(M, x0, varargin)
     % Process optional input and Name-Value pair options
     
     default_belonging_vector = ones(1,length(M)); % default all vehicles are in the same group
     default_coupling_info = [];
-    default_ShowWeights = false;
+    default_coupling_visu = struct('FontSize',12,'LineWidth',1,'isShowLine',false,'isShowValue',false);
 
 
     p = inputParser;
@@ -91,7 +91,7 @@ function [M, x0, belonging_vector, coupling_info, ShowWeights] = parse_inputs(M,
     addRequired(p,'x0',@(x) isstruct(x) || ismatrix(x) && (isnumeric(x))); % must be numerical matrix
     addOptional(p,'belonging_vector', default_belonging_vector, @(x) (isnumeric(x) && isvector(x)) || isempty(x)); % must be numerical vector or empty
     addOptional(p,'coupling_info', default_coupling_info, @(x) isstruct(x) || isempty(x)); % must be struct or empty
-    addParameter(p,'ShowWeights',default_ShowWeights, @(x) islogical(x));
+    addOptional(p,'coupling_visu', default_coupling_visu, @(x) isstruct(x) || isempty(x)); % must be struct or empty
 
     parse(p, M, x0, varargin{:}); % start parsing
     
@@ -100,6 +100,6 @@ function [M, x0, belonging_vector, coupling_info, ShowWeights] = parse_inputs(M,
     x0 = p.Results.x0;
     belonging_vector = p.Results.belonging_vector;
     coupling_info = p.Results.coupling_info;
-    ShowWeights = p.Results.ShowWeights;
+    coupling_visu = p.Results.coupling_visu;
 
 end

@@ -14,7 +14,6 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
 
     scenario = result.scenario;
     iter = result.iteration_structs{step_idx};
-    priority_list = result.priority(:,step_idx);
 
     nVeh = scenario.options.amount;
     nObst = size(scenario.obstacles,2);
@@ -31,8 +30,8 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
 
     % find all the plots with property "LineWidth 1", which are different to plot_lanelets (default "LineWidth 0.5")  
     % at every time step, delete all these plots while keep plot_lanelets
-    h = findobj('LineWidth',0.2);
-    delete(h)
+%     h = findobj('LineWidth',0.2);
+%     delete(h)
     
     if exploration.doExploration
         visualize_exploration(exploration,scenario);
@@ -42,8 +41,8 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
     box on
     axis equal
     
-    xlabel('$x\:[m]$','Interpreter','LaTex');
-    ylabel('$y\:[m]$','Interpreter','LaTex');
+%     xlabel('$x\:[m]$','Interpreter','LaTex');
+%     ylabel('$y\:[m]$','Interpreter','LaTex');
 
     xlim(scenario.options.plot_limits(1,:));
     ylim(scenario.options.plot_limits(2,:));
@@ -55,7 +54,6 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
     end
 
     colormap("hot"); % set colormap
-
 
     if visu.isShowHotkeyDescription
         % show description of hotkey
@@ -87,11 +85,23 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
     get_colormap = get(gcf,'Colormap');
 
     % get colors
-    n_priorities = length(unique(priority_list)); % number of different priorities
+    
     n_colors_min = 5; % minimum number of colors
-    n_colors = max(n_colors_min,n_priorities); 
-    sticks = round(linspace(1,size(get_colormap,1),n_colors+1));
-    vehColor = get_colormap(sticks(2:end),:); % evenly sample from colormap
+    switch visu.color_mode
+        case 'priority'
+            % vehicles with the same priority have the same color
+            n_priorities = max(result.priority(:,step_idx)); % number of different priorities
+            n_colors = max(n_colors_min,n_priorities); 
+            color_list = result.priority(:,step_idx);
+        case 'group'
+            n_groups = max(result.belonging_vector(:,step_idx));
+            % vehicles in the same group have the same color
+            n_colors = max(n_colors_min,n_groups); 
+            color_list = result.belonging_vector(:,step_idx);
+    end
+
+    sticks = round(linspace(1,size(get_colormap,1),n_colors+2));
+    vehColor = get_colormap(sticks(2:end-1),:); % evenly sample from colormap
     
     find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
     if visu.isShowPriority
@@ -118,24 +128,24 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
     for v=1:nVeh
         line(   iter.referenceTrajectoryPoints(v,:,1), ...
                 iter.referenceTrajectoryPoints(v,:,2), ...
-                'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize',1,'LineWidth',0.2 );
+                'Color',vehColor(color_list(v),:),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(color_list(v),:),'MarkerSize',1,'LineWidth',0.2 );
     end
 
     % predicted trajectory
     for v=1:nVeh
         line(   result.trajectory_predictions{v,step_idx}([1:scenario.options.tick_per_step+1:end,end],1), ...
                 result.trajectory_predictions{v,step_idx}([1:scenario.options.tick_per_step+1:end,end],2), ...
-                'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 1, 'LineWidth',0.2 );
+                'Color',vehColor(color_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(color_list(v),:),'MarkerSize', 1, 'LineWidth',0.2 );
                 % Matlab R2021a:
-                %'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',0.2 );
+                %'Color',vehColor(color_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(color_list(v),:),'MarkerSize', 3, 'LineWidth',0.2 );
                 % Matlab R2020a:
-                %'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',0.2 );
+                %'Color',vehColor(color_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(color_list(v),:),'MarkerSize', 3, 'LineWidth',0.2 );
         line(   result.trajectory_predictions{v,step_idx}(:,1), ...
                 result.trajectory_predictions{v,step_idx}(:,2), ...
-                'Color',vehColor(priority_list(v),:),'LineWidth',0.2 );
+                'Color',vehColor(color_list(v),:),'LineWidth',0.2 );
     end
 
-    % Vehicle rectangles'FontSize', 9
+    % Vehicle rectangles
     for v=1:nVeh
         veh = scenario.vehicles(v);
         pos_step = result.trajectory_predictions{v,step_idx};
@@ -143,7 +153,7 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
         vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
         patch(   vehiclePolygon(1,:)...
                 ,vehiclePolygon(2,:)...
-                ,vehColor(priority_list(v),:)...
+                ,vehColor(color_list(v),:)...
                 ,'LineWidth',0.2 ...
         );
     end
@@ -169,13 +179,14 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
     end
 
     % plot scenario adjacency
+    coupling_visu = struct('FontSize',9,'LineWidth',0.5,'isShowLine',visu.isShowCoupling,'isShowValue',visu.isShowWeight);
     if visu.isShowCoupling
         x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
         if ~isempty(scenario.coupling_weights_reduced)
-            plot_coupling_lines(scenario.coupling_weights_reduced, x0, scenario.belonging_vector, scenario.coupling_info, 'ShowWeights', visu.isShowWeight)
+            plot_coupling_lines(result.coupling_weights_reduced{step_idx}, x0, result.belonging_vector(:,step_idx), result.coupling_info{step_idx}, coupling_visu)
         else
-            plot_coupling_lines(scenario.directed_coupling, x0, [], [], 'ShowWeights', visu.isShowWeight)
+            plot_coupling_lines(result.directed_coupling{step_idx}, x0, [], [], coupling_visu)
         end
     end
 

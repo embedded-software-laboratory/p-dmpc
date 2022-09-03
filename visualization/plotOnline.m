@@ -42,7 +42,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         visualize_exploration(exploration,scenario);
     end
     
-    if step_idx == 1 
+%     if step_idx == 1 
         % initial time step
         hold on
         box on
@@ -61,7 +61,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         end
 
         colormap("hot"); % set colormap
-    end
+%     end
 
     if visu.isShowHotkeyDescription
         % show description of hotkey
@@ -167,17 +167,52 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
 %         if visu.isShowVehID
 %             text(x(1)+0.1,x(2)+0.1,num2str(veh.ID),'FontSize', 12, 'LineWidth',1,'Color','b');
 %         end
-%         
+                
+        if visu.isShowReachableSets 
+            if scenario.options.bound_reachable_sets
+                text_RS = 'Bounded reachable set by lanelet boundaries';
+            else
+                text_RS = 'Unbounded reachable set';
+            end
+
+            if isempty(visu.vehsReachableSets)
+                [RS_x,RS_y] = boundary(result.iteration_structs{step_idx}.reachable_sets{v,scenario.options.Hp});
+                line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
+                text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
+            elseif ismember(v,visu.vehsReachableSets)
+                % specify vehicles whose reachable sets should be shown
+                [RS_x,RS_y] = boundary(result.iteration_structs{step_idx}.reachable_sets{v,scenario.options.Hp});
+                line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
+                text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
+            end
+            
+        end
+        
+        if visu.isShowLaneletCrossingAreas
+            LCA = result.lanelet_crossing_areas{step_idx}{v};
+            if ~isempty(LCA)
+                if isempty(visu.vehsLaneletCorssingAreas)
+                    LCAs_xy = [LCA{:}];
+                    line(LCAs_xy(1,:),LCAs_xy(2,:),'LineWidth',1.0,'Color','k');
+                elseif ismember(v,visu.vehsLaneletCorssingAreas)
+                    % specify vehicles whose lanelet crossing areas should be shown
+                    LCAs_xy = [LCA{:}];
+                    line(LCAs_xy(1,:),LCAs_xy(2,:),'LineWidth',1.0,'Color','k');
+                end
+                text(max(LCAs_xy(1,:))+0.02,max(LCAs_xy(2,:)),'Lanelet crossing area','LineWidth',2,'FontSize',16)
+            end
+        end
     end
 
     % plot scenario adjacency
+    coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',visu.isShowCoupling,'isShowValue',visu.isShowWeight);
     if visu.isShowCoupling
         x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
         if ~isempty(scenario.coupling_weights_reduced)
-            plot_coupling_lines(scenario.coupling_weights_reduced, x0, scenario.belonging_vector, scenario.coupling_info, 'ShowWeights', visu.isShowWeight)
+            plot_coupling_lines(result.coupling_weights_reduced{step_idx}, x0, result.belonging_vector(:,step_idx), result.coupling_info{step_idx}, coupling_visu)
         else
-            plot_coupling_lines(scenario.directed_coupling, x0, [], [], 'ShowWeights', visu.isShowWeight)
+            plot_coupling_lines(result.directed_coupling{step_idx}, x0, [], [], coupling_visu)
         end
     end
 
