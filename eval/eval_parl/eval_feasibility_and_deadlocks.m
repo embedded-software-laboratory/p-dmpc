@@ -69,8 +69,8 @@ disp('--------Finished--------')
 %% Plot
 set(0,'DefaultTextFontname', 'Times New Roman');
 set(0,'DefaultAxesFontName', 'Times New Roman');
-set(0,'defaultTextFontSize',7)
-set(0,'defaultAxesFontSize',7)
+set(0,'defaultTextFontSize',11)
+set(0,'defaultAxesFontSize',11)
 
 average_random_simulations = @(data) reshape(mean(reshape(data,random_times,[]),1),length(strategy_feasibility_deadlock),[]);
 
@@ -81,6 +81,9 @@ t_total = average_random_simulations(t_total_tmp);
 fallback_rate_tmp = cellfun(@(c) c.fallback_rate*100, e_feasibility_differentNumVehs);
 fallback_rate = average_random_simulations(fallback_rate_tmp);
 % speed_sum_s = cellfun(@(c) c.sum_speeds_all_vehicles, e_feasibility_differentNumVehs);
+is_deadlock_tmp = cellfun(@(c) c.is_deadlock,e_feasibility_differentNumVehs);
+deadlock_rate = average_random_simulations(is_deadlock_tmp);
+collision_rate = 1-deadlock_rate;
 
 clear plot_line_options
 plot_line_options(1) = struct('LineWidth',0.5,'Color','#A2142F','LineStyle','-','Marker','*','MarkerSize',4);
@@ -91,7 +94,7 @@ plot_line_options(5) = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','-',
 plot_line_options(6) = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-','Marker','d','MarkerSize',4);
 
 legend_ = {'Both','Feasibility improving strategy','Deadlock avoidance strategy','None'};
-fig_x = 10;     fig_y = 6; % [cm]
+fig_x = 12;     fig_y = 8; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
@@ -100,12 +103,12 @@ file_name = 'evalFeasibilityDeadlock_differentNumVehs';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
-    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
+    'PaperPosition', [0 -0.15 fig_x_position fig_y_position+0.2])
 
-t_fig = tiledlayout(1,2,'Padding','compact','TileSpacing','compact');
+t_fig = tiledlayout(2,2,'Padding','compact','TileSpacing','compact');
 
 % maximum runtime
-nexttile
+nexttile(1,[2,1])
 grid on
 hold on
 p_t_total(1) = plot(nVeh_s,t_total(1,:),plot_line_options(1));
@@ -113,25 +116,42 @@ p_t_total(2) = plot(nVeh_s,t_total(2,:),plot_line_options(2));
 p_t_total(3) = plot(nVeh_s,t_total(3,:),plot_line_options(3));
 p_t_total(4) = plot(nVeh_s,t_total(4,:),plot_line_options(4));
 ylim([0 80])
-xlabel({'$n_{veh}$','(a). Maximum runtime.'},'Interpreter','latex')
+xlabel({'$n_{veh}$','(a) Maximum runtime.'},'Interpreter','latex')
 ylabel('$t_{max}\:[s]$','Interpreter','latex')
+xticks(nVeh_s)
 % legend(p_t_total,legend_,'Location',)
 
 % fallback rate
-nexttile
+nexttile(2,[1,1])
 grid on
 hold on
 p_fallback_rate(1) = plot(nVeh_s,fallback_rate(1,:),plot_line_options(1));
 p_fallback_rate(2) = plot(nVeh_s,fallback_rate(2,:),plot_line_options(2));
 p_fallback_rate(3) = plot(nVeh_s,fallback_rate(3,:),plot_line_options(3));
 p_fallback_rate(4) = plot(nVeh_s,fallback_rate(4,:),plot_line_options(4));
-ylim([0,15])
-xlabel({'$n_{veh}$','(b). Fallback rate.'},'Interpreter','latex')
+ylim([0,20])
+xticks(nVeh_s)
+xlabel({'(b) Average fallback rate.'},'Interpreter','latex')
 ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 
 % global legend
 lg  = legend(p_t_total,legend_,'Orientation','Horizontal','NumColumns',2); 
 lg.Layout.Tile = 'North';
+
+% is deadlock
+nexttile(4,[1,1])
+grid on 
+hold on
+% box on
+p_collision_rate(1) = plot(nVeh_s,collision_rate(1,:),plot_line_options(1));
+p_collision_rate(2) = plot(nVeh_s,collision_rate(2,:),plot_line_options(2));
+p_collision_rate(3) = plot(nVeh_s,collision_rate(3,:),plot_line_options(3));
+p_collision_rate(4) = plot(nVeh_s,collision_rate(4,:),plot_line_options(4));
+ylim([0 1])
+xticks(nVeh_s)
+yticks(round((0:random_times)/random_times,2))
+xlabel({'$n_{veh}$','(c)'},'Interpreter','latex')
+ylabel('$p_{co}\:[\%]$','Interpreter','latex')
 
 % save fig
 e_feasibility_differentNumVehs{1}.save_fig(fig,file_name)
@@ -235,7 +255,7 @@ X_string = {'Both','FIS','DAS','None'};
 X_cat = categorical(X_string);
 X_cat = reordercats(X_cat,X_string);
 
-fig_x = 7.5;     fig_y = 12; % [cm]
+fig_x = 12;     fig_y = 7.1; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
@@ -244,9 +264,9 @@ file_name = 'evalFeasibilityDeadlock_sameNumVehs';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
-    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
+    'PaperPosition', [x_margin 0.03 fig_x_position-0.1 fig_y_position-0.01])
 
-t_fig = tiledlayout(8,1,'Padding','compact','TileSpacing','tight');
+t_fig = tiledlayout(5,2,'Padding','tight','TileSpacing','compact');
 
 % average speed
 nexttile(1,[3,1])
@@ -260,36 +280,29 @@ s = scatter(xtk,speed_average,12,'filled','o','MarkerFaceColor',[0 0.4470 0.7410
 set(gca, 'XTickLabel','')
 legend(s,'Average','Location','south')
 ylim([0.3,0.8])
-xlabel('(a). Speed of each vehicle.')
+xlabel('(a) Speed of each vehicle.')
 ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
-xtickangle(0)
-
-% plot computation time
-nexttile(4,[3,1])
-b2 = bar(X_cat,[CT_total_average,CT_total_max,CT_graph_search]);
-set(gca, 'XTickLabel','')
-grid on
-legend({'Total (avg.)','Total (max.)','Plan Traj. (max.)'},'Location','best','FontSize',7,'Orientation','horizontal','NumColumns',2)
-xlabel('(b). Computation time per step.')
-ylabel('$t_c\:[s]$','Interpreter','latex')
-ylim([0,0.5])
 xtickangle(0)
 
 nexttile(7,[2,1])
 % fallback rate
-b3 = bar(X_cat,fallback_rate);
-grid on
-xtips1 = b3(1).XEndPoints;
-ytips1 = b3(1).YEndPoints;
-labels1 = string(round(b3(1).YData,2));
-text(xtips1,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
-
-% plot(X_cat,fallback_rate,'-*k','LineWidth',0.5,'MarkerSize',4)
-xlabel('(c) Fallback rate.')
+plot(X_cat,fallback_rate,'LineWidth',0.5,'Color','#0072BD','LineStyle','-','Marker','o','MarkerSize',4)
+xlabel('(b) Average fallback rate.')
 ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 grid on
-ylim([0 8])
+ylim([0 9])
 % xlabel(t_fig,'Improvement of Feasibility','FontSize',9,'FontName','Times New Roman')
+xtickangle(0)
+
+% plot computation time
+nexttile(2,[5,1])
+b2 = bar(X_cat,[CT_total_average,CT_total_max,CT_graph_search]);
+% set(gca, 'XTickLabel','')
+grid on
+legend({'Total (avg.)','Total (max.)','Plan Trajectory (max.)'},'Location','best','FontSize',9,'Orientation','horizontal','NumColumns',1)
+xlabel('(c) Computation time per step.')
+ylabel('$t_c\:[s]$','Interpreter','latex')
+ylim([0,0.5])
 xtickangle(0)
 
 % save fig

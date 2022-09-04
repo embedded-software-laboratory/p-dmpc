@@ -68,17 +68,17 @@ disp('--------Finished--------')
 %% Plot
 set(0,'DefaultTextFontname', 'Times New Roman');
 set(0,'DefaultAxesFontName', 'Times New Roman');
-set(0,'defaultTextFontSize',7)
-set(0,'defaultAxesFontSize',7)
+set(0,'defaultTextFontSize',11)
+set(0,'defaultAxesFontSize',11)
 
 clear plot_line_options
-plot_line_options{1,1} = struct('LineWidth',0.5,'Color','#A2142F','LineStyle','-','Marker','*','MarkerSize',3); % DP, complex trim primitives
-plot_line_options{1,2} = struct('LineWidth',0.5,'Color','#A2142F','LineStyle','--','Marker','+','MarkerSize',3); % brute-force, complex trim primitives
-plot_line_options{2,1} = struct('LineWidth',0.5,'Color','#0072BD','LineStyle','-','Marker','^','MarkerSize',3); % DP, simple trim primitives
-plot_line_options{2,2} = struct('LineWidth',0.5,'Color','#0072BD','LineStyle','--','Marker','v','MarkerSize',3); % brute-force, simple trim primitives
+plot_line_options{1,1} = struct('LineWidth',0.6,'Color','#A2142F','LineStyle','-','Marker','*','MarkerSize',4); % DP, complex trim primitives
+plot_line_options{1,2} = struct('LineWidth',0.6,'Color','#A2142F','LineStyle','--','Marker','+','MarkerSize',4); % brute-force, complex trim primitives
+plot_line_options{2,1} = struct('LineWidth',0.6,'Color','#0072BD','LineStyle','-','Marker','^','MarkerSize',4); % DP, simple trim primitives
+plot_line_options{2,2} = struct('LineWidth',0.6,'Color','#0072BD','LineStyle','--','Marker','v','MarkerSize',4); % brute-force, simple trim primitives
 
 
-fig_x = 7.5;     fig_y = 8; % [cm]
+fig_x = 10;     fig_y = 8.2; % [cm]
 x_margin = 0.05;   y_margin = 0.05; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin - 0.1;
@@ -87,9 +87,9 @@ file_name = 'evalOfflineRA';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
-    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
+    'PaperPosition', [x_margin 0 fig_x_position fig_y_position+0.25])
 
-t_fig = tiledlayout(1,1,'Padding','tight','TileSpacing','tight');
+t_fig = tiledlayout(1,1,'Padding','tight','TileSpacing','none');
 
 % plot computation time
 nexttile
@@ -100,14 +100,15 @@ p(1) = plot(Hp_s,e_offline_RA{1}(1,:),plot_line_options{1,1});
 p(2) = plot(Hp_s,e_offline_RA{1}(2,:),plot_line_options{1,2});
 p(3) = plot(Hp_s,e_offline_RA{2}(1,:),plot_line_options{2,1});
 p(4) = plot(Hp_s,e_offline_RA{2}(2,:),plot_line_options{2,2});
-legend(p,{'Dynamic programming (complex trim primitives)','Brute-force (complex trim primitives)', ...
-    'Dynamic programming (simple trim primitives)','Brute-force (simple trim primitives)'},'Location','north');
+legend(p,{'DP (complex)','Brute-force (complex)', ...
+    'DP (simple)','Brute-force (simple)'},'Location','northwest','Box','off');
 
 set(gca, 'YScale', 'log')
 xlabel({'$H_p$'},'Interpreter','latex');
 ylabel('$t_c\:[s]$','Interpreter','latex')
 xticks(Hp_s)
+yticks([1e-4 1e-3 1e-2 1e-1 1 10 100 1000 10000])
 xlim([Hp_s(1) Hp_s(end)])
-ylim([2e-3 5e4])
+ylim([1e-3 1e4])
 % save fig
 EvaluationParl.save_fig(fig,file_name)

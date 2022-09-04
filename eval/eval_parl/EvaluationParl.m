@@ -80,7 +80,7 @@ classdef EvaluationParl
             obj.dt = result.scenario.options.dt;
 
             if nargin==2
-                obj.steps_ignored = max(obj.steps_ignored,floor(T_interval(1)/obj.dt));
+                obj.steps_ignored = max(1,floor(T_interval(1)/obj.dt));
                 obj.nSteps = min(floor(T_interval(2)/obj.dt),length(result.iteration_structs));
             else
                 obj.nSteps = length(result.iteration_structs);

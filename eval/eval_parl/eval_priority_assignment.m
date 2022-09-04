@@ -53,7 +53,7 @@ for i_priority = 1:length(priority_assign_options)
     end
 
     % evaluate
-    e_differentNumVehs{i_priority} = EvaluationParl(results_full_path);
+    e_differentNumVehs{i_priority} = EvaluationParl(results_full_path,[0,options.T_end]);
     
     % display progress
     count = count + 1;
@@ -146,7 +146,7 @@ xtips1 = b1(1).XEndPoints;
 ytips1 = b1(1).YEndPoints;
 labels1 = string(b1(1).YData);
 text(xtips1,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
-xlabel({'(a). Maximum controllable vehicles.'})
+xlabel({'(a) Maximum controllable vehicles.'})
 ylabel('$n_{veh}^{max}$','Interpreter','latex')
 ylim([0 48])
 xtickangle(0)
@@ -163,8 +163,8 @@ xtips2 = b2(2).XEndPoints;
 ytips2 = b2(2).YEndPoints;
 labels2 = string(round(b2(2).YData,2));
 text(xtips2,ytips2,labels2,'HorizontalAlignment','center','VerticalAlignment','bottom')
-xlabel('(b). Average speed and sum of speeds.')
-ylabel('$\overline{v},v_{sum}\:[m/s]$','Interpreter','latex')
+xlabel('(b) Average speed and sum of speeds.')
+ylabel('$\overline{v},\overline{v}_{sum}\:[m/s]$','Interpreter','latex')
 legend({'Average','Sum'},'Location','northeast')
 ylim([0 25])
 xtickangle(0)

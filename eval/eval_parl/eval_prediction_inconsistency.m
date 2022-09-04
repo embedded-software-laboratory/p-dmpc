@@ -51,7 +51,7 @@ for i = 1:length(isDealPredictionInconsistency)
                 end
             end
             % data processing
-            e_predictionInconsistency{(i-1)*random_times+iRandom,iVeh} = EvaluationParl(options);
+            e_predictionInconsistency{(i-1)*random_times+iRandom,iVeh} = EvaluationParl(options,[0,options.T_end]);
     
             % display progress
             count = count + 1;
@@ -98,11 +98,10 @@ X_cat = categorical(X_string);
 X_cat = reordercats(X_cat,X_string);
 
 % options for plot 
-plot_options_considerPI = struct('LineWidth',.5,'Marker','*','MarkerSize',4);
-plot_options_notConsiderPI = struct('LineWidth',.5,'Marker','o','MarkerSize',4);
-plot_options_noFB = struct('LineWidth',.5,'Marker','square','MarkerSize',4);
+plot_options_considerPI = struct('LineWidth',.6,'Marker','*','MarkerSize',4);
+plot_options_notConsiderPI = struct('LineWidth',.6,'Marker','o','MarkerSize',4);
 
-fig_x = 8;     fig_y = 8; % [cm]
+fig_x = 9;     fig_y = 6; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
@@ -111,9 +110,9 @@ file_name = 'evalPredictionInconsistency';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
-    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
+    'PaperPosition', [0 -0.04 fig_x_position-0.1 fig_y_position+0.05])
 
-t_fig = tiledlayout(1,1,'Padding','compact','TileSpacing','tight');
+t_fig = tiledlayout(1,1,'Padding','tight','TileSpacing','none');
 
 % total run time
 nexttile
@@ -121,7 +120,7 @@ clear p
 p(1) = plot(nVeh_s,t_total(1,:),plot_options_considerPI);
 hold on 
 p(2) = plot(nVeh_s,t_total(2,:),plot_options_notConsiderPI);
-legend(p,{'Consider reachable set','Consider one-step delayed trajectory'},'Location','northoutside')
+legend(p,{'Prediction inconsistency addressed','Not addressed'},'Location','northeast')
 grid on
 xlabel({'$n_{veh}$'},'Interpreter','latex')
 ylabel('$t_{max}\:[s]$','Interpreter','latex')

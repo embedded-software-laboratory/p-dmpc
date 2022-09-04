@@ -171,7 +171,7 @@ plot_line_options{5}{2} = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','
 plot_line_options{6}{1} = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-','Marker','d','MarkerSize',4);
 plot_line_options{6}{2} = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-.','Marker','d','MarkerSize',4);
 
-fig_x = 10;     fig_y = 13; % [cm]
+fig_x = 12;     fig_y = 10; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
@@ -180,9 +180,9 @@ file_name = 'evalCLs';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
-    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
+    'PaperPosition', [0 0 fig_x_position-0.1 fig_y_position])
 
-t_fig = tiledlayout(3,2,'Padding','compact','TileSpacing','compact');
+t_fig = tiledlayout(3,2,'Padding','tight','TileSpacing','compact');
 
 % plot computation time
 nexttile(1,[2,1])
@@ -191,17 +191,16 @@ hold on
 clear p
 p(1) = plot(categorical(max_num_CLs_all),CT_total_max,plot_line_options{1}{2});
 p(2) = plot(categorical(max_num_CLs_all),CT_total_average,plot_line_options{1}{1});
-p(3) = plot(categorical(max_num_CLs_all),CT_graph_search,plot_line_options{2}{2});
-p(4) = plot(categorical(max_num_CLs_all),CT_graph_search_average,plot_line_options{2}{1});
+p(3) = plot(categorical(max_num_CLs_all),CT_graph_search,plot_line_options{3}{2});
+p(4) = plot(categorical(max_num_CLs_all),CT_graph_search_average,plot_line_options{3}{1});
 % p(4) = plot(categorical(max_num_CLs_all),CT_assign_priority,plot_line_options(4));
-p(5) = plot(categorical(max_num_CLs_all),CT_determine_couplings,plot_line_options{3}{2});
-p(6) = plot(categorical(max_num_CLs_all),CT_determine_couplings_average,plot_line_options{3}{1});
+% p(5) = plot(categorical(max_num_CLs_all),CT_determine_couplings,plot_line_options{3}{2});
+% p(6) = plot(categorical(max_num_CLs_all),CT_determine_couplings_average,plot_line_options{3}{1});
 % p(6) = plot(categorical(max_num_CLs_all),CT_group_vehs,plot_line_options(6));
 % plot line indicating the sample time 
-p(7) = yline(options.dt,'--b','LineWidth',0.5);
+p(5) = yline(options.dt,'--b','LineWidth',0.5);
 ylim([0,0.3])
-legend(p,{'Total (max.)','Total (avg.)','Trajectory (max.)','Trajectory (avg.)', ...
-    'Coupling (max.)','Coupling (avg.)','Sample time'},'FontSize',7,'Location','best');
+legend(p,{'Total (max.)','Total (avg.)','Plan trajectory (max.)','Plan trajectory (avg.)','Sample time'},'FontSize',7,'Location','best');
 
 xlabel({'(a) Computation time per step.'},'Interpreter','latex');
 ylabel('$t_c\:[s]$','Interpreter','latex')
@@ -227,7 +226,7 @@ p_CLs(1) = plot(categorical(max_num_CLs_all),max_num_CLs_all,plot_line_options{1
 p_CLs(2) = plot(categorical(max_num_CLs_all),CLs_num_max,plot_line_options{2}{1});
 legend(p_CLs,{'Allowed','Actual'},'FontSize',7,'Location','best')
 xlabel({'$n_{CLs}$','(c) Computation levels.'},'Interpreter','latex');
-ylabel('$n_{CLs}$','Interpreter','latex')
+ylabel('$n_{CLs},n_{CLs}^{act.}$','Interpreter','latex')
 
 % average speed
 nexttile(6)
@@ -251,7 +250,7 @@ ylim([0.55,0.75])
 % hold on
 % plot(categorical(max_num_CLs_all),fallback_rate,'-*k','LineWidth',0.5,'MarkerSize',4) 
 % ylim([0,3])
-% xlabel({'$n_{CLs}$','(c) Fallback rate.'},'Interpreter','latex')
+% xlabel({'$n_{CLs}$','(c) Average fallback rate.'},'Interpreter','latex')
 % ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 
 % save fig

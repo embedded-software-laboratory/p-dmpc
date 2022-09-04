@@ -126,7 +126,7 @@ plot_line_options{5}{2} = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','
 plot_line_options{6}{1} = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-','Marker','d','MarkerSize',4);
 plot_line_options{6}{2} = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-.','Marker','d','MarkerSize',4);
 
-fig_x = 16;     fig_y = 11; % [cm]
+fig_x = 15;     fig_y = 9; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
@@ -135,7 +135,7 @@ file_name = 'evalScalability';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
-    'PaperPosition', [-0.17 -0.17 fig_x_position+0.65 fig_y_position+0.45])
+    'PaperPosition', [-0.17 -0.15 fig_x_position+0.65 fig_y_position+0.35])
 
 t_fig = tiledlayout(1,2,'Padding','compact','TileSpacing','compact');
 
@@ -155,10 +155,10 @@ p(6) = plot(nVeh_s,CT_graph_search_average,plot_line_options{3}{1});
 p(7) = plot(nVeh_s,CT_group_vehs,plot_line_options{4}{2});
 p(8) = plot(nVeh_s,CT_group_vehs_average,plot_line_options{4}{1});
 
-xlabel({'$n_{veh}$','(a). Computation time per step.'},'Interpreter','latex')
+xlabel({'$n_{veh}$','(a) Computation time per step.'},'Interpreter','latex')
 ylabel('$t_c\:[s]$','Interpreter','latex')
 legend(p,{'Total (max.)','Total (avg.)','Determine couplings (max.)','Determine couplings (avg.)','Plan trajectories (max.)','Plan trajectories (avg.)','Group vehicles (max.)','Group vehicles (avg.)'}, ...
-    'Orientation','horizontal','NumColumns',1,'Location','northwest','FontSize',9,'Box','off')
+    'Orientation','horizontal','NumColumns',1,'Location','best','FontSize',9,'Box','off')
 xlim([min(nVeh_s) max(nVeh_s)])
 ylim([0 0.25])
 xticks(nVeh_s)
@@ -169,8 +169,8 @@ hold on
 grid on
 p_b(1) = plot(nVeh_s,num_couplings,plot_line_options{2}{1});
 p_b(2) = plot(nVeh_s,CLs_num_max,plot_line_options{3}{1});
-legend(p_b,{'Average number of couplings','Actual computation levels'},'FontSize',9,'Location','northwest','Box','off')
-xlabel({'$n_{veh}$','(b). Couplings and computation levels.'},'Interpreter','latex')
+legend(p_b,{'Average number of couplings','Actual computation levels'},'FontSize',9,'Location','best','Box','off')
+xlabel({'$n_{veh}$','(b) Couplings and computation levels.'},'Interpreter','latex')
 ylabel('$\overline{n}_c,n_{CLs}^{act.}$','Interpreter','latex')
 xlim([min(nVeh_s) max(nVeh_s)])
 y_max = 70;

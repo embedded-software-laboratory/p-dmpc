@@ -99,23 +99,23 @@ fallback_rate = average_random_simulations(fallback_rate);
 speed_average = cellfun(@(c) c.average_speed, e_fallback_strategies);
 speed_average = average_random_simulations(speed_average);
 
-fig_x = 8;     fig_y = 10; % [cm]
+fig_x = 14;     fig_y = 6; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
 
 % options for plot 
-plot_options_localFB = struct('LineWidth',.5,'Marker','*','MarkerSize',4);
-plot_options_globalFB = struct('LineWidth',.5,'Marker','o','MarkerSize',4);
-plot_options_noFB = struct('LineWidth',.5,'Marker','square','MarkerSize',4);
+plot_options_localFB = struct('LineWidth',.6,'Marker','*','MarkerSize',4);
+plot_options_globalFB = struct('LineWidth',.6,'Marker','o','MarkerSize',4);
+plot_options_noFB = struct('LineWidth',.6,'Marker','square','MarkerSize',4);
 
 file_name = 'evalFallback';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
-    'PaperPosition', [x_margin y_margin fig_x_position fig_y_position])
+    'PaperPosition', [x_margin -0.15 fig_x_position fig_y_position+0.1])
 
-t_fig = tiledlayout(3,1,'Padding','compact','TileSpacing','tight');
+t_fig = tiledlayout(1,3,'Padding','tight','TileSpacing','tight');
 
 % total run time
 nexttile
@@ -124,7 +124,7 @@ hold on
 plot(nVeh_s,t_total(2,:),plot_options_globalFB);
 plot(nVeh_s,t_total(3,:),plot_options_noFB);
 grid on
-xlabel({'(a). Maximum runtime.'},'Interpreter','latex')
+xlabel({'$n_{veh}$','(a) Maximum runtime.'},'Interpreter','latex')
 ylabel('$t_{max}\:[s]$','Interpreter','latex')
 xlim([min(nVeh_s) max(nVeh_s)])
 xticks(nVeh_s)
@@ -136,9 +136,9 @@ hold on
 plot(nVeh_s,speed_average(2,:),plot_options_globalFB);
 plot(nVeh_s,speed_average(3,:),plot_options_noFB);
 grid on
-l = legend({'Local fallback','Global fallback','Fallback not allowed'},'Orientation','horizontal','NumColumns',2);
+l = legend({'Local fallback','Global fallback','Fallback not allowed'},'Orientation','horizontal','NumColumns',3);
 l.Layout.Tile = 'north';
-xlabel({'(b). Average speed of all vehicles.'},'Interpreter','latex')
+xlabel({'$n_{veh}$','(b) Average speed of all vehicles.'},'Interpreter','latex')
 ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
 xlim([min(nVeh_s) max(nVeh_s)])
 xticks(nVeh_s)
@@ -150,7 +150,7 @@ hold on
 plot(nVeh_s,fallback_rate(2,:),plot_options_globalFB);
 plot(nVeh_s,fallback_rate(3,:),plot_options_noFB);
 grid on
-xlabel({'$n_{veh}$','(c). Average fallback rate.'},'Interpreter','latex')
+xlabel({'$n_{veh}$','(c) Average fallback rate.'},'Interpreter','latex')
 ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 xlim([min(nVeh_s) max(nVeh_s)])
 xticks(nVeh_s)
