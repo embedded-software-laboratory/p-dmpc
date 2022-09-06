@@ -4,7 +4,7 @@ classdef OptionsPlotOnline
 
     properties
     isShowVehID = true;                 % is show vehicle IDs
-    isShowPriority = true;              % is show priority colorbar
+    isShowPriority = false;              % is show priority colorbar
     isShowCoupling = false;             % is show coupling edges
     isShowWeight = false;               % is show coupling weights
     isShowHotkeyDescription = false;    % is show description of hotkeys
