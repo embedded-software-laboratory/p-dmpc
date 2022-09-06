@@ -16,13 +16,13 @@ options.priority = 'right_of_way_priority';
 options.isPB = true;
 options.isParl = true;
 options.isAllowInheritROW = false;
-options.isSaveResult = true;
+options.isSaveResult = false;
 options.isSaveResultReduced = true;
 options.visu = [false,false];
 options.is_eval = false;
 options.visualize_reachable_set = false;
 options.strategy_consider_veh_without_ROW = '3';
-options.strategy_enter_lanelet_crossing_area = '4';
+options.strategy_enter_lanelet_crossing_area = '1';
 nVeh_s = 18:1:30;
 % Random choose different vehicles three times
 random_times = 3;
