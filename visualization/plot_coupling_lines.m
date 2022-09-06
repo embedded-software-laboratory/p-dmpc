@@ -42,7 +42,7 @@ function plot_coupling_lines(M, x0, varargin)
             find_targrt = all([find_self;find_ignored],1);
 
             if any(find_targrt)
-                all_adjacent_vehicles = coupling_info(find_targrt).veh_without_ROW;
+                all_adjacent_vehicles = [coupling_info(find_targrt).veh_without_ROW];
                 coupling_ignored = setdiff(all_adjacent_vehicles,adjacent_vehicles);
                 for i_ignored=coupling_ignored(:)'
                     ignored_x = x0(i_ignored,:);

@@ -237,27 +237,26 @@ while (~got_stop)
     [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
     initialized_reference_path = true;
 
-    if ~options.isDealPredictionInconsistency
-        % if prediction inconsistency is not dealt, extra collision checking is needed
-        is_collision_occur = false;
-        for iiVeh = 1:options.amount-1
-            for jjVeh = iiVeh+1:options.amount
-                if InterX(iter.occupied_areas{iiVeh}.normal_offset,iter.occupied_areas{jjVeh}.normal_offset)
-                    warning(['Collision between vehicle ' num2str(iiVeh) ' and vehicle ' num2str(jjVeh) ' occur! Simulation ends.'])
-                    is_collision_occur = true;
-                    break
-                end
-            end
-            if is_collision_occur 
+    % collision checking 
+    is_collision_occur = false;
+    for iiVeh = 1:options.amount-1
+        for jjVeh = iiVeh+1:options.amount
+            if InterX(iter.occupied_areas{iiVeh}.without_offset,iter.occupied_areas{jjVeh}.without_offset)
+                warning(['Collision between vehicle ' num2str(iiVeh) ' and vehicle ' num2str(jjVeh) ' occur! Simulation ends.'])
+                is_collision_occur = true;
                 break
             end
         end
-    
         if is_collision_occur 
             break
         end
     end
 
+    if is_collision_occur 
+        break
+    end
+
+    
     % visualize reachabel set of vehicle in Expert-Mode
     for iVeh = 1:scenario.options.amount 
         if options.visualize_reachable_set && ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
@@ -365,7 +364,7 @@ while (~got_stop)
         vehs_fallback_times(vehs_not_fallback) = 0; % reset
         
         % check whether at least one vehicle has fallen back Hp times successively
-        if max(vehs_fallback_times) < scenario.options.Hp
+        
             if ~isempty(info.vehs_fallback)
                 real_vehicles = zeros(1,length(info.vehs_fallback));
     
@@ -378,9 +377,10 @@ while (~got_stop)
                 info = pb_controller_fallback(info, info_old, scenario);
                 total_fallback_times = total_fallback_times + 1;
             end
-        else
+    
+        if max(vehs_fallback_times) >= scenario.options.Hp
             disp('Already fall back successively Hp times, terminate the simulation')
-            break % break the while loop
+%             break % break the while loop
         end
     end
 
