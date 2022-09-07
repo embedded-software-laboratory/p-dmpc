@@ -42,8 +42,8 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         visualize_exploration(exploration,scenario);
     end
     
-%     if step_idx == 1 
-        % initial time step
+    if visu.isVideoMode
+        % in video mode, lanelets should be plotted at each time step
         hold on
         box on
         axis equal
@@ -61,7 +61,26 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         end
 
         colormap("hot"); % set colormap
-%     end
+    elseif step_idx == 1
+        % if not video mode, lanelets should be plotted only at the initial time step
+        hold on
+        box on
+        axis equal
+        
+        xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
+        ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
+    
+        xlim(scenario.options.plot_limits(1,:));
+        ylim(scenario.options.plot_limits(2,:));
+        daspect([1 1 1])
+
+        % plot the lanelets only once at the beginning
+        if ~isempty(scenario.lanelets)
+            plot_lanelets(scenario.lanelets,scenario.name);
+        end
+
+        colormap("hot"); % set colormap
+    end
 
     if visu.isShowHotkeyDescription
         % show description of hotkey

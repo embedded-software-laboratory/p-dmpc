@@ -1,11 +1,10 @@
-function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(M, varargin)
+function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(M, max_num_CLs, coupling_info, method, options)
 % FORM_PARALLEL_GROUPS Form parallel graoups of vehicles based on the given
 % matrix, which can either be a directed adjacency matrix or a edge-weights
 % matrix, while ensuring that the number of computation levels of each
 % group do not exceed a number defined by the second input argument. 
     
     % Process optional input and Name-Value pair options
-    [M, max_num_CLs, coupling_info, method] = parse_inputs(M, varargin{:});
     if max_num_CLs == 1
         nVeh = length(M);
         
@@ -22,7 +21,7 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
 
     % partition the supergraph to subgraphs with a certain upper graph size.
     % The sum of weights of edges connecting subgraphs is the objective value and should be minimized.
-    [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, max_num_CLs, coupling_info, 'method', method);
+    [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, max_num_CLs, coupling_info, method, options);
     
     % subgraphs is mergeable if the number of computation levels of the
     % new graph does not exceed the maximum allowed number.

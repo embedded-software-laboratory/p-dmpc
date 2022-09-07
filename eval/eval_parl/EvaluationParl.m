@@ -41,8 +41,9 @@ classdef EvaluationParl
 
         CLs_num_max     % maximum number of actual computation levels
 
-        fallback_times  % total fallback times of all vehicles. Note that this is not the number of time steps when fallbacks occur
+        
         fallback_rate   % fallback rate: fallback_times/nSteps/nVeh
+        fallback_steps  % number of steps where fallbacks occur
 
         is_deadlock         % true/false, if deadlock occurs
         steps_ignored = 4;  % the first several steps are ignored due to their possiblly higher computation time (see MATLAB just-in-time (JIT) compilation)
@@ -58,6 +59,7 @@ classdef EvaluationParl
         plot_option_real_path
         plot_option_ref_path
         free_flow_speed         % free flow speed
+        fallback_times  % total fallback times of all vehicles. Note that this is not the number of time steps when fallbacks occur
     end
 
     properties (Dependent)
@@ -117,9 +119,11 @@ classdef EvaluationParl
             obj.belonging_vector = result.belonging_vector;
 
             obj.fallback_times = 0;
+            obj.fallback_steps = 0;
             for i = obj.steps_ignored:obj.nSteps
                 if ~isempty(result.vehs_fallback{i})
                     obj.fallback_times = obj.fallback_times + length(result.vehs_fallback{i});
+                    obj.fallback_steps = obj.fallback_steps + 1;
                 end
             end
             obj.fallback_rate = obj.fallback_times/(obj.nSteps-obj.steps_ignored+1)/obj.nVeh;

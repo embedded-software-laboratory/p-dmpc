@@ -80,9 +80,9 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
         end
         iStep = cK;
 
-        if scenario.k>=67 
+        if scenario.k>=1
 %             disp('')
-            if t1==2 || t2==2
+            if t1==1 && t2==1
                 disp('')
             end
         end

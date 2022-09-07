@@ -21,6 +21,7 @@ classdef ControllResultsInfo
         computation_levels              % actual number of computation levels of the whole system
         vehs_fallback                   % vehicles that need to take fallback
         is_exhausted                    % whether graph search is exhausted
+        is_semi_exhausted               % vehicle at a stillstand but the graph search is still exhausted
         u                               % control input
     end
 

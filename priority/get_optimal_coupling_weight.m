@@ -83,7 +83,7 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
             iter_v.x0 = [x0_next,y0_next,yaw0_next,speed0_next];
 
             info_v = graph_search(scenario_v,iter_v);
-            if info_v.is_exhausted
+            if info_v.is_exhausted || info_v.is_semi_exhausted
                 are_valid(iTrim) = false;
                 % disp('Graph search is exhausted.')
             else
@@ -111,7 +111,11 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
     end
 
     if optimal_coupling_weight==1
-        disp('')
+        % a coupling weight of 1 means if those two vehicles is not in the
+        % same group, the lower-priority one must cannot find a feasible
+        % trajectory; therefore, set it to a very large value so that the
+        % graph cut algorithm will put them in the same group
+        optimal_coupling_weight = 10; 
     end
     % h = findobj('LineWidth',plot_options_RS.LineWidth);
     % delete(h)

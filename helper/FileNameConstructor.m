@@ -90,9 +90,9 @@ classdef FileNameConstructor
                 if ~options.isDealPredictionInconsistency
                     results_name = [results_name,'_notDealWithPredictionInconsistency'];
                 end
-
-                if options.is_calculate_optimal_coupling_weight
-                    results_name = [results_name,'_optimalWeight'];
+                
+                if ~strcmp(options.coupling_weight_mode,'STAC')
+                    results_name = [results_name,'_W',options.coupling_weight_mode];
                 end
 
                 if ~options.bound_reachable_sets

@@ -5,8 +5,9 @@ function info = graph_search(scenario, iter)
 %   is_exhausted: (true/false) whether graph search is exhausted or not
 % 
 
+    Hp = scenario.options.Hp;
     % initialize variable to store control results
-    info = ControllResultsInfo(scenario.options.amount, scenario.options.Hp, [scenario.vehicles.ID]);
+    info = ControllResultsInfo(scenario.options.amount, Hp, [scenario.vehicles.ID]);
 
     shapes_tmp = cell(scenario.options.amount,0);
     % Create tree with root node
@@ -52,8 +53,31 @@ function info = graph_search(scenario, iter)
 %                 ,'No more open nodes to explore' ...
 %             );
 %             throw(ME);
-            info.n_expanded = info.tree.size();
-            info.is_exhausted = true;
+
+            % if vehicle at a standstill cannot find a feasible trajectory, it keep stay at standstill, and this will not be considered as a infeasibility
+            if scenario.mpa.trims(trim).speed==0
+                info.tree = Tree(x,y,yaw,trim,k,g,h);
+                for iStep = 1:Hp
+                    new_open_nodes = add_nodes(info.tree,iStep,x,y,yaw,trim,k,g,h);
+                end
+                y_pred = {repmat([x,y,yaw,trim],(scenario.options.tick_per_step+1)*Hp,1)};
+                info.y_predicted = y_pred;
+    
+                vehiclePolygon = transformedRectangle(x,y,yaw, scenario.vehicles.Length,scenario.vehicles.Width);
+                shape_veh = {[vehiclePolygon,vehiclePolygon(:,1)]}; % close shape
+    
+                info.shapes = repmat(shape_veh,1,Hp);
+                info.tree_path = 1:Hp+1;
+                % Predicted trims in the future Hp time steps. The first entry is the current trims
+                info.predicted_trims = repmat(trim,1,Hp+1); 
+                info.is_exhausted = false;
+                info.is_semi_exhausted = true;
+            else
+                info.n_expanded = info.tree.size();
+                info.is_exhausted = true;
+                info.is_semi_exhausted  =true;
+            end
+
             break
         end
 
@@ -71,16 +95,15 @@ function info = graph_search(scenario, iter)
         end
         
         shapes_tmp(:,cur_node_id) = shapes;
-        if info.tree.k(cur_node_id) == scenario.options.Hp
+        if info.tree.k(cur_node_id) == Hp
             y_pred = return_path_to(cur_node_id, info.tree, scenario);
             info.y_predicted = y_pred;
             info.shapes = return_path_area(shapes_tmp, info.tree, cur_node_id);
             info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
-            % Predicted trims in the future Hp time steps. The first
-            % entry is the current trims
+            % Predicted trims in the future Hp time steps. The first entry is the current trims
             info.predicted_trims = info.tree.trim(:,info.tree_path); 
-%             info.trim_indices = info.tree.trim(:,info.tree_path(2));
             info.is_exhausted = false;
+            info.is_semi_exhausted = false;
             break
         else
             % Expand chosen node

@@ -7,7 +7,7 @@ options.customResultName = '';
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;
 options.Hp = 6;
-options.amount = 20;
+options.amount = 30;
 options.T_end = 10;
 options.priority = 'right_of_way_priority';
 options.isPB = true;
@@ -20,7 +20,7 @@ options.is_eval = false;
 options.visualize_reachable_set = false;
 options.dt = 0.2;
 
-max_num_CLs_all = [1:ceil(options.amount/2),options.amount];
+max_num_CLs_all = [1:2:7,options.amount];
 
 % Random choose different vehicles three times
 random_times = 1;
@@ -36,7 +36,7 @@ for i_CL = 1:length(max_num_CLs_all)
         % lanelet crossing areas
         options.strategy_enter_lanelet_crossing_area = '1';
     else
-        options.strategy_enter_lanelet_crossing_area = '4';
+        options.strategy_enter_lanelet_crossing_area = '1';
     end
 
     random_seed = RandStream('mt19937ar');
@@ -199,7 +199,7 @@ p(4) = plot(categorical(max_num_CLs_all),CT_graph_search_average,plot_line_optio
 % p(6) = plot(categorical(max_num_CLs_all),CT_group_vehs,plot_line_options(6));
 % plot line indicating the sample time 
 p(5) = yline(options.dt,'--b','LineWidth',0.5);
-ylim([0,0.3])
+ylim([0,0.5])
 legend(p,{'Total (max.)','Total (avg.)','Plan trajectory (max.)','Plan trajectory (avg.)','Sample time'},'FontSize',7,'Location','best');
 
 xlabel({'(a) Computation time per step.'},'Interpreter','latex');
@@ -214,7 +214,7 @@ c(1) = plot(categorical(max_num_CLs_all),num_couplings,plot_line_options{1}{1});
 c(2) = plot(categorical(max_num_CLs_all),num_couplings_ignored,plot_line_options{1}{2});
 c(3) = plot(categorical(max_num_CLs_all),num_couplings_between_grps,plot_line_options{2}{1});
 c(4) = plot(categorical(max_num_CLs_all),num_couplings_between_grps_ignored,plot_line_options{2}{2});
-legend(c,{'Total','Ignored (total)','Between groups','Ignored (between g.)'},'FontSize',7,'Location','south')
+legend(c,{'Total','Ignored (total)','Between groups','Ignored (between g.)'},'FontSize',7,'Location','best')
 xlabel({'(b) Number of couplings.'},'Interpreter','latex')
 ylabel('$\overline{n}_{c}$','Interpreter','latex')
 
@@ -240,7 +240,7 @@ legend(p_speed,{'Average','Free-flow'},'FontSize',7,'Location','layout','Interpr
 
 xlabel({'$n_{CLs}$','(d) Average speed.'},'Interpreter','latex')
 ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
-ylim([0.55,0.75])
+ylim([0.45,0.75])
 
 
 

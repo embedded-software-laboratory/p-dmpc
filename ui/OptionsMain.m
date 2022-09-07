@@ -58,10 +58,12 @@ classdef OptionsMain
         % MPA
         is_save_mpa = true; % true/false, the offline computed MPA will be saved if true
         is_load_mpa = true; % true/false, the offline computed MPA  will be load if exists
-        is_calculate_optimal_coupling_weight = false; % true/false, whether to calculate the "optimal" coupling weight
+        coupling_weight_mode = 'STAC'; % one of the following {'STAC','random','constant','optimal'}
 
         optionsPlotOnline = OptionsPlotOnline; % setup for online plotting
         bound_reachable_sets = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
+
+        is_force_parallel_vehs_in_same_grp = true; % true/false, if true, vehicles move in parallel will be forced in the same group
     end
 
     properties(Dependent)

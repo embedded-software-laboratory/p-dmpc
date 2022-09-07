@@ -19,7 +19,8 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
 
         group_vehs = tic;
         % form parallel CL_based_hierarchy
-        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_reduced, scenario.options.max_num_CLs, coupling_info, 'method', 's-t-cut');
+        method = 's-t-cut'; % 's-t-cut' or 'MILP'
+        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_reduced, scenario.options.max_num_CLs, coupling_info, method, scenario.options);
         scenario.timer.group_vehs = toc(group_vehs);
         
     elseif strcmp(scenario.options.priority,'mixed_traffic_priority')
@@ -43,7 +44,8 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
                 coupling_weights_copy(indexVehicleExpertMode, i) = 0;
             end
         end
-        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_copy, scenario.options.max_num_CLs, coupling_info, 'method', 's-t-cut');
+        method = 's-t-cut'; % 's-t-cut' or 'MILP'
+        [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_copy, scenario.options.max_num_CLs, coupling_info, method, options);
     else
         warning([scenario.options.priority ' is not supported if parallel computation is used. Right_of_way_priority will be used instead.'])
     end
@@ -136,25 +138,22 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
             lanelet_crossing_area = intersect(predicted_lanelet_boundary{veh_without_ROW}, iter.predicted_lanelet_boundary{veh_with_ROW,3});
         
             [lanelet_crossing_area_x, lanelet_crossing_area_y] = boundary(lanelet_crossing_area);
+            lanelet_crossing_area_xy = [lanelet_crossing_area_x,lanelet_crossing_area_y]';
 
             
             % check if at least one emergency (braking/left turn/right turn) maneuver is collision-free with lanelet crossing area 
-            if any(inpolygon(iter.emergency_maneuvers{veh_without_ROW}.braking_area_without_offset(1,:),iter.emergency_maneuvers{veh_without_ROW}.braking_area_without_offset(2,:), ...
-                    lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
-                any(inpolygon(iter.emergency_maneuvers{veh_without_ROW}.left_area_without_offset(1,:),iter.emergency_maneuvers{veh_without_ROW}.left_area_without_offset(2,:), ...
-                    lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
-                any(inpolygon(iter.emergency_maneuvers{veh_without_ROW}.right_area_without_offset(1,:),iter.emergency_maneuvers{veh_without_ROW}.right_area_without_offset(2,:), ...
-                    lanelet_crossing_area_x,lanelet_crossing_area_y))
+            if any(inpolygon(iter.occupied_areas{veh_without_ROW}.without_offset(1,:),iter.occupied_areas{veh_without_ROW}.without_offset(2,:),lanelet_crossing_area_x,lanelet_crossing_area_y)) || ... % ensure vehicle is not in the lanelet crossing area
+                    (InterX(iter.emergency_maneuvers{veh_without_ROW}.braking_area_without_offset,lanelet_crossing_area_xy) && ... % check if emergency braking maneuver could avoid the LCA
+                    InterX(iter.emergency_maneuvers{veh_without_ROW}.left_area_without_offset,lanelet_crossing_area_xy) && ... % check if emergency left-turn maneuver could avoid the LCA
+                    InterX(iter.emergency_maneuvers{veh_without_ROW}.right_area_without_offset,lanelet_crossing_area_xy)) % check if emergency right-turn maneuver could avoid the LCA
                 % The vehicle without the ROW must be allowed to enter the
                 % lanelet crossing area since all its emergency meneuvers
                 % will collide with this area. In this case, we check if
                 % vehicle with the ROW could be forbidded to enter.
-                if any(inpolygon(iter.emergency_maneuvers{veh_with_ROW}.braking_area_without_offset(1,:),iter.emergency_maneuvers{veh_with_ROW}.braking_area_without_offset(2,:), ...
-                        lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
-                    any(inpolygon(iter.emergency_maneuvers{veh_with_ROW}.left_area_without_offset(1,:),iter.emergency_maneuvers{veh_with_ROW}.left_area_without_offset(2,:), ...
-                        lanelet_crossing_area_x,lanelet_crossing_area_y)) && ...
-                    any(inpolygon(iter.emergency_maneuvers{veh_with_ROW}.right_area_without_offset(1,:),iter.emergency_maneuvers{veh_with_ROW}.right_area_without_offset(2,:), ...
-                        lanelet_crossing_area_x,lanelet_crossing_area_y))
+                if any(inpolygon(iter.occupied_areas{veh_with_ROW}.without_offset(1,:),iter.occupied_areas{veh_with_ROW}.without_offset(2,:),lanelet_crossing_area_x,lanelet_crossing_area_y)) || ... % ensure vehicle is not in the lanelet crossing area
+                        (InterX(iter.emergency_maneuvers{veh_with_ROW}.braking_area_without_offset,lanelet_crossing_area_xy) && ... % check if emergency braking maneuver could avoid the LCA
+                        InterX(iter.emergency_maneuvers{veh_with_ROW}.left_area_without_offset,lanelet_crossing_area_xy) && ... % check if emergency left-turn maneuver could avoid the LCA
+                        InterX(iter.emergency_maneuvers{veh_with_ROW}.right_area_without_offset,lanelet_crossing_area_xy)) % check if emergency right-turn maneuver could avoid the LCA
                     % The vehicle with the ROW must also be allowed to enter 
                     % disp(['Both vehicle ' num2str(veh_with_ROW) ' and ' num2str(veh_without_ROW) ' have entered the crossing area, thus the coupling cannot be ignored.'])
                     continue

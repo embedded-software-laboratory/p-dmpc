@@ -16,23 +16,23 @@ options.priority = 'right_of_way_priority';
 options.isPB = true;
 options.isParl = true;
 options.isAllowInheritROW = false;
-options.isSaveResult = true;
+options.isSaveResult = false
 options.isSaveResultReduced = true;
-options.visu = [false,false];
+options.visu = [true,false]
 options.is_eval = false;
 options.visualize_reachable_set = false;
 options.strategy_consider_veh_without_ROW = '3';
-options.strategy_enter_lanelet_crossing_area = '4';
+options.strategy_enter_lanelet_crossing_area = '1';
 options.is_force_parallel_vehs_in_same_grp = false;
 
-coupling_weight_mode = {'STAC','random','constant','optimal'};
-% coupling_weight_mode = {'optimal'};
+coupling_weight_mode = {'STAC','random','constant'};
+coupling_weight_mode = {'STAC'};
 % Random choose different vehicles three times
 count = 0;
 e_weighting_function = cell(length(coupling_weight_mode),1);
 n_simulations = numel(e_weighting_function);
 
-options.amount = 20;
+options.amount = 15;
 
 random_seed = RandStream('mt19937ar');
 options.veh_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
@@ -49,7 +49,7 @@ for i = 1:length(coupling_weight_mode)
         else
             [~,scenario,~] = main(options);
         end
-        pause(10)
+%         pause(10)
 %     end
     % data processing
     % display progress
@@ -71,7 +71,7 @@ speed_average = cellfun(@(c) c.average_speed, e_weighting_function);
 runtime_determine_couplings = cellfun(@(c) c.runtime_determine_couplings, e_weighting_function);
 runtime_determine_couplings_average = cellfun(@(c) c.runtime_determine_couplings_average, e_weighting_function);
 
-fallback_rate_s = cellfun(@(c) c.fallback_rate*100, e_weighting_function);
+fallback_steps_rate = cellfun(@(c) c.fallback_steps/c.nSteps*100, e_weighting_function);
 
 clear plot_line_options
 plot_line_options(1) = struct('LineWidth',0.5,'Color','#A2142F','LineStyle','-','Marker','*','MarkerSize',4);
@@ -87,18 +87,18 @@ x_margin = 0;   y_margin = 0;
 fig_x_position = fig_x - x_margin;
 fig_y_position = fig_y - y_margin;
 
-file_name = 'evalWeightingFunction_sameNumVehs';
+file_name = 'presentation_evalWeightingFunction_sameNumVehs';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
     'PaperPosition', [-0.15 -0.14 fig_x_position+0.75 fig_y_position+0.35])
 
-t_fig = tiledlayout(2,2,'Padding','compact','TileSpacing','compact');
-X_string = {'STAC','Random','Constant','Optimal'};
+t_fig = tiledlayout(1,2,'Padding','compact','TileSpacing','compact');
+X_string = {'STAC','Random','Constant'};
 X_cat = categorical(X_string);
 X_cat = reordercats(X_cat,X_string);
 
-nexttile(1,[1,1])
+nexttile(1)
 % average speed
 b1 = bar(X_cat,speed_average);
 grid on
@@ -106,49 +106,24 @@ xtips1 = b1(1).XEndPoints;
 ytips1 = b1(1).YEndPoints;
 labels1 = string(round(b1(1).YData,3));
 text(xtips1,ytips1,labels1,'HorizontalAlignment','center','VerticalAlignment','bottom')
-ylim([0 0.62])
+ylim([0 0.9])
 ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
 % xtickangle(0)
-set(gca, 'XTickLabel','')
 xlabel('(a) Average speed.')
 
 
-nexttile(3,[1,1])
+nexttile(2)
 % fallback rate
-b3 = bar(X_cat,fallback_rate_s);
+b3 = bar(X_cat,fallback_steps_rate);
 grid on
 xtips3 = b3(1).XEndPoints;
 ytips3 = b3(1).YEndPoints;
 labels3 = string(round(b3(1).YData,3));
 text(xtips3,ytips3,labels3,'HorizontalAlignment','center','VerticalAlignment','bottom')
-ylim([0 4.5])
-ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
+% ylim([0 4])
+ylabel('$\overline{p}_{inf.}\:[\%]$','Interpreter','latex')
 xtickangle(0)
-xlabel('(c) Average fallback rate.')
-
-
-nexttile(2,[2,1])
-% coupling determination time
-b2 = bar(X_cat,[runtime_determine_couplings_average,runtime_determine_couplings]);
-grid on
-xtips2 = b2(1).XEndPoints;
-ytips2 = b2(1).YEndPoints;
-labels2 = string(round(b2(1).YData,2));
-text(xtips2-0.05,ytips2,labels2,'HorizontalAlignment','center','VerticalAlignment','bottom')
-xtips3 = b2(2).XEndPoints;
-xtips3(1:3) = xtips3(1:3) + 0.05;
-ytips3 = b2(2).YEndPoints;
-ytips3(1:3) = ytips3(1:3) + 0.15;
-labels3 = string(round(b2(2).YData,2));
-text(xtips3,ytips3,labels3,'HorizontalAlignment','center','VerticalAlignment','bottom')
-ylim([0 3.4])
-ylabel('$t\:[s]$','Interpreter','latex')
-xtickangle(0)
-xlabel('(b) Coupling determination time.')
-legend({'Average','Maximum'},'Location','northwest')
-
-% title(t_fig,'Allowed number of computation levels: 3','FontSize',9,'FontName','Times New Roman')
-% xlabel(t_fig,{'Priority Assignment Strategies'},'FontSize',9,'FontName','Times New Roman')
+xlabel('(b) Average infeasibility rate.')
 
 
 % save fig

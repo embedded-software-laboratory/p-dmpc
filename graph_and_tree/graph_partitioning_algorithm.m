@@ -1,4 +1,4 @@
-function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, varargin)
+function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, max_num_CLs, coupling_info, method, options)
 % GRAPH_PARTITIONING_ALGORITHM Partition the given edge-weighted directed acyclic graph (DAG) while ensuring
 % the size of each subgraph do not exceed the defined maximum graph size.
 % 
@@ -24,40 +24,44 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, va
 %   subgraph_info: information of all the subgraphs, such as vertices, number
 %   of computation levels
     
-    % Process optional input and Name-Value pair options
-    [M, max_num_CLs, coupling_info, method] = parse_inputs(M, varargin{:});
 
-    if ~isempty([coupling_info.veh_with_ROW])
-        % find all vehicles that drive in parallel 
-        coupling_info = coupling_info([coupling_info.is_drive_parallel]); 
-        vehs_drive_parallel = [coupling_info.veh_with_ROW,coupling_info.veh_without_ROW];
-        vehs_drive_parallel = reshape(vehs_drive_parallel,[],2);
-    else
-        vehs_drive_parallel = [];
-    end
-
-    % Deal with multiple vehicles drive in parallel
     multiple_vehs_drive_parallel = {};
-    for iParl = 1:size(vehs_drive_parallel,1)
-        vehs_drive_parallel_i = vehs_drive_parallel(iParl,:);
-        find_cell_idx = find(cellfun(@(c) any(ismember(vehs_drive_parallel_i,c)),multiple_vehs_drive_parallel));
-        if isempty(find_cell_idx) && length(vehs_drive_parallel_i) <= max_num_CLs
-            % Add to a new parallel dirving group
-            multiple_vehs_drive_parallel{end+1} = vehs_drive_parallel_i; 
+    if options.is_force_parallel_vehs_in_same_grp
+        if ~isempty([coupling_info.veh_with_ROW])
+            % find all vehicles that drive in parallel 
+            coupling_info = coupling_info([coupling_info.is_drive_parallel]); 
+            % sort according to the STAC so that parallel pair with higher
+            % STAC will be considered earlier
+            [~,order] = sort([coupling_info.STAC]);
+            coupling_info = coupling_info(order);
+            vehs_drive_parallel = [coupling_info.veh_with_ROW;coupling_info.veh_without_ROW]';
         else
-            new_members = sort(unique([multiple_vehs_drive_parallel{find_cell_idx},vehs_drive_parallel_i]),'ascend');
-            % Check if the allowed number computation levels is exceeded
-            if length(new_members) <= max_num_CLs
-                % Add to the existing parallel driving group
-                if length(find_cell_idx)==1
-                    multiple_vehs_drive_parallel{find_cell_idx} = new_members;
-                else
-                    find_cell_idx = sort(find_cell_idx,'ascend');
-                    multiple_vehs_drive_parallel{find_cell_idx(1)} = new_members;
-                    % delete others
-                    to_delete = false(1,length(multiple_vehs_drive_parallel));
-                    to_delete(find_cell_idx(2:end)) = true;
-                    multiple_vehs_drive_parallel = multiple_vehs_drive_parallel(~to_delete);
+            vehs_drive_parallel = [];
+        end
+    
+        % Deal with multiple vehicles drive in parallel
+        
+        for iParl = 1:size(vehs_drive_parallel,1)
+            vehs_drive_parallel_i = vehs_drive_parallel(iParl,:);
+            find_cell_idx = find(cellfun(@(c) any(ismember(vehs_drive_parallel_i,c)),multiple_vehs_drive_parallel));
+            if isempty(find_cell_idx) && length(vehs_drive_parallel_i) <= max_num_CLs
+                % Add to a new parallel dirving group
+                multiple_vehs_drive_parallel{end+1} = vehs_drive_parallel_i; 
+            else
+                new_members = sort(unique([multiple_vehs_drive_parallel{find_cell_idx},vehs_drive_parallel_i]),'ascend');
+                % Check if the allowed number computation levels is exceeded
+                if length(new_members) <= max_num_CLs
+                    % Add to the existing parallel driving group
+                    if length(find_cell_idx)==1
+                        multiple_vehs_drive_parallel{find_cell_idx} = new_members;
+                    else
+                        find_cell_idx = sort(find_cell_idx,'ascend');
+                        multiple_vehs_drive_parallel{find_cell_idx(1)} = new_members;
+                        % delete others
+                        to_delete = false(1,length(multiple_vehs_drive_parallel));
+                        to_delete(find_cell_idx(2:end)) = true;
+                        multiple_vehs_drive_parallel = multiple_vehs_drive_parallel(~to_delete);
+                    end
                 end
             end
         end

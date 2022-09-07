@@ -21,9 +21,7 @@ options.visu = [true,false];
 options.is_eval = false;
 options.visualize_reachable_set = false;
 options.strategy_consider_veh_without_ROW = '3';
-
-
-
+options.optionsPlotOnline.isVideoMode = true;
 
 name = {'unboundedRSs','boundedRSs','laneletCrossingAreas','fullRun20Vehs30s'};
 i = 4;
