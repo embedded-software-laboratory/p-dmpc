@@ -23,9 +23,9 @@ options.is_eval = false;
 options.visualize_reachable_set = false;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '1';
-nVeh_s = 18:1:30;
+nVeh_s = 30:-1:20;
 % Random choose different vehicles three times
-random_times = 3;
+random_times = 1;
 e_predictionInconsistency = cell(random_times*length(isDealPredictionInconsistency),length(nVeh_s));
 n_simulations = numel(e_predictionInconsistency);
 count = 0;
@@ -120,7 +120,7 @@ clear p
 p(1) = plot(nVeh_s,t_total(1,:),plot_options_considerPI);
 hold on 
 p(2) = plot(nVeh_s,t_total(2,:),plot_options_notConsiderPI);
-legend(p,{'Prediction inconsistency addressed','Not addressed'},'Location','northeast')
+legend(p,{'Consider reachable sets','Consider previous trajectories'},'Location','northeast')
 grid on
 xlabel({'$n_{veh}$'},'Interpreter','latex')
 ylabel('$t_{max}\:[s]$','Interpreter','latex')

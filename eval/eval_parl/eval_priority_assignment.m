@@ -13,7 +13,7 @@ options.dt = 0.2;
 options.T_end = 20;
 options.isPB = true;
 options.isParl = true;
-options.isAllowInheritROW = true;
+options.isAllowInheritROW = false;
 options.max_num_CLs = 4;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '4';
@@ -34,10 +34,13 @@ for i_priority = 1:length(priority_assign_options)
         case 'right_of_way_priority'
             options.amount = 40;
         case 'random_priority'
-            options.amount = 15;
+            options.amount = 16;
         case 'constant_priority'
-            options.amount = 18;
+            options.amount = 16;
     end
+
+    random_seed = RandStream('mt19937ar');
+    options.veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
 
     results_full_path = FileNameConstructor.get_results_full_path(options);
     if isfile(results_full_path)
@@ -193,7 +196,6 @@ xtickangle(0)
 e_differentNumVehs{1}.save_fig(fig,file_name)
 %% Evaluate the vehicle prioritizing algorithm: use the same number of vehicle
 priority_assign_options = {'right_of_way_priority','random_priority','constant_priority'};
-
 % prepare simulation options
 options = OptionsMain;
 options.consider_RSS = false;
@@ -206,7 +208,7 @@ options.dt = 0.2;
 options.T_end = 20;
 options.isPB = true;
 options.isParl = true;
-options.isAllowInheritROW = true;
+options.isAllowInheritROW = false;
 options.max_num_CLs = 4;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '4';
@@ -214,17 +216,19 @@ options.isSaveResult = true;
 options.visu = [false,false];
 options.is_eval = false;
 options.visualize_reachable_set = false;
+options.amount = 16;
 
-n_simulations = numel(e_differentNumVehs);
-count = 0;
+random_seed = RandStream('mt19937ar');
+options.veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+
 e_sameNumVehs = cell(length(priority_assign_options),1);
+n_simulations = numel(e_sameNumVehs);
+count = 0;
 
 for i_priority = 1:length(priority_assign_options)
     options.priority = priority_assign_options{i_priority};
     % Use the maximum number of vehicles that are controllable by all the three
     % priority assignment strategies
-    options.amount = 15;
-
     results_full_path = FileNameConstructor.get_results_full_path(options);
     if isfile(results_full_path)
         disp('File already exists.')
@@ -243,6 +247,14 @@ for i_priority = 1:length(priority_assign_options)
     % display progress
     count = count + 1;
     disp(['--------Progress ' num2str(count) '/' num2str(n_simulations) ': done--------'])
+end
+
+% get free flow speed, i.e., the speed that vehicles could travel if they are not influenced by others
+% vehicles
+if exist('Scenario','var')
+    free_flow_speed = FreeFlowSpeed(scenario);
+else
+    free_flow_speed = FreeFlowSpeed();
 end
 disp('--------Finished--------')
 
@@ -287,17 +299,16 @@ grid on
 hold on
 box on
 % p = plot(xtk,horzcat(speed_average_s{:}));
-s = scatter(xtk,speed_average,12,'filled','o','MarkerFaceColor',[0 0.4470 0.7410]);
+s = scatter(xtk,speed_average,18,'filled','o','MarkerFaceColor',[0 0.4470 0.7410]);
 
-legend(s,'Average','Location','southwest')
+free_flow_speed_i = free_flow_speed.free_flow_speed(free_flow_speed.sample_time==options.dt);
+y_FFS = yline(free_flow_speed_i,'--b','LineWidth',0.6);
+
+legend([s,y_FFS],{'Average','Free-flow'},'Location','southwest')
 % xlabel('Speed of each vehicle.')
 ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
 xtickangle(0)
 
-
-% title(t_fig,'Allowed number of computation levels: 3','FontSize',9,'FontName','Times New Roman')
-% xlabel(t_fig,{'Priority Assignment Strategies'},'FontSize',9,'FontName','Times New Roman')
-
-
+ylim([0.5 0.75])
 % save fig
-e_differentNumVehs{1}.save_fig(fig,file_name)
+e_sameNumVehs{1}.save_fig(fig,file_name)

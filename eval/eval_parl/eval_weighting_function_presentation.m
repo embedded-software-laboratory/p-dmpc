@@ -9,7 +9,7 @@ options.scenario_name = 'Commonroad';
 options.trim_set = 9;
 options.Hp = 5;
 
-options.T_end = 20;
+options.T_end = 25;
 options.dt = 0.2;
 options.max_num_CLs = 2;
 options.priority = 'right_of_way_priority';
