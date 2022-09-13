@@ -14,8 +14,9 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
     Hp = scenario.options.Hp;
 
     % visualize the coupling between vehicles
-    % plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
-    
+    % plot_coupling_lines(scenario.coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
+%     coupling_visu = struct('FontSize',14,'LineWidth',1,'isShowLine',true,'isShowValue',true);
+%     plot_coupling_lines(scenario.coupling_weights_reduced, iter.x0, scenario.belonging_vector, scenario.coupling_info, coupling_visu)
     % initialize variable to store control results
     info = ControllResultsInfo(nVeh, Hp, [scenario.vehicles.ID]);
     n_expended = zeros(nVeh,1);
@@ -127,8 +128,8 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             % consider coupled vehicles with lower priorities
             scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupled_vehs_with_LP);
 
-            if scenario.k >= 1
-                if vehicle_idx == 9 || vehicle_idx == 12
+            if scenario.k >= 70
+                if vehicle_idx == 11 || vehicle_idx == 12 || vehicle_idx == 1
                     disp('')
                 end
             end

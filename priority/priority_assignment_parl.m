@@ -279,16 +279,20 @@ function [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupl
         end
     end
 
-    % recover the coupling edge by comparing their computation levels
-    [valid,L] = kahn(coupling_weights_reduced); % calculate computation levels using kahn algorithm(topological ordering)
-    assert(valid==true)
+%     % recover the coupling edge by comparing their computation levels
+%     [valid,L] = kahn(coupling_weights_reduced); % calculate computation levels using kahn algorithm(topological ordering)
+%     assert(valid==true)
 
+    % not all edges in `edge_to_invert` must be inverted, some could keep its direction without
+    % resulting in cycles
     for i = 1:length(edge_to_invert)
         vertex_start = edge_to_invert{i}(1);
         vertex_end = edge_to_invert{i}(2);
-        level_start = find(L(:,vertex_start)~=0);
-        level_end = find(L(:,vertex_end)~=0);
-        if level_start > level_end
+        % check if the recovering of an edge with the same direction will lead to cycle
+        coupling_weights_reduced(vertex_start,vertex_end) = coupling_weights(vertex_start,vertex_end);
+        if ~kahn(coupling_weights_reduced)
+            % this edge is not allowed to be recovered with the same direction
+            coupling_weights_reduced(vertex_start,vertex_end) = 0;
             % the broken edge is recovered but the direction is inverted
             coupling_weights_reduced(vertex_end,vertex_start) = coupling_weights(vertex_start,vertex_end);
 
@@ -300,10 +304,10 @@ function [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupl
             coupling_info(coupling_i).veh_without_ROW = vertex_start;
             disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is inverted.'])
         else
-            % the broken edge is recovered and the direction is maintained
-            coupling_weights_reduced(vertex_start,vertex_end) = coupling_weights(vertex_start,vertex_end);
+            % this edge is allowed to be recovered with the same direction
             disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is not inverted.'])
         end
+
     end
 
 end 

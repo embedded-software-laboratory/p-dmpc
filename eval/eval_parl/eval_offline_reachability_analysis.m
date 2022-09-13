@@ -78,7 +78,7 @@ plot_line_options{2,1} = struct('LineWidth',0.6,'Color','#0072BD','LineStyle','-
 plot_line_options{2,2} = struct('LineWidth',0.6,'Color','#0072BD','LineStyle','--','Marker','v','MarkerSize',4); % brute-force, simple trim primitives
 
 
-fig_x = 10;     fig_y = 8.2; % [cm]
+fig_x = 11;     fig_y = 8.2; % [cm]
 x_margin = 0.05;   y_margin = 0.05; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin - 0.1;
@@ -100,8 +100,8 @@ p(1) = plot(Hp_s,e_offline_RA{1}(1,:),plot_line_options{1,1});
 p(2) = plot(Hp_s,e_offline_RA{1}(2,:),plot_line_options{1,2});
 p(3) = plot(Hp_s,e_offline_RA{2}(1,:),plot_line_options{2,1});
 p(4) = plot(Hp_s,e_offline_RA{2}(2,:),plot_line_options{2,2});
-legend(p,{'DP (complex)','Brute-force (complex)', ...
-    'DP (simple)','Brute-force (simple)'},'Location','northwest','Box','off');
+legend(p,{'DP (complex MPA)','Brute-force (complex MPA)', ...
+    'DP (simple MPA)','Brute-force (simple MPA)'},'Location','best','Box','off');
 
 set(gca, 'YScale', 'log')
 xlabel({'$H_p$'},'Interpreter','latex');

@@ -29,7 +29,7 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
     if options.is_force_parallel_vehs_in_same_grp
         if ~isempty([coupling_info.veh_with_ROW])
             % find all vehicles that drive in parallel 
-            coupling_info = coupling_info([coupling_info.is_drive_parallel]); 
+            coupling_info = coupling_info([coupling_info.is_move_side_by_side]); 
             % sort according to the STAC so that parallel pair with higher
             % STAC will be considered earlier
             [~,order] = sort([coupling_info.STAC]);
@@ -68,6 +68,9 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
     end
 
     G_directed = digraph(M);
+    if ~isdag(G_directed)
+        disp('')
+    end
     assert(isdag(G_directed)) % check whether DAG
     
     % decompose the supergraph if it contains unconnected components
@@ -112,7 +115,7 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
        
         % constraints on which paths must be cut
         must_not_in_same_subset = {subgraphs_info(longest_graph_ID).path_info(1).path}; % cell array
-
+        must_not_in_same_subset = {};
         % call program to cut the longest graph to two parts
         switch method 
             case 's-t-cut' 
