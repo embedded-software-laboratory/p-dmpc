@@ -620,6 +620,7 @@ classdef MotionPrimitiveAutomaton
                     distance_acceleration = distance_acceleration + mean_speed*time_step;
                     if distance_acceleration > distance_destination % if the vehicle arrives the detination when accelerating
                         shortest_time_to_arrive = shortest_time_to_arrive + distance_remained/mean_speed; % time accumulates
+                        distance_remained = 0;
                         break
                     else
                         shortest_time_to_arrive = shortest_time_to_arrive + time_step; % time accumulates
