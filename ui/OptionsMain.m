@@ -3,25 +3,25 @@ classdef OptionsMain
 
     properties
         manualVehicle_id        % one of the following: {'1','2',...,'nVeh-1','nVeh'}, defines which vehicle is the first manual vehicle
-        firstManualVehicleMode  % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
+        firstManualVehicleMode = 0  % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
         manualVehicle_id2       % one of the following: {'1','2',...,'nVeh-1','nVeh'}, defines which vehicle is the second manual vehicle
-        secondManualVehicleMode % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
+        secondManualVehicleMode = 0 % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
         collisionAvoidanceMode  % one of the following: {1,2,3}, defines collision avoid mode, 1 for priority-based, 2 for reachability analysis guided-mode, while 3 for reachability analysis expert-mode
-        is_sim_lab              % true/false, is simulation or lab experiment
-        is_mixed_traffic        % true/false, is mixed traffic
+        is_sim_lab = 1;              % true/false, is simulation or lab experiment
+        is_mixed_traffic = 0;        % true/false, is mixed traffic
         force_feedback_enabled  % true/false
         consider_RSS    % true/false, is consider Responsibility-Sensitive Safety
-        isPB            % true/false, is prioritize vehicles
+        isPB = 1;            % true/false, is prioritize vehicles
         angles          % 1-by-nVeh scalar vector
-        amount          % integer, number of vehicles
-        visu            % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
-        isParl          % true/false, is use parallel computation
+        amount = 1;          % integer, number of vehicles
+        visu = [1, 0]   % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
+        isParl = 0          % true/false, is use parallel computation
         scenario_name   % one of the follows: {'Circle_scenario','Commonroad'}
-        priority        % one of the following: {'topo_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority'}, defines which priority assignmen strategy is used
-        dt              % scalar, sample time
-        Hp              % scalar, prediction horizon
-        trim_set        % scalar, ID of trim primitive
-        T_end           % scalar, simulation duration
+        priority = 'constant_priority'       % one of the following: {'topo_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority'}, defines which priority assignmen strategy is used
+        dt = 0.2;              % scalar, sample time
+        Hp = 6;              % scalar, prediction horizon
+        trim_set = 9;        % scalar, ID of trim primitive
+        T_end = 15;           % scalar, simulation duration
         max_num_CLs     % integer, maximum allowerd number of computation levels
         strategy_consider_veh_without_ROW       % one of the following: {'1','2','3','4','5'}, strategy of letting higher-priority vehicles consider their coupled vehicles with lower priorities
                                                     % '1': do not consider 
@@ -34,12 +34,12 @@ classdef OptionsMain
                                                     % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
                                                     % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
                                                     % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-        isSaveResult            % true/false, is save result
+        isSaveResult                % true/false, is save result
         isSaveResultReduced = true; % true/false, if true, reduced result will be save to save disk space (useful for a long run of simulation)
         customResultName        % string or char, custom file name to save result
         isAllowInheritROW       % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
-        is_eval                 % true/false, 
-        visualize_reachable_set % true/false, 
+        is_eval = false                 % true/false, % FIXME rename, only used for seed
+        visualize_reachable_set = false % true/false, 
         is_free_flow = false;   % true/false, if true, vehicles do not need to consider other vehicles.
         fallback_type = 'localFallback'; % one of the following {'no','local','global'}, 
                                     % 'no' for disable fallback; 

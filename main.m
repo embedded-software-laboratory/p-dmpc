@@ -12,6 +12,7 @@ random_seed = RandStream('mt19937ar'); % for reproducibility
 % check if Scenario object is given as input
 scenario = read_object_from_input(varargin, 'Scenario');
 if isempty(scenario)
+
     % check if OptionsMain object is given as input
     options = read_object_from_input(varargin,'OptionsMain');
     % If options are not given, determine from UI
@@ -23,6 +24,92 @@ if isempty(scenario)
             return
         end
     end
+
+
+    % Use options to setup scenario
+    if options.is_sim_lab
+        disp('Running in MATLAB simulation...')
+        if isempty(options.veh_ids)
+            switch options.amount
+                % specify vehicles IDs
+                case 2
+                    vehicle_ids = [16,18];
+                case 4
+                    vehicle_ids = [14,16,18,20];
+        %         case 6
+        %             vehicle_ids = [10,14,16,17,18,20]; 
+                otherwise
+    %                 vehicle_ids = 1:options.amount; % default IDs
+                    if options.max_num_CLs == 1
+                        % if allowed computation is only 1, the first 8
+                        % vehicles will not be used to avoid infeasibility at
+                        % the first time step as there may be vehicles being
+                        % very colse to others
+                        vehicle_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
+                    else
+                        vehicle_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+                    end
+                    options.veh_ids = vehicle_ids;
+                    
+            end
+        else
+            vehicle_ids = options.veh_ids;
+        end
+    
+        manualVehicle_id = 0;
+        manualVehicle_id2 = 0;
+        options.firstManualVehicleMode = 0;
+        options.secondManualVehicleMode = 0;
+        options.collisionAvoidanceMode = 0;
+        options.is_mixed_traffic = 0;
+        options.force_feedback_enabled = 0;
+    else
+        disp('Running in CPM Lab...')
+        if ~options.is_eval
+            vehicle_ids = [varargin{:}];
+        end
+        options.amount = numel(vehicle_ids);
+        options.isPB = true;
+        manualVehicle_id = 0;
+        manualVehicle_id2 = 0;
+    
+        if options.is_mixed_traffic
+    
+            % former UI for CPM Lab
+            %mixedTrafficOptions = mixedTrafficSelection();
+            options.isParl = false;
+            manualVehicle_id = options.manualVehicle_id;
+    
+            if ~strcmp(manualVehicle_id, 'No MV')
+                manualVehicle_id = str2num(options.manualVehicle_id);
+                options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
+    
+                if ~strcmp(options.manualVehicle_id2, 'No second MV')
+                    manualVehicle_id2 = str2num(options.manualVehicle_id2);
+                    options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
+                end
+            else
+                manualVehicle_id = 0;
+            end
+    
+            if options.collisionAvoidanceMode == 1
+                options.isParl = false;
+                options.priority = 'right_of_way_priority';
+            elseif options.collisionAvoidanceMode == 2 
+                options.isParl = true;
+                options.priority = 'right_of_way_priority';
+            else
+                options.isParl = true;
+                options.priority = 'mixed_traffic_priority';
+                options.visualize_reachable_set = true;
+            end
+        else
+            options.firstManualVehicleMode = 0;
+            options.secondManualVehicleMode = 0;
+            options.collisionAvoidanceMode = 0;
+        end
+    end
+    
     switch options.scenario_name
         case 'Circle_scenario'
             scenario = circle_scenario(options);
@@ -35,96 +122,13 @@ if isempty(scenario)
     scenario.second_manual_vehicle_id = manualVehicle_id2;
     scenario.vehicle_ids = vehicle_ids;
     scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
-end
-
-options = scenario.options;
-
-if options.is_sim_lab
-    disp('Running in MATLAB simulation...')
-    if isempty(options.veh_ids)
-        switch options.amount
-            % specify vehicles IDs
-            case 2
-                vehicle_ids = [16,18];
-            case 4
-                vehicle_ids = [14,16,18,20];
-    %         case 6
-    %             vehicle_ids = [10,14,16,17,18,20]; 
-            otherwise
-%                 vehicle_ids = 1:options.amount; % default IDs
-                if options.max_num_CLs == 1
-                    % if allowed computation is only 1, the first 8
-                    % vehicles will not be used to avoid infeasibility at
-                    % the first time step as there may be vehicles being
-                    % very colse to others
-                    vehicle_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
-                else
-                    vehicle_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
-                end
-                options.veh_ids = vehicle_ids;
-                
-        end
-    else
-        vehicle_ids = options.veh_ids;
+    
+    for iVeh = 1:options.amount
+        % initialize vehicle ids of all vehicles
+        scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
     end
-
-    manualVehicle_id = 0;
-    manualVehicle_id2 = 0;
-    options.firstManualVehicleMode = 0;
-    options.secondManualVehicleMode = 0;
-    options.collisionAvoidanceMode = 0;
-    options.is_mixed_traffic = 0;
-    options.force_feedback_enabled = 0;
 else
-    disp('Running in CPM Lab...')
-    if ~options.is_eval
-        vehicle_ids = [varargin{:}];
-    end
-    options.amount = numel(vehicle_ids);
-    options.isPB = true;
-    manualVehicle_id = 0;
-    manualVehicle_id2 = 0;
-
-    if options.is_mixed_traffic
-
-        % former UI for CPM Lab
-        %mixedTrafficOptions = mixedTrafficSelection();
-        options.isParl = false;
-        manualVehicle_id = options.manualVehicle_id;
-
-        if ~strcmp(manualVehicle_id, 'No MV')
-            manualVehicle_id = str2num(options.manualVehicle_id);
-            options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
-
-            if ~strcmp(options.manualVehicle_id2, 'No second MV')
-                manualVehicle_id2 = str2num(options.manualVehicle_id2);
-                options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
-            end
-        else
-            manualVehicle_id = 0;
-        end
-
-        if options.collisionAvoidanceMode == 1
-            options.isParl = false;
-            options.priority = 'right_of_way_priority';
-        elseif options.collisionAvoidanceMode == 2 
-            options.isParl = true;
-            options.priority = 'right_of_way_priority';
-        else
-            options.isParl = true;
-            options.priority = 'mixed_traffic_priority';
-            options.visualize_reachable_set = true;
-        end
-    else
-        options.firstManualVehicleMode = 0;
-        options.secondManualVehicleMode = 0;
-        options.collisionAvoidanceMode = 0;
-    end
-end
-
-for iVeh = 1:options.amount
-    % initialize vehicle ids of all vehicles
-    scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
+    options = scenario.options;
 end
 
 if options.is_sim_lab
@@ -310,7 +314,7 @@ while (~got_stop)
     % The controller computes plans
     controller_timer = tic; 
     %% controller %%
-    [info, scenario] = scenario.controller(scenario_tmp, iter);
+    [info, scenario_tmp] = scenario_tmp.controller(scenario_tmp, iter);
 
     %% fallback
     if strcmp(options.fallback_type,'noFallback')
@@ -323,7 +327,7 @@ while (~got_stop)
         end
     else
         vehs_fallback_times(info.vehs_fallback) = vehs_fallback_times(info.vehs_fallback) + 1;
-        vehs_not_fallback = setdiff(1:scenario.options.amount, info.vehs_fallback);
+        vehs_not_fallback = setdiff(1:scenario_tmp.options.amount, info.vehs_fallback);
         vehs_fallback_times(vehs_not_fallback) = 0; % reset
         
         % check whether at least one vehicle has fallen back Hp times successively
@@ -332,7 +336,7 @@ while (~got_stop)
                 real_vehicles = zeros(1,length(info.vehs_fallback));
     
                 for i=1:length(info.vehs_fallback)
-                    real_vehicles(i) = scenario.vehicle_ids(info.vehs_fallback(i));
+                    real_vehicles(i) = scenario_tmp.vehicle_ids(info.vehs_fallback(i));
                 end
     
                 disp_tmp = sprintf('%d,',real_vehicles); disp_tmp(end) = [];
@@ -341,7 +345,7 @@ while (~got_stop)
                 total_fallback_times = total_fallback_times + 1;
             end
     
-        if max(vehs_fallback_times) >= scenario.options.Hp
+        if max(vehs_fallback_times) >= scenario_tmp.options.Hp
             disp('Already fall back successively Hp times, terminate the simulation')
 %             break % break the while loop
         end
@@ -359,33 +363,33 @@ while (~got_stop)
     result.subcontroller_runtime_each_veh(:,k) = info.runtime_subcontroller_each_veh;
     result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
     result.n_expanded(k) = info.n_expanded;
-    result.priority(:,k) = scenario.priority_list;
+    result.priority(:,k) = scenario_tmp.priority_list;
     result.computation_levels(k) = info.computation_levels;
     result.step_time(k) = toc(result.step_timer);
 
     result.runtime_subcontroller_max(k) = info.runtime_subcontroller_max;
     result.runtime_graph_search_max(k) = info.runtime_graph_search_max;
-    result.directed_coupling{k} = scenario.directed_coupling;
-    if options.isParl && strcmp(scenario.options.scenario_name,'Commonroad')
-        result.determine_couplings_time(k) = scenario.timer.determine_couplings;
-        result.group_vehs_time(k) = scenario.timer.group_vehs;
-        result.assign_priority_time(k) = scenario.timer.assign_priority;
-        result.num_couplings(k) = nnz(scenario.directed_coupling);
-        result.num_couplings_ignored(k) = nnz(scenario.directed_coupling) - nnz(scenario.directed_coupling_reduced);
-        result.num_couplings_between_grps(k) = scenario.num_couplings_between_grps;
-        result.num_couplings_between_grps_ignored(k) = scenario.num_couplings_between_grps_ignored;
-        result.belonging_vector(:,k) = scenario.belonging_vector;
-        result.coupling_weights_reduced{k} = scenario.coupling_weights_reduced;
-        result.coupling_info{k} = scenario.coupling_info;
-        result.coupling_weights_optimal{k} = scenario.coupling_weights_optimal;
-        result.parl_groups_info{k} = scenario.parl_groups_info;
-        result.lanelet_crossing_areas{k} = scenario.lanelet_crossing_areas;
-        scenario.lanelet_crossing_areas = {};
+    result.directed_coupling{k} = scenario_tmp.directed_coupling;
+    if options.isParl && strcmp(scenario_tmp.options.scenario_name,'Commonroad')
+        result.determine_couplings_time(k) = scenario_tmp.timer.determine_couplings;
+        result.group_vehs_time(k) = scenario_tmp.timer.group_vehs;
+        result.assign_priority_time(k) = scenario_tmp.timer.assign_priority;
+        result.num_couplings(k) = nnz(scenario_tmp.directed_coupling);
+        result.num_couplings_ignored(k) = nnz(scenario_tmp.directed_coupling) - nnz(scenario_tmp.directed_coupling_reduced);
+        result.num_couplings_between_grps(k) = scenario_tmp.num_couplings_between_grps;
+        result.num_couplings_between_grps_ignored(k) = scenario_tmp.num_couplings_between_grps_ignored;
+        result.belonging_vector(:,k) = scenario_tmp.belonging_vector;
+        result.coupling_weights_reduced{k} = scenario_tmp.coupling_weights_reduced;
+        result.coupling_info{k} = scenario_tmp.coupling_info;
+        result.coupling_weights_optimal{k} = scenario_tmp.coupling_weights_optimal;
+        result.parl_groups_info{k} = scenario_tmp.parl_groups_info;
+        result.lanelet_crossing_areas{k} = scenario_tmp.lanelet_crossing_areas;
+        scenario_tmp.lanelet_crossing_areas = {};
     end
     result.vehs_fallback{k} = info.vehs_fallback;
 
     % check if deadlock occurs
-    vehs_stop = any(ismember(info.trim_indices,scenario.mpa.trims_stop),2); % vehicles stop at the current time step
+    vehs_stop = any(ismember(info.trim_indices,scenario_tmp.mpa.trims_stop),2); % vehicles stop at the current time step
     vehs_stop_time_steps(~vehs_stop) = inf; % reset others
 
     vehs_stop_successively = vehs_stop_time_steps<k & vehs_stop; % vehicles stop both at the current and previous time step
@@ -398,7 +402,7 @@ while (~got_stop)
     if max_stop_steps > threshold_stop_steps
         % a deadlock is considered to have occur if a vehicle stops continually more than a certain number time steps
         warning(['Deadlock occurs since vehicle ' num2str(veh_deadlock(1)) ' stops for a long time.'])
-        result.t_total = min_stop_step(1)*scenario.options.dt;
+        result.t_total = min_stop_step(1)*scenario_tmp.options.dt;
         result.nSteps = result.t_total;
         is_deadlock = true;
 

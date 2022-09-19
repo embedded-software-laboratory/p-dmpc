@@ -1,36 +1,83 @@
-function scenario = moving_obstacle_scenario()
+function scenario = moving_obstacle_scenario(options)
 % MOVING_OBSTACLE_SCENARIO     Constructor for moving obstacle scenario
+    arguments
+        options.is_start_end   (1,1) logical = 0;
+        options.do_plot_online (1,1) logical = 1;
+    end
 
     scenario = Scenario();
-    scenario.options.trim_set = 3;
+
     veh = Vehicle();
-    radius = 3;
-    center_x = 2.25;
-    center_y = 0;
-    veh.x_start = -radius + center_x - 2;
-    veh.y_start = 0 + center_y;
+    veh.x_start = 0;
+    veh.y_start = 0;
     veh.yaw_start = 0;
-    veh.x_goal = radius + center_x + 100;
-    veh.y_goal = 0 + center_y;
+    veh.x_goal = 100;
+    veh.y_goal = 0;
     veh.yaw_goal = 0;
     veh.trim_config = 1;
     veh.referenceTrajectory = [veh.x_start veh.y_start;veh.x_goal veh.y_goal];
+    
     scenario.vehicles = veh;
-    scenario.options.Hp = 5;
+    scenario.vehicle_ids = 1;
     
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
-    
-    scenario.options.plot_limits = [-3.5,6.5;-1.5,1.5];
-    
-    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
 
-    x1_obs = veh.x_start + 4;
-    x2_obs = x1_obs + 1.5;
+    scenario.options = OptionsMain;
+    scenario.options.visu = [options.do_plot_online 0];
+    scenario.options.is_sim_lab = true;
+    scenario.options.trim_set = 9;
+    scenario.options.amount = 1;
+    scenario.options.dt = 0.2;
+    scenario.options.T_end = 16;
+    scenario.options.isSaveResult = true;
+    scenario.options.trim_set = 9;
+    scenario.options.plot_limits = [veh.x_start-0.5,veh.x_start+11;-1.5,1.5];
+    if ~options.is_start_end
+    scenario.options.Hp = 10;
+        scenario.name = sprintf('moving_obstacles');
+    else
+        scenario.options.Hp = scenario.options.T_end / scenario.options.dt;
+        scenario.name = sprintf('moving_obstacles_start_end');
+    end
+
+
     
-    y1_obs = 4;
-    y2_obs = -4;
+    nVeh = 1;
+    scenario.adjacency = zeros(nVeh,nVeh);
+    scenario.assignPrios = true;
+    scenario.controller_name = strcat(scenario.controller_name, '-PB');
+    scenario.controller = @(s,i) pb_controller(s,i);
     
-    dist_obs = 1.7;
+    
+    
+    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
+
+
+    %% Obstacles
+    dx_veh_obs = 3;
+    dx_obs_obs = 1.5;
+    x_obs = [
+        veh.x_start + dx_veh_obs;
+        veh.x_start + dx_veh_obs + 1*dx_obs_obs;
+        veh.x_start + dx_veh_obs + 2*dx_obs_obs;
+        veh.x_start + dx_veh_obs + 3*dx_obs_obs;
+    ];
+    
+    y_obs_start = 4;
+    y_obs = [
+        y_obs_start;
+        -y_obs_start;
+        y_obs_start;
+        -y_obs_start;
+    ];
+    direction = [
+        1
+        -1
+        1
+        -1
+    ];
+
+    dy_obs_obs = 1.7;
     speed_obs = 0.75;
     
     dist_dt = speed_obs*scenario.options.dt; % distance traveled per timestep
@@ -39,31 +86,28 @@ function scenario = moving_obstacle_scenario()
     length_coll_area = length_obs+dist_dt;
     
     scenario.dynamic_obstacle_shape = [width_obs;length_obs];
+
+    n_obs_per_col = 20;
     
-    
-    for iObstacle = 1:20
-        for iTimestep = 1:80
-            scenario.dynamic_obstacle_area{iObstacle,iTimestep} = transformedRectangle(...
-                x1_obs ...
-                ,center_y+y1_obs + iTimestep*dist_dt - iObstacle*dist_obs ...
-                ,pi/2 ...
-                ,length_coll_area ...
-                ,width_obs ...
-            );
-            scenario.dynamic_obstacle_fullres{iObstacle,iTimestep} = [  ones(41,1)*x1_obs, ...
-                                                        linspace(   center_y+y1_obs + iTimestep*dist_dt - iObstacle*dist_obs - dist_dt/2, ...
-                                                                    center_y+y1_obs + (iTimestep+1)*dist_dt - iObstacle*dist_obs - dist_dt/2, 41)'];
-                                                                
-           scenario.dynamic_obstacle_area{iObstacle+20,iTimestep} = transformedRectangle(...
-                x2_obs ...
-                ,center_y+y2_obs - iTimestep*dist_dt + iObstacle*dist_obs ...
-                ,pi/2 ...
-                ,length_coll_area ...
-                ,width_obs ...
-            );
-            scenario.dynamic_obstacle_fullres{iObstacle+20,iTimestep} = [  ones(41,1)*x2_obs, ...
-                                                        linspace(   center_y+y2_obs - iTimestep*dist_dt + iObstacle*dist_obs + dist_dt/2, ...
-                                                                    center_y+y2_obs - (iTimestep+1)*dist_dt + iObstacle*dist_obs + dist_dt/2, 41)'];
+    for i_col = 1:numel(x_obs)
+        for iObstacle = 1:n_obs_per_col
+            for iTimestep = 1:(scenario.options.k_end+scenario.options.Hp+1)
+                scenario.dynamic_obstacle_area{iObstacle+(i_col-1)*n_obs_per_col,iTimestep} = ...
+                    transformedRectangle(...
+                        x_obs(i_col) ...
+                        ,y_obs(i_col) + direction(i_col)*(iTimestep*dist_dt - iObstacle*dy_obs_obs) ...
+                        ,pi/2 ...
+                        ,length_coll_area ...
+                        ,width_obs ...
+                    );
+                % Repeat first entry such that shape is closed to vectorize obstacles
+                scenario.dynamic_obstacle_area{iObstacle+(i_col-1)*n_obs_per_col,iTimestep}(:,end+1) = ...
+                    scenario.dynamic_obstacle_area{iObstacle+(i_col-1)*n_obs_per_col,iTimestep}(:,1);
+                scenario.dynamic_obstacle_fullres{iObstacle+(i_col-1)*n_obs_per_col,iTimestep} = ...
+                    [  ones(41,1)*x_obs(i_col), ...
+                        linspace(   y_obs(i_col) + direction(i_col)*( iTimestep   *dist_dt - iObstacle*dy_obs_obs - dist_dt/2), ...
+                                    y_obs(i_col) + direction(i_col)*((iTimestep+1)*dist_dt - iObstacle*dy_obs_obs - dist_dt/2), 41)'];
+            end
         end
     end
     

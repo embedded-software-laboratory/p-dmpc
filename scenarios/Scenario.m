@@ -50,7 +50,7 @@ classdef Scenario
         coupling_info;                  % couling information of each coupling pair
         ros_subscribers = {};           % ROS 2 subscribers (used to read messages from other vehicles)
         mixedTrafficCollisionAvoidanceMode = 0;     % mode for collision avoidance in CPM Lab Mode with manual vehicles
-        priority_list = [];             % priority list of vehicles; a smaller value for a higher priority
+        priority_list = 1;             % priority list of vehicles; a smaller value for a higher priority
         time_enter_intersection = []; % time step when vehicle enters the intersection
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
         belonging_vector; % a column vector whose value indicate which group each vehicle belongs to 
