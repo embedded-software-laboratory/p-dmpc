@@ -123,7 +123,7 @@ setCpmLabElementsVisibility(ui);
 %   emulating `waitfor(ui)`
 while true
     if ~isvalid(ui) % if app close
-        error('app closed, please press start button instead')
+        error('App closed, press start button for experiment')
     elseif ui.StartButton.Value % start button pressed
         break
     end

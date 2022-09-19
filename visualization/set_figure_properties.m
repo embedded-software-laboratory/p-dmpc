@@ -6,9 +6,7 @@ function set_figure_properties(figHandle, preset, paperheight_in)
         fontsize    = 9;
         paperwidth  = 8;    % picture width in cm
         paperheight = 4;    % picture height in cm
-%         paperwidth  = 8.8;    % picture width in cm
-%         paperheight = 4.4;    % picture height in cm
-        linewidth=0.5;
+        linewidth   = 0.5;
         fontname    = 'CMU Serif';
         units       = 'centimeters';
     
@@ -16,7 +14,7 @@ function set_figure_properties(figHandle, preset, paperheight_in)
         fontsize    = 18;
         paperwidth  = 31.77; % picture width in cm
         paperheight = 14.01; % picture height in cm
-        linewidth=1;
+        linewidth   = 1;
         fontname    = 'Arial';
         units       = 'centimeters';
     
@@ -24,7 +22,7 @@ function set_figure_properties(figHandle, preset, paperheight_in)
         fontsize    = 9;
         paperwidth  = 15.7; % picture width in cm
         paperheight = 7.85; % picture height in cm
-        linewidth=0.5;
+        linewidth   = 0.5;
         fontname    = 'CMU Serif';
         units       = 'centimeters';
 
@@ -130,22 +128,4 @@ function set_figure_properties(figHandle, preset, paperheight_in)
     set(figHandle ...
         ,'Position',[screenpos(1:2), paperwidth, paperheight]...  % px, py, w, h, of figure on screen
     );
-%         
-%     if ~strcmp(preset, 'video')
-%         % Make axes span whole window
-%         ax = get(figHandle,'CurrentAxes');
-%         outerpos = ax.OuterPosition;
-%         ti = ax.TightInset; 
-%         left = outerpos(1) + ti(1);
-%         bottom = outerpos(2) + ti(2);
-%         ax_width = outerpos(3) - ti(1) - ti(3) - 2e-3; %box was sometimes cut off
-%         ax_height = outerpos(4) - ti(2) - ti(4);
-%         ax.Position = [left bottom ax_width ax_height];
-%         set(figHandle,'PaperUnits',units)
-%         set(figHandle ...
-%             ,'PaperSize',[paperwidth, paperheight] ...
-%             ,'PaperPosition',[0, 0, paperwidth, paperheight] ...
-%         );
-%     end
-    
 end
