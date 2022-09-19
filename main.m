@@ -7,47 +7,40 @@ end
 
 random_seed = RandStream('mt19937ar'); % for reproducibility
 
-% check if options are given as input
-find_options = cellfun(@(c) isa(c,'OptionsMain'), varargin);
-    
-if any(find_options)
-    options = varargin{find_options};
-else
-    options = startOptions();
-end
-% options.fallback_type = 'globalFallback';
-% options.fallback_type = 'localFallback';
-% 
-%[options, vehicle_ids] = eval_guided_mode(1);
-%[options, vehicle_ids] = eval_expert_mode(1);
-options.is_eval = false;
-options.visualize_reachable_set = false;
-is_sim_lab = options.is_sim_lab;
 
-%% Determine options
-% if matlab simulation should be started with certain parameters
-% first argument has to be 'sim'
-%is_sim_lab = (nargin == 0 || (nargin > 0 && strcmp(varargin{1},'sim')));
-
-if is_sim_lab
-    if ~any(find_options)
-        switch nargin
-            case 6
-                options = selection(varargin{2},varargin{3},varargin{4},varargin{5},varargin{6});
-            case 5
-                options = selection(varargin{2},varargin{3},varargin{4},varargin{5},1);
-            case 4
-                options = selection(varargin{2},varargin{3},varargin{4},1,1);            
-            case 3
-                options = selection(varargin{2},varargin{3},1,1,1); 
-            case 2 
-                options = selection(varargin{2},2,1,1,1);
-            otherwise
-                % former UI for Sim lab
-                %options = selection();
+%% Setup Scenario
+% check if Scenario object is given as input
+scenario = read_object_from_input(varargin, 'Scenario');
+if isempty(scenario)
+    % check if OptionsMain object is given as input
+    options = read_object_from_input(varargin,'OptionsMain');
+    % If options are not given, determine from UI
+    if isempty(options)
+        try
+            options = startOptions();
+        catch ME
+            warning(ME.message);
+            return
         end
     end
+    switch options.scenario_name
+        case 'Circle_scenario'
+            scenario = circle_scenario(options);
+        case 'Commonroad'
+            scenario = commonroad(options, vehicle_ids, manualVehicle_id, manualVehicle_id2, options.is_sim_lab);
+    end
+    scenario.random_seed = random_seed;
+    scenario.name = options.scenario_name;
+    scenario.manual_vehicle_id = manualVehicle_id;
+    scenario.second_manual_vehicle_id = manualVehicle_id2;
+    scenario.vehicle_ids = vehicle_ids;
+    scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
+end
 
+options = scenario.options;
+
+if options.is_sim_lab
+    disp('Running in MATLAB simulation...')
     if isempty(options.veh_ids)
         switch options.amount
             % specify vehicles IDs
@@ -82,9 +75,8 @@ if is_sim_lab
     options.collisionAvoidanceMode = 0;
     options.is_mixed_traffic = 0;
     options.force_feedback_enabled = 0;
-
 else
-    disp('cpmlab')
+    disp('Running in CPM Lab...')
     if ~options.is_eval
         vehicle_ids = [varargin{:}];
     end
@@ -130,29 +122,12 @@ else
     end
 end
 
-% scenario = circle_scenario(options.amount,options.isPB);
-% scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
- 
-switch options.scenario_name
-    case 'Circle_scenario'
-        scenario = circle_scenario(options);
-    case 'Commonroad'
-        scenario = commonroad(options, vehicle_ids, manualVehicle_id, manualVehicle_id2, is_sim_lab);  
-end
-scenario.random_seed = random_seed;
-scenario.name = options.scenario_name;
-scenario.manual_vehicle_id = manualVehicle_id;
-scenario.second_manual_vehicle_id = manualVehicle_id2;
-scenario.vehicle_ids = vehicle_ids;
-scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
-% scenario.options = options;
-
-for iVeh = 1:scenario.options.amount
+for iVeh = 1:options.amount
     % initialize vehicle ids of all vehicles
     scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
 end
 
-if is_sim_lab
+if options.is_sim_lab
     exp = SimLab(scenario);
 else
     exp = CPMLab(scenario, vehicle_ids);
@@ -178,18 +153,6 @@ scenario.k = k;
 % turn off warning if intersections are detected and fixed, collinear points or
 % overlapping points are removed when using MATLAB function `polyshape`
 warning('off','MATLAB:polyshape:repairedBySimplify')
-
-% check if scenario iss given as input
-find_scenario = cellfun(@(c) isa(c,'Scenario'), varargin);
-if any(find_scenario)
-    if length(varargin{find_scenario}.ros_subscribers) >= scenario.options.amount
-        % if ROS 2 subscribers and publishers are given as input, store them
-        for iiVeh = 1:scenario.options.amount
-            scenario.vehicles(iiVeh).communicate = varargin{find_scenario}.vehicles(iiVeh).communicate;
-        end
-        scenario.ros_subscribers = varargin{find_scenario}.ros_subscribers(1:scenario.options.amount);
-    end
-end
 
 if options.isParl && strcmp(scenario.name, 'Commonroad')
     % In parallel computation, vehicles communicate via ROS 2
@@ -234,7 +197,7 @@ while (~got_stop)
     % ----------------------------------------------------------------------
      
     % Update the iteration data and sample reference trajectory
-    [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
+    [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, options.is_sim_lab);
     initialized_reference_path = true;
 
     % collision checking 
