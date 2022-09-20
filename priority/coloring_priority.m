@@ -1,11 +1,9 @@
-classdef topo_priority < interface_priority
-% topo_priority  Instance of interface_priority used for priority assignment.
-        
+classdef coloring_priority < interface_priority
    methods(Static)
         function [groups, coupling_directed, priority_list] = priority(scenario)
-            
-            [isDAG, topo_groups] = kahn(scenario.directed_coupling(:,:,end));
-            
+            % TODO put `topological_sorting_coloring` function here, remove dependencies from other functions
+            [isDAG, topo_groups] = topological_sorting_coloring(scenario.adjacency(:,:,end));
+
             assert( isDAG, 'Coupling matrix is not a DAG' );
             groups = PB_predecessor_groups(topo_groups);
 

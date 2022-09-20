@@ -178,7 +178,8 @@ end
 
 %% Main control loop
 while (~got_stop)
-
+    % TODO OPT only modify scenario_tmp; better: separate scenario from dynamic
+    % entries such as adjacency
     result.step_timer = tic;
     
     % increment interation counter
@@ -235,7 +236,6 @@ while (~got_stop)
 
     if scenario.options.is_mixed_traffic
         if scenario.manual_vehicle_id ~= 0
-
             if (scenario.options.firstManualVehicleMode == 1)
                 wheelData = exp.getWheelData();
                 % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
@@ -356,7 +356,7 @@ while (~got_stop)
     result.controller_runtime(k) = toc(controller_timer);
     
     % save controller outputs in result struct
-    result.scenario = scenario;
+    result.scenario = scenario; % TODO only static values in scenario; save once per run
     result.iteration_structs{k} = iter;
     result.trajectory_predictions(:,k) = info.y_predicted;
     result.controller_outputs{k} = info.u;

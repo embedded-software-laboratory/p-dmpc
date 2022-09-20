@@ -1,4 +1,4 @@
-classdef  right_of_way_priority < interface_priority
+classdef right_of_way_priority < interface_priority
 % right_of_way  Instance of interface_priority used for dynamic priority
 % assignment. For vehicles driving consectively, vehicles in the front are
 % aasigned higher priorities; For vehicles crossing the intersection, vehicles

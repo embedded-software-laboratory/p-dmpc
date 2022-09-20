@@ -1,4 +1,4 @@
-classdef  constant_priority < interface_priority
+classdef constant_priority < interface_priority
 % constant_priority  Instance of interface_priority used for priority
 % assignment, fixed priority according to vehicle ids
     

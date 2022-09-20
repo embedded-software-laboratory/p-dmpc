@@ -1,13 +1,10 @@
-% Start from newest branch -- jianye eval
 % TODO Grayscale friendly color map, use for both MATLAB plots and Latex
-function spp_book(plot_online,is_video_exported)
+function spp_book(options)
     % spp_book Generates evaluation results for the SPP book chapter
-
-    % TODO arguments block
-    if nargin==0
-        plot_online = 0;
-        is_video_exported = 1;
-    end
+arguments
+    options.do_plot_online      (1,1) logical = 0;
+    options.is_video_exported   (1,1) logical = 0;
+end
 
     % Settings:
     % t_horizon = 4 s
@@ -24,34 +21,36 @@ function spp_book(plot_online,is_video_exported)
     % --------------------------------------------------------------------------
     disp('Evaluating with one vehicle and moving obstacles.')
 
-
-    s(1) = moving_obstacle_scenario(do_plot_online=0);
+    s(1) = moving_obstacle_scenario(do_plot_online=options.do_plot_online);
     results(1) = main(s(1));
 %     overviewPlot(r,[17,21,25,28]); % TODO adjust
 %     if is_video_exported
 %         exportVideo(r);
 %     end
     % TODO comparison to SGS. reuse code from fix/rhgs-eval
-    s(2) = moving_obstacle_scenario(is_start_end=1,do_plot_online=1);
+    s(2) = moving_obstacle_scenario(...
+        is_start_end=1,...
+        do_plot_online=options.do_plot_online...
+    );
     sub_controller = StartEndPlanner();
     s(2).sub_controller = @sub_controller.run;
     results(2) = main(s(2));
-    
+
     nr = numel(results);
-    
+
     filepath_text = fullfile('results', 'rhgs_vs_gs.txt');
     approaches = {'RHGS','SGS'};
-    
+
     % *Overview*
     fig = overviewPlot(results(1),[11, 15, 19, 22]);
     overviewPlot(results(2),[11, 15, 19, 22],fig,1);
-    
+
     % *Computation time*
     runtimes = reshape([results.controller_runtime],[],nr);
     t_max = max(runtimes);
     t_median = median(runtimes);
     t = [t_max; t_median];
-    
+
     % plot
     fig = figure;
     % X = categorical({'t_{max}','t_{median}'});
@@ -64,10 +63,10 @@ function spp_book(plot_online,is_video_exported)
     yticklabels({'t_{max}','t_{median}'})
     legend(approaches{:},'Location','best')
     xlabel('Computation Time [s]');
-    
+
     set(gca,'Ydir','reverse');
     % ylim('tight')
-    
+
     set_figure_properties(fig, 'paper',3);
     xmin = min(t,[],'all');
     xmax = max(t,[],'all');
@@ -75,7 +74,7 @@ function spp_book(plot_online,is_video_exported)
     filepath = fullfile('results', 'rhgs_vs_gs_computation_time.pdf');
     export_fig(fig, filepath);
     close(fig);
-    
+
     fileID = fopen(filepath_text,'w');
     for iApp = 1:numel(approaches)
         fprintf(fileID ...
@@ -87,8 +86,8 @@ function spp_book(plot_online,is_video_exported)
             , t_median(2)/t_median(iApp));
     end
     fclose(fileID);
-    
-    
+
+
     % *Objective value*
     pos_ref = reshape( ...
         results(2).iteration_structs{1}.referenceTrajectoryPoints, ...
@@ -97,7 +96,7 @@ function spp_book(plot_online,is_video_exported)
     )';
     % First reference point is meant for second actual point
     pos_ref = pos_ref(:,1:end-1);
-    
+
     objective_value = zeros(1,nr);
     for ir = 1:nr
         iter_struct_array = [results(ir).iteration_structs{:}];
@@ -106,7 +105,7 @@ function spp_book(plot_online,is_video_exported)
         pos_act = state(1:2,2:end);
         objective_value(ir) = sum(vecnorm(pos_ref-pos_act).^2);
     end
-    
+
     % plot
     fig = figure;
     b = barh(1,objective_value);
@@ -116,16 +115,16 @@ function spp_book(plot_online,is_video_exported)
     legend('RHGS','SGS','Location','best')
     xlabel('Objective Function Value');
     yticks('');
-    
+
     ylim([0.5 2])
-    
+
     set(gca,'Ydir','reverse');
-    
+
     set_figure_properties(fig, 'paper',2.5);
     filepath = fullfile('results', 'rhgs_vs_gs_objective_value.pdf');
     export_fig(fig, filepath);
     close(fig);
-    
+
     fileID = fopen(filepath_text,'a');
     for iApp = 1:numel(approaches)
         fprintf(fileID ...
@@ -135,9 +134,9 @@ function spp_book(plot_online,is_video_exported)
             , objective_value(iApp)/objective_value(2) );
     end
     fclose(fileID);
-    
-    
-    
+
+
+
     % *Video*
     for r = results
         if is_video_exported
@@ -150,21 +149,60 @@ function spp_book(plot_online,is_video_exported)
     %% Dynamic priorities
     % --------------------------------------------------------------------------
     disp('Evaluating dynamic priority assignment strategies.')
-    priority_assignment_algorithms = ...
-        {@paa_coloring, @right_of_way_priority, @paa_fca, @paa_random, @paa_constant};
-    % TODO scenarios as in Jianyes Eval
     % TODO check that all prio algorithms work
-    % TODO OPT coupling based on lanelets + distance, simpler than Reachability Analysis
-    scenarios = 0;
+    priority_assignment_algorithms = {
+        'right_of_way_priority'
+        'FCA_priority'
+        'topo_priority'
+        'coloring'
+        'random_priority'
+        'constant_priority'
+    };
 
-    for nVeh = 10:20
-        for paa = priority_assignment_algorithms
+    % TODO scenarios as in Jianyes Eval
+    options = OptionsMain;
+    options.scenario_name = 'Commonroad';
+    options.trim_set = 9;
+    options.T_end = 20;
+    options.Hp = 5; % TODO 10
+    options.isPB = true;
+
+    scenarios = [];
+    
+    e_differentNumVehs = cell(length(priority_assign_options),1);
+    n_simulations = numel(e_differentNumVehs);
+    count = 0;
+
+    % Commonroad
+    % TODO OPT coupling based on lanelets + distance, simpler than Reachability Analysis
+    results = [];
+    for nVeh = 10:11 % TODO 10:20
+        for priority = priority_assignment_algorithms
             for s = scenarios
                 % create config
+                s.options.priority = priority;
+                s.options.amount = nVeh;
+
                 % run simulation
-                % Eval, zb.
-                % plot Computation levels histogram
-                % plot deadlock-free runtime
+                results_full_path = FileNameConstructor.get_results_full_path(options);
+                if isfile(results_full_path)
+                    disp('File already exists.')
+                else
+                    % run simulation
+                    results(end+1) = main(s);
+                end
+
+                % evaluate
+                e_differentNumVehs{i_priority} = EvaluationParl(results_full_path,[0,options.T_end]);
+                
+                % display progress
+                count = count + 1;
+                disp(['--------Progress ' num2str(count) '/' num2str(n_simulations) ': done--------'])
             end
         end
     end
+
+    
+    % Eval, zb.
+    % plot Computation levels histogram
+    % plot deadlock-free runtime

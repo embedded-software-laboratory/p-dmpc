@@ -2,8 +2,8 @@ function [info, scenario] = pb_controller(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
-runtime_others_tic = tic;
-[veh_at_intersection, groups, directed_adjacency, priority_list] = priority_assignment(scenario,iter);
+    runtime_others_tic = tic;
+    [veh_at_intersection, groups, directed_adjacency, priority_list] = priority_assignment(scenario,iter);
 
     % visualize the coupling between vehicles
 %     plot_coupling_lines(directed_adjacency, iter)

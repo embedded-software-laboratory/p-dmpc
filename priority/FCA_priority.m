@@ -1,4 +1,4 @@
-classdef  FCA_priority < interface_priority
+classdef FCA_priority < interface_priority
 % FCA  Instance of interface_priority used for dynamic priority
 % assignment. Vehicles with more potential collisions on their future
 % reference trajectory are assigned higher priorities.
