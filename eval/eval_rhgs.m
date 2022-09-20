@@ -1,4 +1,4 @@
-function eval_paper(plot_online,is_video_exported)
+function eval_rhgs(plot_online,is_video_exported)
 % EVAL_PAPER    Script yielding the evaluation results used in the paper
 
 if nargin==0

@@ -11,7 +11,7 @@
 
 This repository contains the source code for Receding Horizon Graph Search (RHGS), a MATLAB implementation of a graph-based receding horizon trajectory planner.
 
-The code is developed with MATLAB R2021a.
+The code is developed with MATLAB R2022a.
 To run a simulation:
 ```matlab
 startup()
@@ -46,12 +46,19 @@ This research is supported by the Deutsche Forschungsgemeinschaft (German Resear
 
 <details>
 <summary>
-[1] P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee,
-"Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning"
+[1] P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee.
+"Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning". TechRxiv. Preprint. https://doi.org/10.36227/techrxiv.16621963.v1 
 </summary>
 <p>
-```
-bibtex
+```bibtex
+@article{Scheffe2021,
+    author = "Patrick Scheffe and Matheus Vitor de Andrade Pedrosa and Kathrin Flaßkamp and Bassam Alrifaee",
+    title  = "{Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning}",
+    year   = "2021",
+    month  = "9",
+    url    = "https://www.techrxiv.org/articles/preprint/Receding_Horizon_Control_Using_Graph_Search_for_Multi-Agent_Trajectory_Planning/16621963",
+    doi    = "10.36227/techrxiv.16621963.v1"
+}
 ```
 </p>
 </details>

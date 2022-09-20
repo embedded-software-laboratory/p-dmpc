@@ -24,6 +24,8 @@ function [veh_at_intersection, groups, directed_adjacency, priority_list] = prio
             obj = mixed_traffic_priority(scenario);
             [groups, directed_adjacency, priority_list] = obj.priority(); 
             veh_at_intersection = [];
+        otherwise
+            error('No valid priority assignment strategy given')
     end
 
 end
