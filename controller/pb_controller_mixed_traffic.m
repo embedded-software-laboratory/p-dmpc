@@ -36,9 +36,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
     % get coupling weigths
     [coupling_weights, coupling_info] = get_coupling_info_mixed_traffic(scenario, iter);
     
-    % graph-search to select the optimal motion primitive
-    sub_controller = @(scenario, iter)...
-        graph_search(scenario, iter); 
+    sub_controller = @scenario.sub_controller;
 
     directed_graph = digraph(directed_adjacency);
     [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition

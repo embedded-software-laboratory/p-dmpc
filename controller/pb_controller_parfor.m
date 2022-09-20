@@ -46,8 +46,7 @@ function [u, y_pred, info] = pb_controller_parl_backup(scenario, iter)
     info_next_node = [];
     info_n_expanded = zeros(nGrp,nVeh);
 
-    sub_controller = @(scenario, iter)...
-        graph_search(scenario, iter);
+    sub_controller = @scenario.sub_controller;
     
     parfor grp_idx = 1:nGrp
         group = groups(grp_idx);

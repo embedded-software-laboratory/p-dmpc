@@ -23,8 +23,7 @@ runtime_others_tic = tic;
     info = ControllResultsInfo(nVeh, Hp, [scenario.vehicles.ID]);
     
     % graph-search to select the optimal motion primitive
-    sub_controller = @(scenario, iter)...
-        graph_search(scenario, iter); 
+    sub_controller = @scenario.sub_controller;
 
     directed_graph = digraph(directed_adjacency);
     [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition

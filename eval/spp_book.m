@@ -26,16 +26,16 @@ function spp_book(plot_online,is_video_exported)
 
 
     s(1) = moving_obstacle_scenario(do_plot_online=0);
-    results(1) = main(s);
+    results(1) = main(s(1));
 %     overviewPlot(r,[17,21,25,28]); % TODO adjust
 %     if is_video_exported
 %         exportVideo(r);
 %     end
     % TODO comparison to SGS. reuse code from fix/rhgs-eval
-    s(2) = moving_obstacle_scenario(is_start_end=1,do_plot_online=0);
+    s(2) = moving_obstacle_scenario(is_start_end=1,do_plot_online=1);
     sub_controller = StartEndPlanner();
     s(2).sub_controller = @sub_controller.run;
-    results(2) = run_simulation(s(2),plot_online,0);
+    results(2) = main(s(2));
     
     nr = numel(results);
     

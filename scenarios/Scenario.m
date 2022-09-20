@@ -7,7 +7,8 @@ classdef Scenario
         lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
         name = 'UnnamedScenario';
         controller_name = 'RHC';
-        controller = @(s,i) centralized_controller(s,i);
+        controller = @centralized_controller;
+        sub_controller = @graph_search;
         mpa;
         manual_vehicle_id = 0;
         second_manual_vehicle_id = 0;

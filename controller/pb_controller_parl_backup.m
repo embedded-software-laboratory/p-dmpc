@@ -33,8 +33,7 @@ function [u, y_pred, info, scenario] = pb_controller_parl(scenario, iter)
     info.n_expanded = 0;
     info.predicted_trims = zeros(scenario.options.amount,scenario.options.Hp+1); % trims planned in the next Hp time steps (including starting trim)
     
-    sub_controller = @(scenario, iter)...
-        graph_search(scenario, iter);
+    sub_controller = @scenario.sub_controller;
     
     for grp_idx = 1:length(groups)
         group = groups(grp_idx);
