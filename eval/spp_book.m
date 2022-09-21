@@ -144,56 +144,89 @@ end
         end
     end
 
-
+visu_options = options;
 
     %% Dynamic priorities
     % --------------------------------------------------------------------------
     disp('Evaluating dynamic priority assignment strategies.')
-    % TODO check that all prio algorithms work
+    % TODO check that all prio algorithms work (right_of_way!)
+    % TODO check directed coupling (at the moment only couplings in order of prio 1-2-3-...)
     priority_assignment_algorithms = {
-        'right_of_way_priority'
+        %'right_of_way_priority'
         'FCA_priority'
-        'topo_priority'
-        'coloring'
         'random_priority'
         'constant_priority'
+        'coloring_priority'
     };
 
-    % TODO scenarios as in Jianyes Eval
+    % scenarios as in Jianyes Eval
     options = OptionsMain;
     options.scenario_name = 'Commonroad';
     options.trim_set = 9;
     options.T_end = 20;
     options.Hp = 5; % TODO 10
     options.isPB = true;
+    options.is_sim_lab = true;
+    options.visu = [visu_options.do_plot_online, false];
+    options.firstManualVehicleMode = 0;
+    options.secondManualVehicleMode = 0;
+    options.collisionAvoidanceMode = 0;
+    options.is_mixed_traffic = 0;
+    options.force_feedback_enabled = 0;
+%     options.strategy_consider_veh_without_ROW = '3';
+%     options.strategy_enter_lanelet_crossing_area = '4';
+%     options.isAllowInheritROW = true;
 
-    scenarios = [];
-    
-    e_differentNumVehs = cell(length(priority_assign_options),1);
+    random_seed = RandStream('mt19937ar');
+
+    nsVeh = 10;
+    nSce = 1;
+
+    scenarios = cell(length(nsVeh),nSce);
+    results = cell(length(nsVeh),nSce);
+
+    for inVeh = 1:length(nsVeh)
+        for iSce = 1:nSce
+            options.amount = nsVeh(inVeh);
+            veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend')
+            options.veh_ids = veh_ids;
+            scenario = commonroad(options, options.veh_ids, 0, 0, options.is_sim_lab);
+            scenario.random_seed = random_seed;
+            scenario.name = options.scenario_name;
+            scenario.manual_vehicle_id = 0;
+            scenario.second_manual_vehicle_id = 0;
+            scenario.vehicle_ids = options.veh_ids;
+            scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
+            for iVeh = 1:options.amount
+                % initialize vehicle ids of all vehicles
+                scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
+            end
+            scenarios{inVeh,iSce} = scenario;
+        end
+    end
+
+    e_differentNumVehs = cell(length(priority_assignment_algorithms),1);
     n_simulations = numel(e_differentNumVehs);
     count = 0;
 
     % Commonroad
     % TODO OPT coupling based on lanelets + distance, simpler than Reachability Analysis
-    results = [];
-    for nVeh = 10:11 % TODO 10:20
-        for priority = priority_assignment_algorithms
-            for s = scenarios
-                % create config
-                s.options.priority = priority;
-                s.options.amount = nVeh;
-
+    for inVeh = 1:length(nsVeh) % TODO 10:20
+        for i_priority = 1:length(priority_assignment_algorithms)
+            priority_assignment_algorithms{i_priority}
+            for iSce = 1:nSce
+                scenarios{inVeh,iSce}.options.priority = priority_assignment_algorithms{i_priority};
                 % run simulation
                 results_full_path = FileNameConstructor.get_results_full_path(options);
                 if isfile(results_full_path)
                     disp('File already exists.')
                 else
                     % run simulation
-                    results(end+1) = main(s);
+                    [results{inVeh,iSce},~,~] = main(scenarios{inVeh,iSce});
                 end
 
                 % evaluate
-                e_differentNumVehs{i_priority} = EvaluationParl(results_full_path,[0,options.T_end]);
+                %e_differentNumVehs{i_priority} = EvaluationParl(results_full_path,[0,options.T_end]);
                 
                 % display progress
                 count = count + 1;
@@ -203,6 +236,6 @@ end
     end
 
     
-    % Eval, zb.
+    % TODO Eval, zb.
     % plot Computation levels histogram
     % plot deadlock-free runtime

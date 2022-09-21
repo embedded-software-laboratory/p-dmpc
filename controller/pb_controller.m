@@ -38,7 +38,7 @@ function [info, scenario] = pb_controller(scenario, iter)
             vehicle_idx = group.members(grp_member_idx);
             if ismember(vehicle_idx, info.vehs_fallback)
                 % if the selected vehicle should take fallback
-                info.subcontroller_runtime(vehicle_idx) = 0;
+                info.runtime_graph_search_each_veh(vehicle_idx) = 0;
                 continue
             end
             
@@ -66,7 +66,7 @@ function [info, scenario] = pb_controller(scenario, iter)
                 
                 % only two strategies are supported if parallel computation is not used
                 assert(any(strcmp(scenario_v.options.strategy_consider_veh_without_ROW,{'1','2','3'})))
-                scenario_v = consider_vehs_with_LP(scenario_v, iter, adjacent_vehicle_lower_priority);
+                scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, adjacent_vehicle_lower_priority);
             end
 
             if scenario.k >= 128
