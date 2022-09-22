@@ -1,5 +1,5 @@
 % TODO Grayscale friendly color map, use for both MATLAB plots and Latex
-function spp_book(options)
+function results = spp_book(options)
     % spp_book Generates evaluation results for the SPP book chapter
 arguments
     options.do_plot_online      (1,1) logical = 0;
@@ -162,7 +162,7 @@ end
     options.scenario_name = 'Commonroad';
     options.trim_set = 9;
     options.T_end = 20;
-    options.Hp = 10; % TODO 10
+    options.Hp = 5; % TODO 10
     options.isPB = true;
     options.is_sim_lab = true;
     options.visu = [visu_options.do_plot_online, false];
@@ -170,8 +170,8 @@ end
 
     random_seed = RandStream('mt19937ar');
 
-    nsVeh = 10;
-    nSce = 1;
+    nsVeh = 10:15;
+    nSce = 2;
 
     scenarios = cell(length(nsVeh),nSce);
     results = cell(length(nsVeh),nSce);
@@ -213,7 +213,7 @@ end
                     disp('File already exists.')
                 else
                     % run simulation
-                    [results{inVeh,iSce},~,~] = main(scenarios{inVeh,iSce});
+                    [results{inVeh,i_priority,iSce},~,~] = main(scenarios{inVeh,iSce});
                 end
 
                 % evaluate
