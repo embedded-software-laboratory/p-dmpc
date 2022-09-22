@@ -3,31 +3,25 @@ function spp_book(options)
     % spp_book Generates evaluation results for the SPP book chapter
 arguments
     options.do_plot_online      (1,1) logical = 0;
-    options.is_video_exported   (1,1) logical = 0;
+    options.is_video_exported   (1,1) logical = 1;
 end
 
     % Settings:
     % t_horizon = 4 s
     % T = 0.2 s
     % -> N = 20 (TODO Check if possible computation time wise)
-    % MPA: Jianyes MPA
     % adjust set_figure_properties; arguments block, so other settings possible
-
-    %% Create MPA for experiments
-    % TODO create MPA
-    % TODO plot MPA (function in feature/large-mpa)
 
     %% Trajectory planning
     % --------------------------------------------------------------------------
     disp('Evaluating with one vehicle and moving obstacles.')
 
+    % RHGS
     s(1) = moving_obstacle_scenario(do_plot_online=options.do_plot_online);
+    plot_mpa(s(1),"y_lim",[-0.05, 0.85]);
     results(1) = main(s(1));
-%     overviewPlot(r,[17,21,25,28]); % TODO adjust
-%     if is_video_exported
-%         exportVideo(r);
-%     end
-    % TODO comparison to SGS. reuse code from fix/rhgs-eval
+    
+    % SGS
     s(2) = moving_obstacle_scenario(...
         is_start_end=1,...
         do_plot_online=options.do_plot_online...
@@ -36,16 +30,18 @@ end
     s(2).sub_controller = @sub_controller.run;
     results(2) = main(s(2));
 
+    % *Overview*
     nr = numel(results);
 
     filepath_text = fullfile('results', 'rhgs_vs_gs.txt');
     approaches = {'RHGS','SGS'};
 
-    % *Overview*
-    fig = overviewPlot(results(1),[11, 15, 19, 22]);
-    overviewPlot(results(2),[11, 15, 19, 22],fig,1);
+    step_indices = [1 5 9 13];
+    fig = overviewPlot(results(1),step_indices);
+    overviewPlot(results(2),step_indices,fig,1);
 
     % *Computation time*
+    % prepare
     runtimes = reshape([results.controller_runtime],[],nr);
     t_max = max(runtimes);
     t_median = median(runtimes);
@@ -65,7 +61,6 @@ end
     xlabel('Computation Time [s]');
 
     set(gca,'Ydir','reverse');
-    % ylim('tight')
 
     set_figure_properties(fig, 'paper',3);
     xmin = min(t,[],'all');
@@ -139,7 +134,7 @@ end
 
     % *Video*
     for r = results
-        if is_video_exported
+        if options.is_video_exported
             exportVideo(r);
         end
     end

@@ -44,14 +44,31 @@ classdef FileNameConstructor
             mpa_instance_name = [mpa_instance_name,'.mat'];
         end
 
-        function results_full_path = get_results_full_path(options)
-            % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
-            % results are saved.
+        function results_folder_path = gen_results_folder_path(options)
+            
             if options.isParl
                 controller_name = 'RHC-Parl';
             else
                 controller_name = 'RHC';
             end
+
+            results_folder_name = strrep(strcat(options.scenario_name, '_', controller_name),' ','_');
+
+            [file_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file
+            idcs = strfind(file_path,filesep); % find all positions of '/'
+            main_folder = file_path(1:idcs(end)-1); % one folder up
+        
+            results_folder_path = fullfile(main_folder,'results',results_folder_name);
+            if ~isfolder(results_folder_path)
+                % create target folder if not exist
+                mkdir(results_folder_path)
+            end
+            
+        end
+
+        function results_full_path = get_results_full_path(options)
+            % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
+            % results are saved.
 
             if isstring(options.priority)
                 options.priority = char(options.priority);
@@ -103,19 +120,12 @@ classdef FileNameConstructor
                 results_name = options.customResultName;
             end
 
-            results_folder = strrep(strcat(options.scenario_name, '_', controller_name),' ','_');
             results_name = [results_name, '.mat'];
 
-            [file_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file
-            idcs = strfind(file_path,filesep); % find all positions of '/'
-            one_folder_up = file_path(1:idcs(end)-1); % one folder up
-        
-            folder_target = fullfile(one_folder_up,'results',results_folder);
-            if ~isfolder(folder_target)
-                % create target folder if not exist
-                mkdir(folder_target)
-            end        
-            results_full_path = fullfile(folder_target,results_name);
+            results_full_path = fullfile( ...
+                FileNameConstructor.gen_results_folder_path(options) ...
+                ,results_name ...
+            );
         end
     end
 end

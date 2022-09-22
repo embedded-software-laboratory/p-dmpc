@@ -53,6 +53,10 @@ classdef SimLab < InterfaceExperiment
                         disp('Show vehicle priorities.')
                     else
                         disp('Hide vehicle priorities.')
+                        find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
+                        if ~isempty(find_colorbar)
+                            find_colorbar.Visible = 'off';
+                        end
                     end
                 case 'c'
                     obj.visu.isShowCoupling = ~obj.visu.isShowCoupling;
@@ -116,8 +120,8 @@ classdef SimLab < InterfaceExperiment
                 pause(obj.scenario.options.dt-result.step_time(obj.k))
 
                 % visualize time step
-                tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
-%                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
+                % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
+                tick_now = 1; % plot of next time step. set to 1 for plot of current time step
                 plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
             else
                 % pause so that `keyPressCallback()` can be executed in time
