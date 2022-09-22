@@ -64,6 +64,7 @@ classdef OptionsMain
         bound_reachable_sets = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
 
         is_force_parallel_vehs_in_same_grp = true; % true/false, if true, vehicles move in parallel will be forced in the same group
+        reference_path = struct('lanelets_index',[],'start_point',[]);% custom reference path
     end
 
     properties(Dependent)

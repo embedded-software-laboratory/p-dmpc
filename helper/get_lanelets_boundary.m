@@ -1,4 +1,4 @@
-function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_boundaries,lanelets_index, is_sim_lab)
+function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_boundaries,lanelets_index, is_sim_lab, is_loop)
 % GET_LANELETS_BOUNDARY Return the lanelet boundaries based on the
 % target_lanelet_boundaries: predicted lanelets boundaries
     
@@ -46,24 +46,29 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
 
         % add several points of predecessor lanelet to ensure the whole
         % vehicle body is inside its lanelet boundary
-        num_added = 3;
+        num_added = 4;
         find_first_predicted_lan = find(predicted_lanelets(1)==lanelets_index);
         if find_first_predicted_lan == 1
-            % loop back
-            predecessor_index = lanelets_index(end);
+            if is_loop
+                % loop back
+                predecessor_index = lanelets_index(end);
+            else
+                predecessor_index = [];
+            end
         else
             predecessor_index = lanelets_index(find_first_predicted_lan-1);
         end        
-        predecessor_lanelet_left = lanelet_boundaries{predecessor_index}{1};
-        predecessor_lanelet_right = lanelet_boundaries{predecessor_index}{2};
-        % avoid add the last point since it is almost identical with the
-        % first point of its successor
-        left_bound = [predecessor_lanelet_left(end-num_added:end-1,:)',left_bound];
-        right_bound = [predecessor_lanelet_right(end-num_added:end-1,:)',right_bound];
-
+        if ~isempty(predecessor_index)
+            predecessor_lanelet_left = lanelet_boundaries{predecessor_index}{1};
+            predecessor_lanelet_right = lanelet_boundaries{predecessor_index}{2};
+            % avoid add the last point since it is almost identical with the
+            % first point of its successor
+            left_bound = [predecessor_lanelet_left(end-num_added:end-1,:)',left_bound];
+            right_bound = [predecessor_lanelet_right(end-num_added:end-1,:)',right_bound];
+        end
+    
         lanelet_boundary{1} = left_bound;
         lanelet_boundary{2} = right_bound;
-
         x = [left_bound(1,:),right_bound(1,end:-1:1)];
         y = [left_bound(2,:),right_bound(2,end:-1:1)];
         % if x- and y-coordinates are ensured to be in the right order, set

@@ -30,6 +30,7 @@ classdef Vehicle
         vehicle_mpa;                % instance of the class `MotionPrimitiveAutomaton`
         last_trajectory_index = 10; % initial trajectory index
         ref_path_loop_idx           % totally 7 loops of paths are designed
+        is_loop = true;             % whether the reference path is a loop
     end
     
     methods
