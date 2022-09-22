@@ -144,38 +144,29 @@ end
         end
     end
 
-visu_options = options;
-
     %% Dynamic priorities
     % --------------------------------------------------------------------------
     disp('Evaluating dynamic priority assignment strategies.')
-    % TODO check that all prio algorithms work (right_of_way!)
-    % TODO check directed coupling (at the moment only couplings in order of prio 1-2-3-...)
     priority_assignment_algorithms = {
-        %'right_of_way_priority'
+        'right_of_way_priority'
         'FCA_priority'
         'random_priority'
         'constant_priority'
         'coloring_priority'
     };
 
+    visu_options = options;
+
     % scenarios as in Jianyes Eval
     options = OptionsMain;
     options.scenario_name = 'Commonroad';
     options.trim_set = 9;
     options.T_end = 20;
-    options.Hp = 5; % TODO 10
+    options.Hp = 10; % TODO 10
     options.isPB = true;
     options.is_sim_lab = true;
     options.visu = [visu_options.do_plot_online, false];
-    options.firstManualVehicleMode = 0;
-    options.secondManualVehicleMode = 0;
-    options.collisionAvoidanceMode = 0;
-    options.is_mixed_traffic = 0;
-    options.force_feedback_enabled = 0;
-%     options.strategy_consider_veh_without_ROW = '3';
-%     options.strategy_enter_lanelet_crossing_area = '4';
-%     options.isAllowInheritROW = true;
+    options.strategy_consider_veh_without_ROW = '1';
 
     random_seed = RandStream('mt19937ar');
 
@@ -188,7 +179,7 @@ visu_options = options;
     for inVeh = 1:length(nsVeh)
         for iSce = 1:nSce
             options.amount = nsVeh(inVeh);
-            veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend')
+            veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
             options.veh_ids = veh_ids;
             scenario = commonroad(options, options.veh_ids, 0, 0, options.is_sim_lab);
             scenario.random_seed = random_seed;
@@ -205,15 +196,15 @@ visu_options = options;
         end
     end
 
-    e_differentNumVehs = cell(length(priority_assignment_algorithms),1);
-    n_simulations = numel(e_differentNumVehs);
+    n_simulations = length(nsVeh)*nSce*length(priority_assignment_algorithms);
     count = 0;
 
     % Commonroad
     % TODO OPT coupling based on lanelets + distance, simpler than Reachability Analysis
     for inVeh = 1:length(nsVeh) % TODO 10:20
+        disp(['# Vehicles: ',num2str(nsVeh(inVeh))])
         for i_priority = 1:length(priority_assignment_algorithms)
-            priority_assignment_algorithms{i_priority}
+            disp(['Priority Assignment Algorithm: ', priority_assignment_algorithms{i_priority}])
             for iSce = 1:nSce
                 scenarios{inVeh,iSce}.options.priority = priority_assignment_algorithms{i_priority};
                 % run simulation

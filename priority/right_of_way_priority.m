@@ -159,27 +159,19 @@ classdef right_of_way_priority < interface_priority
             end
             
            % calculate computation levels using kahn algorithm(topological ordering)
-            [~, L] = kahn(directed_adjacency);
-            computation_levels = size(L,1);
+            [isDAG, Level] = kahn(directed_adjacency);
 %                 % visualize the directed graph  
 %                 figure(); plot(Graph,'LineWidth',1) 
 
+            assert( isDAG, 'Coupling matrix is not a DAG' );
 
-            % construct the priority groups
-            groups = struct;
-            for group_idx = 1:computation_levels
-                groups(group_idx).members = find(L(group_idx,:));
-                if group_idx == 1
-                    groups(group_idx).predecessors = [];
-                else
-                    groups(group_idx).predecessors = [groups(group_idx-1).predecessors groups(group_idx-1).members];
-                end
-            end 
+            groups = PB_predecessor_groups(Level);
 
             % Assign prrority according to computation level
             % Vehicles with higher priorities plan trajectory before vehicles
             % with lower priorities            
             priority_list = obj.get_priority(groups);
+
         end
 
     end
