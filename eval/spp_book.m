@@ -49,8 +49,6 @@ end
 
     % plot
     fig = figure;
-    % X = categorical({'t_{max}','t_{median}'});
-    % X = reordercats(X,{'t_{max}','t_{median}'});
     b = barh(1:2,t);
     set(gca, 'XScale','log');
     for i = 1:nr
