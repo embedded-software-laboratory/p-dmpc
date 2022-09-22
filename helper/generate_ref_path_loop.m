@@ -1,4 +1,4 @@
-function [ref_path,loop] = generate_ref_path_loop(vehid, lanelets)
+function [ref_path,loop] = generate_ref_path_loop(vehid, lanelets, lanelets_index)
 % GENERATE_REF_PATH    returns a ref_path struct
 % ref_path.lanelets_index: lanelet index of the reference path
 % ref_path.path: reference path including x and y information
@@ -15,103 +15,107 @@ ref_path_loops = {[4,6,8,60,58,56,54,80,82,84,86,34,32,30,28,2],...
 
 ref_path = struct;
 
-    switch vehid
-        case 1
-            loop = 1; starting_lanelet = 4;
-        case 2
-            loop = 1; starting_lanelet = 8;
-        case 3
-            loop = 1; starting_lanelet = 58;
-        case 4 
-            loop = 1; starting_lanelet = 54;
-        case 5 
-            loop = 1; starting_lanelet = 82;
-        case 6
-            loop = 1; starting_lanelet = 86;
-        case 7
-            loop = 1; starting_lanelet = 32;
-        case 8
-            loop = 1; starting_lanelet = 28;
+    if isempty(lanelets_index)
+        switch vehid
+            case 1
+                loop = 1; starting_lanelet = 4;
+            case 2
+                loop = 1; starting_lanelet = 8;
+            case 3
+                loop = 1; starting_lanelet = 58;
+            case 4 
+                loop = 1; starting_lanelet = 54;
+            case 5 
+                loop = 1; starting_lanelet = 82;
+            case 6
+                loop = 1; starting_lanelet = 86;
+            case 7
+                loop = 1; starting_lanelet = 32;
+            case 8
+                loop = 1; starting_lanelet = 28;
+    
+            case 9
+                loop = 2; starting_lanelet = 1;
+            case 10
+                loop = 2; starting_lanelet = 10;
+            case 11
+                loop = 2; starting_lanelet = 17;
+            case 12
+                loop = 2; starting_lanelet = 38;
+            case 13
+                loop = 2; starting_lanelet = 49;
+                
+            case 14
+                loop = 3; starting_lanelet = 64;
+            case 15
+                loop = 3; starting_lanelet = 75;
+            case 16
+                loop = 3; starting_lanelet = 79;
+            case 17
+                loop = 3; starting_lanelet = 88;
+            case 18
+                loop = 3; starting_lanelet = 95;
+                
+            case 19
+                loop = 4; starting_lanelet = 42;
+            case 20
+                loop = 4; starting_lanelet = 45;
+            case 21
+                loop = 4; starting_lanelet = 92;
+            case 22
+                loop = 4; starting_lanelet = 100;
+            case 23
+                loop = 4; starting_lanelet = 33;
+                
+            case 24
+                loop = 5; starting_lanelet = 22;
+            case 25
+                loop = 5; starting_lanelet = 59;
+            case 26
+                loop = 5; starting_lanelet = 68;
+            case 27
+                loop = 5; starting_lanelet = 19;
+            case 28
+                loop = 5; starting_lanelet = 14;
+                
+            case 29
+                loop = 6; starting_lanelet = 39;
+            case 30
+                loop = 6; starting_lanelet = 61;
+            case 31
+                loop = 6; starting_lanelet = 55;
+            case 32
+                loop = 6; starting_lanelet = 65;
+            case 33
+                loop = 6; starting_lanelet = 35;
+            case 34
+                loop = 6; starting_lanelet = 29;
+                
+            case 35
+                loop = 7; starting_lanelet = 15;
+            case 36
+                loop = 7; starting_lanelet = 5;
+            case 37
+                loop = 7; starting_lanelet = 11;
+            case 38
+                loop = 7; starting_lanelet = 93;
+            case 39
+                loop = 7; starting_lanelet = 83;
+            case 40
+                loop = 7; starting_lanelet = 89;
+            case 41
+                loop = 5; starting_lanelet = 71;
+        end 
 
-        case 9
-            loop = 2; starting_lanelet = 1;
-        case 10
-            loop = 2; starting_lanelet = 10;
-        case 11
-            loop = 2; starting_lanelet = 17;
-        case 12
-            loop = 2; starting_lanelet = 38;
-        case 13
-            loop = 2; starting_lanelet = 49;
-            
-        case 14
-            loop = 3; starting_lanelet = 64;
-        case 15
-            loop = 3; starting_lanelet = 75;
-        case 16
-            loop = 3; starting_lanelet = 79;
-        case 17
-            loop = 3; starting_lanelet = 88;
-        case 18
-            loop = 3; starting_lanelet = 95;
-            
-        case 19
-            loop = 4; starting_lanelet = 42;
-        case 20
-            loop = 4; starting_lanelet = 45;
-        case 21
-            loop = 4; starting_lanelet = 92;
-        case 22
-            loop = 4; starting_lanelet = 100;
-        case 23
-            loop = 4; starting_lanelet = 33;
-            
-        case 24
-            loop = 5; starting_lanelet = 22;
-        case 25
-            loop = 5; starting_lanelet = 59;
-        case 26
-            loop = 5; starting_lanelet = 68;
-        case 27
-            loop = 5; starting_lanelet = 19;
-        case 28
-            loop = 5; starting_lanelet = 14;
-            
-        case 29
-            loop = 6; starting_lanelet = 39;
-        case 30
-            loop = 6; starting_lanelet = 61;
-        case 31
-            loop = 6; starting_lanelet = 55;
-        case 32
-            loop = 6; starting_lanelet = 65;
-        case 33
-            loop = 6; starting_lanelet = 35;
-        case 34
-            loop = 6; starting_lanelet = 29;
-            
-        case 35
-            loop = 7; starting_lanelet = 15;
-        case 36
-            loop = 7; starting_lanelet = 5;
-        case 37
-            loop = 7; starting_lanelet = 11;
-        case 38
-            loop = 7; starting_lanelet = 93;
-        case 39
-            loop = 7; starting_lanelet = 83;
-        case 40
-            loop = 7; starting_lanelet = 89;
-        case 41
-            loop = 5; starting_lanelet = 71;
-    end 
-
-    ref_path_loop = ref_path_loops{loop};
-    find_start_idx = find(ref_path_loop==starting_lanelet);
-    if find_start_idx==1
-        ref_path.lanelets_index = ref_path_loop;
+        ref_path_loop = ref_path_loops{loop};
+        find_start_idx = find(ref_path_loop==starting_lanelet);
+        if find_start_idx==1
+            ref_path.lanelets_index = ref_path_loop;
+        else
+            ref_path.lanelets_index = [ref_path_loop(find_start_idx:end),ref_path_loop(1:find_start_idx-1)];
+        end
     else
-        ref_path.lanelets_index = [ref_path_loop(find_start_idx:end),ref_path_loop(1:find_start_idx-1)];
+        ref_path.lanelets_index = lanelets_index;
     end
 
     lanelets_target = lanelets(ref_path.lanelets_index);

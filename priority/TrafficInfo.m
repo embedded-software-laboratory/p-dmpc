@@ -83,9 +83,6 @@ classdef TrafficInfo
                 y_i = bound_boxes_y(veh_i,:);
                 
                 for veh_j = (veh_i+1):obj.nVeh
-                    if veh_i == 11 && veh_j == 14
-                        disp('') % debug
-                    end
                     % check whether two vehicles' reachable sets at the last prediction horizon overlap
                     x_j = bound_boxes_x(veh_j,:);
                     y_j = bound_boxes_y(veh_j,:);

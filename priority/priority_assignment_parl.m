@@ -104,10 +104,6 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
         veh_with_ROW = coupling_info(i).veh_with_ROW;
         veh_without_ROW = coupling_info(i).veh_without_ROW;
 
-        if all(ismember([veh_with_ROW,veh_without_ROW],[31,28]))
-            disp('')
-        end
-
         is_at_intersection = coupling_info(i).is_at_intersection;
         is_intersecting_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_5);
         is_merging_lanelets = strcmp(coupling_info(i).lanelet_relationship, LaneletRelationshipType.type_3);
@@ -302,10 +298,10 @@ function [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupl
             coupling_i = intersect(find_vertex_start,find_vertex_end);
             coupling_info(coupling_i).veh_with_ROW = vertex_end;
             coupling_info(coupling_i).veh_without_ROW = vertex_start;
-            disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is inverted.'])
+%             disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is inverted.'])
         else
             % this edge is allowed to be recovered with the same direction
-            disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is not inverted.'])
+%             disp(['Edge from ' num2str(vertex_start) ' to ' num2str(vertex_end) ' is not inverted.'])
         end
 
     end

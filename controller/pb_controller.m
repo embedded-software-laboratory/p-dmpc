@@ -67,13 +67,7 @@ runtime_others_tic = tic;
                 
                 % only two strategies are supported if parallel computation is not used
                 assert(any(strcmp(scenario_v.options.strategy_consider_veh_without_ROW,{'1','2','3'})))
-                scenario_v = consider_vehs_with_LP(scenario_v, iter, adjacent_vehicle_lower_priority);
-            end
-
-            if scenario.k >= 128
-                if vehicle_idx == 4
-                    disp('')
-                end
+                scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, adjacent_vehicle_lower_priority);
             end
 
             % execute sub controller for 1-veh scenario

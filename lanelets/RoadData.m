@@ -115,9 +115,7 @@ classdef RoadData
                     if ~isempty(lanelet_relationships{i,j})
                         continue
                     end
-                    if i==33 && j==35
-                        disp('')
-                    end
+
                     % initialize variables for predecessors, successors, adjacent left and adjacent right lanelet of lanelet_j
                     [adjacentLeft_j, adjacentRight_j, predecessors_j, ~, ~,successors_j, ~, ~] = obj.get_all_adjacent_lanelets(j, road_lanelets);
                     
@@ -679,9 +677,6 @@ classdef RoadData
             nLanelets = length(obj.lanelets);
             for iLan = 1:nLanelets-1
                 for jLan = iLan+1:nLanelets
-                    if iLan==33 && jLan==36
-                        disp('')
-                    end
                     if ~isempty(obj.lanelet_relationships{iLan,jLan})
                         share_boundary_with_i = setdiff(share_boundary_with{iLan},iLan); % exclude self
                         share_boundary_with_j = setdiff(share_boundary_with{jLan},jLan); % exclude self

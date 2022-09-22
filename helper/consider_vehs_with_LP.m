@@ -30,9 +30,7 @@ function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_c
                 switch scenario_v.options.priority
                     case 'right_of_way_priority'
                         find_coupling = [scenario_v.coupling_info.veh_with_ROW]==vehicle_idx & [scenario_v.coupling_info.veh_without_ROW]==veh_without_ROW;
-                        if scenario_v.k==261
-                            disp('')
-                        end
+
                         if ~scenario_v.coupling_info(find_coupling).is_ignored && strcmp(scenario_v.coupling_info(find_coupling).collision_type,CollisionType.type_2) ...
                                 && strcmp(scenario_v.coupling_info(find_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
                             % the emergency braking maneuver is only considered if

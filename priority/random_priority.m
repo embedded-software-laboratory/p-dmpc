@@ -77,8 +77,6 @@ classdef  random_priority < interface_priority
             % Vehicles with higher priorities plan trajectory before vehicles
             % with lower priorities            
             priority_list = obj.get_priority(CL_based_hierarchy);
-
-            
         end
       
     end

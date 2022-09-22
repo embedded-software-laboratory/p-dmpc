@@ -68,9 +68,7 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
     end
 
     G_directed = digraph(M);
-    if ~isdag(G_directed)
-        disp('')
-    end
+
     assert(isdag(G_directed)) % check whether DAG
     
     % decompose the supergraph if it contains unconnected components
