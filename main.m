@@ -402,7 +402,9 @@ while (~got_stop)
 
     result.runtime_subcontroller_max(k) = info.runtime_subcontroller_max;
     result.runtime_graph_search_max(k) = info.runtime_graph_search_max;
+    result.runtime_graph_search_sum(k) = sum(info.runtime_graph_search_each_veh);
     result.directed_coupling{k} = scenario.directed_coupling;
+    result.shapes{k} = info.shapes;
     if options.isParl && strcmp(scenario.options.scenario_name,'Commonroad')
         result.determine_couplings_time(k) = scenario.timer.determine_couplings;
         result.group_vehs_time(k) = scenario.timer.group_vehs;
@@ -496,6 +498,7 @@ if options.isSaveResult
         end
         result.scenario.mpa = [];
         result.scenario.speed_profile_mpas = [];
+        result.shapes = [];
     end
 
     % check if file with the same name exists
