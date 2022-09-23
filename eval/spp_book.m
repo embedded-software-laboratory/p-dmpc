@@ -2,8 +2,8 @@
 function spp_book(options)
     % spp_book Generates evaluation results for the SPP book chapter
 arguments
-    options.do_plot_online      (1,1) logical = 0;
-    options.is_video_exported   (1,1) logical = 1;
+    options.do_plot_online      (1,1) logical = 1;
+    options.is_video_exported   (1,1) logical = 0;
 end
 
     % Settings:
