@@ -236,7 +236,7 @@ classdef RoadData
                         % store the forking point (starting point of lenelet_j's left boundary)
                         lanelet_relationships{i,j}.point = [obj.lanelets{j}(1,LaneletInfo.lx),obj.lanelets{j}(1,LaneletInfo.ly)];
                     else
-                        % if not the above cases, check whether the center lines of the two lanelets intersect with each other center line. If yes -> intersecting lanelets
+                        % if not the above cases, check if their centerlines intersect or left/right bound intersect. If yes -> intersecting lanelets
                         x_c_i = obj.lanelets{i}(:,LaneletInfo.cx);
                         y_c_i = obj.lanelets{i}(:,LaneletInfo.cy);
                         x_c_j = obj.lanelets{j}(:,LaneletInfo.cx);
@@ -251,11 +251,35 @@ classdef RoadData
                             % This is also the only difference between `semi_adjacency_lanelets` and `adjacency_lanelets` 
                             semi_adjacency_lanelets(i,j) = 0;
                         else
-                            % if not intersect, then the two lanelets have no relationship -> delete the entry that was created at the very begining of the inner for-loop
-                            lanelet_relationships{i,j} = [];
-                            % set the corresponding entry in the `adjacency_lanelets` and `semi_adjacency_lanelets` matrix to be zero
-                            adjacency_lenelets(i,j) = 0;
-                            semi_adjacency_lanelets(i,j) = 0;
+                            % if both lanelets are at the intersection, check additionally whether their left/right bounds intersect if their centerlines do not intersect
+                            if ismember(i,obj.intersection_lanelets) && ismember(j,obj.intersection_lanelets)
+                                xy_ij_idx = [LaneletInfo.lx,LaneletInfo.ly,LaneletInfo.lx,LaneletInfo.ly;
+                                             LaneletInfo.lx,LaneletInfo.ly,LaneletInfo.rx,LaneletInfo.ry;
+                                             LaneletInfo.rx,LaneletInfo.ry,LaneletInfo.lx,LaneletInfo.ly;
+                                             LaneletInfo.rx,LaneletInfo.ry,LaneletInfo.rx,LaneletInfo.ry];
+                                for xyij = 1:size(xy_ij_idx,1)
+                                    x_i = obj.lanelets{i}(:,xy_ij_idx(xyij,1));
+                                    y_i = obj.lanelets{i}(:,xy_ij_idx(xyij,2));
+                                    x_j = obj.lanelets{j}(:,xy_ij_idx(xyij,3));
+                                    y_j = obj.lanelets{j}(:,xy_ij_idx(xyij,4));
+                                    % exclude the case of two parallel lanelets
+                                    [x_intersect,y_intersect] = polyxpoly(x_i,y_i,x_j,y_j);
+                                    if length(x_intersect)==1
+                                        lanelet_relationships{i,j}.type = LaneletRelationshipType.type_5;
+                                        lanelet_relationships{i,j}.point = [x_intersect, y_intersect];
+                                        semi_adjacency_lanelets(i,j) = 0;
+                                        disp([num2str(i) ', ' num2str(j)])
+                                        break;
+                                    end
+                                end
+                            end
+                                
+                            % two lanelets have no relationship and are thus not adjacent
+                            if isempty(lanelet_relationships{i,j})
+                                % set the corresponding entry in the `adjacency_lanelets` and `semi_adjacency_lanelets` matrix to be zero
+                                adjacency_lenelets(i,j) = 0;
+                                semi_adjacency_lanelets(i,j) = 0;
+                            end
                         end
                     end     
                 end                    
