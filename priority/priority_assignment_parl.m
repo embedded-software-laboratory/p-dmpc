@@ -3,18 +3,16 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     lanelet_crossing_areas = [];
     
     determine_couplings_timer = tic;
-    traffic_info = TrafficInfo(scenario, iter);
-    
-    coupling_weights = traffic_info.coupling_weights;
-    scenario.coupling_weights_optimal = traffic_info.coupling_weights_optimal;
-    coupling_info = traffic_info.coupling_info;
-    if any(strcmp(scenario.options.priority,{'right_of_way_priority','constant_priority','random_priority'}))
+
+    [vehs_at_intersection,coupling_weights,scenario.coupling_weights_optimal,coupling_info,time_enter_intersection] = STAC_priority().priority(scenario,iter);
+
+    if any(strcmp(scenario.options.priority,{'STAC_priority','constant_priority','random_priority'}))
         % Strategy to let vehicle without the right-of-way enter the crossing area
         % Ignore coupling edge if not allowed to enter the crossing area because no collision is possible anymore
         [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = ...
             strategy_enter_lanelet_crossing_area(iter,coupling_info,coupling_weights,scenario.options.strategy_enter_lanelet_crossing_area,scenario.options.amount);
 
-        [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupling_weights_reduced,coupling_weights,coupling_info,traffic_info.vehs_at_intersection);
+        [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupling_weights_reduced,coupling_weights,coupling_info,vehs_at_intersection);
         scenario.timer.determine_couplings = toc(determine_couplings_timer);
 
         group_vehs = tic;
@@ -46,21 +44,19 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
         end
         method = 's-t-cut'; % 's-t-cut' or 'MILP'
         [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_copy, scenario.options.max_num_CLs, coupling_info, method, options);
+        % Assign prrority according to computation level
+        % Vehicles with higher priorities plan trajectory before vehicles with lower priorities
     else
-        warning([scenario.options.priority ' is not supported if parallel computation is used. Right_of_way_priority will be used instead.'])
+        warning([scenario.options.priority ' is not supported if parallel computation is used. STAC_priority will be used instead.'])
     end
     
-
-    % Assign prrority according to computation level
-    % Vehicles with higher priorities plan trajectory before vehicles
-    % with lower priorities
-    priority_list = right_of_way_priority().get_priority(CL_based_hierarchy);
+    % get priority list
+    priority_list = STAC_priority().get_priority(CL_based_hierarchy);
 
     scenario.coupling_weights = coupling_weights;
     scenario.coupling_weights_reduced = coupling_weights_reduced;
-    scenario.time_enter_intersection = traffic_info.time_enter_intersection;
+    scenario.time_enter_intersection = time_enter_intersection;
     scenario.coupling_info = coupling_info;
-    vehs_at_intersection = traffic_info.vehs_at_intersection;
 
     % update properties of scenario 
     scenario.parl_groups_info = parl_groups_info;
@@ -78,12 +74,10 @@ end
 
 %% local function
 function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = strategy_enter_lanelet_crossing_area(iter,coupling_info,coupling_weights,strategy_enter_lanelet_crossing_area,nVeh)
-    % This function implement the strategies of letting vehicle enter
-    % the crossing area, which is the overlapping area of two
+    % This function implement the strategies of letting vehicle enter the crossing area, which is the overlapping area of two
     % vehicles' lanelet boundaries. Four strategies are existed.
 
-    % reduced coupling weights after forbidding vehicles entering their
-    % lanelet crossing areas
+    % Reduced coupling weights after forbidding vehicles entering their lanelet crossing areas
     coupling_weights_reduced = coupling_weights;
 
     lanelet_crossing_areas = cell(nVeh,1);
@@ -142,10 +136,8 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
                     (InterX(iter.emergency_maneuvers{veh_without_ROW}.braking_area_without_offset,lanelet_crossing_area_xy) && ... % check if emergency braking maneuver could avoid the LCA
                     InterX(iter.emergency_maneuvers{veh_without_ROW}.left_area_without_offset,lanelet_crossing_area_xy) && ... % check if emergency left-turn maneuver could avoid the LCA
                     InterX(iter.emergency_maneuvers{veh_without_ROW}.right_area_without_offset,lanelet_crossing_area_xy)) % check if emergency right-turn maneuver could avoid the LCA
-                % The vehicle without the ROW must be allowed to enter the
-                % lanelet crossing area since all its emergency meneuvers
-                % will collide with this area. In this case, we check if
-                % vehicle with the ROW could be forbidded to enter.
+                % The vehicle without the ROW must be allowed to enter the lanelet crossing area since all its emergency meneuvers
+                % will collide with this area. In this case, we check if vehicle with the ROW could be forbidded to enter.
                 if any(inpolygon(iter.occupied_areas{veh_with_ROW}.without_offset(1,:),iter.occupied_areas{veh_with_ROW}.without_offset(2,:),lanelet_crossing_area_x,lanelet_crossing_area_y)) || ... % ensure vehicle is not in the lanelet crossing area
                         (InterX(iter.emergency_maneuvers{veh_with_ROW}.braking_area_without_offset,lanelet_crossing_area_xy) && ... % check if emergency braking maneuver could avoid the LCA
                         InterX(iter.emergency_maneuvers{veh_with_ROW}.left_area_without_offset,lanelet_crossing_area_xy) && ... % check if emergency left-turn maneuver could avoid the LCA
@@ -164,40 +156,6 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
                 veh_forbid = veh_without_ROW;
                 veh_free = veh_with_ROW;
             end
-
-%             % if vehicle without the right-of-way cannot avoid entering the
-%             % crossing area (emergency breaking meneuver), the coupling is not allowed to be ignored anymore
-%             [in_i,~] = inpolygon(iter.occupied_areas{veh_without_ROW}.without_offset(1,:),iter.occupied_areas{veh_without_ROW}.without_offset(2,:),...
-%                 lanelet_crossing_area_x,lanelet_crossing_area_y);
-%             if any(in_i)
-%                 % vehicle without right-of-way has already entered
-%                 % the crossing area: check if vehicle with ROW has entered this area
-%                 [in_j,~] = inpolygon(iter.occupied_areas{veh_with_ROW}.without_offset(1,:),iter.occupied_areas{veh_with_ROW}.without_offset(2,:),...
-%                     lanelet_crossing_area_x,lanelet_crossing_area_y);
-%                     if any(in_j)
-%                         % vehicle with right-of-way has also entered the crossing area: coupling cannot be ignored
-%                         % disp(['Both vehicle ' num2str(veh_with_ROW) ' and ' num2str(veh_without_ROW) ' have entered the crossing area, thus the coupling cannot be ignored.'])
-%                         continue
-%                     else
-%                         % disp(['Swap right-of-way: vehicle ' num2str(veh_without_ROW) ' now has right-of-way over ' num2str(veh_with_ROW) '.'])
-%                         veh_forbid = veh_with_ROW;
-%                         veh_free = veh_without_ROW;
-%                         [coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW] = ...
-%                             swap(coupling_info(i).veh_with_ROW,coupling_info(i).veh_without_ROW);
-%                     end
-%             else
-%                 veh_forbid = veh_without_ROW;
-%                 veh_free = veh_with_ROW;
-%             end
-
-            % check if coupling could be ignored
-%             couplings_ignored(veh_free,veh_forbid) = 1;
-%             [is_valid,L] = kahn(couplings_ignored);
-%             if ~is_valid
-%                 % coupling cannot be ignored as it results in a cycle
-%                 couplings_ignored(veh_free,veh_forbid) = 0;
-%                 continue
-%             end
 
             % disp(['Ignore the coupling from vehicle ' num2str(veh_free) ' to ' num2str(veh_forbid) ' by forbidding the latter to enter the crossing area of their lanelets.'])
             coupling_info(i).is_ignored = true; % ignore coupling since no collision if possible anymore
@@ -274,10 +232,6 @@ function [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupl
             [~, edges] = all_elem_cycles(Graph);
         end
     end
-
-%     % recover the coupling edge by comparing their computation levels
-%     [valid,L] = kahn(coupling_weights_reduced); % calculate computation levels using kahn algorithm(topological ordering)
-%     assert(valid==true)
 
     % not all edges in `edge_to_invert` must be inverted, some could keep its direction without
     % resulting in cycles
