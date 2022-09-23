@@ -40,7 +40,7 @@ function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_c
                             scenario_v.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
                         end
                     otherwise
-                        scenario_v.obstacles{end+1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;
+                        scenario_v.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
                 end
 
             case '4'

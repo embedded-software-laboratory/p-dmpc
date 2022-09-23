@@ -13,12 +13,17 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
 
     % get road data
     road_data = RoadData().get_road_data();
-    scenario.lanelets = road_data.lanelets;
-    scenario.adjacency_lanelets = road_data.adjacency_lanelets;
-    scenario.semi_adjacency_lanelets = road_data.semi_adjacency_lanelets;
-    scenario.intersection_lanelets = road_data.intersection_lanelets;
-    scenario.lanelet_boundary = road_data.lanelet_boundary;
-    scenario.road_raw_data = road_data.road_raw_data;
+    if options.isParl
+        scenario.lanelets = road_data.lanelets;
+        scenario.adjacency_lanelets = road_data.adjacency_lanelets;
+        scenario.semi_adjacency_lanelets = road_data.semi_adjacency_lanelets;
+        scenario.intersection_lanelets = road_data.intersection_lanelets;
+        scenario.lanelet_boundary = road_data.lanelet_boundary;
+        scenario.road_raw_data = road_data.road_raw_data;
+    else
+        [scenario.lanelets, scenario.adjacency_lanelets, scenario.semi_adjacency_lanelets, scenario.intersection_lanelets, scenario.road_raw_data, scenario.lanelet_boundary] =...
+            commonroad_lanelets();
+    end
     scenario.lanelet_relationships  = road_data.lanelet_relationships;
     
     nVeh = options.amount;
@@ -79,30 +84,6 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
         veh.yaw_goal = yaw(2:end);
         scenario.vehicles = [scenario.vehicles, veh];
     end
-%       % example in paper
-%     scenario.vehicles(1).x_start = 2.0;
-%     scenario.vehicles(1).y_start = 1.775;
-%     scenario.vehicles(1).yaw_start = 0;
-% 
-%     scenario.vehicles(2).x_start = 2.32;
-%     scenario.vehicles(2).y_start = 1.41;
-%     scenario.vehicles(2).yaw_start = deg2rad(100);
-% 
-%     scenario.vehicles(3).x_start = 1.555;
-%     scenario.vehicles(3).y_start = 1.775;
-%     scenario.vehicles(3).yaw_start = 0;
-% 
-%     scenario.vehicles(4).x_start = 2.025;
-%     scenario.vehicles(4).y_start = 2.48;
-%     scenario.vehicles(4).yaw_start = deg2rad(270);
-%     
-%     scenario.vehicles(5).x_start = 2.175;
-%     scenario.vehicles(5).y_start = 2.67;
-%     scenario.vehicles(5).yaw_start = deg2rad(280);
-% 
-%     scenario.vehicles(6).x_start = 2.89;
-%     scenario.vehicles(6).y_start = 2.075;
-%     scenario.vehicles(6).yaw_start = deg2rad(180);
 
     scenario.options.plot_limits = [0,4.5;0,4];
     scenario.model = BicycleModel(veh.Lf,veh.Lr);

@@ -10,13 +10,11 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
 % boundary: the inner boundary and outer boundary of the Scenario
 % commonroad: raw commonroad data
 % lanelet_boundary: left and right boundaries of each lanelet
-
-
-%    %% lanelets 
-%     commonroad_data = readstruct('LabMapCommonRoad_Update.xml');
-%     save('commonroad_data.mat','commonroad_data')
     
-
+    if nargin==0
+        mixedTrafficScenarioLanelets = false;
+    end
+    
     %% path of the road data
     [file_path,name,ext] = fileparts(mfilename('fullpath'));
     folder_target = [file_path,filesep,'offline_road_data'];
@@ -30,10 +28,16 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
         return
     end
 
-    %% commonroad data
-    load('commonroad_data.mat');
+    %% commonroad data    
+    % read raw data
+    raw_data_path = fullfile(folder_target,'commonroad_data.mat');
+    if isfile(raw_data_path)
+        load(raw_data_path,'commonroad_data')
+    else
+        commonroad_data = readstruct(fullfile(folder_target,'LabMapCommonRoad_Update.xml'));
+        save(raw_data_path,'commonroad_data')
+    end
     commonroad = commonroad_data;
-    
     %% lanelets
     lanelets = cell(1,0);
     Nlanelets = length(commonroad_data.lanelet); % number of lanelets

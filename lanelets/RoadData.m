@@ -22,7 +22,7 @@ classdef RoadData
         function road_data = get_road_data(road_data, road_name)
             % initialize
             if nargin==1
-                road_data.road_name = 'commonroad_lanelets.mat'; % default road name
+                road_data.road_name = 'commonroad_lanelets_advanced.mat'; % default road name
             else
                 assert(isstring(road_name) || ischar(road_name))
                 road_data.road_name = road_name;
@@ -193,7 +193,7 @@ classdef RoadData
                             for jj = j_s
                                 ij = [ii,jj];
                                 if all(~ismember(ij,obj.intersection_lanelets)) && ~(ii==i && jj==j)
-                                    disp(ij)
+%                                     disp(ij)
                                     lanelet_relationships(min(ij),max(ij)) = lanelet_relationships(i,j);
                                 end
                             end
@@ -220,7 +220,7 @@ classdef RoadData
                             for jj = j_s
                                 ij = [ii,jj];
                                 if all(~ismember(ij,obj.intersection_lanelets)) && ~(ii==i && jj==j)
-                                    disp(ij)
+%                                     disp(ij)
                                     lanelet_relationships(min(ij),max(ij)) = lanelet_relationships(i,j);
                                 end
                             end
@@ -685,6 +685,10 @@ classdef RoadData
                                 ijShare = [iShare,jShare];
                                 if isempty(obj.lanelet_relationships{min(ijShare),max(ijShare)}) && iShare~=jShare && ~all(ismember(ijShare,obj.intersection_lanelets))
                                     obj.lanelet_relationships{min(ijShare),max(ijShare)} = obj.lanelet_relationships{iLan,jLan};
+                                    obj.adjacency_lanelets(min(ijShare),max(ijShare)) = 1;
+                                    obj.adjacency_lanelets(max(ijShare),min(ijShare)) = 1;
+                                    obj.semi_adjacency_lanelets(min(ijShare),max(ijShare)) = 1;
+                                    obj.semi_adjacency_lanelets(max(ijShare),min(ijShare)) = 1;
                                 end
                             end
                         end

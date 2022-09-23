@@ -34,10 +34,10 @@ classdef TrafficInfo
     end
 
     properties (Constant)
-        distance_to_CP_threshold = 1.2; % vehicles are considered as at the intersecrion if their distances to the center point of intersection is smaller than this value
-        STAC_threshold = 0.5;   % vehicles are considered as very close if they can achieve a collision in less than this time
-        sensitive_factor = 1;   % sensitive factor used to calculate the coupling weights. The bigger, the more sensitive to the STAC. Default value 1.
-        waiting_time_factor = 0.25; % how important should the waiting time in side-impact collisions be 
+        distance_to_CP_threshold = 1.2;         % vehicles are considered as at the intersecrion if their distances to the center point of intersection is smaller than this value
+        STAC_threshold = 0.5;                   % vehicles are considered as very close if they can achieve a collision in less than this time
+        sensitive_factor = 1;                   % sensitive factor used to calculate the coupling weights. The bigger, the more sensitive to the STAC. Default value 1.
+        waiting_time_factor = 0.25;             % how important should the waiting time in side-impact collisions be 
         side_impact_weight_scale_factor = 1.25; % side-impact collision is harder to avoid, so we scale its weight
     end
 
@@ -398,16 +398,14 @@ classdef TrafficInfo
 
         function has_ROW = determine_who_has_ROW(obj, veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_at_intersection, is_forking_lanelets, random_seed)
         % Determine whos has the right-of-way. 
-        % Vehicle enters the intersection earlier has the right-of-way. If both
-        % vheicle enter the intersection at the same time, right-of-way is given to
-        % vehicle which has the right-of-way in the last time step. If they are not
-        % coupled at previous time step, vehicle who can arrive the collision point
+        % Vehicle enters the intersection earlier has the right-of-way. If both vheicle enter the intersection at the same time, right-of-way is given to
+        % vehicle which has the right-of-way in the last time step. If they are not coupled at previous time step, vehicle who can arrive the collision point
         % earilier has the right-of-way.
         
             has_ROW = [];
 
             switch obj.priority_option
-                case 'right_of_way_priority'
+                case 'STAC_priority'
                     if is_at_intersection
                         if obj.time_enter_intersection(veh_i) < obj.time_enter_intersection(veh_j)
                             has_ROW = true; 
@@ -446,6 +444,8 @@ classdef TrafficInfo
                 case 'constant_priority'
                     % vheicle with lower ID has the right-of-way
                     has_ROW = (veh_i < veh_j);
+                otherwise
+                    warning("Priority must be one of the following: 'SATC_priority', 'random_priority', 'constant_priority'.")
             end
             
         end
@@ -568,8 +568,7 @@ classdef TrafficInfo
                                 end
                                 % inherit the time entering the intersection
                                 obj.time_enter_intersection(iVeh) = min(obj.time_enter_intersection(vehs_inherit));
-                                % parallel driving vehicles also inherit
-                                % the right-of-way
+                                % parallel driving vehicles also inherit the right-of-way
                             end
                         end
                     end
@@ -596,8 +595,7 @@ classdef TrafficInfo
 
         function is_move_side_by_side = check_if_move_parallel(position_i,position_j,yaw_i,yaw_j,length_i,length_j)
         % Returns true if two vehicles drive parallel to each other
-        % Their current occupied area are firstly approximated by straight
-        % lines. They are drive in parallel if at least one of the
+        % Their current occupied area are firstly approximated by straight lines. They are drive in parallel if at least one of the
         % projection of two points of one line is on the other line.
             is_move_side_by_side = false;
 

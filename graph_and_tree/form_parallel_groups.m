@@ -1,11 +1,37 @@
 function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(M, max_num_CLs, coupling_info, method, options)
 % FORM_PARALLEL_GROUPS Form parallel graoups of vehicles based on the given
-% matrix, which can either be a directed adjacency matrix or a edge-weights
+% matrix M, which can either be a directed adjacency matrix or a weighting
 % matrix, while ensuring that the number of computation levels of each
-% group do not exceed a number defined by the second input argument. 
-    
-    % Process optional input and Name-Value pair options
+% group do not exceed a value `max_num_CLs`. 
+%
+% INPUT:
+%   M: a square unsymmetric matrix that defines the target undirected graph to be partitioned.
+%   Can be either the adjacency matrix or the edge-weights matrix of the
+%   target graph. Edge-weights will not be considered if M is the dajacency
+%   matrix.
+%   
+%   max_num_CLs: maximum number of computation levels
+% 
+%   coupling_info: couling information of each coupling pair
+% 
+%   method: either 's-t-cut' or 'MILP'
+%
+%   options: instance of the class `OptionsMain`
+%
+% OUTPUT:
+%   parl_groups: also called CL_based_hierarchy, specifying the computation
+%   level of each vehicle
+%
+%   subgraphs_info: information of all the subgraphs, such as vertices, number
+%   of computation levels
+% 
+%   belonging_vector: a column vector whose values indicate which
+%   subgraphs the vertices belong to. For example,"belonging_vector =
+%   [1;2;2;1;3]" means the 1st subgraph = {1,4}, the 2nd subgraph = {2,3}
+%   and the 3rd subgraph = {5}.    
+
     if max_num_CLs == 1
+        % pure parallel trajectory planning
         nVeh = length(M);
         
         belonging_vector = 1:nVeh;
@@ -19,7 +45,7 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
     end
 
 
-    % partition the supergraph to subgraphs with a certain upper graph size.
+    % partition the given graph to subgraphs with a certain upper graph size.
     % The sum of weights of edges connecting subgraphs is the objective value and should be minimized.
     [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, max_num_CLs, coupling_info, method, options);
     
@@ -58,31 +84,5 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
         end
     end
 
-end
-
-%% local function
-function [M, max_num_CLs, coupling_info, method] = parse_inputs(M, varargin)
-    % Process optional input and Name-Value pair options
-    
-    n = size(M,1); % number of vertices
-    % set the default value of the maximum number of computation levels to be half of the total number of vertices
-    default_max_num_CLs = ceil(n/2); % round up
-    default_coupling_info = [];
-
-    default_method = 's-t-cut';
-    expected_methods = {'s-t-cut', 'MILP'};
-
-    p = inputParser;
-    addRequired(p,'M',@(x) isnumeric(x) && ismatrix(x)); % must be numerical matrix
-    addOptional(p,'max_num_CLs', default_max_num_CLs, @(x) (isnumeric(x) && x>0) || isempty(x) ); % must be numerical scalar
-    addOptional(p,'coupling_info', default_coupling_info, @(x) isstruct(x) || isempty(x)); % must be struct or empty
-    addParameter(p,'method',default_method, @(x) any(validatestring(x,expected_methods)));
-    parse(p, M, varargin{:}); % start parsing
-    
-    % get parsed inputs
-    M = p.Results.M;
-    max_num_CLs = p.Results.max_num_CLs;
-    coupling_info = p.Results.coupling_info;
-    method = p.Results.method;
 end
 
