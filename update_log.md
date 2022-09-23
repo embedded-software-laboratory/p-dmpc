@@ -1,5 +1,12 @@
 # This file is used to record the update events.
 
+## 2022-09-23, Jianye
+- Create a class `OptionsMain`, aiming to reduce the information stored in `Scenario` and distinguish between simulation options variable and other variables such as simulation intermediate variables. For example, the prediction horizon is obviously a predefined constant parameter; thus, it should be stored under `OptionsMain` instead of `Scenario`. In contrast, `dynamic_obstacle_area` is a dynamic variable storing dynamic obstacles; therefore, it can be stored under `Scenario`.  
+- Improve lanelet data preprocessing (more lanelet have relationships with others)
+- Improve `TrafficInfo`, which is used to determine edge-weighted DAG 
+    - Improve its code style
+    - Calculate optimal coupling weights
+
 ## 2022-07-12, David
 - Added function to visualize polygons in the LCC, e.g., to visualize the reachable set of a vehicle
 - Optimization for `match_pose_to_lane()`
