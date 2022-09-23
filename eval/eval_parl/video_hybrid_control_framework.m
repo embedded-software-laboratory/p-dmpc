@@ -11,7 +11,7 @@ options.Hp = 6;
 
 options.dt = 0.2;
 
-options.priority = 'right_of_way_priority';
+options.priority = 'STAC_priority';
 options.isPB = true;
 options.isParl = true;
 options.isAllowInheritROW = false;

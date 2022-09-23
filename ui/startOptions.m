@@ -577,7 +577,8 @@ function [ list ] = list_priority_assignment_methods
     '2','right_of_way_priority'
     '2','constant_priority';...
     '3','random_priority';...
-    '4','FCA_priority'
+    '4','FCA_priority';...
+    '5','STAC_priority'
     };
 end 
 

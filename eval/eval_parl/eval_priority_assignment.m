@@ -1,5 +1,5 @@
 %% Evaluate the vehicle prioritizing algorithm: maximum number of vehicles
-priority_assign_options = {'right_of_way_priority','random_priority','constant_priority'};
+priority_assign_options = {'STAC_priority','random_priority','constant_priority'};
 
 % prepare simulation options
 options = OptionsMain;
@@ -31,7 +31,7 @@ for i_priority = 1:length(priority_assign_options)
     % After preexamining, maximum 15 (18) vehicles can run collision- and deadlock-free
     % if random (constant) priority assignment is used
     switch options.priority
-        case 'right_of_way_priority'
+        case 'STAC_priority'
             options.amount = 40;
         case 'random_priority'
             options.amount = 16;
@@ -195,7 +195,7 @@ xtickangle(0)
 % save fig
 e_differentNumVehs{1}.save_fig(fig,file_name)
 %% Evaluate the vehicle prioritizing algorithm: use the same number of vehicle
-priority_assign_options = {'right_of_way_priority','random_priority','constant_priority'};
+priority_assign_options = {'STAC_priority','random_priority','constant_priority'};
 % prepare simulation options
 options = OptionsMain;
 options.consider_RSS = false;
