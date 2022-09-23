@@ -13,7 +13,7 @@ function scenario = get_coupling_info(scenario, iter)
 %     adjacency = zeros(nVeh,nVeh);
 %     semi_adjacency = zeros(nVeh,nVeh);
     
-    nVeh = scenario.nVeh;
+    nVeh = scenario.options.amount;
     STAC = zeros(nVeh,nVeh); % the shortest time to achieve a collision
     coupling_weights = zeros(nVeh,nVeh); % coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
     
@@ -135,7 +135,7 @@ function scenario = get_coupling_info(scenario, iter)
                                 end
 
                                 % let the leader take an emergency breaking maneuver
-                                emergency_braking_distance = get_emergency_braking_distance(scenario.mpa, trim_leader, scenario.dt);
+                                emergency_braking_distance = get_emergency_braking_distance(scenario.mpa, trim_leader, scenario.options.dt);
 
                                 % current distance between two vehicles
                                 cur_distance = norm(position_i-position_j,2);
@@ -143,7 +143,7 @@ function scenario = get_coupling_info(scenario, iter)
                                 distance_to_collision = cur_distance + emergency_braking_distance;
                                 % let the follower take a full acceleration
                                 % to catch the leader, then calculte the STAC if two vehicles are driving at the same lanelet 
-                                [STAC_tmp, distance_traveled_leader, distance_traveled_follower] = scenario.mpa.get_the_shortest_time_to_catch(trim_leader, trim_follower, distance_to_collision, scenario.dt);
+                                [STAC_tmp, distance_traveled_leader, distance_traveled_follower] = scenario.mpa.get_the_shortest_time_to_catch(trim_leader, trim_follower, distance_to_collision, scenario.options.dt);
 
                                 stop_point_leader = get_stop_point_after_travel_certain_distance(position_leader,lanelet_leader,distance_traveled_leader);
                                 stop_point_follower = get_stop_point_after_travel_certain_distance(position_follower,lanelet_follower,distance_traveled_follower);
@@ -169,12 +169,12 @@ function scenario = get_coupling_info(scenario, iter)
                                 if distance_to_endpoint_i <= distance_to_endpoint_j
                                     is_leader = true;
                                     % vehicle_i is the leader and thus takes an emergency braking maneuver
-                                    emergency_braking_distance = scenario.mpa.get_emergency_braking_distance(trim_i, scenario.dt);
+                                    emergency_braking_distance = scenario.mpa.get_emergency_braking_distance(trim_i, scenario.options.dt);
                                     trim_follower = trim_j;
                                 else
                                     is_leader = false;
                                     % else vehicle_j is the leader and thus takes an emergency braking maneuver
-                                    emergency_braking_distance = scenario.mpa.get_emergency_braking_distance(trim_j, scenario.dt);
+                                    emergency_braking_distance = scenario.mpa.get_emergency_braking_distance(trim_j, scenario.options.dt);
                                     trim_follower = trim_i;
                                 end
     
@@ -183,7 +183,7 @@ function scenario = get_coupling_info(scenario, iter)
                                 % the total distance to collision is the sum of the current distance between two vehicles and the emergency braking distance of the leader
                                 distance_to_collision = cur_distance + emergency_braking_distance;
                                 % calculate the shortest time to achieve a collision 
-                                STAC_tmp = get_the_shortest_time_to_arrive(scenario.mpa, trim_follower, distance_to_collision, scenario.dt);
+                                STAC_tmp = get_the_shortest_time_to_arrive(scenario.mpa, trim_follower, distance_to_collision, scenario.options.dt);
                             end
 
 
@@ -228,8 +228,8 @@ function scenario = get_coupling_info(scenario, iter)
                                 continue
                             end
 
-                            time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa,trim_i,arc_distance_to_collision_i,scenario.dt);
-                            time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa,trim_j,arc_distance_to_collision_j,scenario.dt);
+                            time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa,trim_i,arc_distance_to_collision_i,scenario.options.dt);
+                            time_to_collisionPoint_j = get_the_shortest_time_to_arrive(scenario.mpa,trim_j,arc_distance_to_collision_j,scenario.options.dt);
 
                             if arc_distance_to_collision_i <= arc_distance_to_collision_j
                                 % vehicle closer to the collision point has a higher priority (or also called as "leader")

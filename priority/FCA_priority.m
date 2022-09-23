@@ -26,8 +26,8 @@ classdef  FCA_priority < interface_priority
             collisions = zeros(1,nVeh);
             
             veh = Vehicle();
-            x_locals = [-1, -1,  1,  1] * (veh.Length/2 + scenario.offset);
-            y_locals = [-1,  1,  1, -1] * (veh.Width/2 + scenario.offset);
+            x_locals = [-1, -1,  1,  1] * (veh.Length/2 + scenario.options.offset);
+            y_locals = [-1,  1,  1, -1] * (veh.Width/2 + scenario.options.offset);
             
             for nveh = 1: nVeh-1
                 % position of nveh 

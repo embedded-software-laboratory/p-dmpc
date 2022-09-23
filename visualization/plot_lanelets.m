@@ -27,8 +27,8 @@ end
 
 function plot_lanelet(lanelet, color)
             
-            line(lanelet(:,LaneletInfo.rx), lanelet(:,LaneletInfo.ry), 'Color', color);
-            line(lanelet(:,LaneletInfo.lx), lanelet(:,LaneletInfo.ly), 'Color', color);
-            line(lanelet(:,LaneletInfo.cx), lanelet(:,LaneletInfo.cy), 'Color', color,'linestyle', '--'); 
+            line(lanelet(:,LaneletInfo.rx), lanelet(:,LaneletInfo.ry), 'Color', color, 'LineWidth', 0.15);
+            line(lanelet(:,LaneletInfo.lx), lanelet(:,LaneletInfo.ly), 'Color', color, 'LineWidth', 0.15);
+            line(lanelet(:,LaneletInfo.cx), lanelet(:,LaneletInfo.cy), 'Color', color,'linestyle', '--', 'LineWidth', 0.15); 
 
 end

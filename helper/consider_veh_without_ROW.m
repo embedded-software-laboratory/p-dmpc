@@ -11,7 +11,7 @@ function scenario_v = consider_veh_without_ROW(scenario_v, iter, all_coupling_ve
         veh_LP = all_coupling_vehs_LP(i_LP);
         
         % stategies to let vehicle with the right-of-way consider vehicle without the right-of-way
-        switch scenario_v.strategy_consider_veh_without_ROW
+        switch scenario_v.options.strategy_consider_veh_without_ROW
             case '0'
                 % do not consider
 
@@ -23,8 +23,8 @@ function scenario_v = consider_veh_without_ROW(scenario_v, iter, all_coupling_ve
                     iter.x0(veh_LP, indices().heading),...              % yaw angle
                     iter.x0(veh_LP, indices().x),...                    % x-position
                     iter.x0(veh_LP, indices().y),...                    % y-position
-                    [-1,-1, 1, 1]*(veh.Length/2+scenario_v.offset),...  % x-coordinates of the local occupied area 
-                    [-1, 1, 1,-1]*(veh.Width/2+scenario_v.offset));     % y-coordinates of the local occupied area 
+                    [-1,-1, 1, 1]*(veh.Length/2+scenario_v.options.offset),...  % x-coordinates of the local occupied area 
+                    [-1, 1, 1,-1]*(veh.Width/2+scenario_v.options.offset));     % y-coordinates of the local occupied area 
                 
                 scenario_v.obstacles(end+1) = {[x_globals;y_globals]}; % add as static obstacles
 

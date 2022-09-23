@@ -11,8 +11,8 @@ runtime_others_tic = tic;
     % construct the priority list
     computation_levels = length(groups); 
     
-    nVeh = scenario.nVeh; 
-    Hp = scenario.Hp;
+    nVeh = scenario.options.amount; 
+    Hp = scenario.options.Hp;
 
     % update properties of scenario
     scenario.directed_coupling = directed_adjacency;
@@ -39,7 +39,7 @@ runtime_others_tic = tic;
             vehicle_idx = group.members(grp_member_idx);
             if ismember(vehicle_idx, info.vehs_fallback)
                 % if the selected vehicle should take fallback
-                info.subcontroller_runtime(vehicle_idx) = 0;
+                info.runtime_graph_search_each_veh(vehicle_idx) = 0;
                 continue
             end
             
@@ -48,41 +48,39 @@ runtime_others_tic = tic;
             predecessors = intersect(group.predecessors,veh_adjacent);
 
             % Filter out vehicles with lower or same priority.
-            priority_filter = false(1,scenario.nVeh);
+            priority_filter = false(1,scenario.options.amount);
             priority_filter(predecessors) = true; % keep all with higher priority
             priority_filter(vehicle_idx) = true; % keep self
             scenario_filtered = filter_scenario(scenario, priority_filter);
             iter_filtered = filter_iter(iter, priority_filter);
 
             self_index = sum(priority_filter(1:vehicle_idx));        
-            v2o_filter = true(1,scenario_filtered.nVeh);
+            v2o_filter = true(1,scenario_filtered.options.amount);
             v2o_filter(self_index) = false;
 
             % add predicted trajecotries of vehicles with higher priority as dynamic obstacle
             [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(predecessors,:));
             
             % add adjacent vehicles with lower priorities as static obstacles
-            if strcmp(scenario.priority_option, 'right_of_way_priority')
+            if strcmp(scenario.options.priority, 'right_of_way_priority')
                 adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
                 
                 % only two strategies are supported if parallel computation is not used
-                assert(strcmp(scenario_v.strategy_consider_veh_without_ROW,'2')==true || strcmp(scenario_v.strategy_consider_veh_without_ROW,'3')==true)
-                scenario_v = consider_vehs_with_LP(scenario_v, iter, adjacent_vehicle_lower_priority);
-            end
-
-            if scenario.k >= 128
-                if vehicle_idx == 4
-                    disp('')
-                end
+                assert(any(strcmp(scenario_v.options.strategy_consider_veh_without_ROW,{'1','2','3'})))
+                scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, adjacent_vehicle_lower_priority);
             end
 
             % execute sub controller for 1-veh scenario
             info_v = sub_controller(scenario_v, iter_v);
-            
+            if scenario.k > 60
+                if vehicle_idx == 12 || vehicle_idx == 20
+                    disp('')
+                end
+            end
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback 
-                disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                disp(['Graph search exhausted for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
                 sub_graph_fallback = belonging_vector_total(vehicle_idx);
                 info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                 info.vehs_fallback = unique(info.vehs_fallback,'stable');
@@ -90,16 +88,13 @@ runtime_others_tic = tic;
             else
                 info = store_control_info(info, info_v, scenario);
             end
-            info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
+            info.runtime_graph_search_each_veh(vehicle_idx) = toc(subcontroller_timer);
         end
 
     end
 
-    % total runtime of subcontroller
-    info.subcontroller_runtime = info.subcontroller_runtime + runtime_others;
-
     % calculate the total runtime: only one vehicle in each computation level will be counted, this is the one with the maximum runtime 
     parl_groups_info = struct('vertices',1:nVeh,'num_CLs',computation_levels,'path_info',[]); % one group
-    info = get_run_time_total_all_grps(info, parl_groups_info, groups);
+    info = get_run_time_total_all_grps(info, parl_groups_info, groups, runtime_others);
 end
 

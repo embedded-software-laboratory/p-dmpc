@@ -16,7 +16,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     iter = result.iteration_structs{step_idx};
     priority_list = result.priority(:,step_idx);
 
-    nVeh = scenario.nVeh;
+    nVeh = scenario.options.amount;
     nObst = size(scenario.obstacles,2);
     nDynObst = size(scenario.dynamic_obstacle_fullres,1);
     
@@ -42,8 +42,8 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         visualize_exploration(exploration,scenario);
     end
     
-    if step_idx == 1 
-        % initial time step
+    if visu.isVideoMode
+        % in video mode, lanelets should be plotted at each time step
         hold on
         box on
         axis equal
@@ -51,8 +51,27 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
         ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
     
-        xlim(scenario.plot_limits(1,:));
-        ylim(scenario.plot_limits(2,:));
+        xlim(scenario.options.plot_limits(1,:));
+        ylim(scenario.options.plot_limits(2,:));
+        daspect([1 1 1])
+
+        % plot the lanelets only once at the beginning
+        if ~isempty(scenario.lanelets)
+            plot_lanelets(scenario.lanelets,scenario.name);
+        end
+
+        colormap("hot"); % set colormap
+    elseif step_idx == 1
+        % if not video mode, lanelets should be plotted only at the initial time step
+        hold on
+        box on
+        axis equal
+        
+        xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
+        ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
+    
+        xlim(scenario.options.plot_limits(1,:));
+        ylim(scenario.options.plot_limits(2,:));
         daspect([1 1 1])
 
         % plot the lanelets only once at the beginning
@@ -63,46 +82,48 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         colormap("hot"); % set colormap
     end
 
-    % show description of hotkey
-    find_text_hotkey = findall(gcf,'Type','text','Tag','hotkey');
-    if isempty(find_text_hotkey)
-        HotkeyDesc = {'Hotkey:';
-                      '{\itp}: show/hide priority colorbar';
-                      '{\iti}: show/hide vehicle IDs';
-                      '{\itc}: show/hide coupling lines';
-                      '{\itw}: show/hide coupling weights';
-                      '{\itspace}: pause/start simulation';
-                      '{\itreturn}: disable/enable plotting';
-                      '{\itesc}: end simulation'};
-        if strcmp(scenario.name,'Commonroad')
-            x_text_hotkey = scenario.plot_limits(1,1) - 1.5;
-            y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
-        elseif strcmp(scenario.name,'Circle_scenario')
-            x_text_hotkey = scenario.plot_limits(1,1) - 2.0;
-            y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
-        else
-            % to be define according to the specific scenario
-            x_text_hotkey = scenario.plot_limits(1,1) - 1.5;
-            y_text_hotkey = scenario.plot_limits(2,2) - 0.5;
+    if visu.isShowHotkeyDescription
+        % show description of hotkey
+        find_text_hotkey = findall(gcf,'Type','text','Tag','hotkey');
+        if isempty(find_text_hotkey)
+            HotkeyDesc = {'Hotkey:';
+                          '{\itp}: show/hide priority colorbar';
+                          '{\iti}: show/hide vehicle IDs';
+                          '{\itc}: show/hide coupling lines';
+                          '{\itw}: show/hide coupling weights';
+                          '{\itspace}: pause/start simulation';
+                          '{\itreturn}: disable/enable plotting';
+                          '{\itesc}: end simulation'};
+            if strcmp(scenario.name,'Commonroad')
+                x_text_hotkey = scenario.options.plot_limits(1,1) - 1.5;
+                y_text_hotkey = scenario.options.plot_limits(2,2) - 0.5;
+            elseif strcmp(scenario.name,'Circle_scenario')
+                x_text_hotkey = scenario.options.plot_limits(1,1) - 2.0;
+                y_text_hotkey = scenario.options.plot_limits(2,2) - 0.5;
+            else
+                % to be define according to the specific scenario
+                x_text_hotkey = scenario.options.plot_limits(1,1) - 1.5;
+                y_text_hotkey = scenario.options.plot_limits(2,2) - 0.5;
+            end
+            text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
         end
-        text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
     end
 
     get_colormap = get(gcf,'Colormap');
 
     % get colors
     n_priorities = length(unique(priority_list)); % number of different priorities
-    n_colors_min = 6; % minimum number of colors
+    n_colors_min = 5; % minimum number of colors
     n_colors = max(n_colors_min,n_priorities); 
-    sticks = round(linspace(1,size(get_colormap,1),n_colors));
-    vehColor = get_colormap(sticks,:); % evenly sample from colormap
+    sticks = round(linspace(1,size(get_colormap,1),n_colors+1));
+    vehColor = get_colormap(sticks(2:end),:); % evenly sample from colormap
     
     find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
     if visu.isShowPriority
         if isempty(find_colorbar)
-            priority_colorbar = colorbar('Tag','priority_colorbar');
+            priority_colorbar = colorbar('Tag','priority_colorbar','FontName','Verdana','FontSize',9);
             priority_colorbar.Title.String = '              Priority \newline(low value for high priority)'; % todo: find way to center the first line instead of using many spaces
-            priority_colorbar.Title.FontSize = 12;
+            priority_colorbar.Title.FontSize = 9;
             priority_colorbar.Ticks = 1:n_colors; % only show integer ticks
         else
             find_colorbar.Visible = 'on';
@@ -127,8 +148,8 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
 
     % predicted trajectory
     for v=1:nVeh
-        line(   result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],1), ...
-                result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],2), ...
+        line(   result.trajectory_predictions{v,step_idx}([1:scenario.options.tick_per_step+1:end,end],1), ...
+                result.trajectory_predictions{v,step_idx}([1:scenario.options.tick_per_step+1:end,end],2), ...
                 'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
                 % Matlab R2021a:
                 %'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
@@ -165,17 +186,52 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
 %         if visu.isShowVehID
 %             text(x(1)+0.1,x(2)+0.1,num2str(veh.ID),'FontSize', 12, 'LineWidth',1,'Color','b');
 %         end
-%         
+                
+        if visu.isShowReachableSets 
+            if scenario.options.bound_reachable_sets
+                text_RS = 'Bounded reachable set by lanelet boundaries';
+            else
+                text_RS = 'Reachable set';
+            end
+
+            if isempty(visu.vehsReachableSets)
+                [RS_x,RS_y] = boundary(result.iteration_structs{step_idx}.reachable_sets{v,scenario.options.Hp});
+                line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
+                text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
+            elseif ismember(v,visu.vehsReachableSets)
+                % specify vehicles whose reachable sets should be shown
+                [RS_x,RS_y] = boundary(result.iteration_structs{step_idx}.reachable_sets{v,scenario.options.Hp});
+                line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
+                text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
+            end
+            
+        end
+        
+        if visu.isShowLaneletCrossingAreas
+            LCA = result.lanelet_crossing_areas{step_idx}{v};
+            if ~isempty(LCA)
+                if isempty(visu.vehsLaneletCorssingAreas)
+                    LCAs_xy = [LCA{:}];
+                    line(LCAs_xy(1,:),LCAs_xy(2,:),'LineWidth',1.0,'Color','k');
+                elseif ismember(v,visu.vehsLaneletCorssingAreas)
+                    % specify vehicles whose lanelet crossing areas should be shown
+                    LCAs_xy = [LCA{:}];
+                    line(LCAs_xy(1,:),LCAs_xy(2,:),'LineWidth',1.0,'Color','k');
+                end
+                text(max(LCAs_xy(1,:))+0.02,max(LCAs_xy(2,:)),'Lanelet crossing area','LineWidth',2,'FontSize',16)
+            end
+        end
     end
 
     % plot scenario adjacency
+    coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',visu.isShowCoupling,'isShowValue',visu.isShowWeight);
     if visu.isShowCoupling
         x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
-        if ~isempty(scenario.coupling_weights)
-            plot_coupling_lines(scenario.coupling_weights, x0, scenario.belonging_vector, scenario.coupling_info, 'ShowWeights', visu.isShowWeight)
+        if ~isempty(scenario.coupling_weights_reduced)
+            plot_coupling_lines(result.coupling_weights_reduced{step_idx}, x0, result.belonging_vector(:,step_idx), result.coupling_info{step_idx}, coupling_visu)
         else
-            plot_coupling_lines(scenario.directed_coupling, x0, [], [], 'ShowWeights', visu.isShowWeight)
+            plot_coupling_lines(result.directed_coupling{step_idx}, x0, [], [], coupling_visu)
         end
     end
 
@@ -214,7 +270,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         optimizer,...
         strategy,...
         step_idx,...
-        (step_idx-1)*scenario.dt + (tick_now-1) * scenario.time_per_tick),'Interpreter','latex','FontSize',12);
+        (step_idx-1)*scenario.options.dt + (tick_now-1) * scenario.options.time_per_tick),'Interpreter','latex','FontSize',12);
 
     set(t,'HorizontalAlignment', 'center');
         

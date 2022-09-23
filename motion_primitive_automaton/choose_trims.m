@@ -37,7 +37,7 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
                 - tril(ones(ntrims-1),-2);
     
         case 3
-            %% 4 trims: two speeds (0 and 0.75 m/s), three steering
+            %% 4 trims: two speeds (0 and 0.75 m/s), three steering (-pi/9 and pi/9)
             steering = (-1:1) * pi/9;
             ntrims = numel(steering)+1;
             trim_inputs = zeros(ntrims,2);
@@ -167,6 +167,80 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
             trim_adjacency(2:end,2:end) = trim_adjacency(2:end,2:end) ...
                 - triu(ones(ntrims-1),2)...
                 - tril(ones(ntrims-1),-2);
+            
+        case 10
+            %% 12 trims: two speeds (0, 0.5 and 2.0 m/s), 12 steering
+            steering = (-2:0.5:2) * pi/18;
+            ntrims = numel(steering)+3;
+            trim_inputs = zeros(ntrims,2);
+            trim_inputs(2,1) = -0.6;
+            trim_inputs(2,2) = 0.05;
+            trim_inputs(end,1) = 0.6;
+            trim_inputs(end,2) = 0.05;
+            trim_inputs(3:end-1,1) = steering;
+            trim_inputs(3:end-1,2) = 2.0;
+            trim_adjacency = ones(ntrims);
+            % equilibrium is state 1
+            % equilibrium is reachable from all states
+            % and can reach all states, so all 1s is good
+            % other states are connected by one hop        
+            trim_adjacency(2:end,2:end) = trim_adjacency(2:end,2:end) ...
+                - triu(ones(ntrims-1),2)...
+                - tril(ones(ntrims-1),-2);
+        case 11
+            %% 4 trims: two speeds (0 and 0.1 m/s), three steering (-pi/18 and pi/18)
+            steering = (-1:1) * pi/9;
+            ntrims = numel(steering)+1;
+            trim_inputs = zeros(ntrims,2);
+            trim_inputs(2:end,1) = steering;
+            trim_inputs(2:end,2) = 0.1;
+            % All states connected
+            trim_adjacency = ones(ntrims);
+        case 12
+            %% 12 trims: two speeds (0, 0.5 and 0.6 m/s), 12 steering
+            n_half = 5;
+            steering_max = 0.6; % rad
+            steering = linspace(-steering_max, steering_max, 2*n_half+1);
+            
+            v_step = 0.1;
+            v_max = 0.8; % m/s
+            v_profile = 0:v_step:v_max;
+            
+            speed_left = v_profile(end-n_half+1:end);
+            speed_right = fliplr(speed_left);
+            speed = [speed_left v_max speed_right];
+            ntrims = numel(steering)+1;
+            trim_inputs = [steering',speed'];
+            trim_inputs = [zeros(1,2);trim_inputs]; % add equilibrium trim
+            trim_adjacency = ones(ntrims);
+            % equilibrium is state 1
+            % equilibrium is reachable from all states
+            % and can reach all states, so all 1s is good
+            % other states are connected by one hop        
+            trim_adjacency(2:end,2:end) = trim_adjacency(2:end,2:end) ...
+                - triu(ones(ntrims-1),2)...
+                - tril(ones(ntrims-1),-2);
+
+            % add one aditional trim with speed v_max/2 and steering angle 0
+            trim_inputs(ntrims+1,1) = 0;
+            trim_inputs(ntrims+1,2) = v_max/2;
+            trim_adjacency = blkdiag(trim_adjacency,1);
+            trim_adjacency(end,:) = 1;
+            trim_adjacency(:,end) = 1;
+        case 13
+            %% 3 trims (test)
+            speed_max = 0.8;
+            angle_max = pi/6;
+            trim_inputs = [0,0;
+                           -angle_max,speed_max;
+                           0,speed_max;
+                           angle_max,speed_max];
+            trim_adjacency = 0.5*eye(size(trim_inputs,1));
+            trim_adjacency(1,[2,3,4]) = 1;
+            trim_adjacency(2,3) = 1;
+            trim_adjacency(3,4) = 1;
+            trim_adjacency = trim_adjacency + trim_adjacency';
+
     end
 %     visualize_trims(trim_inputs,trim_adjacency)
 end
@@ -185,10 +259,10 @@ function visualize_trims(trim_inputs,trim_adjacency)
     for i=1:length(node_names)
         text(p.XData(i)+0.8, p.YData(i), num2str(node_names(i)), 'FontSize', 20);
     end
-
-    xlim([-45,45])
+% 
+    xlim([-40,40])
     ylim([-0.1,1.0])
-    xlabel('\fontsize{14}Steering Angle \delta [\circ]','Interpreter','tex');
-    ylabel('\fontsize{14}Speed \nu [m/s]','Interpreter','tex');
+    xlabel('Steering Angle $\delta\:[\circ]$','Interpreter','latex','FontName','Times New Roman');
+    ylabel('Speed $\nu\:[m/s]$','Interpreter','latex','FontName','Times New Roman');
     grid on
 end

@@ -6,23 +6,29 @@ function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, ro
     evaluated_nodes = false(size(root_to_node));
     % Collision check on path from root
     nNodes = numel(root_to_node);
-    shapes = cell(scenario.nVeh,1);
+    shapes = cell(scenario.options.amount,1);
     % maneuver shapes correspond to movement TO node, so start from 2
     for iNode = 2:nNodes
         % Check if exact evaluation needs to be done
-        % displacements = zeros(1,scenario.nVeh);
-        % midpoints = zeros(2,scenario.nVeh);
+        % displacements = zeros(1,scenario.options.amount);
+        % midpoints = zeros(2,scenario.options.amount);
         if ~tree.node{root_to_node(iNode)}(1,NodeInfo.exactEval)
             node_parent = tree.node{root_to_node(iNode-1)};
-            for iVeh = 1 : scenario.nVeh
+            for iVeh = 1 : scenario.options.amount
                 t1 = node_parent(iVeh,NodeInfo.trim);
                 t2 = tree.node{root_to_node(iNode)}(iVeh,NodeInfo.trim);
 
                 % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-                if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
-                    || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
-                    mpa = scenario.vehicles(iVeh).vehicle_mpa;
-                    maneuver = mpa.maneuvers{t1,t2};
+                if strcmp(scenario.options.priority,'mixed_traffic_priority')
+                    % first check if mixed_traffic_priority is used to make a short
+                    % circuit
+                    if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
+                        || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
+                        mpa = scenario.vehicles(iVeh).vehicle_mpa;
+                        maneuver = mpa.maneuvers{t1,t2};
+                    else
+                        maneuver = scenario.mpa.maneuvers{t1,t2};
+                    end
                 else
                     maneuver = scenario.mpa.maneuvers{t1,t2};
                 end

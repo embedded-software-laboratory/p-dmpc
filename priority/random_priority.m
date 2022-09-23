@@ -10,7 +10,7 @@ classdef  random_priority < interface_priority
             obj.is_assign_unique_priority = false; % whether to asign unique priority
         end
         
-        function [parl_groups_info, CL_based_hierarchy, directed_adjacency, priority_list] = priority(obj,options)
+        function [parl_groups_info, CL_based_hierarchy, directed_adjacency, priority_list, belonging_vector] = priority(obj,options)
             % This function assign, firtly, vehicles to random groups.
             % Vechile assigned earlier has a higher priority than vehicle
             % assigned to the same group later. The number of groups is
@@ -31,6 +31,9 @@ classdef  random_priority < interface_priority
             directed_adjacency = zeros(nVeh,nVeh);
 
             random_arr = randperm(nVeh,nVeh);
+
+            % to which group a vehicle belongs to
+            belonging_vector = zeros(1,nVeh);
             % from random groups
             for i = 1:nVeh
                 iVeh = random_arr(i);
@@ -38,6 +41,7 @@ classdef  random_priority < interface_priority
                 current_vehs = parl_groups_info(i_grp).vertices;
                 parl_groups_info(i_grp).vertices = [current_vehs,iVeh];
 
+                belonging_vector(iVeh) = i_grp;
                 % vehicle added earlier has the right-of-way over vehicle
                 % added later
                 if ~isempty(current_vehs)

@@ -3,8 +3,8 @@ function visualize_exploration(exploration,scenario)
 
     info = exploration.info;
     t = [info.tree.node{:}];
-    t = reshape(t,scenario.nVeh,NodeInfo.n_cols,[]);
-    leaf_idcs = t(1,NodeInfo.k,:)==scenario.Hp;
+    t = reshape(t,scenario.options.amount,NodeInfo.n_cols,[]);
+    leaf_idcs = t(1,NodeInfo.k,:)==scenario.options.Hp;
     leaves = t(:,:,leaf_idcs);
     x = reshape(leaves(:,NodeInfo.x,:),1,[]);
     y = reshape(leaves(:,NodeInfo.y,:),1,[]);

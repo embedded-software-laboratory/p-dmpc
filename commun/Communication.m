@@ -52,12 +52,18 @@ classdef Communication
             end
         end
 
-        function send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas)
+        function send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas, is_fallback)
             % vehicle send message to its topic
             obj.msg_to_be_sent.time_step = int32(time_step);
             obj.msg_to_be_sent.vehicle_id = int32(obj.vehicle_id);
             obj.msg_to_be_sent.predicted_trims = int32(predicted_trims(:));
             obj.msg_to_be_sent.predicted_lanelets = int32(predicted_lanelets(:));
+
+            if nargin <= 5
+                is_fallback = false;
+            end
+            
+            obj.msg_to_be_sent.is_fallback = is_fallback; % whether vehicle should take fallback
 
             for i = 1:length(predicted_areas)
                 obj.msg_to_be_sent.predicted_areas(i).x = predicted_areas{i}(1,:)';

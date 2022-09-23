@@ -1,11 +1,11 @@
-function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks, is_allow_non_convex)
+function maneuver = generate_maneuver(model, trim1, trim2, options)
 % GENERATE_MANEUVER     Generate a maneuver for motion primitive automaton.
 
     % currently works for BicycleModel
     % calculate displacement
     
-    steering_derivative = (trim2.steering - trim1.steering) / dt;
-    acceleration = (trim2.speed - trim1.speed) / dt;
+    steering_derivative = (trim2.steering - trim1.steering) / options.dt;
+    acceleration = (trim2.speed - trim1.speed) / options.dt;
     
     % maneuver state changes in local coordinates
     x0 = zeros(model.nx, 1);
@@ -16,7 +16,7 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks, i
     
     % 1 tick more per step cause first values are the same as last ones in preceeding step
     [~, x] = ode45(@(t, x) model.ode(x, [steering_derivative,acceleration]), ...
-                   linspace(0,dt,nTicks+1), ...
+                   linspace(0,options.dt,options.tick_per_step+1), ...
                    x0, ...
                    odeset('RelTol',1e-8,'AbsTol',1e-8)...
     );
@@ -35,12 +35,12 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks, i
     veh = Vehicle();
 
     % with normal offset
-    x_rec1 = [-1, -1,  1,  1] * (veh.Length/2+offset);
-    y_rec1 = [-1,  1,  1, -1] * (veh.Width/2+offset);
+    x_rec1 = [-1, -1,  1,  1] * (veh.Length/2+options.offset);
+    y_rec1 = [-1,  1,  1, -1] * (veh.Width/2+options.offset);
     % calculate displacement of model shape
     [x_rec2, y_rec2] = translate_global(maneuver.dyaw, maneuver.dx, maneuver.dy, x_rec1, y_rec1);
     signum = sign(maneuver.dyaw); % positive for left turn, negative for right turn
-    maneuver.area = get_maneuver_area(x_rec1, y_rec1, x_rec2, y_rec2, signum, is_allow_non_convex);
+    maneuver.area = get_maneuver_area(x_rec1, y_rec1, x_rec2, y_rec2, signum, options.is_allow_non_convex);
     assert(all(maneuver.area(:,1)==maneuver.area(:,end))) % must be closed shape
 
     % without offset
@@ -49,16 +49,16 @@ function maneuver = generate_maneuver(model, trim1, trim2, offset, dt, nTicks, i
     % calculate displacement of model shape
     [x_rec2_without_offset, y_rec2_without_offset] = translate_global(maneuver.dyaw, maneuver.dx, maneuver.dy, x_rec1_without_offset, y_rec1_without_offset);
     signum = sign(maneuver.dyaw);    
-    maneuver.area_without_offset = get_maneuver_area(x_rec1_without_offset, y_rec1_without_offset, x_rec2_without_offset, y_rec2_without_offset, signum, is_allow_non_convex); 
+    maneuver.area_without_offset = get_maneuver_area(x_rec1_without_offset, y_rec1_without_offset, x_rec2_without_offset, y_rec2_without_offset, signum, options.is_allow_non_convex); 
     assert(all(maneuver.area_without_offset(:,1)==maneuver.area_without_offset(:,end))) % must be closed shape
     
     % with larger offset: for the last step of prediction horizon
     x_rec1_larger_offset = [-1, -1,  1,  1] * (veh.Length/2 + 0.05);
-    y_rec1_larger_offset = [-1,  1,  1, -1] * (veh.Width/2 + 0.01);
+    y_rec1_larger_offset = [-1,  1,  1, -1] * (veh.Width/2 + 0); % 0.01 -> 0
     % calculate displacement of model shape
     [x_rec2_larger_offset, y_rec2_larger_offset] = translate_global(maneuver.dyaw, maneuver.dx, maneuver.dy, x_rec1_larger_offset, y_rec1_larger_offset);
     signum = sign(maneuver.dyaw);
-    maneuver.area_large_offset = get_maneuver_area(x_rec1_larger_offset, y_rec1_larger_offset, x_rec2_larger_offset, y_rec2_larger_offset, signum, is_allow_non_convex);  
+    maneuver.area_large_offset = get_maneuver_area(x_rec1_larger_offset, y_rec1_larger_offset, x_rec2_larger_offset, y_rec2_larger_offset, signum, options.is_allow_non_convex);  
     assert(all(maneuver.area_large_offset(:,1)==maneuver.area_large_offset(:,end))) % must be closed shape
 end
 

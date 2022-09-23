@@ -8,7 +8,7 @@ function [coupling_weights, coupling_info] = get_coupling_info_mixed_traffic(sce
 % achieve a collision (STAC)" will be calculated, while a lower STAC means
 % a higher coupling degree. 
 
-    nVeh = scenario.nVeh;
+    nVeh = scenario.options.amount;
 
     coupling_weights = zeros(nVeh,nVeh); % coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
     
@@ -64,7 +64,7 @@ function [coupling_weights, coupling_info] = get_coupling_info_mixed_traffic(sce
                             distance_to_collision_i = norm(collision_point-position_i);
                             distance_to_collision_j = norm(collision_point-position_j);
             
-                            time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa, trim_i, distance_to_collision_i, scenario.dt);
+                            time_to_collisionPoint_i = get_the_shortest_time_to_arrive(scenario.mpa, trim_i, distance_to_collision_i, scenario.options.dt);
 
                             if ((scenario.vehicle_ids(jVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
                                 || ((scenario.vehicle_ids(jVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
@@ -73,7 +73,7 @@ function [coupling_weights, coupling_info] = get_coupling_info_mixed_traffic(sce
                                 mpa = scenario.mpa;
                             end
 
-                            time_to_collisionPoint_j = get_the_shortest_time_to_arrive(mpa, trim_j, distance_to_collision_j, scenario.dt);
+                            time_to_collisionPoint_j = get_the_shortest_time_to_arrive(mpa, trim_j, distance_to_collision_j, scenario.options.dt);
             
                             waiting_time = abs(time_to_collisionPoint_i-time_to_collisionPoint_j);
                             % actual STAC
@@ -98,13 +98,13 @@ function [coupling_weights, coupling_info] = get_coupling_info_mixed_traffic(sce
 
                                 %else
                                     % distance for autonomous vehicle to perform emergency breaking maneuver
-                                    emergency_braking_distance = get_emergency_braking_distance(scenario.mpa, trim_i, scenario.dt);
+                                    emergency_braking_distance = get_emergency_braking_distance(scenario.mpa, trim_i, scenario.options.dt);
 
                                     % time needed for autonomous vehicle to perform emergency braking maneuver
-                                    emergency_braking_time = get_emergency_braking_time(scenario.mpa, trim_i, emergency_braking_distance, scenario.dt);
+                                    emergency_braking_time = get_emergency_braking_time(scenario.mpa, trim_i, emergency_braking_distance, scenario.options.dt);
 
                                     % time of manual vehicle to travel emergency braking distance
-                                    %manual_vehicle_time_during_braking = get_the_shortest_time_to_arrive(mpa, trim_j, emergency_braking_distance, scenario.dt);
+                                    %manual_vehicle_time_during_braking = get_the_shortest_time_to_arrive(mpa, trim_j, emergency_braking_distance, scenario.options.dt);
 
                                     % distance travelled by manual vehicle during autonomous emergency brake
                                     manual_vehicle_distance_during_braking = speed_j * emergency_braking_time;

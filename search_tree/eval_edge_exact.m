@@ -1,4 +1,4 @@
-function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obstacles, lanelet_boundary, lanelet_intersecting_areas, method)
+function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
 % EVAL_EDGE_EXACT   Evaluate if step is valid.
 % 
 % INPUT:
@@ -25,9 +25,9 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
     is_valid = true;
     % maneuver shapes correspond to movement TO node
     node_id_parent = get_parent(tree, iNode);
-    shapes = cell(scenario.nVeh,1);
-    shapes_without_offset = cell(scenario.nVeh,1);
-    shapes_for_boundary_check = cell(scenario.nVeh,1);
+    shapes = cell(scenario.options.amount,1);
+    shapes_without_offset = cell(scenario.options.amount,1);
+    shapes_for_boundary_check = cell(scenario.options.amount,1);
     if ~node_id_parent % root node without parent
         return;
     end
@@ -40,15 +40,20 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
     cTrim  = tree.trim(:,iNode);
     cK     = tree.k(:,iNode);
 
-    for iVeh = 1 : scenario.nVeh
+    for iVeh = 1 : scenario.options.amount
         t1 = pTrim(iVeh);
         t2 = cTrim(iVeh);
 
         % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-        if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
-            || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
-            mpa = scenario.vehicles(iVeh).vehicle_mpa;
-            maneuver = mpa.maneuvers{t1,t2};
+        if strcmp(scenario.options.priority,'mixed_traffic_priority')
+            % first check if mixed_traffic_priority is used to make a short circuit
+            if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
+                || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
+                mpa = scenario.vehicles(iVeh).vehicle_mpa;
+                maneuver = mpa.maneuvers{t1,t2};
+            else
+                maneuver = scenario.mpa.maneuvers{t1,t2};
+            end
         else
             maneuver = scenario.mpa.maneuvers{t1,t2};
         end
@@ -64,8 +69,7 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
         shape_y_without_offset = s*maneuver.area_without_offset(1,:) + c*maneuver.area_without_offset(2,:) + pY(iVeh);
         shapes_without_offset{iVeh} = [shape_x_without_offset;shape_y_without_offset];    
 
-        % check if collides with other vehicles' predicted trajectory or lanelets 
-        if tree.k(iNode) == scenario.Hp
+        if tree.k(iNode) == scenario.options.Hp
             % with larger offset
             shape_x_for_boundary_check = c*maneuver.area_large_offset(1,:) - s*maneuver.area_large_offset(2,:) + pX(iVeh);
             shape_y_for_boundary_check = s*maneuver.area_large_offset(1,:) + c*maneuver.area_large_offset(2,:) + pY(iVeh);
@@ -74,33 +78,37 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
             % without offset
             shapes_for_boundary_check{iVeh} = shapes_without_offset{iVeh};
         end
-
         iStep = cK;
-
-%         if scenario.k>4 && scenario.vehicles.ID==18 && iStep>=5
-%             disp('')
-%         end
 
         switch method
             case 'sat'
+                % check if collides with other vehicles' predicted trajectory or lanelets 
+
                 if collision_with(iVeh, shapes, shapes_for_boundary_check, scenario, iStep)
                     is_valid = false;
                     return;
                 end
 
             case 'InterX'
-                assert(scenario.nVeh==1) % if not 1, code adaption is needed                
-                % shape must be closed!
-                if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
-                    % check collision with vehicle obstacles
-                    is_valid = false;
-                    return
+                assert(scenario.options.amount==1) % if not 1, code adaption is needed                
+                % Note1: Shape must be closed!
+                % Note2: The collision check order is important.
+                % Normally, check collision with lanelet boundary last would be better.
+                if ~scenario.options.is_free_flow
+                    % In free flow mode, vehicles do not need to consider
+                    % other vehicles
+                    if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
+                        % check collision with vehicle obstacles
+                        is_valid = false;
+                        return
+                    end
+                    if InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
+                        % check collision with crossing area of lanelets
+                        is_valid = false;
+                        return
+                    end
                 end
-                if InterX(shapes_without_offset{iVeh}, lanelet_intersecting_areas{iStep})
-                    % check collision with intersecting area of lanelets
-                    is_valid = false;
-                    return
-                end
+
                 if InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
                     % check collision with lanelet obstacles
                     is_valid = false;

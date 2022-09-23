@@ -23,6 +23,4 @@ function iter = filter_iter(iter, vehicle_filter)
     iter.predicted_lanelets = iter.predicted_lanelets(vehicle_filter);
     iter.predicted_lanelet_boundary = iter.predicted_lanelet_boundary(vehicle_filter,:);
     iter.reachable_sets = iter.reachable_sets(vehicle_filter,:);
-
-    
 end
