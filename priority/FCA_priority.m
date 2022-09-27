@@ -89,8 +89,8 @@ classdef  FCA_priority < interface_priority
             end       
             
             [~,priority_index] = sort(collisions,'descend'); % ordered vehicle index w.r.t. priority
-            disp(['collisions: ',num2str(collisions)])
-            disp(['priority_index: ',num2str(priority_index)])
+%             disp(['collisions: ',num2str(collisions)])
+%             disp(['priority_index: ',num2str(priority_index)])
             
             [~,priority] = sort(priority_index); % ordered vehicle index w.r.t. priority
 %             disp(['priority: ',num2str(priority)])

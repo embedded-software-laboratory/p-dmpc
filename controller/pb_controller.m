@@ -45,6 +45,7 @@ runtime_others_tic = tic;
             
             % Filter out vehicles that are not adjacent
             veh_adjacent = find(scenario.adjacency(vehicle_idx,:,end));
+            veh_adjacent = setdiff(veh_adjacent,vehicle_idx); % exclude self
             predecessors = intersect(group.predecessors,veh_adjacent);
 
             % Filter out vehicles with lower or same priority.
@@ -62,13 +63,10 @@ runtime_others_tic = tic;
             [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(predecessors,:));
             
             % add adjacent vehicles with lower priorities as static obstacles
-            if strcmp(scenario.options.priority, 'right_of_way_priority')
-                adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
-                
-                % only two strategies are supported if parallel computation is not used
-                assert(any(strcmp(scenario_v.options.strategy_consider_veh_without_ROW,{'1','2','3'})))
-                scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, adjacent_vehicle_lower_priority);
-            end
+            adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
+            % only two strategies are supported if parallel computation is not used
+            assert(any(strcmp(scenario_v.options.strategy_consider_veh_without_ROW,{'1','2','3'})))
+            scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, adjacent_vehicle_lower_priority);
 
             % execute sub controller for 1-veh scenario
             info_v = sub_controller(scenario_v, iter_v);
