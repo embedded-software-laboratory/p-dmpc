@@ -73,15 +73,6 @@ runtime_determine_couplings_average = cellfun(@(c) c.runtime_determine_couplings
 
 fallback_rate_s = cellfun(@(c) c.fallback_rate*100, e_weighting_function);
 
-clear plot_line_options
-plot_line_options(1) = struct('LineWidth',0.5,'Color','#A2142F','LineStyle','-','Marker','*','MarkerSize',4);
-plot_line_options(2) = struct('LineWidth',0.5,'Color','#7E2F8E','LineStyle','-','Marker','^','MarkerSize',4);
-plot_line_options(3) = struct('LineWidth',0.5,'Color','#0072BD','LineStyle','-','Marker','o','MarkerSize',4);
-plot_line_options(4) = struct('LineWidth',0.5,'Color','#D95319','LineStyle','-','Marker','v','MarkerSize',4);
-plot_line_options(5) = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','-','Marker','s','MarkerSize',4);
-plot_line_options(6) = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-','Marker','d','MarkerSize',4);
-
-
 fig_x = 14.5;     fig_y = 6; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - x_margin;
@@ -98,7 +89,6 @@ X_string = {'STAC','Random','Constant','Optimal'};
 X_cat = categorical(X_string);
 X_cat = reordercats(X_cat,X_string);
 
-
 nexttile
 % fallback rate
 b3 = bar(X_cat,fallback_rate_s);
@@ -112,7 +102,6 @@ ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 xtickangle(0)
 xlabel('(b) Average fallback rate.')
 
-
 nexttile
 % coupling determination time
 b2 = bar(X_cat,runtime_determine_couplings_average);
@@ -121,24 +110,11 @@ xtips2 = b2(1).XEndPoints;
 ytips2 = b2(1).YEndPoints;
 labels2 = string(round(b2(1).YData,3));
 text(xtips2-0.05,ytips2,labels2,'HorizontalAlignment','center','VerticalAlignment','bottom')
-% xtips3 = b2(2).XEndPoints;
-% xtips3(1:3) = xtips3(1:3) + 0.05;
-% ytips3 = b2(2).YEndPoints;
-% ytips3(1:3) = ytips3(1:3) + 0.15;
-% labels3 = string(round(b2(2).YData,2));
-% text(xtips3,ytips3,labels3,'HorizontalAlignment','center','VerticalAlignment','bottom')
 ylim([0 0.4])
 ylabel('$t\:[s]$','Interpreter','latex')
 xtickangle(0)
 xlabel('(c) Average coupling determination time.')
-% legend({'Average','Maximum'},'Location','northwest')
 yticks(0:0.1:0.4)
-% title(t_fig,'Allowed number of computation levels: 3','FontSize',9,'FontName','Times New Roman')
-% xlabel(t_fig,{'Priority Assignment Strategies'},'FontSize',9,'FontName','Times New Roman')
-
 
 % save fig
 e_weighting_function{1}.save_fig(fig,file_name)
-
-
-
