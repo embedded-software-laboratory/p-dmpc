@@ -452,7 +452,7 @@ end
 function setIsParlVisibility(ui)
     if get_circle_selection(ui)
         ui.ParallelComputationListBox.Enable = 'Off';
-        ui.Label_4.Text = sprintf("For circle scenario, only\n topo priority, constant\n priority and random\n priority are supported");
+        ui.Label_4.Text = sprintf("In circle scenario, only\n topo priority, constant\npriority, random and\nFCA priority are\nsupported.");
         ui.Label_4.Visible = 'On';
     else
         ui.ParallelComputationListBox.Enable = 'On';
@@ -466,16 +466,16 @@ function callbackParlSelected(ui)
         ui.MaxComputationLevelsSpinner.Enable = 'on';
         ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'on';
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'on';
-%         ui.PriorityAssignmentMethodListBox.Value = ui.PriorityAssignmentMethodListBox.Items{2};
+        ui.Label_4.Text = sprintf("In parallel computation,\nonly constant, random,\nand STAC priority are \nsupported.");
 
-        ui.Label_4.Visible = 'Off';
+        ui.Label_4.Visible = 'on';
     else
         ui.MaxComputationLevelsSpinner.Enable = 'off';
         ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'off';
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'off';
+        ui.Label_4.Text = sprintf("In sequential computation,\nonly right-of-way,\nconstant, random, and\nFCA priority are supported.");
 
-        ui.Label_4.Text = sprintf("If parallel computation is not used, the maximum allowed number of computation levels is irrelevant.");
-        ui.Label_4.Visible = 'On';
+        ui.Label_4.Visible = 'on';
     end
 end
 
