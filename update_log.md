@@ -1,5 +1,9 @@
 # This file is used to record the update events.
 
+## 2022-08-31, David
+- Mixed traffic code clean-up
+- updated `readme_mixed_traffic.md`
+
 ## 2022-07-12, David
 - Added function to visualize polygons in the LCC, e.g., to visualize the reachable set of a vehicle
 - Optimization for `match_pose_to_lane()`

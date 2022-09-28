@@ -30,8 +30,6 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
                         subsequent_lanes.lanelets_index(end+1) = subsequent_indices(j);
                     end
                 end
-
-                %disp(sprintf('subsequent lanelets index size: %d', length(subsequent_lanes.lanelets_index)));
             end
         end
         
@@ -70,8 +68,6 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
 
     disp(sprintf('id: %d, lanelets: [%s]', vehid, join(string(manual_path.lanelets_index))));
 
-    %[lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(scenario.options.mixedTrafficScenarioLanelets); 
-    % [lanelets, ~,~,~,scenario.lanelet_boundary,~,~] = get_road_data();
     lanelets = scenario.lanelets;
 
     % reference path
@@ -98,28 +94,5 @@ function [manual_path, scenario] = generate_manual_path(scenario, vehid, n, star
     end 
     manual_path.path = path;
     manual_path.points_index = points_index;
-
-    %{
-    % reduce lanelet boundarys to get same number of points as lanelets
-    for index = 1:length(scenario.lanelet_boundary)
-        scenario.lanelet_boundary{1,index}{1,1} = scenario.lanelet_boundary{1,index}{1,1}(2:(end)-1,1:2);
-        scenario.lanelet_boundary{1,index}{1,2} = scenario.lanelet_boundary{1,index}{1,2}(2:(end)-1,1:2);
-    end
-    %}
-
-    %{
-    % the max points index of each lanelet
-    lanelet_point_max = 0;
-    points_index = zeros(1,length(manual_path.lanelets_index));
-    for nlanelets = 1:length(manual_path.lanelets_index)
-        % count the number of points of each lanelets
-        Npoints = length(lanelets{ manual_path.lanelets_index(nlanelets)}(:,LaneletInfo.cx));
-        % max point index of each lanelet
-        lanelet_point_max = lanelet_point_max + Npoints;
-        points_index(nlanelets) = lanelet_point_max;
-
-    end 
-    manual_path.points_index = points_index;
-    %}
 
 end
