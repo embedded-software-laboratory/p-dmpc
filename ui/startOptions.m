@@ -441,10 +441,8 @@ end
 
 function setForceFeedbackVisibility(ui)
     if get_first_control_mode_selection(ui)
-        ui.ForceFeedbackFirstMVButtonGroup.Visible = 'On';
         ui.ConsiderRSSRulesButtonGroup.Visible = 'Off';
     else
-        ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
         ui.ConsiderRSSRulesButtonGroup.Visible = 'On';
     end
 end

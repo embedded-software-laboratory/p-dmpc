@@ -6,6 +6,10 @@
 - Improve `TrafficInfo`, which is used to determine edge-weighted DAG 
     - Improve its code style
     - Calculate optimal coupling weights
+    
+## 2022-08-31, David
+- Mixed traffic code clean-up
+- updated `readme_mixed_traffic.md`
 
 ## 2022-07-12, David
 - Added function to visualize polygons in the LCC, e.g., to visualize the reachable set of a vehicle

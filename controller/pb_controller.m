@@ -29,7 +29,7 @@ runtime_others_tic = tic;
     directed_graph = digraph(directed_adjacency);
     [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
     runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search 
- 
+    
 
     for grp_idx = 1:length(groups)
         group = groups(grp_idx);
