@@ -9,7 +9,6 @@ options = startOptions();
 %[options, vehicle_ids] = eval_guided_mode(1);
 %[options, vehicle_ids] = eval_expert_mode(1);
 options.is_eval = false;
-options.visualize_reachable_set = false;
 is_sim_lab = options.is_sim_lab;
 
 %% Determine options
@@ -53,6 +52,8 @@ if is_sim_lab
     options.collisionAvoidanceMode = 0;
     options.is_mixed_traffic = 0;
     options.force_feedback_enabled = 0;
+    options.visualize_reachable_set = false;
+    options.visualizeReferenceTrajectory = false;
 
 else
     disp('cpmlab')
@@ -63,6 +64,9 @@ else
     options.isPB = true;
     manualVehicle_id = 0;
     manualVehicle_id2 = 0;
+    options.visualize_reachable_set = false;
+    options.visualizeReferenceTrajectory = false;
+
 
     if options.is_mixed_traffic
 
@@ -162,10 +166,6 @@ vehs_fallback_times = zeros(1,scenario.options.amount); % record the number of s
 info_old = []; % old information for fallback
 total_fallback_times = 0; % total times of fallbacks
 
-if scenario.options.firstManualVehicleMode == 2 || scenario.options.secondManualVehicleMode == 2
-    %r = rosrate(100000);
-end
-
 %% Main control loop
 while (~got_stop)
 
@@ -188,42 +188,39 @@ while (~got_stop)
     % ----------------------------------------------------------------------
      
     % Update the iteration data and sample reference trajectory
-    [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, is_sim_lab);
+    [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path);
     initialized_reference_path = true;
 
-    % visualize reachabel set of vehicle in Expert-Mode
+    % visualize reachabel set of vehicle in Expert Mode
     for iVeh = 1:scenario.nVeh 
         if options.visualize_reachable_set && ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
             || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
-            [visualization_command] = lab_visualize_polygon(scenario, iter.reachable_sets{iVeh, end}.Vertices, iVeh);
+            [visualization_command] = lab_visualizer(iter.reachable_sets{iVeh, end}.Vertices, 'polygon');
             exp.visualize(visualization_command);
         end
     end
 
     if scenario.options.is_mixed_traffic
-        if scenario.manual_vehicle_id ~= 0
+        if scenario.manual_vehicle_id ~= 0 && scenario.options.firstManualVehicleMode == 1
+            % function that updates the wheel data
+            wheelData = exp.getWheelData();
 
-            if (scenario.options.firstManualVehicleMode == 1)
-                wheelData = exp.getWheelData();
-                % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
-                modeHandler = GuidedMode(scenario,x0_measured,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
-                scenario = modeHandler.scenario;
-                scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
-                speedProfileMPAsInitialized = true;
-            end
+            % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
+            modeHandler = GuidedMode(scenario,x0_measured,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
+            scenario = modeHandler.scenario;
+            scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
+            speedProfileMPAsInitialized = true;
         end
 
-        if scenario.second_manual_vehicle_id ~= 0
+        if scenario.second_manual_vehicle_id ~= 0 && scenario.options.secondManualVehicleMode == 1
             % function that updates the gamepad data
             gamepadData = exp.getGamepadData();
-
-            if (scenario.options.secondManualVehicleMode == 1)
-                % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
-                modeHandler = GuidedMode(scenario,x0_measured,scenario.second_manual_vehicle_id,vehicle_ids,cooldown_second_manual_vehicle_after_lane_change,speedProfileMPAsInitialized,gamepadData,false);
-                scenario = modeHandler.scenario;
-                scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
-                speedProfileMPAsInitialized = true;
-            end
+            
+            % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
+            modeHandler = GuidedMode(scenario,x0_measured,scenario.second_manual_vehicle_id,vehicle_ids,cooldown_second_manual_vehicle_after_lane_change,speedProfileMPAsInitialized,gamepadData,false);
+            scenario = modeHandler.scenario;
+            scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
+            speedProfileMPAsInitialized = true;    
         end
 
         if scenario.updated_manual_vehicle_path

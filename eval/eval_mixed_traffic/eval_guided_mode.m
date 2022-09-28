@@ -1,5 +1,5 @@
 function [options, vehicle_ids] = eval_guided_mode(collisionAvoidanceMode)
-%% evaluate mixed traffic for first collision avoidance mode
+%% evaluate Guided Mode for specified collision avoidance mode
 
     options = struct;
     options.collisionAvoidanceMode = collisionAvoidanceMode;
@@ -41,11 +41,5 @@ function [options, vehicle_ids] = eval_guided_mode(collisionAvoidanceMode)
     pathToScript = fullfile(pwd,'/eval','/eval_mixed_traffic','eval_script.sh');
     cmdStr = ['gnome-terminal --' ' ' pathToScript];
     system(cmdStr);
-
-
-    %cd /usr/local/MATLAB/R2022a/bin
-    %./matlab -sd /home/david/dev/software/high_level_controller/graph_based_planning -r eval_script
-    %cmdStr = ['gnome-terminal --' ' ' '/urs/local/MATLAB/R2022a/bin ./matlab' ' ' '-sd' ' ' '/home/david/dev/software/high_level_controller/graph_based_planning' ' ' '-r' ' ' 'eval_script'];
-    %system(cmdStr);
 
 end
