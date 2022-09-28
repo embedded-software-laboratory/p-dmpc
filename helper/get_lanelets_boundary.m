@@ -1,10 +1,22 @@
 function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_boundaries,lanelets_index, is_sim_lab, is_loop)
-% GET_LANELETS_BOUNDARY Return the lanelet boundaries based on the
-% target_lanelet_boundaries: predicted lanelets boundaries
-    
-    % first cell: left boundary
-    % second cell: right boundary
-    % third cell: MATLAB polyshape of the boundary
+% GET_LANELETS_BOUNDARY Return the lanelet boundaries
+% INPUT:
+%   predicted_lanelets: vector, IDs of predicted lanelets
+% 
+%   lanelet_boundaries: boundaries of all lanelets
+% 
+%   lanelets_index: IDs of the full lanelets
+% 
+%   is_sim_lab: if simulation mode
+%
+%   is_loop: if the reference path is a loop
+% 
+% OUTPUT:
+%   lanelet_boundary: 1-by-3 cell array
+%                       first cell: left boundary
+%                       second cell: right boundary
+%                       third cell: MATLAB polyshape of the boundary
+
     lanelet_boundary = cell(1,3);
     % extract the target lanelets
     predicted_lanelet_boundaries = lanelet_boundaries(predicted_lanelets);
@@ -13,27 +25,6 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
         % determine the boundaries for each vehicle
         % Note that the last point of each lanelet boundary is deleted for a
         % smooth transition between two lanelet boundaries
-
-%         % check if the boundaries of one lanelet to its successor lanelet is shrinked
-%         threshold_shrink = 0.05;
-%         left_bound = predicted_lanelet_boundaries{1}{1};
-%         right_bound = predicted_lanelet_boundaries{1}{2};
-%         for i = 1:length(predicted_lanelet_boundaries)-1
-%             left_i = predicted_lanelet_boundaries{i}{1};
-%             right_i = predicted_lanelet_boundaries{i}{2};
-%             left_successor = predicted_lanelet_boundaries{i+1}{1};
-%             right_successor = predicted_lanelet_boundaries{i+1}{2};
-%             if norm(left_i(end,:)-right_i(end,:)) - norm(left_successor(1,:)-right_successor(1,:)) > threshold_shrink
-%                 left_bound = check_lanelet_shrink(left_bound,left_i,left_successor,threshold_shrink);
-%                 right_bound = check_lanelet_shrink(right_bound,right_i,right_successor,threshold_shrink);
-%             end
-%             % add successor lanelet boundary
-%             % Since measure error of lanelet boundary exist, the first
-%             % point of successor lanelet boundary is deleted in order to
-%             % get a well-defined polyshape later
-%             left_bound = [left_bound;left_successor(2:end,:)];
-%             right_bound = [right_bound;right_successor(2:end,:)];
-%         end
 
         left_bound_cell = cellfun(@(c)c{1}(1:end-1,:)', predicted_lanelet_boundaries, 'UniformOutput',false);
         left_bound = [left_bound_cell{:}];
@@ -95,19 +86,4 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
         assert(lanelet_boundary{3}.NumRegions==1)
 
     end
-end
-
-
-%% local function
-function bound_new = check_lanelet_shrink(bound,boundary,boundary_successor,threshold_shrink)
-    if abs(norm(boundary(end,:)-boundary_successor(1,:))) > threshold_shrink
-        % left boundary is shrunken: replace the second half
-        % points of left boundary by linear interpolation to make trasition smoother
-        n_replace_points = round(length(boundary)/2);
-        linear_inter = bound(end-n_replace_points,:) + (boundary_successor(1,:) - bound(end-n_replace_points,:))/n_replace_points.* (1:n_replace_points)';
-        bound_new = [bound(1:end-n_replace_points,:);linear_inter];
-    else
-        bound_new = bound;
-    end
-    assert(length(bound_new)==length(bound))
 end

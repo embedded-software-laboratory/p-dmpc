@@ -15,9 +15,7 @@ if any(find_options)
 else
     options = startOptions();
 end
-% options.fallback_type = 'globalFallback';
-% options.fallback_type = 'localFallback';
-% 
+
 %[options, vehicle_ids] = eval_guided_mode(1);
 %[options, vehicle_ids] = eval_expert_mode(1);
 options.is_eval = false;
@@ -468,9 +466,6 @@ if options.isSaveResult
     
     result.scenario.ros_subscribers = [];
     [result.scenario.vehicles.communicate] = empty_cells{:};
-    % for i_iter = 1:length(result.iteration_structs)
-    %     result.iteration_structs{i_iter}.scenario = [];
-    % end
     
     result.mpa = scenario.mpa;
 
@@ -487,12 +482,6 @@ if options.isSaveResult
         result.scenario.speed_profile_mpas = [];
         result.shapes = [];
     end
-
-    % check if file with the same name exists
-    % while isfile(result.output_path)
-    %     warning('File with the same name exists, timestamp will be added to the file name.')
-    %     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
-    % end
 
     save(result.output_path,'result');
     disp(['Simulation results were saved under ' result.output_path])

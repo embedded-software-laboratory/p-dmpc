@@ -196,7 +196,6 @@ classdef RoadData
                             for jj = j_s
                                 ij = [ii,jj];
                                 if all(~ismember(ij,obj.intersection_lanelets)) && ~(ii==i && jj==j)
-%                                     disp(ij)
                                     lanelet_relationships(min(ij),max(ij)) = lanelet_relationships(i,j);
                                 end
                             end
@@ -223,7 +222,6 @@ classdef RoadData
                             for jj = j_s
                                 ij = [ii,jj];
                                 if all(~ismember(ij,obj.intersection_lanelets)) && ~(ii==i && jj==j)
-%                                     disp(ij)
                                     lanelet_relationships(min(ij),max(ij)) = lanelet_relationships(i,j);
                                 end
                             end
@@ -253,29 +251,6 @@ classdef RoadData
                             % If two lanelets interset, the corresponding entry of `semi_adjacency_lanelets` should be zero 
                             % This is also the only difference between `semi_adjacency_lanelets` and `adjacency_lanelets` 
                             semi_adjacency_lanelets(i,j) = 0;
-%                         else
-%                             % if both lanelets are at the intersection, check additionally whether their left/right bounds intersect if their centerlines do not intersect
-%                             if ismember(i,obj.intersection_lanelets) && ismember(j,obj.intersection_lanelets)
-%                                 xy_ij_idx = [LaneletInfo.lx,LaneletInfo.ly,LaneletInfo.lx,LaneletInfo.ly;
-%                                              LaneletInfo.lx,LaneletInfo.ly,LaneletInfo.rx,LaneletInfo.ry;
-%                                              LaneletInfo.rx,LaneletInfo.ry,LaneletInfo.lx,LaneletInfo.ly;
-%                                              LaneletInfo.rx,LaneletInfo.ry,LaneletInfo.rx,LaneletInfo.ry];
-%                                 for xyij = 1:size(xy_ij_idx,1)
-%                                     x_i = obj.lanelets{i}(:,xy_ij_idx(xyij,1));
-%                                     y_i = obj.lanelets{i}(:,xy_ij_idx(xyij,2));
-%                                     x_j = obj.lanelets{j}(:,xy_ij_idx(xyij,3));
-%                                     y_j = obj.lanelets{j}(:,xy_ij_idx(xyij,4));
-%                                     % exclude the case of two parallel lanelets
-%                                     [x_intersect,y_intersect] = polyxpoly(x_i,y_i,x_j,y_j);
-%                                     if length(x_intersect)==1
-%                                         lanelet_relationships{i,j}.type = LaneletRelationshipType.type_5;
-%                                         lanelet_relationships{i,j}.point = [x_intersect, y_intersect];
-%                                         semi_adjacency_lanelets(i,j) = 0;
-%                                         disp([num2str(i) ', ' num2str(j)])
-%                                         break;
-%                                     end
-%                                 end
-%                             end
                         end
                     end
 
@@ -732,7 +707,6 @@ classdef RoadData
                     if obj.adjacency_lanelets(i,j) == 0  && obj.semi_adjacency_lanelets(i,j) == 0
                         shape_intersecting = intersect(obj.lanelet_boundary{i}{3},obj.lanelet_boundary{j}{3});
                         if area(shape_intersecting) > 1e-3
-                            disp([num2str(i) ', ' num2str(j)])
                             obj.adjacency_lanelets(i,j) = 1;
                             obj.adjacency_lanelets(j,i) = 1;
                             if ismember(i,obj.intersection_lanelets) && ismember(j,obj.intersection_lanelets)

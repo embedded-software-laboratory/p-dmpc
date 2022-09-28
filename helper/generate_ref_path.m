@@ -10,31 +10,24 @@ ref_path = struct;
 
         case 1
             ref_path.lanelets_index = [3,5,7,59,57,55,67,65,98,37,35,31,29,27,1];
-%             ref_path.lanelets_index = [95,69,64];
 
         case 2
             ref_path.lanelets_index = [5,7,59,57,55,67,65,98,37,35,31,29,27,1,3];
-%             ref_path.lanelets_index = [98,37,35];
 
         case 3
             ref_path.lanelets_index = [7,59,57,55,67,65,98,37,35,31,29,27,1,3,5];
-%             ref_path.lanelets_index = [95,69,64];
             
         case 4 
             ref_path.lanelets_index = [59,57,55,67,65,98,37,35,31,29,27,1,3,5,7];
-%             ref_path.lanelets_index = [45,97,92];
 
         case 5 
             ref_path.lanelets_index = [57,55,67,65,98,37,35,31,29,27,1,3,5,7,59];
-%             ref_path.lanelets_index = [20,63,61];
 
         case 6
             ref_path.lanelets_index = [29,41,39,20,63,61,57,55,53,79,81,83,85,33,31];
-%             ref_path.lanelets_index = [26,52,37];
 
         case 7
             ref_path.lanelets_index = [53,79,81,83,85,33,31,29,41,39,20,63,61,57,55];
-%             ref_path.lanelets_index = [55,53,79,81,83,85,33,31,29,41,39,20,63,61,57];
 
         case 8
             ref_path.lanelets_index = [79,81,83,85,33,31,29,41,39,20,63,61,57,55,53];
@@ -104,16 +97,16 @@ ref_path = struct;
             
         case 30
             ref_path.lanelets_index = [35,31,29,27,1,3,5,9,11,26,52,37];            
-%             
+
         case 31
             ref_path.lanelets_index = [39,50,102,91,93,81,83,85,33,31,29,41]; 
-%             
+
         case 32
             ref_path.lanelets_index = [63,61,57,55,53,79,81,83,85,33,31,29,41,39,20];  
-%             
+
         case 33
             ref_path.lanelets_index = [61,57,55,53,79,81,83,85,33,31,29,41,39,20,63];
-        
+
         case 34
             ref_path.lanelets_index = [16,22,5,7,59,57,74,68,66,71,19,14];
 

@@ -70,11 +70,7 @@ runtime_others_tic = tic;
 
             % execute sub controller for 1-veh scenario
             info_v = sub_controller(scenario_v, iter_v);
-            if scenario.k > 60
-                if vehicle_idx == 12 || vehicle_idx == 20
-                    disp('')
-                end
-            end
+
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback 

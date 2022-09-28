@@ -4,12 +4,7 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
 % motion primitives of the lower-priority vehicle. A motion primitive is
 % valid, if a fail-safe trajectory could still be found after this motion
 % primitive is executed.
-%     xlim([1.4,3.1])
-%     ylim([1.0,2.5])
-    % h = findobj('LineWidth',0.3); % % delete shapes plotted during graph searching 
-    % delete(h)
-    % h = findobj('LineWidth',0.75); % % delete shapes plotted during graph searching 
-    % delete(h)
+
     % Filter scenario and iter
     filter_self = false(1,scenario.options.amount);
     filter_self(veh_j) = true;
@@ -25,7 +20,6 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
 
     reachable_sets_i_array_full = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i_full); 
     plot_options_RS = struct('Color',[0 0.4470 0.7410],'LineWidth',0.45,'LineStyle','-');
-    % plot_obstacles(reachable_sets_i_array_full,plot_options_RS)
 
     % Reduce the information by one step
     scenario_v.mpa.transition_matrix(:,:,1) = [];
@@ -40,7 +34,7 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
 
     lanelet_boundary = [scenario_v.vehicles.lanelet_boundary{1},[nan;nan],scenario_v.vehicles.lanelet_boundary{2}];
     plot_options_LB = struct('Color','k','LineWidth',0.65,'LineStyle','-');
-    % plot_obstacles(lanelet_boundary,plot_options_LB)
+
     states_current = iter_v.x0;
     % Find all connected trims
     cur_trim_id = iter_v.trim_indices;
@@ -65,10 +59,8 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
         if InterX(area_next_xy,RS_i_xy) 
             % If not collision-free
             are_valid(iTrim) = false;
-            % disp('The next motion primitive collides with the reachable set at the first step.')
         elseif InterX(area_next_xy_without_offset,lanelet_boundary)
             are_valid(iTrim) = false;
-            % disp('The next motion primitive collides with lanelet boundary.')
         else
             % If collision-free, execute graph search and see if a fail-safe
             % trajectory (for Hp-1 steps) could still be found if the current motion
@@ -85,21 +77,12 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
             info_v = graph_search(scenario_v,iter_v);
             if info_v.is_exhausted || info_v.is_semi_exhausted
                 are_valid(iTrim) = false;
-                % disp('Graph search is exhausted.')
             else
                 plot_options_trajectories = struct('Color','b','LineWidth',0.55,'LineStyle','-');
-                % plot_obstacles(info_v.shapes,plot_options_trajectories)
-                % disp('Motion primitive is valid.')
+
             end
         end
         plot_options_next_primitive = struct('Color','b','LineWidth',0.55,'LineStyle','-');
-        % plot_obstacles(area_next_xy,plot_options_next_primitive)
-        % h = findobj('LineWidth',plot_options_next_primitive.LineWidth);
-        % delete(h)   
-        % h = findobj('LineWidth',0.3);
-        % delete(h)
-        % h = findobj('LineWidth',0.75);
-        % delete(h)
     end
 
     % Set the coupling weight to the percentage of invalid motion
@@ -117,6 +100,4 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
         % graph cut algorithm will put them in the same group
         optimal_coupling_weight = 10; 
     end
-    % h = findobj('LineWidth',plot_options_RS.LineWidth);
-    % delete(h)
 end
