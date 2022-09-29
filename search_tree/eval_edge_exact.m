@@ -109,8 +109,14 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
                     end
                 end
 
-                if InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
-                    % check collision with lanelet obstacles
+                % check collision with lanelet obstacles
+                if scenario.options.is_mixed_traffic
+                    % in mixed traffic scenario, boundary data could be full of nan
+                    if ~all(isnan(lanelet_boundary),'all') && InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
+                        is_valid = false;
+                        return
+                    end
+                elseif InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
                     is_valid = false;
                     return
                 end
