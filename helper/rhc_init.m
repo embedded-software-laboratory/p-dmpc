@@ -318,7 +318,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 end
             end
     
-            if scenario.options.isParl
+            if true %scenario.options.isParl
                 % Calculate reachable sets of other vehicles based on their
                 % current states and trims. Reachability analysis will be
                 % widely used in the parallel computation.

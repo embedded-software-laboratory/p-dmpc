@@ -30,7 +30,7 @@ classdef random_priority < interface_priority
             parl_groups_info(n_grps) = struct('vertices',[],'num_CLs',[]);
             directed_adjacency = zeros(nVeh,nVeh);
 
-            random_arr = randperm(nVeh,nVeh)
+            random_arr = randperm(nVeh,nVeh);
 
             % to which group a vehicle belongs to
             belonging_vector = zeros(1,nVeh);
@@ -76,7 +76,7 @@ classdef random_priority < interface_priority
             % Assign prrority according to computation level
             % Vehicles with higher priorities plan trajectory before vehicles
             % with lower priorities            
-            priority_list = obj.get_priority(CL_based_hierarchy)
+            priority_list = obj.get_priority(CL_based_hierarchy);
             
         end
       

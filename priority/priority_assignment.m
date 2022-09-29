@@ -23,5 +23,6 @@ function [veh_at_intersection, groups, directed_adjacency, priority_list] = prio
         otherwise
             error('No valid priority assignment strategy given')
     end
-
+    aTable = struct2table(groups); 
+ disp(aTable);
 end

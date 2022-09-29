@@ -279,7 +279,7 @@ while (~got_stop)
     if strcmp(scenario.name, 'Commonroad')
         if ~options.isParl || scenario.mixedTrafficCollisionAvoidanceMode == 2
             % update the coupling information
-            scenario = coupling_adjacency(scenario, iter);
+            scenario = coupling_based_on_reachable_sets(scenario,iter);
         end
 
         % update the lanelet boundary for each vehicle

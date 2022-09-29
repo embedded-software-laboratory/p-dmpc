@@ -17,7 +17,7 @@ classdef OptionsMain
         visu = [1, 0]   % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
         isParl = 0          % true/false, is use parallel computation
         scenario_name   % one of the follows: {'Circle_scenario','Commonroad'}
-        priority = 'constant_priority'       % one of the following: {'topo_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority'}, defines which priority assignmen strategy is used
+        priority = 'constant_priority'       % one of the following: {'coloring_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority'}, defines which priority assignmen strategy is used
         dt = 0.2;              % scalar, sample time
         Hp = 6;              % scalar, prediction horizon
         trim_set = 9;        % scalar, ID of trim primitive
