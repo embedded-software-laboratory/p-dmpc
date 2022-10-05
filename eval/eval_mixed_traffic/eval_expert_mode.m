@@ -5,7 +5,7 @@ function [options, vehicle_ids] = eval_expert_mode(consider_RSS)
         options.collisionAvoidanceMode = 3;
         options.is_sim_lab = false;
         options.is_mixed_traffic = true;
-        options.scenario = 'Commonroad';
+        options.scenario_name = 'Commonroad';
     
         vehicle_ids = [1,3];
         options.manualVehicle_id = '1';
@@ -21,7 +21,7 @@ function [options, vehicle_ids] = eval_expert_mode(consider_RSS)
         options.dt = 0.2;
         options.max_num_CLs = 4;
         options.strategy_consider_veh_without_ROW = '2';
-        options.strategy_enter_intersecting_area = '1';
+        options.strategy_enter_lanelet_crossing_area = '1';
     
         % workaround to generate repeatable random numbers
         rng(20220705,'twister');

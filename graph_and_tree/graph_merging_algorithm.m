@@ -110,6 +110,9 @@ function [belonging_vector, subgraphs_info] = graph_merging_algorithm(M, belongi
             benefit_matrix(subgraph_smaller_id,:) = [];
             benefit_matrix(:,subgraph_smaller_id) = []; 
 
+            num_CLs_matrix(subgraph_smaller_id,:) = [];
+            num_CLs_matrix(:,subgraph_smaller_id) = [];
+
             % reset the merging benefits with the new subgraph 
             benefit_matrix(subgraph_higher_id,:) = 0;
             benefit_matrix(:,subgraph_higher_id) = 0;

@@ -55,18 +55,23 @@ function scenario = communication_init(scenario, exp)
         end
     end
 
-    nVeh = scenario.nVeh;
-    Hp = scenario.Hp;
+    nVeh = scenario.options.amount;
+    Hp = scenario.options.Hp;
 
     % measure vehicles' initial poses and trims
     [x0_measured, trims_measured] = exp.measure(false);
 
-    start = tic; 
-    disp('Creating ROS 2 publishers...')
-    for iVeh = 1:nVeh
-        scenario.vehicles(iVeh).communicate = Communication(); % create instance of the Comunication class
-        scenario.vehicles(iVeh).communicate = initialize_communication(scenario.vehicles(iVeh).communicate, scenario.vehicles(iVeh).ID); % initialize
-        scenario.vehicles(iVeh).communicate = create_publisher(scenario.vehicles(iVeh).communicate); % create publisher
+    
+%     topicList = ros2("topic","list");
+%     nodeList = ros2("node","list");
+    if isempty(scenario.vehicles(1).communicate)
+        start = tic; 
+        disp('Creating ROS 2 publishers...')
+        for iVeh = 1:nVeh
+            scenario.vehicles(iVeh).communicate = Communication(); % create instance of the Comunication class
+            scenario.vehicles(iVeh).communicate = initialize_communication(scenario.vehicles(iVeh).communicate, scenario.vehicles(iVeh).ID); % initialize
+            scenario.vehicles(iVeh).communicate = create_publisher(scenario.vehicles(iVeh).communicate); % create publisher
+        end
     end
     
     % Create subscribers.
@@ -75,12 +80,13 @@ function scenario = communication_init(scenario, exp)
     % vehicles to let all of them subscribe others because it is
     % time-consuming to create many subscribers. 
     % The subscribers will be used by all vehicles.
-    disp('Creating ROS 2 subscribers...')
-    vehs_to_be_subscribed = [scenario.vehicles.ID];
-    scenario.ros_subscribers = create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
-
-    duration = toc(start);
-    disp(['Finished in ' num2str(duration) ' seconds.'])
+    if isempty(scenario.ros_subscribers)
+        disp('Creating ROS 2 subscribers...')
+        vehs_to_be_subscribed = [scenario.vehicles.ID];
+        scenario.ros_subscribers = create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
+        duration = toc(start);
+        disp(['Finished in ' num2str(duration) ' seconds.'])
+    end
 
     if ~scenario.options.is_mixed_traffic
         % Communicate predicted trims, pridicted lanelets and areas to other vehicles
@@ -93,8 +99,10 @@ function scenario = communication_init(scenario, exp)
             predicted_lanelets = get_predicted_lanelets(scenario,jVeh,predicted_trims(1),x0,y0);
 
             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-            scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
+            is_fallback = false; % whether vehicle should take fallback
+            scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback);   
         end
     end
+    pause(0.2) % ensure ROS messages are received
 end
 

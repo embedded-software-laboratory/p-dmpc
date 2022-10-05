@@ -2,36 +2,31 @@ classdef SimLab < InterfaceExperiment
 % SIMLAB    Instance of experiment interface used for simulation in matlab.
     
     properties (Access=private)
-        doOnlinePlot
         doExploration
         fig
         resolution
-        paused
         abort
     end
 
     properties
         visu % struct to store logical variables indicating whether to show vehicle ID/priority/coupling/coupling weights
+        doOnlinePlot
+        paused
     end
     
     methods
-        function obj = SimLab(scenario, options)
-            obj.doOnlinePlot = options.visu(1);
-            obj.doExploration = options.visu(2);
+        function obj = SimLab(scenario)
+            obj.doOnlinePlot = scenario.options.visu(1);
+            obj.doExploration = scenario.options.visu(2);
             obj.scenario = scenario;
 
             % variables for key press callback
             obj.paused = false;
             obj.abort = false;
 
-            obj.visu.isShowVehID = true;
-            obj.visu.isShowPriority = false;
-            obj.visu.isShowCoupling = true;
-            obj.visu.isShowWeight = false;
-            obj.visu.colormap = []; % n-by-3 matrix containing RGB values
-            obj.visu.colorbar = []; % object of the MATLAB class ColorBar
+            obj.visu = scenario.options.optionsPlotOnline;
 
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
+            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
         end
         
         function keyPressCallback(obj, ~, eventdata)
@@ -98,7 +93,7 @@ classdef SimLab < InterfaceExperiment
         end
 
         function update(obj)
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
+            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
         end
         
         function [ x0, trim_indices ] = measure(obj, ~)
@@ -118,11 +113,15 @@ classdef SimLab < InterfaceExperiment
             end
             if obj.doOnlinePlot
                 % wait to simulate realtime plotting
-                pause(obj.scenario.dt-result.step_time(obj.k))
+                pause(obj.scenario.options.dt-result.step_time(obj.k))
 
                 % visualize time step
-                tick_now = obj.scenario.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
+                tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
+%                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
                 plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
+            else
+                % pause so that `keyPressCallback()` can be executed in time
+                pause(0.01)
             end
         end
         
@@ -141,7 +140,7 @@ classdef SimLab < InterfaceExperiment
                 disp('Aborted.');
                 got_stop = true;
             end
-            if  obj.k >= obj.scenario.k_end
+            if  obj.k >= obj.scenario.options.k_end
                 disp('Simulation will be stopped as the defined simulation duration is reached.')
                 got_stop = true;
             end

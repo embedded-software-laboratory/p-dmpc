@@ -26,8 +26,8 @@ classdef  FCA_priority < interface_priority
             collisions = zeros(1,nVeh);
             
             veh = Vehicle();
-            x_locals = [-1, -1,  1,  1] * (veh.Length/2 + scenario.offset);
-            y_locals = [-1,  1,  1, -1] * (veh.Width/2 + scenario.offset);
+            x_locals = [-1, -1,  1,  1] * (veh.Length/2 + scenario.options.offset);
+            y_locals = [-1,  1,  1, -1] * (veh.Width/2 + scenario.options.offset);
             
             for nveh = 1: nVeh-1
                 % position of nveh 
@@ -89,8 +89,8 @@ classdef  FCA_priority < interface_priority
             end       
             
             [~,priority_index] = sort(collisions,'descend'); % ordered vehicle index w.r.t. priority
-            disp(['collisions: ',num2str(collisions)])
-            disp(['priority_index: ',num2str(priority_index)])
+%             disp(['collisions: ',num2str(collisions)])
+%             disp(['priority_index: ',num2str(priority_index)])
             
             [~,priority] = sort(priority_index); % ordered vehicle index w.r.t. priority
 %             disp(['priority: ',num2str(priority)])

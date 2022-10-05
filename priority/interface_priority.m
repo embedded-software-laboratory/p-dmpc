@@ -17,9 +17,6 @@ classdef (Abstract) interface_priority < handle
             %   CL_based_hierarchy: a struct contains in which computation
             %   level each vehicle is
             %
-            %   is_assign_unique_priority: logical, whether assign unique
-            %   priorities
-            %
             % OUTPUT:
             %   priority_list: values of vehicles' priorities, smaller
             %   values indicate higher priorities

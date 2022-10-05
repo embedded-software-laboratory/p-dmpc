@@ -3,7 +3,7 @@ function overviewPlot( result, step_indices )
 
 scenario = result.scenario;
 
-nVeh = scenario.nVeh;
+nVeh = scenario.options.amount;
 nObst = size(scenario.obstacles,2);
 nDynObst = size(scenario.dynamic_obstacle_fullres,1);
 
@@ -44,8 +44,8 @@ for step = 1:numel(step_indices)
     end
     % predicted trajectory
     for v=1:nVeh
-        line(   result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],1), ...
-                result.trajectory_predictions{v,step_idx}([1:scenario.tick_per_step+1:end,end],2), ...
+        line(   result.trajectory_predictions{v,step_idx}([1:scenario.options.tick_per_step+1:end,end],1), ...
+                result.trajectory_predictions{v,step_idx}([1:scenario.options.tick_per_step+1:end,end],2), ...
                 'Color',vehColor(v),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(v),'MarkerSize', 1 );
         line(   result.trajectory_predictions{v,step_idx}(:,1), ...
                 result.trajectory_predictions{v,step_idx}(:,2), ...
@@ -63,8 +63,8 @@ for step = 1:numel(step_indices)
         );
     end
     daspect([1 1 1]);
-    xlim(scenario.plot_limits(1,:));
-    ylim(scenario.plot_limits(2,:));
+    xlim(scenario.options.plot_limits(1,:));
+    ylim(scenario.options.plot_limits(2,:));
     if step == numel(step_indices)
         xlabel('$x$ [m]','Interpreter','LaTex')
     end

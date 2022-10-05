@@ -1,4 +1,4 @@
-function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0)
+function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0)
 % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
 % based on vehile's current states and reference path. 
 % 
@@ -43,12 +43,12 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
     v_ref = get_max_speed(mpa, trim_current);
     
     % Find equidistant points on the reference trajectory.
-    reference = sampleReferenceTrajectory(...
+    [reference,curTrajectoryIndex] = sampleReferenceTrajectory(...
         Hp, ...                             % number of prediction steps
         scenario.vehicles(iVeh).referenceTrajectory, ...    % total reference path
         x0, ...                                             % vehicle position x
         y0, ...                                             % vehicle position y
-        v_ref*scenario.dt, ...                                       % distance traveled in one timestep
+        v_ref*scenario.options.dt, ...                                       % distance traveled in one timestep
         scenario.vehicles(iVeh).autoUpdatedPath, ...        % if the path has been updated automatically
         scenario.options.isParl, ...                        % parallel computation
         scenario.vehicles(iVeh).last_trajectory_index, ...  % last trajectory index of vehicle
@@ -56,6 +56,15 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
     );
 
     ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
+%     ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle 
+    
+    % predict several points more such that the predicted lanelets can cover all reachable set. Only in this way, the bounded reachable sets will not be cutoff at its front
+    n_points_total = size(scenario.vehicles(iVeh).referenceTrajectory,1);
+    index_add = ref_points_index(end) + 4;
+    if index_add>n_points_total
+        index_add = index_add - n_points_total;
+    end
+    ref_points_index = [ref_points_index;index_add];
 
     if strcmp(scenario.name,'Commonroad')
         predicted_lanelets_idx = [];
@@ -83,4 +92,5 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
     else
         predicted_lanelets = [];
     end
+
 end

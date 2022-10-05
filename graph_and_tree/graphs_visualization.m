@@ -43,14 +43,25 @@ function graphs_visualization(belonging_vector, edge_weights, varargin)
         colors(i_vertices,:) = CM(belonging_vector(i_vertices),:);
     end
 
-    % plot
-    figure()
-    if ShowWeights
-        plot(G,'Layout','layered','MarkerSize',6,'NodeColor',colors,'EdgeLabel',round(G.Edges.Weight,2))
-    else
-        plot(G,'Layout','layered','MarkerSize',6,'NodeColor',colors)
+    LineStyle = cell(1,size(G.Edges.EndNodes,1));
+    for iE=1:size(G.Edges.EndNodes,1)
+        if belonging_vector(G.Edges.EndNodes(iE,1)) == belonging_vector(G.Edges.EndNodes(iE,2))
+            % coupling inside group in solid line
+            LineStyle{iE} = '-';
+        else
+            % coupling corss group in dashed line
+            LineStyle{iE} = '--';
+        end
     end
-    title('Results of graph partitioning/merging algorithm')
+
+    % plot
+%     figure()
+    if ShowWeights
+        plot(G,'LineStyle',LineStyle,'Layout','layered','MarkerSize',14,'NodeColor','k','EdgeLabel',round(G.Edges.Weight,2),'EdgeColor','k','NodeFontSize',16,'EdgeFontSize',14,'LineWidth',2,'ArrowSize',15)
+    else
+        plot(G,'LineStyle',LineStyle,'Layout','layered','MarkerSize',14,'NodeColor','k','EdgeColor','k','NodeFontSize',16,'EdgeFontSize',14)
+    end
+%     title('Results of graph partitioning/merging algorithm')
     
 end
 

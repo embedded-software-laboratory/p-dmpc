@@ -31,7 +31,7 @@ classdef CPMLab < InterfaceExperiment
             obj.scenario = scenario;
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.nVeh,1), zeros(obj.scenario.nVeh,1));
+            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
         end
         
         function setup(obj)
@@ -60,7 +60,7 @@ classdef CPMLab < InterfaceExperiment
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
             % Middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(obj.scenario.dt*1e9);
+            obj.dt_period_nanos = uint64(obj.scenario.options.dt*1e9);
 
             % Sync start with infrastructure
             % Send ready signal for all assigned vehicle ids
@@ -131,7 +131,7 @@ classdef CPMLab < InterfaceExperiment
             
             % for first iteration use real poses
             if controller_init == false
-                x0 = zeros(obj.scenario.nVeh,4);
+                x0 = zeros(obj.scenario.options.amount,4);
                 pose = [obj.sample(end).state_list.pose];
                 x0(:,1) = [pose.x];
                 x0(:,2) = [pose.y];
@@ -143,7 +143,7 @@ classdef CPMLab < InterfaceExperiment
 
                 % find out index of vehicle in Expert-Mode
                 indexVehicleExpertMode = 0;
-                for j = 1:obj.scenario.nVeh
+                for j = 1:obj.scenario.options.amount
                     if ((obj.scenario.vehicle_ids(j) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
                         || (obj.scenario.vehicle_ids(j) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
                         indexVehicleExpertMode = j;
@@ -167,9 +167,9 @@ classdef CPMLab < InterfaceExperiment
             obj.cur_node = info.next_node;
             obj.k = k;
             % calculate vehicle control messages
-            obj.out_of_map_limits = false(obj.scenario.nVeh,1);
-            for iVeh = 1:obj.scenario.nVeh
-                n_traj_pts = obj.scenario.Hp;
+            obj.out_of_map_limits = false(obj.scenario.options.amount,1);
+            for iVeh = 1:obj.scenario.options.amount
+                n_traj_pts = obj.scenario.options.Hp;
                 n_predicted_points = size(y_pred{iVeh},1);
                 idx_predicted_points = 1:n_predicted_points/n_traj_pts:n_predicted_points;
                 trajectory_points(1:n_traj_pts) = TrajectoryPoint;

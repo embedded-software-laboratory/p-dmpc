@@ -177,7 +177,7 @@ set(gca,'FontSize',24)
 
 
 function [deviation_single,max_deviation_single,avg_deviation_single, avg_vRef_single, avg_speed_single] = plot_deviation(result)
-trim_duration = result.scenario.dt;
+trim_duration = result.scenario.options.dt;
 iteration_structs = result.iteration_structs;
 realpoints = result.trajectory_predictions;
 total_steps = length(result.iteration_structs);
@@ -211,7 +211,7 @@ end
 function [deviation,max_deviation,avg_deviation] = deviation(iteration_structs,realpoints,total_steps,trim_duration)
     nveh=size(iteration_structs,1);
     scenario = Scenario();
-    time_per_tick = scenario.time_per_tick;
+    time_per_tick = scenario.options.time_per_tick;
     tick_per_step = trim_duration/time_per_tick;
     deviation = zeros(nveh,total_steps);
     for n = 1:nveh
