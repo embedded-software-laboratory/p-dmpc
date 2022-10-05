@@ -49,11 +49,16 @@ classdef GuidedMode
 
             % precompute MPA's to save computation time
             if ~speedProfileMPAsInitialized
-                lowSpeedProfileMPA = MotionPrimitiveAutomaton(scenario.model, options);
+                old_trim_set = scenario.options.trim_set;
+                scenario.options.trim_set = low_speed_profile_trim_set;
+                lowSpeedProfileMPA = MotionPrimitiveAutomaton(scenario.model, scenario.options);
                 scenario.speed_profile_mpas(1) = lowSpeedProfileMPA;
 
-                highSpeedProfileMPA = MotionPrimitiveAutomaton(scenario.model, options);
+                scenario.options.trim_set = high_speed_profile_trim_set;
+                highSpeedProfileMPA = MotionPrimitiveAutomaton(scenario.model, scenario.options);
                 scenario.speed_profile_mpas(3) = highSpeedProfileMPA;
+
+                scenario.options.trim_set = old_trim_set;
             end
 
             laneID = 0;

@@ -243,9 +243,11 @@ classdef RoadData
                         x_c_j = obj.lanelets{j}(:,LaneletInfo.cx);
                         y_c_j = obj.lanelets{j}(:,LaneletInfo.cy);
                         % calculate the point of intersection of their center lines
-                        [x_intersect,y_intersect] = polyxpoly(x_c_i,y_c_i,x_c_j,y_c_j);
-                        if length(x_intersect)==1
+                        P = InterX([x_c_i';y_c_i'],[x_c_j';y_c_j'],true);
+                        if size(P,2)==1
                             % intersect
+                            x_intersect = P(1,1);
+                            y_intersect = P(2,1);
                             lanelet_relationships{i,j}.type = LaneletRelationshipType.type_5;
                             lanelet_relationships{i,j}.point = [x_intersect, y_intersect];
                             % If two lanelets interset, the corresponding entry of `semi_adjacency_lanelets` should be zero 

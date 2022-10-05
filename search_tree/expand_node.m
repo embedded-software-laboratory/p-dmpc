@@ -15,7 +15,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
 
     for iVeh = 1 : scenario.options.amount
-        if strcmp(scenario.options.priority,'mixed_traffic_priority')
+        if scenario.options.is_mixed_traffic
             % first check if mixed_traffic_priority is used to make a short
             % circuit
             if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
@@ -44,7 +44,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             itrim2 = expTrim(iVeh,iTrim);
 
             % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-            if strcmp(scenario.options.priority,'mixed_traffic_priority')
+            if scenario.options.is_mixed_traffic
                 % first check if mixed_traffic_priority is used to make a short
                 % circuit
                 if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...

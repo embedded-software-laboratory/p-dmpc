@@ -19,7 +19,7 @@ function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, ro
                 t2 = tree.node{root_to_node(iNode)}(iVeh,NodeInfo.trim);
 
                 % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-                if strcmp(scenario.options.priority,'mixed_traffic_priority')
+                if scenario.options.is_mixed_traffic
                     % first check if mixed_traffic_priority is used to make a short
                     % circuit
                     if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
