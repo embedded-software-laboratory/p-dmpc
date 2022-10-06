@@ -125,7 +125,7 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
             % check if vehicle without right-of-way has already enter the crossing area
             
             % get the crossing area of two vehicles' lanelet
-            lanelet_crossing_area = intersect(predicted_lanelet_boundary{veh_without_ROW}, iter.predicted_lanelet_boundary{veh_with_ROW,3});
+            lanelet_crossing_area = intersect(iter.predicted_lanelet_boundary{veh_with_ROW,3}, iter.predicted_lanelet_boundary{veh_without_ROW,3});
         
             [lanelet_crossing_area_x, lanelet_crossing_area_y] = boundary(lanelet_crossing_area);
             lanelet_crossing_area_xy = [lanelet_crossing_area_x,lanelet_crossing_area_y]';
@@ -170,17 +170,6 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
                 lanelet_crossing_areas{veh_forbid}(end+1) = {[x_tmp';y_tmp']};
             end
 
-            % subtract the crossing area from vehicle's lanelet boundary 
-            predicted_lanelet_boundary{veh_forbid} = subtract(predicted_lanelet_boundary{veh_forbid}, iter.predicted_lanelet_boundary{veh_free,3});
-
-            num_regions = predicted_lanelet_boundary{veh_forbid}.NumRegions;
-            if num_regions > 1
-                % if multiple regions, only keep the one that is closest to vehicle
-                poly_sort = sortregions(predicted_lanelet_boundary{veh_forbid},'centroid','ascend','ReferencePoint',[iter.x0(veh_forbid,indices().x),iter.x0(veh_forbid,indices().y)]);
-                R = regions(poly_sort);
-                predicted_lanelet_boundary{veh_forbid} = R(1);
-            end
-            
         end
     end
 end
