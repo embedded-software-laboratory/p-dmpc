@@ -12,7 +12,7 @@ else
     frame_per_step = framerate*scenario.options.dt;
     frame_ticks = round(linspace(2,scenario.options.tick_per_step+1,frame_per_step));
 end
-% 
+ 
 fig = figure('Visible','Off'...
             ,'Color',[1 1 1]...
             ,'units','pixel'...
@@ -23,8 +23,8 @@ fig = figure('Visible','Off'...
 
 test_mode = false;
 if test_mode
-    exp.k = 1;
-    plotOnline(result,1,1,[],scenario.options.optionsPlotOnline); %#ok<UNRCH>
+    exp.k = 1; %#ok<UNRCH>
+    plotOnline(result,1,1,[],scenario.options.optionsPlotOnline);
     set_figure_properties(fig,'video');
     frame = getframe(fig);
     imwrite(frame,['output\video_', vid_name, '.png']);
@@ -40,6 +40,9 @@ startTimer = tic;
 
 disp('Exporting video ...');
 wb = waitbar(0, 'Exporting video ...','Name','Video Export Progress');
+
+scenario.options.optionsPlotOnline.isVideoMode = 1;
+
 for step_idx = 1:nSteps
     for frame_idx = frame_ticks
         clf
@@ -47,7 +50,8 @@ for step_idx = 1:nSteps
         set_figure_properties(fig,'video');
         frame = getframe(fig);
         writeVideo(v,frame);
-        progress = (find(frame_ticks==frame_idx)/length(frame_ticks))*(1/nSteps)+((step_idx-1)/nSteps);
+        progress = ( find(frame_ticks==frame_idx) / length(frame_ticks) )...
+            * (1/nSteps) + ( (step_idx-1)/nSteps );
         ETA = toc(startTimer)*(1-progress)/progress;
         waitbar(progress,wb, ...
                 sprintf('Exporting video, %4.1f sec remaining...', ETA) ...

@@ -172,7 +172,10 @@ classdef MotionPrimitiveAutomaton
             max_speed_last = obj.trims(cur_trim_id).speed;
             for k = 1:N
                 successor_trim_ids = find(obj.transition_matrix_single(cur_trim_id, :, k));
-                [max_speed_next, cur_trim_id] = max([obj.trims(successor_trim_ids).speed]);
+                [max_speed_next, i_successor_max_speed] = max( ...
+                    [obj.trims(successor_trim_ids).speed] ...
+                );
+                cur_trim_id = successor_trim_ids(i_successor_max_speed);
                 max_speed(k) = (max_speed_next + max_speed_last)/2; % assumes linear change
                 max_speed_last = max_speed_next;
             end

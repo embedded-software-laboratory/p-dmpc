@@ -118,8 +118,8 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     sticks = round(linspace(1,size(get_colormap,1),n_colors+1));
     vehColor = get_colormap(sticks(2:end),:); % evenly sample from colormap
     
-    find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
     if visu.isShowPriority
+        find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
         if isempty(find_colorbar)
             priority_colorbar = colorbar('Tag','priority_colorbar','FontName','Verdana','FontSize',9);
             priority_colorbar.Title.String = '              Priority \newline(low value for high priority)'; % todo: find way to center the first line instead of using many spaces
@@ -132,10 +132,6 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
 
         caxis([0 n_colors]); % define range of colorbar
 %         clim([1 n_colors]) % renamed from caxis in R2022a
-    else
-        if ~isempty(find_colorbar)
-            find_colorbar.Visible = 'off';
-        end
     end
 
     %%
@@ -191,7 +187,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
             if scenario.options.bound_reachable_sets
                 text_RS = 'Bounded reachable set by lanelet boundaries';
             else
-                text_RS = 'Reachable set';
+                text_RS = 'Unbounded reachable set';
             end
 
             if isempty(visu.vehsReachableSets)

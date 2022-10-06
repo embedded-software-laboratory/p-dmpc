@@ -247,7 +247,7 @@ is_deadlock = false;
 
 %% Main control loop
 while (~got_stop)
-    % TODO OPT only modify scenario_tmp; better: separate scenario from dynamic
+    % TODO separate static scenario from dynamic
     % entries such as adjacency
     result.step_timer = tic;
     
@@ -375,13 +375,13 @@ while (~got_stop)
     result.distance(:,:,k) = distance;
     
     % dynamic scenario
-    scenario_tmp = get_next_dynamic_obstacles_scenario(scenario, k);
+    scenario = get_next_dynamic_obstacles_scenario(scenario, scenario_static, k);
     result.iter_runtime(k) = toc(result.step_timer);
     
     % The controller computes plans
     controller_timer = tic; 
     %% controller %%
-    [info, scenario_tmp] = scenario_tmp.controller(scenario_tmp, iter);
+    [info, scenario] = scenario.controller(scenario, iter);
 
     %% fallback
     if strcmp(options.fallback_type,'noFallback')
@@ -394,7 +394,7 @@ while (~got_stop)
         end
     else
         vehs_fallback_times(info.vehs_fallback) = vehs_fallback_times(info.vehs_fallback) + 1;
-        vehs_not_fallback = setdiff(1:scenario_tmp.options.amount, info.vehs_fallback);
+        vehs_not_fallback = setdiff(1:scenario.options.amount, info.vehs_fallback);
         vehs_fallback_times(vehs_not_fallback) = 0; % reset
         
         % check whether at least one vehicle has fallen back Hp times successively
@@ -403,7 +403,7 @@ while (~got_stop)
                 real_vehicles = zeros(1,length(info.vehs_fallback));
     
                 for i=1:length(info.vehs_fallback)
-                    real_vehicles(i) = scenario_tmp.vehicle_ids(info.vehs_fallback(i));
+                    real_vehicles(i) = scenario.vehicle_ids(info.vehs_fallback(i));
                 end
     
                 disp_tmp = sprintf('%d,',real_vehicles); disp_tmp(end) = [];
@@ -412,7 +412,7 @@ while (~got_stop)
                 total_fallback_times = total_fallback_times + 1;
             end
     
-        if max(vehs_fallback_times) >= scenario_tmp.options.Hp
+        if max(vehs_fallback_times) >= scenario.options.Hp
             disp('Already fall back successively Hp times, terminate the simulation')
 %             break % break the while loop
         end
@@ -423,14 +423,14 @@ while (~got_stop)
     result.controller_runtime(k) = toc(controller_timer);
     
     % save controller outputs in result struct
-    result.scenario = scenario; % TODO only static values in scenario; save once per run
+    result.scenario = scenario;
     result.iteration_structs{k} = iter;
     result.trajectory_predictions(:,k) = info.y_predicted;
     result.controller_outputs{k} = info.u;
     result.subcontroller_runtime_each_veh(:,k) = info.runtime_subcontroller_each_veh;
     result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
     result.n_expanded(k) = info.n_expanded;
-    result.priority(:,k) = scenario_tmp.priority_list;
+    result.priority(:,k) = scenario.priority_list;
     result.computation_levels(k) = info.computation_levels;
     result.step_time(k) = toc(result.step_timer);
 
@@ -458,7 +458,7 @@ while (~got_stop)
     result.vehs_fallback{k} = info.vehs_fallback;
 
     % check if deadlock occurs
-    vehs_stop = any(ismember(info.trim_indices,scenario_tmp.mpa.trims_stop),2); % vehicles stop at the current time step
+    vehs_stop = any(ismember(info.trim_indices,scenario.mpa.trims_stop),2); % vehicles stop at the current time step
     vehs_stop_time_steps(~vehs_stop) = inf; % reset others
 
     vehs_stop_successively = vehs_stop_time_steps<k & vehs_stop; % vehicles stop both at the current and previous time step
@@ -471,7 +471,7 @@ while (~got_stop)
     if max_stop_steps > threshold_stop_steps
         % a deadlock is considered to have occur if a vehicle stops continually more than a certain number time steps
         warning(['Deadlock occurs since vehicle ' num2str(veh_deadlock(1)) ' stops for a long time.'])
-        result.t_total = min_stop_step(1)*scenario_tmp.options.dt;
+        result.t_total = min_stop_step(1)*scenario.options.dt;
         result.nSteps = result.t_total;
         is_deadlock = true;
 

@@ -4,7 +4,7 @@ function set_figure_properties(figHandle, preset, paperheight_in)
     switch lower(preset)
     case 'paper' % \the\linewidth=252.0pt, 1pt=0.3515mm --> 88.578mm
         fontsize    = 9;
-        paperwidth  = 8;    % picture width in cm
+        paperwidth  = 7.5;    % picture width in cm
         paperheight = 4;    % picture height in cm
         linewidth   = 0.5;
         fontname    = 'CMU Serif';

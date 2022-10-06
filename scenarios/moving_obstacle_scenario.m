@@ -28,16 +28,15 @@ function scenario = moving_obstacle_scenario(options)
     scenario.options.trim_set = 9;
     scenario.options.amount = 1;
     scenario.options.dt = 0.2;
-    scenario.options.T_end = 16;
+    scenario.options.T_end = 3; % TODO increase
     scenario.options.isSaveResult = true;
     scenario.options.trim_set = 9;
-    scenario.options.plot_limits = [veh.x_start-0.5,veh.x_start+11;-1.5,1.5];
     if ~options.is_start_end
-    scenario.options.Hp = 10;
-        scenario.name = sprintf('moving_obstacles');
+        scenario.options.Hp = 5; % TODO as in other eval
+        scenario.options.scenario_name = sprintf('moving_obstacles');
     else
         scenario.options.Hp = scenario.options.T_end / scenario.options.dt;
-        scenario.name = sprintf('moving_obstacles_start_end');
+        scenario.options.scenario_name = sprintf('moving_obstacles_start_end');
     end
 
 
@@ -54,7 +53,7 @@ function scenario = moving_obstacle_scenario(options)
 
 
     %% Obstacles
-    dx_veh_obs = 3;
+    dx_veh_obs = 1;
     dx_obs_obs = 1.5;
     x_obs = [
         veh.x_start + dx_veh_obs;
@@ -87,9 +86,10 @@ function scenario = moving_obstacle_scenario(options)
     
     scenario.dynamic_obstacle_shape = [width_obs;length_obs];
 
-    n_obs_per_col = 20;
+    n_obs_per_col = 10;
+    n_cols = 2;
     
-    for i_col = 1:numel(x_obs)
+    for i_col = 1:n_cols
         for iObstacle = 1:n_obs_per_col
             for iTimestep = 1:(scenario.options.k_end+scenario.options.Hp+1)
                 scenario.dynamic_obstacle_area{iObstacle+(i_col-1)*n_obs_per_col,iTimestep} = ...
@@ -112,4 +112,8 @@ function scenario = moving_obstacle_scenario(options)
     end
     
     scenario.name = sprintf('moving_obstacles');
+    dx_plot = 0.5;
+    scenario.options.plot_limits = [...
+        veh.x_start-dx_plot, x_obs(n_cols)+dx_plot+dx_veh_obs;-1.5,1.5 ...
+    ];
 end
