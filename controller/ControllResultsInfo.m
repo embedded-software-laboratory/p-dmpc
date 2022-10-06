@@ -59,6 +59,8 @@ classdef ControllResultsInfo
             obj.vehs_fallback = [];
             obj.is_exhausted = false(nVeh,1);
             obj.u = zeros(nVeh,1); 
+
+%             obj.runtime_graph_search_each_veh = zeros()
         end
 
         function obj = store_control_info(obj, info_v, scenario)
@@ -94,7 +96,6 @@ classdef ControllResultsInfo
         function obj = get_run_time_total_all_grps(obj, parl_groups_info, CL_based_hierarchy, runtime_others)
         % Calculate the total runtime: in each parallel group, only one vehicle in each computation
         % level will be counted, this is the one with the maximum runtime 
-        
             n_grps = length(parl_groups_info); % number of parallel groups
         
             obj.runtime_graph_search_each_grp = zeros(1,n_grps); % subcontroller time of each group

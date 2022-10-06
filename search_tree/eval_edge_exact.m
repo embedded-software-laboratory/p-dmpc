@@ -45,7 +45,7 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
         t2 = cTrim(iVeh);
 
         % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-        if strcmp(scenario.options.priority,'mixed_traffic_priority')
+        if scenario.options.is_mixed_traffic
             % first check if mixed_traffic_priority is used to make a short circuit
             if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
                 || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
@@ -80,13 +80,6 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
         end
         iStep = cK;
 
-        if scenario.k>=1
-%             disp('')
-            if t1==1 && t2==1
-                disp('')
-            end
-        end
-
         switch method
             case 'sat'
                 % check if collides with other vehicles' predicted trajectory or lanelets 
@@ -116,46 +109,16 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
                     end
                 end
 
-                if InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
-                    % check collision with lanelet obstacles
+                % check collision with lanelet obstacles
+                if scenario.options.is_mixed_traffic
+                    % in mixed traffic scenario, boundary data could be full of nan
+                    if ~all(isnan(lanelet_boundary),'all') && InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
+                        is_valid = false;
+                        return
+                    end
+                elseif InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
                     is_valid = false;
                     return
-%                 else
-%                     if iStep==scenario.options.Hp
-%                         % at the last time step, check if vehicle could still move forward while not
-%                         % colliding with its lanelet boundary. This is done by
-%                         % checking the emergency left/right maneuvers. At least one of them should be
-%                         % collision-free with lanelet boundary.
-%                         x_Hp = c*maneuver.dx - s*maneuver.dy + pX(iVeh);
-%                         y_Hp = s*maneuver.dx + c*maneuver.dy + pY(iVeh);
-%                         yaw_Hp = maneuver.dyaw + pYaw;
-%                         s_Hp = sin(yaw_Hp);
-%                         c_Hp = cos(yaw_Hp);
-% 
-%                         area_straight = scenario.mpa.emergency_maneuvers{t2}.go_straight_area;
-%                         go_straight_x = c_Hp*area_straight(1,:) - s_Hp*area_straight(2,:) + x_Hp;
-%                         go_straight_y = s_Hp*area_straight(1,:) + c_Hp*area_straight(2,:) + y_Hp;
-%                         shape_go_straight = [go_straight_x;go_straight_y];
-%                         if InterX(shape_go_straight, lanelet_boundary)
-%                             % go straight is not collision-free with lanelet boundary
-%                             area_left = scenario.mpa.emergency_maneuvers{t2}.leftTwice_area_without_offset;
-%                             turn_left_x = c_Hp*area_left(1,:) - s_Hp*area_left(2,:) + x_Hp;
-%                             turn_left_y = s_Hp*area_left(1,:) + c_Hp*area_left(2,:) + y_Hp;
-%                             shape_turn_left = [turn_left_x;turn_left_y];
-%                             if InterX(shape_turn_left, lanelet_boundary)
-%                                 % turn left most maneuver is also not collision-free with lanelet boundary
-%                                 area_right = scenario.mpa.emergency_maneuvers{t2}.rightTwice_area_without_offset;
-%                                 turn_right_x = c_Hp*area_right(1,:) - s_Hp*area_right(2,:) + x_Hp;
-%                                 turn_right_y = s_Hp*area_right(1,:) + c_Hp*area_right(2,:) + y_Hp;
-%                                 shape_turn_right = [turn_right_x;turn_right_y];
-%                                 if InterX(shape_turn_right, lanelet_boundary)
-%                                     % turn right most maneuver is still not collision-free with lanelet boundary
-%                                     is_valid = false;
-%                                     return;
-%                                 end
-%                             end
-%                         end
-%                     end
                 end
 
             otherwise

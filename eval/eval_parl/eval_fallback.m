@@ -14,7 +14,7 @@ options.Hp = 6;
 options.T_end = 300;
 options.dt = 0.2;
 options.max_num_CLs = 3;
-options.priority = 'right_of_way_priority';
+options.priority = 'STAC_priority';
 options.isPB = true;
 options.isParl = true;
 options.isAllowInheritROW = false;
@@ -54,7 +54,7 @@ for iFallback = 1:length(fallback_types)
                 end
             end
             % data processing
-            e_fallback_strategies{(iFallback-1)*random_times+iRandom,iVeh} = EvaluationParl(options);
+            e_fallback_strategies{(iFallback-1)*random_times+iRandom,iVeh} = EvaluationParl(options,[0,options.T_end]);
 
             % display progress
             count = count + 1;
@@ -105,9 +105,9 @@ fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
 
 % options for plot 
-plot_options_localFB = struct('LineWidth',.6,'Marker','*','MarkerSize',4);
-plot_options_globalFB = struct('LineWidth',.6,'Marker','o','MarkerSize',4);
-plot_options_noFB = struct('LineWidth',.6,'Marker','square','MarkerSize',4);
+plot_options_localFB = struct('LineWidth',.6,'Marker','*','MarkerSize',4,'Color',[0 0.4470 0.7410]);
+plot_options_globalFB = struct('LineWidth',.6,'Marker','o','MarkerSize',4,'Color',[0.8500 0.3250 0.0980]);
+plot_options_noFB = struct('LineWidth',.6,'Marker','square','MarkerSize',4,'Color',[0.4660 0.6740 0.1880]);
 
 file_name = 'evalFallback';
 fig = figure('Name',file_name);
@@ -136,7 +136,7 @@ hold on
 plot(nVeh_s,speed_average(2,:),plot_options_globalFB);
 plot(nVeh_s,speed_average(3,:),plot_options_noFB);
 grid on
-l = legend({'Local fallback','Global fallback','Fallback not allowed'},'Orientation','horizontal','NumColumns',3);
+l = legend({'Local fallback','Global fallback','Fallback-free'},'Orientation','horizontal','NumColumns',3);
 l.Layout.Tile = 'north';
 xlabel({'$n_{veh}$','(b) Average speed of all vehicles.'},'Interpreter','latex')
 ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
@@ -155,7 +155,6 @@ ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 xlim([min(nVeh_s) max(nVeh_s)])
 xticks(nVeh_s)
 
-% xlabel(t_fig,'Compare different fallback strategies','FontSize',9,'FontName','Times New Roman')
 % save fig
 e_fallback_strategies{1}.save_fig(fig,file_name)
 

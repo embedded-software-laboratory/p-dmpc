@@ -13,7 +13,7 @@ options.Hp = 5;
 options.T_end = 10;
 options.dt = 0.2;
 options.max_num_CLs = 4;
-options.priority = 'right_of_way_priority';
+options.priority = 'STAC_priority';
 options.isPB = true;
 options.isParl = true;
 options.isAllowInheritROW = false;
@@ -121,10 +121,6 @@ plot_line_options{3}{1} = struct('LineWidth',0.5,'Color','#0072BD','LineStyle','
 plot_line_options{3}{2} = struct('LineWidth',0.5,'Color','#0072BD','LineStyle','-.','Marker','o','MarkerSize',4);
 plot_line_options{4}{1} = struct('LineWidth',0.5,'Color','#D95319','LineStyle','-','Marker','v','MarkerSize',4);
 plot_line_options{4}{2} = struct('LineWidth',0.5,'Color','#D95319','LineStyle','-.','Marker','v','MarkerSize',4);
-plot_line_options{5}{1} = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','-','Marker','s','MarkerSize',4);
-plot_line_options{5}{2} = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','-.','Marker','s','MarkerSize',4);
-plot_line_options{6}{1} = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-','Marker','d','MarkerSize',4);
-plot_line_options{6}{2} = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-.','Marker','d','MarkerSize',4);
 
 fig_x = 15;     fig_y = 9; % [cm]
 x_margin = 0;   y_margin = 0; 
@@ -177,6 +173,5 @@ y_max = 70;
 ylim([0 y_max])
 xticks(nVeh_s)
 yticks(0:5:y_max)
-% xlabel(t_fig,'Compare different fallback strategies','FontSize',9,'FontName','Times New Roman')
 % save fig
 e_scalability{1}.save_fig(fig,file_name)

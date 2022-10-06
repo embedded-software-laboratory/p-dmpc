@@ -43,24 +43,7 @@ function [reference,curTrajectoryIndex] = sampleReferenceTrajectory(nSamples, re
         TrajectoryIndex = 1; 
     end  
 
-    %{
     for i=1:nSamples
-        stepSize(i) = stepSize(i) + 0.03;
-    end
-    %}
-
-    for i=1:nSamples
-        %increased = false;
-
-        %{
-        for j = 1:length(scenario.vehicles(iVeh).lane_change_indices)
-            if TrajectoryIndex == scenario.vehicles(iVeh).lane_change_indices(j,2) && ~increased
-                stepSize(i) = stepSize(i) + 0.03;
-                increased = true;
-            end
-        end
-        %}
-        
         remainingLength = norm(currentPoint-referenceTrajectory(TrajectoryIndex,:),2);
         
         if remainingLength > stepSize(i) || TrajectoryIndex == nLinePieces
@@ -89,15 +72,6 @@ function [reference,curTrajectoryIndex] = sampleReferenceTrajectory(nSamples, re
 
                 TrajectoryIndexLast = TrajectoryIndex;
                 TrajectoryIndex = min(TrajectoryIndex+1, nLinePieces);
-
-                %{
-                for j = 1:length(scenario.vehicles(iVeh).lane_change_indices)
-                    if TrajectoryIndex == scenario.vehicles(iVeh).lane_change_indices(j,2) && ~increased
-                        stepSize(i) = stepSize(i) + 0.03;
-                        increased = true;
-                    end
-                end
-                %}
                 
                 Is_refPoint_last = TrajectoryIndex == nLinePieces;
 

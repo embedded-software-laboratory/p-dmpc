@@ -12,7 +12,7 @@ options.Hp = 5;
 options.T_end = 10;
 options.dt = 0.2;
 options.max_num_CLs = 2;
-options.priority = 'right_of_way_priority';
+options.priority = 'STAC_priority';
 options.isPB = true;
 options.isParl = true;
 options.isAllowInheritROW = false;
@@ -26,10 +26,6 @@ options.strategy_enter_lanelet_crossing_area = '1';
 options.isSaveResultReduced = true;
 
 options.coupling_weight_mode  = {'STAC','random','constant','optimal'};
-
-% Random choose different vehicles three times
-belongs_vector_s = zeros(options.amount,2);
-count = 0;
 
 options.amount = 20;
 
@@ -48,10 +44,7 @@ else
     end
 end
 load(full_path,'result')
-% data processing
 % display progress
-count = count + 1;
-%     disp(['--------Progress ' num2str(count) '/' num2str(n_simulations) ': done--------'])
 
 disp('--------Finished--------')
 
@@ -127,10 +120,7 @@ for i = 1:2
     EvaluationParl.save_fig(fig,file_name)
 end
 
-
-
 %%
-
 fig_x = 10;     fig_y = 10; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;

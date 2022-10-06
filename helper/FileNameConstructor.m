@@ -83,7 +83,7 @@ classdef FileNameConstructor
                     results_name = [results_name,'_fullResult'];
                 end
 
-                if ~isempty(options.random_idx)
+                if ~isempty(options.random_idx) && options.random_idx~=1
                     results_name = [results_name,'_random',num2str(options.random_idx)];
                 end
 

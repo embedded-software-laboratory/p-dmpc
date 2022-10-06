@@ -12,18 +12,18 @@ options.Hp = 6;
 options.T_end = 300;
 options.dt = 0.2;
 options.max_num_CLs = 1;
-options.priority = 'right_of_way_priority';
+options.priority = 'STAC_priority';
 options.isPB = true;
 options.isParl = true;
 options.isAllowInheritROW = false;
-options.isSaveResult = false;
+options.isSaveResult = true;
 options.isSaveResultReduced = true;
 options.visu = [false,false];
 options.is_eval = false;
 options.visualize_reachable_set = false;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '1';
-nVeh_s = 18:1:30;
+nVeh_s = 20:1:30;
 % Random choose different vehicles three times
 random_times = 3;
 e_predictionInconsistency = cell(random_times*length(isDealPredictionInconsistency),length(nVeh_s));
@@ -71,31 +71,6 @@ average_random_simulations = @(data) reshape(mean(reshape(data,random_times,[]),
 % total runtime
 t_total_tmp = cellfun(@(c) c.t_total, e_predictionInconsistency);
 t_total = average_random_simulations(t_total_tmp);
-t_total_normalized = t_total(1,:)./t_total(2,:);
-
-fallback_rate_tmp = cellfun(@(c) c.fallback_rate*100, e_predictionInconsistency);
-fallback_rate = average_random_simulations(fallback_rate_tmp);
-% speed_sum_s = cellfun(@(c) c.sum_speeds_all_vehicles, e_feasibility_differentNumVehs);
-
-speed_average_tmp = cellfun(@(c) c.average_speed, e_predictionInconsistency);
-speed_average = average_random_simulations(speed_average_tmp);
-
-speed_average_each_veh_tmp = cellfun(@(c) c.average_speed_each_veh, e_predictionInconsistency, 'UniformOutput',false);
-speed_average_each_veh = cell(1,length(strategy_feasibility_deadlock));
-for i = 1:size(speed_average_each_veh_tmp,2)
-    speed_average_each_veh{i} = vertcat(speed_average_each_veh_tmp{:,i});
-end
-grp_speed_average_each_veh = cell2mat(arrayfun(@(i){i*ones(numel(speed_average_each_veh{i}),1)},(1:numel(speed_average_each_veh))')); 
-
-CT_graph_search_tmp = cellfun(@(c) c.runtime_graph_search, e_predictionInconsistency);
-CT_graph_search = average_random_simulations(CT_graph_search_tmp);
-CT_total_max_tmp = cellfun(@(c) c.runtime_max, e_predictionInconsistency);
-CT_total_max = average_random_simulations(CT_total_max_tmp);
-CT_total_average_tmp = cellfun(@(c) c.runtime_total_average, e_predictionInconsistency);
-CT_total_average = average_random_simulations(CT_total_average_tmp);
-X_string = {'Both','FIS','DAS','None'};
-X_cat = categorical(X_string);
-X_cat = reordercats(X_cat,X_string);
 
 % options for plot 
 plot_options_considerPI = struct('LineWidth',.6,'Marker','*','MarkerSize',4);
@@ -120,7 +95,7 @@ clear p
 p(1) = plot(nVeh_s,t_total(1,:),plot_options_considerPI);
 hold on 
 p(2) = plot(nVeh_s,t_total(2,:),plot_options_notConsiderPI);
-legend(p,{'Prediction inconsistency addressed','Not addressed'},'Location','northeast')
+legend(p,{'Consider reachable sets','Consider previous trajectories'},'Location','northeast')
 grid on
 xlabel({'$n_{veh}$'},'Interpreter','latex')
 ylabel('$t_{max}\:[s]$','Interpreter','latex')
@@ -131,6 +106,6 @@ t_total_a = sum(t_total(1,:));
 t_total_b = sum(t_total(2,:));
 average_improvement = (t_total_a-t_total_b)/t_total_b;
 disp(['Average improvement in maximum runtime: ' num2str(average_improvement*100) '%.'])
+
 % save fig
 e_predictionInconsistency{1}.save_fig(fig,file_name)
-

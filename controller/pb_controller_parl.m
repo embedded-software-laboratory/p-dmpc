@@ -13,9 +13,6 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
     nVeh = scenario.options.amount;
     Hp = scenario.options.Hp;
 
-    % visualize the coupling between vehicles
-    % plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)
-    
     % initialize variable to store control results
     info = ControllResultsInfo(nVeh, Hp, [scenario.vehicles.ID]);
     n_expended = zeros(nVeh,1);
@@ -67,33 +64,37 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp); % coupled vehicles with higher priorities in the same group
             coupled_vehs_other_grps_with_HP = setdiff(all_coupled_vehs_with_HP, coupled_vehs_same_grp_with_HP); % coupled vehicles with higher priorities in other groups
             
-            % Collisions with coupled vehicles with higher priorities will be avoided by two ways depending on the time step at which their latest messages are sent:
-            % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step. 
-            % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step. 
             for i_HP = 1:length(all_coupled_vehs_with_HP)
                 veh_with_HP_i = all_coupled_vehs_with_HP(i_HP);
                 
                 if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
-                    % if in the same group, read the current message and
-                    % set the predicted occupied areas as dynamic obstacles  
+                    % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles  
                     latest_msg = read_message(scenario_v.vehicles.communicate, scenario_v.ros_subscribers{veh_with_HP_i}, scenario_v.k);
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                     oldness_msg = scenario_v.k - latest_msg.time_step;
                     if oldness_msg ~= 0
-                        % consider the oldness of the message: delete the
-                        % first n entries and repeat the last entry for n times
+                        % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
                         predicted_areas_i = del_first_rpt_last(predicted_areas_i,oldness_msg);
                     end
                     scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
                 else
-                    % if the selected vehicle is not in the same group
+                    % if they are in different groups
                     if scenario.options.isDealPredictionInconsistency
-                        % add their reachable sets as dynamic obstacles to deal
-                        % with the prediction inconsistency
-                        reachable_sets_i = iter.reachable_sets(veh_with_HP_i,:);
-                        % turn polyshape to plain array (repeat the first row to enclosed the shape)
-                        reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
-                        scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
+                        % Collisions with coupled vehicles with higher priorities in different groups will be avoided by two ways depending on the time step at which 
+                        % their latest messages are sent:
+                        % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step. 
+                        % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step. 
+                        latest_msg = scenario_v.ros_subscribers{veh_with_HP_i}.LatestMessage;
+                        if latest_msg.time_step == scenario_v.k
+                            predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
+                            scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
+                        else
+                            % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
+                            reachable_sets_i = iter.reachable_sets(veh_with_HP_i,:);
+                            % turn polyshape to plain array (repeat the first row to enclosed the shape)
+                            reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
+                            scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
+                        end
                     else
                         % otherwise add one-step delayed trajectories as dynamic obstacles
                         if scenario_v.k>1
@@ -102,8 +103,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
                             predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, old_msg.predicted_areas);
                             oldness_msg = scenario_v.k - old_msg.time_step;
                             if oldness_msg ~= 0
-                                % consider the oldness of the message: delete the
-                                % first n entries and repeat the last entry for n times
+                                % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
                                 predicted_areas_i = del_first_rpt_last(predicted_areas_i',oldness_msg);
                             end
                             scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
@@ -125,22 +125,11 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             % consider coupled vehicles with lower priorities
             scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupled_vehs_with_LP);
 
-            if scenario.k >= 1
-                if vehicle_idx == 9 || vehicle_idx == 12
-                    disp('')
-                end
-            end
-
-            
             % execute sub controller for 1-veh scenario
-%             tic
             info_v = sub_controller(scenario_v, iter_v);
-%             toc
             if info_v.is_exhausted
-                % if graph search is exhausted, this vehicles and all vehicles that have directed or
-                % undirected couplings with this vehicle will take fallback 
-                disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
-
+                % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
+%                 disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
                 switch scenario.options.fallback_type
                     case 'localFallback'
                         sub_graph_fallback = belonging_vector_total(vehicle_idx);
@@ -194,9 +183,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, is_fallback);
             msg_send_time(vehicle_k) = toc(msg_send_tic);
         end
-
     end
-
     
     info.runtime_graph_search_each_veh = info.runtime_graph_search_each_veh + msg_send_time;
     % Calculate the total runtime of each group

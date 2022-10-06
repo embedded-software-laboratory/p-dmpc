@@ -28,7 +28,7 @@ function [info, scenario] = pb_controller(scenario, iter)
     directed_graph = digraph(directed_adjacency);
     [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
     runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search 
- 
+    
 
     for grp_idx = 1:length(groups)
         group = groups(grp_idx);
@@ -44,6 +44,7 @@ function [info, scenario] = pb_controller(scenario, iter)
             
             % Filter out vehicles that are not adjacent
             veh_adjacent = find(scenario.adjacency(vehicle_idx,:,end));
+            veh_adjacent = setdiff(veh_adjacent,vehicle_idx); % exclude self
             predecessors = intersect(group.predecessors,veh_adjacent);
 
             % Filter out vehicles with lower or same priority.
@@ -61,27 +62,18 @@ function [info, scenario] = pb_controller(scenario, iter)
             [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(predecessors,:));
             
             % add adjacent vehicles with lower priorities as static obstacles
-            if strcmp(scenario.options.priority, 'right_of_way_priority')
-                adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
-                
-                % only two strategies are supported if parallel computation is not used
-                assert(any(strcmp(scenario_v.options.strategy_consider_veh_without_ROW,{'1','2','3'})))
-                scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, adjacent_vehicle_lower_priority);
-            end
-
-            if scenario.k >= 128
-                if vehicle_idx == 4
-                    disp('')
-                end
-            end
+            adjacent_vehicle_lower_priority = setdiff(veh_adjacent,predecessors);
+            % only two strategies are supported if parallel computation is not used
+            assert(any(strcmp(scenario_v.options.strategy_consider_veh_without_ROW,{'1','2','3'})))
+            scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, adjacent_vehicle_lower_priority);
 
             % execute sub controller for 1-veh scenario
             info_v = sub_controller(scenario_v, iter_v);
-            
+
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback 
-                disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                disp(['Graph search exhausted for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
                 sub_graph_fallback = belonging_vector_total(vehicle_idx);
                 info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                 info.vehs_fallback = unique(info.vehs_fallback,'stable');

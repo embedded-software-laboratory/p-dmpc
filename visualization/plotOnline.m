@@ -191,7 +191,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
             if scenario.options.bound_reachable_sets
                 text_RS = 'Bounded reachable set by lanelet boundaries';
             else
-                text_RS = 'Unbounded reachable set';
+                text_RS = 'Reachable set';
             end
 
             if isempty(visu.vehsReachableSets)

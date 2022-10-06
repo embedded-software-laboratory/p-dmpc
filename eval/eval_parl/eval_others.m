@@ -156,7 +156,7 @@ options.isSaveResult = true;
 options.visu = [false,false];
 options.is_eval = false;
 options.visualize_reachable_set = false;
-options.priority = 'right_of_way_priority';
+options.priority = 'STAC_priority';
 options.amount = 20;
 
 % run simulation

@@ -9,16 +9,16 @@ options.scenario_name = 'Commonroad';
 options.trim_set = 9;
 options.Hp = 5;
 
-options.T_end = 20;
+options.T_end = 25;
 options.dt = 0.2;
 options.max_num_CLs = 2;
-options.priority = 'right_of_way_priority';
+options.priority = 'STAC_priority';
 options.isPB = true;
 options.isParl = true;
 options.isAllowInheritROW = false;
 options.isSaveResult = false
 options.isSaveResultReduced = true;
-options.visu = [true,false]
+options.visu = [false,false]
 options.is_eval = false;
 options.visualize_reachable_set = false;
 options.strategy_consider_veh_without_ROW = '3';
@@ -26,7 +26,7 @@ options.strategy_enter_lanelet_crossing_area = '1';
 options.is_force_parallel_vehs_in_same_grp = false;
 
 coupling_weight_mode = {'STAC','random','constant'};
-coupling_weight_mode = {'STAC'};
+% coupling_weight_mode = {'STAC'};
 % Random choose different vehicles three times
 count = 0;
 e_weighting_function = cell(length(coupling_weight_mode),1);
@@ -40,9 +40,9 @@ options.veh_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
 for i = 1:length(coupling_weight_mode)
     options.coupling_weight_mode  = coupling_weight_mode{i};
     full_path = FileNameConstructor.get_results_full_path(options);
-%     if isfile(full_path)
-%         disp('File already exists.')
-%     else
+    if isfile(full_path)
+        disp('File already exists.')
+    else
         % run simulation
         if exist('options','var') && exist('scenario','var')
             [~,~,~] = main(options,scenario);
@@ -50,7 +50,7 @@ for i = 1:length(coupling_weight_mode)
             [~,scenario,~] = main(options);
         end
 %         pause(10)
-%     end
+    end
     % data processing
     % display progress
     count = count + 1;

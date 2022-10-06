@@ -14,12 +14,12 @@ classdef MotionPrimitiveAutomaton
         local_reachable_sets_conv;  % Convexified local reachable sets of each trim
         local_center_trajectory     % local trajcetory of the center point
         local_reachable_sets_CP     % local reachable sets of the center point
-        shortest_paths_to_max_speed     % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with maximum speed
-        shortest_paths_to_equilibrium   % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
-        emergency_trims                   % cell(n_trims, 1), store which trim corresponds to emergency left/right; if multiple trims, choose the one with the lowest speed
-        emergency_maneuvers               % cell(n_trims, 1), emergency left/right/braking maneuvers
-        trims_stop                          % trims with zero speed
-        offline_reachability_computation_time % computation time of the offline reachability analysis
+        shortest_paths_to_max_speed             % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with maximum speed
+        shortest_paths_to_equilibrium           % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
+        emergency_trims                         % cell(n_trims, 1), store which trim corresponds to emergency left/right; if multiple trims, choose the one with the lowest speed
+        emergency_maneuvers                     % cell(n_trims, 1), emergency left/right/braking maneuvers
+        trims_stop                              % trims with zero speed
+        offline_reachability_computation_time   % computation time of the offline reachability analysis
     end
 
     properties(Access=protected)
@@ -620,6 +620,7 @@ classdef MotionPrimitiveAutomaton
                     distance_acceleration = distance_acceleration + mean_speed*time_step;
                     if distance_acceleration > distance_destination % if the vehicle arrives the detination when accelerating
                         shortest_time_to_arrive = shortest_time_to_arrive + distance_remained/mean_speed; % time accumulates
+                        distance_remained = 0;
                         break
                     else
                         shortest_time_to_arrive = shortest_time_to_arrive + time_step; % time accumulates

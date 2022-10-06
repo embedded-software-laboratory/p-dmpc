@@ -26,13 +26,6 @@ axis equal
 xlim([0,0.6])
 ylim([-0.3,0.3])
 
-% CP_xy = [CP{:}];
-% CP_poly = polyshape(CP_xy(1,:),CP_xy(2,:));
-% plot(CP_poly)
-% idx_conv = convhull(CP_xy(1,:),CP_xy(2,:));
-% CP_poly_conv = polyshape(CP_xy(1,idx_conv),CP_xy(2,idx_conv));
-% plot(CP_poly_conv)
-
 %% compare the computation time with CORA toolbox
 x0 = 0.1; y0 = 0.2; yaw0 = pi/9;
 iTrim = 1;

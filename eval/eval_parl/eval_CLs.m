@@ -7,64 +7,50 @@ options.customResultName = '';
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;
 options.Hp = 6;
-options.amount = 30;
-options.T_end = 10;
-options.priority = 'right_of_way_priority';
+options.T_end = 8;
+options.priority = 'STAC_priority';
 options.isPB = true;
 options.isParl = true;
-options.isAllowInheritROW = true;
+options.isAllowInheritROW = false;
 options.strategy_consider_veh_without_ROW = '3';
+options.strategy_enter_lanelet_crossing_area = '1';
 options.isSaveResult = true;
-options.visu = [false,false];
+options.visu = [0,false];
 options.is_eval = false;
 options.visualize_reachable_set = false;
 options.dt = 0.2;
 
-max_num_CLs_all = [1:2:7,options.amount];
+options.veh_ids = [11,18,19,20,26,27,29,31,32,40];
+options.amount = numel(options.veh_ids);
 
-% Random choose different vehicles three times
-random_times = 1;
-e_CLs = cell(random_times,length(max_num_CLs_all));
+max_num_CLs_all = [1,2:2:8,options.amount];
+
+e_CLs = cell(length(max_num_CLs_all),1);
 n_simulations = numel(e_CLs);
 count = 0;
 
 for i_CL = 1:length(max_num_CLs_all)
     options.max_num_CLs = max_num_CLs_all(i_CL);
 
-    if options.max_num_CLs==options.amount
-        % Sequential trajectory planning: Vehicles are allowed to enter
-        % lanelet crossing areas
-        options.strategy_enter_lanelet_crossing_area = '1';
+    full_path = FileNameConstructor.get_results_full_path(options);
+    if isfile(full_path)
+        disp('File already exists.')
     else
-        options.strategy_enter_lanelet_crossing_area = '1';
-    end
-
-    random_seed = RandStream('mt19937ar');
-    for iRandom=1:random_times
-        options.random_idx =  iRandom;
-        options.veh_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
-
-        full_path = FileNameConstructor.get_results_full_path(options);
-        if isfile(full_path)
-            disp('File already exists.')
+        % run simulation
+        if exist('options','var') && exist('scenario','var')
+            [~,~,~] = main(options,scenario);
         else
-            % run simulation
-            if exist('options','var') && exist('scenario','var')
-                [~,~,~] = main(options,scenario);
-            else
-                [~,scenario,~] = main(options);
-            end
-            pause(10) 
+            [~,scenario,~] = main(options);
         end
-        % data processing
-        e_CLs{iRandom,i_CL} = EvaluationParl(options);
-        
-        % display progress
-        count = count + 1;
-        disp(['--------Progress ' num2str(count) '/' num2str(n_simulations) ': done--------'])
+        pause(5)
     end
-end    
-
+    % data processing
+    e_CLs{i_CL} = EvaluationParl(options);
+    
+    % display progress
+    count = count + 1;
+    disp(['--------Progress ' num2str(count) '/' num2str(n_simulations) ': done--------'])
+end
 
 % get free flow speed, i.e., the speed that vehicles could travel if they are not influenced by others
 % vehicles
@@ -78,180 +64,127 @@ disp('--------Finished--------')
 %% Plot
 set(0,'DefaultTextFontname', 'Times New Roman');
 set(0,'DefaultAxesFontName', 'Times New Roman');
-set(0,'defaultTextFontSize',7)
-set(0,'defaultAxesFontSize',7)
+set(0,'defaultTextFontSize',11)
+set(0,'defaultAxesFontSize',11)
 
-average_random_simulations = @(data) reshape(mean(reshape(data,random_times,[]),1),1,[]);
-
-% computation time of different parts
-CT_group_vehs = cellfun(@(c) c.runtime_group_vehs, e_CLs);
-% CT_group_vehs = average_random_simulations(CT_group_vehs); % average of the random simulations
-CT_group_vehs = max(CT_group_vehs,[],1);
-
-CT_determine_couplings = cellfun(@(c) c.runtime_determine_couplings, e_CLs);
-% CT_determine_couplings = average_random_simulations(CT_determine_couplings);
-CT_determine_couplings = max(CT_determine_couplings,[],1);
-
-CT_determine_couplings_average = cellfun(@(c) c.runtime_determine_couplings_average, e_CLs);
-% CT_determine_couplings = average_random_simulations(CT_determine_couplings);
-CT_determine_couplings_average = max(CT_determine_couplings_average,[],1);
-
-CT_assign_priority = cellfun(@(c) c.runtime_assign_priority, e_CLs);
-% CT_assign_priority = average_random_simulations(CT_assign_priority);
-CT_assign_priority = max(CT_assign_priority,[],1);
-
-CT_graph_search = cellfun(@(c) c.runtime_graph_search, e_CLs);
-% CT_graph_search = average_random_simulations(CT_graph_search);
-CT_graph_search = max(CT_graph_search,[],1);
+CT_graph_search = cellfun(@(c) c.runtime_graph_search, e_CLs);  
 CT_graph_search_average = cellfun(@(c) c.runtime_graph_search_average, e_CLs);
-% CT_graph_search = average_random_simulations(CT_graph_search);
-CT_graph_search_average = max(CT_graph_search_average,[],1);
+CT_graph_search_pure_sequential = cellfun(@(c) c.runtime_graph_search_pure_sequential, e_CLs);  
+CT_graph_search_pure_sequential_average = cellfun(@(c) c.runtime_graph_search_pure_sequential_average, e_CLs);
+CT_graph_search(end+1) = CT_graph_search_pure_sequential(end);
+CT_graph_search_average(end+1) = CT_graph_search_pure_sequential_average(end);
 
-CT_total_each_step_tmp = cellfun(@(c) c.runtime_total_per_step, e_CLs, 'UniformOutput',false);
-CT_total_each_step = cell(1,length(max_num_CLs_all));
-for i = 1:size(CT_total_each_step_tmp,2)
-    CT_total_each_step{i} = vertcat(CT_total_each_step_tmp{:,i});
-end
-grp_CT_total_each_step = cell2mat(arrayfun(@(i){i*ones(numel(CT_total_each_step{i}),1)},(1:numel(CT_total_each_step))')); 
-
-CT_total_average = cellfun(@mean, CT_total_each_step);
 
 CT_total_max = cellfun(@(c) c.runtime_max, e_CLs);
-% CT_total_max = average_random_simulations(CT_total_max);
-CT_total_max = max(CT_total_max,[],1);
-
-% total runtime
-t_total = cellfun(@(c) c.t_total, e_CLs);
-t_total = average_random_simulations(t_total);
+% CT_total_max = average_random_simulations(CT_total_max); 
 
 % number of coupling 
 num_couplings = cellfun(@(c) c.num_couplings, e_CLs);
-num_couplings = average_random_simulations(num_couplings);
+num_couplings(end+1) = num_couplings(end);
 num_couplings_ignored = cellfun(@(c) c.num_couplings_ignored, e_CLs);
-num_couplings_ignored = average_random_simulations(num_couplings_ignored);
+num_couplings_ignored(end+1) = num_couplings_ignored(end);
 num_couplings_between_grps = cellfun(@(c) c.num_couplings_between_grps, e_CLs);
-num_couplings_between_grps = average_random_simulations(num_couplings_between_grps);
+num_couplings_between_grps(end+1) = num_couplings_between_grps(end);
 num_couplings_between_grps_ignored = cellfun(@(c) c.num_couplings_between_grps_ignored, e_CLs);
-num_couplings_between_grps_ignored = average_random_simulations(num_couplings_between_grps_ignored);
+num_couplings_between_grps_ignored(end+1) = num_couplings_between_grps_ignored(end);
 
-% maximum numbero of actual computation levels
+% maximum number of actual computation levels
 CLs_num_max = cellfun(@(c) c.CLs_num_max, e_CLs);
-CLs_num_max = max(CLs_num_max,[],1);
-% fallback rate
-fallback_rate = cellfun(@(c) c.fallback_rate*100, e_CLs);
-fallback_rate = average_random_simulations(fallback_rate);
+CLs_num_max(end+1) = max_num_CLs_all(end);
 
 % average speed
 speed_average = cellfun(@(c) c.average_speed, e_CLs);
-speed_average = average_random_simulations(speed_average);
-speed_max = cellfun(@(c) c.max_speed, e_CLs);
-speed_max = average_random_simulations(speed_max);
-speed_min = cellfun(@(c) c.min_speed, e_CLs);
-speed_min = average_random_simulations(speed_min);
-
-
-speed_each_veh_tmp = cellfun(@(c) c.average_speed_each_veh, e_CLs, 'UniformOutput',false);
-speed_each_veh = cell(1,length(max_num_CLs_all));
-for i = 1:size(speed_each_veh_tmp,2)
-    speed_each_veh{i} = vertcat(speed_each_veh_tmp{:,i});
-end
-grp_speed_each_veh = cell2mat(arrayfun(@(i){i*ones(numel(speed_each_veh{i}),1)},(1:numel(speed_each_veh))')); 
+speed_average(end+1) = speed_average(end);
 
 plot_line_options = {};
-plot_line_options{1}{1} = struct('LineWidth',0.5,'Color','#A2142F','LineStyle','-','Marker','*','MarkerSize',4); % average
-plot_line_options{1}{2} = struct('LineWidth',0.5,'Color','#A2142F','LineStyle','-.','Marker','*','MarkerSize',4);% maximum
-plot_line_options{2}{1} = struct('LineWidth',0.5,'Color','#7E2F8E','LineStyle','-','Marker','^','MarkerSize',4);
-plot_line_options{2}{2} = struct('LineWidth',0.5,'Color','#7E2F8E','LineStyle','-.','Marker','^','MarkerSize',4);
-plot_line_options{3}{1} = struct('LineWidth',0.5,'Color','#0072BD','LineStyle','-','Marker','o','MarkerSize',4);
-plot_line_options{3}{2} = struct('LineWidth',0.5,'Color','#0072BD','LineStyle','-.','Marker','o','MarkerSize',4);
-plot_line_options{4}{1} = struct('LineWidth',0.5,'Color','#D95319','LineStyle','-','Marker','v','MarkerSize',4);
-plot_line_options{4}{2} = struct('LineWidth',0.5,'Color','#D95319','LineStyle','-.','Marker','v','MarkerSize',4);
-plot_line_options{5}{1} = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','-','Marker','s','MarkerSize',4);
-plot_line_options{5}{2} = struct('LineWidth',0.5,'Color','#EDB120','LineStyle','-.','Marker','s','MarkerSize',4);
-plot_line_options{6}{1} = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-','Marker','d','MarkerSize',4);
-plot_line_options{6}{2} = struct('LineWidth',0.5,'Color','#77AC30','LineStyle','-.','Marker','d','MarkerSize',4);
+plot_line_options{1}{1} = struct('LineWidth',0.6,'Color','#A2142F','LineStyle','-','Marker','*','MarkerSize',4); % average
+plot_line_options{1}{2} = struct('LineWidth',0.6,'Color','#A2142F','LineStyle','-.','Marker','*','MarkerSize',4);% maximum
+plot_line_options{2}{1} = struct('LineWidth',0.6,'Color','#7E2F8E','LineStyle','-','Marker','^','MarkerSize',4);
+plot_line_options{2}{2} = struct('LineWidth',0.6,'Color','#7E2F8E','LineStyle','-.','Marker','^','MarkerSize',4);
+plot_line_options{3}{1} = struct('LineWidth',0.6,'Color','#0072BD','LineStyle','-','Marker','o','MarkerSize',4);
+plot_line_options{3}{2} = struct('LineWidth',0.6,'Color','#0072BD','LineStyle','-.','Marker','o','MarkerSize',4);
 
-fig_x = 12;     fig_y = 10; % [cm]
+fig_x = 14;     fig_y = 10; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
 
-file_name = 'evalCLs';
+file_name = 'evalCLs_presentation';
 fig = figure('Name',file_name);
 set(fig, 'Units','centimeters', 'Position',[0 0 fig_x_position fig_y_position]/2)
 set(fig, 'PaperUnits','centimeters','PaperSize',[fig_x fig_y],'PaperOrientation','portrait',...
     'PaperPosition', [0 0 fig_x_position-0.1 fig_y_position])
 
-t_fig = tiledlayout(3,2,'Padding','tight','TileSpacing','compact');
+t_fig = tiledlayout(2,2,'Padding','tight','TileSpacing','tight');
 
-% plot computation time
-nexttile(1,[2,1])
+X_string = string(max_num_CLs_all);
+X_string(1) = 'Parl.';
+X_string(end) = 'Alr.';
+X_string(end+1) = 'Seq.';
+X_cat = categorical(X_string);
+X_cat = reordercats(X_cat,X_string);
+
+% average speed
+nexttile
 grid on
 hold on
-clear p
-p(1) = plot(categorical(max_num_CLs_all),CT_total_max,plot_line_options{1}{2});
-p(2) = plot(categorical(max_num_CLs_all),CT_total_average,plot_line_options{1}{1});
-p(3) = plot(categorical(max_num_CLs_all),CT_graph_search,plot_line_options{3}{2});
-p(4) = plot(categorical(max_num_CLs_all),CT_graph_search_average,plot_line_options{3}{1});
-% p(4) = plot(categorical(max_num_CLs_all),CT_assign_priority,plot_line_options(4));
-% p(5) = plot(categorical(max_num_CLs_all),CT_determine_couplings,plot_line_options{3}{2});
-% p(6) = plot(categorical(max_num_CLs_all),CT_determine_couplings_average,plot_line_options{3}{1});
-% p(6) = plot(categorical(max_num_CLs_all),CT_group_vehs,plot_line_options(6));
-% plot line indicating the sample time 
-p(5) = yline(options.dt,'--b','LineWidth',0.5);
-ylim([0,0.5])
-legend(p,{'Total (max.)','Total (avg.)','Plan trajectory (max.)','Plan trajectory (avg.)','Sample time'},'FontSize',7,'Location','best');
+plot(X_cat,speed_average,plot_line_options{1}{1});
+free_flow_speed_i = free_flow_speed.free_flow_speed(free_flow_speed.sample_time==options.dt);
+FFS = yline(free_flow_speed_i,'--b','LineWidth',0.6);
+legend(FFS,{'Free-flow'},'FontSize',9,'Location','best','Interpreter','latex')
 
-xlabel({'(a) Computation time per step.'},'Interpreter','latex');
-ylabel('$t_c\:[s]$','Interpreter','latex')
+xlabel({'(a) Average speed.'},'Interpreter','latex')
+ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
+ylim([0.6,.75])
+set(gca, 'XTickLabel','')
 
 % average number of couplings
-nexttile(2,[2,1])
+nexttile
 grid on
 hold on
 clear c
-c(1) = plot(categorical(max_num_CLs_all),num_couplings,plot_line_options{1}{1});
-c(2) = plot(categorical(max_num_CLs_all),num_couplings_ignored,plot_line_options{1}{2});
-c(3) = plot(categorical(max_num_CLs_all),num_couplings_between_grps,plot_line_options{2}{1});
-c(4) = plot(categorical(max_num_CLs_all),num_couplings_between_grps_ignored,plot_line_options{2}{2});
-legend(c,{'Total','Ignored (total)','Between groups','Ignored (between g.)'},'FontSize',7,'Location','best')
+c(1) = plot(X_cat,num_couplings,plot_line_options{1}{1}); 
+c(2) = plot(X_cat,num_couplings_between_grps,plot_line_options{2}{1}); 
+legend(c,{'Total','Cross-group'},'FontSize',9,'Location','best');
+ylim([0 10])
 xlabel({'(b) Number of couplings.'},'Interpreter','latex')
 ylabel('$\overline{n}_{c}$','Interpreter','latex')
+set(gca, 'XTickLabel','')
 
 % maximum allowed and actual number of computation levels
-nexttile(5)
+nexttile
 grid on 
 hold on
-p_CLs(1) = plot(categorical(max_num_CLs_all),max_num_CLs_all,plot_line_options{1}{1});
-p_CLs(2) = plot(categorical(max_num_CLs_all),CLs_num_max,plot_line_options{2}{1});
-legend(p_CLs,{'Allowed','Actual'},'FontSize',7,'Location','best')
+p_CLs(1) = plot(X_cat,[max_num_CLs_all,max_num_CLs_all(end)],plot_line_options{1}{1});
+p_CLs(2) = plot(X_cat,CLs_num_max,plot_line_options{2}{1});
+legend(p_CLs,{'Allowed','Actual'},'FontSize',9,'Location','northwest')
 xlabel({'$n_{CLs}$','(c) Computation levels.'},'Interpreter','latex');
 ylabel('$n_{CLs},n_{CLs}^{act.}$','Interpreter','latex')
+xtickangle(0)
 
-% average speed
-nexttile(6)
+% plot computation time
+nexttile
 grid on
 hold on
-clear p_speed
-p_speed(1) = plot(categorical(max_num_CLs_all),speed_average,plot_line_options{1}{1});
-free_flow_speed_i = free_flow_speed.free_flow_speed(free_flow_speed.sample_time==options.dt);
-p_speed(2) = yline(free_flow_speed_i,'--b','LineWidth',0.5);
-legend(p_speed,{'Average','Free-flow'},'FontSize',7,'Location','layout','Interpreter','latex')
+clear p
+p(1) = plot(X_cat,CT_graph_search,plot_line_options{3}{2});
+p(2) = plot(X_cat,CT_graph_search_average,plot_line_options{3}{1});
+ylim([0,0.2])
+legend(p,{'Maximum','Average'},'Location','best');
 
-xlabel({'$n_{CLs}$','(d) Average speed.'},'Interpreter','latex')
-ylabel('$\overline{v}\:[m/s]$','Interpreter','latex')
-ylim([0.45,0.75])
-
-
-
-% plot fallback rate 
-% nexttile
-% grid on
-% hold on
-% plot(categorical(max_num_CLs_all),fallback_rate,'-*k','LineWidth',0.5,'MarkerSize',4) 
-% ylim([0,3])
-% xlabel({'$n_{CLs}$','(c) Average fallback rate.'},'Interpreter','latex')
-% ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
-
+xlabel({'$n_{CLs}$','(d) Trajectory planning time.'},'Interpreter','latex');
+ylabel('$t_c\:[s]$','Interpreter','latex')
+xtickangle(0)
 % save fig
 e_CLs{1}.save_fig(fig,file_name)
+%% export video
+options.max_num_CLs = 1;
+full_path = FileNameConstructor.get_results_full_path(options);
+load(full_path,'result')
+
+result.scenario.options.optionsPlotOnline.isVideoMode = true;
+result.scenario.options.optionsPlotOnline.isShowCoupling = false;
+result.scenario.options.optionsPlotOnline.isShowPriority = false;
+
+videoExportSetup.framerate = 5;
+exportVideo(result,videoExportSetup)

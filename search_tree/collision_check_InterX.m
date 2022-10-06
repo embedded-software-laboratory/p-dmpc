@@ -14,10 +14,6 @@ function [collision] = collision_check_InterX(shape, scenario, iStep)
 %   lanelet boundaries
 % 
 
-%     if scenario.k==12 && scenario.vehicles.ID==10 && iStep==2
-%         disp('') % debug
-%     end
-
     shape = [shape, shape(:,1)]; % enclose the shape
     collision = false;
     

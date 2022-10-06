@@ -7,6 +7,19 @@ end
 
 random_seed = RandStream('mt19937ar'); % for reproducibility
 
+% check if options are given as input
+find_options = cellfun(@(c) isa(c,'OptionsMain'), varargin);
+    
+if any(find_options)
+    options = varargin{find_options};
+else
+    options = startOptions();
+end
+
+%[options, vehicle_ids] = eval_guided_mode(1);
+%[options, vehicle_ids] = eval_expert_mode(1);
+options.is_eval = false;
+is_sim_lab = options.is_sim_lab;
 
 %% Setup Scenario
 % check if Scenario object is given as input
@@ -25,39 +38,78 @@ if isempty(scenario)
         end
     end
 
+    if isempty(options.veh_ids)
 
-    % Use options to setup scenario
-    if options.is_sim_lab
-        disp('Running in MATLAB simulation...')
-        if isempty(options.veh_ids)
-            switch options.amount
-                % specify vehicles IDs
-                case 2
-                    vehicle_ids = [16,18];
-                case 4
-                    vehicle_ids = [14,16,18,20];
-        %         case 6
-        %             vehicle_ids = [10,14,16,17,18,20]; 
-                otherwise
-    %                 vehicle_ids = 1:options.amount; % default IDs
-                    if options.max_num_CLs == 1
-                        % if allowed computation is only 1, the first 8
-                        % vehicles will not be used to avoid infeasibility at
-                        % the first time step as there may be vehicles being
-                        % very colse to others
-                        vehicle_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
-                    else
-                        vehicle_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
-                    end
-                    options.veh_ids = vehicle_ids;
-                    
+        % vehicle_ids = 1:options.amount; % default IDs
+        if options.max_num_CLs == 1
+            % if allowed computation is only 1, the first 8
+            % vehicles will not be used to avoid infeasibility at
+            % the first time step as there may be vehicles being
+            % very colse to others
+            vehicle_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
+        else
+            vehicle_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+        end
+        options.veh_ids = vehicle_ids;
+
+    else
+        vehicle_ids = options.veh_ids;
+    end
+
+    manualVehicle_id = 0;
+    manualVehicle_id2 = 0;
+    options.firstManualVehicleMode = 0;
+    options.secondManualVehicleMode = 0;
+    options.collisionAvoidanceMode = 0;
+    options.is_mixed_traffic = 0;
+    options.force_feedback_enabled = 0;
+    options.visualize_reachable_set = false;
+    options.visualizeReferenceTrajectory = false;
+
+else
+    disp('cpmlab')
+    if ~options.is_eval
+        vehicle_ids = [varargin{:}];
+    end
+    options.amount = numel(vehicle_ids);
+    options.isPB = true;
+    manualVehicle_id = 0;
+    manualVehicle_id2 = 0;
+    options.visualize_reachable_set = false;
+    options.visualizeReferenceTrajectory = false;
+
+
+    if options.is_mixed_traffic
+
+        % former UI for CPM Lab
+        %mixedTrafficOptions = mixedTrafficSelection();
+        options.isParl = false;
+        manualVehicle_id = options.manualVehicle_id;
+
+        if ~strcmp(manualVehicle_id, 'No MV')
+            manualVehicle_id = str2num(options.manualVehicle_id);
+            options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
+
+            if ~strcmp(options.manualVehicle_id2, 'No second MV')
+                manualVehicle_id2 = str2num(options.manualVehicle_id2);
+                options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
             end
         else
             vehicle_ids = options.veh_ids;
         end
-    
-        manualVehicle_id = 0;
-        manualVehicle_id2 = 0;
+
+        if options.collisionAvoidanceMode == 1
+            options.isParl = false;
+            options.priority = 'right_of_way_priority';
+        elseif options.collisionAvoidanceMode == 2 
+            options.isParl = true;
+            options.priority = 'STAC_priority';
+        else
+            options.isParl = true;
+            options.priority = 'mixed_traffic_priority';
+            options.visualize_reachable_set = true;
+        end
+    else
         options.firstManualVehicleMode = 0;
         options.secondManualVehicleMode = 0;
         options.collisionAvoidanceMode = 0;
@@ -131,7 +183,28 @@ else
     options = scenario.options;
 end
 
-if options.is_sim_lab
+% scenario = circle_scenario(options.amount,options.isPB);
+% scenario = lanelet_scenario4(options.isPB,options.isParl,isROS);
+ 
+switch options.scenario_name
+    case 'Circle_scenario'
+        scenario = circle_scenario(options);
+    case 'Commonroad'
+        scenario = commonroad(options, vehicle_ids, manualVehicle_id, manualVehicle_id2, is_sim_lab);  
+end
+scenario.random_seed = random_seed;
+scenario.name = options.scenario_name;
+scenario.manual_vehicle_id = manualVehicle_id;
+scenario.second_manual_vehicle_id = manualVehicle_id2;
+scenario.vehicle_ids = vehicle_ids;
+scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
+
+for iVeh = 1:scenario.options.amount
+    % initialize vehicle ids of all vehicles
+    scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
+end
+
+if is_sim_lab
     exp = SimLab(scenario);
 else
     exp = CPMLab(scenario, vehicle_ids);
@@ -172,10 +245,6 @@ threshold_stop_steps = 20; % if a vehicle steps more than this number of time st
 vehs_stop_time_steps = inf(options.amount,1); % record the number of time steps that vehicles continually stop
 is_deadlock = false;
 
-if scenario.options.firstManualVehicleMode == 2 || scenario.options.secondManualVehicleMode == 2
-    %r = rosrate(100000);
-end
-
 %% Main control loop
 while (~got_stop)
     % TODO OPT only modify scenario_tmp; better: separate scenario from dynamic
@@ -202,7 +271,7 @@ while (~got_stop)
     % ----------------------------------------------------------------------
      
     % Update the iteration data and sample reference trajectory
-    [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path, options.is_sim_lab);
+    [iter,scenario] = rhc_init(scenario,x0_measured,trims_measured, initialized_reference_path);
     initialized_reference_path = true;
 
     % collision checking 
@@ -229,34 +298,32 @@ while (~got_stop)
     for iVeh = 1:scenario.options.amount 
         if options.visualize_reachable_set && ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
             || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
-            [visualization_command] = lab_visualize_polygon(scenario, iter.reachable_sets{iVeh, end}.Vertices, iVeh);
+            [visualization_command] = lab_visualizer(iter.reachable_sets{iVeh, end}.Vertices, 'polygon');
             exp.visualize(visualization_command);
         end
     end
 
     if scenario.options.is_mixed_traffic
-        if scenario.manual_vehicle_id ~= 0
-            if (scenario.options.firstManualVehicleMode == 1)
-                wheelData = exp.getWheelData();
-                % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
-                modeHandler = GuidedMode(scenario,x0_measured,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
-                scenario = modeHandler.scenario;
-                scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
-                speedProfileMPAsInitialized = true;
-            end
+        if scenario.manual_vehicle_id ~= 0 && scenario.options.firstManualVehicleMode == 1
+            % function that updates the wheel data
+            wheelData = exp.getWheelData();
+
+            % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
+            modeHandler = GuidedMode(scenario,x0_measured,scenario.manual_vehicle_id,vehicle_ids,cooldown_after_lane_change,speedProfileMPAsInitialized,wheelData,true);
+            scenario = modeHandler.scenario;
+            scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
+            speedProfileMPAsInitialized = true;
         end
 
-        if scenario.second_manual_vehicle_id ~= 0
+        if scenario.second_manual_vehicle_id ~= 0 && scenario.options.secondManualVehicleMode == 1
             % function that updates the gamepad data
             gamepadData = exp.getGamepadData();
-
-            if (scenario.options.secondManualVehicleMode == 1)
-                % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
-                modeHandler = GuidedMode(scenario,x0_measured,scenario.second_manual_vehicle_id,vehicle_ids,cooldown_second_manual_vehicle_after_lane_change,speedProfileMPAsInitialized,gamepadData,false);
-                scenario = modeHandler.scenario;
-                scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
-                speedProfileMPAsInitialized = true;
-            end
+            
+            % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
+            modeHandler = GuidedMode(scenario,x0_measured,scenario.second_manual_vehicle_id,vehicle_ids,cooldown_second_manual_vehicle_after_lane_change,speedProfileMPAsInitialized,gamepadData,false);
+            scenario = modeHandler.scenario;
+            scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
+            speedProfileMPAsInitialized = true;    
         end
 
         if scenario.updated_manual_vehicle_path
@@ -369,7 +436,9 @@ while (~got_stop)
 
     result.runtime_subcontroller_max(k) = info.runtime_subcontroller_max;
     result.runtime_graph_search_max(k) = info.runtime_graph_search_max;
+    result.runtime_graph_search_sum(k) = sum(info.runtime_graph_search_each_veh);
     result.directed_coupling{k} = scenario_tmp.directed_coupling;
+    result.shapes{k} = info.shapes;
     if options.isParl && strcmp(scenario_tmp.options.scenario_name,'Commonroad')
         result.determine_couplings_time(k) = scenario_tmp.timer.determine_couplings;
         result.group_vehs_time(k) = scenario_tmp.timer.group_vehs;
@@ -446,9 +515,6 @@ if options.isSaveResult
     
     result.scenario.ros_subscribers = [];
     [result.scenario.vehicles.communicate] = empty_cells{:};
-    % for i_iter = 1:length(result.iteration_structs)
-    %     result.iteration_structs{i_iter}.scenario = [];
-    % end
     
     result.mpa = scenario.mpa;
 
@@ -463,13 +529,8 @@ if options.isSaveResult
         end
         result.scenario.mpa = [];
         result.scenario.speed_profile_mpas = [];
+        result.shapes = [];
     end
-
-    % check if file with the same name exists
-    % while isfile(result.output_path)
-    %     warning('File with the same name exists, timestamp will be added to the file name.')
-    %     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
-    % end
 
     save(result.output_path,'result');
     disp(['Simulation results were saved under ' result.output_path])

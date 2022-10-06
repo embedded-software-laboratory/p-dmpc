@@ -2,74 +2,77 @@ classdef OptionsMain
     % OPTIONSMAIN Options for main.m
 
     properties
-        manualVehicle_id        % one of the following: {'1','2',...,'nVeh-1','nVeh'}, defines which vehicle is the first manual vehicle
-        firstManualVehicleMode = 0  % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
-        manualVehicle_id2       % one of the following: {'1','2',...,'nVeh-1','nVeh'}, defines which vehicle is the second manual vehicle
-        secondManualVehicleMode = 0 % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
+        manualVehicle_id        % one of the following: {'1','2',...,'nVeh'}, defines which vehicle is the first manual vehicle
+        firstManualVehicleMode  % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
+        manualVehicle_id2       % one of the following: {'1','2',...,'nVeh'}, defines which vehicle is the second manual vehicle
+        secondManualVehicleMode % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
         collisionAvoidanceMode  % one of the following: {1,2,3}, defines collision avoid mode, 1 for priority-based, 2 for reachability analysis guided-mode, while 3 for reachability analysis expert-mode
-        is_sim_lab = 1;              % true/false, is simulation or lab experiment
-        is_mixed_traffic = 0;        % true/false, is mixed traffic
-        force_feedback_enabled  % true/false
-        consider_RSS    % true/false, is consider Responsibility-Sensitive Safety
-        isPB = 1;            % true/false, is prioritize vehicles
-        angles          % 1-by-nVeh scalar vector
-        amount = 1;          % integer, number of vehicles
-        visu = [1, 0]   % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
-        isParl = 0          % true/false, is use parallel computation
-        scenario_name   % one of the follows: {'Circle_scenario','Commonroad'}
-        priority = 'constant_priority'       % one of the following: {'coloring_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority'}, defines which priority assignmen strategy is used
-        dt = 0.2;              % scalar, sample time
-        Hp = 6;              % scalar, prediction horizon
-        trim_set = 9;        % scalar, ID of trim primitive
-        T_end = 15;           % scalar, simulation duration
-        max_num_CLs     % integer, maximum allowerd number of computation levels
-        strategy_consider_veh_without_ROW       % one of the following: {'1','2','3','4','5'}, strategy of letting higher-priority vehicles consider their coupled vehicles with lower priorities
-                                                    % '1': do not consider 
-                                                    % '2': consider currently occupied area as static obstacle
-                                                    % '3': consider the occupied area of emergency braking maneuver as static obstacle 
-                                                    % '4': consider one-step reachable sets as static obstacle
-                                                    % '5': consider old trajectory as dynamic obstacle
-        strategy_enter_lanelet_crossing_area    % one of the following: {'1','2','3','4'}, strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
-                                                    % '1': no constraint on entering the crossing area 
-                                                    % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
-                                                    % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
-                                                    % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-        isSaveResult                % true/false, is save result
-        isSaveResultReduced = true; % true/false, if true, reduced result will be save to save disk space (useful for a long run of simulation)
-        customResultName        % string or char, custom file name to save result
-        isAllowInheritROW       % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
-        is_eval = false                 % true/false, % FIXME rename, only used for seed
-        visualize_reachable_set = false % true/false, 
-        is_free_flow = false;   % true/false, if true, vehicles do not need to consider other vehicles.
-        fallback_type = 'localFallback'; % one of the following {'no','local','global'}, 
-                                    % 'no' for disable fallback; 
-                                    % 'global' means once a vehicle triggers fallback, all other vehicles must also take fallback.
-                                    % 'local' means once a vehicle triggers fallback, only vehicles that have direct or undirected couplings with it will take fallabck. 
-        veh_ids = [];               % vehicle IDs
-        random_idx = [];            % integer, random choose different vehicles
-        isDealPredictionInconsistency = true; % true/false, if ture, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
-        is_allow_non_convex = true; % true/false, whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
-        recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
+        is_sim_lab = true;              % true/false, is simulation or lab experiment
+        is_mixed_traffic = false;       % true/false, is mixed traffic
+        force_feedback_enabled = false; % true/false
+        consider_RSS = false;   % true/false, is consider Responsibility-Sensitive Safety
+        isPB = true;            % true/false, is prioritize vehicles
+        angles                  % 1-by-nVeh scalar vector
+        amount = 20;            % integer, number of vehicles
+        visu = [true;false];    % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
+        isParl = false;         % true/false, is use parallel computation
+        scenario_name = 'Commonroad';       % one of the follows: {'Circle_scenario','Commonroad'}
+        priority = 'right_of_way_priority'; % one of the following: {'topo_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority','STAC_priority'}, defines which priority assignmen strategy is used
+        dt = 0.2;           % scalar, sample time
+        Hp = 6;             % scalar, prediction horizon
+        trim_set = 7;       % scalar, ID of trim primitives
+        T_end = 20;         % scalar, simulation duration
+        max_num_CLs = 99;   % integer, maximum allowerd number of computation levels
+        strategy_consider_veh_without_ROW = '2';    % one of the following: {'1','2','3','4','5'}, strategy of letting higher-priority vehicles consider their coupled vehicles with lower priorities
+                                                        % '1': do not consider 
+                                                        % '2': consider currently occupied area as static obstacle
+                                                        % '3': consider the occupied area of emergency braking maneuver as static obstacle 
+                                                        % '4': consider one-step reachable sets as static obstacle
+                                                        % '5': consider old trajectory as dynamic obstacle
+        strategy_enter_lanelet_crossing_area = '1'; % one of the following: {'1','2','3','4'}, strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
+                                                        % '1': no constraint on entering the crossing area 
+                                                        % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
+                                                        % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
+                                                        % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
+        isSaveResult = false;           % true/false, is save result
+        isSaveResultReduced = true;     % true/false, if true, reduced result will be save to save disk space (useful for a long run of simulation)
+        customResultName = '';          % string or char, custom file name to save result
+        isAllowInheritROW = false;      % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
+        is_eval = false;                % true/false, 
+        visualize_reachable_set = false;    % true/false, 
+        is_free_flow = false;           % true/false, if true, vehicles do not need to consider other vehicles.
+        fallback_type = 'localFallback';    % one of the following {'no','local','global'}, 
+                                            % 'no' for disable fallback; 
+                                            % 'global' means once a vehicle triggers fallback, all other vehicles must also take fallback.
+                                            % 'local' means once a vehicle triggers fallback, only vehicles that have direct or undirected couplings with it will take fallabck. 
+        
+        veh_ids = [];                           % vehicle IDs
+        random_idx = [];                        % integer, random choose different vehicles
+        isDealPredictionInconsistency = true;   % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
+        is_allow_non_convex = true;             % true/false, whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
+        recursive_feasibility = true;           % true/false, if true, the last trim must be an equilibrium trims
         time_per_tick = 0.01;
         offset = 0.01;
         plot_limits = [-10,10;-10,10];          % default fallback if not defined
-        is_use_dynamic_programming = true; % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
+        is_use_dynamic_programming = true;      % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
 
         % MPA
-        is_save_mpa = true; % true/false, the offline computed MPA will be saved if true
-        is_load_mpa = true; % true/false, the offline computed MPA  will be load if exists
-        coupling_weight_mode = 'STAC'; % one of the following {'STAC','random','constant','optimal'}
+        is_save_mpa = true;             % true/false, the offline computed MPA will be saved if true
+        is_load_mpa = true;             % true/false, the offline computed MPA  will be load if exists
+        coupling_weight_mode = 'STAC';  % one of the following {'STAC','random','constant','optimal'}
 
-        optionsPlotOnline = OptionsPlotOnline; % setup for online plotting
-        bound_reachable_sets = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
+        optionsPlotOnline = OptionsPlotOnline;      % setup for online plotting
+        bound_reachable_sets = true;                % true/false, if true, reachable sets are bounded by lanelet boundaries
 
-        is_force_parallel_vehs_in_same_grp = true; % true/false, if true, vehicles move in parallel will be forced in the same group
+        is_force_parallel_vehs_in_same_grp = true;  % true/false, if true, vehicles move in parallel will be forced in the same group
+        reference_path = struct('lanelets_index',[],'start_point',[]);  % custom reference path
+        visualizeReferenceTrajectory = false;
     end
 
     properties(Dependent)
-        tick_per_step % number of data points per step
-        k_end % total number of steps
-        Hu % control horizon
+        tick_per_step   % number of data points per step
+        k_end           % total number of steps
+        Hu              % control horizon
     end
 
     methods
@@ -141,7 +144,7 @@ end
 % options.visu = [true,false];
 % options.isParl = false;
 % options.scenario_name = 'Commonroad';
-% options.priority = 'right_of_way_priority';
+% options.priority = 'STAC_priority';
 % options.dt = 0.2;
 % options.Hp = 5;
 % options.trim_set = 9;

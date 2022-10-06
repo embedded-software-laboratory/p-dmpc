@@ -25,11 +25,9 @@ function expert_mode(manual_vehicle_id, force_feedback_enabled)
     end
 
     t_start = tic;
-    %r = rosrate(0.01);
-
+    
     while(true)
 
-        %waitfor(r);
         wheel_message = wheelSub.LatestMessage;
 
         wheelData = struct;
@@ -81,7 +79,7 @@ function expert_mode(manual_vehicle_id, force_feedback_enabled)
         end
     
         if force_feedback_enabled
-            g29_last_position = g29_handler.g29_send_message(0.0, 0.5, g29_last_position);
+            g29_last_position = g29_handler.g29_send_message(0.01, 0.3, g29_last_position);
         end
     end
     
