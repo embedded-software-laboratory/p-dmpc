@@ -1,0 +1,20 @@
+stages:
+  - Test
+
+.matlab_defaults:
+  image:
+    name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab_with_ros:latest
+    entrypoint: [""]
+  variables:
+    MLM_LICENSE_FILE: 50022@license3.rz.rwth-aachen.de
+    
+
+
+Intersect unittest:
+  extends: .matlab_defaults
+  stage: Test
+  script:
+    - ls
+    - matlab -batch "startup(); results = runtests('tests/intersect_unittest.m'); assertSuccess(results);"
+  tags:
+    - docker
