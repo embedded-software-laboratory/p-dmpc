@@ -3,9 +3,9 @@ classdef OptionsMain
 
     properties
         manualVehicle_id        % one of the following: {'1','2',...,'nVeh'}, defines which vehicle is the first manual vehicle
-        firstManualVehicleMode  % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
+        firstManualVehicleMode = 0  % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
         manualVehicle_id2       % one of the following: {'1','2',...,'nVeh'}, defines which vehicle is the second manual vehicle
-        secondManualVehicleMode % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
+        secondManualVehicleMode = 0 % one of the following: {'1','2'}, '1' for guided-mode while '2' for expert-mode
         collisionAvoidanceMode  % one of the following: {1,2,3}, defines collision avoid mode, 1 for priority-based, 2 for reachability analysis guided-mode, while 3 for reachability analysis expert-mode
         is_sim_lab = true;              % true/false, is simulation or lab experiment
         is_mixed_traffic = false;       % true/false, is mixed traffic

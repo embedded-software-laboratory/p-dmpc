@@ -4,9 +4,11 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     
     determine_couplings_timer = tic;
 
+    % TODO: strategy here (use non-parallel assignment here)
+    % adapt algorithms such that they return all needed data like here
     [vehs_at_intersection,coupling_weights,scenario.coupling_weights_optimal,coupling_info,time_enter_intersection] = STAC_priority().priority(scenario,iter);
 
-    if any(strcmp(scenario.options.priority,{'STAC_priority','constant_priority','random_priority'}))
+    if any(strcmp(scenario.options.priority,{'STAC_priority','FCA_priority','constant_priority','random_priority'}))
         % Strategy to let vehicle without the right-of-way enter the crossing area
         % Ignore coupling edge if not allowed to enter the crossing area because no collision is possible anymore
         [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = ...

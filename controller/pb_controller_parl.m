@@ -6,9 +6,16 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 
     runtime_others_tic = tic;
     
+    [ scenario ] = coupling_based_on_reachable_sets(scenario, iter);
+
     assign_priority_timer = tic;
     [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(scenario, iter);
     scenario.timer.assign_priority = toc(assign_priority_timer);
+    try
+    tab = struct2table(scenario.coupling_info);
+    disp(tab)
+    catch
+    end
 
     nVeh = scenario.options.amount;
     Hp = scenario.options.Hp;
