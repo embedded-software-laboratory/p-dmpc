@@ -75,7 +75,7 @@ classdef TrafficInfo
             for veh_i = 1:(obj.nVeh-1)
                 for veh_j = (veh_i+1):obj.nVeh
                     % TODO: here was the reachable set coupling check, use adjacency which is need either way (to avoid double calculation)
-                    if scenario.adjacency(veh_i,veh_j)
+                    if scenario.adjacency(veh_i,veh_j,scenario.k)
                         % the selected two vehicles are considered as coupled
                         if ~scenario.options.consider_RSS &&((scenario.vehicle_ids(veh_i) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
                             || (scenario.vehicle_ids(veh_i) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
@@ -186,7 +186,7 @@ classdef TrafficInfo
                     if collision_type.is_rear_end
                         obj.coupling_info(count).collision_type = CollisionType.type_1;
                         % If two vehicles has a rear-end collision possibility, they STAC (shortest time to achieve a collision) is the TTC (time to catch) 
-                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario.random_seed, scenario, iter);
+                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
                         % Calculate the shortest time to achieve a collision
                         if has_ROW               
                             [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_i.trim, veh_info_j.trim, distance_two_vehs, scenario.options.dt);
@@ -198,7 +198,7 @@ classdef TrafficInfo
                         obj.coupling_info(count).collision_type = CollisionType.type_2; % side-impact collision
                         % If two vehicles has a side-impact collision possibility, check if they move in parallel
                         if is_move_side_by_side
-                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario.random_seed, scenario, iter);
+                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
                             STAC = distance_two_vehs/2/max([scenario.mpa.trims.speed])*2;
                             waiting_time = 0;
                         else
@@ -206,7 +206,7 @@ classdef TrafficInfo
                             time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_j.trim,distance_to_collision_j,scenario.options.dt);
                             % determine which vehicle has the ROW 
                             % trick: a shorter time to collision point corresponds to a shorter distance to collision point, thus no code adaption is need
-                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, time_to_collision_point_i, time_to_collision_point_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario.random_seed, scenario, iter);
+                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, time_to_collision_point_i, time_to_collision_point_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
                             
                             STAC = max(time_to_collision_point_i,time_to_collision_point_j);
                             waiting_time = abs(time_to_collision_point_i-time_to_collision_point_j);
@@ -379,7 +379,7 @@ classdef TrafficInfo
             end
         end
 
-        function has_ROW = determine_who_has_ROW(obj, veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_at_intersection, is_forking_lanelets, random_seed, scenario, iter)
+        function has_ROW = determine_who_has_ROW(obj, veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_at_intersection, is_forking_lanelets, scenario, iter)
         % Determine whos has the right-of-way. 
         % Vehicle enters the intersection earlier has the right-of-way. If both vheicle enter the intersection at the same time, right-of-way is given to
         % vehicle which has the right-of-way in the last time step. If they are not coupled at previous time step, vehicle who can arrive the collision point
@@ -433,7 +433,7 @@ classdef TrafficInfo
                     [~,~,priority_list] = coloring_priority().priority(scenario);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 otherwise
-                    warning("Priority must be one of the following: 'STAC_priority', 'random_priority', 'constant_priority'.")
+                    warning("Priority must be one of the following: 'STAC_priority', 'random_priority', 'constant_priority', 'coloring_priority', 'FCA_priority'.")
             end
             
         end
