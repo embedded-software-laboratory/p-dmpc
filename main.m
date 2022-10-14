@@ -477,5 +477,11 @@ function [result,scenario,options] = main(varargin)
         disp('As required, simulation/Experiment Results were not saved.')
     % exportVideo( result );
     end
+    % hacky way to destroy all ros nodes to avoid duplicates
+    empty_cells = cell(1,options.amount);
+    result.scenario.ros_subscribers = {};
+    [result.scenario.vehicles.communicate] = empty_cells{:};
+    scenario.ros_subscribers = {};
+    [scenario.vehicles.communicate] = empty_cells{:};
     exp.end_run()
     
