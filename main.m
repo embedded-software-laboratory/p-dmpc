@@ -276,12 +276,11 @@ function [result,scenario,options] = main(varargin)
         
         % For parallel computation, information from previous time step is need, for example, 
         % the previous fail-safe trajectory is used again if a new fail-safe trajectory cannot be found.
-        
-        % update the coupling information
-        if strcmp(scenario.name, 'Commonroad')
 
-            % update the coupling information
-            scenario = coupling_based_on_reachable_sets(scenario, iter);
+        % update the coupling information
+        scenario = coupling_based_on_reachable_sets(scenario, iter);
+        
+        if strcmp(scenario.name, 'Commonroad')
     
             % update the lanelet boundary for each vehicle
             for iVeh = 1:options.amount

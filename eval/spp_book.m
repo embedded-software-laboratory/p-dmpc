@@ -140,14 +140,15 @@ end
     %% Dynamic priorities
     % --------------------------------------------------------------------------
     disp('old')
+    close all
     disp('Evaluating dynamic priority assignment strategies.')
     priority_assignment_algorithms = {
         %'STAC_priority'
         %'right_of_way_priority'
-        %'FCA_priority'
+        'FCA_priority'
         'random_priority'
-        %'constant_priority'
-        %'coloring_priority'
+        'constant_priority'
+        'coloring_priority'
     };
 
     visu_options = options;
@@ -170,7 +171,7 @@ end
 
     random_seed = RandStream('mt19937ar');
 
-    nsVeh = 10:12;
+    nsVeh = 20;
     nSce = 1;
 
     scenarios = cell(length(nsVeh),nSce);
