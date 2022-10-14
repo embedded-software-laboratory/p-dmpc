@@ -403,7 +403,7 @@ function [result,scenario,options] = main(varargin)
             % a deadlock is considered to have occur if a vehicle stops continually more than a certain number time steps
             warning(['Deadlock occurs since vehicle ' num2str(veh_deadlock(1)) ' stops for a long time.'])
             result.t_total = min_stop_step(1)*scenario.options.dt;
-            result.nSteps = result.t_total;
+            result.nSteps = min_stop_step(1);
             is_deadlock = true;
     
             % delete all data collected after deadlock
