@@ -158,8 +158,8 @@ function [result,scenario,options] = main(varargin)
     % overlapping points are removed when using MATLAB function `polyshape`
     warning('off','MATLAB:polyshape:repairedBySimplify')
     
-    if options.isParl && strcmp(scenario.name, 'Commonroad')
-        % In parallel computation, vehicles communicate via ROS 2
+    if options.isPB
+        % In priority-based computation, vehicles communicate via ROS 2
         % Initialize the communication network of ROS 2
         scenario = communication_init(scenario, exp);
     end
@@ -168,9 +168,7 @@ function [result,scenario,options] = main(varargin)
     info_old = []; % old information for fallback
     total_fallback_times = 0; % total times of fallbacks
     
-    threshold_stop_steps = 20; % if a vehicle steps more than this number of time steps, a deadlock is considered to have occur
     vehs_stop_time_steps = inf(options.amount,1); % record the number of time steps that vehicles continually stop
-    is_deadlock = false;
     
     if scenario.options.firstManualVehicleMode == 2 || scenario.options.secondManualVehicleMode == 2
         %r = rosrate(100000);
@@ -277,7 +275,7 @@ function [result,scenario,options] = main(varargin)
         % For parallel computation, information from previous time step is need, for example, 
         % the previous fail-safe trajectory is used again if a new fail-safe trajectory cannot be found.
         
-        if strcmp(scenario.name, 'Commonroad')
+        if ~isempty(scenario.lanelets)
 
             % update the coupling information
             scenario = coupling_based_on_reachable_sets(scenario, iter);
@@ -332,22 +330,15 @@ function [result,scenario,options] = main(varargin)
             
             % check whether at least one vehicle has fallen back Hp times successively
             
-                if ~isempty(info.vehs_fallback)
-                    real_vehicles = zeros(1,length(info.vehs_fallback));
-        
-                    for i=1:length(info.vehs_fallback)
-                        real_vehicles(i) = scenario.vehicle_ids(info.vehs_fallback(i));
-                    end
-        
-                    disp_tmp = sprintf('%d,',real_vehicles); disp_tmp(end) = [];
-                    % disp(['*** Vehicles ' disp_tmp ' take fallback.']) % use * to highlight this message
-                    info = pb_controller_fallback(info, info_old, scenario);
-                    total_fallback_times = total_fallback_times + 1;
-                end
-        
-            if max(vehs_fallback_times) >= scenario.options.Hp
-                disp('Already fall back successively Hp times, terminate the simulation')
-    %             break % break the while loop
+            if ~isempty(info.vehs_fallback)
+                i_triggering_vehicles = find(info.is_exhausted);
+
+                str_veh = sprintf('%d ', i_triggering_vehicles);
+                str_fb_type = sprintf('triggering %s', options.fallback_type);
+                disp_tmp = sprintf(' %d,',info.vehs_fallback); disp_tmp(end) = [];
+                disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
+                info = pb_controller_fallback(info, info_old, scenario);
+                total_fallback_times = total_fallback_times + 1;
             end
         end
     
@@ -357,6 +348,7 @@ function [result,scenario,options] = main(varargin)
         
         % save controller outputs in result struct
         result.scenario = scenario;
+        result.is_deadlock(k) = 0;
         result.iteration_structs{k} = iter;
         result.trajectory_predictions(:,k) = info.y_predicted;
         result.controller_outputs{k} = info.u;
@@ -396,28 +388,19 @@ function [result,scenario,options] = main(varargin)
         vehs_stop_newly = ~vehs_stop_successively & vehs_stop;
         vehs_stop_time_steps(vehs_stop_newly) = k;
         
-        % if more than one third of vehicles stop for more than a defined time, deadlock is considered to have occur
-        [min_stop_step,veh_deadlock] = mink(vehs_stop_time_steps,ceil(options.amount/3)); 
-        max_stop_steps = k - min_stop_step(end);
-        if max_stop_steps > threshold_stop_steps
+        % if a vehicle stops for more than a defined time, deadlock is considered to have occur
+        vehs_stop_duration = k - vehs_stop_time_steps;
+        max_stop_duration = max(vehs_stop_duration);
+        threshold_stop_steps = 3*scenario.options.Hp; % if a vehicle steps more than this number of time steps, a deadlock is considered to have occur
+        if max_stop_duration > threshold_stop_steps
             % a deadlock is considered to have occur if a vehicle stops continually more than a certain number time steps
-            warning(['Deadlock occurs since vehicle ' num2str(veh_deadlock(1)) ' stops for a long time.'])
-            result.t_total = min_stop_step(1)*scenario.options.dt;
-            result.nSteps = min_stop_step(1);
-            is_deadlock = true;
-    
-            % delete all data collected after deadlock
-            fieldnames_r = fieldnames(result);
-            nColumns = size(result.iteration_structs,2);
-            for iField = 1:length(fieldnames_r)
-                filedName = fieldnames_r{iField};
-                if size(result.(filedName),2) == nColumns
-                    % delete
-                    result.(filedName)(:,min_stop_step(1):end) = [];
-                end
-            end
-    
-            break
+            vehs_deadlocked = (vehs_stop_duration>threshold_stop_steps);
+            veh_idcs_deadlocked = find(vehs_deadlocked);
+            veh_str = sprintf("%4d",veh_idcs_deadlocked);            
+            t_str = sprintf("%4d",vehs_stop_time_steps(vehs_deadlocked)); 
+            fprintf("Deadlock. Vehicle:%s\n",veh_str);
+            fprintf("   Since timestep:%s\n",t_str)
+            result.is_deadlock(k) = 1;
         end
         
         % Apply control action
@@ -429,13 +412,12 @@ function [result,scenario,options] = main(varargin)
         got_stop = exp.is_stop() || got_stop;
         
     end
-    result.is_deadlock = is_deadlock;
     result.total_fallback_times = total_fallback_times;
     disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
-    if ~is_deadlock
-        result.t_total = k*scenario.options.dt;
-        result.nSteps = k;
-    end
+    
+    result.t_total = k*scenario.options.dt;
+    result.nSteps = k;
+    
     disp(['Total runtime: ' num2str(round(result.t_total,2)) ' seconds.'])
     
     %% save results

@@ -46,10 +46,14 @@ classdef FileNameConstructor
 
         function results_folder_path = gen_results_folder_path(options)
             
-            if options.isParl
-                controller_name = 'RHC-Parl';
+            if options.isPB
+                if options.isParl && (options.max_num_CLs < options.amount)
+                    controller_name = 'par-rhgs';
+                else
+                    controller_name = 'seq-rhgs';
+                end
             else
-                controller_name = 'RHC';
+                controller_name = 'cen-rhgs';
             end
 
             results_folder_name = strrep(strcat(options.scenario_name, '_', controller_name),' ','_');
@@ -77,7 +81,8 @@ classdef FileNameConstructor
             if isempty(options.customResultName)
                 % use default name
                 results_name = ['trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_dt',num2str(options.dt),'_nVeh',num2str(options.amount),'_T',num2str(options.T_end),'_',options.priority];
-    
+                veh_ids_str = sprintf('-%d',options.veh_ids);
+                results_name = [results_name, '_ids', veh_ids_str];
                 if options.isParl
                     results_name = [results_name,'_maxCLs',num2str(options.max_num_CLs),...
                         '_ConsiderVehWithoutROW',options.strategy_consider_veh_without_ROW,'_EnterLaneletCrossingArea',options.strategy_enter_lanelet_crossing_area];                 

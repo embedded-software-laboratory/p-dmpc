@@ -163,7 +163,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
     iter.x0 = x_measured;
     
     for iVeh=1:scenario.options.amount
-        if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
+        if scenario.options.isParl
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
             latest_msg_i = read_message(scenario.vehicles(iVeh).communicate, scenario.ros_subscribers{iVeh}, scenario.k-1);
@@ -200,7 +200,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
             iter_scenario.vehicles(iVeh).last_trajectory_index = reference.ReferenceIndex(end);
         end
         
-        if strcmp(scenario.name, 'Commonroad')
+        if ~isempty(scenario.lanelets)
 
             % Vehicle in Expert-Mode does only consider boundaries when assuming RSS
             if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
@@ -321,7 +321,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 end
             end
     
-            if true %scenario.options.isParl
+            if scenario.options.amount > 1 %scenario.options.isParl
                 % Calculate reachable sets of other vehicles based on their
                 % current states and trims. Reachability analysis will be
                 % widely used in the parallel computation.

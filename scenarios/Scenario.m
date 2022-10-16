@@ -6,7 +6,7 @@ classdef Scenario
         obstacles = {};                  % static obstacles = {[xs;ys],...}
         lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
         name = 'UnnamedScenario';
-        controller_name = 'RHC';
+        controller_name = 'RHGS';
         controller = @centralized_controller;
         sub_controller = @graph_search;
         mpa;

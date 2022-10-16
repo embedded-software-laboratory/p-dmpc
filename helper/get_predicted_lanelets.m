@@ -66,7 +66,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
     end
     ref_points_index = [ref_points_index;index_add];
 
-    if strcmp(scenario.name,'Commonroad')
+    if ~isempty(scenario.lanelets)
         predicted_lanelets_idx = [];
 
         for i_points_index = 1:length(ref_points_index)
