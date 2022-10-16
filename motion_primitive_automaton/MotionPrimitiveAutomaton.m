@@ -144,7 +144,8 @@ classdef MotionPrimitiveAutomaton
                 
             % For parallel computation, reachability analysis are used
             offline_RA = tic;
-            if true %options.isParl
+            % no need for reachability analysis if only one vehicle 
+            if options.amount > 1 %options.isParl
                 is_calculate_reachable_sets_of_CP = false; % whether to calculate center point's reachable sets
                 if options.is_use_dynamic_programming
                     % use dynamic programming

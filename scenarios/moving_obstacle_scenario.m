@@ -31,6 +31,7 @@ function scenario = moving_obstacle_scenario(options)
     scenario.options.T_end = 3; % TODO increase
     scenario.options.isSaveResult = true;
     scenario.options.trim_set = 9;
+    scenario.options.veh_ids = 1;
     if ~options.is_start_end
         scenario.options.Hp = 5; % TODO as in other eval
         scenario.options.scenario_name = sprintf('moving_obstacles');
@@ -44,8 +45,9 @@ function scenario = moving_obstacle_scenario(options)
     nVeh = 1;
     scenario.adjacency = zeros(nVeh,nVeh);
     scenario.assignPrios = true;
-    scenario.controller_name = strcat(scenario.controller_name, '-PB');
-    scenario.controller = @(s,i) pb_controller(s,i);
+    scenario.controller_name = strcat(scenario.controller_name, '-centralized');
+    scenario.options.isPB = 0;
+    scenario.controller = @centralized_controller;
     
     
     
