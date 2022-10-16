@@ -1,9 +1,9 @@
 % TODO Grayscale friendly color map, use for both MATLAB plots and Latex
-function results = spp_book(options)
+function results = spp_book(visu_options)
     % spp_book Generates evaluation results for the SPP book chapter
 arguments
-    options.do_plot_online      (1,1) logical = 1;
-    options.is_video_exported   (1,1) logical = 0;
+    visu_options.do_plot_online      (1,1) logical = 1;
+    visu_options.is_video_exported   (1,1) logical = 0;
 end
 
     % Settings:
@@ -17,18 +17,29 @@ end
     disp('Evaluating with one vehicle and moving obstacles.')
 
     % RHGS
-    s(1) = moving_obstacle_scenario(do_plot_online=options.do_plot_online);
+    s(1) = moving_obstacle_scenario(do_plot_online=visu_options.do_plot_online);
     plot_mpa(s(1),"y_lim",[-0.05, 0.85]);
-    results(1) = main(s(1));
     
     % SGS
     s(2) = moving_obstacle_scenario(...
         is_start_end=1,...
-        do_plot_online=options.do_plot_online...
+        do_plot_online=visu_options.do_plot_online...
     );
     sub_controller = StartEndPlanner();
     s(2).sub_controller = @sub_controller.run;
-    results(2) = main(s(2));
+
+    % run simulation
+    for i = 1:length(s)
+        results_full_path = FileNameConstructor.get_results_full_path(s(i).options);
+        if isfile(results_full_path)
+            disp('File already exists.')
+            r_loaded = load(results_full_path);
+            results(i) = r_loaded.result; %#ok<AGROW>
+        else
+            % run simulation
+            results(i) = main(s(i)); %#ok<AGROW> 
+        end
+    end
 
     % *Overview*
     nr = numel(results);
@@ -131,8 +142,8 @@ end
 
 
     % *Video*
-    for r = results
-        if options.is_video_exported
+    if visu_options.is_video_exported
+        for r = results
             exportVideo(r);
         end
     end
@@ -149,30 +160,31 @@ end
         'random_priority'
         'constant_priority'
         'coloring_priority'
-    };
-
-    visu_options = options;
+    }; 
 
     % scenarios as in Jianyes Eval
     options = OptionsMain;
-    options.scenario_name = 'Commonroad';
     options.trim_set = 9;
-    options.T_end = 60; % TODO is this long enough?
+    options.T_end = 10; % TODO is this long enough?
     options.Hp = 5; % TODO 10
     options.isPB = true;
     options.isParl = true;
     options.is_sim_lab = true;
     options.visu = [visu_options.do_plot_online, false];
-    options.strategy_consider_veh_without_ROW = '2';
+    options.strategy_consider_veh_without_ROW = '2'; % '2': consider currently occupied area as static obstacle
     options.isAllowInheritROW = true;
-    options.strategy_enter_lanelet_crossing_area = '4';
+    options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area 
     options.collisionAvoidanceMode = 1;
     options.consider_RSS = false;
+    options.isSaveResult = 1;
+    options.isSaveResultReduced = 1;
 
-    random_seed = RandStream('mt19937ar');
+    % visualization for video
+    options.optionsPlotOnline.isShowCoupling = true;
+    
 
     % TODO input list of different numbers of vehicles
-    nsVeh = 10:20;
+    nsVeh = [1,10,11,12,20];% TODO 10:20
     % TODO input scalar number of different random scenarios per priority assignment and #vehicles
     nSce = 2;
 
@@ -181,7 +193,10 @@ end
 
     for inVeh = 1:length(nsVeh)
         for iSce = 1:nSce
+            random_seed = RandStream('mt19937ar','Seed',iSce);
             options.amount = nsVeh(inVeh);
+            % options.scenario_name = ['Clover-' num2str(options.amount) 'Vehicles']; % TODO get rid of dependencies on scenario name
+            options.scenario_name = 'Commonroad';
             veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
             options.veh_ids = veh_ids;
             scenario = commonroad(options, options.veh_ids, 0, 0, options.is_sim_lab);
@@ -203,16 +218,22 @@ end
     count = 0;
 
     % Commonroad
-    for inVeh = 1:length(nsVeh) % TODO 10:20
+    for inVeh = 1:length(nsVeh)
         disp(['# Vehicles: ',num2str(nsVeh(inVeh))])
         for i_priority = 1:length(priority_assignment_algorithms)
             disp(['Priority Assignment Algorithm: ', priority_assignment_algorithms{i_priority}])
             for iSce = 1:nSce
                 scenarios{inVeh,iSce}.options.priority = priority_assignment_algorithms{i_priority};
+                scenarios{inVeh,iSce}.controller_name = strcat(...
+                    "seq. PB-RHGS ", ...
+                    priority_assignment_algorithms{i_priority}...
+                );
                 % run simulation
-                results_full_path = FileNameConstructor.get_results_full_path(options);
+                results_full_path = FileNameConstructor.get_results_full_path(scenarios{inVeh,iSce}.options);
                 if isfile(results_full_path)
                     disp('File already exists.')
+                    r_loaded = load(results_full_path);
+                    results{inVeh,i_priority,iSce} = r_loaded.result;
                 else
                     % run simulation
                     [results{inVeh,i_priority,iSce},~,~] = main(scenarios{inVeh,iSce});
@@ -232,6 +253,9 @@ end
     
     % TODO Eval, zb.
     % plot Computation levels histogram excluding deadlock
-    results = eval_levels(results);
+
+    % TODO Specify number of vehicles
+    results = eval_plot_levels(results);
     % plot deadlock-free runtime
-    results = eval_runtime(results);
+    eval_plot_runtime(results);
+end

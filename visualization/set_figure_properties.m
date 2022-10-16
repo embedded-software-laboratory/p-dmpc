@@ -20,7 +20,7 @@ function set_figure_properties(figHandle, preset, paperheight_in)
     
     case 'document'
         fontsize    = 9;
-        paperwidth  = 15.7; % picture width in cm
+        paperwidth  = 11.7; % picture width in cm
         paperheight = 7.85; % picture height in cm
         linewidth   = 0.5;
         fontname    = 'CMU Serif';
@@ -95,11 +95,7 @@ function set_figure_properties(figHandle, preset, paperheight_in)
         % set legend
         if strcmpi(get(allchildren(a),'Tag'),'legend')
             h_legend=allchildren(a);
-            if isequal(get(h_legend,'Interpreter'),'none')
-                set(h_legend,'FontSize',fontsize+1)
-            else
-                set(h_legend,'FontSize',fontsize)
-            end
+            set(h_legend,'FontSize',fontsize-1)
             set(h_legend,...
                 'LineWidth',linewidth,...
                 'FontName',fontname,...
