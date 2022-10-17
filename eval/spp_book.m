@@ -47,7 +47,7 @@ end
     filepath_text = fullfile('results', 'rhgs_vs_gs.txt');
     approaches = {'RHGS','SGS'};
 
-    step_indices = [1 9];
+    step_indices = [1 10];
     fig = overviewPlot(results(1),step_indices);
     overviewPlot(results(2),step_indices,fig,1);
 
@@ -165,8 +165,8 @@ end
     % scenarios as in Jianyes Eval
     options = OptionsMain;
     options.trim_set = 9;
-    options.T_end = 120; % TODO is this long enough?
-    options.Hp = 10;
+    options.T_end = 180;
+    options.Hp = 8;
     options.isPB = true;
     options.isParl = true;
     options.is_sim_lab = true;
@@ -183,14 +183,14 @@ end
     options.optionsPlotOnline.isShowCoupling = true;
     
 
-    % TODO input list of different numbers of vehicles
-    nsVeh = 1:20;% TODO 10:20
-    % TODO input scalar number of different random scenarios per priority assignment and #vehicles
-    nSce = 5;
+    nsVeh = 1:20;
+    % number of different random scenarios per priority assignment and #vehicles
+    nSce = 3;
 
     scenarios = cell(length(nsVeh),nSce);
     results = cell(length(nsVeh),length(priority_assignment_algorithms),nSce);
 
+    disp('Creating scenarios...')
     for inVeh = 1:length(nsVeh)
         for iSce = 1:nSce
             random_stream = RandStream('mt19937ar','Seed',iSce);
@@ -218,6 +218,7 @@ end
     count = 0;
 
     % Commonroad
+    disp('Starting simulations...')
     for inVeh = 1:length(nsVeh)
         disp(['# Vehicles: ',num2str(nsVeh(inVeh))])
         for i_priority = 1:length(priority_assignment_algorithms)
@@ -251,9 +252,8 @@ end
 
     
     
-    % TODO Eval, zb.
     % plot Computation levels histogram excluding deadlock
-    eval_plot_levels(results{end,:,:});
+    eval_plot_levels(results(end,:,:));
     % plot deadlock-free runtime
     eval_plot_runtime(results);
 
