@@ -80,12 +80,12 @@ function [result,scenario,options] = main(varargin)
                 manualVehicle_id = options.manualVehicle_id;
         
                 if ~strcmp(manualVehicle_id, 'No MV')
-                    manualVehicle_id = str2num(options.manualVehicle_id);
-                    options.firstManualVehicleMode = str2num(options.firstManualVehicleMode);
+                    manualVehicle_id = str2double(options.manualVehicle_id);
+                    options.firstManualVehicleMode = str2double(options.firstManualVehicleMode);
         
                     if ~strcmp(options.manualVehicle_id2, 'No second MV')
-                        manualVehicle_id2 = str2num(options.manualVehicle_id2);
-                        options.secondManualVehicleMode = str2num(options.secondManualVehicleMode);
+                        manualVehicle_id2 = str2double(options.manualVehicle_id2);
+                        options.secondManualVehicleMode = str2double(options.secondManualVehicleMode);
                     end
                 else
                     manualVehicle_id = 0;
