@@ -256,4 +256,7 @@ end
     eval_plot_levels(results{end,:,:});
     % plot deadlock-free runtime
     eval_plot_runtime(results);
+
+    % Export videos
+    export_desired_videos(results);
 end
