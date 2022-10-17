@@ -253,9 +253,7 @@ end
     
     % TODO Eval, zb.
     % plot Computation levels histogram excluding deadlock
-
-    % TODO Specify number of vehicles
-    results = eval_plot_levels(results);
+    eval_plot_levels(results{end,:,:});
     % plot deadlock-free runtime
     eval_plot_runtime(results);
 end

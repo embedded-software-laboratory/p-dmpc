@@ -1,4 +1,4 @@
-function [ res ] = eval_plot_levels(res)
+function eval_plot_levels(res)
 % EVAL_PLOT_LEVELS  Evaluate the computation levels of the result cell `res`.
 
     resstruct = [res{:}];
@@ -20,7 +20,6 @@ function [ res ] = eval_plot_levels(res)
                 [nSteps,~] = compute_deadlock_free_runtime(result);
                 % get number of levels by max priority assigned
                 result.nLevels = max(result.priority(:,1:nSteps));
-                res{iVeh,iPri,iSce} = result;
                 nLevels_by_veh_pri{iVeh,iPri} = [nLevels_by_veh_pri{iVeh,iPri} result.nLevels];
                 nLevels_by_pri{iPri} = [nLevels_by_pri{iPri} result.nLevels];
             end
