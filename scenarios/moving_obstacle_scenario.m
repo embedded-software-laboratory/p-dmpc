@@ -46,10 +46,8 @@ function scenario = moving_obstacle_scenario(options)
     scenario.adjacency = zeros(nVeh,nVeh);
     scenario.assignPrios = true;
     scenario.controller_name = strcat(scenario.controller_name, '-centralized');
-    scenario.options.isPB = 0;
+    scenario.options.isPB = false;
     scenario.controller = @centralized_controller;
-    
-    
     
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
 
