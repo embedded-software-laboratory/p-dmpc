@@ -275,8 +275,10 @@ function [result,scenario,options] = main(varargin)
         
         if ~isempty(scenario.lanelets)
 
-            % update the coupling information
-            scenario = coupling_based_on_reachable_sets(scenario, iter);
+            if ( options.amount > 1 )
+                % update the coupling information
+                scenario = coupling_based_on_reachable_sets(scenario, iter);
+            end
     
             % update the lanelet boundary for each vehicle
             for iVeh = 1:options.amount

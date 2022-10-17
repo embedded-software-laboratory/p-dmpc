@@ -28,12 +28,12 @@ function scenario = moving_obstacle_scenario(options)
     scenario.options.trim_set = 9;
     scenario.options.amount = 1;
     scenario.options.dt = 0.2;
-    scenario.options.T_end = 3; % TODO increase
+    scenario.options.T_end = 4; % TODO increase
     scenario.options.isSaveResult = true;
     scenario.options.trim_set = 9;
     scenario.options.veh_ids = 1;
     if ~options.is_start_end
-        scenario.options.Hp = 5; % TODO as in other eval
+        scenario.options.Hp = 10; % TODO as in other eval
         scenario.options.scenario_name = sprintf('moving_obstacles');
     else
         scenario.options.Hp = scenario.options.T_end / scenario.options.dt;

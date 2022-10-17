@@ -47,7 +47,7 @@ end
     filepath_text = fullfile('results', 'rhgs_vs_gs.txt');
     approaches = {'RHGS','SGS'};
 
-    step_indices = [1 5 9 13];
+    step_indices = [1 9];
     fig = overviewPlot(results(1),step_indices);
     overviewPlot(results(2),step_indices,fig,1);
 
@@ -165,8 +165,8 @@ end
     % scenarios as in Jianyes Eval
     options = OptionsMain;
     options.trim_set = 9;
-    options.T_end = 10; % TODO is this long enough?
-    options.Hp = 5; % TODO 10
+    options.T_end = 120; % TODO is this long enough?
+    options.Hp = 10;
     options.isPB = true;
     options.isParl = true;
     options.is_sim_lab = true;
@@ -184,9 +184,9 @@ end
     
 
     % TODO input list of different numbers of vehicles
-    nsVeh = [1,10,11,12,20];% TODO 10:20
+    nsVeh = 1:20;% TODO 10:20
     % TODO input scalar number of different random scenarios per priority assignment and #vehicles
-    nSce = 2;
+    nSce = 5;
 
     scenarios = cell(length(nsVeh),nSce);
     results = cell(length(nsVeh),length(priority_assignment_algorithms),nSce);
