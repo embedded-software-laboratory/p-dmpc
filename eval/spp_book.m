@@ -193,14 +193,14 @@ end
 
     for inVeh = 1:length(nsVeh)
         for iSce = 1:nSce
-            random_seed = RandStream('mt19937ar','Seed',iSce);
+            random_stream = RandStream('mt19937ar','Seed',iSce);
             options.amount = nsVeh(inVeh);
             % options.scenario_name = ['Clover-' num2str(options.amount) 'Vehicles']; % TODO get rid of dependencies on scenario name
             options.scenario_name = 'Commonroad';
-            veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+            veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
             options.veh_ids = veh_ids;
             scenario = commonroad(options, options.veh_ids, 0, 0, options.is_sim_lab);
-            scenario.random_seed = random_seed;
+            scenario.random_stream = random_stream;
             scenario.name = options.scenario_name;
             scenario.manual_vehicle_id = 0;
             scenario.second_manual_vehicle_id = 0;

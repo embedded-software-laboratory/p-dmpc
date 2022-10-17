@@ -34,10 +34,10 @@ for i = 1:length(isDealPredictionInconsistency)
     options.isDealPredictionInconsistency = isDealPredictionInconsistency(i);
     for iVeh = 1:length(nVeh_s)
         options.amount = nVeh_s(iVeh);
-        random_seed = RandStream('mt19937ar');
+        random_stream = RandStream('mt19937ar');
         for iRandom=1:random_times
             options.random_idx =  iRandom;
-            options.veh_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
+            options.veh_ids = sort(randsample(random_stream,9:40,options.amount),'ascend');
     
             full_path = FileNameConstructor.get_results_full_path(options);
             if isfile(full_path)

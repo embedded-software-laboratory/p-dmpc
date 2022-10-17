@@ -37,10 +37,10 @@ for iFallback = 1:length(fallback_types)
         options.fallback_type = fallback_types{iFallback};
         options.amount = nVeh_s(iVeh);
 
-        random_seed = RandStream('mt19937ar');
+        random_stream = RandStream('mt19937ar');
         for iRandom=1:random_times
             options.random_idx =  iRandom;
-            options.veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+            options.veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
     
             full_path = FileNameConstructor.get_results_full_path(options);
             if isfile(full_path)

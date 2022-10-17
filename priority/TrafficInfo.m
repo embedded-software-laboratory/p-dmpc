@@ -236,7 +236,7 @@ classdef TrafficInfo
                                 obj.coupling_weights(veh_with_ROW,veh_without_ROW) = obj.side_impact_weight_scale_factor*obj.coupling_weights(veh_with_ROW,veh_without_ROW);
                             end
                         case 'random'
-                            obj.coupling_weights(veh_with_ROW,veh_without_ROW) = rand(scenario.random_seed,1);
+                            obj.coupling_weights(veh_with_ROW,veh_without_ROW) = rand(scenario.random_stream,1);
                         case 'constant'
                             obj.coupling_weights(veh_with_ROW,veh_without_ROW) = 0.5;
                         case 'optimal'

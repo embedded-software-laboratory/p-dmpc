@@ -59,7 +59,7 @@ classdef Scenario
         timer;            % struct, used to store computation time of different parts
         num_couplings_between_grps; % number of couplings between parallel groups
         num_couplings_between_grps_ignored; % reduced number of couplings between groups by using lanelet crossing lanelets
-        random_seed = RandStream('mt19937ar'); % for reproducibility
+        random_stream = RandStream('mt19937ar'); % for reproducibility
     end
     
     properties (Dependent)

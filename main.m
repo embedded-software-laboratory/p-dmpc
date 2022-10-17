@@ -5,8 +5,6 @@ function [result,scenario,options] = main(varargin)
         warning("Code is developed in MATLAB 2021a, prepare for backward incompatibilities.")
     end
     
-    random_seed = RandStream('mt19937ar'); % for reproducibility
-    
     
     %% Setup Scenario
     % check if Scenario object is given as input
@@ -40,14 +38,15 @@ function [result,scenario,options] = main(varargin)
             %             vehicle_ids = [10,14,16,17,18,20]; 
                     otherwise
         %                 vehicle_ids = 1:options.amount; % default IDs
+                        random_stream = RandStream('mt19937ar');
                         if options.max_num_CLs == 1
                             % if allowed computation is only 1, the first 8
                             % vehicles will not be used to avoid infeasibility at
                             % the first time step as there may be vehicles being
                             % very colse to others
-                            vehicle_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
+                            vehicle_ids = sort(randsample(random_stream,9:40,options.amount),'ascend');
                         else
-                            vehicle_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+                            vehicle_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
                         end
                         options.veh_ids = vehicle_ids;
                         
@@ -116,7 +115,6 @@ function [result,scenario,options] = main(varargin)
             case 'Commonroad'
                 scenario = commonroad(options, vehicle_ids, manualVehicle_id, manualVehicle_id2, options.is_sim_lab);
         end
-        scenario.random_seed = random_seed;
         scenario.name = options.scenario_name;
         scenario.manual_vehicle_id = manualVehicle_id;
         scenario.second_manual_vehicle_id = manualVehicle_id2;

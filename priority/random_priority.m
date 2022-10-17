@@ -14,7 +14,7 @@ classdef random_priority < interface_priority
 
             directed_adjacency = scenario.adjacency(:,:,end);
             nVeh = scenario.options.amount;
-            RandPrio = randperm(nVeh,nVeh);
+            RandPrio = randperm(scenario.random_stream,nVeh,nVeh);
 
             for iVeh = 1:nVeh
                 for jVeh = 1:nVeh

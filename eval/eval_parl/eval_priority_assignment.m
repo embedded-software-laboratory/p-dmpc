@@ -39,8 +39,8 @@ for i_priority = 1:length(priority_assign_options)
             options.amount = 16;
     end
 
-    random_seed = RandStream('mt19937ar');
-    options.veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+    random_stream = RandStream('mt19937ar');
+    options.veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
 
     results_full_path = FileNameConstructor.get_results_full_path(options);
     if isfile(results_full_path)
@@ -148,8 +148,8 @@ options.is_eval = false;
 options.visualize_reachable_set = false;
 options.amount = 16;
 
-random_seed = RandStream('mt19937ar');
-options.veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+random_stream = RandStream('mt19937ar');
+options.veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
 
 e_sameNumVehs = cell(length(priority_assign_options),1);
 n_simulations = numel(e_sameNumVehs);

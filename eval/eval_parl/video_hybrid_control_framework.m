@@ -63,8 +63,8 @@ switch i
         options.strategy_enter_lanelet_crossing_area = '4';
         options.max_num_CLs = 3;
         options.amount = 30;
-        random_seed = RandStream('mt19937ar');
-        options.veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+        random_stream = RandStream('mt19937ar');
+        options.veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
     case 5
         options.T_end = 10;
         options.optionsPlotOnline.isShowReachableSets = false;
@@ -74,8 +74,8 @@ switch i
         options.max_num_CLs = 4;
         options.amount = 17;
         options.priority = 'random_priority';
-        random_seed = RandStream('mt19937ar');
-        options.veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
+        random_stream = RandStream('mt19937ar');
+        options.veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
 end
 
 

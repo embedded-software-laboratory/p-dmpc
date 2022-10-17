@@ -34,8 +34,8 @@ n_simulations = numel(e_weighting_function);
 
 options.amount = 15;
 
-random_seed = RandStream('mt19937ar');
-options.veh_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
+random_stream = RandStream('mt19937ar');
+options.veh_ids = sort(randsample(random_stream,9:40,options.amount),'ascend');
 
 for i = 1:length(coupling_weight_mode)
     options.coupling_weight_mode  = coupling_weight_mode{i};
