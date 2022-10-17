@@ -165,9 +165,21 @@ classdef MotionPrimitiveAutomaton
             
         end
     
+        function max_speed = get_max_speed_of_mpa(obj)
+            % returns maximum speed of mpa (nSamples x 1)
+            % TODO replace with more reasonable version.
+            N = size(obj.transition_matrix,3);
+            max_speed = max([obj.trims(:).speed]);
+            max_speed = max_speed * ones(N,1);
+            max_speed(end) = max_speed(end)/2;
+        end
+
+
         function max_speed = get_max_speed(obj, cur_trim_id)
             % returns maximum speed, averaged over the timestep (nSamples x 1)
             % is not general, but works for current MPAs
+            % PROBLEM Sometimes vehicle stays in stop, as it is cheapest
+            % for first action
             N = size(obj.transition_matrix,3);
             max_speed = zeros(N,1);
             max_speed_last = obj.trims(cur_trim_id).speed;

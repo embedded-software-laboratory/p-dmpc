@@ -40,7 +40,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
     Hp = size(mpa.transition_matrix_single,3);
 
     % get reference speed and path points
-    v_ref = get_max_speed(mpa, trim_current);
+    v_ref = get_max_speed_of_mpa(mpa);
     
     % Find equidistant points on the reference trajectory.
     [reference,curTrajectoryIndex] = sampleReferenceTrajectory(...
