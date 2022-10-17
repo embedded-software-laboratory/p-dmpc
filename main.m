@@ -166,7 +166,7 @@ function [result,scenario,options] = main(varargin)
     info_old = []; % old information for fallback
     total_fallback_times = 0; % total times of fallbacks
     
-    vehs_stop_time_steps = inf(options.amount,1); % record the number of time steps that vehicles continually stop
+    vehs_stop_duration = zeros(options.amount,1); % record the number of time steps that vehicles continually stop
     
     if scenario.options.firstManualVehicleMode == 2 || scenario.options.secondManualVehicleMode == 2
         %r = rosrate(100000);
@@ -381,25 +381,23 @@ function [result,scenario,options] = main(varargin)
         result.vehs_fallback{k} = info.vehs_fallback;
     
         % check if deadlock occurs
+        % if a vehicle stops for more than a defined time, assume deadlock
+        % TODO check if deadlocked vehicles are coupled. Sometimes single
+        % vehicles stop because trajectory planner fails to work as intended
         vehs_stop = any(ismember(info.trim_indices,scenario.mpa.trims_stop),2); % vehicles stop at the current time step
-        vehs_stop_time_steps(~vehs_stop) = inf; % reset others
-    
-        vehs_stop_successively = vehs_stop_time_steps<k & vehs_stop; % vehicles stop both at the current and previous time step
-        vehs_stop_newly = ~vehs_stop_successively & vehs_stop;
-        vehs_stop_time_steps(vehs_stop_newly) = k;
+        vehs_stop_duration( vehs_stop) = vehs_stop_duration(vehs_stop) + 1;
+        vehs_stop_duration(~vehs_stop) = 0; % reset others
         
-        % if a vehicle stops for more than a defined time, deadlock is considered to have occur
-        vehs_stop_duration = k - vehs_stop_time_steps;
-        max_stop_duration = max(vehs_stop_duration);
-        threshold_stop_steps = 3*scenario.options.Hp; % if a vehicle steps more than this number of time steps, a deadlock is considered to have occur
-        if max_stop_duration > threshold_stop_steps
-            % a deadlock is considered to have occur if a vehicle stops continually more than a certain number time steps
-            vehs_deadlocked = (vehs_stop_duration>threshold_stop_steps);
+        threshold_stop_steps = 3*scenario.options.Hp;
+        vehs_deadlocked = (vehs_stop_duration>threshold_stop_steps);
+        n_deadlocked_vehicles = nnz(vehs_deadlocked);
+        % TODO n_coupled_deadlocked_vehicles
+        if n_deadlocked_vehicles > 0
             veh_idcs_deadlocked = find(vehs_deadlocked);
             veh_str = sprintf("%4d",veh_idcs_deadlocked);            
-            t_str = sprintf("%4d",vehs_stop_time_steps(vehs_deadlocked)); 
+            t_str = sprintf("%4d",vehs_stop_duration(vehs_deadlocked)); 
             fprintf("Deadlock. Vehicle:%s\n",veh_str);
-            fprintf("   Since timestep:%s\n",t_str)
+            fprintf("    For timesteps:%s\n",t_str)
             result.is_deadlock(k) = 1;
         end
         
