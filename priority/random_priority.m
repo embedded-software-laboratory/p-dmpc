@@ -11,10 +11,10 @@ classdef random_priority < interface_priority
         end
         
         function [groups, directed_adjacency, priority_list] = priority(obj,scenario)
-
+            priority_rand_stream = RandStream("mt19937ar","Seed",scenario.k);
             directed_adjacency = scenario.adjacency(:,:,end);
             nVeh = scenario.options.amount;
-            RandPrio = randperm(scenario.random_stream,nVeh,nVeh);
+            RandPrio = randperm(priority_rand_stream,nVeh,nVeh);
 
             for iVeh = 1:nVeh
                 for jVeh = 1:nVeh
