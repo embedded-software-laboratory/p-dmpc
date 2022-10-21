@@ -802,6 +802,8 @@ classdef MotionPrimitiveAutomaton
         end
 
         function [emergency_trims,emergency_maneuvers] = get_emergency_maneuvers(obj)
+            % FIXME currently assumes that all states have connection to
+            % equilibrium state
             n_trims = length(obj.trims);
             Hp = size(obj.transition_matrix_single,3);
             emergency_trims = cell(n_trims,1);
@@ -835,7 +837,7 @@ classdef MotionPrimitiveAutomaton
 
                 % find emergency braking maneuver
                 [~,min_speed_trim] = min([obj.trims(connected_trims).speed]); % if multiple trims with zero speed, need to decide which one to choose as emergency braking maneuver
-                emergency_trims{jTrim}.emergency_braking = min_speed_trim;
+                emergency_trims{jTrim}.emergency_braking = connected_trims(min_speed_trim);
                 
                 % Generate emergency maneuvers for Hp time steps
                 emergency_maneuvers_times = Hp;
