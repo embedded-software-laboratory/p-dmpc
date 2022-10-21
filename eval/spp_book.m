@@ -2,157 +2,36 @@
 function results = spp_book(visu_options)
     % spp_book Generates evaluation results for the SPP book chapter
 arguments
-    visu_options.do_plot_online      (1,1) logical = 1;
+    visu_options.do_plot_online      (1,1) logical = 0;
     visu_options.is_video_exported   (1,1) logical = 0;
 end
 
-    % Settings:
-    % t_horizon = 4 s
-    % T = 0.2 s
-    % -> N = 20 (TODO Check if possible computation time wise)
-    % adjust set_figure_properties; arguments block, so other settings possible
+    %% Recursive feasibility
+    opt = OptionsMain;
+    opt.recursive_feasibility = 1;
+    opt.is_load_mpa = 0;
+    opt.Hp = 3;
+    opt.trim_set = 1;
+    veh = Vehicle();
+    model = BicycleModel(veh.Lf, veh.Lr);
+    sce_rec_1 = Scenario;
+    sce_rec_1.mpa = MotionPrimitiveAutomaton(model,opt);
+    sce_rec_1.options = opt;
+    plot_mpa_over_time(sce_rec_1,'do_export',true);
 
-    %% Trajectory planning
-    % --------------------------------------------------------------------------
-    disp('Evaluating with one vehicle and moving obstacles.')
-
-    % RHGS
-    s(1) = moving_obstacle_scenario(do_plot_online=visu_options.do_plot_online);
-    plot_mpa(s(1),"y_lim",[-0.05, 0.85]);
-    
-    % SGS
-    s(2) = moving_obstacle_scenario(...
-        is_start_end=1,...
-        do_plot_online=visu_options.do_plot_online...
-    );
-    sub_controller = StartEndPlanner();
-    s(2).sub_controller = @sub_controller.run;
-
-    % run simulation
-    for i = 1:length(s)
-        results_full_path = FileNameConstructor.get_results_full_path(s(i).options);
-        if isfile(results_full_path)
-            disp('File already exists.')
-            r_loaded = load(results_full_path);
-            results(i) = r_loaded.result; %#ok<AGROW>
-        else
-            % run simulation
-            results(i) = main(s(i)); %#ok<AGROW> 
-        end
-    end
-
-    % *Overview*
-    nr = numel(results);
-
-    filepath_text = fullfile('results', 'rhgs_vs_gs.txt');
-    approaches = {'RHGS','SGS'};
-
-    step_indices = [1 10];
-    fig = overviewPlot(results(1),step_indices);
-    overviewPlot(results(2),step_indices,fig,1);
-
-    % *Computation time*
-    % prepare
-    runtimes = reshape([results.controller_runtime],[],nr);
-    t_max = max(runtimes);
-    t_median = median(runtimes);
-    t = [t_max; t_median];
-
-    % plot
-    fig = figure;
-    b = barh(1:2,t);
-    set(gca, 'XScale','log');
-    for i = 1:nr
-        b(i).FaceColor = vehColor(i);
-    end
-    yticklabels({'t_{max}','t_{median}'})
-    legend(approaches{:},'Location','best')
-    xlabel('Computation Time [s]');
-
-    set(gca,'Ydir','reverse');
-
-    set_figure_properties(fig, 'paper',3);
-    xmin = min(t,[],'all');
-    xmax = max(t,[],'all');
-    xlim([0.5*xmin, 1.5*xmax])
-    filepath = fullfile('results', 'rhgs_vs_gs_computation_time.pdf');
-    export_fig(fig, filepath);
-    close(fig);
-
-    fileID = fopen(filepath_text,'w');
-    for iApp = 1:numel(approaches)
-        fprintf(fileID ...
-            ,'%4s: t_max %7.2f ms (%5.1f times faster), t_median %7.2f ms (%3.1f times faster)\n' ...
-            , approaches{iApp} ...
-            , t_max(iApp)*1000 ...
-            , t_max(2)/t_max(iApp) ...
-            , t_median(iApp)*1000 ...
-            , t_median(2)/t_median(iApp));
-    end
-    fclose(fileID);
-
-
-    % *Objective value*
-    pos_ref = reshape( ...
-        results(2).iteration_structs{1}.referenceTrajectoryPoints, ...
-        size(results(2).iteration_structs{1}.referenceTrajectoryPoints,2), ...
-        size(results(2).iteration_structs{1}.referenceTrajectoryPoints,3) ...
-    )';
-    % First reference point is meant for second actual point
-    pos_ref = pos_ref(:,1:end-1);
-
-    objective_value = zeros(1,nr);
-    for ir = 1:nr
-        iter_struct_array = [results(ir).iteration_structs{:}];
-        state = reshape([iter_struct_array.x0],numel(iter_struct_array(1).x0),[]);
-        % First state point has no reference point
-        pos_act = state(1:2,2:end);
-        objective_value(ir) = sum(vecnorm(pos_ref-pos_act).^2);
-    end
-
-    % plot
-    fig = figure;
-    b = barh(1,objective_value);
-    for i = 1:nr
-        b(i).FaceColor = vehColor(i);
-    end
-    legend('RHGS','SGS','Location','best')
-    xlabel('Objective Function Value');
-    yticks('');
-
-    ylim([0.5 2])
-
-    set(gca,'Ydir','reverse');
-
-    set_figure_properties(fig, 'paper',2.5);
-    filepath = fullfile('results', 'rhgs_vs_gs_objective_value.pdf');
-    export_fig(fig, filepath);
-    close(fig);
-
-    fileID = fopen(filepath_text,'a');
-    for iApp = 1:numel(approaches)
-        fprintf(fileID ...
-            ,'%4s: J %7.2f (%5.1f times worse)\n' ...
-            , approaches{iApp} ...
-            , objective_value(iApp) ...
-            , objective_value(iApp)/objective_value(2) );
-    end
-    fclose(fileID);
-
-
-
-    % *Video*
-    if visu_options.is_video_exported
-        for r = results
-            exportVideo(r);
-        end
-    end
+    opt.recursive_feasibility = 0;
+    sce_rec_0 = Scenario;
+    sce_rec_0.mpa = MotionPrimitiveAutomaton(model,opt);
+    sce_rec_0.options = opt;
+    plot_mpa_over_time(sce_rec_0,'do_export',true);
 
     %% Dynamic priorities
     % --------------------------------------------------------------------------
-    disp('old')
     close all
     disp('Evaluating dynamic priority assignment strategies.')
+    
+
+    % Commonroad
     priority_assignment_algorithms = {
         %'STAC_priority'
         %'right_of_way_priority'
@@ -213,11 +92,13 @@ end
             scenarios{inVeh,iSce} = scenario;
         end
     end
+    
+    plot_mpa(scenarios{1,1},"y_lim",[-0.05, 0.85],"x_lim", [-37,37],...
+        "do_export",true ...
+    );
 
     n_simulations = length(nsVeh)*nSce*length(priority_assignment_algorithms);
     count = 0;
-
-    % Commonroad
     disp('Starting simulations...')
     for inVeh = 1:length(nsVeh)
         disp(['# Vehicles: ',num2str(nsVeh(inVeh))])
@@ -233,12 +114,13 @@ end
                 results_full_path = FileNameConstructor.get_results_full_path(scenarios{inVeh,iSce}.options);
                 if isfile(results_full_path)
                     disp('File already exists.')
-                    r_loaded = load(results_full_path);
-                    results{inVeh,i_priority,iSce} = r_loaded.result;
+                    r = load(results_full_path);
+                    result = r.result;
                 else
                     % run simulation
-                    [results{inVeh,i_priority,iSce},~,~] = main(scenarios{inVeh,iSce});
+                    [result,~,~] = main(scenarios{inVeh,iSce});
                 end
+                results{inVeh,i_priority,iSce} = clean_result(result);
 
                 % evaluate
                 %e_differentNumVehs{i_priority} = EvaluationParl(results_full_path,[0,options.T_end]);
@@ -257,6 +139,19 @@ end
     % plot deadlock-free runtime
     eval_plot_runtime(results);
 
-    % Export videos
+    % Export videos    
     export_desired_videos(results);
+end
+
+
+function result = clean_result(result_in)
+    result.scenario = result_in.scenario;
+    result.is_deadlock = result_in.is_deadlock;
+    result.priority = result_in.priority;
+    result.t_total = result_in.t_total;
+    result.nSteps = result_in.nSteps;
+    result.controller_runtime = result_in.controller_runtime;
+    result.output_path = result_in.output_path;
+    result.iteration_structs = result_in.iteration_structs;
+    result.directed_coupling = result_in.directed_coupling;
 end

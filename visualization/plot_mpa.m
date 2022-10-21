@@ -1,33 +1,53 @@
 function plot_mpa(scenario,options)
 arguments
     scenario            (1,1) Scenario;
-    options.y_lim       (1,2) double = [-0.1, 1.6];
+    options.y_lim       (1,2) double;
+    options.x_lim       (1,2) double;
+    options.k           (1,1) double = 1;
+    options.do_export   (1,1) logical = false;
+    options.fig         (1,1) matlab.ui.Figure = figure("Visible","off");
+    options.with_labels (1,1) logical = true;
 end
     mpa = scenario.mpa;
     
     trim_inputs = mpa.trims;
-    trim_adjacency = mpa.transition_matrix_single(:,:,1);
+
+    trim_adjacency = mpa.transition_matrix_single(:,:,options.k);
     
-    fig = figure("Visible","off");
     angle = rad2deg([trim_inputs.steering]);
     speed = [trim_inputs.speed];
     G = digraph(trim_adjacency,'omitSelfLoops');
     
-    plot(G,'XData',angle,'YData',speed);
+    plot(G,'XData',angle,'YData',speed, ...
+        'ArrowSize', 5, ...
+        'MarkerSize', 3, ...
+        'NodeColor', rwth_blue(), ...
+        'EdgeColor', rwth_blue_50(), ...
+        'EdgeAlpha',1 ...
+    );
 
-    xlabel('Steering Angle $\delta$ [$\circ$]','Interpreter','tex');
-    ylabel('Speed $\nu$ [m/s]','Interpreter','tex');
+    if options.with_labels
+        xlabel('Steering Angle $\delta$ [$^{\circ}$]','Interpreter','latex');
+        ylabel('Speed $\nu$ [m/s]','Interpreter','latex');
+    end
     
-    xlim([-37,37])
-    ylim(options.y_lim)
+    if isfield(options, 'x_lim')
+        xlim(options.x_lim);
+    end
+    if isfield(options, 'y_lim')
+        ylim(options.y_lim);
+    end
     grid on
 
-    file_ext = '.pdf';
-    
-    folder_path = FileNameConstructor.gen_results_folder_path(scenario.options);
-    [~,file_name,~] = fileparts(FileNameConstructor.get_mpa_name(scenario.options));
-    filepath = fullfile(folder_path,[file_name file_ext]);
-    set_figure_properties(fig,'document')
-    export_fig(fig, filepath)
-    close(fig);
+    if options.do_export
+        file_ext = '.pdf';
+        folder_path = FileNameConstructor.gen_results_folder_path(scenario.options);
+        [~,file_name,~] = fileparts(FileNameConstructor.get_mpa_name(scenario.options));
+        filepath = fullfile(folder_path,[file_name file_ext]);
+        set_figure_properties(options.fig,'preset','paper');
+        export_fig(options.fig, filepath)
+        close(options.fig);
+    else
+        options.fig.Visible = 'on';
+    end
 end

@@ -19,19 +19,20 @@ fig = figure('Visible','Off'...
             ,'OuterPosition',[100 100 resolution(1)/2 resolution(2)/2]...
 );
 
-[target_folder,vid_name,~] = fileparts(result.output_path);
 
 test_mode = false;
 if test_mode
     exp.k = 1; %#ok<UNRCH>
     plotOnline(result,1,1,[],scenario.options.optionsPlotOnline);
-    set_figure_properties(fig,'video');
+    set_figure_properties(fig,'preset','video')
     frame = getframe(fig);
     imwrite(frame,['output\video_', vid_name, '.png']);
     return
 end
-vidname = ['video_' vid_name '.avi'];
-v = VideoWriter(fullfile(target_folder,vidname),'Motion JPEG AVI');
+v = VideoWriter(...
+    FileNameConstructor.gen_video_file_path(result.scenario.options), ...
+    'Motion JPEG AVI' ...
+);
 v.FrameRate = framerate; 
 v.Quality = 97;
 open(v);
@@ -47,7 +48,7 @@ for step_idx = 1:nSteps
     for frame_idx = frame_ticks
         clf
         plotOnline(result,step_idx,frame_idx,[],scenario.options.optionsPlotOnline);
-        set_figure_properties(fig,'video');
+        set_figure_properties(fig,'preset','video');
         frame = getframe(fig);
         writeVideo(v,frame);
         progress = ( find(frame_ticks==frame_idx) / length(frame_ticks) )...

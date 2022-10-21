@@ -1,7 +1,22 @@
-function set_figure_properties(figHandle, preset, paperheight_in)
+function set_figure_properties(figHandle, options)
 % SET_FIGURE_PROPERTIES     Set Properties used for figures based on the type of export.
+arguments
+    figHandle       (1,1) matlab.ui.Figure;
+    options.preset;
+    options.paperheight_in  (1,1) double;
+    options.paperwidth_in   (1,1) double;
+end
 
-    switch lower(preset)
+fontsize    = 9;
+markersize  = 3;
+linewidth   = 0.5;
+fontname    = 'CMU Serif';
+units       = 'centimeters';
+paperwidth  = 7.5;    % picture width in cm
+paperheight = 4;      % picture height in cm
+
+if isfield(options, 'preset')
+    switch lower(options.preset)
     case 'paper' % \the\linewidth=252.0pt, 1pt=0.3515mm --> 88.578mm
         fontsize    = 9;
         paperwidth  = 7.5;    % picture width in cm
@@ -37,9 +52,15 @@ function set_figure_properties(figHandle, preset, paperheight_in)
     otherwise % default
         error('No valid preset selected.')
     end
-    if nargin == 3
-        paperheight = paperheight_in;
-    end
+end
+
+if isfield(options, 'paperheight_in')
+    paperheight = options.paperheight_in;
+end
+
+if isfield(options, 'paperwidth_in')
+    paperwidth = options.paperwidth_in;
+end
     
     % beauty corrections
     allchildren = get(figHandle, 'Children'); % get handle figure
@@ -95,7 +116,7 @@ function set_figure_properties(figHandle, preset, paperheight_in)
         % set legend
         if strcmpi(get(allchildren(a),'Tag'),'legend')
             h_legend=allchildren(a);
-            set(h_legend,'FontSize',fontsize-1)
+            set(h_legend,'FontSize',fontsize-3)
             set(h_legend,...
                 'LineWidth',linewidth,...
                 'FontName',fontname,...
@@ -113,6 +134,13 @@ function set_figure_properties(figHandle, preset, paperheight_in)
             catch
                 % continue
             end
+            try
+                set(h_graphic ...
+                    ,'MarkerSize', markersize ...
+                );
+            catch
+                % continue
+            end
         end
     end
     
@@ -124,4 +152,6 @@ function set_figure_properties(figHandle, preset, paperheight_in)
     set(figHandle ...
         ,'Position',[screenpos(1:2), paperwidth, paperheight]...  % px, py, w, h, of figure on screen
     );
+
+    colororder(rwth_color_order());
 end

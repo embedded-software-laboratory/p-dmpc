@@ -56,7 +56,7 @@ ylabel("Distance [m]");
 
 % export
 filepath = fullfile(fileparts(r.output_path), 'recursive_feasibility_t-d.pdf');
-set_figure_properties(fig,'paper');
+set_figure_properties(fig,'preset','paper');
 export_fig(fig, filepath)
 close(fig);
 end

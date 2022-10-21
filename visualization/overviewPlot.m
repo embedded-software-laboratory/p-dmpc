@@ -22,7 +22,7 @@ if nargin<3
 end
 
 % Oversize papersize to find fitting height
-set_figure_properties(fig, 'paper', nFigs*5);
+set_figure_properties(fig, 'preset', 'paper', 'paperheight_in', nFigs*5);
 
 % show predictions for multiple timesteps
 for step = 1:nFigs
@@ -110,7 +110,7 @@ tile_height = fig.Children.Children(end).OuterPosition(4);
 x_axis_label_height = fig.Children.Children(1).OuterPosition(4) - tile_height;
 set(fig.Children.Children(1),'Units','normalized');
 fig.Children.TileSpacing = 'compact';
-set_figure_properties(fig, 'paper', nFigs*(tile_height+x_axis_label_height));
+set_figure_properties(fig, 'preset', 'paper', 'paperheight_in', nFigs*(tile_height+x_axis_label_height));
 results_folder = FileNameConstructor.gen_results_folder_path(result.scenario.options);
 filepath = fullfile(results_folder, 'overviewPlot.pdf');
 export_fig(fig, filepath)
