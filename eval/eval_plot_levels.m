@@ -172,7 +172,8 @@ function eval_plot_levels(res)
         res{1,1,1}.scenario.options ...
     );
     filename = 'computation-levels-graph.pdf';
-    set_figure_properties(figHandle,'preset','paper','paperheight_in',6)
+    % TODO paper size to guarantee legend does not cover graph
+    set_figure_properties(figHandle,'preset','paper','paperheight_in',15,'paperwidth_in',15)
     export_fig(figHandle, fullfile(folder_path,filename));
     close(figHandle);
 end
