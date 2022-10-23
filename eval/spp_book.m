@@ -215,7 +215,7 @@ end
     disp('Creating scenarios...')
     for inVeh = 1:length(nsVeh)
         for iSce = 1:nSce
-            random_stream = RandStream('mt19937ar','Seed',iSce);
+            random_stream = RandStream('mt19937ar','Seed',iSce+3);
             options.amount = nsVeh(inVeh);
             % options.scenario_name = ['Clover-' num2str(options.amount) 'Vehicles']; % TODO get rid of dependencies on scenario name
             options.scenario_name = 'Commonroad';
@@ -278,7 +278,7 @@ end
     
     
     % plot Computation levels histogram excluding deadlock
-    eval_plot_levels(results(2:end,:,:));
+    eval_plot_levels(results);
     % plot deadlock-free runtime
     eval_plot_runtime(results);
 

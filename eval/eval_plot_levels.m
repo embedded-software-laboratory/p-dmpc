@@ -24,22 +24,28 @@ function eval_plot_levels(res)
                 scenario_tmp = result.scenario;
         
                 for iStep = nSteps:-1:1
-                    scenario_tmp.adjacency = scenario_tmp.adjacency(:,:,1:iStep);
-                    scenario_tmp.semi_adjacency = scenario_tmp.semi_adjacency(:,:,1:iStep);
-        
-                    iter_tmp = result.iteration_structs{iStep};
+                    % no adjacency given in 1-veh scenarios
+                    if scenario_tmp.options.amount > 1
+                        scenario_tmp.adjacency = scenario_tmp.adjacency(:,:,1:iStep);
+                        scenario_tmp.semi_adjacency = scenario_tmp.semi_adjacency(:,:,1:iStep);
+            
+                        iter_tmp = result.iteration_structs{iStep};
                     
-                    % assign priorities using different algorithms
-                    [~, ~, ~, fca_prios] = FCA_priority().priority(scenario_tmp,iter_tmp);
-                    [~, ~, random_prios] = random_priority().priority(scenario_tmp);
-                    [~, ~, constant_prios] = constant_priority().priority(scenario_tmp);
-                    [~, ~, coloring_prios] = coloring_priority().priority(scenario_tmp);
-        
-                    % get number of levels by max priority assigned
-                    n_fca = max(fca_prios);
-                    n_random = max(random_prios);
-                    n_constant = max(constant_prios);
-                    n_coloring = max(coloring_prios);
+                        % assign priorities using different algorithms
+                        [~, ~, ~, fca_prios] = FCA_priority().priority(scenario_tmp,iter_tmp);
+                        [~, ~, random_prios] = random_priority().priority(scenario_tmp);
+                        [~, ~, constant_prios] = constant_priority().priority(scenario_tmp);
+                        [~, ~, coloring_prios] = coloring_priority().priority(scenario_tmp);
+            
+                        % get number of levels by max priority assigned
+                        n_fca = max(fca_prios);
+                        n_random = max(random_prios);
+                        n_constant = max(constant_prios);
+                        n_coloring = max(coloring_prios);
+                    else
+                        [n_fca, n_random, n_constant, n_coloring] = deal(1);
+                    end
+
                     
                     nLevels_by_veh_pri{iVeh,1} = [nLevels_by_veh_pri{iVeh,1} n_fca];
                     nLevels_by_veh_pri{iVeh,2} = [nLevels_by_veh_pri{iVeh,2} n_random];
@@ -65,11 +71,13 @@ function eval_plot_levels(res)
     percent_steps_per_level = zeros(max_level, nPri);
     n_levels_min = cellfun(@min,nLevels_by_pri);
     n_levels_avg = cellfun(@mean,nLevels_by_pri);
+    n_levels_med = cellfun(@median,nLevels_by_pri);
     n_levels_max = cellfun(@max,nLevels_by_pri);
     n_levels_min_veh = cellfun(@min,nLevels_by_veh_pri); 
     n_levels_avg_veh = cellfun(@mean,nLevels_by_veh_pri);
+    n_levels_med_veh = cellfun(@median,nLevels_by_veh_pri);
     n_levels_max_veh = cellfun(@max,nLevels_by_veh_pri);
-    bar_data = [n_levels_avg, n_levels_max];
+    bar_data = [n_levels_med, n_levels_max];
     for iPri = 1:nPri
         nSteps_per_level = histcounts(nLevels_by_pri{iPri},1:max_level+1);
         percent_steps_per_level(:,iPri) = nSteps_per_level/length(nLevels_by_pri{iPri});
@@ -122,7 +130,7 @@ function eval_plot_levels(res)
 
 
     legend( ...
-        'mean', ...
+        'median', ...
         'max', ...
         'Location','best' ...
     );
@@ -142,13 +150,15 @@ function eval_plot_levels(res)
     % plot
     figHandle = figure();
     markers = {'x', 's', 'o', 'd'};
+    colors = ["#0072BD","#D95319","#7E2F8E","#77AC30"];
     [ ~, nPri ] = size(n_levels_max_veh);
     for iPri = 1:nPri
-        plot(nVeh_list,n_levels_avg_veh(:,iPri),'Marker',markers{iPri},'Color',"#4DBEEE")
+        plot(nVeh_list,n_levels_med_veh(:,iPri),'Marker','o','Color',colors(iPri))
         hold on
+        plot(nVeh_list,n_levels_max_veh(:,iPri),'Marker','^','Color',colors(iPri))
     end
     for iPri = 1:nPri
-        plot(nVeh_list,n_levels_max_veh(:,iPri),'Marker',markers{iPri},'Color','r')
+        
         hold on
     end
     yticks(1:max_level)
@@ -156,13 +166,13 @@ function eval_plot_levels(res)
     ylabel('$N_{\mathrm{CL}}$','Interpreter','latex');
     xlabel('$N_{\mathrm{V}}$','Interpreter','latex');
     legend( ...
-        'mean: FCA', ...
-        'mean: Random', ...
-        'mean: Constant', ...
-        'mean: Coloring', ...
+        'median: FCA', ...
         'max: FCA', ...
+        'median: Random', ...
         'max: Random', ...
+        'median: Constant', ...
         'max: Constant', ...
+        'median: Coloring', ...
         'max: Coloring', ...
         'Location','best' ...
     );
