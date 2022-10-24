@@ -1,6 +1,6 @@
 function result = rwth_color_order_50
     result = [ ...
-    0 152 161 %RWTH türkis RGB
+    137 204 207 %RWTH türkis RGB
     142 186 229 %RWTH blau RGB
     253 212 143 %RWTH orange RGB
     188 181 215 %RWTH Lila RGB
