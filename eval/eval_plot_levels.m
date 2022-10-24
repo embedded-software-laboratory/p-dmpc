@@ -61,7 +61,6 @@ function eval_plot_levels(res)
         end
     end
 
-    %
     max_level = max(cellfun(@max,nLevels_by_pri));
     minVeh = min(nVeh_list);
     maxVeh = max(nVeh_list);
@@ -149,17 +148,14 @@ function eval_plot_levels(res)
 
     % plot
     figHandle = figure();
-    markers = {'x', 's', 'o', 'd'};
+    markers = {'o', 'x', 'd', '+'
+                '^', 'pentagram', '*', 's'};
     colors = ["#0072BD","#D95319","#7E2F8E","#77AC30"];
     [ ~, nPri ] = size(n_levels_max_veh);
     for iPri = 1:nPri
-        plot(nVeh_list,n_levels_med_veh(:,iPri),'Marker','o','Color',colors(iPri))
+        plot(nVeh_list,n_levels_med_veh(:,iPri),'Marker',markers{1,iPri},'Color',colors(iPri),'LineStyle','none','MarkerSize',1)
         hold on
-        plot(nVeh_list,n_levels_max_veh(:,iPri),'Marker','^','Color',colors(iPri))
-    end
-    for iPri = 1:nPri
-        
-        hold on
+        plot(nVeh_list,n_levels_max_veh(:,iPri),'Marker',markers{2,iPri},'Color',colors(iPri),'LineStyle','none','MarkerSize',1)
     end
     yticks(1:max_level)
     xticks(minVeh:maxVeh)
@@ -186,5 +182,40 @@ function eval_plot_levels(res)
     set_figure_properties(figHandle,'preset','paper','paperheight_in',15,'paperwidth_in',15)
     export_fig(figHandle, fullfile(folder_path,filename));
     close(figHandle);
-end
 
+    % plot
+    figHandle = figure();
+    [ ~, nPri ] = size(n_levels_max_veh);
+    bar(n_levels_max_veh)
+    hold on
+    bar(n_levels_med_veh)
+    yticks(1:max_level)
+    xticks(minVeh:maxVeh)
+    ylabel('$N_{\mathrm{CL}}$','Interpreter','latex');
+    xlabel('$N_{\mathrm{A}}$','Interpreter','latex');
+    legend( ...
+        'max: $p_{\mathrm{fca}}$', ...
+        'max: $p_{\mathrm{rand}}$', ...
+        'max: $p_{\mathrm{const}}$', ...
+        'max: $p_{\mathrm{color}}$', ...
+        'median: $p_{\mathrm{fca}}$', ...
+        'median: $p_{\mathrm{rand}}$', ...
+        'median: $p_{\mathrm{const}}$', ...
+        'median: $p_{\mathrm{color}}$', ...
+        'Location','best' ...
+    );
+
+    % Export
+    folder_path = FileNameConstructor.gen_results_folder_path( ...
+        res{1,1,1}.scenario.options ...
+    );
+    filename = 'computation-levels-bar-plot.pdf';
+    % TODO paper size to guarantee legend does not cover graph
+    set_figure_properties(figHandle,'preset','paper','paperheight_in',6,'paperwidth_in',12)
+    % overwrite color order
+    r100 = rwth_color_order;
+    r50 = rwth_color_order_50;
+    colororder(figHandle,[r50(1:nPri,:);r100(1:nPri,:)]);
+    export_fig(figHandle, fullfile(folder_path,filename));
+    close(figHandle);
+end
