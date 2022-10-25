@@ -14,7 +14,3 @@ function result = rwth_color_order_50
     ];
     result = result./255;
 end
-%         bluehalfe = [0.5546875 0.7265625 0.89653125]; % RWTH blau 50% RGB 142-186-229
-
-%     magenta = [0.88671875 0 0.3984375]; %RWTH magenta RGB 227-0-102
-%     black = [0.609375 0.6171875 0.62109375]; %RWTH schwarz 50%
