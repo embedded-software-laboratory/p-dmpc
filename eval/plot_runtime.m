@@ -4,6 +4,7 @@ function plot_runtime(data)
     x_values = data.x_values;
     t_deadlock_free = data.t_deadlock_free;
     n_deadlock_free = data.n_deadlock_free;
+    avg_speed_by_veh_pri = data.avg_speed_by_veh_pri;
     result = data.result;
     nVeh = data.nVeh;
     nPri = data.nPri;
@@ -150,7 +151,7 @@ y_axis_handle = get(gca, 'YAxis');
 y_axis_handle.TickLabelInterpreter = 'latex';
 
 xlabel('$N_A$');
-% title('Least $N_A$ producing deadlock')
+title('Stillstand with least vehicles')
 yticklabels({ ...
     '$p_{\mathrm{fca}}$', ...
     '$p_{\mathrm{color}}$', ...
@@ -170,7 +171,7 @@ folder_path = FileNameConstructor.gen_results_folder_path( ...
     result.scenario.options ...
 );
 filename = 'deadlock-free-runtime-least-veh-deadlock.pdf';
-set_figure_properties(figHandle,'preset','paper')
+set_figure_properties(figHandle,'preset','paper','paperheight_in',3)
 export_fig(figHandle, fullfile(folder_path,filename));
 close(figHandle);
 
@@ -184,7 +185,7 @@ set(gca,'Ydir','reverse');
 y_axis_handle = get(gca, 'YAxis');
 y_axis_handle.TickLabelInterpreter = 'latex';
 
-xlabel('Deadlock free from all scenarios [\%]');
+xlabel('Stillstand-free scenarios [\%]');
 yticklabels({ ...
     '$p_{\mathrm{fca}}$', ...
     '$p_{\mathrm{color}}$', ...
@@ -202,7 +203,35 @@ folder_path = FileNameConstructor.gen_results_folder_path( ...
     result.scenario.options ...
 );
 filename = 'deadlock-free-runtime-percentage-deadlock-free-scenarios.pdf';
-set_figure_properties(figHandle,'preset','paper')
+set_figure_properties(figHandle,'preset','paper','paperheight_in',3)
 export_fig(figHandle, fullfile(folder_path,filename));
 close(figHandle);
+
+% plot
+    figHandle = figure();
+    bar(avg_speed_by_veh_pri(:,data_permutation),'EdgeColor','none')
+%     yticks(1:max_level)
+    xticks(x_values)
+    ylabel('Average speed [m/s]','Interpreter','latex');
+    xlabel('$N_{\mathrm{A}}$','Interpreter','latex');
+    legend( ...
+        '$p_{\mathrm{fca}}$', ...
+        '$p_{\mathrm{color}}$', ...
+        '$p_{\mathrm{rand}}$', ...
+        '$p_{\mathrm{const}}$', ...
+        'Location','best' ...
+    );
+    set(gca,'TickLength',[0.0025 0.035])
+%     ylim([0,max_level+0.5])
+%     
+%     xlim([1.5,maxVeh+0.5])
+
+    % Export document presets
+    folder_path = FileNameConstructor.gen_results_folder_path( ...
+        result.scenario.options ...
+    );
+    filename = 'deadlock-free-runtime-avg-speed.pdf';
+    set_figure_properties(figHandle,'preset','document')
+    export_fig(figHandle, fullfile(folder_path,filename));
+    close(figHandle);
 end
