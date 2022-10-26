@@ -153,13 +153,15 @@ function plot_levels(data)
     );
     set(gca,'TickLength',[0.0025 0.035])
     ylim([0,max_level+0.5])
+    
+    xlim([1.5,maxVeh+0.5])
 
     % Export document presets
     folder_path = FileNameConstructor.gen_results_folder_path( ...
         result.scenario.options ...
     );
     filename = 'computation-levels-bar-plot-document.pdf';
-    set_figure_properties(figHandle,'preset','document')
+    set_figure_properties(figHandle,'preset','document','paperheight_in',6)
     % overwrite color order
     r100 = rwth_color_order;
     r50 = rwth_color_order_50;
