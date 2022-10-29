@@ -13,7 +13,6 @@ function [ data ] = compute_plot_levels_data(res)
     [ nVeh, nPri, nSce ] = size(res);
     nLevels_by_veh_pri = cell(nVeh, nPri);
     nLevels_by_pri = cell(nPri,1);
-    ns = nVeh*nPri*nSce;
     nVeh_list = zeros(1,nVeh);
     for iVeh = 1:nVeh
         nVeh_list(iVeh) = res{iVeh,1,1}.scenario.options.amount;
@@ -45,7 +44,7 @@ function [ data ] = compute_plot_levels_data(res)
                         n_random = max(random_prios);
                         n_constant = max(constant_prios);
                         n_coloring = max(coloring_prios);
-                        disp(['Scenario ',num2str(iVeh),'/',num2str(iPri),'/',num2str(iSce),' Step ',num2str(nSteps-iStep),' von ',num2str(nSteps)]);
+                        disp(['Scenario ',num2str(iVeh),'/',num2str(iPri),'/',num2str(iSce),' Step ',num2str(nSteps-iStep),' of ',num2str(nSteps)]);
                     else
                         [n_fca, n_random, n_constant, n_coloring] = deal(1);
                     end

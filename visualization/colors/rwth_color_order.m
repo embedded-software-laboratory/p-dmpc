@@ -1,19 +1,16 @@
 function result = rwth_color_order
     result = [ ...
-    0 0.59375 0.62890625 %RWTH türkis RGB 0-152-161
-    0 0.328125 0.62109375 %RWTH blau RGB 0-84-159
-    0.964706 0.65882352 0 %RWTH orange RGB 246-168-0
-    0.4765625 0.433359375 0.671875 %RWTH Lila RGB 122-111-172  
-    0.8 0.027451 0.11764706 %RWTH rot RGB 204-7-30
-    0.7382125 0.80078125 0 %RWTH maigrün RGB 189-205-0
-    0 0.37890625 0.39453125 %RWTH petrol RGB 0-97-101
-    0.62890625 0.0625 0.20703125 %RWTH bordeaux RGB 161-16-53
-    0.33984 0.667968 0.15234 %RWTH grün RGB 87-171-39
-    0.3789    0.1289    0.3438 %RWTH violett 97-33-88
-        1 0.92578125 0 %RWTH gelb RGB 255-237-0
+    0   152 161 %RWTH türkis   RGB
+    0   84  159 %RWTH blau     RGB
+    246 168 0   %RWTH orange   RGB
+    122 111 172 %RWTH Lila     RGB
+    204 7   30  %RWTH rot      RGB
+    189 205 0   %RWTH maigrün  RGB
+    0   97  101 %RWTH petrol   RGB
+    161 16  53  %RWTH bordeaux RGB
+    87  171 39  %RWTH grün     RGB
+    97  33  88  %RWTH violett  RGB
+    255 237 0   %RWTH gelb     RGB
     ];
+    result = result./255;
 end
-%         bluehalfe = [0.5546875 0.7265625 0.89653125]; % RWTH blau 50% RGB 142-186-229
-
-%     magenta = [0.88671875 0 0.3984375]; %RWTH magenta RGB 227-0-102
-%     black = [0.609375 0.6171875 0.62109375]; %RWTH schwarz 50%

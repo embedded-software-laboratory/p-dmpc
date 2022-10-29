@@ -28,7 +28,7 @@ end
 
     if options.with_labels
         xlabel('Steering Angle $\delta$ [$^{\circ}$]','Interpreter','latex');
-        ylabel('Speed $\nu$ [m/s]','Interpreter','latex');
+        ylabel('Speed $\mathrm{v}$ [m/s]','Interpreter','latex');
     end
     
     if isfield(options, 'x_lim')
