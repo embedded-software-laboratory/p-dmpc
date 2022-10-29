@@ -1,6 +1,15 @@
-function eval_plot_runtime(res)
-% EVAL_PLOT_RUNTIME Evaluate the runtime of the experiment before deadlock
+function plot_runtime(res)
+% PLOT_RUNTIME Evaluate the runtime of the experiment before deadlock
 
-plot_runtime_data = compute_plot_runtime_data(res); 
-plot_runtime(plot_runtime_data);
+    runtime_data = compute_runtime_data(res); 
+
+    fname = fullfile( ...
+        FileNameConstructor.gen_results_folder_path( ...
+            runtime_data.result.scenario.options ...
+        ), ...
+        'runtime_data.mat' ...
+    );
+    save(fname,"runtime_data");
+
+    plot_runtime_data(runtime_data);
 end

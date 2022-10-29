@@ -1,6 +1,6 @@
-function plot_levels(data)
-%   PLOT_LEVELS     Export plots for computation level evaluation using pre-calculated data
-    
+function plot_levels_data(data)
+    %   PLOT_LEVELS_DATA     Export plots for computation level evaluation using pre-calculated data
+        
     nLevels_by_veh_pri = data.nLevels_by_veh_pri;
     nLevels_by_pri = data.nLevels_by_pri;
     nVeh_list = data.nVeh_list;
@@ -169,4 +169,3 @@ function plot_levels(data)
     export_fig(figHandle, fullfile(folder_path,filename));
     close(figHandle);
 end
-

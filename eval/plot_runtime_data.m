@@ -1,6 +1,7 @@
-function plot_runtime(data)
-%   PLOT_RUNTIME     Export plots for runtime evaluation using pre-calculated data
-
+function plot_runtime_data(data)
+    % PLOT_RUNTIME_DATA     Export plots for runtime evaluation using pre-calculated data
+    
+    %% Prepare data
     x_values = data.x_values;
     t_deadlock_free = data.t_deadlock_free;
     n_deadlock_free = data.n_deadlock_free;
@@ -20,197 +21,144 @@ function plot_runtime(data)
     total_nSce_per_Pri = nVeh*nSce;
 
     markers = {'x', '+', 'o', 'd'};
+    
+    data_permutation = [1 4 2 3];
 
-figHandle = figure();
-tiledLayoutHandle = tiledlayout(3,1,'TileSpacing','Compact');
-nexttile
-hold on
-plot(x_values,t_total_vect,'--')
-% maximum values
-for iPri = 1:nPri
-    plot(x_values, max(t_deadlock_free(:,:,iPri),[],2),markers{iPri});
-end
-hold off
-ylabel('$t_{\mathrm{max}}$','Interpreter','latex');
-
-nexttile
-hold on
-plot(x_values,t_total_vect,'--')
-% mean values
-for iPri = 1:nPri
-    plot(x_values, mean(t_deadlock_free(:,:,iPri),2),markers{iPri});
-end
-hold off
-ylabel('$t_{\mathrm{mean}}$','Interpreter','latex');
-
-nexttile
-hold on
-plot(x_values,t_total_vect,'--')
-% minimum values
-for iPri = 1:nPri
-    plot(x_values, min(t_deadlock_free(:,:,iPri),[],2),markers{iPri});
-end
-hold off
-ylabel('$t_{\mathrm{min}}$','Interpreter','latex');
-
-legend( ...
-    '$t_{\mathrm{exp}}$', ...
-    '$p_{\mathrm{fca}}$', ...
-    '$p_{rand}$', ...
-    '$p_{\mathrm{const}}$', ...
-    '$p_{\mathrm{color}}$', ...
-    'Orientation','horizontal', ...
-    'Location','southoutside', ...
-    'Interpreter', 'latex' ...
-);
-ylabel(tiledLayoutHandle, 't until deadlock [s]','Interpreter','latex');
-xlabel(tiledLayoutHandle, '\# of vehicles','Interpreter','latex');
-xlim([6, 20])
-% title(tiledLayoutHandle, 'Deadlock-Free Runtime');
-
-
-% Export
-folder_path = FileNameConstructor.gen_results_folder_path(result.scenario.options);
-filename = 'deadlock-free-runtime-detail.pdf';
-set_figure_properties(figHandle,'preset','document','paperheight_in',14)
-export_fig(figHandle, fullfile(folder_path,filename));
-close(figHandle);
-
-
-
-% Overview
-is_deadlock_free = (n_deadlock_free == n_total);
-max_deadlock_free_vehicles = zeros(nPri,1);
-mean_deadlock_free_vehicles = zeros(nPri,1);
-min_deadlocked_vehicles = zeros(nPri,1);
-n_dealock_free_scenarios = zeros(nPri,1);
-vehicles_sce_pri = repmat((1:20)',1,nSce);
-
-for iPri = 1:nPri
-    n_vehicles_deadlock_free = vehicles_sce_pri(is_deadlock_free(:,:,iPri));
-    n_dealock_free_scenarios(iPri) = sum(is_deadlock_free(:,:,iPri),'all');
-    mean_deadlock_free_vehicles(iPri) = mean(n_vehicles_deadlock_free);
-    max_deadlock_free_vehicles(iPri) = max(n_vehicles_deadlock_free);
-    n_vehicles_deadlocked = vehicles_sce_pri(~is_deadlock_free(:,:,iPri));
-    min_deadlocked_vehicles(iPri) = min(n_vehicles_deadlocked);
-end
-
-perc_deadlock_free_scenarios = n_dealock_free_scenarios./total_nSce_per_Pri;
-
-bar_data = [...
-    min_deadlocked_vehicles, ...
-    mean_deadlock_free_vehicles, ...
-    max_deadlock_free_vehicles ...
-];
-
-% plot
-figHandle = figure();
-% sort data
-data_permutation = [1 4 2 3];
-bar_data = bar_data(data_permutation,:);
-barh(1:nPri, bar_data);
-set(gca,'Ydir','reverse');
-y_axis_handle = get(gca, 'YAxis');
-y_axis_handle.TickLabelInterpreter = 'latex';
-
-legend( ...
-    'deadlock with least vehicles', ...
-    'deadlock-free median', ...
-    'deadlock-free maximum', ...
-    'Location','southoutside' ...
-);
-legend('boxoff')
-
-xlabel('$N_A$');
-ylabel('Priority Assignment Function');
-yticklabels({ ...
-    '$p_{\mathrm{fca}}$', ...
-    '$p_{\mathrm{color}}$', ...
-    '$p_{\mathrm{rand}}$', ...
-    '$p_{\mathrm{const}}$' ...
-});
-
-
-% Export
-folder_path = FileNameConstructor.gen_results_folder_path( ...
-    result.scenario.options ...
-);
-filename = 'deadlock-free-runtime-overview.pdf';
-set_figure_properties(figHandle,'preset','paper','paperheight_in',8)
-export_fig(figHandle, fullfile(folder_path,filename));
-close(figHandle);
-
-% plot
-figHandle = figure();
-% sort data
-data_permutation = [1 4 2 3];
-bar_data = min_deadlocked_vehicles(data_permutation,:);
-b = barh(1:nPri, bar_data);
-set(gca,'Ydir','reverse');
-y_axis_handle = get(gca, 'YAxis');
-y_axis_handle.TickLabelInterpreter = 'latex';
-
-xlabel('$N_A$');
-title('Stillstand with least vehicles')
-yticklabels({ ...
-    '$p_{\mathrm{fca}}$', ...
-    '$p_{\mathrm{color}}$', ...
-    '$p_{\mathrm{rand}}$', ...
-    '$p_{\mathrm{const}}$' ...
-});
-
-xlim([0 max(min_deadlocked_vehicles)+1])
-
-b.FaceColor = 'flat';
-rwth100 = rwth_color_order();
-b.CData = rwth100(1:nPri,:);
-
-
-% Export
-folder_path = FileNameConstructor.gen_results_folder_path( ...
-    result.scenario.options ...
-);
-filename = 'deadlock-free-runtime-least-veh-deadlock.pdf';
-set_figure_properties(figHandle,'preset','paper','paperheight_in',3)
-export_fig(figHandle, fullfile(folder_path,filename));
-close(figHandle);
-
-% plot
-figHandle = figure();
-% sort data
-data_permutation = [1 4 2 3];
-bar_data = perc_deadlock_free_scenarios(data_permutation,:);
-b = barh(1:nPri, bar_data);
-set(gca,'Ydir','reverse');
-y_axis_handle = get(gca, 'YAxis');
-y_axis_handle.TickLabelInterpreter = 'latex';
-
-xlabel('Stillstand-free scenarios [\%]');
-yticklabels({ ...
-    '$p_{\mathrm{fca}}$', ...
-    '$p_{\mathrm{color}}$', ...
-    '$p_{\mathrm{rand}}$', ...
-    '$p_{\mathrm{const}}$' ...
-});
-
-b.FaceColor = 'flat';
-rwth100 = rwth_color_order();
-b.CData = rwth100(1:nPri,:);
-
-
-% Export
-folder_path = FileNameConstructor.gen_results_folder_path( ...
-    result.scenario.options ...
-);
-filename = 'deadlock-free-runtime-percentage-deadlock-free-scenarios.pdf';
-set_figure_properties(figHandle,'preset','paper','paperheight_in',3)
-export_fig(figHandle, fullfile(folder_path,filename));
-close(figHandle);
-
-% plot
+    %% Plot: Deadlock-free runtime
     figHandle = figure();
-    bar(avg_speed_by_veh_pri(:,data_permutation),'EdgeColor','none')
-%     yticks(1:max_level)
+    tiledLayoutHandle = tiledlayout(3,1,'TileSpacing','Compact');
+    nexttile
+    hold on
+    plot(x_values,t_total_vect,'--')
+    % maximum values
+    for iPri = 1:nPri
+        plot(x_values, max(t_deadlock_free(:,:,iPri),[],2),markers{iPri});
+    end
+    hold off
+    ylabel('$t_{\mathrm{max}}$','Interpreter','latex');
+    
+    nexttile
+    hold on
+    plot(x_values,t_total_vect,'--')
+    % mean values
+    for iPri = 1:nPri
+        plot(x_values, mean(t_deadlock_free(:,:,iPri),2),markers{iPri});
+    end
+    hold off
+    ylabel('$t_{\mathrm{mean}}$','Interpreter','latex');
+    
+    nexttile
+    hold on
+    plot(x_values,t_total_vect,'--')
+    % minimum values
+    for iPri = 1:nPri
+        plot(x_values, min(t_deadlock_free(:,:,iPri),[],2),markers{iPri});
+    end
+    hold off
+    ylabel('$t_{\mathrm{min}}$','Interpreter','latex');
+    
+    legend( ...
+        '$t_{\mathrm{exp}}$', ...
+        '$p_{\mathrm{fca}}$', ...
+        '$p_{rand}$', ...
+        '$p_{\mathrm{const}}$', ...
+        '$p_{\mathrm{color}}$', ...
+        'Orientation','horizontal', ...
+        'Location','southoutside', ...
+        'Interpreter', 'latex' ...
+    );
+    ylabel(tiledLayoutHandle, 't until deadlock [s]','Interpreter','latex');
+    xlabel(tiledLayoutHandle, '\# of vehicles','Interpreter','latex');
+    xlim([6, 20])
+    % title(tiledLayoutHandle, 'Deadlock-Free Runtime');
+    
+    
+    % Export
+    folder_path = FileNameConstructor.gen_results_folder_path(result.scenario.options);
+    filename = 'deadlock-free-runtime-detail.pdf';
+    set_figure_properties(figHandle,'preset','document','paperheight_in',14)
+    export_fig(figHandle, fullfile(folder_path,filename));
+    close(figHandle);
+    
+    
+    
+    %% Plot 2: Standstill with least vehicles
+    % TODO delete
+
+    % figHandle = figure();
+    % % sort data
+    % data_permutation = [1 4 2 3];
+    % bar_data = min_deadlocked_vehicles(data_permutation,:);
+    % b = barh(1:nPri, bar_data);
+    % set(gca,'Ydir','reverse');
+    % y_axis_handle = get(gca, 'YAxis');
+    % y_axis_handle.TickLabelInterpreter = 'latex';
+    
+    % xlabel('$N_A$');
+    % title('Standstill with least vehicles')
+    % yticklabels({ ...
+    %     '$p_{\mathrm{fca}}$', ...
+    %     '$p_{\mathrm{color}}$', ...
+    %     '$p_{\mathrm{rand}}$', ...
+    %     '$p_{\mathrm{const}}$' ...
+    % });
+    
+    % xlim([0 max(min_deadlocked_vehicles)+1])
+    
+    % b.FaceColor = 'flat';
+    % rwth100 = rwth_color_order();
+    % b.CData = rwth100(1:nPri,:);
+    
+    
+    % % Export
+    % folder_path = FileNameConstructor.gen_results_folder_path( ...
+    %     result.scenario.options ...
+    % );
+    % filename = 'deadlock-free-runtime-least-veh-deadlock.pdf';
+    % set_figure_properties(figHandle,'preset','paper','paperheight_in',3)
+    % export_fig(figHandle, fullfile(folder_path,filename));
+    % close(figHandle);
+    
+    %% Plot 3: Percent standstill free scenarios
+    % perc_deadlock_free_scenarios = n_deadlock_free_scenarios./total_nSce_per_Pri;
+    % figHandle = figure();
+    % % sort data
+    % data_permutation = [1 4 2 3];
+    % bar_data = perc_deadlock_free_scenarios(data_permutation,:);
+    % b = barh(1:nPri, bar_data);
+    % set(gca,'Ydir','reverse');
+    % y_axis_handle = get(gca, 'YAxis');
+    % y_axis_handle.TickLabelInterpreter = 'latex';
+    
+    % xlabel('Standstill-free scenarios [\%]');
+    % yticklabels({ ...
+    %     '$p_{\mathrm{fca}}$', ...
+    %     '$p_{\mathrm{color}}$', ...
+    %     '$p_{\mathrm{rand}}$', ...
+    %     '$p_{\mathrm{const}}$' ...
+    % });
+    
+    % b.FaceColor = 'flat';
+    % rwth100 = rwth_color_order();
+    % b.CData = rwth100(1:nPri,:);
+    
+    
+    % % Export
+    % folder_path = FileNameConstructor.gen_results_folder_path( ...
+    %     result.scenario.options ...
+    % );
+    % filename = 'deadlock-free-runtime-percentage-deadlock-free-scenarios.pdf';
+    % set_figure_properties(figHandle,'preset','paper','paperheight_in',3)
+    % export_fig(figHandle, fullfile(folder_path,filename));
+    % close(figHandle);
+    
+
+
+    %% Plot: average speed over nVeh
+    figHandle = figure();
+    
+    p = plot(avg_speed_by_veh_pri(:,data_permutation),'-');
+    [p.Marker] = markers{:};
     xticks(x_values)
     ylabel('Average speed [m/s]','Interpreter','latex');
     xlabel('$N_{\mathrm{A}}$','Interpreter','latex');
@@ -221,17 +169,86 @@ close(figHandle);
         '$p_{\mathrm{const}}$', ...
         'Location','best' ...
     );
-    set(gca,'TickLength',[0.0025 0.035])
-%     ylim([0,max_level+0.5])
-%     
-%     xlim([1.5,maxVeh+0.5])
 
     % Export document presets
     folder_path = FileNameConstructor.gen_results_folder_path( ...
         result.scenario.options ...
     );
-    filename = 'deadlock-free-runtime-avg-speed.pdf';
+    filename = 'deadlock-free-avg-speed-over-nVeh.pdf';
     set_figure_properties(figHandle,'preset','document')
+    export_fig(figHandle, fullfile(folder_path,filename));
+    close(figHandle);
+    
+
+
+    %% Plot: matrix over criteria
+    % min number vehicles for standstill
+    is_deadlock_free = (n_deadlock_free == n_total);
+    min_deadlocked_vehicles = zeros(nPri,1);
+    n_deadlock_free_scenarios = zeros(nPri,1);
+    vehicles_sce_pri = repmat((1:20)',1,nSce);
+    
+    for iPri = 1:nPri
+        n_deadlock_free_scenarios(iPri) = sum(is_deadlock_free(:,:,iPri),'all');
+        n_vehicles_deadlocked = vehicles_sce_pri(~is_deadlock_free(:,:,iPri));
+        min_deadlocked_vehicles(iPri) = min(n_vehicles_deadlocked);
+    end
+
+    min_nVeh_standstill = min_deadlocked_vehicles(data_permutation,:)';
+
+    % percentage deadlock free
+    perc_deadlock_free_scenarios = n_deadlock_free_scenarios./total_nSce_per_Pri;
+    % sort data
+    perc_standstill_free = perc_deadlock_free_scenarios(data_permutation,:)';
+
+    % time until standstill
+    t_standstill_free = reshape( ...
+        mean(t_deadlock_free,[1 2]), ...
+        1, [] ...
+    );
+    
+    % disp values
+    fprintf("Min N_A ")
+    fprintf(" %6.4g", min_nVeh_standstill)
+    fprintf("\n")
+    fprintf("%% Scen. ")
+    fprintf(" %6.4g", perc_deadlock_free_scenarios)
+    fprintf("\n")
+    fprintf("Time    ")
+    fprintf(" %6.4g", t_standstill_free)
+    fprintf("\n")
+
+    % plot
+    scaled_nVeh = rescale(min_nVeh_standstill,'InputMin',0);
+    scaled_t    = rescale(t_standstill_free, 'InputMin',0);
+    criteria_mat = [
+        scaled_nVeh
+        perc_standstill_free
+        scaled_t
+    ];
+
+    figHandle = figure();
+    p = plot(criteria_mat,':');
+    [p.Marker] = markers{:};
+    xticks(1:3)
+    xticklabels({'$N_A$ min', '\% succ.', 'Time'})
+    ax = gca;
+    ax.TickLabelInterpreter = 'latex';
+    xlim([0.8, 3.2]);
+    legend( ...
+        '$p_{\mathrm{fca}}$', ...
+        '$p_{\mathrm{color}}$', ...
+        '$p_{\mathrm{rand}}$', ...
+        '$p_{\mathrm{const}}$', ...
+        'Location','southeast' ...
+    );
+
+    % Export document presets
+    folder_path = FileNameConstructor.gen_results_folder_path( ...
+        result.scenario.options ...
+    );
+    filename = 'deadlock-free-matrix.pdf';
+    set_figure_properties(figHandle,'preset','paper')
     export_fig(figHandle, fullfile(folder_path,filename));
     close(figHandle);
 end

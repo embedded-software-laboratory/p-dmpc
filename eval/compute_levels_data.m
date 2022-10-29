@@ -1,5 +1,5 @@
-function [ data ] = compute_plot_levels_data(res)
-% GET_PLOT_LEVELS_DATA  Calculate data needed to export plots for compuation level evaluation
+function [ data ] = compute_levels_data(res)
+% COMPUTE_LEVELS_DATA  Calculate data needed to export plots for compuation level evaluation
     
     data = struct();
 

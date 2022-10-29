@@ -1,5 +1,5 @@
-function [ data ] = compute_plot_runtime_data(res)
-% GET_PLOT_RUNTIME_DATA  Calculate data needed to export plots for runtime evaluation
+function [ data ] = compute_runtime_data(res)
+% COMPUTE_RUNTIME_DATA  Calculate data needed to export plots for runtime evaluation
 
     data = struct();
 
@@ -17,18 +17,17 @@ function [ data ] = compute_plot_runtime_data(res)
             for iSce = 1:nSce
                 disp(['Scenario ',num2str(iVeh),' / ',num2str(iPri),' / ',num2str(iSce)])
                 result = res{iVeh,iPri,iSce};
-                [n_total_deadlock_free,t_total_deadlock_free] = compute_deadlock_free_runtime(result);
+                [n_total_deadlock_free,t_total_deadlock_free] = ...
+                    compute_deadlock_free_runtime(result);
                 t_deadlock_free(iVeh, iSce, iPri) = t_total_deadlock_free;
                 n_deadlock_free(iVeh, iSce, iPri) = n_total_deadlock_free;
                 
-                nSteps = length(result.iteration_structs);
-                avg_speed_step = zeros(nSteps,1);
-                for iStep = 1:nSteps
+                avg_speed_step = zeros(n_total_deadlock_free,1);
+                for iStep = 1:n_total_deadlock_free
                     iter = result.iteration_structs{iStep};
                     avg_speed_step(iStep) = mean(iter.x0(:,4));
                 end
                 avg_speed_scenario(iSce) = mean(avg_speed_step);
-
             end
             avg_speed_by_veh_pri(iVeh,iPri) = mean(avg_speed_scenario);
         end
@@ -42,6 +41,4 @@ function [ data ] = compute_plot_runtime_data(res)
     data.nVeh = nVeh;
     data.nPri = nPri;
     data.nSce = nSce;
-    
 end
-

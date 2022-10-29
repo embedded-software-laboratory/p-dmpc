@@ -1,6 +1,15 @@
-function eval_plot_levels(res)
+function plot_levels(res)
 % EVAL_PLOT_LEVELS  Evaluate the computation levels of the result cell `res`.
 
-    plot_levels_data = compute_plot_levels_data(res);
-    plot_levels_data(plot_levels_data);
+    levels_data = compute_plot_levels_data(res);
+
+    fname = fullfile( ...
+        FileNameConstructor.gen_results_folder_path( ...
+            levels_data.result.scenario.options ...
+        ), ...
+        'levels_data.mat' ...
+    );
+    save(fname,"levels_data");
+
+    plot_data(levels_data);
 end
