@@ -8,28 +8,30 @@ function export_desired_videos(res)
         % iterate over scenarios
         % get best and worst scenario
         [best, worst] = find_best_worst_result(res,iPri);
-        for res = [best, worst]
+        for r_cell = [best, worst]
             % export videos
-            % load result to get trajectory predictions
-            results_full_path = FileNameConstructor.get_results_full_path(res.scenario.options);
-            if isfile(results_full_path)
-                r = load(results_full_path);
-                res_full = r.result;
-            else
-                error('Experiment results required in "results" folder')
+            for r = [r_cell{:}]
+                % load result to get trajectory predictions
+                results_full_path = FileNameConstructor.get_results_full_path(res.scenario.options);
+                if isfile(results_full_path)
+                    r_full_loaded = load(results_full_path);
+                    r_full = r_full_loaded.result;
+                else
+                    error('Experiment results required in "results" folder')
+                end
+                r_full.scenario.options.optionsPlotOnline.isShowPriority = true;
+                r_full.scenario.options.optionsPlotOnline.isShowCoupling = true;
+                exportVideo(r_full);
             end
-            res_full.scenario.options.optionsPlotOnline.isShowPriority = true;
-            res_full.scenario.options.optionsPlotOnline.isShowCoupling = true;
-            exportVideo(res_full);
         end
     end
 end
 
-function [best, worst] = find_best_worst_result(res,iPri)
+function [best, worst] = find_best_worst_result(res)
     % Get the best and worst scenario regarding deadlock-free runtime
     % for the given priority assignment algorithm
 
-    [ nVeh, ~, nSce ] = size(res);
+    [ nVeh, nPri, nSce ] = size(res);
     % assumes that all scenarios have the same total runtime
     t_total = res{1,1,1}.t_total;
 
@@ -37,10 +39,13 @@ function [best, worst] = find_best_worst_result(res,iPri)
     % find scenario for which no deadlock occured with most vehicles
     inVeh = nVeh;
     found = false;
+    standstill_free_time = zeros(nPri,1);
     while ( inVeh >= 1 ) && ( found == false )
         for iSce = 1:nSce
-            [~, deadlock_free_runtime] = compute_deadlock_free_runtime(res{inVeh,iPri,iSce});
-            if (deadlock_free_runtime == t_total)
+            for iPri = 1:nPri
+                [~, standstill_free_time(iPri)] = compute_deadlock_free_runtime(res{inVeh,iPri,iSce});
+            end
+            if all(standstill_free_time == t_total)
                 iSce_best = iSce;
                 inVeh_best = inVeh;
                 found = true;
@@ -56,9 +61,11 @@ function [best, worst] = find_best_worst_result(res,iPri)
     found = false;
     while ( inVeh <= nVeh ) && ( found == false )
         for iSce = 1:nSce
-            deadlock_free_runtime = compute_deadlock_free_runtime(res{inVeh,iPri,iSce});
-            deadlocked_runtime = deadlock_free_runtime - t_total;
-            if (deadlocked_runtime > 0)
+            for iPri = 1:nPri
+                [~, standstill_free_time(iPri)] = compute_deadlock_free_runtime(res{inVeh,iPri,iSce});
+            end
+            standstill_time = standstill_free_time - t_total;
+            if all( standstill_time > 0 )
                 iSce_worst = iSce;
                 inVeh_worst = inVeh;
                 found = true;
@@ -68,6 +75,6 @@ function [best, worst] = find_best_worst_result(res,iPri)
         inVeh = inVeh + 1;
     end
 
-    best = res{inVeh_best,iPri,iSce_best};
-    worst = res{inVeh_worst,iPri,iSce_worst};
+    best = res{inVeh_best,:,iSce_best};
+    worst = res{inVeh_worst,:,iSce_worst};
 end
