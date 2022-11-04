@@ -25,11 +25,9 @@ function expert_mode(manual_vehicle_id, force_feedback_enabled)
     end
 
     t_start = tic;
-    %r = rosrate(0.01);
-
+    
     while(true)
 
-        %waitfor(r);
         wheel_message = wheelSub.LatestMessage;
 
         wheelData = struct;

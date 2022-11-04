@@ -1,5 +1,5 @@
-function [options, vehicle_ids] = eval_guided_mode(consider_RSS)
-    %% evaluate mixed traffic for first collision avoidance mode
+function [options, vehicle_ids] = eval_expert_mode(consider_RSS)
+%% evaluate Expert Mode 
     
         options = struct;
         options.collisionAvoidanceMode = 3;

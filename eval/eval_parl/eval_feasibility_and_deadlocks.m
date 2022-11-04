@@ -65,16 +65,6 @@ for i = 1:length(strategy_feasibility_deadlock)
     end
 end
 disp('--------Finished--------')
-%% test
-options.visu(1) = 1;
-options.isSaveResult = false;
-options.amount = 40;
-options.random_idx =  iRandom;
-options.veh_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
-options.strategy_consider_veh_without_ROW = '1';
-options.strategy_enter_lanelet_crossing_area = '1';
-[~,~,~] = main(options,scenario);
-
 %% Plot
 set(0,'DefaultTextFontname', 'Times New Roman');
 set(0,'DefaultAxesFontName', 'Times New Roman');
@@ -86,10 +76,6 @@ average_random_simulations = @(data) reshape(mean(reshape(data,random_times,[]),
 % total runtime
 t_total_tmp = cellfun(@(c) c.t_total, e_feasibility_differentNumVehs);
 t_total = average_random_simulations(t_total_tmp);
-% speed_average_s = cellfun(@(c) c.average_speed, e_feasibility_differentNumVehs);
-fallback_rate_tmp = cellfun(@(c) c.fallback_rate*100, e_feasibility_differentNumVehs);
-fallback_rate = average_random_simulations(fallback_rate_tmp);
-% speed_sum_s = cellfun(@(c) c.sum_speeds_all_vehicles, e_feasibility_differentNumVehs);
 is_deadlock_tmp = cellfun(@(c) c.is_deadlock,e_feasibility_differentNumVehs);
 deadlock_rate = average_random_simulations(is_deadlock_tmp);
 collision_rate = (1-deadlock_rate)*100;
@@ -132,20 +118,6 @@ t_total_sum = sum(t_total,2);
 disp(['Using both strategies: the maximum runtime is ' num2str(t_total_sum(1)/t_total_sum(4)) ' times of that of not using any of them.'])
 disp(['Using both strategies: the maximum runtime is ' num2str(t_total_sum(2)/t_total_sum(4)) ' times of that of not using any of them.'])
 disp(['Using both strategies: the maximum runtime is ' num2str(t_total_sum(3)/t_total_sum(4)) ' times of that of not using any of them.'])
-% legend(p_t_total,legend_,'Location',)
-
-% % fallback rate
-% nexttile(2,[1,1])
-% grid on
-% hold on
-% p_fallback_rate(1) = plot(nVeh_s,fallback_rate(1,:),plot_line_options(1));
-% p_fallback_rate(2) = plot(nVeh_s,fallback_rate(2,:),plot_line_options(2));
-% p_fallback_rate(3) = plot(nVeh_s,fallback_rate(3,:),plot_line_options(3));
-% p_fallback_rate(4) = plot(nVeh_s,fallback_rate(4,:),plot_line_options(4));
-% ylim([0,4])
-% xticks(nVeh_s)
-% xlabel({'(b) Average fallback rate.'},'Interpreter','latex')
-% ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 
 % global legend
 lg  = legend(p_t_total,legend_,'Orientation','Horizontal','NumColumns',2); 
@@ -169,11 +141,7 @@ ylabel('$p_{co}\:[\%]$','Interpreter','latex')
 % save fig
 e_feasibility_differentNumVehs{1}.save_fig(fig,file_name)
 %% Generate data: strategieis to improve feasibilities (same number of vehicles)
-    % 1. Higher-priority vehicles consider emergency braking maneuver of
-    % lowr-priority vehicles
-    % 2. 
 strategy_feasibility_deadlock = {{'3','4'},{'3','1'},{'1','4'},{'1','1'}};
-
 
 % prepare simulation options
 options = OptionsMain;
@@ -242,11 +210,8 @@ set(0,'defaultAxesFontSize',11)
 average_random_simulations = @(data) reshape(mean(reshape(data,random_times,[]),1),length(strategy_feasibility_deadlock),[]);
 
 % total runtime
-% t_total_tmp = cellfun(@(c) c.t_total, e_feasibility_differentNumVehs);
-% t_total = average_random_simulations(t_total_tmp);
 fallback_rate_tmp = cellfun(@(c) c.fallback_rate*100, e_feasibility_sameNumVehs);
 fallback_rate = average_random_simulations(fallback_rate_tmp);
-% speed_sum_s = cellfun(@(c) c.sum_speeds_all_vehicles, e_feasibility_differentNumVehs);
 
 speed_average_tmp = cellfun(@(c) c.average_speed, e_feasibility_sameNumVehs);
 speed_average = average_random_simulations(speed_average_tmp);
@@ -264,7 +229,7 @@ CT_total_max_tmp = cellfun(@(c) c.runtime_max, e_feasibility_sameNumVehs);
 CT_total_max = average_random_simulations(CT_total_max_tmp);
 CT_total_average_tmp = cellfun(@(c) c.runtime_total_average, e_feasibility_sameNumVehs);
 CT_total_average = average_random_simulations(CT_total_average_tmp);
-X_string = {'Both','FIS','DAS','None'};
+X_string = {'Both','FIS','VDS','None'};
 X_cat = categorical(X_string);
 X_cat = reordercats(X_cat,X_string);
 
@@ -288,7 +253,6 @@ hAx=gca;
 xtk=hAx.XTick;
 grid on
 hold on
-% p = plot(xtk,horzcat(speed_average_s{:}));
 s = scatter(xtk,speed_average,12,'filled','o','MarkerFaceColor',[0 0.4470 0.7410]);
 set(gca, 'XTickLabel','')
 legend(s,'Average','Location','south')
@@ -304,13 +268,11 @@ xlabel('(b) Average fallback rate.')
 ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 grid on
 ylim([0 3])
-% xlabel(t_fig,'Improvement of Feasibility','FontSize',9,'FontName','Times New Roman')
 xtickangle(0)
 
 % plot computation time
 nexttile(2,[5,1])
 b2 = bar(X_cat,[CT_total_average,CT_total_max,CT_graph_search]);
-% set(gca, 'XTickLabel','')
 grid on
 legend({'Total (avg.)','Total (max.)','Plan Trajectory (max.)'},'Location','best','FontSize',9,'Orientation','horizontal','NumColumns',1)
 xlabel('(c) Computation time per step.')

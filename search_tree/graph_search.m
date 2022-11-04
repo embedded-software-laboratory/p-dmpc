@@ -54,8 +54,15 @@ function info = graph_search(scenario, iter)
 %             );
 %             throw(ME);
 
-            % if vehicle at a standstill cannot find a feasible trajectory, it keep stay at standstill, and this will not be considered as a infeasibility
-            if scenario.mpa.trims(trim).speed==0
+            if scenario.mpa.trims(trim).speed==0 && ~strcmp(scenario.options.strategy_consider_veh_without_ROW,'1')
+                % if a vehicle at a standstill cannot find a feasible
+                % trajectory, it will keep at a standstill without
+                % triggering a fallback. This kind of graph search is
+                % considered as a semi-exhausted, and the corresponding
+                % infeasibility is called a semi-infeasibility. Note that
+                % this strategy can be used only if higher-priority
+                % vehicles consider at least the current occupied sets of
+                % lower-priority vehicles.
                 info.tree = Tree(x,y,yaw,trim,k,g,h);
                 for iStep = 1:Hp
                     new_open_nodes = add_nodes(info.tree,iStep,x,y,yaw,trim,k,g,h);

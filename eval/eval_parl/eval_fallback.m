@@ -155,7 +155,6 @@ ylabel('$\overline{p}_{FB}\:[\%]$','Interpreter','latex')
 xlim([min(nVeh_s) max(nVeh_s)])
 xticks(nVeh_s)
 
-% xlabel(t_fig,'Compare different fallback strategies','FontSize',9,'FontName','Times New Roman')
 % save fig
 e_fallback_strategies{1}.save_fig(fig,file_name)
 

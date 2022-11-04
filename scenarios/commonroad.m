@@ -13,17 +13,17 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
 
     % get road data
     road_data = RoadData().get_road_data();
-    if options.isParl
+%     if options.isParl
         scenario.lanelets = road_data.lanelets;
         scenario.adjacency_lanelets = road_data.adjacency_lanelets;
         scenario.semi_adjacency_lanelets = road_data.semi_adjacency_lanelets;
         scenario.intersection_lanelets = road_data.intersection_lanelets;
         scenario.lanelet_boundary = road_data.lanelet_boundary;
         scenario.road_raw_data = road_data.road_raw_data;
-    else
-        [scenario.lanelets, scenario.adjacency_lanelets, scenario.semi_adjacency_lanelets, scenario.intersection_lanelets, scenario.road_raw_data, scenario.lanelet_boundary] =...
-            commonroad_lanelets();
-    end
+%     else
+%         [scenario.lanelets, scenario.adjacency_lanelets, scenario.semi_adjacency_lanelets, scenario.intersection_lanelets, scenario.road_raw_data, scenario.lanelet_boundary] =...
+%             commonroad_lanelets();
+%     end
     scenario.lanelet_relationships  = road_data.lanelet_relationships;
     
     nVeh = options.amount;
@@ -110,5 +110,5 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     % initialize speed profile vector, currently 3 speed profiles are available
     scenario.speed_profile_mpas = [scenario.mpa, scenario.mpa, scenario.mpa];
  
-%     plot_local_reachable_sets(scenario.mpa, scenario.is_allow_non_convex)
+%     plot_local_reachable_sets(scenario.mpa, scenario.options.is_allow_non_convex)
 end

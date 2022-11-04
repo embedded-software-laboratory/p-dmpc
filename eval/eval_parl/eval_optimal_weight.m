@@ -27,10 +27,6 @@ options.isSaveResultReduced = true;
 
 options.coupling_weight_mode  = {'STAC','random','constant','optimal'};
 
-% Random choose different vehicles three times
-belongs_vector_s = zeros(options.amount,2);
-count = 0;
-
 options.amount = 20;
 
 random_seed = RandStream('mt19937ar');
@@ -48,10 +44,7 @@ else
     end
 end
 load(full_path,'result')
-% data processing
 % display progress
-count = count + 1;
-%     disp(['--------Progress ' num2str(count) '/' num2str(n_simulations) ': done--------'])
 
 disp('--------Finished--------')
 
@@ -127,10 +120,7 @@ for i = 1:2
     EvaluationParl.save_fig(fig,file_name)
 end
 
-
-
 %%
-
 fig_x = 10;     fig_y = 10; % [cm]
 x_margin = 0;   y_margin = 0; 
 fig_x_position = fig_x - 2*x_margin;

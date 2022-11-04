@@ -71,9 +71,7 @@ average_random_simulations = @(data) reshape(mean(reshape(data,random_times,[]),
 % total runtime
 t_total_tmp = cellfun(@(c) c.t_total, e_predictionInconsistency);
 t_total = average_random_simulations(t_total_tmp);
-t_total_normalized = t_total(1,:)./t_total(2,:);
 
-is_deadlock = cellfun(@(c) c.is_deadlock, e_predictionInconsistency)
 % options for plot 
 plot_options_considerPI = struct('LineWidth',.6,'Marker','*','MarkerSize',4);
 plot_options_notConsiderPI = struct('LineWidth',.6,'Marker','o','MarkerSize',4);
@@ -111,4 +109,3 @@ disp(['Average improvement in maximum runtime: ' num2str(average_improvement*100
 
 % save fig
 e_predictionInconsistency{1}.save_fig(fig,file_name)
-

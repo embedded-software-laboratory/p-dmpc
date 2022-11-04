@@ -53,6 +53,7 @@ function scenario = circle_scenario(options)
     if options.isPB
         % undirected coupling adjacency is complete
         scenario.adjacency = ones(nVeh,nVeh);
+        scenario.semi_adjacency = ones(nVeh,nVeh);
        if scenario.assignPrios
             scenario.directed_coupling = [];
        else
