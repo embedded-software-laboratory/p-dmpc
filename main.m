@@ -459,14 +459,14 @@ end
 disp(['Total runtime: ' num2str(round(result.t_total,2)) ' seconds.'])
 
 %% save results
-if options.isSaveResult
-    % Delete varibales used for ROS 2 since some of them cannot be saved
-    % Create comma-separated list
-    empty_cells = cell(1,options.amount);
-    
-    result.scenario.ros_subscribers = [];
-    [result.scenario.vehicles.communicate] = empty_cells{:};
-    
+% Delete varibales used for ROS 2
+% Create comma-separated list
+empty_cells = cell(1,options.amount);
+
+result.scenario.ros_subscribers = [];
+[result.scenario.vehicles.communicate] = empty_cells{:};
+
+if options.isSaveResult    
     result.mpa = scenario.mpa;
 
     % Delete unimportant data
