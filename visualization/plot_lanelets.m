@@ -1,10 +1,8 @@
-function plot_lanelets(lanelets,scenario_name)
+function plot_lanelets(road_raw_data,scenario_name)
 % PLOT_LANELETS     Plots the lanelet structure.
 
-    for i = 1 : length(lanelets)
-        
-        lanelet = lanelets{i};
-        
+    for i = 1 : length(road_raw_data)
+
         switch scenario_name
             case 'Commonroad'
                 color = '#848484';
@@ -19,16 +17,28 @@ function plot_lanelets(lanelets,scenario_name)
                     end
                 end
         end
-        plot_lanelet(lanelet,color);
+        plot_lanelet(road_raw_data(i),color);
         
     end
 
 end
 
-function plot_lanelet(lanelet, color)
+function plot_lanelet(road_raw_data, color)
             
-            line(lanelet(:,LaneletInfo.rx), lanelet(:,LaneletInfo.ry), 'Color', color, 'LineWidth', 0.15);
-            line(lanelet(:,LaneletInfo.lx), lanelet(:,LaneletInfo.ly), 'Color', color, 'LineWidth', 0.15);
-            line(lanelet(:,LaneletInfo.cx), lanelet(:,LaneletInfo.cy), 'Color', color,'linestyle', '--', 'LineWidth', 0.15); 
+            % left bound
+            if strcmp(road_raw_data.rightBound.lineMarking,'dashed')
+                lineStyle = '--';
+            else
+                lineStyle = '-';
+            end
+            line([road_raw_data.rightBound.point.x], [road_raw_data.rightBound.point.y], 'Color', color, 'LineWidth', 0.15, 'LineStyle', lineStyle);
+
+            % right bound
+            if strcmp(road_raw_data.leftBound.lineMarking,'dashed')
+                lineStyle = '--';
+            else
+                lineStyle = '-';
+            end
+            line([road_raw_data.leftBound.point.x], [road_raw_data.leftBound.point.y], 'Color', color, 'LineWidth', 0.15, 'LineStyle', lineStyle);
 
 end

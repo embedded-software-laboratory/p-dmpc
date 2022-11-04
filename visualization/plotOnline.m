@@ -57,7 +57,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
 
         % plot the lanelets only once at the beginning
         if ~isempty(scenario.lanelets)
-            plot_lanelets(scenario.lanelets,scenario.name);
+            plot_lanelets(scenario.road_raw_data.lanelet,scenario.name);
         end
 
         colormap("hot"); % set colormap
@@ -76,7 +76,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
 
         % plot the lanelets only once at the beginning
         if ~isempty(scenario.lanelets)
-            plot_lanelets(scenario.lanelets,scenario.name);
+            plot_lanelets(scenario.road_raw_data.lanelet,scenario.name);
         end
 
         colormap("hot"); % set colormap
