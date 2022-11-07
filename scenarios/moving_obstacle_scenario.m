@@ -1,6 +1,8 @@
-function scenario = moving_obstacle_scenario()
+function scenario = moving_obstacle_scenario(is_start_end)
 % MOVING_OBSTACLE_SCENARIO     Constructor for moving obstacle scenario
-
+    arguments
+        is_start_end (1,1) logical = 0;
+    end
     scenario = Scenario();
     scenario.options.trim_set = 3;
     veh = Vehicle();
@@ -16,18 +18,26 @@ function scenario = moving_obstacle_scenario()
     veh.trim_config = 1;
     veh.referenceTrajectory = [veh.x_start veh.y_start;veh.x_goal veh.y_goal];
     scenario.vehicles = veh;
-    scenario.options.Hp = 5;
+    scenario.options.amount = 1;
+    scenario.options.T_end = 10;
+    if ~is_start_end
+        scenario.options.Hp = 5;
+        scenario.options.scenario_name = sprintf('moving_obstacles');
+    else
+        scenario.options.Hp = scenario.T_end / scenario.dt;
+        scenario.options.scenario_name = sprintf('moving_obstacles_start_end');
+    end
     
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     
-    scenario.options.plot_limits = [-3.5,6.5;-1.5,1.5];
+    scenario.options.plot_limits = [-4,5;-1.5,1.5];
     
-    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
+    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
 
-    x1_obs = veh.x_start + 4;
+    x1_obs = veh.x_start + 2.2;
     x2_obs = x1_obs + 1.5;
     
-    y1_obs = 4;
+    y1_obs = 4.1;
     y2_obs = -4;
     
     dist_obs = 1.7;
@@ -67,5 +77,4 @@ function scenario = moving_obstacle_scenario()
         end
     end
     
-    scenario.name = sprintf('moving_obstacles');
 end

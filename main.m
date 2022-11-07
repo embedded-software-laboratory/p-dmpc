@@ -189,6 +189,8 @@ if options.isParl && strcmp(scenario.name, 'Commonroad')
     scenario = communication_init(scenario, exp);
 end
 
+scenario.priority_list = ones(1,scenario.options.amount);
+
 vehs_fallback_times = zeros(1,scenario.options.amount); % record the number of successive fallback times of each vehicle 
 info_old = []; % old information for fallback
 total_fallback_times = 0; % total times of fallbacks

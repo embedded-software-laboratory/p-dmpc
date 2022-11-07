@@ -4,8 +4,8 @@ function [info,scenario] = centralized_controller(scenario, iter)
     % initialize variable to store control results
     info = ControllResultsInfo(scenario.options.amount, scenario.options.Hp, [scenario.vehicles.ID]);
     
-    sub_controller = @(scenario, iter)...
-        graph_search(scenario, iter);
+    sub_controller = @scenario.sub_controller;
+
     
     % falsifies controller_runtime slightly
     subcontroller_timer = tic;

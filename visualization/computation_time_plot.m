@@ -36,7 +36,7 @@ ylabel('Computation Time [s]','Interpreter','LaTex');
 
 set_figure_properties(fig, 'paper', 12);
 filepath = fullfile('results', 'computation_time.pdf');
-exportgraphics(fig, filepath, 'ContentType','vector');
+export_fig(fig, filepath);
 close(fig);
 
 end
