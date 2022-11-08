@@ -90,7 +90,7 @@ function [is_valid, shapes] = eval_edge_exact(scenario, tree, iNode, vehicle_obs
                 end
 
             case 'InterX'
-                %assert(scenario.options.amount==1) % if not 1, code adaption is needed                
+                assert(scenario.options.amount==1) % if not 1, code adaption is needed                
                 % Note1: Shape must be closed!
                 % Note2: The collision check order is important.
                 % Normally, check collision with lanelet boundary last would be better.
