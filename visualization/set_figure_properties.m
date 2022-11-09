@@ -1,67 +1,10 @@
-function set_figure_properties(figHandle, options)
+function set_figure_properties(figHandle, export_fig_config)
 % SET_FIGURE_PROPERTIES     Set Properties used for figures based on the type of export.
 arguments
-    figHandle       (1,1) matlab.ui.Figure;
-    options.preset;
-    options.paperheight_in  (1,1) double;
-    options.paperwidth_in   (1,1) double;
+    figHandle           (1,1) matlab.ui.Figure;
+    export_fig_config   (1,1) ExportFigConfig;
 end
 
-fontsize    = 9;
-markersize  = 3;
-linewidth   = 0.5;
-fontname    = 'CMU Serif';
-units       = 'centimeters';
-paperwidth  = 7.5;    % picture width in cm
-paperheight = 4;      % picture height in cm
-
-if isfield(options, 'preset')
-    switch lower(options.preset)
-    case 'paper' % \the\linewidth=252.0pt, 1pt=0.3515mm --> 88.578mm
-        fontsize    = 9;
-        paperwidth  = 7.5;    % picture width in cm
-        paperheight = 4;    % picture height in cm
-        linewidth   = 0.5;
-        fontname    = 'CMU Serif';
-        units       = 'centimeters';
-    
-    case 'presentation'
-        fontsize    = 18;
-        paperwidth  = 31.77; % picture width in cm
-        paperheight = 14.01; % picture height in cm
-        linewidth   = 1;
-        fontname    = 'Arial';
-        units       = 'centimeters';
-    
-    case 'document'
-        fontsize    = 9;
-        paperwidth  = 11.7; % picture width in cm
-        paperheight = 7.85; % picture height in cm
-        linewidth   = 0.5;
-        fontname    = 'CMU Serif';
-        units       = 'centimeters';
-
-    case 'video'
-        fontsize    = 20;
-        paperwidth  = 1920;
-        paperheight = 1080;
-        linewidth   = 1;
-        fontname    = 'Arial';
-        units       = 'pixels';
-    
-    otherwise % default
-        error('No valid preset selected.')
-    end
-end
-
-if isfield(options, 'paperheight_in')
-    paperheight = options.paperheight_in;
-end
-
-if isfield(options, 'paperwidth_in')
-    paperwidth = options.paperwidth_in;
-end
-    
     % beauty corrections
     allchildren = get(figHandle, 'Children'); % get handle figure
     for a=1:length(allchildren)
@@ -69,8 +12,8 @@ end
             h_title=get(allchildren(a),'Title');
             set(h_title,...
                 'FontWeight','normal',...
-                'FontSize',fontsize+1,...
-                'FontName',fontname,...
+                'FontSize',export_fig_config.fontsize+1,...
+                'FontName',export_fig_config.fontname,...
                 'Interpreter','latex');
         catch
             % continue
@@ -79,12 +22,12 @@ end
             h_xlabel = get(allchildren(a), 'xlabel');
             h_ylabel = get(allchildren(a), 'ylabel');
             set(h_xlabel,...
-                'FontSize',fontsize,...
-                'FontName',fontname,...
+                'FontSize',export_fig_config.fontsize,...
+                'FontName',export_fig_config.fontname,...
                 'Interpreter','latex')
             set(h_ylabel,...
-                'FontSize',fontsize,...
-                'FontName',fontname,...
+                'FontSize',export_fig_config.fontsize,...
+                'FontName',export_fig_config.fontname,...
                 'Interpreter','latex')
         catch
             % continue
@@ -93,9 +36,9 @@ end
         try
             h_axes=get(allchildren(a),'Axes');
             set(h_axes,...
-                'FontSize',fontsize,...
-                'FontName',fontname,...
-                'LineWidth',linewidth, ...
+                'FontSize',export_fig_config.fontsize,...
+                'FontName',export_fig_config.fontname,...
+                'LineWidth',export_fig_config.linewidth, ...
                 'Box','on');
         catch
             % continue
@@ -103,25 +46,24 @@ end
         % set subplotaxes
         try
             set(allchildren(a)...
-                ,'FontSize',fontsize...
-                ,'FontName',fontname...
-                ,'LineWidth',linewidth...
+                ,'FontSize',export_fig_config.fontsize...
+                ,'FontName',export_fig_config.fontname...
+                ,'LineWidth',export_fig_config.linewidth...
                 ,'Box','on'...
             );
-                % ,'XAxisLocation','origin'...
-                % ,'YAxisLocation','origin'...
         catch
             % continue
         end
         % set legend
         if strcmpi(get(allchildren(a),'Tag'),'legend')
             h_legend=allchildren(a);
-            set(h_legend,'FontSize',fontsize-3)
+            set(h_legend,'FontSize',export_fig_config.fontsize-3)
             set(h_legend,...
-                'LineWidth',linewidth,...
-                'FontName',fontname,...
+                'LineWidth',export_fig_config.linewidth,...
+                'FontName',export_fig_config.fontname,...
                 'Interpreter','latex',...
-                'Box','on');
+                'Box','on' ...
+            );
         end
         % Set graphic objects
         
@@ -129,14 +71,14 @@ end
         for h_graphic = h_graphics'
             try
                 set(h_graphic ...
-                    ,'LineWidth', linewidth ...
+                    ,'LineWidth', export_fig_config.linewidth ...
                 );
             catch
                 % continue
             end
             try
                 set(h_graphic ...
-                    ,'MarkerSize', markersize ...
+                    ,'MarkerSize', export_fig_config.markersize ...
                 );
             catch
                 % continue
@@ -147,11 +89,22 @@ end
     % background color
     set(figHandle, 'Color', 'w');
     % format
-    set(figHandle,'Units',units);
+    set(figHandle,'Units',export_fig_config.units);
     screenpos = get(figHandle,'Position');
     set(figHandle ...
-        ,'Position',[screenpos(1:2), paperwidth, paperheight]...  % px, py, w, h, of figure on screen
+        ,'Position',[screenpos(1:2), export_fig_config.paperwidth, export_fig_config.paperheight]...  % px, py, w, h, of figure on screen
+        ,'PaperSize',[export_fig_config.paperwidth, export_fig_config.paperheight]...  % px, py, w, h, of figure on print
     );
 
     colororder(rwth_color_order());
+
+    % Workaround to keep desired width
+    annotation('line',[0, 0],[0.49, 0.51] ...
+        ,'Color', 'w' ...
+        ,'LineWidth',0.01 ...
+    )
+    annotation('line',[1, 1],[0.49, 0.51] ...
+        ,'Color', 'w' ...
+        ,'LineWidth',0.01 ...
+    )
 end

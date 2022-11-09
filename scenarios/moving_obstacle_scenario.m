@@ -31,14 +31,15 @@ function scenario = moving_obstacle_scenario(options)
     scenario.options.isSaveResult = true;
     scenario.options.trim_set = 9;
     scenario.options.veh_ids = 1;
-    scenario.options.T_end = 4;
+    scenario.options.T_end = 10;
     if ~options.is_start_end
-        scenario.options.Hp = 8;
+        scenario.options.Hp = 5;
         scenario.options.scenario_name = sprintf('moving_obstacles');
     else
         scenario.options.Hp = round(scenario.options.T_end / scenario.options.dt);
         scenario.options.scenario_name = sprintf('moving_obstacles_start_end');
     end
+    scenario.name = scenario.options.scenario_name;
 
 
     
@@ -53,7 +54,7 @@ function scenario = moving_obstacle_scenario(options)
 
 
     %% Obstacles
-    dx_veh_obs = 1;
+    dx_veh_obs = 2.2;
     dx_obs_obs = 1.5;
     x_obs = [
         veh.x_start + dx_veh_obs;
@@ -64,7 +65,7 @@ function scenario = moving_obstacle_scenario(options)
     
     y_obs_start = 4;
     y_obs = [
-        y_obs_start;
+        y_obs_start+0.1;
         -y_obs_start;
         y_obs_start;
         -y_obs_start;
@@ -111,7 +112,6 @@ function scenario = moving_obstacle_scenario(options)
         end
     end
     
-    scenario.name = sprintf('moving_obstacles');
     dx_plot = 0.5;
     scenario.options.plot_limits = [...
         veh.x_start-dx_plot, x_obs(n_cols)+dx_plot+dx_veh_obs;-1.5,1.5 ...

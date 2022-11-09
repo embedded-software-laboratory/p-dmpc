@@ -7,6 +7,7 @@ arguments
     options.do_export   (1,1) logical = false;
     options.fig         (1,1) matlab.ui.Figure = figure("Visible","off");
     options.with_labels (1,1) logical = true;
+    options.export_fig_cfg (1,1) ExportFigConfig = ExportFigConfig.paper();
 end
     mpa = scenario.mpa;
     
@@ -44,7 +45,7 @@ end
         folder_path = FileNameConstructor.gen_results_folder_path(scenario.options);
         [~,file_name,~] = fileparts(FileNameConstructor.get_mpa_name(scenario.options));
         filepath = fullfile(folder_path,[file_name file_ext]);
-        set_figure_properties(options.fig,'preset','paper');
+        set_figure_properties(options.fig,options.export_fig_cfg);
         export_fig(options.fig, filepath)
         close(options.fig);
     else

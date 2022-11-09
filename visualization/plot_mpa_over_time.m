@@ -3,6 +3,7 @@ function plot_mpa_over_time(scenario,options)
         scenario            (1,1) Scenario;
         options.y_lim       (1,2) double = [-0.1, 1.6];
         options.do_export   (1,1) logical = false;
+        options.export_fig_cfg (1,1) ExportFigConfig = ExportFigConfig.paper();
     end
 
     fig = figure("Visible","off");
@@ -39,10 +40,7 @@ function plot_mpa_over_time(scenario,options)
         folder_path = FileNameConstructor.gen_results_folder_path(scenario.options);
         [~,file_name,~] = fileparts(FileNameConstructor.get_mpa_name(scenario.options));
         filepath = fullfile(folder_path,[file_name file_ext]);
-        set_figure_properties(fig, ...
-            'paperwidth_in',7.5, ...
-            'paperheight_in',3 ...
-        );
+        set_figure_properties(fig, options.export_fig_cfg);
         export_fig(fig, filepath)
         close(fig);
     else

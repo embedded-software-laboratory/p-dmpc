@@ -21,13 +21,11 @@ If you will switch between branches, it is recommended is to copy the folders `\
 # Receding Horizon Graph Search
 <!-- icons from https://simpleicons.org/ -->
 <!-- [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)]()  -->
-[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/receding-horizon-graph-search) 
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc) 
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://www.youtube.com/watch?v=7LB7I5SOpQE) 
-[![Open in Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/7778016/tree/v2)
+[![Open in Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/7778016/tree)
 
-<!-- GIF: ffmpeg -y -i video_3-circle_RHC.mp4 -vf "crop=in_h:in_h:420:0,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 preview.gif -->
-<!-- https://gifyu.com/image/GGVg -->
-<img src="https://s9.gifyu.com/images/preview6ec7fc3f8852dd89.gif" alt="preview6ec7fc3f8852dd89.gif" width="500"/>
+<img src="./docs/media/3-circle_rhgs.gif" width=640/>
 
 This repository contains the source code for Receding Horizon Graph Search (RHGS), a MATLAB implementation of a graph-based receding horizon trajectory planner.
 
@@ -38,11 +36,11 @@ startup()
 main()
 ```
 
-More information is provided in our publication [1], which we kindly ask you to consider citing if you find RHGS helpful for your work.
+More information is provided in our publication [1]. Please  cite this publication if you find RHGS helpful for your work.
 The results of the publication can be reproduced by running
 ```matlab
 startup()
-eval_paper()
+eval_rhgs()
 ```
 This will take a while. The results are then found in the folder "results".
 

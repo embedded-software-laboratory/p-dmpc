@@ -47,7 +47,7 @@ function plot_levels_data(data)
         result.scenario.options ...
     );
     filename = 'computation-levels-detail.pdf';
-    set_figure_properties(figHandle,'preset','paper','paperheight_in',7)
+    set_figure_properties(figHandle,ExportFigConfig.spp_book_small('paperheight',7))
     export_fig(figHandle, fullfile(folder_path,filename));
     close(figHandle);
 
@@ -84,7 +84,7 @@ function plot_levels_data(data)
         result.scenario.options ...
     );
     filename = 'computation-levels-overview.pdf';
-    set_figure_properties(figHandle,'preset','paper','paperheight_in',6)
+    set_figure_properties(figHandle,ExportFigConfig.spp_book_small('paperheight',6))
     export_fig(figHandle, fullfile(folder_path,filename));
     close(figHandle);
 
@@ -120,7 +120,7 @@ function plot_levels_data(data)
     );
     filename = 'computation-levels-graph.pdf';
     % TODO paper size to guarantee legend does not cover graph
-    set_figure_properties(figHandle,'preset','paper','paperheight_in',15,'paperwidth_in',15)
+    set_figure_properties(figHandle,ExportFigConfig.spp_book_small('paperheight',15,'paperwidth',15))
     export_fig(figHandle, fullfile(folder_path,filename));
     close(figHandle);
 
@@ -155,7 +155,7 @@ function plot_levels_data(data)
         result.scenario.options ...
     );
     filename = 'computation-levels-bar-plot-document.pdf';
-    set_figure_properties(figHandle,'preset','document','paperheight_in',6)
+    set_figure_properties(figHandle,ExportFigConfig.spp_book_full('paperheight',6))
     % overwrite color order
     r100 = rwth_color_order;
     r50 = rwth_color_order_50;
