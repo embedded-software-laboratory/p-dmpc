@@ -24,6 +24,8 @@ classdef EvaluationParl
         runtime_group_vehs_average          % average runtime of grouping vehicles
         runtime_graph_search                % runtime of graph search
         runtime_graph_search_average        % average runtime of graph search
+        runtime_graph_search_pure_sequential            % runtime of graph search (pure sequential trajectory planning)
+        runtime_graph_search_pure_sequential_average    % average runtime of graph search (pure sequential trajectory planning)
         runtime_total_per_step              % total runtime per step
         runtime_total_average               % average runtime
         runtime_max                         % average of maximum top n runtime
@@ -171,13 +173,10 @@ classdef EvaluationParl
             
             obj.runtime_graph_search_average = mean(result.runtime_graph_search_max(obj.steps_ignored:obj.nSteps));
             obj.runtime_graph_search = max(result.runtime_graph_search_max(obj.steps_ignored:obj.nSteps));
-            
-%             runtime_max_step = find(obj.runtime_max==obj.runtime_total_per_step);
-%             runtime_graph_search_step = find(obj.runtime_graph_search==result.runtime_graph_search_max);
-%             if runtime_max_step ~= runtime_graph_search_step
-%                 disp('')
-%             end
-            
+
+            obj.runtime_graph_search_pure_sequential = max(result.runtime_graph_search_sum);
+            obj.runtime_graph_search_pure_sequential_average = mean(result.runtime_graph_search_sum);
+
             obj.runtime_determine_couplings = max(result.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
             obj.runtime_determine_couplings_average = mean(result.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
             % in order to assign priorities, determination of couplings is needed 

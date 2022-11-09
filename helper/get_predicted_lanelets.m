@@ -40,7 +40,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
     Hp = size(mpa.transition_matrix_single,3);
 
     % get reference speed and path points
-    v_ref = get_max_speed(mpa, trim_current);
+    v_ref = get_max_speed_of_mpa(mpa);
     
     % Find equidistant points on the reference trajectory.
     [reference,curTrajectoryIndex] = sampleReferenceTrajectory(...
@@ -57,7 +57,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
 
     ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
 %     ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle 
-
+    
     % predict several points more such that the predicted lanelets can cover all reachable set. Only in this way, the bounded reachable sets will not be cutoff at its front
     n_points_total = size(scenario.vehicles(iVeh).referenceTrajectory,1);
     index_add = ref_points_index(end) + 4;
@@ -66,7 +66,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
     end
     ref_points_index = [ref_points_index;index_add];
 
-    if strcmp(scenario.name,'Commonroad')
+    if ~isempty(scenario.lanelets)
         predicted_lanelets_idx = [];
 
         for i_points_index = 1:length(ref_points_index)
@@ -93,7 +93,4 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
         predicted_lanelets = [];
     end
 
-%     if iVeh==3 && all(ismember(predicted_lanelets,[86,34]))
-%         disp('') % debug
-%     end
 end

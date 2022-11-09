@@ -11,6 +11,52 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
     
     road_data = scenario.road_raw_data;
 
+    if scenario.options.is_eval && startPosition == 0
+        % define start position to enable reproducing results
+        switch vehid
+            case 1
+                lanelets_index_vehid = 2;
+            case 2
+                lanelets_index_vehid = 4;
+            case 3
+                lanelets_index_vehid = 6;
+            case 4 
+                lanelets_index_vehid = 8;
+            case 5 
+                lanelets_index_vehid = 58;
+            case 6
+                lanelets_index_vehid = 58;
+            case 7
+                lanelets_index_vehid = 56;
+            case 8
+                lanelets_index_vehid = 80;
+            case 9
+                lanelets_index_vehid = 82;
+            case 10
+                lanelets_index_vehid = 84;
+            case 11
+                lanelets_index_vehid = 86;
+            case 12
+                lanelets_index_vehid = 34;
+            case 13
+                lanelets_index_vehid = 32;
+            case 14
+                lanelets_index_vehid = 30;
+            case 15
+                lanelets_index_vehid = 28;
+            case 16
+                lanelets_index_vehid = 17;
+            case 17
+                lanelets_index_vehid = 64;
+            case 18
+                lanelets_index_vehid = 66;
+            case 19
+                lanelets_index_vehid = 92;
+            case 20
+                lanelets_index_vehid = 90;
+        end
+    end
+
     random_path.lanelets_index = [lanelets_index_vehid];
     laneChangeAllowed = false;
 
@@ -29,21 +75,16 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
 
 
                 if laneChangeAllowed
-                    %disp(subsequent_indices);
                     for k = 1:length(successor_indices)
                         successor_adjacentLeft = road_data.lanelet(successor_indices(k)).adjacentLeft;
                         if isfield(successor_adjacentLeft,'refAttribute') && strcmp(successor_adjacentLeft.drivingDirAttribute,'same')
                             subsequent_indices = horzcat(subsequent_indices, successor_adjacentLeft.refAttribute);
-                            %disp(subsequent_indices);
                         end
 
                         successor_adjacentRight = road_data.lanelet(successor_indices(k)).adjacentRight;
                         if isfield(successor_adjacentRight,'refAttribute') && strcmp(successor_adjacentRight.drivingDirAttribute,'same')
                             subsequent_indices = horzcat(subsequent_indices, successor_adjacentRight.refAttribute);
-                            %disp(subsequent_indices);
                         end
-
-                        % include check for predecessor of successor
                     end
                 end
                 
@@ -54,8 +95,6 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
                         subsequent_lanes.lanelets_index(end+1) = subsequent_indices(j);
                     end
                 end
-
-                %disp(sprintf('subsequent lanelets index size: %d', length(subsequent_lanes.lanelets_index)));
             end
         end
         
@@ -66,11 +105,8 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
                 rng(scenario.options.seed.Seed);
             end
             index = randi(range);
-            %disp(sprintf('range: %d, index: %d', range, index));
 
             random_path.lanelets_index(end+1) = subsequent_lanes.lanelets_index(index);
-
-            %disp(sprintf('random at end: %d', random_path.lanelets_index(end)));
             laneChangeAllowed = false;
         else
             if length(subsequent_lanes.lanelets_index) > 1
@@ -106,8 +142,6 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
 
     disp(sprintf('id: %d, lanelets: [%s]', vehid, join(string(random_path.lanelets_index))));
 
-    %[lanelets, ~,~,~,~,scenario.lanelet_boundary] = commonroad_lanelets(scenario.options.mixedTrafficScenarioLanelets);
-    % [lanelets, ~,~,~,scenario.lanelet_boundary,~,~] = get_road_data();
     lanelets = scenario.lanelets;
 
     % reference path
@@ -158,159 +192,7 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
         start_index = 1;
 
         if nlanelets < length(random_path.lanelets_index)
-            %{
-            if ismember((nlanelets+1), laneChangeLanesIndices)
-                % the next lane is an adjacent lane, interpolate diagonal from middle index of current lane to next lane
-                middleIndex = uint8(length(randomPath_x) / 2);
-                remainingIndices = length(randomPath_x) - middleIndex;
-                new_lane_start_x = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cx);
-                new_lane_start_y = lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cy);
-
-                distance = sqrt((randomPath_x(middleIndex) - new_lane_start_x).^2 + (randomPath_y(middleIndex) - new_lane_start_y).^2);
-
-                
-                for j = 1:remainingIndices
-                    if randomPath_x(middleIndex) >= new_lane_start_x
-                        if randomPath_x(middleIndex+j) >= new_lane_start_x
-                            point_x = randomPath_x(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+j) - new_lane_start_x)/distance);
-                        else
-                            %point_x = randomPath_x(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+(j-1)) - new_lane_start_x)/distance);
-                            % index speichern, punkt rausnehmen, nur für fahrzeug boundary punkt aus lane nehmen
-                            delete_index = (remainingIndices - j) + 1;
-                            break
-                        end
-                    else
-                        if randomPath_x(middleIndex+j) < new_lane_start_x
-                            point_x = randomPath_x(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+j))/distance);
-                        else
-                            %point_x = randomPath_x(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+(j-1)))/distance);
-                            delete_index = (remainingIndices - j) + 1;
-                            break
-                        end
-                    end
-
-                    if randomPath_y(middleIndex) >= new_lane_start_y
-                        if randomPath_y(middleIndex+j) >= new_lane_start_y
-                            point_y = randomPath_y(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+j) - new_lane_start_y)/distance);
-                        else
-                            %point_y = randomPath_y(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+(j-1)) - new_lane_start_y)/distance);
-                            delete_index = (remainingIndices - j) + 1;
-                            break
-                        end
-                    else
-                        if randomPath_y(middleIndex+j) < new_lane_start_y
-                            point_y = randomPath_y(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+j))/distance);
-                        else
-                            %point_y = randomPath_y(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+(j-1)))/distance);
-                            delete_index = (remainingIndices - j) + 1;
-                            break
-                        end
-                    end
-
-                    randomPath_x(middleIndex+j) = point_x;
-                    randomPath_y(middleIndex+j) = point_y;
-                end
-                
-
-                %{
-                for j = 1:remainingIndices
-                    if randomPath_x(middleIndex+j) > new_lane_start_x
-                        point_x = randomPath_x(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+j) - new_lane_start_x)/distance);
-                    else
-                        point_x = randomPath_x(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+j))/distance);
-                    end
-
-                    if randomPath_y(middleIndex+j) > new_lane_start_y
-                        point_y = randomPath_y(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+j) - new_lane_start_y)/distance);
-                    else
-                        point_y = randomPath_y(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+j))/distance);
-                    end
-
-                    randomPath_x(middleIndex+j) = point_x;
-                    randomPath_y(middleIndex+j) = point_y;
-                end
-                %}
-            end
-            %}
             
-            %{
-            if ismember((nlanelets+1), laneChangeLanesIndices)
-                %{
-                if randomPath_x(1) >= lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cx)
-                    while randomPath_x(end) < lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index_x,LaneletInfo.cx)
-                        delete_index_x = delete_index_x+1;
-                    end 
-                else
-                    while randomPath_x(end) > lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index_x,LaneletInfo.cx)
-                        delete_index_x = delete_index_x+1;
-                    end
-                end
-
-                if randomPath_y(1) >= lanelets{ random_path.lanelets_index(nlanelets+1)}(1,LaneletInfo.cy)
-                    while randomPath_y(end) < lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index_y,LaneletInfo.cy)
-                        delete_index_y = delete_index_y+1;
-                    end 
-                else
-                    while randomPath_y(end) > lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index_y,LaneletInfo.cy)
-                        delete_index_y = delete_index_y+1;
-                    end
-                end
-                delete_index = max(delete_index_x, delete_index_y);
-                remainingIndices = length(randomPath_x) + delete_index;
-                new_lane_start_x = lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index,LaneletInfo.cx);
-                new_lane_start_y = lanelets{ random_path.lanelets_index(nlanelets+1)}(delete_index,LaneletInfo.cy);
-
-                distance = sqrt((randomPath_x(1) - new_lane_start_x).^2 + (randomPath_y(1) - new_lane_start_y).^2);
-                %}
-                %{
-                for j = 1:remainingIndices
-                    if randomPath_x(middleIndex) >= new_lane_start_x
-                        if randomPath_x(middleIndex+j) >= new_lane_start_x
-                            point_x = randomPath_x(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+j) - new_lane_start_x)/distance);
-                        else
-                            %point_x = randomPath_x(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_x(middleIndex+(j-1)) - new_lane_start_x)/distance);
-                            % index speichern, punkt rausnehmen, nur für fahrzeug boundary punkt aus lane nehmen
-                            delete_index = (remainingIndices - j) + 1;
-                            break
-                        end
-                    else
-                        if randomPath_x(middleIndex+j) < new_lane_start_x
-                            point_x = randomPath_x(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+j))/distance);
-                        else
-                            %point_x = randomPath_x(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_x - randomPath_x(middleIndex+(j-1)))/distance);
-                            delete_index = (remainingIndices - j) + 1;
-                            break
-                        end
-                    end
-
-                    if randomPath_y(middleIndex) >= new_lane_start_y
-                        if randomPath_y(middleIndex+j) >= new_lane_start_y
-                            point_y = randomPath_y(middleIndex+j) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+j) - new_lane_start_y)/distance);
-                        else
-                            %point_y = randomPath_y(middleIndex+(j-1)) - ((double(j)/double(remainingIndices) * distance) * (randomPath_y(middleIndex+(j-1)) - new_lane_start_y)/distance);
-                            delete_index = (remainingIndices - j) + 1;
-                            break
-                        end
-                    else
-                        if randomPath_y(middleIndex+j) < new_lane_start_y
-                            point_y = randomPath_y(middleIndex+j) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+j))/distance);
-                        else
-                            %point_y = randomPath_y(middleIndex+(j-1)) + ((double(j)/double(remainingIndices) * distance) * (new_lane_start_y - randomPath_y(middleIndex+(j-1)))/distance);
-                            delete_index = (remainingIndices - j) + 1;
-                            break
-                        end
-                    end
-
-                    randomPath_x(middleIndex+j) = point_x;
-                    randomPath_y(middleIndex+j) = point_y;
-                end
-                %}
-            elseif ismember((nlanelets), laneChangeLanesIndices)
-                start_index = delete_index;
-                delete_index = 1;
-            end
-            %}
-
             if ismember(nlanelets, laneChangeLanesIndices)
                 for i = 1:length(lane_change_indices)
                     if lane_change_indices(i) == 0
@@ -349,28 +231,5 @@ function [random_path, scenario, lane_change_indices, lane_change_lanes] = gener
     end 
     random_path.path = path;
     random_path.points_index = points_index;
-
-    %{
-    % reduce lanelet boundarys to get same number of points as lanelets
-    for index = 1:length(scenario.lanelet_boundary)
-        scenario.lanelet_boundary{1,index}{1,1} = scenario.lanelet_boundary{1,index}{1,1}(2:(end)-1,1:2);
-        scenario.lanelet_boundary{1,index}{1,2} = scenario.lanelet_boundary{1,index}{1,2}(2:(end)-1,1:2);
-    end
-    %}
-
-    %{
-    % the max points index of each lanelet
-    lanelet_point_max = 0;
-    points_index = zeros(1,length( random_path.lanelets_index));
-    for nlanelets = 1:length( random_path.lanelets_index)
-        % count the number of points of each lanelets
-        Npoints = length(lanelets{ random_path.lanelets_index(nlanelets)}(:,LaneletInfo.cx));
-        % max point index of each lanelet
-        lanelet_point_max = lanelet_point_max + Npoints;
-        points_index(nlanelets) = lanelet_point_max;
-
-    end 
-    random_path.points_index = points_index;
-    %}
 
 end

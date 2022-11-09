@@ -12,9 +12,8 @@ classdef FCA_priority < interface_priority
         function obj = FCA_priority() 
         end
         
-        function [veh_at_intersection,groups,directed_adjacency,priority_index] = priority(~,scenario,iter)
+        function [veh_at_intersection,groups,directed_adjacency,priority_list] = priority(obj,scenario,iter)
 
-            groups = struct;
             nVeh = length(scenario.vehicles);
             Hp = size(iter.referenceTrajectoryPoints,2);
             veh_at_intersection = [];
@@ -22,7 +21,7 @@ classdef FCA_priority < interface_priority
             %% assign priorities to vehicles based on future collision assessment
             
             % adjacency matrix
-            adjacency= scenario.semi_adjacency(:,:,end); 
+            adjacency= scenario.semi_adjacency(:,:,end);
             collisions = zeros(1,nVeh);
             
             veh = Vehicle();
@@ -88,28 +87,30 @@ classdef FCA_priority < interface_priority
                 end
             end       
             
-            [~,priority_index] = sort(collisions,'descend'); % ordered vehicle index w.r.t. priority
-            disp(['collisions: ',num2str(collisions)])
-            disp(['priority_index: ',num2str(priority_index)])
-            
-            [~,priority] = sort(priority_index); % ordered vehicle index w.r.t. priority
-%             disp(['priority: ',num2str(priority)])
+            [~,FCAPrio] = sort(collisions,'descend'); % ordered vehicle index w.r.t. priority
+            %disp(['collisions: ',num2str(collisions)])
+            %disp(['priority_index: ',num2str(FCAPrio)])
 
-            directed_adjacency = zeros(nVeh,nVeh);
-            for group_idx = 1:nVeh
-                groups(group_idx).members = priority_index(group_idx);
+            directed_adjacency = adjacency;
 
-                if group_idx < nVeh
-                    directed_adjacency(priority_index(group_idx),priority_index(group_idx+1)) = 1;
-                end
-
-                if group_idx == 1
-                    groups(group_idx).predecessors = [];
-                else
-                    groups(group_idx).predecessors = [groups(group_idx-1).predecessors groups(group_idx-1).members];
+            for iVeh = 1:nVeh
+                for jVeh = 1:nVeh
+                    if directed_adjacency(iVeh,jVeh) && (FCAPrio(iVeh) > FCAPrio(jVeh))
+                        directed_adjacency(iVeh,jVeh) = 0;
+                    end
                 end
             end
 
+            [isDAG, Level] = kahn(directed_adjacency);
+
+            assert( isDAG, 'Coupling matrix is not a DAG' );
+
+            groups = PB_predecessor_groups(Level);
+
+            % Assign prrority according to computation level
+            % Vehicles with higher priorities plan trajectory before vehicles
+            % with lower priorities            
+            priority_list = obj.get_priority(groups);
               
         end
 

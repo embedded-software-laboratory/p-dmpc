@@ -14,12 +14,12 @@ classdef MotionPrimitiveAutomaton
         local_reachable_sets_conv;  % Convexified local reachable sets of each trim
         local_center_trajectory     % local trajcetory of the center point
         local_reachable_sets_CP     % local reachable sets of the center point
-        shortest_paths_to_max_speed     % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with maximum speed
-        shortest_paths_to_equilibrium   % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
-        emergency_trims                   % cell(n_trims, 1), store which trim corresponds to emergency left/right; if multiple trims, choose the one with the lowest speed
-        emergency_maneuvers               % cell(n_trims, 1), emergency left/right/braking maneuvers
-        trims_stop                          % trims with zero speed
-        offline_reachability_computation_time % computation time of the offline reachability analysis
+        shortest_paths_to_max_speed             % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with maximum speed
+        shortest_paths_to_equilibrium           % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
+        emergency_trims                         % cell(n_trims, 1), store which trim corresponds to emergency left/right; if multiple trims, choose the one with the lowest speed
+        emergency_maneuvers                     % cell(n_trims, 1), emergency left/right/braking maneuvers
+        trims_stop                              % trims with zero speed
+        offline_reachability_computation_time   % computation time of the offline reachability analysis
     end
 
     properties(Access=protected)
@@ -144,7 +144,8 @@ classdef MotionPrimitiveAutomaton
                 
             % For parallel computation, reachability analysis are used
             offline_RA = tic;
-            if options.isParl
+            % no need for reachability analysis if only one vehicle 
+            if options.isPB
                 is_calculate_reachable_sets_of_CP = false; % whether to calculate center point's reachable sets
                 if options.is_use_dynamic_programming
                     % use dynamic programming
@@ -164,9 +165,21 @@ classdef MotionPrimitiveAutomaton
             
         end
     
+        function max_speed = get_max_speed_of_mpa(obj)
+            % returns maximum speed of mpa (nSamples x 1)
+            % TODO replace with more reasonable version.
+            N = size(obj.transition_matrix,3);
+            max_speed = max([obj.trims(:).speed]);
+            max_speed = max_speed * ones(N,1);
+            max_speed(end) = max_speed(end)/2;
+        end
+
+
         function max_speed = get_max_speed(obj, cur_trim_id)
             % returns maximum speed, averaged over the timestep (nSamples x 1)
             % is not general, but works for current MPAs
+            % PROBLEM Sometimes vehicle stays in stop, as it is cheapest
+            % for first action
             N = size(obj.transition_matrix,3);
             max_speed = zeros(N,1);
             max_speed_last = obj.trims(cur_trim_id).speed;
@@ -623,6 +636,7 @@ classdef MotionPrimitiveAutomaton
                     distance_acceleration = distance_acceleration + mean_speed*time_step;
                     if distance_acceleration > distance_destination % if the vehicle arrives the detination when accelerating
                         shortest_time_to_arrive = shortest_time_to_arrive + distance_remained/mean_speed; % time accumulates
+                        distance_remained = 0;
                         break
                     else
                         shortest_time_to_arrive = shortest_time_to_arrive + time_step; % time accumulates
@@ -788,6 +802,8 @@ classdef MotionPrimitiveAutomaton
         end
 
         function [emergency_trims,emergency_maneuvers] = get_emergency_maneuvers(obj)
+            % FIXME currently assumes that all states have connection to
+            % equilibrium state
             n_trims = length(obj.trims);
             Hp = size(obj.transition_matrix_single,3);
             emergency_trims = cell(n_trims,1);
@@ -821,7 +837,7 @@ classdef MotionPrimitiveAutomaton
 
                 % find emergency braking maneuver
                 [~,min_speed_trim] = min([obj.trims(connected_trims).speed]); % if multiple trims with zero speed, need to decide which one to choose as emergency braking maneuver
-                emergency_trims{jTrim}.emergency_braking = min_speed_trim;
+                emergency_trims{jTrim}.emergency_braking = connected_trims(min_speed_trim);
                 
                 % Generate emergency maneuvers for Hp time steps
                 emergency_maneuvers_times = Hp;

@@ -34,7 +34,7 @@ classdef FreeFlowSpeed
             options.scenario_name = 'Commonroad';
             options.trim_set = 9;
             options.Hp = 5;
-            options.priority = 'right_of_way_priority';
+            options.priority = 'STAC_priority';
             options.T_end = 20;
             options.isPB = true;
             options.isParl = true;

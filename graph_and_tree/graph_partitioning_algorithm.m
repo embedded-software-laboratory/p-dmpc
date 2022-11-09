@@ -8,13 +8,14 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
 %   target graph. Edge-weights will not be considered if M is the dajacency
 %   matrix.
 %   
-%   max_num_CLs: maximum number of computation levels, equals to the height
-%   of the directed tree for the given matrix.
+%   max_num_CLs: maximum number of computation levels
 % 
 %   coupling_info: couling information of each coupling pair
 % 
 %   method: either 's-t-cut' or 'MILP'
 %
+%   options: instance of the class `OptionsMain`
+% 
 % OUTPUT:
 %   belonging_vector: a column vector whose values indicate which
 %   subgraphs the vertices belong to. For example,"belonging_vector =
@@ -23,15 +24,13 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
 % 
 %   subgraph_info: information of all the subgraphs, such as vertices, number
 %   of computation levels
-    
 
     multiple_vehs_drive_parallel = {};
     if options.is_force_parallel_vehs_in_same_grp
         if ~isempty([coupling_info.veh_with_ROW])
             % find all vehicles that drive in parallel 
-            coupling_info = coupling_info([coupling_info.is_drive_parallel]); 
-            % sort according to the STAC so that parallel pair with higher
-            % STAC will be considered earlier
+            coupling_info = coupling_info([coupling_info.is_move_side_by_side]); 
+            % sort according to the STAC so that parallel pair with higher STAC will be considered earlier
             [~,order] = sort([coupling_info.STAC]);
             coupling_info = coupling_info(order);
             vehs_drive_parallel = [coupling_info.veh_with_ROW;coupling_info.veh_without_ROW]';
@@ -40,7 +39,6 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
         end
     
         % Deal with multiple vehicles drive in parallel
-        
         for iParl = 1:size(vehs_drive_parallel,1)
             vehs_drive_parallel_i = vehs_drive_parallel(iParl,:);
             find_cell_idx = find(cellfun(@(c) any(ismember(vehs_drive_parallel_i,c)),multiple_vehs_drive_parallel));
@@ -68,6 +66,7 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
     end
 
     G_directed = digraph(M);
+
     assert(isdag(G_directed)) % check whether DAG
     
     % decompose the supergraph if it contains unconnected components
@@ -111,14 +110,15 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
         end
        
         % constraints on which paths must be cut
-        must_not_in_same_subset = {subgraphs_info(longest_graph_ID).path_info(1).path}; % cell array
-
+%         must_not_in_same_subset = {subgraphs_info(longest_graph_ID).path_info(1).path}; % cell array
+        must_not_in_same_subset = {};
         % call program to cut the longest graph to two parts
         switch method 
             case 's-t-cut' 
                 belonging_vector_longest_graph = min_cut_s_t(M_longest_graph, must_not_in_same_subset, must_in_same_subset);
             case 'MILP'
                 assert(length(must_in_same_subset)<=1)
+                must_in_same_subset = must_in_same_subset{1}; % cell to vector
                 belonging_vector_longest_graph = min_cut_MILP(M_longest_graph, must_not_in_same_subset, must_in_same_subset);
                 if isempty(belonging_vector_longest_graph)
                     warning("No feasible cutting found when using MILP. Change to use minimum s-t-cut algorithm.")
@@ -163,33 +163,3 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
     end
 
 end
-
-
-%% local function
-function [M, max_num_CLs, coupling_info, method] = parse_inputs(M, varargin)
-    % Process optional input and Name-Value pair options
-    
-    n = size(M,1); % number of vertices
-    % set the default value of the maximum number of computation levels to be half of the total number of vertices
-    default_max_num_CLs = ceil(n/2); % round up
-    default_coupling_info = {};
-
-    default_method = 's-t-cut';
-    expected_methods = {'s-t-cut', 'MILP'};
-
-    p = inputParser;
-    addRequired(p,'M',@(x) isnumeric(x) && ismatrix(x)); % must be numerical matrix
-    addOptional(p,'max_num_CLs', default_max_num_CLs, @(x) (isnumeric(x) && x>0) || isempty(x) ); % must be numerical scalar
-    addOptional(p,'coupling_info', default_coupling_info, @(x) isstruct(x) || isempty(x)); % must be numerical scalar
-    addParameter(p,'method',default_method, @(x) any(validatestring(x,expected_methods)));
-    parse(p, M, varargin{:}); % start parsing
-    
-    % get parsed inputs
-    M = p.Results.M;
-    max_num_CLs = p.Results.max_num_CLs;
-    coupling_info = p.Results.coupling_info;
-    method = p.Results.method;
-end
-
-
-

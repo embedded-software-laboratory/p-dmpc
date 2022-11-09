@@ -57,9 +57,9 @@ function graphs_visualization(belonging_vector, edge_weights, varargin)
     % plot
 %     figure()
     if ShowWeights
-        plot(G,'LineStyle',LineStyle,'Layout','layered','MarkerSize',6,'NodeColor','k','EdgeLabel',round(G.Edges.Weight,2),'EdgeColor','k','NodeFontSize',11,'EdgeFontSize',9)
+        plot(G,'LineStyle',LineStyle,'Layout','layered','MarkerSize',14,'NodeColor','k','EdgeLabel',round(G.Edges.Weight,2),'EdgeColor','k','NodeFontSize',16,'EdgeFontSize',14,'LineWidth',2,'ArrowSize',15)
     else
-        plot(G,'LineStyle',LineStyle,'Layout','layered','MarkerSize',6,'NodeColor','k','EdgeColor','k','NodeFontSize',11,'EdgeFontSize',9)
+        plot(G,'LineStyle',LineStyle,'Layout','layered','MarkerSize',14,'NodeColor','k','EdgeColor','k','NodeFontSize',16,'EdgeFontSize',14)
     end
 %     title('Results of graph partitioning/merging algorithm')
     

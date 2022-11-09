@@ -21,9 +21,6 @@ classdef CPMLab < InterfaceExperiment
         gamepadSub
         visualize_manual_lane_change_counter
         visualize_second_manual_lane_change_counter
-        lastSteeringValue
-        stored_wheel_msgs
-        stored_gamepad_msgs
         g29_handler
         g29_last_position
     end
@@ -86,174 +83,46 @@ classdef CPMLab < InterfaceExperiment
             while (~got_stop && ~got_start)
                 [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
             end
-
-            % initialize ROS network to set rosrate
-            if obj.scenario.options.firstManualVehicleMode == 2 || obj.scenario.options.secondManualVehicleMode == 2
-                %rosinit;
-            end
             
-            % This command has first to be executed in terminal:
-            %ros2 run joy joy_node _dev_name:="/dev/input/js0";
             if obj.scenario.manual_vehicle_id ~= 0
                 if obj.scenario.options.firstManualVehicleMode == 1
+                    % setup subscriber for joy package
                     obj.wheelNode = ros2node("/wheel");
                     obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0");
 
-                    % if function handle, then define ros types for pool
-                    %obj.wheelNode = parallel.pool.Constant(ros2node("/wheel"));
-                    %obj.wheelSub = parallel.pool.Constant(ros2subscriber(obj.wheelNode,"/j0"));
+                    % setup handler to rotate wheel to specified position
+                    obj.g29_handler = G29ForceFeedback();
+                    obj.g29_last_position = 0.01;
+                else
+                    pathToScript = fullfile(pwd,'/experiment','expert_mode_script.sh');
                     if obj.scenario.options.force_feedback_enabled
-                        obj.g29_handler = G29ForceFeedback();
-                        obj.g29_last_position = 0.0;
+                        feedback = 1;
+                    else
+                        feedback = 0;
                     end
-                elseif obj.scenario.options.firstManualVehicleMode == 2
-                    %obj.wheelNode = ros2node("/wheel");
-                    %obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0","sensor_msgs/Joy",@obj.steeringWheelCallback);
+
+                    % ------------------------------------------
+                    % comment out both following lines to disable automatic execution of Expert Mode
+                    cmdStr = ['gnome-terminal --' ' ' pathToScript ' ' num2str(obj.scenario.manual_vehicle_id) ' ' num2str(feedback)];
+                    system(cmdStr);
+                    % ------------------------------------------
                 end
             end
 
             if obj.scenario.second_manual_vehicle_id ~= 0
-                if obj.scenario.options.secondManualVehicleMode == 1
-                    obj.gamepadNode = ros2node("/gamepad");
-                    obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1");
-                elseif obj.scenario.options.secondManualVehicleMode == 2
-                    obj.gamepadNode = ros2node("/gamepad");
-                    obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1", "sensor_msgs/Joy",@obj.gamepadCallback);
-                end
-            end
-            
-            % get active vehicle IDs
-            lab_vehicle_id = obj.vehicle_ids;
-            assert(length(lab_vehicle_id)==1)
-            
-            disp(lab_vehicle_id);
-
-            % Get important Parameter's from the LCC
-            requester = ParameterRequester();
-
-            parameter_name = 'active_vehicle_ids';
-            parameter_vehicle_ids = requester.requestParameter( parameter_name );
-            lab_vehicle_ids = parameter_vehicle_ids.values_int32;
-
-            parameter_name = 'middleware_period_ms';
-            parameter_middleware_period_ms = requester.requestParameter( parameter_name );
-            middleware_period_ms = parameter_middleware_period_ms.value_uint64_t;
-
-            % Get internal vehicle ID of our HLC
-            % If we are the third vehicle in the lab_vehicle_ids list, then we are
-            % vehicle ID 3 in our HLC.
-            vehicle_id = find( lab_vehicle_ids == lab_vehicle_id );
-
-            % Number of active vehicles
-            no_of_vehicles = size( lab_vehicle_ids, 2 );
+                obj.gamepadNode = ros2node("/gamepad");
+                obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1");
+            end    
         end
 
         function wheelData = getWheelData(obj)
             wheelData = receive(obj.wheelSub, 1);
         end
 
-        function steeringWheelCallback(obj, msg)
-            
-            wheel_message = obj.wheelSub.LatestMessage;
-            wheelData = struct;
-            wheelData.axes = wheel_message.axes;
-            wheelData.buttons = wheel_message.buttons;
-            wheelData.steering =  wheelData.axes(1);
-            wheelData.throttle = wheelData.axes(3);
-            wheelData.brake = wheelData.axes(4);
-            wheelData.leftPaddle = wheelData.buttons(6);
-            wheelData.rightPaddle = wheelData.buttons(5);
-            
-            %{
-            if modeHandler.steering < -0.5
-                modeHandler.steering = -0.5;
-            elseif modeHandler.steering > 0.5
-                modeHandler.steering = 0.5;
-            end
-
-            modeHandler.steering = 2.0 * modeHandler.steering;
-
-            
-            % make steering back to 0 easier
-            if modeHandler.steering < 0 && obj.lastSteeringValue < modeHandler.steering
-                modeHandler.steering = modeHandler.steering / 1.5;
-            elseif modeHandler.steering > 0 && obj.lastSteeringValue > modeHandler.steering
-                modeHandler.steering = modeHandler.steering / 1.5;
-            end
-            %}
-        
-
-            dt_max_comm_delay = uint64(100e6);
-            if obj.dt_period_nanos >= dt_max_comm_delay
-                dt_valid_after = obj.dt_period_nanos;
-            else
-                dt_valid_after = dt_max_comm_delay;
-            end
-
-            vehicle_command_direct = VehicleCommandDirect;
-            vehicle_command_direct.vehicle_id = uint8(obj.scenario.manual_vehicle_id);
-
-            throttle = 0;
-            if wheelData.throttle >= 0
-                throttle = wheelData.throttle;
-            elseif wheelData.brake >= 0
-                throttle = (-1) * wheelData.brake;
-            end
-            %{
-            if wheelData.steering < -0.4
-                wheelData.steering = -0.4;
-            elseif wheelData.steering > 0.4
-                wheelData.steering = 0.4;
-            end
-            %}
-            wheelData.steering = 2.0 * wheelData.steering;
-
-            if throttle > 0.4
-                throttle = 0.4;
-            elseif throttle < -0.4
-                throttle = -0.4;
-            end
-            disp(sprintf("throttle: %f, steering: %f", throttle, wheelData.steering));
-            vehicle_command_direct.motor_throttle = double(throttle);
-            vehicle_command_direct.steering_servo = double(wheelData.steering);
-            %vehicle_command_direct.header.create_stamp.nanoseconds = ...
-                %uint64(timestamp);
-            %vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-                %uint64(timestamp) + uint64(dt_valid_after);
-            vehicle_command_direct.header.create_stamp.nanoseconds = ...
-                uint64(obj.sample.t_now);
-            vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-                uint64(obj.sample.t_now+dt_valid_after);
-            %obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
-        end
-
-        function WriteAsyncFcn(obj, msg)
-            global stored_wheel_messages_global
-            writeasync(obj.stored_wheel_msgs, stored_wheel_messages_global);
-        end
-
-        function wheelData = get_stored_wheel_msgs(obj)
-            global stored_wheel_messages_global
-            obj.stored_wheel_msgs = stored_wheel_messages_global;
-            wheelData = obj.stored_wheel_msgs;
-        end
-
         function gamepadData = getGamepadData(obj)
             gamepadData = receive(obj.gamepadSub, 1);
         end
 
-        function gamepadCallback(obj, msg)    
-            global stored_gamepad_messages_global
-
-            stored_gamepad_messages_global = msg;
-        end
-
-        function gamepadData = get_stored_gamepad_msgs(obj)
-            global stored_gamepad_messages_global
-            obj.stored_gamepad_msgs = stored_gamepad_messages_global;
-            gamepadData = obj.stored_gamepad_msgs;
-        end
-        
         function [ x0, trim_indices ] = measure(obj, controller_init)
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
             if (sample_count > 1)
@@ -324,24 +193,16 @@ classdef CPMLab < InterfaceExperiment
                     trajectory_points(i_traj_pt).vy = sin(yaw)*speed;
                 end
 
-                is_manual_vehicle = (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+                is_manual_vehicle_expert_mode = (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
                     || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.options.secondManualVehicleMode == 2);
                     
-                if (is_manual_vehicle)
+                if (is_manual_vehicle_expert_mode)
                     obj.out_of_map_limits(iVeh) = false;
                 else
                     obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
                 end
                 
-                if (is_manual_vehicle)
-                    vehicle_command_trajectory = VehicleCommandTrajectory;
-                    vehicle_command_trajectory.vehicle_id = uint8(obj.vehicle_ids(iVeh));
-                    vehicle_command_trajectory.trajectory_points = [];
-                    vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
-                        uint64(obj.sample(end).t_now);
-                    vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
-                        uint64(obj.sample(end).t_now + obj.dt_period_nanos);
-                else
+                if ~is_manual_vehicle_expert_mode
                     vehicle_command_trajectory = VehicleCommandTrajectory;
                     vehicle_command_trajectory.vehicle_id = uint8(obj.vehicle_ids(iVeh));
                     vehicle_command_trajectory.trajectory_points = trajectory_points;
@@ -353,7 +214,7 @@ classdef CPMLab < InterfaceExperiment
                     if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
                         if scenario.updated_manual_vehicle_path || obj.visualize_manual_lane_change_counter > 0
     
-                            [visualization_command_line] = lab_visualize_lane_change(scenario, trajectory_points, iVeh, true);
+                            [visualization_command_line] = lab_visualizer(trajectory_points, 'laneChange');
                             obj.writer_visualization.write(visualization_command_line);
 
                             if obj.visualize_manual_lane_change_counter == 0
@@ -362,10 +223,16 @@ classdef CPMLab < InterfaceExperiment
                                 obj.visualize_manual_lane_change_counter = obj.visualize_manual_lane_change_counter - 1;
                             end
                         end
+
+                        if scenario.options.visualizeReferenceTrajectory
+                            [visualization_command_line] = lab_visualizer(scenario.vehicles(iVeh).referenceTrajectory, 'referenceTrajectory');
+                            obj.writer_visualization.write(visualization_command_line);
+                        end
+
                     elseif (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id)
                         if scenario.updated_second_manual_vehicle_path || obj.visualize_second_manual_lane_change_counter > 0
 
-                            [visualization_command_line] = lab_visualize_lane_change(scenario, trajectory_points, iVeh, true);
+                            [visualization_command_line] = lab_visualizer(trajectory_points, 'laneChange');
                             obj.writer_visualization.write(visualization_command_line);
 
                             if obj.visualize_second_manual_lane_change_counter == 0
@@ -374,53 +241,28 @@ classdef CPMLab < InterfaceExperiment
                                 obj.visualize_second_manual_lane_change_counter = obj.visualize_second_manual_lane_change_counter - 1;
                             end
                         end
+
+                        if scenario.options.visualizeReferenceTrajectory
+                            [visualization_command_line] = lab_visualizer(scenario.vehicles(iVeh).referenceTrajectory, 'referenceTrajectory');
+                            obj.writer_visualization.write(visualization_command_line);
+                        end
                     end
+
+                    obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
                 end
 
-                obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
-
-                if obj.scenario.options.force_feedback_enabled && scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id
-                    obj.g29_last_position = obj.g29_handler.g29_send_message(obj.sample(end).state_list(iVeh).steering_servo, 0.3, obj.g29_last_position);                 
+                if  scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 1
+                    if obj.scenario.options.force_feedback_enabled
+                        obj.g29_last_position = obj.g29_handler.g29_send_message(obj.sample(end).state_list(iVeh).steering_servo, 0.3, obj.g29_last_position); 
+                    else
+                        obj.g29_last_position = obj.g29_handler.g29_send_message(0.01, 0.3, obj.g29_last_position);
+                    end
                 end
             end
         end
 
         function visualize(obj, visualization_command)
             obj.writer_visualization.write(visualization_command);
-        end
-
-        function updateManualControl(obj, modeHandler, scenario, vehicle_id, steeringWheel, timestamp)
-            
-            dt_max_comm_delay = uint64(100e6);
-            if obj.dt_period_nanos >= dt_max_comm_delay
-                dt_valid_after = obj.dt_period_nanos;
-            else
-                dt_valid_after = dt_max_comm_delay;
-            end
-
-            vehicle_command_direct = VehicleCommandDirect;
-            vehicle_command_direct.vehicle_id = uint8(scenario.manual_vehicle_id);
-
-            throttle = 0;
-            if modeHandler.throttle >= 0
-                throttle = modeHandler.throttle;
-            elseif modeHandler.brake >= 0
-                throttle = (-1) * modeHandler.brake;
-            end
-            disp(sprintf("throttle: %f, steering: %f", throttle, modeHandler.steering));
-            vehicle_command_direct.motor_throttle = double(throttle);
-            vehicle_command_direct.steering_servo = double(modeHandler.steering);
-            %vehicle_command_direct.header.create_stamp.nanoseconds = ...
-                %uint64(timestamp);
-            %vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-                %uint64(timestamp) + uint64(dt_valid_after);
-            vehicle_command_direct.header.create_stamp.nanoseconds = ...
-                uint64(obj.sample.t_now);
-            vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-                uint64(obj.sample.t_now+dt_valid_after);
-            %vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-                %uint64(obj.sample.t_now+dt);
-            obj.writer_vehicleCommandDirect.write(vehicle_command_direct);
         end
         
         function got_stop = is_stop(obj)

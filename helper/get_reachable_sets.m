@@ -75,30 +75,3 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
 
 end
 
-
-%% local function
-function [x0, y0, yaw0, local_reachable_sets, predicted_lanelet_boundary, is_allow_non_convex] = ...
-    parse_inputs(x0, y0, yaw0, local_reachable_sets, varargin)
-    % Process optional input and Name-Value pair options
-
-    default_predicted_lanelet_boundary = {}; % default to empty
-    default_is_allow_non_convex = false; % default to not allow non-convex polygons
-
-    p = inputParser;
-    addRequired(p,'x0',@(x) isnumeric(x) && isscalar(x)); % must be numerical scalar
-    addRequired(p,'y0',@(x) isnumeric(x) && isscalar(x)); % must be numerical scalar
-    addRequired(p,'yaw0',@(x) isnumeric(x) && isscalar(x)); % must be numerical scalar
-    addRequired(p,'local_reachable_sets',@(x) iscell(x)); % must be cell array
-    addOptional(p,'predicted_lanelet_boundary', default_predicted_lanelet_boundary, @(x) iscell(x)); % cell array
-    addOptional(p,'is_allow_non_convex', default_is_allow_non_convex, @(x) islogical(x)); % must be logical 
-    parse(p, x0, y0, yaw0, local_reachable_sets, varargin{:}); % start parsing
-    
-    % get parsed inputs
-    x0 = p.Results.x0;
-    y0 = p.Results.y0;
-    yaw0 = p.Results.yaw0;
-    local_reachable_sets = p.Results.local_reachable_sets;
-    predicted_lanelet_boundary = p.Results.predicted_lanelet_boundary;
-    is_allow_non_convex = p.Results.is_allow_non_convex;
-
-end

@@ -1,4 +1,4 @@
-function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, initialized_reference_path, is_sim_lab, exp)
+function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, initialized_reference_path)
 % RHC_INIT  Preprocessing step for RHC controller
 
     idx = indices();
@@ -9,7 +9,6 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         if ~initialized_reference_path
             for iVeh = 1:scenario.options.amount
                 index = match_pose_to_lane(scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
-                %disp(sprintf("veh ID: %d, index: %d", scenario.vehicle_ids(iVeh), index));
 
                 if scenario.manual_vehicle_id == scenario.vehicle_ids(iVeh)
                     if scenario.options.firstManualVehicleMode == 1
@@ -48,8 +47,13 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         continue
                     end      
                 else
-                    % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                    [updated_ref_path, scenario, scenario.vehicles(iVeh).lane_change_indices, scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1));
+                    if scenario.options.is_eval
+                         % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                        [updated_ref_path, scenario, scenario.vehicles(iVeh).lane_change_indices, scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, 0);
+                    else
+                         % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+                        [updated_ref_path, scenario, scenario.vehicles(iVeh).lane_change_indices, scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1));
+                    end
                 end
                 
                 updatedRefPath = updated_ref_path.path;
@@ -159,7 +163,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
     iter.x0 = x_measured;
     
     for iVeh=1:scenario.options.amount
-        if scenario.options.isParl && strcmp(scenario.name, 'Commonroad')
+        if scenario.options.isParl
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
             latest_msg_i = read_message(scenario.vehicles(iVeh).communicate, scenario.ros_subscribers{iVeh}, scenario.k-1);
@@ -196,7 +200,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
             iter_scenario.vehicles(iVeh).last_trajectory_index = reference.ReferenceIndex(end);
         end
         
-        if strcmp(scenario.name, 'Commonroad')
+        if ~isempty(scenario.lanelets)
 
             % Vehicle in Expert-Mode does only consider boundaries when assuming RSS
             if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
@@ -278,14 +282,13 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         color.g = uint8(230);
                         color.b = uint8(26);
 
-                        [visualization_command] = lab_visualize_point(scenario, visualization_point, iVeh, color);
+                        [visualization_command] = lab_visualizer(visualization_point, 'point', color);
                         exp.visualize(visualization_command);
                     end
                 end
 
-            
                 % Calculate the predicted lanelet boundary of other vehicles based on their predicted lanelets
-                predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.vehicles(iVeh).lanelets_index, scenario.options.is_sim_lab);
+                predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, scenario.lanelet_boundary, scenario.vehicles(iVeh).lanelets_index, scenario.options.is_sim_lab, scenario.vehicles(iVeh).is_loop);
                 iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
 
                 if visualize_boundaries_lab
@@ -299,7 +302,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         color.r = uint8(170);
                         color.g = uint8(24);
                         color.b = uint8(186);
-                        [visualization_command] = lab_visualize_point(scenario, visualization_left_point, iVeh, color);
+                        [visualization_command] = lab_visualizer(visualization_left_point, 'point', color);
                         exp.visualize(visualization_command);
                     end
 
@@ -312,13 +315,13 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         color.r = uint8(232);
                         color.g = uint8(111);
                         color.b = uint8(30);
-                        [visualization_command] = lab_visualize_point(scenario, visualization_right_point, iVeh, color);
+                        [visualization_command] = lab_visualizer(visualization_right_point, 'point', color);
                         exp.visualize(visualization_command);
                     end
                 end
             end
     
-            if scenario.options.isParl
+            if scenario.options.amount > 1 %scenario.options.isParl
                 % Calculate reachable sets of other vehicles based on their
                 % current states and trims. Reachability analysis will be
                 % widely used in the parallel computation.

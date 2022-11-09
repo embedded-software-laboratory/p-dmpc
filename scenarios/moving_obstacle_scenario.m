@@ -28,14 +28,15 @@ function scenario = moving_obstacle_scenario(options)
     scenario.options.trim_set = 9;
     scenario.options.amount = 1;
     scenario.options.dt = 0.2;
-    scenario.options.T_end = 3; % TODO increase
     scenario.options.isSaveResult = true;
     scenario.options.trim_set = 9;
+    scenario.options.veh_ids = 1;
+    scenario.options.T_end = 4;
     if ~options.is_start_end
-        scenario.options.Hp = 5; % TODO as in other eval
+        scenario.options.Hp = 8;
         scenario.options.scenario_name = sprintf('moving_obstacles');
     else
-        scenario.options.Hp = scenario.options.T_end / scenario.options.dt;
+        scenario.options.Hp = round(scenario.options.T_end / scenario.options.dt);
         scenario.options.scenario_name = sprintf('moving_obstacles_start_end');
     end
 
@@ -44,10 +45,9 @@ function scenario = moving_obstacle_scenario(options)
     nVeh = 1;
     scenario.adjacency = zeros(nVeh,nVeh);
     scenario.assignPrios = true;
-    scenario.controller_name = strcat(scenario.controller_name, '-PB');
-    scenario.controller = @(s,i) pb_controller(s,i);
-    
-    
+    scenario.controller_name = strcat(scenario.controller_name, '-centralized');
+    scenario.options.isPB = false;
+    scenario.controller = @centralized_controller;
     
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
 

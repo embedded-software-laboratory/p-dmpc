@@ -47,9 +47,19 @@ function plot_obstacles(data,plot_options)
     % Plot shapes contained in a cell array
     %     CM = jet(Hp); % colormap
         hold on
+        if isempty(plot_options)
+            is_empty = true;
+            CM = hsv(size(shapes,2));
+        else 
+            is_empty = false;
+        end
+        
         for iVeh=1:size(shapes,1)
             for t=1:size(shapes,2)
                 shape = shapes{iVeh,t};
+                if is_empty
+                    plot_options = struct('LineWidth',1.0,'Color',CM(t,:));
+                end
                 if strcmp(class(shape),'polyshape')
                     plot(shape)
                 else
