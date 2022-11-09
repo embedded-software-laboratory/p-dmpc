@@ -99,7 +99,7 @@ xlim([0 4.5]);
 ylim([0 4.0]);
 daspect([1 1 1])
 
-plot_lanelets(road_data.lanelets,'Commonroad');
+plot_lanelets(road_data.road_raw_data.lanelet,'Commonroad');
 
 xlabel('$x [m]$','Interpreter','latex');
 ylabel('$y [m]$','Interpreter','latex');

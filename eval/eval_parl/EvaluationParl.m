@@ -224,7 +224,7 @@ classdef EvaluationParl
             ylim(result.scenario.options.plot_limits(2,:));
             daspect([1 1 1])
 
-            plot_lanelets(result.scenario.lanelets,result.scenario.name)
+            plot_lanelets(result.scenario.road_raw_data.lanelet,result.scenario.name)
 
             % get vehicle that has maximum path tracking error
             [~,vehs_max_error] = maxk(obj.path_tracking_errors_MAE,5);
