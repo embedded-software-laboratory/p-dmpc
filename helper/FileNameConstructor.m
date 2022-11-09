@@ -40,82 +40,114 @@ classdef FileNameConstructor
             if options.is_use_dynamic_programming
                 mpa_instance_name = [mpa_instance_name,'_DP'];
             end
+            
+            if ~options.recursive_feasibility
+                mpa_instance_name = [mpa_instance_name,'_notRecFeas'];
+            end
 
             mpa_instance_name = [mpa_instance_name,'.mat'];
         end
 
-        function results_full_path = get_results_full_path(options)
-            % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
-            % results are saved.
-            if options.isParl
-                controller_name = 'RHC-Parl';
+        function results_folder_path = gen_results_folder_path(options)
+            
+            if options.isPB
+                if options.isParl && (options.max_num_CLs < options.amount)
+                    controller_name = 'par-rhgs';
+                else
+                    controller_name = 'seq-rhgs';
+                end
             else
-                controller_name = 'RHC';
+                controller_name = 'cen-rhgs';
             end
 
+            results_folder_name = strrep(strcat(options.scenario_name, '_', controller_name),' ','_');
+
+            [file_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file
+            idcs = strfind(file_path,filesep); % find all positions of '/'
+            main_folder = file_path(1:idcs(end)-1); % one folder up
+        
+            results_folder_path = fullfile(main_folder,'results',results_folder_name);
+            if ~isfolder(results_folder_path)
+                % create target folder if not exist
+                mkdir(results_folder_path)
+            end
+            
+        end
+
+        function video_file_path = gen_video_file_path(options)
+            video_file_name = [...
+                'video_', ...
+                FileNameConstructor.gen_scenario_name(options), ...
+                '.avi' ...
+            ];
+            video_file_path = fullfile( ...
+                FileNameConstructor.gen_results_folder_path(options) ...
+                ,video_file_name...
+            );
+        end
+
+        function scenario_name = gen_scenario_name(options)
             if isstring(options.priority)
                 options.priority = char(options.priority);
             end
 
             if isempty(options.customResultName)
                 % use default name
-                results_name = ['trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_dt',num2str(options.dt),'_nVeh',num2str(options.amount),'_T',num2str(options.T_end),'_',options.priority];
-    
+                scenario_name = ['trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_dt',num2str(options.dt),'_nVeh',num2str(options.amount),'_T',num2str(options.T_end),'_',options.priority];
+                veh_ids_str = sprintf('-%d',options.veh_ids);
+                scenario_name = [scenario_name, '_ids', veh_ids_str];
                 if options.isParl
-                    results_name = [results_name,'_maxCLs',num2str(options.max_num_CLs),...
+                    scenario_name = [scenario_name,'_maxCLs',num2str(options.max_num_CLs),...
                         '_ConsiderVehWithoutROW',options.strategy_consider_veh_without_ROW,'_EnterLaneletCrossingArea',options.strategy_enter_lanelet_crossing_area];                 
                 end
 
                 if options.isAllowInheritROW
-                    results_name = [results_name,'_inherit'];
+                    scenario_name = [scenario_name,'_inherit'];
                 end
 
                 if options.is_free_flow
-                    results_name = [results_name,'_freeFlow'];
+                    scenario_name = [scenario_name,'_freeFlow'];
                 end
 
                 if ~strcmp(options.fallback_type,'localFallback')
                     % local fallback is the default fallback strategy
-                    results_name = [results_name,'_',options.fallback_type];
+                    scenario_name = [scenario_name,'_',options.fallback_type];
                 end
 
                 if ~options.isSaveResultReduced
-                    results_name = [results_name,'_fullResult'];
+                    scenario_name = [scenario_name,'_fullResult'];
                 end
 
                 if ~isempty(options.random_idx) && options.random_idx~=1
-                    results_name = [results_name,'_random',num2str(options.random_idx)];
+                    scenario_name = [scenario_name,'_random',num2str(options.random_idx)];
                 end
 
                 if ~options.isDealPredictionInconsistency
-                    results_name = [results_name,'_notDealWithPredictionInconsistency'];
+                    scenario_name = [scenario_name,'_notDealWithPredictionInconsistency'];
                 end
                 
                 if ~strcmp(options.coupling_weight_mode,'STAC')
-                    results_name = [results_name,'_W',options.coupling_weight_mode];
+                    scenario_name = [scenario_name,'_W',options.coupling_weight_mode];
                 end
 
                 if ~options.bound_reachable_sets
-                    results_name = [results_name,'_unboundedRS'];
+                    scenario_name = [scenario_name,'_unboundedRS'];
                 end
             else
                 % use custom name 
-                results_name = options.customResultName;
+                scenario_name = options.customResultName;
             end
+        end
 
-            results_folder = strrep(strcat(options.scenario_name, '_', controller_name),' ','_');
-            results_name = [results_name, '.mat'];
+        function results_full_path = get_results_full_path(options)
+            % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
+            % results are saved.
+            results_name = [FileNameConstructor.gen_scenario_name(options), '.mat'];
 
-            [file_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file
-            idcs = strfind(file_path,filesep); % find all positions of '/'
-            one_folder_up = file_path(1:idcs(end)-1); % one folder up
-        
-            folder_target = fullfile(one_folder_up,'results',results_folder);
-            if ~isfolder(folder_target)
-                % create target folder if not exist
-                mkdir(folder_target)
-            end        
-            results_full_path = fullfile(folder_target,results_name);
+            results_full_path = fullfile( ...
+                FileNameConstructor.gen_results_folder_path(options) ...
+                ,results_name ...
+            );
         end
     end
 end

@@ -37,7 +37,7 @@ ylabel('$y$ [m]')
 
 filetype = '.pdf';
 filepath = fullfile(result.output_path, [filename filetype]);
-set_figure_properties(fig,'paper')
+set_figure_properties(fig,ExportFigConfig.paper())
 export_fig(fig, filepath)
 close(fig);
 end

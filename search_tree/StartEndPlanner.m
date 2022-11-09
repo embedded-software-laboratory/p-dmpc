@@ -3,10 +3,7 @@ classdef StartEndPlanner < handle
     %   Detailed explanation goes here
 
     properties
-        u
-        y_pred
         info
-        k = 0;
     end
 
     methods
@@ -15,26 +12,36 @@ classdef StartEndPlanner < handle
             %   Detailed explanation goes here
         end
 
-        function [u, y_pred, info] = run(obj,scenario,iter)
+        function info = run(obj,scenario,iter)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-%             
-%             if (isempty(obj.u))
-%                 % First run
-%                 [obj.u, obj.y_pred, obj.info] ...
-%                     = graph_search(scenario,iter);
-%             end
-%             u = obj.u;
-%             y_pred = {obj.y_pred{1}((obj.k-1)*41+1:end,:)};
-%             info = obj.info;
-%             info.tree_path = info.tree_path(obj.k:end);
-%             obj.k = obj.k + 1;   
-
-            
-            scenario.Hp = scenario.Hp - obj.k;
-            [u, y_pred, info] ...
-                = graph_search(scenario,iter);
-            obj.k = obj.k + 1;
+            % First run: Compute complete horizon
+            if isempty(obj.info)
+                obj.info = graph_search(scenario,iter);
+            % Subsequent runs: append stillstand
+            else
+                obj.info.tree_path(1) = obj.info.tree_path(end);
+                obj.info.tree_path = circshift(obj.info.tree_path, -1);
+                obj.info.shapes(1) = obj.info.shapes(end);
+                obj.info.shapes = circshift(obj.info.shapes, -1);
+                obj.info.predicted_trims(1) = obj.info.predicted_trims(end);
+                obj.info.predicted_trims = circshift( ...
+                    obj.info.predicted_trims, ...
+                    -1 ...
+                );
+                obj.info.y_predicted{1}...
+                    ( 1:(scenario.options.tick_per_step+1), :) = ...
+                    repmat( ...
+                        obj.info.y_predicted{1}(end,:), ...
+                        (scenario.options.tick_per_step+1), ...
+                        1 ...
+                    );
+                obj.info.y_predicted{:} = circshift(...
+                    obj.info.y_predicted{:}, ...
+                    -(scenario.options.tick_per_step+1) ...
+                );
+            end
+            info = obj.info;
         end
     end
 end

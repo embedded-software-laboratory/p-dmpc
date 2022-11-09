@@ -5,7 +5,6 @@ function [info,scenario] = centralized_controller(scenario, iter)
     info = ControllResultsInfo(scenario.options.amount, scenario.options.Hp, [scenario.vehicles.ID]);
     
     sub_controller = @scenario.sub_controller;
-
     
     % falsifies controller_runtime slightly
     subcontroller_timer = tic;

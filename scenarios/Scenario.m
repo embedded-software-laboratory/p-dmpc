@@ -6,7 +6,7 @@ classdef Scenario
         obstacles = {};                  % static obstacles = {[xs;ys],...}
         lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
         name = 'UnnamedScenario';
-        controller_name = 'RHC';
+        controller_name = 'RHGS';
         controller = @centralized_controller;
         sub_controller = @graph_search;
         mpa;
@@ -51,7 +51,7 @@ classdef Scenario
         coupling_info;                  % couling information of each coupling pair
         ros_subscribers = {};           % ROS 2 subscribers (used to read messages from other vehicles)
         mixedTrafficCollisionAvoidanceMode = 0;     % mode for collision avoidance in CPM Lab Mode with manual vehicles
-        priority_list = [];             % priority list of vehicles; a smaller value for a higher priority
+        priority_list = 1;             % priority list of vehicles; a smaller value for a higher priority
         time_enter_intersection = []; % time step when vehicle enters the intersection
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
         belonging_vector; % a column vector whose value indicate which group each vehicle belongs to 
@@ -59,7 +59,7 @@ classdef Scenario
         timer;            % struct, used to store computation time of different parts
         num_couplings_between_grps; % number of couplings between parallel groups
         num_couplings_between_grps_ignored; % reduced number of couplings between groups by using lanelet crossing lanelets
-        random_seed = RandStream('mt19937ar'); % for reproducibility
+        random_stream = RandStream('mt19937ar'); % for reproducibility
     end
     
     properties (Dependent)

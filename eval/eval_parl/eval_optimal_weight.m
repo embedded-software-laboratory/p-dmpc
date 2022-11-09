@@ -29,8 +29,8 @@ options.coupling_weight_mode  = {'STAC','random','constant','optimal'};
 
 options.amount = 20;
 
-random_seed = RandStream('mt19937ar');
-options.veh_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
+random_stream = RandStream('mt19937ar');
+options.veh_ids = sort(randsample(random_stream,9:40,options.amount),'ascend');
 
 full_path = FileNameConstructor.get_results_full_path(options);
 if isfile(full_path)

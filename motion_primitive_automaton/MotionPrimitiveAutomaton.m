@@ -144,7 +144,8 @@ classdef MotionPrimitiveAutomaton
                 
             % For parallel computation, reachability analysis are used
             offline_RA = tic;
-            if options.isParl
+            % no need for reachability analysis if only one vehicle 
+            if options.isPB
                 is_calculate_reachable_sets_of_CP = false; % whether to calculate center point's reachable sets
                 if options.is_use_dynamic_programming
                     % use dynamic programming
@@ -164,15 +165,30 @@ classdef MotionPrimitiveAutomaton
             
         end
     
+        function max_speed = get_max_speed_of_mpa(obj)
+            % returns maximum speed of mpa (nSamples x 1)
+            % TODO replace with more reasonable version.
+            N = size(obj.transition_matrix,3);
+            max_speed = max([obj.trims(:).speed]);
+            max_speed = max_speed * ones(N,1);
+            max_speed(end) = max_speed(end)/2;
+        end
+
+
         function max_speed = get_max_speed(obj, cur_trim_id)
             % returns maximum speed, averaged over the timestep (nSamples x 1)
             % is not general, but works for current MPAs
+            % PROBLEM Sometimes vehicle stays in stop, as it is cheapest
+            % for first action
             N = size(obj.transition_matrix,3);
             max_speed = zeros(N,1);
             max_speed_last = obj.trims(cur_trim_id).speed;
             for k = 1:N
                 successor_trim_ids = find(obj.transition_matrix_single(cur_trim_id, :, k));
-                [max_speed_next, cur_trim_id] = max([obj.trims(successor_trim_ids).speed]);
+                [max_speed_next, i_successor_max_speed] = max( ...
+                    [obj.trims(successor_trim_ids).speed] ...
+                );
+                cur_trim_id = successor_trim_ids(i_successor_max_speed);
                 max_speed(k) = (max_speed_next + max_speed_last)/2; % assumes linear change
                 max_speed_last = max_speed_next;
             end
@@ -786,6 +802,8 @@ classdef MotionPrimitiveAutomaton
         end
 
         function [emergency_trims,emergency_maneuvers] = get_emergency_maneuvers(obj)
+            % FIXME currently assumes that all states have connection to
+            % equilibrium state
             n_trims = length(obj.trims);
             Hp = size(obj.transition_matrix_single,3);
             emergency_trims = cell(n_trims,1);
@@ -819,7 +837,7 @@ classdef MotionPrimitiveAutomaton
 
                 % find emergency braking maneuver
                 [~,min_speed_trim] = min([obj.trims(connected_trims).speed]); % if multiple trims with zero speed, need to decide which one to choose as emergency braking maneuver
-                emergency_trims{jTrim}.emergency_braking = min_speed_trim;
+                emergency_trims{jTrim}.emergency_braking = connected_trims(min_speed_trim);
                 
                 % Generate emergency maneuvers for Hp time steps
                 emergency_maneuvers_times = Hp;

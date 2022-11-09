@@ -4,9 +4,11 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     
     determine_couplings_timer = tic;
 
+    % TODO: strategy here (use non-parallel assignment here)
+    % adapt algorithms such that they return all needed data like here
     [vehs_at_intersection,coupling_weights,scenario.coupling_weights_optimal,coupling_info,time_enter_intersection] = STAC_priority().priority(scenario,iter);
 
-    if any(strcmp(scenario.options.priority,{'STAC_priority','constant_priority','random_priority'}))
+    if any(strcmp(scenario.options.priority,{'STAC_priority','FCA_priority','constant_priority','random_priority','coloring_priority'}))
         % Strategy to let vehicle without the right-of-way enter the crossing area
         % Ignore coupling edge if not allowed to enter the crossing area because no collision is possible anymore
         [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = ...
@@ -81,9 +83,6 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
     coupling_weights_reduced = coupling_weights;
 
     lanelet_crossing_areas = cell(nVeh,1);
-    predicted_lanelet_boundary = iter.predicted_lanelet_boundary(:,3);
-
-    couplings_ignored = zeros(nVeh,nVeh);
 
     for i = 1:length([coupling_info.veh_with_ROW])
         % rear-end collision at the same lanelet or successive lanelets
@@ -122,7 +121,7 @@ function [coupling_weights_reduced,lanelet_crossing_areas,coupling_info,iter] = 
         end
 
         if is_ignore_coupling
-            % check if vehicle without right-of-way has already enter the crossing area
+           % check if vehicle without right-of-way has already enter the crossing area
             
             % get the crossing area of two vehicles' lanelet
             lanelet_crossing_area = intersect(iter.predicted_lanelet_boundary{veh_with_ROW,3}, iter.predicted_lanelet_boundary{veh_without_ROW,3});

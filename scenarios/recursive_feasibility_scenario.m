@@ -34,9 +34,11 @@ function scenario = recursive_feasibility_scenario(recursive_feasibility,is_ok)
             +(scenario.mpa.trims(2).speed + scenario.mpa.trims(3).speed) / 2 ...
         ) * scenario.options.dt ...
         + scenario.options.offset + 0.08;
+
     
     h_2_obs = 1;
     w_obs = 0.2;
+
 
     scenario.obstacles{1} = [
          0        w_obs    w_obs    0

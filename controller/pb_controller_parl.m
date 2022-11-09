@@ -5,7 +5,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
 % distributed controllers in a for-loop. 
 
     runtime_others_tic = tic;
-    
+
     assign_priority_timer = tic;
     [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(scenario, iter);
     scenario.timer.assign_priority = toc(assign_priority_timer);
@@ -17,9 +17,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
     info = ControllResultsInfo(nVeh, Hp, [scenario.vehicles.ID]);
     n_expended = zeros(nVeh,1);
 
-    % graph-search to select the optimal motion primitive
-    sub_controller = @(scenario, iter)...
-        graph_search(scenario, iter); 
+    sub_controller = @scenario.sub_controller;
 
     directed_graph = digraph(scenario.directed_coupling);
     [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition

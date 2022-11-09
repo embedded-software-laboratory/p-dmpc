@@ -1,4 +1,4 @@
-classdef  mixed_traffic_priority < interface_priority
+classdef mixed_traffic_priority < interface_priority
 % mixed_traffic_priority  Instance of interface_priority used for priority
 % assignment, fixed priority according to vehicle ids
 % first manual vehicle gets highest priority, second manual vehicle second highest priority

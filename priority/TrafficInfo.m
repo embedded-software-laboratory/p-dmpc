@@ -72,35 +72,18 @@ classdef TrafficInfo
         
             obj = obj.update_vehs_at_intersection(scenario,iter.x0);
 
-            % get bounding box of reachable sets in the last prediction horizon
-            bound_boxes_x = zeros(obj.nVeh,2); bound_boxes_y = zeros(obj.nVeh,2);
-            for iVeh = 1:obj.nVeh
-                [bound_boxes_x(iVeh,:),bound_boxes_y(iVeh,:)] = boundingbox(iter.reachable_sets{iVeh,end});
-            end
-
             for veh_i = 1:(obj.nVeh-1)
-                x_i = bound_boxes_x(veh_i,:);
-                y_i = bound_boxes_y(veh_i,:);
-                
                 for veh_j = (veh_i+1):obj.nVeh
-                    % check whether two vehicles' reachable sets at the last prediction horizon overlap
-                    x_j = bound_boxes_x(veh_j,:);
-                    y_j = bound_boxes_y(veh_j,:);
-                    % use rectangles to approximate their reachable sets for a quick check
-                    if x_i(1)>=x_j(2) || y_i(1)>=y_j(2) || x_i(2)<=x_j(1) || y_i(2)<=y_j(1)
-                        % reachable sets are not overlapping
-                        continue
-                    end
-                    overlap_reachable_sets = intersect(iter.reachable_sets{veh_i,end}, iter.reachable_sets{veh_j,end});
-                    area_overlap = area(overlap_reachable_sets);
-                    if area_overlap > 1e-3 % a small threshold to tolerate measurement error of lenelet boundary
-                        % the selected two vehicles are considered as coupled if their reachable sets overlap
+                    % TODO: here was the reachable set coupling check, use adjacency which is need either way (to avoid double calculation)
+                    if scenario.adjacency(veh_i,veh_j,scenario.k)
+                        % the selected two vehicles are considered as coupled
                         if ~scenario.options.consider_RSS &&((scenario.vehicle_ids(veh_i) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
                             || (scenario.vehicle_ids(veh_i) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
                             % Naive approach: not necessary to determine collision point and ROW, as manual vehicle has highest priority
                             obj.coupling_weights(veh_i,veh_j) = 1;
                             continue
                         else
+                            overlap_reachable_sets = intersect(iter.reachable_sets{veh_i,end}, iter.reachable_sets{veh_j,end});
                             obj = obj.get_coupling_info(scenario,iter,veh_i,veh_j,overlap_reachable_sets);
                         end
                     end  
@@ -203,7 +186,7 @@ classdef TrafficInfo
                     if collision_type.is_rear_end
                         obj.coupling_info(count).collision_type = CollisionType.type_1;
                         % If two vehicles has a rear-end collision possibility, they STAC (shortest time to achieve a collision) is the TTC (time to catch) 
-                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario.random_seed);
+                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
                         % Calculate the shortest time to achieve a collision
                         if has_ROW               
                             [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_i.trim, veh_info_j.trim, distance_two_vehs, scenario.options.dt);
@@ -215,7 +198,7 @@ classdef TrafficInfo
                         obj.coupling_info(count).collision_type = CollisionType.type_2; % side-impact collision
                         % If two vehicles has a side-impact collision possibility, check if they move in parallel
                         if is_move_side_by_side
-                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario.random_seed);
+                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
                             STAC = distance_two_vehs/2/max([scenario.mpa.trims.speed])*2;
                             waiting_time = 0;
                         else
@@ -223,7 +206,7 @@ classdef TrafficInfo
                             time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_j.trim,distance_to_collision_j,scenario.options.dt);
                             % determine which vehicle has the ROW 
                             % trick: a shorter time to collision point corresponds to a shorter distance to collision point, thus no code adaption is need
-                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, time_to_collision_point_i, time_to_collision_point_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario.random_seed);
+                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, time_to_collision_point_i, time_to_collision_point_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
                             
                             STAC = max(time_to_collision_point_i,time_to_collision_point_j);
                             waiting_time = abs(time_to_collision_point_i-time_to_collision_point_j);
@@ -253,7 +236,7 @@ classdef TrafficInfo
                                 obj.coupling_weights(veh_with_ROW,veh_without_ROW) = obj.side_impact_weight_scale_factor*obj.coupling_weights(veh_with_ROW,veh_without_ROW);
                             end
                         case 'random'
-                            obj.coupling_weights(veh_with_ROW,veh_without_ROW) = rand(scenario.random_seed,1);
+                            obj.coupling_weights(veh_with_ROW,veh_without_ROW) = rand(scenario.random_stream,1);
                         case 'constant'
                             obj.coupling_weights(veh_with_ROW,veh_without_ROW) = 0.5;
                         case 'optimal'
@@ -396,7 +379,7 @@ classdef TrafficInfo
             end
         end
 
-        function has_ROW = determine_who_has_ROW(obj, veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_at_intersection, is_forking_lanelets, random_seed)
+        function has_ROW = determine_who_has_ROW(obj, veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, is_at_intersection, is_forking_lanelets, scenario, iter)
         % Determine whos has the right-of-way. 
         % Vehicle enters the intersection earlier has the right-of-way. If both vheicle enter the intersection at the same time, right-of-way is given to
         % vehicle which has the right-of-way in the last time step. If they are not coupled at previous time step, vehicle who can arrive the collision point
@@ -438,14 +421,19 @@ classdef TrafficInfo
                         end
                     end
                 case 'random_priority'
-                    % generate randomly a zero or one, where one for has
-                    % the right-of-way
-                    has_ROW = randi(random_seed,[0,1])==1;
+                    [~,~,priority_list] = random_priority().priority(scenario);
+                    has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'constant_priority'
-                    % vheicle with lower ID has the right-of-way
-                    has_ROW = (veh_i < veh_j);
+                    [~,~,priority_list] = constant_priority().priority(scenario);
+                    has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
+                case 'FCA_priority'
+                    [~,~,~,priority_list] = FCA_priority().priority(scenario, iter);
+                    has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
+                case 'coloring_priority'
+                    [~,~,priority_list] = coloring_priority().priority(scenario);
+                    has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 otherwise
-                    warning("Priority must be one of the following: 'SATC_priority', 'random_priority', 'constant_priority'.")
+                    warning("Priority must be one of the following: 'STAC_priority', 'random_priority', 'constant_priority', 'coloring_priority', 'FCA_priority'.")
             end
             
         end

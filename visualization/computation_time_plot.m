@@ -34,7 +34,7 @@ set(gca, 'YScale', 'log');
 xlabel('Number of Vehicles','Interpreter','LaTex');
 ylabel('Computation Time [s]','Interpreter','LaTex');
 
-set_figure_properties(fig, 'paper', 12);
+set_figure_properties(fig,ExportFigConfig.paper('paperheight',12))
 filepath = fullfile('results', 'computation_time.pdf');
 export_fig(fig, filepath);
 close(fig);

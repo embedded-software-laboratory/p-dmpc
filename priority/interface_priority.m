@@ -2,7 +2,7 @@ classdef (Abstract) interface_priority < handle
 % interface_priority    Abstract class used for defining properties and methods used by priority based distributed controller.
     
     properties
-        is_assign_unique_priority % whether to assign unique priority
+        is_assign_unique_priority = false % whether to assign unique priority
     end
     
 
@@ -44,7 +44,28 @@ classdef (Abstract) interface_priority < handle
         end
 
     end
-    
-    
-    
+
+    methods(Static)
+        function coupling_directed = direct_coupling(scenario, topo_groups)
+            coupling_undirected = scenario.adjacency(:,:,end);
+            % determine directed adjacency
+            coupling_directed = coupling_undirected;
+            [rows, cols] = find(coupling_undirected~=0);
+            for k = 1:length(rows)
+                v_i = rows(k); 
+                v_j = cols(k);
+                if v_i == v_j
+                    coupling_directed(v_i,v_j) = 0;
+                    continue
+                end
+                level_i = find(topo_groups(:,v_i)==1);
+                level_j = find(topo_groups(:,v_j)==1);
+                % edge comes from vertex in the front level, ends in vertex in
+                % back level
+                if level_i > level_j
+                    coupling_directed(v_i,v_j) = 0;
+                end
+            end
+        end
+    end
 end

@@ -53,7 +53,7 @@ xlabel('Computation Time [s]');
 set(gca,'Ydir','reverse');
 % ylim('tight')
 
-set_figure_properties(fig, 'paper',3);
+set_figure_properties(fig, ExportFigConfig.paper('paperheight',3));
 xmin = min(t,[],'all');
 xmax = max(t,[],'all');
 xlim([0.5*xmin, 1.5*xmax])
@@ -106,7 +106,7 @@ ylim([0.5 2])
 
 set(gca,'Ydir','reverse');
 
-set_figure_properties(fig, 'paper',2.5);
+set_figure_properties(fig, ExportFigConfig.paper('paperheight',2.5));
 filepath = fullfile('results', 'rhgs_vs_gs_objective_value.pdf');
 export_fig(fig, filepath);
 close(fig);
@@ -215,7 +215,7 @@ xlabel('Computation Time [s]');
 set(gca,'Ydir','reverse');
 % ylim('tight')
 
-set_figure_properties(fig, 'paper',4);
+set_figure_properties(fig, ExportFigConfig.paper());
 xmin = min(t,[],'all');
 xmax = max(t,[],'all');
 xlim([0.5*xmin, 1.5*xmax])
@@ -278,7 +278,7 @@ ylabel('Horizon'...
 zlabel('Expanded vertices')
 filetype = 'pdf';
 filepath = fullfile('results','horizon_obstacle', ['eval_horizon_obstacle.' filetype]);
-set_figure_properties(fig,'paper',6)
+set_figure_properties(fig,ExportFigConfig.paper('paperheight',6))
 export_fig(fig, filepath)
 close(fig);
 end
