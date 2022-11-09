@@ -5,9 +5,7 @@ function plot_levels_data(data)
     nLevels_by_pri = data.nLevels_by_pri;
     nVeh_list = data.nVeh_list;
     result = data.result;
-    nVeh = data.nVeh;
     nPri = data.nPri;
-    nSce = data.nSce;
 
     max_level = max(cellfun(@max,nLevels_by_pri));
     minVeh = min(nVeh_list);
@@ -16,12 +14,8 @@ function plot_levels_data(data)
     nLevels_by_pri_mat = [];
     max_entries = max(cellfun(@length,nLevels_by_pri));
     percent_steps_per_level = zeros(max_level, nPri);
-    n_levels_min = cellfun(@min,nLevels_by_pri);
-    n_levels_avg = cellfun(@mean,nLevels_by_pri);
     n_levels_med = cellfun(@median,nLevels_by_pri);
     n_levels_max = cellfun(@max,nLevels_by_pri);
-    n_levels_min_veh = cellfun(@min,nLevels_by_veh_pri); 
-    n_levels_avg_veh = cellfun(@mean,nLevels_by_veh_pri);
     n_levels_med_veh = cellfun(@median,nLevels_by_veh_pri);
     n_levels_max_veh = cellfun(@max,nLevels_by_veh_pri);
     bar_data = [n_levels_med, n_levels_max];
