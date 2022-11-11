@@ -141,9 +141,9 @@ end
     
     
     % plot Computation levels histogram excluding deadlock
-    eval_plot_levels(results);
+    plot_levels(results);
     % plot deadlock-free runtime
-    eval_plot_runtime(results);
+    plot_runtime(results);
 
     % Export videos
     export_desired_videos(results);
