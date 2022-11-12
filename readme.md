@@ -1,69 +1,80 @@
-## Setup
-- MATLAB 2022a
-    - Statistics and Machine Learning Toolbox
-    - ROS Toolbox
-#### Configure Your MATLAB for ROS 2
-In parallel trajectory planning, vehicles communicate using MATLAB ROS 2 toolbox. Message types are customized, which requires to run the MATLAB built-in function `ros2genmsg()`. There are some general steps to help you configure your MATLAB so that `ros2genmsg()` can run successfully. In total you need to configure three things: Python, CMake, and Microsoft Visual Studio. You can check which version is needed in the MATLAB official doc: https://de.mathworks.com/help/ros/gs/ros-system-requirements.html. You can follow the following steps:
-- Windows
-1. Ensure your machine has Python with the right version installed. Please check the above link to see which Python version you need. For example, Python 3.9 is needed for MATLAB R2022a. After you have installed Python with the right version, you can go to the MATLAB command window and use `pyenv('Version','version')` to set up MATLAB. For example, `pyenv('Version','3.9')` will let MATLAB use Python 3.9. Make sure you have added its path to you environment (many instructions online available, such as https://geek-university.com/add-Python-to-the-windows-path/); otherwise, you should use something like `pyenv('Version','fullPathOfYourPythonInstallFolder\Python.exe')`.
-2. Ensure your machine has CMake with the right version installed. You can check this using `!cmake --version` in the MATLAB command window. For MATLAB R2022a, CMake 3.16.3+ is needed. You can install it at https://cmake.org/download/. Note that add path to environment is recommended.
-3. Ensure you machine has Visual Studio with the right version installed. For MATLAB R2022a, Visual Studio 2019 is needed. You can download it at https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes. Note that the (free) Community of Version Studio is already enough. When installing, `Desktop development with C++` must be selected. After installing, you can configure it using `mex -setup` in the MATLAB command window.
-- Linux (TODO)
-- MacOS
+# Priority-Based Trajectory Planning for Networked Vehicles Using Motion Primitives
+- [Priority-Based Trajectory Planning for Networked Vehicles Using Motion Primitives](#priority-based-trajectory-planning-for-networked-vehicles-using-motion-primitives)
+- [Setup](#setup)
+    - [MATLAB R2022a](#matlab-r2022a)
+    - [System Requirements for MATLAB ROS 2 Toolbox](#system-requirements-for-matlab-ros-2-toolbox)
+- [References](#references)
+- [Acknowledgements](#acknowledgements)
+# Setup
+## MATLAB R2022a
+Install MATLAB R2022a with the following toolboxes:
+- Statistics and Machine Learning Toolbox
+- ROS Toolbox
+## System Requirements for MATLAB ROS 2 Toolbox
+In our priority-based trajectory planning, vehicles communicate using the MATLAB ROS 2 toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python software, CMake software, and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).  
+For MATLAB R2022a
+1. Python 3.9
+    1. Install Python 3.9 and add it to your system path variable.
+    2. Go to the MATLAB command window and execute `pyenv('Version','version')` to set up Python with MATLAB. For example, `pyenv('Version','3.9')` will let MATLAB use Python 3.9. If MATLAB cannot find the version, provide its path with `pyenv('Version','fullPathOfYourPythonInstallFolder\YourPythonExecutable')`.
+2. CMake 3.16.3+
+    1. Install from https://cmake.org/download/
+3. C++ compiler
+    1. Installation
+        * Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) community version is sufficient. Select "Desktop development with C++" during the installation.
+    2. Configure your C++ compiler using `mex -setup` in the MATLAB command window.
 
-After configuring, you can either 
-1. run directly `main()`, where the `ros2genmsg()` will be automatically executed, or 
-2. you can navigate the current MATLAB path to `\graph_based_planning\commun\cust1` and run `ros2genmsg()` in the MATLAB command window. If you need to use the mixed traffic scenarios, you should also navigate to `\graph_based_planning\commun\cust2` and run `ros2genmsg()` in the MATLAB command window again.
+# References
+Please refer to the respective publication if you are using it for your work. Thank you very much!
 
-If you will switch between branches, it is recommended is to copy the folders `\graph_based_planning\commun\cust1` and `\graph_based_planning\commun\cust2` outside of the repository and run `ros2genmsg()` as described above. In this way, the generated data will locate outside of the repository. Otherwise, you need to run `ros2genmsg()` for each branch as the generate data is available only for the branch where you have executed `ros2genmsg()`.
+<details>
+<summary>
+P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning," in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
 
-
-# Receding Horizon Graph Search
 <!-- icons from https://simpleicons.org/ -->
-<!-- [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)]()  -->
+[![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/TCST.2022.3214718) 
 [![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc) 
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://www.youtube.com/watch?v=7LB7I5SOpQE) 
-[![Open in Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/7778016/tree)
-
+[![Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/7778016)
+</summary>
+<p>
 <img src="./docs/media/3-circle_rhgs.gif" width=640/>
 
-This repository contains the source code for Receding Horizon Graph Search (RHGS), a MATLAB implementation of a graph-based receding horizon trajectory planner.
-
-The code is developed with MATLAB R2022a.
-To run a simulation:
-```matlab
-startup()
-main()
-```
-
-More information is provided in our publication [1]. Please  cite this publication if you find RHGS helpful for your work.
 The results of the publication can be reproduced by running
 ```matlab
 startup()
 eval_rhgs()
 ```
-This will take a while. The results are then found in the folder "results".
+The results are saved in the folder "results".
 
-### Acknowledgements
-This research is supported by the Deutsche Forschungsgemeinschaft (German Research Foundation) within the Priority Program SPP 1835 "Cooperative Interacting Automobiles" (grant number: KO 1430/17-1).
+</p>
+</details>
 
-### References
 
 <details>
 <summary>
-[1] P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee.
-"Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning". TechRxiv. Preprint. https://doi.org/10.36227/techrxiv.16621963.v1 
+References in Bibtex format
 </summary>
 <p>
 ```bibtex
-@article{Scheffe2021,
-    author = "Patrick Scheffe and Matheus Vitor de Andrade Pedrosa and Kathrin Flaßkamp and Bassam Alrifaee",
-    title  = "{Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning}",
-    year   = "2021",
-    month  = "9",
-    url    = "https://www.techrxiv.org/articles/preprint/Receding_Horizon_Control_Using_Graph_Search_for_Multi-Agent_Trajectory_Planning/16621963",
-    doi    = "10.36227/techrxiv.16621963.v1"
+@article{scheffe2022receding,
+    author  = {Patrick Scheffe and Matheus Vitor de Andrade Pedrosa and Kathrin Flaßkamp and Bassam Alrifaee},
+    journal = {IEEE Transactions on Control Systems Technology}, 
+    title   = {Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning},
+    year    = {2022},
+    volume  = {},
+    number  = {},
+    pages   = {1-14},
+    doi     = {10.1109/TCST.2022.3214718}}
 }
 ```
 </p>
 </details>
+
+
+
+
+
+
+
+# Acknowledgements
+This research is supported by the Deutsche Forschungsgemeinschaft (German Research Foundation) within the Priority Program SPP 1835 "Cooperative Interacting Automobiles" (grant number: KO 1430/17-1).
