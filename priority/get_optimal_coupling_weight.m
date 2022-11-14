@@ -32,7 +32,7 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
     iter_v.referenceTrajectoryPoints(:,1,:) = [];
     iter_v.vRef(1) = [];
 
-    lanelet_boundary = [scenario_v.vehicles.lanelet_boundary{1},[nan;nan],scenario_v.vehicles.lanelet_boundary{2}];
+    lanelet_boundary = [iter_v.lanelet_boundary{1},[nan;nan],iter_v.lanelet_boundary{2}];
     plot_options_LB = struct('Color','k','LineWidth',0.65,'LineStyle','-');
 
     states_current = iter_v.x0;

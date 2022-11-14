@@ -24,8 +24,8 @@ classdef Scenario
         dynamic_obstacle_fullres = {};
         dynamic_obstacle_reachableSets = {};    % reachable sets of the coupled vehicles with higher priorities in other groups
 
-        adjacency;                              % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
-        semi_adjacency;                         % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two semi-adjacent lanelets and their distance are smaller enough
+        % adjacency;                              % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
+        % semi_adjacency;                         % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two semi-adjacent lanelets and their distance are smaller enough
         directed_coupling;                      % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
         directed_coupling_reduced;              % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
         assignPrios = false;
@@ -39,7 +39,6 @@ classdef Scenario
         adjacency_lanelets;             % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent 
         semi_adjacency_lanelets;        % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent but not intersecting
         last_vehs_at_intersection = [];  % store information about which vehicles were at the intersection in the last time step
-        k;                              % simulation steps
         coupling_weights = [];          % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
         coupling_weights_optimal = [];  % "optimal" coupling weights
         coupling_weights_reduced = [];  % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas

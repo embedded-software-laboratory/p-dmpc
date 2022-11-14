@@ -62,7 +62,7 @@ classdef TrafficInfo
             % This function estimates traffic status
 
             % get previous coupling matrix
-            if scenario.k>1
+            if iter.k>1
                 for i = 1:length([scenario.coupling_info.veh_with_ROW])
                     veh_with_ROW = scenario.coupling_info(i).veh_with_ROW;
                     veh_without_ROW = scenario.coupling_info(i).veh_without_ROW;
@@ -70,12 +70,12 @@ classdef TrafficInfo
                 end
             end
         
-            obj = obj.update_vehs_at_intersection(scenario,iter.x0);
+            obj = obj.update_vehs_at_intersection(iter,scenario,iter.x0);
 
             for veh_i = 1:(obj.nVeh-1)
                 for veh_j = (veh_i+1):obj.nVeh
                     % TODO: here was the reachable set coupling check, use adjacency which is need either way (to avoid double calculation)
-                    if scenario.adjacency(veh_i,veh_j,scenario.k)
+                    if iter.adjacency(veh_i,veh_j)
                         % the selected two vehicles are considered as coupled
                         if ~scenario.options.mixed_traffic_config.consider_rss &&((scenario.options.veh_ids(veh_i) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
                             || (scenario.options.veh_ids(veh_i) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id) && scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode))
@@ -99,7 +99,7 @@ classdef TrafficInfo
     end
 
     methods (Access = private)
-        function obj = update_vehs_at_intersection(obj,scenario,x0)
+        function obj = update_vehs_at_intersection(obj,iter,scenario,x0)
             % This function updates the vehicles at intersection and the time
             % they entered the intersection
             obj.time_enter_intersection = scenario.time_enter_intersection;
@@ -116,7 +116,7 @@ classdef TrafficInfo
             new_veh_at_intersection = setdiff(obj.vehs_at_intersection, scenario.last_vehs_at_intersection);
         
             veh_leave_intersection = setdiff(scenario.last_vehs_at_intersection, obj.vehs_at_intersection);
-            obj.time_enter_intersection(new_veh_at_intersection) = scenario.k;
+            obj.time_enter_intersection(new_veh_at_intersection) = iter.k;
             obj.time_enter_intersection(veh_leave_intersection) = inf; % set to inf if vehicle leaves the intersection
         end
 
@@ -421,7 +421,7 @@ classdef TrafficInfo
                         end
                     end
                 case 'random_priority'
-                    [~,~,priority_list] = random_priority().priority(scenario);
+                    [~,~,priority_list] = random_priority().priority(iter,scenario);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'constant_priority'
                     [~,~,priority_list] = constant_priority().priority(scenario);

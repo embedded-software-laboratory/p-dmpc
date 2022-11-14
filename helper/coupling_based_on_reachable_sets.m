@@ -1,4 +1,4 @@
-function [ scenario ] = coupling_based_on_reachable_sets(scenario, iter)
+function [ iter ] = coupling_based_on_reachable_sets(scenario, iter)
     
     adjacency = zeros(scenario.options.amount,scenario.options.amount);
 
@@ -30,7 +30,7 @@ function [ scenario ] = coupling_based_on_reachable_sets(scenario, iter)
         end
     end
 
-    scenario.adjacency(:,:,scenario.k) = adjacency;
-    scenario.semi_adjacency(:,:,scenario.k) = adjacency;
+    iter.adjacency = adjacency;
+    iter.semi_adjacency = adjacency;
 end
 

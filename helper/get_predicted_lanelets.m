@@ -1,4 +1,4 @@
-function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0)
+function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanelets(scenario, iter, iVeh, trim_current, x0, y0)
 % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
 % based on vehile's current states and reference path. 
 % 
@@ -51,7 +51,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
         v_ref*scenario.options.dt, ...                                       % distance traveled in one timestep
         scenario.vehicles(iVeh).autoUpdatedPath, ...        % if the path has been updated automatically
         scenario.options.isParl, ...                        % parallel computation
-        scenario.vehicles(iVeh).last_trajectory_index, ...  % last trajectory index of vehicle
+        iter.last_trajectory_index(iVeh), ...  % last trajectory index of vehicle
         scenario.options.is_mixed_traffic...                % prevent loops in mixed traffic
     );
 

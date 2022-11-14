@@ -21,7 +21,7 @@ classdef FCA_priority < interface_priority
             %% assign priorities to vehicles based on future collision assessment
             
             % adjacency matrix
-            adjacency= scenario.semi_adjacency(:,:,end);
+            adjacency= iter.adjacency;
             collisions = zeros(1,nVeh);
             
             veh = Vehicle();

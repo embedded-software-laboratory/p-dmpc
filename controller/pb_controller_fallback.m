@@ -1,4 +1,4 @@
-function info = pb_controller_fallback(info, info_old, scenario)
+function info = pb_controller_fallback(iter, info, info_old, scenario)
 % pb_controller_fallback    planning by using last priority and trajectories directly
 
     vehs_fallback = info.vehs_fallback;
@@ -31,12 +31,12 @@ function info = pb_controller_fallback(info, info_old, scenario)
             x0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().x);
             y0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().y);
 
-            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, vehicle_idx, trim_current, x0, y0);
+            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, iter, vehicle_idx, trim_current, x0, y0);
 
             is_fallback = false;
             
             % send message
-            send_message(scenario.vehicles(vehicle_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, info.shapes(vehicle_idx,:),is_fallback);
+            send_message(scenario.vehicles(vehicle_idx).communicate, iter.k, predicted_trims, predicted_lanelets, info.shapes(vehicle_idx,:),is_fallback);
         end
 
     end

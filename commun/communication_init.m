@@ -1,4 +1,4 @@
-function scenario = communication_init(scenario, exp)
+function scenario = communication_init(scenario, iter, exp)
 % COMMUNICATION_INIT This function initializes the communication network.
 % ROS 2 nodes are created for each vehicle. Each vehicle has its own topic
 % and sends its data only to its own topic.
@@ -96,11 +96,11 @@ function scenario = communication_init(scenario, exp)
             x0 = x0_measured(jVeh,indices().x); % vehicle position x
             y0 = x0_measured(jVeh,indices().y); % vehicle position y
 
-            predicted_lanelets = get_predicted_lanelets(scenario,jVeh,predicted_trims(1),x0,y0);
+            predicted_lanelets = get_predicted_lanelets(scenario,iter,jVeh,predicted_trims(1),x0,y0);
 
             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
             is_fallback = false; % whether vehicle should take fallback
-            scenario.vehicles(jVeh).communicate.send_message(scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback);   
+            scenario.vehicles(jVeh).communicate.send_message(iter.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback);   
         end
     end
     pause(0.2) % ensure ROS messages are received

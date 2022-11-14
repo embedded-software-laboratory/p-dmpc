@@ -89,7 +89,7 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     
     if options.isPB 
-       scenario.adjacency = zeros(nVeh,nVeh);
+       %scenario.adjacency = zeros(nVeh,nVeh);
        scenario.assignPrios = true;
        scenario.controller = @pb_controller_parl;
 

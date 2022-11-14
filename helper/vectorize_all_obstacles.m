@@ -1,4 +1,4 @@
-function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, lanelet] = vectorize_all_obstacles(scenario)
+function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, lanelet] = vectorize_all_obstacles(iter,scenario)
 % VECTORIZE_ALL_OBSTACLES This function vectorizes all obstacles, including
 % static and dynamic obstacles as well as lanelet boundaries, to 
 % a single two-row matrix. The first row is for x-coordinates and the
@@ -33,7 +33,7 @@ function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, lanelet] 
     % 1. Add column [nan;nan] to separate left and right boundaries 
     % Note that lanelet boundaries are considered as open curves
     % transform nested structure to one cell array
-    scenario_vehicles_lanelet_boundary_cell = scenario.vehicles.lanelet_boundary;
+    scenario_vehicles_lanelet_boundary_cell = iter.predicted_lanelet_boundary(:,1:2);
     lanelet_boundary_tmp = cellfun(@(c)[c,[nan;nan]],scenario_vehicles_lanelet_boundary_cell,'UniformOutput',false); 
 
     lanelet_boundary = [lanelet_boundary_tmp{:}];

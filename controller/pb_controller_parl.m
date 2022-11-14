@@ -69,9 +69,9 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
                 
                 if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles  
-                    latest_msg = read_message(scenario_v.vehicles.communicate, scenario_v.ros_subscribers{veh_with_HP_i}, scenario_v.k);
+                    latest_msg = read_message(scenario_v.vehicles.communicate, scenario_v.ros_subscribers{veh_with_HP_i}, iter.k);
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
-                    oldness_msg = scenario_v.k - latest_msg.time_step;
+                    oldness_msg = iter.k - latest_msg.time_step;
                     if oldness_msg ~= 0
                         % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
                         predicted_areas_i = del_first_rpt_last(predicted_areas_i,oldness_msg);
@@ -151,7 +151,7 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             info.runtime_graph_search_each_veh(vehicle_idx) = toc(subcontroller_timer);
             n_expended(vehicle_idx) = info_v.tree.size();
 
-            if scenario.k==inf
+            if iter.k==inf
                 plot_obstacles(scenario_v)
                 plot_obstacles(info_v.shapes)
                 graphs_visualization(scenario.belonging_vector, scenario.coupling_weights, 'ShowWeights', true)
@@ -174,13 +174,13 @@ function [info, scenario] = pb_controller_parl(scenario, iter)
             x0 = states_current(indices().x);
             y0 = states_current(indices().y);
 
-            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, vehicle_k, trim_current, x0, y0);
+            [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, iter, vehicle_k, trim_current, x0, y0);
             predicted_areas_k = info.shapes(vehicle_k,:);
             
             is_fallback = false;
 
             % send message
-            send_message(scenario.vehicles(vehicle_k).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, is_fallback);
+            send_message(scenario.vehicles(vehicle_k).communicate, iter.k, predicted_trims, predicted_lanelets, predicted_areas_k, is_fallback);
             msg_send_time(vehicle_k) = toc(msg_send_tic);
         end
     end
