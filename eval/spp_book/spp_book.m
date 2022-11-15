@@ -65,7 +65,7 @@ end
 
     nsVeh = 1:20;
     % number of different random scenarios per priority assignment and #vehicles
-    nSce = 6;
+    nSce = 9;
 
     scenarios = cell(length(nsVeh),nSce);
     results = cell(length(nsVeh),length(priority_assignment_algorithms),nSce);

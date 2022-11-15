@@ -22,6 +22,10 @@ function [ data ] = compute_levels_data(res)
         
                 % get number of steps until deadlock
                 [nSteps,~] = compute_deadlock_free_runtime(result);
+
+                if ~(nSteps == result.nSteps)
+                    continue;
+                end
         
                 scenario_tmp = result.scenario;
         

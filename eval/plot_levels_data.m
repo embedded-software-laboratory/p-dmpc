@@ -17,7 +17,10 @@ function plot_levels_data(data)
     n_levels_med = cellfun(@median,nLevels_by_pri);
     n_levels_max = cellfun(@max,nLevels_by_pri);
     n_levels_med_veh = cellfun(@median,nLevels_by_veh_pri);
-    n_levels_max_veh = cellfun(@max,nLevels_by_veh_pri);
+    n_levels_max_veh = cellfun(@max,nLevels_by_veh_pri,'UniformOutput',false);
+    empty_cells = cellfun('isempty', n_levels_max_veh);
+    n_levels_max_veh(empty_cells) = {nan};
+    n_levels_max_veh = cell2mat(n_levels_max_veh);
     bar_data = [n_levels_med, n_levels_max];
     for iPri = 1:nPri
         nSteps_per_level = histcounts(nLevels_by_pri{iPri},1:max_level+1);
