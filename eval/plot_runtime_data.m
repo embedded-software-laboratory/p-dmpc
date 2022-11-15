@@ -79,79 +79,6 @@ function plot_runtime_data(data)
     set_figure_properties(figHandle,ExportFigConfig.spp_book_full('paperheight',14))
     export_fig(figHandle, fullfile(folder_path,filename));
     close(figHandle);
-    
-    
-    
-    %% Plot 2: Standstill with least vehicles
-    % TODO delete
-
-    % figHandle = figure();
-    % % sort data
-    % data_permutation = [1 4 2 3];
-    % bar_data = min_deadlocked_vehicles(data_permutation,:);
-    % b = barh(1:nPri, bar_data);
-    % set(gca,'Ydir','reverse');
-    % y_axis_handle = get(gca, 'YAxis');
-    % y_axis_handle.TickLabelInterpreter = 'latex';
-    
-    % xlabel('$N_A$');
-    % title('Standstill with least vehicles')
-    % yticklabels({ ...
-    %     '$p_{\mathrm{fca}}$', ...
-    %     '$p_{\mathrm{color}}$', ...
-    %     '$p_{\mathrm{rand}}$', ...
-    %     '$p_{\mathrm{const}}$' ...
-    % });
-    
-    % xlim([0 max(min_deadlocked_vehicles)+1])
-    
-    % b.FaceColor = 'flat';
-    % rwth100 = rwth_color_order();
-    % b.CData = rwth100(1:nPri,:);
-    
-    
-    % % Export
-    % folder_path = FileNameConstructor.gen_results_folder_path( ...
-    %     result.scenario.options ...
-    % );
-    % filename = 'deadlock-free-runtime-least-veh-deadlock.pdf';
-    % set_figure_properties(figHandle,'preset','paper','paperheight_in',3)
-    % export_fig(figHandle, fullfile(folder_path,filename));
-    % close(figHandle);
-    
-    %% Plot 3: Percent standstill free scenarios
-    % perc_deadlock_free_scenarios = n_deadlock_free_scenarios./total_nSce_per_Pri;
-    % figHandle = figure();
-    % % sort data
-    % data_permutation = [1 4 2 3];
-    % bar_data = perc_deadlock_free_scenarios(data_permutation,:);
-    % b = barh(1:nPri, bar_data);
-    % set(gca,'Ydir','reverse');
-    % y_axis_handle = get(gca, 'YAxis');
-    % y_axis_handle.TickLabelInterpreter = 'latex';
-    
-    % xlabel('Standstill-free scenarios [\%]');
-    % yticklabels({ ...
-    %     '$p_{\mathrm{fca}}$', ...
-    %     '$p_{\mathrm{color}}$', ...
-    %     '$p_{\mathrm{rand}}$', ...
-    %     '$p_{\mathrm{const}}$' ...
-    % });
-    
-    % b.FaceColor = 'flat';
-    % rwth100 = rwth_color_order();
-    % b.CData = rwth100(1:nPri,:);
-    
-    
-    % % Export
-    % folder_path = FileNameConstructor.gen_results_folder_path( ...
-    %     result.scenario.options ...
-    % );
-    % filename = 'deadlock-free-runtime-percentage-deadlock-free-scenarios.pdf';
-    % set_figure_properties(figHandle,'preset','paper','paperheight_in',3)
-    % export_fig(figHandle, fullfile(folder_path,filename));
-    % close(figHandle);
-    
 
 
     %% Plot: average speed over nVeh
@@ -161,7 +88,7 @@ function plot_runtime_data(data)
     [p.Marker] = markers{:};
     xticks(x_values)
     ylabel('Average speed [m/s]','Interpreter','latex');
-    xlabel('$N_{\mathrm{A}}$','Interpreter','latex');
+    xlabel('$N_{A}$','Interpreter','latex');
     legend( ...
         '$p_{\mathrm{fca}}$', ...
         '$p_{\mathrm{color}}$', ...
