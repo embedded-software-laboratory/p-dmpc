@@ -132,7 +132,7 @@ function [result,scenario,options] = main(varargin)
     if options.is_sim_lab
         exp = SimLab(scenario);
     else
-        exp = CPMLab(scenario, vehicle_ids);
+        exp = CPMLab(scenario, scenario.vehicle_ids);
     end
     
     %% Setup
