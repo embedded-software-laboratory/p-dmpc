@@ -209,7 +209,7 @@ classdef CPMLab < InterfaceExperiment
                     vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
                         uint64(obj.sample(end).t_now);
                     vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
-                        uint64(obj.sample(end).t_now + obj.dt_period_nanos);
+                        uint64(obj.sample(end).t_now + obj.dt_period_nanos + 1);
 
                     if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
                         if scenario.updated_manual_vehicle_path || obj.visualize_manual_lane_change_counter > 0
