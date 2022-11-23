@@ -68,20 +68,6 @@ classdef Scenario
     methods
         function obj = Scenario()
         end
-
-        function plot(obj)
-            for iVeh = 1:numel(obj.vehicles)
-                % vehicle rectangle
-                veh = obj.vehicles(iVeh);
-                veh.plot(vehColor(iVeh));
-                % reference trajectory
-                line(   veh.referenceTrajectory(:,1), ...
-                        veh.referenceTrajectory(:,2), ...
-                        'Color',vehColor(iVeh),'LineStyle', '--', 'LineWidth',1 ...
-                );
-            end
-        end
-        
     end
     
     
