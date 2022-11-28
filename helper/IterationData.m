@@ -18,8 +18,29 @@ classdef IterationData
         lane_change_indices                             % indices of the trajectory points of the lane before the lane change and the lane change lane
         lanes_before_update                             % lanes before path has been automatically updated in CPM Lab mode
         auto_updated_path                               % set in rhc_init to memorize when path is updated automatically
-        adjacency;                                      % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
-        semi_adjacency;                                 % OUTDATED (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two semi-adjacent lanelets and their distance are smaller enough
+        adjacency                                       % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
+        semi_adjacency                                  % OUTDATED (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two semi-adjacent lanelets and their distance are smaller enough
+        obstacles
+        dynamic_obstacle_area
+        dynamic_obstacle_shape
+        dynamic_obstacle_fullres
+        dynamic_obstacle_reachableSets
+        vehicle_to_lanelet
+        coupling_weights                                % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
+        coupling_weights_optimal                        % "optimal" coupling weights
+        coupling_weights_reduced                        % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas
+        coupling_weights_random                         % random coupling weights
+        coupling_info                                   % couling information of each coupling pair
+        num_couplings_between_grps                      % number of couplings between parallel groups
+        num_couplings_between_grps_ignored              % reduced number of couplings between groups by using lanelet crossing lanelets
+        belonging_vector                                % a column vector whose value indicate which group each vehicle belongs to 
+        parl_groups_info                                % struct, store information of parallel groups 
+        directed_coupling                               % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
+        directed_coupling_reduced                       % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
+        last_vehs_at_intersection                       % store information about which vehicles were at the intersection in the last time step
+        time_enter_intersection                         % time step when vehicle enters the intersection
+        priority_list
+        lanelet_crossing_areas
     end
 
     methods
@@ -44,6 +65,23 @@ classdef IterationData
             obj.auto_updated_path = false(nVeh,1);
             obj.adjacency = zeros(nVeh,nVeh);
             obj.semi_adjacency = zeros(nVeh,nVeh);
+            obj.dynamic_obstacle_area = {};
+            obj.dynamic_obstacle_shape = {};
+            obj.dynamic_obstacle_fullres = {};
+            obj.dynamic_obstacle_reachableSets = {};
+            obj.vehicle_to_lanelet = zeros(nVeh,1);
+            obj.coupling_weights = zeros(nVeh,nVeh);
+            obj.coupling_weights_optimal = zeros(nVeh,nVeh);
+            obj.coupling_weights_reduced = zeros(nVeh,nVeh);
+            obj.coupling_weights_random = zeros(nVeh,nVeh);
+            obj.directed_coupling = zeros(nVeh,nVeh);
+            obj.directed_coupling_reduced = zeros(nVeh,nVeh);
+            obj.last_vehs_at_intersection = [];
+            obj.time_enter_intersection = [];
+            obj.priority_list = zeros(nVeh,1);
+            obj.belonging_vector = zeros(nVeh,1);
+            obj.obstacles = {};
+            obj.lanelet_crossing_areas = {};
         end
     end
 

@@ -15,7 +15,7 @@ function [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario, iter, ve
 %     scenario_v.dynamic_obstacle_area = [scenario_v.dynamic_obstacle_area; cell(sum(vehicle_filter),scenario.options.Hp)];
 
     for iVeh = 1:sum( vehicle_filter )
-        scenario_v.dynamic_obstacle_area(end+1,:) = shapes(iVeh,:);
+        iter_v.dynamic_obstacle_area(end+1,:) = shapes(iVeh,:);
     end
 
 end

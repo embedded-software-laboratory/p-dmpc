@@ -6,7 +6,7 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
 
     % TODO: strategy here (use non-parallel assignment here)
     % adapt algorithms such that they return all needed data like here
-    [vehs_at_intersection,coupling_weights,scenario.coupling_weights_optimal,coupling_info,time_enter_intersection] = STAC_priority().priority(scenario,iter);
+    [vehs_at_intersection,coupling_weights,iter.coupling_weights_optimal,coupling_info,time_enter_intersection] = STAC_priority().priority(scenario,iter);
 
     if any(strcmp(scenario.options.priority,{'STAC_priority','FCA_priority','constant_priority','random_priority','coloring_priority'}))
         % Strategy to let vehicle without the right-of-way enter the crossing area
@@ -55,18 +55,18 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     % get priority list
     priority_list = STAC_priority().get_priority(CL_based_hierarchy);
 
-    scenario.coupling_weights = coupling_weights;
-    scenario.coupling_weights_reduced = coupling_weights_reduced;
-    scenario.time_enter_intersection = time_enter_intersection;
-    scenario.coupling_info = coupling_info;
+    iter.coupling_weights = coupling_weights;
+    iter.coupling_weights_reduced = coupling_weights_reduced;
+    iter.time_enter_intersection = time_enter_intersection;
+    iter.coupling_info = coupling_info;
 
     % update properties of scenario 
-    scenario.parl_groups_info = parl_groups_info;
-    scenario.belonging_vector = belonging_vector;
-    scenario.directed_coupling = (coupling_weights ~= 0);
-    scenario.directed_coupling_reduced = (coupling_weights_reduced ~= 0);
-    scenario.priority_list = priority_list;
-    scenario.last_vehs_at_intersection = vehs_at_intersection;
+    iter.parl_groups_info = parl_groups_info;
+    iter.belonging_vector = belonging_vector;
+    iter.directed_coupling = (coupling_weights ~= 0);
+    iter.directed_coupling_reduced = (coupling_weights_reduced ~= 0);
+    iter.priority_list = priority_list;
+    iter.last_vehs_at_intersection = vehs_at_intersection;
 
     % visualize the coupling between vehicles
     % plot_coupling_lines(coupling_weights, iter.x0, belonging_vector, 'ShowWeights', true)

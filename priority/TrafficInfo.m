@@ -63,9 +63,9 @@ classdef TrafficInfo
 
             % get previous coupling matrix
             if iter.k>1
-                for i = 1:length([scenario.coupling_info.veh_with_ROW])
-                    veh_with_ROW = scenario.coupling_info(i).veh_with_ROW;
-                    veh_without_ROW = scenario.coupling_info(i).veh_without_ROW;
+                for i = 1:length([iter.coupling_info.veh_with_ROW])
+                    veh_with_ROW = iter.coupling_info(i).veh_with_ROW;
+                    veh_without_ROW = iter.coupling_info(i).veh_without_ROW;
                     obj.directed_adjacency_old(veh_with_ROW,veh_without_ROW) = 1;
                 end
             end
@@ -102,7 +102,7 @@ classdef TrafficInfo
         function obj = update_vehs_at_intersection(obj,iter,scenario,x0)
             % This function updates the vehicles at intersection and the time
             % they entered the intersection
-            obj.time_enter_intersection = scenario.time_enter_intersection;
+            obj.time_enter_intersection = iter.time_enter_intersection;
             if isempty(obj.time_enter_intersection)
                 % this is empty only at the initial time step
                 obj.time_enter_intersection = inf*ones(1,obj.nVeh); % time step when vehicle enters the intersection
@@ -113,9 +113,9 @@ classdef TrafficInfo
             distances_to_center = sqrt(sum((x0(:,1:2) - scenario.intersection_center).^2,2));
             obj.vehs_at_intersection = find(distances_to_center < obj.distance_to_CP_threshold);
         
-            new_veh_at_intersection = setdiff(obj.vehs_at_intersection, scenario.last_vehs_at_intersection);
+            new_veh_at_intersection = setdiff(obj.vehs_at_intersection, iter.last_vehs_at_intersection);
         
-            veh_leave_intersection = setdiff(scenario.last_vehs_at_intersection, obj.vehs_at_intersection);
+            veh_leave_intersection = setdiff(iter.last_vehs_at_intersection, obj.vehs_at_intersection);
             obj.time_enter_intersection(new_veh_at_intersection) = iter.k;
             obj.time_enter_intersection(veh_leave_intersection) = inf; % set to inf if vehicle leaves the intersection
         end
@@ -424,13 +424,13 @@ classdef TrafficInfo
                     [~,~,priority_list] = random_priority().priority(iter,scenario);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'constant_priority'
-                    [~,~,priority_list] = constant_priority().priority(scenario);
+                    [~,~,priority_list] = constant_priority().priority(scenario,iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'FCA_priority'
                     [~,~,~,priority_list] = FCA_priority().priority(scenario, iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'coloring_priority'
-                    [~,~,priority_list] = coloring_priority().priority(scenario);
+                    [~,~,priority_list] = coloring_priority().priority(iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 otherwise
                     warning("Priority must be one of the following: 'STAC_priority', 'random_priority', 'constant_priority', 'coloring_priority', 'FCA_priority'.")

@@ -45,7 +45,7 @@ function scenario_v = consider_veh_without_ROW(scenario_v, iter, all_coupling_ve
                         disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_i) ', considered vehicle: ' num2str(veh_LP)])
                     end
                     predicted_areas_LP = del_first_rpt_last(predicted_areas_LP(:)', shift_step);
-                    scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_LP;
+                    iter.dynamic_obstacle_area(end+1,:) = predicted_areas_LP;
                 end
             case '4'
                 % consider the occupied area of emergency braking maneuver as static obstacle

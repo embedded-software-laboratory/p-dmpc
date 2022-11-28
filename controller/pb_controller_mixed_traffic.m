@@ -1,4 +1,4 @@
-function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
+function [info, scenario, iter] = pb_controller_mixed_traffic(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
@@ -26,9 +26,9 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
     end
     
     % update properties of scenario
-    scenario.directed_coupling = directed_adjacency;
-    scenario.priority_list = priority_list;
-    scenario.last_vehs_at_intersection = veh_at_intersection;
+    iter.directed_coupling = directed_adjacency;
+    iter.priority_list = priority_list;
+    iter.last_vehs_at_intersection = veh_at_intersection;
     
     % initialize variable to store control results
     info = ControllResultsInfo(nVeh, Hp, [scenario.vehicles.ID]);
@@ -94,7 +94,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                     reachable_sets_i = iter.reachable_sets(index_first_manual_vehicle,:);
                     % turn polyshape to plain array (repeat the first row to enclosed the shape)
                     reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
-                    scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
+                    iter_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
 
                     subcontroller_timer = tic;
                     % execute sub controller for 1-veh scenario
@@ -122,7 +122,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                     reachable_sets_i = iter.reachable_sets(index_second_manual_vehicle,:);
                     % turn polyshape to plain array (repeat the first row to enclosed the shape)
                     reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
-                    scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
+                    iter_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
 
                     subcontroller_timer = tic;
                     % execute sub controller for 1-veh scenario
@@ -147,7 +147,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 autonomous_vehicle_indices = setdiff(predecessors, manual_indices);
                 
                 % Filter out vehicles that are not adjacent
-                veh_adjacent = find(scenario.adjacency(vehicle_idx,:,end));
+                veh_adjacent = find(iter.adjacency(vehicle_idx,:));
                 autonomous_vehicles_adjacent = intersect(autonomous_vehicle_indices,veh_adjacent);
 
                 % Filter out vehicles with lower or same priority.

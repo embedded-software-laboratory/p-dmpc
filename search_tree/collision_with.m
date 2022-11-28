@@ -15,9 +15,9 @@ function collision = collision_with(iter, index, shapes, shapes_for_lanelet_chec
         end
     end
     
-    if ~isempty(scenario.dynamic_obstacle_area)
-        for i = 1:size(scenario.dynamic_obstacle_area,1)
-            if intersect_sat(shapes{index}, scenario.dynamic_obstacle_area{i,iStep:iStep+scenario.options.Hp-1}) 
+    if ~isempty(iter.dynamic_obstacle_area)
+        for i = 1:size(iter.dynamic_obstacle_area,1)
+            if intersect_sat(shapes{index}, iter.dynamic_obstacle_area{i,iStep:iStep+scenario.options.Hp-1}) 
                 collision = true;
                 %disp(sprintf("vehicle id responsible for collision with dynamic obstacles: %d", scenario.vehicles.ID));
 %                 disp('there is collision with dynamic obstacles')
@@ -58,9 +58,9 @@ function collision = collision_with(iter, index, shapes, shapes_for_lanelet_chec
     end
 
     % check if collides with the reachable sets of coupling vehicles with higher priorities 
-    if ~isempty(scenario.dynamic_obstacle_reachableSets)
-        for i = 1:size(scenario.dynamic_obstacle_reachableSets,1)
-            if intersect_sat(shapes{index},scenario.dynamic_obstacle_reachableSets{i,iStep}) 
+    if ~isempty(iter.dynamic_obstacle_reachableSets)
+        for i = 1:size(iter.dynamic_obstacle_reachableSets,1)
+            if intersect_sat(shapes{index},iter.dynamic_obstacle_reachableSets{i,iStep}) 
                 collision = true;
                 return;
             end

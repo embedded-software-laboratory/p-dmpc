@@ -17,7 +17,7 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
 
     nVeh = scenario.options.amount;
     nObst = size(scenario.obstacles,2);
-    nDynObst = size(scenario.dynamic_obstacle_fullres,1);
+    nDynObst = size(iter.dynamic_obstacle_fullres,1);
     
     if nargin < 3
         tick_now = 1;
@@ -183,7 +183,7 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
     if visu.isShowCoupling
         x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
-        if ~isempty(scenario.coupling_weights_reduced)
+        if ~isempty(iter.coupling_weights_reduced)
             plot_coupling_lines(result.coupling_weights_reduced{step_idx}, x0, result.belonging_vector(:,step_idx), result.coupling_info{step_idx}, coupling_visu)
         else
             plot_coupling_lines(result.directed_coupling{step_idx}, x0, [], [], coupling_visu)
@@ -205,9 +205,9 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
     
     % dynamic obstacles
     for obs = 1:nDynObst
-        pos_step = scenario.dynamic_obstacle_fullres{obs,step_idx};
+        pos_step = iter.dynamic_obstacle_fullres{obs,step_idx};
         x = pos_step(tick_now,:);
-        obstaclePolygon = transformedRectangle(x(1),x(2),pi/2, scenario.dynamic_obstacle_shape(1),scenario.dynamic_obstacle_shape(2));
+        obstaclePolygon = transformedRectangle(x(1),x(2),pi/2, iter.dynamic_obstacle_shape(1),iter.dynamic_obstacle_shape(2));
         patch(   obstaclePolygon(1,:)...
                 ,obstaclePolygon(2,:)...
                 ,[0.5 0.5 0.5]...

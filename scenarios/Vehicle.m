@@ -9,8 +9,6 @@ classdef Vehicle
         x_goal              = 0;     % [m]
         y_goal              = 0;     % [m]
         yaw_goal            = 0;     % [radians]
-        %x_position          = 0;
-        %y_position          = 0;
         referenceTrajectory = [0 0; 1 0; 3 1]; % [x1 y1; x2 y2; ...]
         Length              = 0.22;  % Vehicle length (bumper to bumper)[m]
         Width               = 0.1;   % Vehicle width [m]
@@ -19,16 +17,9 @@ classdef Vehicle
         ID                  = -1;    % vehicle ID (should be positive integer)
         lanelets_index;
         points_index;
-        % lanes_before_update = zeros(1,2);    % lanes before path has been automatically updated in CPM Lab mode
-        autoUpdatedPath     = false;         % set in rhc_init to memorize when path is updated automatically
-        % lane_change_indices = zeros(10,4);   % indices of the trajectory points of the lane before the lane change and the lane change lane
-        % lane_change_lanes = zeros(10,2);     % positions of the lane before the lane change and the lane change lane in the lanelet vector
-        % lanelet_boundary;           % left and right boundaries of predicted lanelets
         communicate;                % instance of the class `Communication`, used for communication via ROS 2
-        % predicted_lanelets          % vehicle's predicted lanelets 
         paddle_counter      = 2;    % initial speed profile
         vehicle_mpa;                % instance of the class `MotionPrimitiveAutomaton`
-        % last_trajectory_index = 10; % initial trajectory index
         ref_path_loop_idx           % totally 7 loops of paths are designed
         is_loop = true;             % whether the reference path is a loop
     end

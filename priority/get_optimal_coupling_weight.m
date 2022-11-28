@@ -9,6 +9,7 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
     filter_self = false(1,scenario.options.amount);
     filter_self(veh_j) = true;
     scenario_v = filter_scenario(scenario,filter_self);
+    iter_v = filter_iter(iter,filter_self);
     % Reduce the prediction horizon by one
     scenario_v.options.Hp = scenario_v.options.Hp - 1;
     % Add reachable sets as dynamic obstacles
@@ -16,7 +17,7 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
     reachable_sets_i_full = iter.reachable_sets(veh_i,:);
     % Turn polyshape to plain array (repeat the first row to enclosed the shape)
     reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
-    scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
+    iter_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
 
     reachable_sets_i_array_full = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i_full); 
     plot_options_RS = struct('Color',[0 0.4470 0.7410],'LineWidth',0.45,'LineStyle','-');

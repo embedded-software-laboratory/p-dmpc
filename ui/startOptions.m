@@ -470,7 +470,7 @@ end
 function setIsParlVisibility(ui)
     if get_circle_selection(ui)
         ui.ParallelComputationListBox.Enable = 'Off';
-        ui.Label_4.Text = sprintf("For circle scenario, only\n topo priority, constant\n priority and random\n priority are supported");
+        ui.Label_4.Text = sprintf("For circle scenario, only\n coloring priority, constant\n priority and random\n priority are supported");
         ui.Label_4.Visible = 'On';
     else
         ui.ParallelComputationListBox.Enable = 'On';

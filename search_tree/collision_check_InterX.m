@@ -1,4 +1,4 @@
-function [collision] = collision_check_InterX(shape, scenario, iStep)
+function [collision] = collision_check_InterX(iter, shape, scenario, iStep)
 % COLLISION_CHECK_INTERX Check if the shape collides with the obstacles and
 % lanelet boundaries
 % 
@@ -24,23 +24,23 @@ function [collision] = collision_check_InterX(shape, scenario, iStep)
     lanelet_crossing_areas = scenario.lanelet_crossing_areas;
     
     % get predicted occupied areas of the coupling vehicles in the current time step
-    [~, n_occupiedAreas_Hp] = size(scenario.dynamic_obstacle_area);
+    [~, n_occupiedAreas_Hp] = size(iter.dynamic_obstacle_area);
     if iStep <= n_occupiedAreas_Hp
-        predicted_occpuied_areas = scenario.dynamic_obstacle_area(:,iStep)';
+        predicted_occpuied_areas = iter.dynamic_obstacle_area(:,iStep)';
     else
         predicted_occpuied_areas = {};
     end
 
     % get reachable sets of the coupling vehicles in the current time step
-    [~, n_reachableSets_Hp] = size(scenario.dynamic_obstacle_reachableSets);
+    [~, n_reachableSets_Hp] = size(iter.dynamic_obstacle_reachableSets);
     if iStep <= n_reachableSets_Hp
-        reachable_sets = scenario.dynamic_obstacle_reachableSets(:,iStep)';
+        reachable_sets = iter.dynamic_obstacle_reachableSets(:,iStep)';
     else
         reachable_sets = {};
     end
 
     % get lanelet boundary
-    lanelet_boundary = scenario.vehicles.lanelet_boundary; % TODO use iter
+    lanelet_boundary = iter.predicted_lanelet_boundary; % TODO use iter
 
 %     obstacles_shapes = [static_obstacles(:)', lanelet_crossing_areas(:)', predicted_occpuied_areas(:)', reachable_sets(:)'];
     for i = 1:length(static_obstacles)

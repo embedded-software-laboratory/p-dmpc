@@ -1,4 +1,4 @@
-function [info, scenario] = pb_controller(scenario, iter)
+function [info, scenario, iter] = pb_controller(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
@@ -15,9 +15,9 @@ function [info, scenario] = pb_controller(scenario, iter)
     Hp = scenario.options.Hp;
 
     % update properties of scenario
-    scenario.directed_coupling = directed_adjacency;
-    scenario.priority_list = priority_list;
-    scenario.last_vehs_at_intersection = veh_at_intersection;
+    iter.directed_coupling = directed_adjacency;
+    iter.priority_list = priority_list;
+    iter.last_vehs_at_intersection = veh_at_intersection;
     
     % initialize variable to store control results
     info = ControllResultsInfo(nVeh, Hp, [scenario.vehicles.ID]);
@@ -43,7 +43,7 @@ function [info, scenario] = pb_controller(scenario, iter)
             end
             
             % Filter out vehicles that are not adjacent
-            veh_adjacent = find(scenario.adjacency(vehicle_idx,:,end));
+            veh_adjacent = find(iter.adjacency(vehicle_idx,:));
             veh_adjacent = setdiff(veh_adjacent,vehicle_idx); % exclude self
             predecessors = intersect(group.predecessors,veh_adjacent);
 

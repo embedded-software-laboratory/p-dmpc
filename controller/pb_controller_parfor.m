@@ -5,10 +5,10 @@ function [u, y_pred, info] = pb_controller_parl_backup(scenario, iter)
     assert( ~isempty(scenario.adjacency) )
 
     % determine planning levels
-    if scenario.assignPrios || isempty(scenario.directed_coupling)
-        [isDAG, topo_groups] = topological_sorting_coloring(scenario.adjacency);
+    if scenario.assignPrios || isempty(iter.directed_coupling)
+        [isDAG, topo_groups] = topological_sorting_coloring(iter.adjacency);
     else
-        [isDAG, topo_groups] = kahn(scenario.directed_coupling);
+        [isDAG, topo_groups] = kahn(iter.directed_coupling);
     end
 
     assert( isDAG, 'Coupling matrix is not a DAG' );

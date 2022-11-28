@@ -9,9 +9,9 @@ classdef constant_priority < interface_priority
         function obj = constant_priority() 
         end
         
-        function [groups, directed_adjacency, priority_list] = priority(obj,scenario)
+        function [groups, directed_adjacency, priority_list] = priority(obj,scenario,iter)
 
-            directed_adjacency = scenario.adjacency(:,:,end);
+            directed_adjacency = iter.adjacency;
             nVeh = scenario.options.amount;
             ConstPrio = 1:nVeh;
 

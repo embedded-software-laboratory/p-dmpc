@@ -55,9 +55,9 @@ classdef FCA_priority < interface_priority
                     end
                     
                     % check collistion between vehicles and dynamic obstacles
-                    if ~isempty(scenario.dynamic_obstacle_area)
-                        for i = 1:size(scenario.dynamic_obstacle_area,1)
-                            if intersect_sat(shape_n,scenario.dynamic_obstacle_area{i,istep}) 
+                    if ~isempty(iter.dynamic_obstacle_area)
+                        for i = 1:size(iter.dynamic_obstacle_area,1)
+                            if intersect_sat(shape_n,iter.dynamic_obstacle_area{i,istep}) 
                                 collisions(nveh) = collisions(nveh) + 1;
                             end
                         end

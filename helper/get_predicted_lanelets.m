@@ -49,7 +49,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
         x0, ...                                             % vehicle position x
         y0, ...                                             % vehicle position y
         v_ref*scenario.options.dt, ...                                       % distance traveled in one timestep
-        scenario.vehicles(iVeh).autoUpdatedPath, ...        % if the path has been updated automatically
+        iter.auto_updated_path(iVeh), ...        % if the path has been updated automatically
         scenario.options.isParl, ...                        % parallel computation
         iter.last_trajectory_index(iVeh), ...  % last trajectory index of vehicle
         scenario.options.is_mixed_traffic...                % prevent loops in mixed traffic

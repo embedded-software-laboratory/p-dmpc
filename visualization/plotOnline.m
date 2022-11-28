@@ -11,14 +11,13 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
 % 
 %   visu: struct with fields: 'isShowVehID', 'isShowPriority', 'isShowCoupling' and 'isShowWeight'
 % 
-
     scenario = result.scenario;
     iter = result.iteration_structs{step_idx};
-    priority_list = result.priority(:,step_idx);
+    priority_list = result.priority_list(:,step_idx);
 
     nVeh = scenario.options.amount;
     nObst = size(scenario.obstacles,2);
-    nDynObst = size(scenario.dynamic_obstacle_fullres,1);
+    nDynObst = size(iter.dynamic_obstacle_fullres,1);
     
     set(0,'DefaultTextFontname', 'Verdana');
     set(0,'DefaultAxesFontName', 'Verdana');
@@ -232,8 +231,8 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',visu.isShowCoupling,'isShowValue',visu.isShowWeight, 'radius', radius);
         x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
-        if ~isempty(scenario.coupling_weights_reduced)
-            plot_coupling_lines(result.coupling_weights_reduced{step_idx}, x0, result.belonging_vector(:,step_idx), result.coupling_info{step_idx}, coupling_visu)
+        if ~isempty(iter.coupling_weights_reduced)
+            plot_coupling_lines(iter.coupling_weights_reduced{step_idx}, x0, result.belonging_vector(:,step_idx), result.coupling_info{step_idx}, coupling_visu)
         else
             plot_coupling_lines(result.directed_coupling{step_idx}, x0, [], [], coupling_visu)
         end
@@ -254,9 +253,9 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     
     % dynamic obstacles
     for obs = 1:nDynObst
-        pos_step = scenario.dynamic_obstacle_fullres{obs,step_idx};
+        pos_step = iter.dynamic_obstacle_fullres{obs,step_idx};
         x = pos_step(tick_now,:);
-        obstaclePolygon = transformedRectangle(x(1),x(2),pi/2, scenario.dynamic_obstacle_shape(1),scenario.dynamic_obstacle_shape(2));
+        obstaclePolygon = transformedRectangle(x(1),x(2),pi/2, iter.dynamic_obstacle_shape(1),iter.dynamic_obstacle_shape(2));
         patch(   obstaclePolygon(1,:)...
                 ,obstaclePolygon(2,:)...
                 ,[0.5 0.5 0.5]...

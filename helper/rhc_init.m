@@ -89,7 +89,7 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
             end
         else
             for iVeh = 1:scenario.options.amount
-                iter.autoUpdatedPath(iVeh) = false;
+                iter.auto_updated_path(iVeh) = false;
                 for i = 1:length(iter.predicted_lanelets{iVeh})
                     % if last lane is reached, then lane will be automatically updated
                     if iter.predicted_lanelets{iVeh}(i) == scenario.vehicles(iVeh).lanelets_index(end-1)
@@ -97,7 +97,7 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
                             if scenario.options.firstManualVehicleMode == 1
                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
                                 updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end-1), false); % TODO_DATA: Scenario does not change inside
-                                iter.autoUpdatedPath(iVeh) = true;
+                                iter.auto_updated_path(iVeh) = true;
                             else
                                 continue
                             end     
@@ -105,18 +105,18 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
                             if scenario.options.secondManualVehicleMode == 1
                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
                                 updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end-1), false); % TODO_DATA: Scenario does not change inside
-                                iter.autoUpdatedPath(iVeh) = true;
+                                iter.auto_updated_path(iVeh) = true;
                             else
                                 continue
                             end      
                         else
                             % function to generate random path for autonomous vehicles based on CPM Lab road geometry
                             [updated_ref_path, iter.lane_change_indices(iVeh,:,:), iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(scenario, scenario.vehicle_ids(iVeh), 10, scenario.vehicles(iVeh).lanelets_index(end-1)); % TODO_DATA: Scenario does not change inside
-                            iter.autoUpdatedPath(iVeh) = true;
+                            iter.auto_updated_path(iVeh) = true;
                         end
 
                         % save lanes before update to add for boundaries
-                        if iter.autoUpdatedPath(iVeh) && length(scenario.vehicles(iVeh).lanelets_index) > 3
+                        if iter.auto_updated_path(iVeh) && length(scenario.vehicles(iVeh).lanelets_index) > 3
                             iter.lanes_before_update(iVeh,1,1) = scenario.vehicles(iVeh).lanelets_index(end-2); % TODO_DATA: Scenario changes here
                             iter.lanes_before_update(iVeh,1,2) = scenario.vehicles(iVeh).lanelets_index(end-3); % TODO_DATA: Scenario changes here
                         end
@@ -220,7 +220,7 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
                 end
             else
                 % Get the predicted lanelets of other vehicles
-                if scenario.options.isParl && ~scenario.vehicles(iVeh).autoUpdatedPath
+                if scenario.options.isParl && ~iter.auto_updated_path(iVeh)
                     % from received messages if parallel computation is used 
                     predicted_lanelets= latest_msg_i.predicted_lanelets(:)'; % make row vector
                 end

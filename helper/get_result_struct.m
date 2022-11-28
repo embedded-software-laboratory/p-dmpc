@@ -12,7 +12,7 @@ function result = get_result_struct(scenario)
     result.step_time = zeros(0,1);
     result.n_expanded = zeros(0,1);
     result.belonging_vector = zeros(scenario.options.amount,0); % belonging vector indicates to which group one vehicle belongs to
-    result.priority = zeros(scenario.options.amount,0);
+    result.priority_list = zeros(scenario.options.amount,0);
     result.computation_levels = zeros(1,0);
     result.vehs_fallback = cell(0,1); % which vehicles should use their fallback trajectories
     
