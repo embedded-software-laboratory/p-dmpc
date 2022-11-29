@@ -1,4 +1,4 @@
-function [info,scenario] = centralized_controller(scenario, iter)
+function [info,scenario,iter] = centralized_controller(scenario, iter)
 % CENTRALIZED_CONTROLLER    Plan trajectory for one time step using a centralized controller.
 
     % initialize variable to store control results

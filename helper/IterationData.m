@@ -65,9 +65,9 @@ classdef IterationData
             obj.auto_updated_path = false(nVeh,1);
             obj.adjacency = zeros(nVeh,nVeh);
             obj.semi_adjacency = zeros(nVeh,nVeh);
-            obj.dynamic_obstacle_area = {};
-            obj.dynamic_obstacle_shape = {};
-            obj.dynamic_obstacle_fullres = {};
+            obj.dynamic_obstacle_area = scenario.dynamic_obstacle_area;
+            obj.dynamic_obstacle_shape = scenario.dynamic_obstacle_shape;
+            obj.dynamic_obstacle_fullres = scenario.dynamic_obstacle_fullres;
             obj.dynamic_obstacle_reachableSets = {};
             obj.vehicle_to_lanelet = zeros(nVeh,1);
             obj.coupling_weights = zeros(nVeh,nVeh);
@@ -78,7 +78,7 @@ classdef IterationData
             obj.directed_coupling_reduced = zeros(nVeh,nVeh);
             obj.last_vehs_at_intersection = [];
             obj.time_enter_intersection = [];
-            obj.priority_list = zeros(nVeh,1);
+            obj.priority_list = ones(nVeh,1);
             obj.belonging_vector = zeros(nVeh,1);
             obj.obstacles = {};
             obj.lanelet_crossing_areas = {};

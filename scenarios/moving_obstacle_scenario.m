@@ -44,7 +44,7 @@ function scenario = moving_obstacle_scenario(options)
 
     
     nVeh = 1;
-    scenario.adjacency = zeros(nVeh,nVeh);
+    %scenario.adjacency = zeros(nVeh,nVeh);
     scenario.assignPrios = true;
     scenario.controller_name = strcat(scenario.controller_name, '-centralized');
     scenario.options.isPB = false;
