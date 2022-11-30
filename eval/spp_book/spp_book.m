@@ -17,13 +17,25 @@ end
     sce_rec_1 = Scenario;
     sce_rec_1.mpa = MotionPrimitiveAutomaton(model,opt);
     sce_rec_1.options = opt;
-    plot_mpa_over_time(sce_rec_1,'do_export',true);
+
+    export_fig_config = ExportFigConfig.spp_book_small( ...
+        "paperheight", 3 ...
+    );
+    plot_mpa_over_time( ...
+        sce_rec_1, ...
+        'do_export',true, ...
+        'export_fig_cfg',export_fig_config ...
+    );
 
     opt.recursive_feasibility = 0;
     sce_rec_0 = Scenario;
     sce_rec_0.mpa = MotionPrimitiveAutomaton(model,opt);
     sce_rec_0.options = opt;
-    plot_mpa_over_time(sce_rec_0,'do_export',true);
+    plot_mpa_over_time( ...
+        sce_rec_0, ...
+        'do_export',true, ...
+        'export_fig_cfg',export_fig_config ...
+    );
 
 
     %% Dynamic priorities
@@ -65,7 +77,7 @@ end
 
     nsVeh = 1:20;
     % number of different random scenarios per priority assignment and #vehicles
-    nSce = 6;
+    nSce = 9;
 
     scenarios = cell(length(nsVeh),nSce);
     results = cell(length(nsVeh),length(priority_assignment_algorithms),nSce);
@@ -94,7 +106,10 @@ end
         end
     end
     
-    plot_mpa(scenarios{1,1},"y_lim",[-0.05, 0.85],"x_lim", [-37,37],...
+    plot_mpa(scenarios{1,1}, ...
+        "y_lim",[-0.05, 0.85], ...
+        "x_lim", [-37,37],...
+        'export_fig_cfg',export_fig_config, ...
         "do_export",true ...
     );
 
@@ -141,9 +156,9 @@ end
     
     
     % plot Computation levels histogram excluding deadlock
-    eval_plot_levels(results);
+    plot_levels(results);
     % plot deadlock-free runtime
-    eval_plot_runtime(results);
+    plot_runtime(results);
 
     % Export videos
     export_desired_videos(results);
