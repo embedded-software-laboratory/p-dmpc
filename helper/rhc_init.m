@@ -6,6 +6,7 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
     idx = indices();
     visualize_trajectory_index_lab = false;
     visualize_boundaries_lab = false;
+    predicted_lanelet_boundary = {[]};
 
     if scenario.options.is_mixed_traffic
         if ~initialized_reference_path
@@ -307,20 +308,15 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
                     end
                 end
             end
-    
-            if scenario.options.isParl
-                % Calculate reachable sets of other vehicles based on their
-                % current states and trims. Reachability analysis will be
-                % widely used in the parallel computation.
-                if ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id)) && scenario.manual_mpa_initialized) ...
-                    || ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id)) && scenario.second_manual_mpa_initialized)
-                    local_reachable_sets = scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
-                else
-                    local_reachable_sets = scenario.mpa.local_reachable_sets_conv;
-                end
-                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, scenario.options);
-            end
         end
+
+        if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
+            || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
+            local_reachable_sets = scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
+        else
+            local_reachable_sets = scenario.mpa.local_reachable_sets_conv;
+        end
+        iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, scenario.options);
         
 
         % get each vehicle's currently occupied area
