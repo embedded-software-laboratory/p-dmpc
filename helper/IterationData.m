@@ -41,6 +41,7 @@ classdef IterationData
         time_enter_intersection                         % time step when vehicle enters the intersection
         priority_list
         lanelet_crossing_areas
+        timer                                           % struct, used to store computation time of different parts
     end
 
     methods
@@ -68,7 +69,7 @@ classdef IterationData
             obj.dynamic_obstacle_area = scenario.dynamic_obstacle_area;
             obj.dynamic_obstacle_shape = scenario.dynamic_obstacle_shape;
             obj.dynamic_obstacle_fullres = scenario.dynamic_obstacle_fullres;
-            obj.dynamic_obstacle_reachableSets = {};
+            obj.dynamic_obstacle_reachableSets = scenario.dynamic_obstacle_reachableSets;
             obj.vehicle_to_lanelet = zeros(nVeh,1);
             obj.coupling_weights = zeros(nVeh,nVeh);
             obj.coupling_weights_optimal = zeros(nVeh,nVeh);

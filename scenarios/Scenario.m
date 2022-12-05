@@ -37,7 +37,6 @@ classdef Scenario
         priority_list = 1;             % priority list of vehicles; a smaller value for a higher priority
         time_enter_intersection = []; % time step when vehicle enters the intersection
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
-        timer;            % struct, used to store computation time of different parts
         random_stream = RandStream('mt19937ar'); % for reproducibility
     end
     

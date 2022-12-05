@@ -36,8 +36,8 @@ function collision = collision_with(iter, index, shapes, shapes_for_lanelet_chec
         end
     end
     
-    if ~isempty(scenario.vehicle_to_lanelet)
-        lane_idx = nonzeros(scenario.vehicle_to_lanelet(index,:))';
+    if ~isempty(iter.vehicle_to_lanelet)
+        lane_idx = nonzeros(iter.vehicle_to_lanelet(index,:))';
         for i = lane_idx
             %if intersect_lanelets(shapes{index},scenario.lanelet_boundary{i})
             if intersect_lanelets(shapes{index}, scenario.lanelets{i})
@@ -49,8 +49,8 @@ function collision = collision_with(iter, index, shapes, shapes_for_lanelet_chec
     end
     
 
-    if ~isempty(scenario.vehicles(1,index).lanelet_boundary) % TODO use iter.lanelet_boundary
-        if intersect_lanelet_boundary(shapes_for_lanelet_check{index}, scenario.vehicles(1,index).lanelet_boundary) % TODO use iter.lanelet_boundary
+    if ~isempty(iter.predicted_lanelet_boundary(index,:)) % TODO use iter.lanelet_boundary
+        if intersect_lanelet_boundary(shapes_for_lanelet_check{index}, iter.predicted_lanelet_boundary(index,:)) % TODO use iter.lanelet_boundary
             %disp(sprintf("vehicle id responsible for collision: %d", scenario.vehicles.vehicle_id));
             collision = true;
             return;

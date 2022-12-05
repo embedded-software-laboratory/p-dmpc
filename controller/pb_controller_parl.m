@@ -8,8 +8,8 @@ function [info, scenario, iter] = pb_controller_parl(scenario, iter)
 
     assign_priority_timer = tic;
     [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(scenario, iter);
-    scenario.timer.assign_priority = toc(assign_priority_timer);
-
+    iter.timer.assign_priority = toc(assign_priority_timer);
+    
     nVeh = scenario.options.amount;
     Hp = scenario.options.Hp;
 

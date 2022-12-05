@@ -4,7 +4,6 @@ function info = graph_search(scenario, iter)
 % OUTPUT:
 %   is_exhausted: (true/false) whether graph search is exhausted or not
 % 
-    scenario.options.amount
     Hp = scenario.options.Hp;
     % initialize variable to store control results
     info = ControllResultsInfo(scenario.options.amount, Hp, [scenario.vehicles.ID]);

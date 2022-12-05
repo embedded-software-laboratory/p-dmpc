@@ -15,16 +15,16 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
             strategy_enter_lanelet_crossing_area(iter,coupling_info,coupling_weights,scenario.options.strategy_enter_lanelet_crossing_area,scenario.options.amount);
 
         [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupling_weights_reduced,coupling_weights,coupling_info,vehs_at_intersection);
-        scenario.timer.determine_couplings = toc(determine_couplings_timer);
+        iter.timer.determine_couplings = toc(determine_couplings_timer);
 
         group_vehs = tic;
         % form parallel CL_based_hierarchy
         method = 's-t-cut'; % 's-t-cut' or 'MILP'
         [CL_based_hierarchy, parl_groups_info, belonging_vector] = form_parallel_groups(coupling_weights_reduced, scenario.options.max_num_CLs, coupling_info, method, scenario.options);
-        scenario.timer.group_vehs = toc(group_vehs);
+        iter.timer.group_vehs = toc(group_vehs);
         
     elseif strcmp(scenario.options.priority,'mixed_traffic_priority')
-        scenario.timer.determine_couplings = toc(determine_couplings_timer);
+        iter.timer.determine_couplings = toc(determine_couplings_timer);
         obj = mixed_traffic_priority(scenario);
         [CL_based_hierarchy, directed_adjacency] = obj.priority();
         indexVehicleExpertMode = 0;
