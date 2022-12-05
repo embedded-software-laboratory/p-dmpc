@@ -14,7 +14,7 @@ classdef FCA_priority < interface_priority
         
         function [veh_at_intersection,groups,directed_adjacency,priority_list] = priority(obj,scenario,iter)
 
-            nVeh = length(scenario.vehicles);
+            nVeh = length(iter.vehicles);
             Hp = size(iter.referenceTrajectoryPoints,2);
             veh_at_intersection = [];
 

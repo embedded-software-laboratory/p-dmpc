@@ -30,4 +30,6 @@ function iter = filter_iter(iter, vehicle_filter) % TODO: Add new fields
     iter.lanes_before_update = iter.lanes_before_update(vehicle_filter,:,:);
     iter.auto_updated_path = iter.auto_updated_path(vehicle_filter);
     iter.vehicle_to_lanelet = iter.vehicle_to_lanelet(vehicle_filter);
+    iter.vehicles = iter.vehicles(vehicle_filter);
+    iter.amount = sum(vehicle_filter);
 end

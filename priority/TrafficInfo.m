@@ -132,7 +132,7 @@ classdef TrafficInfo
             veh_info_i.position = [iter.x0(veh_i,indices().x), iter.x0(veh_i,indices().y)];
             veh_info_i.yaw = iter.x0(veh_i,indices().heading);
             veh_info_i.trim = iter.trim_indices(veh_i);
-            veh_info_i.length = scenario.vehicles(veh_i).Length;
+            veh_info_i.length = iter.vehicles(veh_i).Length;
             predicted_lanelets_i = iter.predicted_lanelets{veh_i};
 
             veh_info_j = struct('ID',[],'position',[],'yaw',[],'trim',[],'predicted_lanelet',[],'length',[],...
@@ -141,7 +141,7 @@ classdef TrafficInfo
             veh_info_j.position = [iter.x0(veh_j,indices().x), iter.x0(veh_j,indices().y)];
             veh_info_j.yaw = iter.x0(veh_j,indices().heading);
             veh_info_j.trim = iter.trim_indices(veh_j);
-            veh_info_j.length = scenario.vehicles(veh_j).Length;
+            veh_info_j.length = iter.vehicles(veh_j).Length;
             predicted_lanelets_j = iter.predicted_lanelets{veh_j};
 
 

@@ -42,6 +42,8 @@ classdef IterationData
         priority_list
         lanelet_crossing_areas
         timer                                           % struct, used to store computation time of different parts
+        vehicles                                        % copy of vehicle list (useful for filtered)
+        amount                                          % number of involved vehicles (useful for filtered)
     end
 
     methods
@@ -83,6 +85,8 @@ classdef IterationData
             obj.belonging_vector = zeros(nVeh,1);
             obj.obstacles = {};
             obj.lanelet_crossing_areas = {};
+            obj.amount = nVeh;
+            obj.vehicles = scenario.vehicles;
         end
     end
 

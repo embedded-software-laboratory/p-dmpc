@@ -18,7 +18,7 @@ classdef right_of_way_priority < interface_priority
         %% priority
         function [veh_at_intersection,groups,directed_adjacency,priority_list] = priority(obj,scenario,iter)
             % assign priorities to vehicles
-            nVeh = length(scenario.vehicles);
+            nVeh = length(iter.vehicles);
             Hp = size(iter.referenceTrajectoryPoints,2);
             intersection_center = [2.25, 2];
             lanelets_idx = zeros(nVeh, Hp);

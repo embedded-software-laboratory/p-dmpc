@@ -25,7 +25,7 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
         
     elseif strcmp(scenario.options.priority,'mixed_traffic_priority')
         iter.timer.determine_couplings = toc(determine_couplings_timer);
-        obj = mixed_traffic_priority(scenario);
+        obj = mixed_traffic_priority(scenario,iter);
         [CL_based_hierarchy, directed_adjacency] = obj.priority();
         indexVehicleExpertMode = 0;
         for j = 1:scenario.options.amount

@@ -52,7 +52,6 @@ function [info, scenario, iter] = pb_controller_parl(scenario, iter)
             % only keep self
             filter_self = false(1,scenario.options.amount);
             filter_self(vehicle_idx) = true;
-            scenario_v = filter_scenario(scenario, filter_self);
             iter_v = filter_iter(iter, filter_self);
 
             grp_idx = arrayfun(@(array) ismember(vehicle_idx,array.vertices), iter_v.parl_groups_info);
@@ -69,7 +68,7 @@ function [info, scenario, iter] = pb_controller_parl(scenario, iter)
                 
                 if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles  
-                    latest_msg = read_message(scenario_v.vehicles.communicate, scenario_v.ros_subscribers{veh_with_HP_i}, iter.k);
+                    latest_msg = read_message(scenario.vehicles(vehicle_idx).communicate, scenario.ros_subscribers{veh_with_HP_i}, iter.k);
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                     oldness_msg = iter.k - latest_msg.time_step;
                     if oldness_msg ~= 0
@@ -84,7 +83,7 @@ function [info, scenario, iter] = pb_controller_parl(scenario, iter)
                         % their latest messages are sent:
                         % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step. 
                         % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step. 
-                        latest_msg = scenario_v.ros_subscribers{veh_with_HP_i}.LatestMessage;
+                        latest_msg = scenario.ros_subscribers{veh_with_HP_i}.LatestMessage;
                         if latest_msg.time_step == iter_v.k
                             predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                             iter_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
@@ -99,7 +98,7 @@ function [info, scenario, iter] = pb_controller_parl(scenario, iter)
                         % otherwise add one-step delayed trajectories as dynamic obstacles
                         if iter_v.k>1
                             % the old trajectories are available from the second time step onwards
-                            old_msg = read_message(scenario_v.vehicles.communicate, scenario_v.ros_subscribers{veh_with_HP_i}, iter_v.k-1);
+                            old_msg = read_message(scenario.vehicles(vehicle_idx).communicate, iter_v.ros_subscribers{veh_with_HP_i}, iter_v.k-1);
                             predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, old_msg.predicted_areas);
                             oldness_msg = iter_v.k - old_msg.time_step;
                             if oldness_msg ~= 0
@@ -123,10 +122,10 @@ function [info, scenario, iter] = pb_controller_parl(scenario, iter)
             end
 
             % consider coupled vehicles with lower priorities
-            iter_v = consider_vehs_with_LP(scenario_v, iter_v, vehicle_idx, all_coupled_vehs_with_LP);
+            iter_v = consider_vehs_with_LP(scenario, iter_v, vehicle_idx, all_coupled_vehs_with_LP);
 
             % execute sub controller for 1-veh scenario
-            info_v = sub_controller(scenario_v, iter_v);
+            info_v = sub_controller(scenario, iter_v);
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
 %                 disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
@@ -152,7 +151,7 @@ function [info, scenario, iter] = pb_controller_parl(scenario, iter)
             n_expended(vehicle_idx) = info_v.tree.size();
 
             if iter.k==inf
-                plot_obstacles(scenario_v)
+                plot_obstacles(scenario)
                 plot_obstacles(info_v.shapes)
                 graphs_visualization(iter.belonging_vector, scenario.coupling_weights, 'ShowWeights', true)
             end

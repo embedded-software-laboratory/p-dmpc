@@ -85,7 +85,7 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
                     predicted_lanelets = get_predicted_lanelets(scenario,iVeh,predicted_trims(1),x0,y0);
 
                     predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                    scenario.vehicles(iVeh).communicate.send_message(scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
+                    scenario.vehicles(iVeh).communicate.send_message(iter.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
                 end        
             end
         else
@@ -219,7 +219,7 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
                 end
             else
                 % Get the predicted lanelets of other vehicles
-                if scenario.options.isParl && ~iter.auto_updated_path(iVeh)
+                if scenario.options.isPB && scenario.options.isParl && ~iter.auto_updated_path(iVeh)
                     % from received messages if parallel computation is used 
                     predicted_lanelets= latest_msg_i.predicted_lanelets(:)'; % make row vector
                 end

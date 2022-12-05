@@ -8,10 +8,9 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
     % Filter scenario and iter
     filter_self = false(1,scenario.options.amount);
     filter_self(veh_j) = true;
-    scenario_v = filter_scenario(scenario,filter_self);
     iter_v = filter_iter(iter,filter_self);
     % Reduce the prediction horizon by one
-    scenario_v.options.Hp = scenario_v.options.Hp - 1;
+    scenario.options.Hp = scenario.options.Hp - 1;
     % Add reachable sets as dynamic obstacles
     reachable_sets_i = iter.reachable_sets(veh_i,2:end);
     reachable_sets_i_full = iter.reachable_sets(veh_i,:);
@@ -23,8 +22,8 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
     plot_options_RS = struct('Color',[0 0.4470 0.7410],'LineWidth',0.45,'LineStyle','-');
 
     % Reduce the information by one step
-    scenario_v.mpa.transition_matrix(:,:,1) = [];
-    scenario_v.mpa.transition_matrix_single(:,:,1) = [];
+    scenario.mpa.transition_matrix(:,:,1) = [];
+    scenario.mpa.transition_matrix_single(:,:,1) = [];
 
     iter_v = filter_iter(iter,filter_self);
 
@@ -75,7 +74,7 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
             speed0_next = scenario.mpa.trims(trim_next).speed;
             iter_v.x0 = [x0_next,y0_next,yaw0_next,speed0_next];
 
-            info_v = graph_search(scenario_v,iter_v);
+            info_v = graph_search(scenario,iter_v);
             if info_v.is_exhausted || info_v.is_semi_exhausted
                 are_valid(iTrim) = false;
             else

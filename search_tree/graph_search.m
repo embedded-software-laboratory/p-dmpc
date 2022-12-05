@@ -6,9 +6,9 @@ function info = graph_search(scenario, iter)
 % 
     Hp = scenario.options.Hp;
     % initialize variable to store control results
-    info = ControllResultsInfo(scenario.options.amount, Hp, [scenario.vehicles.ID]);
+    info = ControllResultsInfo(iter.amount, Hp, [iter.vehicles.ID]);
 
-    shapes_tmp = cell(scenario.options.amount,0);
+    shapes_tmp = cell(iter.amount,0);
     % Create tree with root node
     x = iter.x0(:,1);
     y = iter.x0(:,2);
@@ -24,7 +24,7 @@ function info = graph_search(scenario, iter)
     pq = PriorityQueue();
     pq.push(1, 0);
 
-    if scenario.options.is_allow_non_convex
+    if scenario.options.is_allow_non_convex && iter.amount == 1
         % currently two methods for intersecting check are available:
         % 1. separating axis theorem (SAT) works only for convex polygons
         % 2. InterX: works for both convex and non-convex polygons
@@ -69,7 +69,7 @@ function info = graph_search(scenario, iter)
                 y_pred = {repmat([x,y,yaw,trim],(scenario.options.tick_per_step+1)*Hp,1)};
                 info.y_predicted = y_pred;
     
-                vehiclePolygon = transformedRectangle(x,y,yaw, scenario.vehicles.Length,scenario.vehicles.Width);
+                vehiclePolygon = transformedRectangle(x,y,yaw, iter.vehicles.Length,iter.vehicles.Width);
                 shape_veh = {[vehiclePolygon,vehiclePolygon(:,1)]}; % close shape
     
                 info.shapes = repmat(shape_veh,1,Hp);

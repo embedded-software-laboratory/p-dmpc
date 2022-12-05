@@ -68,7 +68,6 @@
         end
     end
 
-    k = scenario.k;
     iter.adjacency = adjacency;
     iter.semi_adjacency = semi_adjacency;
     
