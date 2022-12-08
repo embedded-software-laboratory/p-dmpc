@@ -5,21 +5,17 @@ classdef Scenario
         vehicles = [];                   % array of Vehicle objects
         obstacles = {};                  % static obstacles = {[xs;ys],...}
         lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
-        name = 'UnnamedScenario';
         controller_name = 'RHGS';
         controller = @centralized_controller;
         sub_controller = @graph_search;
         mpa;
-        manual_vehicle_id = 0;
-        second_manual_vehicle_id = 0;
         manual_mpa_initialized = false;
         updated_manual_vehicle_path = false;
         second_manual_mpa_initialized = false;
         updated_second_manual_vehicle_path = false;
         g29_force_feedback                      % to send position and torque to Logitech G29 steering wheel
-        vehicle_ids = [];
         options;
-        speed_profile_mpas = [];
+        speed_profile_mpas = [];        
         
         model = [];
         r_goal = 0.1;                   % goal circle
@@ -50,7 +46,6 @@ classdef Scenario
         coupling_weights_random = [];   % random coupling weights
         coupling_info;                  % couling information of each coupling pair
         ros_subscribers = {};           % ROS 2 subscribers (used to read messages from other vehicles)
-        mixedTrafficCollisionAvoidanceMode = 0;     % mode for collision avoidance in CPM Lab Mode with manual vehicles
         priority_list = 1;             % priority list of vehicles; a smaller value for a higher priority
         time_enter_intersection = []; % time step when vehicle enters the intersection
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center

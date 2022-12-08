@@ -14,7 +14,14 @@ Intersect unittest:
   extends: .matlab_defaults
   stage: Test
   script:
-    - ls
-    - matlab -batch "startup(); results = runtests('tests/intersect_unittest.m'); assertSuccess(results);"
+    - matlab -batch "openProject('graph_based_planning.prj'); results = runtests('tests/intersect_unittest.m'); assertSuccess(results);"
   tags:
     - docker
+
+#Scenario Unittest:
+  #extends: .matlab_defaults
+  #stage: Test
+  #script:
+    #- matlab -batch "openProject('graph_based_planning.prj'); results = runtests('tests/scenario_unittest.m'); assertSuccess(results);"
+  #tags:
+    #- docker

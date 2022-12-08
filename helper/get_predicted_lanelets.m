@@ -22,16 +22,16 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
 %   v_ref: reference speed
 
     % use index based on pose, as vehicle in Expert-Mode has no defined trajectory
-    if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
-        || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+    if ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
+        || (scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id) && scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode))
         predicted_lanelets = match_pose_to_lane(scenario, x0, y0);
         reference = [];
         v_ref = 0;
         return
     end
 
-    if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-        || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
+    if ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id)) && scenario.manual_mpa_initialized) ...
+        || ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id)) && scenario.second_manual_mpa_initialized)
         mpa = scenario.vehicles(iVeh).vehicle_mpa;
     else
         mpa = scenario.mpa;
