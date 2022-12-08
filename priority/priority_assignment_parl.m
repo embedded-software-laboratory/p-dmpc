@@ -49,7 +49,7 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
         % Assign prrority according to computation level
         % Vehicles with higher priorities plan trajectory before vehicles with lower priorities
     else
-        warning([scenario.options.priority ' is not supported if parallel computation is used. STAC_priority will be used instead.'])
+        warning([char(scenario.options.priority) ' is not supported if parallel computation is used. STAC_priority will be used instead.'])
     end
     
     % get priority list

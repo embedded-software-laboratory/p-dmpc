@@ -188,8 +188,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0);
 %             iter.vRef(iVeh,:) = get_max_speed(scenario.mpa,iter.trim_indices(iVeh));
 
-        if ~((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
-            || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+        if ~((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
+            || (scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode))
             % reference speed and path points
             iter.vRef(iVeh,:) = v_ref;
             
@@ -203,8 +203,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         if ~isempty(scenario.lanelets)
 
             % Vehicle in Expert-Mode does only consider boundaries when assuming RSS
-            if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
-                || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+            if ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
+                || (scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode))
 
                 iter.predicted_lanelets{iVeh} = predicted_lanelets;
                 iter_scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
@@ -325,8 +325,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 % Calculate reachable sets of other vehicles based on their
                 % current states and trims. Reachability analysis will be
                 % widely used in the parallel computation.
-                if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-                    || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
+                if ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id)) && scenario.manual_mpa_initialized) ...
+                    || ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id)) && scenario.second_manual_mpa_initialized)
                     local_reachable_sets = scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
                 else
                     local_reachable_sets = scenario.mpa.local_reachable_sets_conv;
@@ -350,8 +350,8 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
         % Get vehicle's occupied area of emergency braking maneuver
         % with normal offset
 
-        if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-            || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
+        if ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id)) && scenario.manual_mpa_initialized) ...
+            || ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id)) && scenario.second_manual_mpa_initialized)
             mpa = scenario.vehicles(iVeh).vehicle_mpa;
         else
             mpa = scenario.mpa;

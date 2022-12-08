@@ -76,7 +76,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
 
         % plot the lanelets only once at the beginning
         if ~isempty(scenario.road_raw_data.lanelet)
-            plot_lanelets(scenario.road_raw_data.lanelet,scenario.name);
+            plot_lanelets(scenario.road_raw_data.lanelet,scenario.options.scenario_name);
         end
 
         colormap("hot"); % set colormap
@@ -257,7 +257,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     end
     
     
-    scenarioName = scenario.name;
+    scenarioName = scenario.options.scenario_name;
     optimizer = 'Graph Search';
     strategy = scenario.controller_name;
     

@@ -9,7 +9,7 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
 
     options.is_allow_non_convex = true;
 
-    scenario.name = 'Commonroad';
+    scenario.options.scenario_name = 'Commonroad';
 
     % get road data
     road_data = RoadData().get_road_data();
@@ -88,8 +88,6 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     scenario.options.plot_limits = [0,4.5;0,4];
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     
-    scenario.name = options.scenario_name;
-    
     if options.isPB 
        scenario.adjacency = zeros(nVeh,nVeh);
        scenario.assignPrios = true;
@@ -97,9 +95,9 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
 
        if options.isParl && (options.max_num_CLs < options.amount)
             % if parallel computation is used
-            scenario.controller_name = strcat('par. PB-', scenario.controller_name, ' ', scenario.options.priority);
+            scenario.controller_name = strcat('par. PB-', scenario.controller_name, ' ', char(scenario.options.priority));
        else
-           scenario.controller_name = strcat('seq. PB-', scenario.controller_name, ' ', scenario.options.priority);
+           scenario.controller_name = strcat('seq. PB-', scenario.controller_name, ' ', char(scenario.options.priority));
        end
     end
 

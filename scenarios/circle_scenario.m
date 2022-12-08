@@ -44,11 +44,9 @@ function scenario = circle_scenario(options)
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
-    scenario.name = sprintf('%i-circle', scenario.options.amount);
+    scenario.options.scenario_name = sprintf('%i-circle', scenario.options.amount);
 
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
-
-    scenario.name = options.scenario_name;
     
     if options.isPB
         % undirected coupling adjacency is complete

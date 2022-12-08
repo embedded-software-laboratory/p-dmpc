@@ -77,8 +77,8 @@ classdef TrafficInfo
                     % TODO: here was the reachable set coupling check, use adjacency which is need either way (to avoid double calculation)
                     if scenario.adjacency(veh_i,veh_j,scenario.k)
                         % the selected two vehicles are considered as coupled
-                        if ~scenario.options.consider_RSS &&((scenario.vehicle_ids(veh_i) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
-                            || (scenario.vehicle_ids(veh_i) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+                        if ~scenario.options.mixed_traffic_config.consider_rss &&((scenario.options.veh_ids(veh_i) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
+                            || (scenario.options.veh_ids(veh_i) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id) && scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode))
                             % Naive approach: not necessary to determine collision point and ROW, as manual vehicle has highest priority
                             obj.coupling_weights(veh_i,veh_j) = 1;
                             continue

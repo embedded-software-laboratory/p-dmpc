@@ -59,8 +59,10 @@ classdef FileNameConstructor
             else
                 controller_name = 'cen-rhgs';
             end
+            
+            priority = char(options.priority);            
 
-            results_folder_name = strrep(strcat(options.scenario_name, '_', controller_name),' ','_');
+            results_folder_name = strrep(strcat(char(options.scenario_name), '_', controller_name),' ','_');
 
             [file_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file
             idcs = strfind(file_path,filesep); % find all positions of '/'
@@ -87,13 +89,12 @@ classdef FileNameConstructor
         end
 
         function scenario_name = gen_scenario_name(options)
-            if isstring(options.priority)
-                options.priority = char(options.priority);
-            end
+            priority = char(options.priority);
+
 
             if isempty(options.customResultName)
                 % use default name
-                scenario_name = ['trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_dt',num2str(options.dt),'_nVeh',num2str(options.amount),'_T',num2str(options.T_end),'_',options.priority];
+                scenario_name = ['trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_dt',num2str(options.dt),'_nVeh',num2str(options.amount),'_T',num2str(options.T_end),'_',priority];
                 veh_ids_str = sprintf('-%d',options.veh_ids);
                 scenario_name = [scenario_name, '_ids', veh_ids_str];
                 if options.isParl
