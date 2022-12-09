@@ -1,0 +1,6 @@
+- Use Visual Studio Code, team's workspace settings in "/.vscode"
+- Use formatter
+- Use an `end` for each `function`
+- Classnames are `CamelCase`
+- Everything else is `snake_case`
+- rebase a branch that you alone work on to the target branch before a merge
