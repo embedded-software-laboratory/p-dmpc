@@ -1,0 +1,34 @@
+function scenarios = commonroad_random(options, nVeh, seed)
+% commonroad_random - generate a random scenario
+%   scenarios = commonroad_random(options, nVeh, seed)
+%  options: OptionsMain object (vehicle ids are ignored)
+%  nVeh: number of vehicles (can be array)
+%  seed: random seed (can be array)
+arguments
+    options (1,1) OptionsMain
+    nVeh (1,:) double
+    seed (1,:) double
+end
+disp('Creating scenarios...')
+scenarios(length(nVeh),length(seed)) = Scenario();
+for iVeh = 1:length(nVeh)
+    for iSeed = 1:length(seed)
+        random_stream = RandStream('mt19937ar','Seed',iSeed);
+        options.amount = nVeh(iVeh);
+        veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
+        options.veh_ids = veh_ids;
+        scenario = commonroad(options, options.veh_ids, 0, 0, options.is_sim_lab);
+        scenario.random_stream = random_stream;
+        scenario.name = options.scenario_name;
+        scenario.manual_vehicle_id = 0;
+        scenario.second_manual_vehicle_id = 0;
+        scenario.vehicle_ids = options.veh_ids;
+        scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
+        for idVeh = 1:options.amount
+            % initialize vehicle ids of all vehicles
+            scenario.vehicles(idVeh).ID = scenario.vehicle_ids(idVeh);
+        end
+        scenarios(iVeh,iSeed) = scenario;
+    end
+end
+end
