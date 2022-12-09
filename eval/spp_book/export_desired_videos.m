@@ -37,15 +37,15 @@ function [best, worst] = find_best_worst_result(res)
     inVeh = nVeh;
     found = false;
     standstill_free_time = zeros(nPri,1);
+    best = [];
     while ( inVeh >= 1 ) && ( found == false )
         for iSce = 1:nSce
             for iPri = 1:nPri
                 [~, standstill_free_time(iPri)] = compute_deadlock_free_runtime(res{inVeh,iPri,iSce});
             end
             if all(standstill_free_time == t_total)
-                iSce_best = iSce;
-                inVeh_best = inVeh;
                 found = true;
+                best = [res{inVeh,:,iSce}];
                 break;
             end
         end
@@ -56,6 +56,7 @@ function [best, worst] = find_best_worst_result(res)
     % find scenario for which deadlock occured with fewest vehicles
     inVeh = 1;
     found = false;
+    worst = [];
     while ( inVeh <= nVeh ) && ( found == false )
         for iSce = 1:nSce
             for iPri = 1:nPri
@@ -63,15 +64,12 @@ function [best, worst] = find_best_worst_result(res)
             end
             standstill_time = t_total - standstill_free_time;
             if all( standstill_time > 0 )
-                iSce_worst = iSce;
-                inVeh_worst = inVeh;
                 found = true;
+                worst = [res{inVeh,:,iSce}];
                 break;
             end
         end
         inVeh = inVeh + 1;
     end
 
-    best = [res{inVeh_best,:,iSce_best}];
-    worst = [res{inVeh_worst,:,iSce_worst}];
 end

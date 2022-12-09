@@ -10,6 +10,10 @@ function plot_levels_data(data)
     max_level = max(cellfun(@max,nLevels_by_pri));
     minVeh = min(nVeh_list);
     maxVeh = max(nVeh_list);
+    if (maxVeh<=1)
+        warning("A levels plot with only one vehicle is pointless.");
+        return;
+    end
     % fill rows with zeros
     nLevels_by_pri_mat = [];
     max_entries = max(cellfun(@length,nLevels_by_pri));
@@ -146,7 +150,8 @@ function plot_levels_data(data)
         '$p_{\mathrm{rand}}$ med', ...
         '$p_{\mathrm{const}}$ med', ...
         'Location','best', ...
-        'NumColumns', 2 ...
+        'NumColumns', 2, ...
+        'Interpreter', 'latex' ...
     );
     set(gca,'TickLength',[0.0025 0.035])
     ylim([0,max_level+0.5])
