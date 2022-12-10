@@ -190,22 +190,22 @@ while (~got_stop)
         end
     end
 
-    info_old = info; % save variable in case of fallback
-    %% save result
-    result.controller_runtime(k) = toc(controller_timer);
-    
-    % save controller outputs in result struct
-    result.is_deadlock(k) = 0;
-    result.iteration_structs{k} = iter;
-    result.trajectory_predictions(:,k) = info.y_predicted;
-    result.controller_outputs{k} = info.u;
-    result.subcontroller_runtime_each_veh(:,k) = info.runtime_subcontroller_each_veh;
-    result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
-    result.n_expanded(k) = info.n_expanded;
-    result.priority_list(:,k) = iter.priority_list;
-    result.coupling_adjacency(:,:,k) = iter.adjacency;
-    result.computation_levels(k) = info.computation_levels;
-    result.step_time(k) = toc(result.step_timer);
+        info_old = info; % save variable in case of fallback
+        %% save result of current time step
+        result.controller_runtime(k) = toc(controller_timer);
+        
+        % save controller outputs in result struct
+        result.scenario = scenario;
+        result.is_deadlock(k) = 0;
+        result.iteration_structs{k} = iter;
+        result.trajectory_predictions(:,k) = info.y_predicted;
+        result.controller_outputs{k} = info.u;
+        result.subcontroller_runtime_each_veh(:,k) = info.runtime_subcontroller_each_veh;
+        result.vehicle_path_fullres(:,k) = info.vehicle_fullres_path(:);
+        result.n_expanded(k) = info.n_expanded;
+        result.priority(:,k) = scenario.priority_list;
+        result.computation_levels(k) = info.computation_levels;
+        result.step_time(k) = toc(result.step_timer);
 
     result.runtime_subcontroller_max(k) = info.runtime_subcontroller_max;
     result.runtime_graph_search_max(k) = info.runtime_graph_search_max;
