@@ -90,14 +90,6 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     
     if options.isPB 
        scenario.assignPrios = true;
-       scenario.controller = @pb_controller_parl;
-
-       if options.isParl && (options.max_num_CLs < options.amount)
-            % if parallel computation is used
-            scenario.controller_name = strcat('par. PB-', scenario.controller_name, ' ', char(scenario.options.priority));
-       else
-           scenario.controller_name = strcat('seq. PB-', scenario.controller_name, ' ', char(scenario.options.priority));
-       end
     end
 
     

@@ -1,4 +1,4 @@
-function scenario = communication_init(scenario, iter, exp)
+function [scenario, ros_subscribers] = communication_init(scenario, exp)
 % COMMUNICATION_INIT This function initializes the communication network.
 % ROS 2 nodes are created for each vehicle. Each vehicle has its own topic
 % and sends its data only to its own topic.
@@ -80,13 +80,11 @@ function scenario = communication_init(scenario, iter, exp)
     % vehicles to let all of them subscribe others because it is
     % time-consuming to create many subscribers. 
     % The subscribers will be used by all vehicles.
-    if isempty(scenario.ros_subscribers)
-        disp('Creating ROS 2 subscribers...')
-        vehs_to_be_subscribed = [scenario.vehicles.ID];
-        scenario.ros_subscribers = create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
-        duration = toc(start);
-        disp(['Finished in ' num2str(duration) ' seconds.'])
-    end
+    disp('Creating ROS 2 subscribers...')
+    vehs_to_be_subscribed = [scenario.vehicles.ID];
+    ros_subscribers = create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
+    duration = toc(start);
+    disp(['Finished in ' num2str(duration) ' seconds.'])
 
     if ~scenario.options.is_mixed_traffic
         % Communicate predicted trims, pridicted lanelets and areas to other vehicles

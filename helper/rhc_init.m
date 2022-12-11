@@ -1,4 +1,4 @@
-function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initialized_reference_path, k)
+function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, initialized_reference_path, ros_subscribers)
 % RHC_INIT  Preprocessing step for RHC controller
 
     iter.k = k;
@@ -156,7 +156,7 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
         if scenario.options.isPB && scenario.options.isParl
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
-            latest_msg_i = read_message(scenario.vehicles(iVeh).communicate, scenario.ros_subscribers{iVeh}, iter.k-1);
+            latest_msg_i = read_message(scenario.vehicles(iVeh).communicate, ros_subscribers{iVeh}, scenario.k-1);
 
             oldness_msg = iter.k - latest_msg_i.time_step;
             iter.trim_indices(iVeh) = latest_msg_i.predicted_trims(oldness_msg+1);
