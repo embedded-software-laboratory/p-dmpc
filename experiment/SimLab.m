@@ -12,6 +12,7 @@ classdef SimLab < InterfaceExperiment
         visu % struct to store logical variables indicating whether to show vehicle ID/priority/coupling/coupling weights
         doOnlinePlot
         paused
+        plotter
     end
     
     methods
@@ -27,6 +28,10 @@ classdef SimLab < InterfaceExperiment
             obj.visu = scenario.options.optionsPlotOnline;
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
+        
+            if obj.doOnlinePlot
+                obj.plotter = plotter();
+            end
         end
         
         function keyPressCallback(obj, ~, eventdata)
@@ -129,7 +134,7 @@ classdef SimLab < InterfaceExperiment
                 % visualize time step
                 % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
+                obj.plotter.plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
             else
                 % pause so that `keyPressCallback()` can be executed in time
                 pause(0.01)

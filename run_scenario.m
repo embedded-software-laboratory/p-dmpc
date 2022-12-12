@@ -1,24 +1,18 @@
 function [result,scenario] = run_scenario(scenario)
-if scenario.options.is_sim_lab
-    exp = SimLab(scenario);
-else
-    exp = CPMLab(scenario, vehicle_ids);
-end
-
-%% Setup
-% Initialize
-k = 0;
-got_stop = false;
-initialized_reference_path = false;
-speedProfileMPAsInitialized = false;
-cooldown_after_lane_change = 0;
-cooldown_second_manual_vehicle_after_lane_change = 0;
-controller_init = false;
+    %% Setup
+    % Initialize
+    got_stop = false;
+    k = 0;
+    initialized_reference_path = false;
+    speedProfileMPAsInitialized = false;
+    cooldown_after_lane_change = 0;
+    cooldown_second_manual_vehicle_after_lane_change = 0;
+    controller_init = false;
 
 % init result struct
 result = get_result_struct(scenario);
 
-exp.setup();
+    
 
 % turn off warning if intersections are detected and fixed, collinear points or
 % overlapping points are removed when using MATLAB function `polyshape`
@@ -178,8 +172,11 @@ while (~got_stop)
         
         % check whether at least one vehicle has fallen back Hp times successively
         
-        if ~isempty(info.vehs_fallback)
-            i_triggering_vehicles = find(info.is_exhausted);
+        % The controller computes plans
+        controller_timer = tic;
+
+        %% controller %%
+        [info, scenario] = scenario.controller(scenario, iter);
 
             str_veh = sprintf('%d ', i_triggering_vehicles);
             str_fb_type = sprintf('triggering %s', scenario.options.fallback_type);
@@ -248,28 +245,28 @@ while (~got_stop)
         fprintf("    For timesteps:%s\n",t_str)
         result.is_deadlock(k) = 1;
     end
-    
-    % Apply control action
-    % -------------------------------------------------------------------------
-    exp.apply(info, result, k, scenario); 
-    
-    % Check for stop signal
-    % -------------------------------------------------------------------------
-    got_stop = exp.is_stop() || got_stop;
-    
-end
-result.total_fallback_times = total_fallback_times;
-disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
+
+    %% save results
+    result.total_fallback_times = total_fallback_times;
+    disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
 
 result.t_total = k*scenario.options.dt;
 result.nSteps = k;
 
 disp(['Total runtime: ' num2str(round(result.t_total,2)) ' seconds.'])
 
-%% save results
-if scenario.options.isSaveResult
-    
-    result.mpa = scenario.mpa;
+    if scenario.options.isSaveResult
+        % Delete varibales used for ROS 2 since some of them cannot be saved
+        % Create comma-separated list
+        empty_cells = cell(1,scenario.options.amount);
+        
+        result.scenario.ros_subscribers = [];
+        [result.scenario.vehicles.communicate] = empty_cells{:};
+        % for i_iter = 1:length(result.iteration_structs)
+        %     result.iteration_structs{i_iter}.scenario = [];
+        % end
+        
+        result.mpa = scenario.mpa;
 
     % Delete unimportant data
     if scenario.options.isSaveResultReduced
