@@ -450,7 +450,6 @@ classdef HLC < handle
                 % Create comma-separated list
                 empty_cells = cell(1,obj.scenario.options.amount);
 
-                obj.result.scenario.ros_subscribers = [];
                 [obj.result.scenario.vehicles.communicate] = empty_cells{:};
                 % for i_iter = 1:length(result.iteration_structs)
                 %     result.iteration_structs{i_iter}.scenario = [];
@@ -476,7 +475,8 @@ classdef HLC < handle
                 %     warning('File with the same name exists, timestamp will be added to the file name.')
                 %     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
                 % end
-
+                
+                result = obj.result;
                 save(obj.result.output_path,'result');
                 disp(['Simulation results were saved under ' obj.result.output_path])
             else
@@ -485,9 +485,7 @@ classdef HLC < handle
             end
             % hacky way to destroy all ros nodes to avoid duplicates
             empty_cells = cell(1,obj.scenario.options.amount);
-            obj.result.scenario.ros_subscribers = {};
             [obj.result.scenario.vehicles.communicate] = empty_cells{:};
-            obj.scenario.ros_subscribers = {};
             [obj.scenario.vehicles.communicate] = empty_cells{:};
             obj.hlc_adapter.end_run()
         end
