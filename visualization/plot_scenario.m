@@ -36,7 +36,7 @@ end
 
 % lanelets
 if ~isempty(scenario.road_raw_data.lanelet)
-    plot_lanelets(scenario.road_raw_data.lanelet,scenario.name);
+    plot_lanelets(scenario.road_raw_data.lanelet,scenario.options.scenario_name);
 end
 
 xlabel('$x$ [m]')

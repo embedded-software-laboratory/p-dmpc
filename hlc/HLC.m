@@ -66,6 +66,7 @@ classdef HLC < handle
             obj.cooldown_after_lane_change = 0;
             obj.cooldown_second_manual_vehicle_after_lane_change = 0;
             obj.controller_init = false;
+            obj.visualization = false;
 
             if obj.visualization
                 viz_data_queue = obj.plotter.getDataQueue();
@@ -77,7 +78,7 @@ classdef HLC < handle
         % Optional argument wether to do a dry run of the first timestep beforehand
         % dry_run can massively decrease the time needed for the first
         % timestep during the experiment.
-        function hlc = getHlc( obj, dry_run )
+        function getHlc( obj, dry_run )
 
             if isempty(obj.scenario)
                 throw(MException('HlcFactory:InvalidState', 'HlcScenario not set'));
@@ -109,7 +110,7 @@ classdef HLC < handle
             obj.is_distributed = false;
         end
 
-        % A vehicle ID implies distributed, but we do not use this
+        % 1 vehicle ID implies distributed
         function setVehicleIds( obj, vehicle_ids )
             obj.vehicle_ids = vehicle_ids;
         end
@@ -436,7 +437,7 @@ classdef HLC < handle
 
             end
 
-            %% save results
+            %% save results at end of experiment
             obj.result.total_fallback_times = total_fallback_times;
             disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
 
