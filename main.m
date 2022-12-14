@@ -37,7 +37,4 @@ function [result,scenario,options] = main(varargin)
     hlc.setScenario(scenario);
     hlc.getHlc();
     hlc.run();
-
-    % run scenario
-    [result,scenario] = run_scenario(scenario);
 end

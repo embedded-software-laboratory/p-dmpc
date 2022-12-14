@@ -97,9 +97,10 @@ classdef HLC < handle
 
         end
 
-        function result = run(obj)
+        function [result,scenario] = run(obj)
             obj.hlcMainLoop();
             result = obj.result;
+            scenario = obj.scenario;
         end
 
         function withDistributedPlanning( obj )
