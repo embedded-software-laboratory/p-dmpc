@@ -85,10 +85,12 @@ classdef Communication
             read_start = tic;   read_time = toc(read_start);
             
             while read_time < timeout
-                if sub.LatestMessage.time_step == time_step
-%                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
-                    is_timeout = false;
-                    break
+                if ~isempty(sub.LatestMessage)
+                    if sub.LatestMessage.time_step == time_step
+    %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
+                        is_timeout = false;
+                        break
+                    end
                 end
                 read_time = toc(read_start);
                 pause(1e-4)

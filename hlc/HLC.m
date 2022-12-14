@@ -154,11 +154,11 @@ classdef HLC < handle
                 end
             else
                 if obj.scenario.options.isPB
-                    obj.scenario.controller_name = strcat(obj.controller_name, '-PB');
-                    obj.scenario.controller = @pb_controller;
+                    obj.controller_name = strcat(obj.controller_name, '-PB');
+                    obj.controller = @pb_controller_parl;
                 else
-                    obj.scenario.controller_name = strcat(obj.controller_name, '-centralized');
-                    obj.scenario.controller = @centralized_controller;
+                    obj.controller_name = strcat(obj.controller_name, '-centralized');
+                    obj.controller = @centralized_controller;
                 end
             end
 
