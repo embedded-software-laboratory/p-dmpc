@@ -30,7 +30,7 @@ classdef SimLab < InterfaceExperiment
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
         
             if obj.doOnlinePlot
-                obj.plotter = plotter();
+                obj.plotter = PlotterOnline();
             end
         end
         
