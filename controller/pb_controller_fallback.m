@@ -24,7 +24,7 @@ function info = pb_controller_fallback(iter, info, info_old, scenario)
         % prepare output data
         info = store_control_info(info,info_v,scenario);
 
-        if scenario.options.isParl
+        if scenario.options.isPB
             % send message
             predicted_trims = info.predicted_trims(vehicle_idx,:);
             trim_current = predicted_trims(1);

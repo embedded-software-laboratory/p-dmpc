@@ -24,7 +24,7 @@ function [result,scenario,options] = main(varargin)
         random_seed = RandStream('mt19937ar');
         scenario = create_scenario(options, random_seed);
         % write scenario to disk if distributed
-        if scenario.options.isParl == true
+        if scenario.options.isPB == true
             save('scenario.mat','scenario');
             if scenario.options.is_sim_lab == false
                 disp('Scenario was written to disk. Select run_scenario_distributed in LCC next.')

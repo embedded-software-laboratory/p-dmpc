@@ -46,10 +46,6 @@ ui.AmountofVehiclesListBox.Items = vehicleAmount(:,1);
 visualization = list_visualization();
 ui.TypeofVisualizationListBox_2.Items = visualization(:,2);
 
-% isParl
-isParl = list_is_parl();
-ui.ParallelComputationListBox.Items = isParl(:,2);
-
 % change visibility of vehicle ID selection depending on environment selection
 ui.FirstManualVehicleMVIDListBox.ValueChangedFcn = @(~, ~) setControlModesVisibility(ui);
 ui.SecondMVIDListBox.ValueChangedFcn = @(~, ~) setSecondControlModesVisibility(ui);
@@ -57,12 +53,6 @@ ui.SecondMVIDListBox.ValueChangedFcn = @(~, ~) setSecondControlModesVisibility(u
 ui.EnvironmentButtonGroup.SelectionChangedFcn = @(~, ~) setCpmLabElementsVisibility(ui);
 ui.TrafficModeButtonGroup.SelectionChangedFcn = @(~, ~) setMixedTrafficElementsVisibility(ui);
 ui.ControlModeFirstMVListBox.ValueChangedFcn = @(~, ~) setForceFeedbackVisibility(ui);
-
-%ui.ScenarioListBox.ValueChangedFcn = @(~, ~) checkScenarioVehiclesMatch(ui, scenarios);
-ui.ScenarioListBox.ValueChangedFcn = @(~, ~) setIsParlVisibility(ui);
-
-% If parallel computation is not used, the number of computation levels cannot be constraint.
-ui.ParallelComputationListBox.ValueChangedFcn = @(~, ~) callbackParlSelected(ui);
 
 %% load previous choices, if possible
 try %#ok<TRYNC>
@@ -82,7 +72,6 @@ try %#ok<TRYNC>
     ui.PriorityAssignmentMethodListBox.Value = previousSelection.priorityAssignmentMethodSelection;
     ui.AmountofVehiclesListBox.Value = previousSelection.vehicleAmountSelection;
     ui.TypeofVisualizationListBox_2.Value = previousSelection.visualizationSelection;
-    ui.ParallelComputationListBox.Value = previousSelection.isParlSelection;
 
     % sample time [s]
     ui.SampleTimesSpinner.Value = previousSelection.dtSelection;
@@ -147,7 +136,6 @@ controlStrategySelection = ui.ControlStrategyListBox.Value;
 priorityAssignmentMethodSelection = ui.PriorityAssignmentMethodListBox.Value;
 vehicleAmountSelection = ui.AmountofVehiclesListBox.Value;
 visualizationSelection = ui.TypeofVisualizationListBox_2.Value;
-isParlSelection = ui.ParallelComputationListBox.Value;
 
 % sample time [s]
 dtSelection = ui.SampleTimesSpinner.Value;
@@ -171,13 +159,13 @@ customResultName = ui.CustomfilenameEditField.Value;
 isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
 save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'collisionAvoidanceSelection',...
     'environmentSelection', 'trafficModeSelection', 'forceFeedbackSelection', 'considerRSSSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
-    'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection', ...
+    'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection', ...
     'isSaveResult','customResultName','isAllowInheritROW');
 
 
 
 % save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection',...
-%     'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', 'isParlSelection',...
+%     'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
 %     'dtSelection','HpSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection');
 
 %% Convert to legacy/outputs
@@ -237,12 +225,6 @@ labOptions.amount = str2num(vehicleAmountSelection);
 labOptions.visu = visualization{...
     strcmp({visualization{:, 2}}, visualizationSelection),...
     3};
-
-isParlHelper = isParl{...
-strcmp({isParl{:, 2}}, isParlSelection),...
-    2};
-
-labOptions.isParl = strcmp(isParlHelper, 'yes');
 
 % visualization + node exploration only allowed for centralized controller
 if labOptions.isPB == 2 && strcmp(visualizationSelection, 'visualization + node exploration')
@@ -376,8 +358,7 @@ function setCpmLabElementsVisibility(ui)
         ui.ControlStrategyListBox.Enable = 'Off';
         ui.PriorityAssignmentMethodListBox.Enable = 'Off';
         ui.AmountofVehiclesListBox.Enable = 'Off';
-        ui.TypeofVisualizationListBox_2.Enable = 'Off';
-        ui.ParallelComputationListBox.Enable = 'Off';      
+        ui.TypeofVisualizationListBox_2.Enable = 'Off';      
     else
         ui.TrafficModeButtonGroup.Visible = 'Off';
         ui.FirstManualVehicleMVIDListBox.Enable = 'Off';
@@ -393,7 +374,6 @@ function setCpmLabElementsVisibility(ui)
         ui.PriorityAssignmentMethodListBox.Enable = 'On';
         ui.AmountofVehiclesListBox.Enable = 'On';
         ui.TypeofVisualizationListBox_2.Enable = 'On';
-        ui.ParallelComputationListBox.Enable = 'On';
     end
 end
 
@@ -413,7 +393,6 @@ function setMixedTrafficElementsVisibility(ui)
         ui.PriorityAssignmentMethodListBox.Enable = 'Off';
         ui.AmountofVehiclesListBox.Enable = 'Off';
         ui.TypeofVisualizationListBox_2.Enable = 'Off';
-        ui.ParallelComputationListBox.Enable = 'Off'; 
     else
         ui.FirstManualVehicleMVIDListBox.Enable = 'Off';
         ui.ControlModeFirstMVListBox.Enable = 'Off';
@@ -428,7 +407,6 @@ function setMixedTrafficElementsVisibility(ui)
         ui.PriorityAssignmentMethodListBox.Enable = 'On';
         ui.AmountofVehiclesListBox.Enable = 'Off';
         ui.TypeofVisualizationListBox_2.Enable = 'Off';
-        ui.ParallelComputationListBox.Enable = 'On';
     end
 end
 
@@ -464,36 +442,6 @@ function setForceFeedbackVisibility(ui)
     else
         ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
         ui.ConsiderRSSRulesButtonGroup.Visible = 'On';
-    end
-end
-
-function setIsParlVisibility(ui)
-    if get_circle_selection(ui)
-        ui.ParallelComputationListBox.Enable = 'Off';
-        ui.Label_4.Text = sprintf("For circle scenario, only\n coloring priority, constant\n priority and random\n priority are supported");
-        ui.Label_4.Visible = 'On';
-    else
-        ui.ParallelComputationListBox.Enable = 'On';
-        ui.Label_4.Visible = 'Off';
-    end
-end
-
-% callback function if parallel computation is selected/unselected
-function callbackParlSelected(ui)
-    if strcmp(ui.ParallelComputationListBox.Value,'yes')
-        ui.MaxComputationLevelsSpinner.Enable = 'on';
-        ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'on';
-        ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'on';
-%         ui.PriorityAssignmentMethodListBox.Value = ui.PriorityAssignmentMethodListBox.Items{2};
-
-        ui.Label_4.Visible = 'Off';
-    else
-        ui.MaxComputationLevelsSpinner.Enable = 'off';
-        ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'off';
-        ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'off';
-
-        ui.Label_4.Text = sprintf("If parallel computation is not used, the maximum allowed number of computation levels is irrelevant.");
-        ui.Label_4.Visible = 'On';
     end
 end
 
@@ -654,12 +602,3 @@ function [ list ] = list_vehicle_amount
     '40', pi+2*pi/40*(1:40); ...
     };
 end
-
-function [ list ] = list_is_parl
-    list = {...
-    '1', 'yes'; ...
-    '2', 'no'; ...
-    };
-end
-
-

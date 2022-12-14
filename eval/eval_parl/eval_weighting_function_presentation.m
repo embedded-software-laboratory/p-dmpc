@@ -14,7 +14,6 @@ options.dt = 0.2;
 options.max_num_CLs = 2;
 options.priority = 'STAC_priority';
 options.isPB = true;
-options.isParl = true;
 options.isAllowInheritROW = false;
 options.isSaveResult = false
 options.isSaveResultReduced = true;

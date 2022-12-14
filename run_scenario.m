@@ -204,26 +204,26 @@ while (~got_stop)
         result.computation_levels(k) = info.computation_levels;
         result.step_time(k) = toc(result.step_timer);
 
-    result.runtime_subcontroller_max(k) = info.runtime_subcontroller_max;
-    result.runtime_graph_search_max(k) = info.runtime_graph_search_max;
-    result.directed_coupling{k} = iter.directed_coupling;
-    if scenario.options.isParl && strcmp(scenario.options.scenario_name,'Commonroad')
-        result.determine_couplings_time(k) = iter.timer.determine_couplings;
-        result.group_vehs_time(k) = iter.timer.group_vehs;
-        result.assign_priority_time(k) = iter.timer.assign_priority;
-        result.num_couplings(k) = nnz(iter.directed_coupling);
-        result.num_couplings_ignored(k) = nnz(iter.directed_coupling) - nnz(iter.directed_coupling_reduced);
-        result.num_couplings_between_grps(k) = iter.num_couplings_between_grps;
-        result.num_couplings_between_grps_ignored(k) = iter.num_couplings_between_grps_ignored;
-        result.belonging_vector(:,k) = iter.belonging_vector;
-        result.coupling_weights_reduced{k} = iter.coupling_weights_reduced;
-        result.coupling_info{k} = iter.coupling_info;
-        result.coupling_weights_optimal{k} = iter.coupling_weights_optimal;
-        result.parl_groups_info{k} = iter.parl_groups_info;
-        result.lanelet_crossing_areas{k} = iter.lanelet_crossing_areas;
-        iter.lanelet_crossing_areas = {};
-    end
-    result.vehs_fallback{k} = info.vehs_fallback;
+        result.runtime_subcontroller_max(k) = info.runtime_subcontroller_max;
+        result.runtime_graph_search_max(k) = info.runtime_graph_search_max;
+        result.directed_coupling{k} = scenario.directed_coupling;
+        if scenario.options.isPB && strcmp(scenario.options.scenario_name,'Commonroad')
+            result.determine_couplings_time(k) = scenario.timer.determine_couplings;
+            result.group_vehs_time(k) = scenario.timer.group_vehs;
+            result.assign_priority_time(k) = scenario.timer.assign_priority;
+            result.num_couplings(k) = nnz(scenario.directed_coupling);
+            result.num_couplings_ignored(k) = nnz(scenario.directed_coupling) - nnz(scenario.directed_coupling_reduced);
+            result.num_couplings_between_grps(k) = scenario.num_couplings_between_grps;
+            result.num_couplings_between_grps_ignored(k) = scenario.num_couplings_between_grps_ignored;
+            result.belonging_vector(:,k) = scenario.belonging_vector;
+            result.coupling_weights_reduced{k} = scenario.coupling_weights_reduced;
+            result.coupling_info{k} = scenario.coupling_info;
+            result.coupling_weights_optimal{k} = scenario.coupling_weights_optimal;
+            result.parl_groups_info{k} = scenario.parl_groups_info;
+            result.lanelet_crossing_areas{k} = scenario.lanelet_crossing_areas;
+            scenario.lanelet_crossing_areas = {};
+        end
+        result.vehs_fallback{k} = info.vehs_fallback;
 
     % check if deadlock occurs
     % if a vehicle stops for more than a defined time, assume deadlock

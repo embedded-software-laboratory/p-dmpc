@@ -60,7 +60,6 @@ end
     options.T_end = 180;
     options.Hp = 8;
     options.isPB = true;
-    options.isParl = true;
     options.is_sim_lab = true;
     options.visu = [visu_options.do_plot_online, false];
     options.strategy_consider_veh_without_ROW = '2'; % '2': consider currently occupied area as static obstacle

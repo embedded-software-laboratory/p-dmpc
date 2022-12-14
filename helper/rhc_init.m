@@ -18,7 +18,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
                         updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1), false);
                     else
-                        if scenario.options.isParl
+                        if scenario.options.isPB
                             % Communicate predicted trims, predicted lanelets and areas to other vehicles
                             predicted_trims = repmat(trims_measured(iVeh), 1, scenario.options.Hp+1); % current trim and predicted trims in the prediction horizon
 
@@ -36,7 +36,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
                         updated_ref_path = generate_manual_path(scenario, scenario.vehicle_ids(iVeh), 10, index(1), false);
                     else
-                        if scenario.options.isParl
+                        if scenario.options.isPB
                             % Communicate predicted trims, predicted lanelets and areas to other vehicles
                             predicted_trims = repmat(trims_measured(iVeh), 1, scenario.options.Hp+1); % current trim and predicted trims in the prediction horizon
 
@@ -75,7 +75,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 scenario.vehicles(iVeh).yaw_start = yaw(1);
                 scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
 
-                if scenario.options.isParl
+                if scenario.options.isPB
                     % Communicate predicted trims, predicted lanelets and areas to other vehicles
                     predicted_trims = repmat(trims_measured(iVeh), 1, scenario.options.Hp+1); % current trim and predicted trims in the prediction horizon
 
@@ -153,7 +153,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
     iter.x0 = x_measured;
     
     for iVeh=1:scenario.options.amount
-        if scenario.options.isPB && scenario.options.isParl
+        if scenario.options.isPB
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
             latest_msg_i = read_message(scenario.vehicles(iVeh).communicate, ros_subscribers{iVeh}, scenario.k-1);
@@ -219,7 +219,7 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                 end
             else
                 % Get the predicted lanelets of other vehicles
-                if scenario.options.isPB && scenario.options.isParl && ~iter.auto_updated_path(iVeh)
+                if scenario.options.isPB && ~scenario.vehicles(iVeh).autoUpdatedPath
                     % from received messages if parallel computation is used 
                     predicted_lanelets= latest_msg_i.predicted_lanelets(:)'; % make row vector
                 end
@@ -304,6 +304,19 @@ function [iter, iter_scenario] = rhc_init(scenario, x_measured, trims_measured, 
                         exp.visualize(visualization_command);
                     end
                 end
+            end
+    
+            if scenario.options.amount > 1
+                % Calculate reachable sets of other vehicles based on their
+                % current states and trims. Reachability analysis will be
+                % widely used in the parallel computation.
+                if ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id)) && scenario.manual_mpa_initialized) ...
+                    || ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id)) && scenario.second_manual_mpa_initialized)
+                    local_reachable_sets = scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
+                else
+                    local_reachable_sets = scenario.mpa.local_reachable_sets_conv;
+                end
+                iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, scenario.options);
             end
         end
 

@@ -233,7 +233,7 @@ function [result,scenario] = simulate_distribution_locally(scenario)
         result.runtime_subcontroller_max(k) = info.runtime_subcontroller_max;
         result.runtime_graph_search_max(k) = info.runtime_graph_search_max;
         result.directed_coupling{k} = scenario.directed_coupling;
-        if scenario.options.isParl && strcmp(scenario.options.scenario_name,'Commonroad')
+        if scenario.options.isPB && strcmp(scenario.options.scenario_name,'Commonroad')
             result.determine_couplings_time(k) = scenario.timer.determine_couplings;
             result.group_vehs_time(k) = scenario.timer.group_vehs;
             result.assign_priority_time(k) = scenario.timer.assign_priority;

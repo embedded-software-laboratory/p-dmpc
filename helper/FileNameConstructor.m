@@ -25,10 +25,6 @@ classdef FileNameConstructor
 
             mpa_instance_name = ['MPA_','trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_T',num2str(options.dt)];
 
-            if options.isParl
-                mpa_instance_name = [mpa_instance_name,'_parl'];                
-            end
-
             if options.is_allow_non_convex
                 mpa_instance_name = [mpa_instance_name,'_non-convex'];
             end
@@ -51,11 +47,7 @@ classdef FileNameConstructor
         function results_folder_path = gen_results_folder_path(options)
             
             if options.isPB
-                if options.isParl && (options.max_num_CLs < options.amount)
-                    controller_name = 'par-rhgs';
-                else
-                    controller_name = 'seq-rhgs';
-                end
+                controller_name = 'par-rhgs';
             else
                 controller_name = 'cen-rhgs';
             end
@@ -97,7 +89,7 @@ classdef FileNameConstructor
                 scenario_name = ['trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_dt',num2str(options.dt),'_nVeh',num2str(options.amount),'_T',num2str(options.T_end),'_',priority];
                 veh_ids_str = sprintf('-%d',options.veh_ids);
                 scenario_name = [scenario_name, '_ids', veh_ids_str];
-                if options.isParl
+                if options.isPB
                     scenario_name = [scenario_name,'_maxCLs',num2str(options.max_num_CLs),...
                         '_ConsiderVehWithoutROW',options.strategy_consider_veh_without_ROW,'_EnterLaneletCrossingArea',options.strategy_enter_lanelet_crossing_area];                 
                 end

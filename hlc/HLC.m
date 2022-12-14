@@ -140,14 +140,8 @@ classdef HLC < handle
 
             if obj.scenario.options.scenario_name == Scenario_Type.Commonroad
                 if obj.scenario.options.isPB
-                    if obj.scenario.options.isParl
-                        % if parallel computation is used
-                        obj.controller_name = strcat('par. PB-', obj.controller_name, ' ', char(obj.scenario.options.priority));
-                        obj.controller = @pb_controller_parl;
-                    else
-                        obj.controller_name = strcat('seq. PB-', obj.controller_name, ' ', char(obj.scenario.options.priority));
-                        obj.controller = @pb_controller_seq;
-                    end
+                    obj.controller_name = strcat('par. PB-', obj.controller_name, ' ', char(obj.scenario.options.priority));
+                    obj.controller = @pb_controller_parl;
                 else
                     obj.controller_name = strcat('centralized-', obj.controller_name, ' ', char(obj.scenario.options.priority));
                     obj.controller = @centralized_controller;
@@ -388,7 +382,7 @@ classdef HLC < handle
                 obj.result.runtime_subcontroller_max(obj.k) = obj.info.runtime_subcontroller_max;
                 obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
                 obj.result.directed_coupling{obj.k} = obj.scenario.directed_coupling;
-                if obj.scenario.options.isParl && strcmp(obj.scenario.options.scenario_name,'Commonroad')
+                if obj.scenario.options.isPB && strcmp(obj.scenario.options.scenario_name,'Commonroad')
                     obj.result.determine_couplings_time(obj.k) = obj.scenario.timer.determine_couplings;
                     obj.result.group_vehs_time(obj.k) = obj.scenario.timer.group_vehs;
                     obj.result.assign_priority_time(obj.k) = obj.scenario.timer.assign_priority;

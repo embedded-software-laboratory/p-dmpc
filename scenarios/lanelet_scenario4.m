@@ -1,4 +1,4 @@
-function scenario = lanelet_scenario4(isPB,isParl,isROS)
+function scenario = lanelet_scenario4(isPB,isROS)
 % LANELET_SCENARIO4   Constructor for scenario with four vehicles at an intersection driving straight
     c = 0.2;
 
@@ -70,22 +70,10 @@ function scenario = lanelet_scenario4(isPB,isParl,isROS)
 
    
     nVeh_mpa = scenario.options.amount;
-    scenario.options.isParl = logical(isParl); % is use parallel computation
     
     if isPB
        scenario.adjacency = coupling_adjacency_lanelets(scenario.vehicle_to_lanelet, collision);
        scenario.assignPrios = true;
-       scenario.controller_name = strcat(scenario.controller_name, '-PB');
-
-       if scenario.options.isParl % use parallel trajectory planning
-           scenario.controller = @(s,i) pb_controller_parl(s,i);
-           if isROS
-               scenario.controller = @(s,i) pb_controller_parl_ROS(s,i);
-           end
-       else % use sequential trajectory planning
-           scenario.controller = @(s,i) pb_controller(s,i);
-       end
-
        nVeh_mpa = 1;
     end
 

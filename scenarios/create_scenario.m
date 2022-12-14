@@ -5,6 +5,7 @@ function scenario = create_scenario(options, random_seed)
 % Use options to setup scenario
 manualVehicle_id = 0;
 manualVehicle_id2 = 0;
+options.max_num_CLs = min(options.max_num_CLs, options.amount);
 if options.is_sim_lab
     disp('Running in MATLAB simulation...')
     if isempty(options.veh_ids)
@@ -41,7 +42,6 @@ else
 
     if options.is_mixed_traffic
 
-        options.isParl = false;
         manualVehicle_id = options.manualVehicle_id;
 
         if ~strcmp(manualVehicle_id, 'No MV')
@@ -57,13 +57,10 @@ else
         end
 
         if options.collisionAvoidanceMode == 1
-            options.isParl = false;
             options.priority = 'right_of_way_priority';
         elseif options.collisionAvoidanceMode == 2
-            options.isParl = true;
             options.priority = 'right_of_way_priority';
         else
-            options.isParl = true;
             options.priority = 'mixed_traffic_priority';
             options.visualize_reachable_set = true;
         end
