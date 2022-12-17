@@ -1,36 +1,25 @@
-classdef HLC < handle
+classdef (Abstract) HLCInterface < handle
     properties (Access=public)
         % For which vehicle IDs to start the HLC
         % Must be an array of vehicles. In distributed HLC case the array contains
         % exactly 1 integer
         vehicle_ids
 
-        % scenario variable
+        % scenario
         scenario
 
-        % Wether to use the DistributedHlc (control 1 vehicle) or the
-        % CentralHlc (controls all vehicles)
-        % We can still run the DistributedHlc on a single machine!
-        % is_distributed logical
+%         % Wether to use the DistributedHlc (control 1 vehicle) or the
+%         % CentralHlc (controls all vehicles)
+%         % We can still run the DistributedHlc on a single machine!
+%         is_distributed logical
 
         % Adapter for the lab
         % or one for a local simulation
         hlc_adapter
 
-        % MultiVehiclePlotter we can give to the main thread, so it can plot
-        % in response to the workers
-        plotter
-
         % Ros Subscribers for Inter HLC Communication (distributed HLCs) or
         % to simualate distributed communication in pb-sequential controller
         ros_subscribers
-
-        % Wether to send data to plotter
-        visualization
-
-        % which controller should be used (e.g. centralized,
-        % pb for a single vehicle, pb-sequential for all vehicles)
-        controller
 
         sub_controller = @graph_search
         controller_name
@@ -38,6 +27,7 @@ classdef HLC < handle
         k
 
     end
+    %TODO check for private vars
     properties (Access=public)
         initialized_reference_path
         got_stop;
@@ -51,7 +41,7 @@ classdef HLC < handle
 
     methods
         % Set default settings
-        function obj = HLC()
+        function obj = HLCInterface()
             % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
@@ -65,39 +55,11 @@ classdef HLC < handle
             obj.cooldown_after_lane_change = 0;
             obj.cooldown_second_manual_vehicle_after_lane_change = 0;
             obj.controller_init = false;
-            obj.visualization = false;
-
-            if obj.visualization
-                viz_data_queue = obj.plotter.getDataQueue();
-            else
-                viz_data_queue = false;
-            end
-        end
-
-        % Optional argument wether to do a dry run of the first timestep beforehand
-        % dry_run can massively decrease the time needed for the first
-        % timestep during the experiment.
-        function getHlc( obj, dry_run )
-
-            if isempty(obj.scenario)
-                throw(MException('HlcFactory:InvalidState', 'HlcScenario not set'));
-            end
-
-            obj.hlcSetup();
-
-            % If the user doesn't specify otherwise, we do a dry run beforehand
-            if nargin < 2
-                dry_run = true;
-            end
-
-            if dry_run
-                obj.dryRunHlc();
-            end
-
         end
 
         function [result,scenario] = run(obj)
-            obj.hlcMainLoop();
+            obj.init_hlc()
+            obj.hlc_main_control_loop()
             result = obj.result;
             scenario = obj.scenario;
         end
@@ -111,54 +73,35 @@ classdef HLC < handle
 %         end
 
         % 1 vehicle ID implies distributed
-        function setVehicleIds( obj, vehicle_ids )
+        function set_vehicle_ids( obj, vehicle_ids )
             obj.vehicle_ids = vehicle_ids;
         end
 
-        function setScenario( obj, scenario )
+        function set_scenario( obj, scenario )
             obj.scenario = scenario;
         end
 
-        function plotter = getPlotter( obj )
-            obj.plotter = MultiVehiclePlotter( obj.scenario );
-            plotter = obj.plotter;
+        function set_controller_name( obj, name )
+            obj.controller_name = name;
         end
-    end
 
-    methods (Access=private)
-
-        function setHlcAdapter( obj )
+        function set_hlc_adapter( obj, visualization_data_queue )
             if obj.scenario.options.is_sim_lab == false
                 obj.hlc_adapter = CPMLab(obj.scenario, obj.vehicle_ids);
             else
-                obj.hlc_adapter = SimLab(obj.scenario);
+                obj.hlc_adapter = SimLab(obj.scenario, visualization_data_queue);
             end
             obj.hlc_adapter.setup();
         end
+    end
 
-        function hlcSetup( obj )
+    methods (Abstract = true, Access = protected)
+        controller(obj);
+    end
 
-            if obj.scenario.options.scenario_name == Scenario_Type.Commonroad
-                if obj.scenario.options.isPB
-                    obj.controller_name = strcat('par. PB-', obj.controller_name, ' ', char(obj.scenario.options.priority));
-                    obj.controller = @pb_controller_parl;
-                else
-                    obj.controller_name = strcat('centralized-', obj.controller_name, ' ', char(obj.scenario.options.priority));
-                    obj.controller = @centralized_controller;
-                end
-            else
-                if obj.scenario.options.isPB
-                    obj.controller_name = strcat(obj.controller_name, '-PB');
-                    obj.controller = @pb_controller_parl;
-                else
-                    obj.controller_name = strcat(obj.controller_name, '-centralized');
-                    obj.controller = @centralized_controller;
-                end
-            end
+    methods (Access = private)
 
-            obj.setHlcAdapter();
-
-            obj.setVehicleIds(obj.scenario.options.veh_ids);
+        function init_hlc( obj )
 
             % init result struct
             obj.result = get_result_struct(obj.scenario);
@@ -179,7 +122,7 @@ classdef HLC < handle
         end
 
 
-        function hlcMainLoop(obj)
+        function hlc_main_control_loop(obj)
 
             vehs_fallback_times = zeros(1,obj.scenario.options.amount); % record the number of successive fallback times of each vehicle
             info_old = []; % old information for fallback
@@ -332,7 +275,7 @@ classdef HLC < handle
                 controller_timer = tic;
 
                 %% controller %%
-                obj = obj.controller(obj);
+                obj.controller();
 
                 %% fallback
                 if strcmp(obj.scenario.options.fallback_type,'noFallback')
@@ -483,26 +426,6 @@ classdef HLC < handle
             [obj.result.scenario.vehicles.communicate] = empty_cells{:};
             [obj.scenario.vehicles.communicate] = empty_cells{:};
             obj.hlc_adapter.end_run()
-        end
-
-        % This function runs the HLC once without outputting anything and
-        % resets it afterwards.
-        % Usually MATLAB takes some time to run code for the first time because
-        % it has to compile it while running. If we run if before the
-        % experiment starts, we save a few hundred milliseconds on the first
-        % actual timestep of the experiment.
-        % This so far only works when the HLC doesn't require input arguments
-        % It also assumes that if the HLC is distributed, all other HLCs start
-        % at approximately the same time, because otherwise onEachTimestep
-        % won't run through.
-        %
-        % Important note: This might take some time depending on how hard to
-        % solve the first timestep of this scenario is.
-        function dryRunHlc(obj)
-            disp("Starting dry run of HLC - TODO Implement");
-
-            % Reset visualization + result + iter etc. to its initial value
-            % TODO implement
         end
     end
 

@@ -13,10 +13,12 @@ classdef SimLab < InterfaceExperiment
         doOnlinePlot
         paused
         plotter
+        plotter_data_queue
+        use_data_queue
     end
     
     methods
-        function obj = SimLab(scenario)
+        function obj = SimLab(scenario, plotter_data_queue)
             obj.doOnlinePlot = scenario.options.visu(1);
             obj.doExploration = scenario.options.visu(2);
             obj.scenario = scenario;
@@ -28,7 +30,6 @@ classdef SimLab < InterfaceExperiment
             obj.visu = scenario.options.optionsPlotOnline;
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
-        
             if obj.doOnlinePlot
                 obj.plotter = PlotterOnline();
             end

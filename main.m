@@ -33,8 +33,8 @@ function [result,scenario,options] = main(varargin)
     end
 
 
-    hlc = HLC();
-    hlc.setScenario(scenario);
-    hlc.getHlc();
+    factory = HLCFactory();
+    factory.set_scenario(scenario);
+    hlc = factory.get_hlc(scenario.options.veh_ids);
     hlc.run();
 end
