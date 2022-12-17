@@ -11,7 +11,7 @@ classdef HLC < handle
         % Wether to use the DistributedHlc (control 1 vehicle) or the
         % CentralHlc (controls all vehicles)
         % We can still run the DistributedHlc on a single machine!
-        is_distributed logical
+        % is_distributed logical
 
         % Adapter for the lab
         % or one for a local simulation
@@ -35,10 +35,10 @@ classdef HLC < handle
         sub_controller = @graph_search
         controller_name
         result
+        k
 
     end
     properties (Access=public)
-        k
         initialized_reference_path
         got_stop;
         speedProfileMPAsInitialized;
@@ -56,7 +56,6 @@ classdef HLC < handle
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
             obj.vehicle_ids = [];
-            obj.is_distributed = false;
             obj.ros_subscribers = {};
             obj.k = 0;
             obj.controller_name = 'RHGS';
@@ -103,13 +102,13 @@ classdef HLC < handle
             scenario = obj.scenario;
         end
 
-        function withDistributedPlanning( obj )
-            obj.is_distributed = true;
-        end
-
-        function withCentralPlanning( obj )
-            obj.is_distributed = false;
-        end
+%         function withDistributedPlanning( obj )
+%             obj.is_distributed = true;
+%         end
+% 
+%         function withCentralPlanning( obj )
+%             obj.is_distributed = false;
+%         end
 
         % 1 vehicle ID implies distributed
         function setVehicleIds( obj, vehicle_ids )
