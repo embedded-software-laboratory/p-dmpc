@@ -1,4 +1,4 @@
-function [hlc] = pb_controller_parl(hlc)
+function [hlc] = pb_controller_seq(hlc)
 % PB_CONTROLLER_PARL Plan trajectory for one time step using a
 % priority-based controller. Vehicles inside one group plan in sequence and
 % between groups plan in pararllel. Controller simulates multiple

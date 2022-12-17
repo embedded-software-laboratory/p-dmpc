@@ -40,16 +40,16 @@ classdef HLCFactory < handle
                     hlc = PbControllerParl();
                     controller_name = strcat('par. PB-', hlc.controller_name, ' ', char(obj.scenario.options.priority));
                 else
-                    controller_name = strcat('centralized-', obj.controller_name, ' ', char(obj.scenario.options.priority));
-                    obj.controller = @centralized_controller;
+                    hlc = CentralizedController();
+                    controller_name = strcat('centralized-', hlc.controller_name, ' ', char(obj.scenario.options.priority));
                 end
             else
                 if obj.scenario.options.isPB
-                    controller_name = strcat(obj.controller_name, '-PB');
-                    obj.controller = @pb_controller_parl;
+                    hlc = PbControllerParl();
+                    controller_name = strcat(hlc.controller_name, '-PB');
                 else
-                    controller_name = strcat(obj.controller_name, '-centralized');
-                    obj.controller = @centralized_controller;
+                    hlc = CentralizedController();
+                    controller_name = strcat(hlc.controller_name, '-centralized');
                 end
             end
 

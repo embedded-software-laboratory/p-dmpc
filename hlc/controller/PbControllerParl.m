@@ -24,8 +24,6 @@ classdef PbControllerParl < HLCInterface
             obj.info = ControllResultsInfo(nVeh, Hp, [obj.scenario.vehicles.ID]);
             n_expended = zeros(nVeh,1);
 
-            sub_controller = obj.sub_controller;
-
             directed_graph = digraph(obj.scenario.directed_coupling);
             [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
 
@@ -133,7 +131,7 @@ classdef PbControllerParl < HLCInterface
                     scenario_v = consider_vehs_with_LP(scenario_v, obj.iter, vehicle_idx, all_coupled_vehs_with_LP);
 
                     % execute sub controller for 1-veh scenario
-                    info_v = sub_controller(scenario_v, iter_v);
+                    info_v = obj.sub_controller(scenario_v, iter_v);
                     if info_v.is_exhausted
                         % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
                         %                 disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
