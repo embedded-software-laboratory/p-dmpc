@@ -1,4 +1,4 @@
-function [result,scenario,options] = main(varargin)
+function [result,scenario] = main(varargin)
 % MAIN  main function for graph-based receeding horizon control
 
 if verLessThan('matlab','9.12')
@@ -23,25 +23,26 @@ scenario = read_object_from_input(varargin, 'Scenario');
 if isempty(scenario)
     random_seed = RandStream('mt19937ar');
     scenario = create_scenario(options, random_seed);
-    % write scenario to disk if distributed
-    if scenario.options.isPB == true && scenario.options.is_sim_lab == false
-        save('scenario.mat','scenario');
-        disp('Scenario was written to disk. Select run_scenario_distributed in LCC next.')
-
-    else
-        factory = HLCFactory();
-        factory.set_scenario(scenario);
-        if scenario.options.isPB == true
+end
+% write scenario to disk if distributed
+if scenario.options.isPB == true && scenario.options.is_sim_lab == false
+    save('scenario.mat','scenario');
+    disp('Scenario was written to disk. Select run_scenario_distributed in LCC next.')
+else
+    factory = HLCFactory();
+    factory.set_scenario(scenario);
+    if scenario.options.isPB == true
         %if false
-            get_parallel_pool(scenario.options.amount);
-            spmd(1)
-                hlc = factory.get_hlc(scenario.options.veh_ids);
-                [result,scenario] = hlc.run();
-            end
-        else
+        get_parallel_pool(scenario.options.amount);
+        spmd(scenario.options.amount)
             hlc = factory.get_hlc(scenario.options.veh_ids);
             [result,scenario] = hlc.run();
         end
+        result={result{:}};
+        scenario={scenario{:}};
+    else
+        hlc = factory.get_hlc(scenario.options.veh_ids);
+        [result,scenario] = hlc.run();
     end
 end
 end
