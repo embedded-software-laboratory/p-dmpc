@@ -69,7 +69,7 @@ classdef HLCFactory < handle
         end
 
         function set_visualization_data_queue( obj )
-            % obj.visualization_data_queue = queue;
+            obj.visualization_data_queue = parallel.pool.DataQueue;
         end
     end
 

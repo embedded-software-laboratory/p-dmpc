@@ -33,7 +33,10 @@ else
     factory.set_scenario(scenario);
     if scenario.options.isPB == true
         %if false
+        %% simulate distribution locally using the Parallel Computing Toolbox
         get_parallel_pool(scenario.options.amount);
+        factory.set_visualization_data_queue;
+        afterEach(D,@parforWaitbar);
         spmd(scenario.options.amount)
             hlc = factory.get_hlc(scenario.options.veh_ids);
             [result,scenario] = hlc.run();

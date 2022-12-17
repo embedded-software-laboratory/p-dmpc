@@ -3,115 +3,41 @@ classdef SimLab < InterfaceExperiment
     
     properties (Access=private)
         doExploration
-        fig
-        resolution
-        abort
-    end
-
-    properties
-        visu % struct to store logical variables indicating whether to show vehicle ID/priority/coupling/coupling weights
+        plotter % own plotter to visualize if no visualization_data_queue is given
+        visualization_data_queue
+        use_visualization_data_queue
         doOnlinePlot
-        paused
-        plotter
-        plotter_data_queue
-        use_data_queue
     end
     
     methods
-        function obj = SimLab(scenario, plotter_data_queue)
-            obj.doOnlinePlot = scenario.options.visu(1);
-            obj.doExploration = scenario.options.visu(2);
+        function obj = SimLab(scenario, visualization_data_queue)
             obj.scenario = scenario;
-
-            % variables for key press callback
-            obj.paused = false;
-            obj.abort = false;
-
-            obj.visu = scenario.options.optionsPlotOnline;
+            obj.doOnlinePlot = obj.scenario.options.visu(1);
+            obj.doExploration = obj.scenario.options.visu(2);
+            obj.use_visualization_data_queue = false;    
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
-            if obj.doOnlinePlot
-                obj.plotter = PlotterOnline();
+            
+            if ~isempty(visualization_data_queue)
+                obj.visualization_data_queue = visualization_data_queue;
+                obj.use_visualization_data_queue = true;
             end
-        end
-        
-        function keyPressCallback(obj, ~, eventdata)
-            switch eventdata.Key
-                case 'escape'
-                    obj.abort = true;
-                case 'space'
-                    obj.paused = ~obj.paused;
-                    if obj.paused 
-                        disp('Pause simulation.')
-                    else
-                        disp('Start simulation.')
-                    end
-                case 'i'
-                    obj.visu.isShowVehID = ~obj.visu.isShowVehID;
-                    if obj.visu.isShowVehID 
-                        disp('Show vehicle.')
-                    else
-                        disp('Hide Vehicle IDs.')
-                    end
-                case 'p'
-                    obj.visu.isShowPriority = ~obj.visu.isShowPriority;
-                    if obj.visu.isShowPriority 
-                        disp('Show vehicle priorities.')
-                    else
-                        disp('Hide vehicle priorities.')
-                        find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
-                        if ~isempty(find_colorbar)
-                            find_colorbar.Visible = 'off';
-                        end
-                    end
-                case 'c'
-                    obj.visu.isShowCoupling = ~obj.visu.isShowCoupling;
-                    if obj.visu.isShowCoupling 
-                        disp('Show couplings lines.')
-                    else
-                        disp('Hide couplings lines.')
-                    end
-                case 'w'
-                    obj.visu.isShowWeight = ~obj.visu.isShowWeight;
-                    if obj.visu.isShowWeight 
-                        disp('Show couplings weights.')
-                    else
-                        disp('Hide couplings weights.')
-                    end
-                case 'h'
-                    obj.visu.isShowHotkeyDescription = ~obj.visu.isShowHotkeyDescription;
-                    if obj.visu.isShowHotkeyDescription 
-                        disp('Show hot key descriptions.')
-                    else
-                        disp('Hide hot key descriptions.')
-                    end
-                case 'return'
-                    obj.doOnlinePlot = ~obj.doOnlinePlot;
-                    if obj.doOnlinePlot 
-                        disp('Enable plotting.')
-                    else
-                        disp('Disable Plotting.')
-                    end
+            if obj.doOnlinePlot
+                if obj.use_visualization_data_queue
+                    TODO
+                else
+                    obj.plotter = PlotterOnline(obj.scenario.options.optionsPlotOnline);
+                end
             end
         end
         
         function setup(obj)
-            if obj.doOnlinePlot
-                obj.resolution = [1920 1080];
-                obj.fig = figure(...
-                    'Visible','On'...
-                    ,'Color',[1 1 1]...
-                    ,'units','pixel'...
-                    ,'OuterPosition',[100 100 obj.resolution(1) obj.resolution(2)]...
-                );
-                set(gcf,'WindowKeyPressFcn',@obj.keyPressCallback);
-                hold on
-            end
         end
 
-        function update(obj)
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
-        end
+% TODO  function still in use?     
+%         function update(obj)
+%             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
+%         end
         
         function [ x0, trim_indices ] = measure(obj, ~)
             [ x0, trim_indices ] = obj.measure_node();
@@ -135,7 +61,7 @@ classdef SimLab < InterfaceExperiment
                 % visualize time step
                 % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                obj.plotter.plotOnline(result, obj.k, tick_now, exploration_struct, obj.visu);
+                obj.plotter.plotOnline(result, obj.k, tick_now, exploration_struct);
             else
                 % pause so that `keyPressCallback()` can be executed in time
                 pause(0.01)
@@ -145,15 +71,15 @@ classdef SimLab < InterfaceExperiment
         function got_stop = is_stop(obj)
             got_stop = false;
             % idle while paused, and check if we should stop early
-            while obj.paused
-                if obj.abort
+            while obj.plotter.paused
+                if obj.plotter.abort
                     disp('Aborted.');
                     got_stop = true;
                     break;
                 end
                 pause(0.1);
             end
-            if obj.abort
+            if obj.plotter.abort
                 disp('Aborted.');
                 got_stop = true;
             end
@@ -165,8 +91,8 @@ classdef SimLab < InterfaceExperiment
         
         function end_run(obj)
             disp('End')
-            if obj.doOnlinePlot
-                close(obj.fig)
+            if obj.doOnlinePlot && ~obj.use_visualization_data_queue
+                obj.plotter.close_figure();
             end
         end
     end

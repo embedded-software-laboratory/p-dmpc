@@ -17,7 +17,7 @@ old_pool = gcp('nocreate');
 if ~any(size(old_pool)) % Check if gcp('nocreate') returning anything at all
     disp('No pool found, creating new pool');
     create_parpool( no_of_workers );
-elseif old_pool.NumWorkers < no_of_workers % If gcp('nocreate') returned something, check the number of workers
+elseif old_pool.NumWorkers ~= no_of_workers % If gcp('nocreate') returned something, check the number of workers
     fprintf('Found old pool with %i workers, but we need a pool with %i workers\n',...
         old_pool.NumWorkers,...
         no_of_workers);
