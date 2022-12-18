@@ -48,7 +48,7 @@ classdef (Abstract) HLCInterface < handle
             obj.vehicle_ids = [];
             obj.ros_subscribers = {};
             obj.k = 0;
-            obj.controller_name = 'RHGS';
+            obj.controller_name = '';
             obj.initialized_reference_path = false;
             obj.got_stop = false;
             obj.speedProfileMPAsInitialized = false;

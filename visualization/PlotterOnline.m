@@ -1,22 +1,28 @@
 classdef PlotterOnline < handle
     properties
         abort
-        paused     
+        paused
     end
     properties (Access = private)
         resolution
         fig
         plot_options % struct to store logical variables indicating whether to show vehicle ID/priority/coupling/coupling weights
         scenario
+        strategy
+        vehicles
+        nVeh
     end
     methods
-        function obj = PlotterOnline(scenario, plot_options)
+        function obj = PlotterOnline(scenario)
             % variables for key press callback
             obj.paused = false;
             obj.abort = false;
             obj.resolution = [1920 1080];
-            obj.plot_options = plot_options;
+            obj.plot_options = scenario.options.optionsPlotOnline;
             obj.scenario = scenario;
+            obj.strategy = HLCFactory.get_controller_name(obj.scenario.options);
+            obj.vehicles = scenario.vehicles;
+            obj.nVeh = scenario.options.amount;
             obj.fig = figure(...
                 'Visible','On'...
                 ,'Color',[1 1 1]...
@@ -24,85 +30,20 @@ classdef PlotterOnline < handle
                 ,'OuterPosition',[100 100 obj.resolution(1) obj.resolution(2)]...
                 );
             set(gcf,'WindowKeyPressFcn',@obj.keyPressCallback);
-            
+
             plot_lanelets(scenario.road_raw_data.lanelet,obj.scenario.options.scenario_name);
-            
             hold on
-        end
-
-        function plotOnline(obj, result,step_idx,tick_now,exploration)
-            % PLOTONLINE    Plot function used for plotting the simulation state in a specified tick
-            %               during a specified time step
-            %
-            % INPUT:
-            %   result: simulation results
-            %
-            %   step_idx: time step
-            %
-            %   tick_now: tick index
-            %
-            %   visu: struct with fields: 'isShowVehID', 'isShowPriority', 'isShowCoupling' and 'isShowWeight'
-            %
-
-            scenario = result.scenario;
-            iter = result.iteration_structs{step_idx};
-            priority_list = result.priority(:,step_idx);
-
-            nVeh = scenario.options.amount;
-            nObst = size(scenario.obstacles,2);
-            nDynObst = size(scenario.dynamic_obstacle_fullres,1);
+            box on
+            axis equal
+            xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
+            ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
+            xlim(scenario.options.plot_limits(1,:));
+            ylim(scenario.options.plot_limits(2,:));
+            daspect([1 1 1])
+            colormap("hot"); % set colormap
 
             set(0,'DefaultTextFontname', 'Verdana');
             set(0,'DefaultAxesFontName', 'Verdana');
-
-            if nargin < 3
-                tick_now = 1;
-            end
-
-            if isempty(exploration)
-                exploration.doExploration = false;
-            end
-
-            %% Simulation state / scenario plot
-
-            % find all the plots with property "LineWidth 1", which are different to plot_lanelets (default "LineWidth 0.5")
-            % at every time step, delete all these plots while keep plot_lanelets
-            h = findobj('LineWidth',1);
-            delete(h)
-
-            if exploration.doExploration
-                visualize_exploration(exploration,scenario);
-            end
-
-            if obj.plot_options.isVideoMode
-                % in video mode, lanelets should be plotted at each time step
-                hold on
-                box on
-                axis equal
-
-                xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
-                ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
-
-                xlim(scenario.options.plot_limits(1,:));
-                ylim(scenario.options.plot_limits(2,:));
-                daspect([1 1 1])
-
-                colormap("hot"); % set colormap
-            elseif step_idx == 1
-                % if not video mode, lanelets should be plotted only at the initial time step
-                hold on
-                box on
-                axis equal
-
-                xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
-                ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
-
-                xlim(scenario.options.plot_limits(1,:));
-                ylim(scenario.options.plot_limits(2,:));
-                daspect([1 1 1])
-
-                colormap("hot"); % set colormap
-            end
 
             if obj.plot_options.isShowHotkeyDescription
                 % show description of hotkey
@@ -129,6 +70,62 @@ classdef PlotterOnline < handle
                     end
                     text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
                 end
+            end
+            hold on
+        end
+
+        function plotOnline(obj, plotting_info)
+            % PLOTONLINE    Plot function used for plotting the simulation state in a specified tick
+            %               during a specified time step
+            %
+            % INPUT:
+            %   result: simulation results
+            %
+            %   step_idx: time step
+            %
+            %   tick_now: tick index
+            %
+            %   visu: struct with fields: 'isShowVehID', 'isShowPriority', 'isShowCoupling' and 'isShowWeight'
+            %
+
+            priority_list = plotting_info.priorities;
+            
+            nObst = plotting_info.n_obstacles;
+            nDynObst = plotting_info.n_dynamic_obstacles;            
+
+            if nargin < 3
+                tick_now = 1;
+            end
+
+            if isempty(plotting_info.exploration)
+                plotting_info.exploration.doExploration = false;
+            end
+
+            %% Simulation state / scenario plot
+
+            % find all the plots with property "LineWidth 1", which are different to plot_lanelets (default "LineWidth 0.5")
+            % at every time step, delete all these plots while keep plot_lanelets
+            h = findobj('LineWidth',1);
+            delete(h)
+
+            if plotting_info.exploration.doExploration
+                visualize_exploration(plotting_info.exploration, obj.scenario.options.amount, obj.scenario.options.Hp);
+            end
+
+            if obj.plot_options.isVideoMode
+                % in video mode, lanelets should be plotted at each time step
+                hold on
+                box on
+                axis equal
+
+                xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
+                ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
+
+                xlim(obj.scenario.options.plot_limits(1,:));
+                ylim(obj.scenario.options.plot_limits(2,:));
+                daspect([1 1 1])
+                plot_lanelets(obj.scenario.road_raw_data.lanelet,obj.scenario.options.scenario_name);
+                colormap("hot"); % set colormap
             end
 
             get_colormap = get(gcf,'Colormap');
@@ -157,31 +154,31 @@ classdef PlotterOnline < handle
             end
 
             %%
-            % Sampled trajectory points
-            for v=1:nVeh
-                line(   iter.referenceTrajectoryPoints(v,:,1), ...
-                    iter.referenceTrajectoryPoints(v,:,2), ...
+            % Sampled reference trajectory points
+            for v=1:obj.nVeh
+                line(   plotting_info.ref_trajectory(v,:,1), ...
+                    plotting_info.ref_trajectory(v,:,2), ...
                     'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize',3,'LineWidth',1 );
             end
 
             % predicted trajectory
-            for v=1:nVeh
-                line(   result.trajectory_predictions{v,step_idx}([1:scenario.options.tick_per_step+1:end,end],1), ...
-                    result.trajectory_predictions{v,step_idx}([1:scenario.options.tick_per_step+1:end,end],2), ...
+            for v=1:obj.nVeh
+                line(   plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step+1:end,end],1), ...
+                    plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step+1:end,end],2), ...
                     'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
                 % Matlab R2021a:
                 %'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
                 % Matlab R2020a:
                 %'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
-                line(   result.trajectory_predictions{v,step_idx}(:,1), ...
-                    result.trajectory_predictions{v,step_idx}(:,2), ...
+                line(   plotting_info.trajectory_predictions{v}(:,1), ...
+                    plotting_info.trajectory_predictions{v}(:,2), ...
                     'Color',vehColor(priority_list(v),:),'LineWidth',1 );
             end
 
             % Vehicle rectangles
-            for v=1:nVeh
-                veh = scenario.vehicles(v);
-                pos_step = result.trajectory_predictions{v,step_idx};
+            for v=1:obj.nVeh
+                veh = obj.vehicles(v);
+                pos_step = plotting_info.trajectory_predictions{v};
                 x = pos_step(tick_now,:);
                 vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
                 patch(   vehiclePolygon(1,:)...
@@ -192,7 +189,7 @@ classdef PlotterOnline < handle
 
                 % plot the priority
                 %         if obj.plot_options.isShowPriority
-                %             text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1,'Color','m');
+                %             text(x(1),x(2),num2str(result.priority(v,plotting_info.step)),'FontSize', 12, 'LineWidth',1,'Color','m');
                 %         end
 
                 % plot the vehicle index
@@ -206,19 +203,19 @@ classdef PlotterOnline < handle
                 %         end
 
                 if obj.plot_options.isShowReachableSets
-                    if scenario.options.bound_reachable_sets
+                    if obj.scenario.options.bound_reachable_sets
                         text_RS = 'Bounded reachable set by lanelet boundaries';
                     else
                         text_RS = 'Unbounded reachable set';
                     end
 
                     if isempty(obj.plot_options.vehsReachableSets)
-                        [RS_x,RS_y] = boundary(result.iteration_structs{step_idx}.reachable_sets{v,scenario.options.Hp});
+                        [RS_x,RS_y] = boundary(plotting_info.reachable_sets{v,obj.scenario.options.Hp});
                         line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
                         text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
                     elseif ismember(v,obj.plot_options.vehsReachableSets)
                         % specify vehicles whose reachable sets should be shown
-                        [RS_x,RS_y] = boundary(result.iteration_structs{step_idx}.reachable_sets{v,scenario.options.Hp});
+                        [RS_x,RS_y] = boundary(plotting_info.reachable_sets{v,obj.scenario.options.Hp});
                         line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
                         text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
                     end
@@ -226,7 +223,7 @@ classdef PlotterOnline < handle
                 end
 
                 if obj.plot_options.isShowLaneletCrossingAreas
-                    LCA = result.lanelet_crossing_areas{step_idx}{v};
+                    LCA = plotting_info.lanelet_crossing_areas{v};
                     if ~isempty(LCA)
                         if isempty(obj.plot_options.vehsLaneletCorssingAreas)
                             LCAs_xy = [LCA{:}];
@@ -243,24 +240,24 @@ classdef PlotterOnline < handle
 
             % plot scenario adjacency
             coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',obj.plot_options.isShowCoupling,'isShowValue',obj.plot_options.isShowWeight);
-            if obj.plot_options.isShowCoupling
-                x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
+            if obj.plot_options.fisShowCoupling
+                x0 = cellfun(@(c)c(tick_now,:), plotting_info.trajectory_predictions, 'UniformOutput', false);
                 x0 = cell2mat(x0);
-                if ~isempty(scenario.coupling_weights_reduced)
-                    plot_coupling_lines(result.coupling_weights_reduced{step_idx}, x0, result.belonging_vector(:,step_idx), result.coupling_info{step_idx}, coupling_visu)
+                if ~isempty(plotting_info.coupling_weights_reduced)
+                    plot_coupling_lines(plotting_info.coupling_weights_reduced, x0, plotting_info.belonging_vector, plotting_info.coupling_info, coupling_visu)
                 else
-                    plot_coupling_lines(result.directed_coupling{step_idx}, x0, [], [], coupling_visu)
+                    plot_coupling_lines(plotting_info.directed_coupling, x0, [], [], coupling_visu)
                 end
             end
 
             %     plot distance
             %     text((iter.x0(v,1)+iter.x0(adj_v,1))/2,(iter.x0(v,2)+iter.x0(adj_v,2))/2,...
-            %         num2str(round(result.distance(v,adj_v,step_idx),2)),'FontSize', 12, 'LineWidth',1,'Color','b');
+            %         num2str(round(result.distance(v,adj_v,plotting_info.step),2)),'FontSize', 12, 'LineWidth',1,'Color','b');
 
             % Obstacle rectangle
             for obs = 1:nObst
-                patch(   scenario.obstacles{obs}(1,:)...
-                    ,scenario.obstacles{obs}(2,:)...
+                patch(   plotting_info.obstacles{obs}(1,:)...
+                    ,plotting_info.obstacles{obs}(2,:)...
                     ,[0.5 0.5 0.5]...
                     ,'LineWidth', 1 ...
                     );
@@ -268,9 +265,9 @@ classdef PlotterOnline < handle
 
             % dynamic obstacles
             for obs = 1:nDynObst
-                pos_step = scenario.dynamic_obstacle_fullres{obs,step_idx};
+                pos_step = plotting_info.dynamic_obstacle_fullres{obs};
                 x = pos_step(tick_now,:);
-                obstaclePolygon = transformedRectangle(x(1),x(2),pi/2, scenario.dynamic_obstacle_shape(1),scenario.dynamic_obstacle_shape(2));
+                obstaclePolygon = transformedRectangle(x(1),x(2),pi/2, plotting_info.dynamic_obstacles_shape(1),plotting_info.dynamic_obstacles_shape(2));
                 patch(   obstaclePolygon(1,:)...
                     ,obstaclePolygon(2,:)...
                     ,[0.5 0.5 0.5]...
@@ -278,29 +275,23 @@ classdef PlotterOnline < handle
                     );
             end
 
-
-            scenarioName = scenario.options.scenario_name;
-            optimizer = 'Graph Search';
-            % TODO
-            strategy = 'controllerNamehere';
-
             t=title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs',...
-                scenarioName,...
-                optimizer,...
-                strategy,...
-                step_idx,...
-                (step_idx-1)*scenario.options.dt + (tick_now-1) * scenario.options.time_per_tick),'Interpreter','latex','FontSize',12);
+                obj.scenario.options.scenario_name,...
+                'Graph Search',...
+                obj.strategy,...
+                plotting_info.step,...
+                (plotting_info.step-1)*obj.scenario.options.dt + (tick_now-1) * obj.scenario.options.time_per_tick),'Interpreter','latex','FontSize',12);
 
             set(t,'HorizontalAlignment', 'center');
 
             drawnow
         end
+
         function close_figure(obj)
             close(obj.fig);
         end
-
     end
-    
+
     methods (Access = private)
         function keyPressCallback(obj, ~, eventdata)
             switch eventdata.Key
@@ -308,21 +299,21 @@ classdef PlotterOnline < handle
                     obj.abort = true;
                 case 'space'
                     obj.paused = ~obj.paused;
-                    if obj.paused 
+                    if obj.paused
                         disp('Pause simulation.')
                     else
                         disp('Start simulation.')
                     end
                 case 'i'
                     obj.plot_options.isShowVehID = ~obj.plot_options.isShowVehID;
-                    if obj.plot_options.isShowVehID 
+                    if obj.plot_options.isShowVehID
                         disp('Show vehicle.')
                     else
                         disp('Hide Vehicle IDs.')
                     end
                 case 'p'
                     obj.plot_options.isShowPriority = ~obj.plot_options.isShowPriority;
-                    if obj.plot_options.isShowPriority 
+                    if obj.plot_options.isShowPriority
                         disp('Show vehicle priorities.')
                     else
                         disp('Hide vehicle priorities.')
@@ -333,21 +324,21 @@ classdef PlotterOnline < handle
                     end
                 case 'c'
                     obj.plot_options.isShowCoupling = ~obj.plot_options.isShowCoupling;
-                    if obj.plot_options.isShowCoupling 
+                    if obj.plot_options.isShowCoupling
                         disp('Show couplings lines.')
                     else
                         disp('Hide couplings lines.')
                     end
                 case 'w'
                     obj.plot_options.isShowWeight = ~obj.plot_options.isShowWeight;
-                    if obj.plot_options.isShowWeight 
+                    if obj.plot_options.isShowWeight
                         disp('Show couplings weights.')
                     else
                         disp('Hide couplings weights.')
                     end
                 case 'return'
                     obj.doOnlinePlot = ~obj.doOnlinePlot;
-                    if obj.doOnlinePlot 
+                    if obj.doOnlinePlot
                         disp('Enable plotting.')
                     else
                         disp('Disable Plotting.')

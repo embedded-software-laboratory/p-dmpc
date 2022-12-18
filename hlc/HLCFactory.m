@@ -38,25 +38,21 @@ classdef HLCFactory < handle
             if obj.scenario.options.scenario_name == Scenario_Type.Commonroad
                 if obj.scenario.options.isPB
                     hlc = PbControllerParl();
-                    controller_name = strcat('par. PB-', hlc.controller_name, ' ', char(obj.scenario.options.priority));
                 else
                     hlc = CentralizedController();
-                    controller_name = strcat('centralized-', hlc.controller_name, ' ', char(obj.scenario.options.priority));
                 end
             else
                 if obj.scenario.options.isPB
                     hlc = PbControllerParl();
-                    controller_name = strcat(hlc.controller_name, '-PB');
                 else
                     hlc = CentralizedController();
-                    controller_name = strcat(hlc.controller_name, '-centralized');
                 end
             end
 
             %TODO filter scenario for veh id
             hlc.set_scenario(obj.scenario);
 
-            hlc.set_controller_name(controller_name);
+            hlc.set_controller_name(obj.get_controller_name(obj.scenario.options));
 
             hlc.set_vehicle_ids(vehicle_ids);
 
@@ -71,6 +67,25 @@ classdef HLCFactory < handle
         function set_visualization_data_queue( obj )
             obj.visualization_data_queue = parallel.pool.DataQueue;
         end
+    end
+
+    methods (Static)
+        function controller_name = get_controller_name(options)
+            if options.scenario_name == Scenario_Type.Commonroad
+                if options.isPB
+                    controller_name = strcat('par. PB-','RHGS-', char(options.priority));
+                else
+                    controller_name = strcat('centralized-', 'RHGS-', char(options.priority));
+                end
+            else
+                if options.isPB
+                    controller_name = strcat('RHGS', '-PB');
+                else
+                    controller_name = strcat('RHGS', '-centralized');
+                end
+            end
+        end
+
     end
 
     methods (Access=private)
@@ -95,5 +110,4 @@ classdef HLCFactory < handle
             % TODO implement
         end
     end
-
 end

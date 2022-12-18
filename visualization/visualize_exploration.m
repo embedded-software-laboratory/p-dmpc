@@ -1,10 +1,10 @@
-function visualize_exploration(exploration,scenario)
+function visualize_exploration(exploration, veh_amount, hp)
 % VISUALIZE_EXPLORATION     Visualize the explored nodes at the end of prediction horizon.
 
-    info = exploration.info;
-    t = [info.tree.node{:}];
-    t = reshape(t,scenario.options.amount,NodeInfo.n_cols,[]);
-    leaf_idcs = t(1,NodeInfo.k,:)==scenario.options.Hp;
+    tree = exploration.info.tree;
+    t = [tree.node{:}];
+    t = reshape(t,veh_amount,NodeInfo.n_cols,[]);
+    leaf_idcs = t(1,NodeInfo.k,:)==hp;
     leaves = t(:,:,leaf_idcs);
     x = reshape(leaves(:,NodeInfo.x,:),1,[]);
     y = reshape(leaves(:,NodeInfo.y,:),1,[]);

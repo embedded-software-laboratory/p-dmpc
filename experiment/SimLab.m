@@ -15,23 +15,21 @@ classdef SimLab < InterfaceExperiment
             obj.doOnlinePlot = obj.scenario.options.visu(1);
             obj.doExploration = obj.scenario.options.visu(2);
             obj.use_visualization_data_queue = false;    
-
+            obj.visualization_data_queue = visualization_data_queue;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
-            
-            if ~isempty(visualization_data_queue)
-                obj.visualization_data_queue = visualization_data_queue;
+        end
+        
+        function setup(obj)
+            if ~isempty(obj.visualization_data_queue)
                 obj.use_visualization_data_queue = true;
             end
             if obj.doOnlinePlot
                 if obj.use_visualization_data_queue
                     TODO
                 else
-                    obj.plotter = PlotterOnline(obj.scenario, obj.scenario.options.optionsPlotOnline);
+                    obj.plotter = PlotterOnline(obj.scenario);
                 end
             end
-        end
-        
-        function setup(obj)
         end
 
 % TODO  function still in use?     
@@ -50,7 +48,7 @@ classdef SimLab < InterfaceExperiment
             % init struct for exploration plot
             if obj.doExploration
                 exploration_struct.doExploration = true;
-                exploration_struct.info = info;
+                exploration_struct.info.tree = info.tree;
             else
                 exploration_struct = [];
             end
@@ -61,7 +59,8 @@ classdef SimLab < InterfaceExperiment
                 % visualize time step
                 % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                obj.plotter.plotOnline(result, obj.k, tick_now, exploration_struct);
+                plotting_info = PlottingInfo(result, obj.k, tick_now, exploration_struct, obj.scenario.options.optionsPlotOnline);
+                obj.plotter.plotOnline(plotting_info);
             else
                 % pause so that `keyPressCallback()` can be executed in time
                 pause(0.01)
@@ -71,17 +70,19 @@ classdef SimLab < InterfaceExperiment
         function got_stop = is_stop(obj)
             got_stop = false;
             % idle while paused, and check if we should stop early
-            while obj.plotter.paused
+            if ~obj.use_visualization_data_queue
+                while obj.plotter.paused
+                    if obj.plotter.abort
+                        disp('Aborted.');
+                        got_stop = true;
+                        break;
+                    end
+                    pause(0.1);
+                end
                 if obj.plotter.abort
                     disp('Aborted.');
                     got_stop = true;
-                    break;
                 end
-                pause(0.1);
-            end
-            if obj.plotter.abort
-                disp('Aborted.');
-                got_stop = true;
             end
             if  obj.k >= obj.scenario.options.k_end
                 disp('Simulation will be stopped as the defined simulation duration is reached.')
