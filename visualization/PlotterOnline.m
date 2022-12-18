@@ -7,14 +7,16 @@ classdef PlotterOnline < handle
         resolution
         fig
         plot_options % struct to store logical variables indicating whether to show vehicle ID/priority/coupling/coupling weights
+        scenario
     end
     methods
-        function obj = PlotterOnline(plot_options)
+        function obj = PlotterOnline(scenario, plot_options)
             % variables for key press callback
             obj.paused = false;
             obj.abort = false;
             obj.resolution = [1920 1080];
             obj.plot_options = plot_options;
+            obj.scenario = scenario;
             obj.fig = figure(...
                 'Visible','On'...
                 ,'Color',[1 1 1]...
@@ -22,6 +24,9 @@ classdef PlotterOnline < handle
                 ,'OuterPosition',[100 100 obj.resolution(1) obj.resolution(2)]...
                 );
             set(gcf,'WindowKeyPressFcn',@obj.keyPressCallback);
+            
+            plot_lanelets(scenario.road_raw_data.lanelet,obj.scenario.options.scenario_name);
+            
             hold on
         end
 
@@ -82,11 +87,6 @@ classdef PlotterOnline < handle
                 ylim(scenario.options.plot_limits(2,:));
                 daspect([1 1 1])
 
-                % plot the lanelets only once at the beginning
-                if ~isempty(scenario.road_raw_data.lanelet)
-                    plot_lanelets(scenario.road_raw_data.lanelet,scenario.name);
-                end
-
                 colormap("hot"); % set colormap
             elseif step_idx == 1
                 % if not video mode, lanelets should be plotted only at the initial time step
@@ -100,11 +100,6 @@ classdef PlotterOnline < handle
                 xlim(scenario.options.plot_limits(1,:));
                 ylim(scenario.options.plot_limits(2,:));
                 daspect([1 1 1])
-
-                % plot the lanelets only once at the beginning
-                if ~isempty(scenario.road_raw_data.lanelet)
-                    plot_lanelets(scenario.road_raw_data.lanelet,scenario.options.scenario_name);
-                end
 
                 colormap("hot"); % set colormap
             end

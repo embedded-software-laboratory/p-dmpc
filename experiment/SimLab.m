@@ -26,7 +26,7 @@ classdef SimLab < InterfaceExperiment
                 if obj.use_visualization_data_queue
                     TODO
                 else
-                    obj.plotter = PlotterOnline(obj.scenario.options.optionsPlotOnline);
+                    obj.plotter = PlotterOnline(obj.scenario, obj.scenario.options.optionsPlotOnline);
                 end
             end
         end
