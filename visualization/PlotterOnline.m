@@ -11,6 +11,8 @@ classdef PlotterOnline < handle
         strategy
         vehicles
         nVeh
+        timer % used to simulate real time plotting while receiving data from visualiuation queue
+        simulation_time_before_pause
     end
     methods
         function obj = PlotterOnline(scenario)
@@ -23,6 +25,7 @@ classdef PlotterOnline < handle
             obj.strategy = HLCFactory.get_controller_name(obj.scenario.options);
             obj.vehicles = scenario.vehicles;
             obj.nVeh = scenario.options.amount;
+            obj.simulation_time_before_pause = 0 ;
             obj.fig = figure(...
                 'Visible','On'...
                 ,'Color',[1 1 1]...
@@ -31,7 +34,9 @@ classdef PlotterOnline < handle
                 );
             set(gcf,'WindowKeyPressFcn',@obj.keyPressCallback);
 
-            plot_lanelets(scenario.road_raw_data.lanelet,obj.scenario.options.scenario_name);
+            if ~isempty(scenario.road_raw_data) && ~isempty(scenario.road_raw_data.lanelet)
+                plot_lanelets(scenario.road_raw_data.lanelet,obj.scenario.options.scenario_name);
+            end
             hold on
             box on
             axis equal
@@ -240,7 +245,7 @@ classdef PlotterOnline < handle
 
             % plot scenario adjacency
             coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',obj.plot_options.isShowCoupling,'isShowValue',obj.plot_options.isShowWeight);
-            if obj.plot_options.fisShowCoupling
+            if obj.plot_options.isShowCoupling
                 x0 = cellfun(@(c)c(tick_now,:), plotting_info.trajectory_predictions, 'UniformOutput', false);
                 x0 = cell2mat(x0);
                 if ~isempty(plotting_info.coupling_weights_reduced)
@@ -290,9 +295,38 @@ classdef PlotterOnline < handle
         function close_figure(obj)
             close(obj.fig);
         end
+
+        function data_queue_callback(obj, plotting_info)
+            start_simulation_timer(obj);
+            simulated_time = obj.scenario.options.dt * (plotting_info.step);
+            simulation_time = toc(obj.timer) + obj.simulation_time_before_pause;
+            pause(simulated_time - simulation_time);
+            obj.plotOnline(plotting_info);
+            if obj.abort
+                disp('Not yet implemented');
+                obj.abort = ~obj.abort;
+            end
+            if obj.paused
+                % reset timer
+                obj.timer = [];
+                % save simulation 
+                obj.simulation_time_before_pause = simulation_time;
+                while (obj.paused)
+                    %pause to allow key callback to be executed
+                    pause(0.2);
+                end
+            end
+        end
+
     end
 
     methods (Access = private)
+        function start_simulation_timer(obj)
+            if isempty(obj.timer)
+                obj.timer=tic;
+            end
+        end
+
         function keyPressCallback(obj, ~, eventdata)
             switch eventdata.Key
                 case 'escape'

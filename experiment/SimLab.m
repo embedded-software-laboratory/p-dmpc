@@ -23,12 +23,8 @@ classdef SimLab < InterfaceExperiment
             if ~isempty(obj.visualization_data_queue)
                 obj.use_visualization_data_queue = true;
             end
-            if obj.doOnlinePlot
-                if obj.use_visualization_data_queue
-                    TODO
-                else
-                    obj.plotter = PlotterOnline(obj.scenario);
-                end
+            if obj.doOnlinePlot && ~obj.use_visualization_data_queue
+                obj.plotter = PlotterOnline(obj.scenario);
             end
         end
 
@@ -53,14 +49,17 @@ classdef SimLab < InterfaceExperiment
                 exploration_struct = [];
             end
             if obj.doOnlinePlot
-                % wait to simulate realtime plotting
-                pause(obj.scenario.options.dt-result.step_time(obj.k))
-
                 % visualize time step
                 % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
                 plotting_info = PlottingInfo(result, obj.k, tick_now, exploration_struct, obj.scenario.options.optionsPlotOnline);
-                obj.plotter.plotOnline(plotting_info);
+                if obj.use_visualization_data_queue
+                    send(obj.visualization_data_queue, plotting_info);
+                else
+                    % wait to simulate realtime plotting
+                    pause(obj.scenario.options.dt-result.step_time(obj.k))
+                    obj.plotter.plotOnline(plotting_info);
+                end
             else
                 % pause so that `keyPressCallback()` can be executed in time
                 pause(0.01)
