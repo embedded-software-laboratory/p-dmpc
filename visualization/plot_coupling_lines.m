@@ -28,7 +28,7 @@ function plot_coupling_lines(M, x0, varargin)
     nVeh = length(M);
     
     color_main = [0 0 0];
-    color_minor = [0.5 0.5 0.5];
+    color_minor = 0.4 * [1 1 1];
     for v = 1:nVeh
         x = x0(v,:);
         % plot directed coupling
@@ -46,9 +46,9 @@ function plot_coupling_lines(M, x0, varargin)
                 coupling_ignored = setdiff(all_adjacent_vehicles,adjacent_vehicles);
                 for i_ignored=coupling_ignored(:)'
                     ignored_x = x0(i_ignored,:);
-                    MaxHeadSize = 0.3/norm([ignored_x(1)-x(1),ignored_x(2)-x(2)]); % to keep the arrow size 
+                    MaxHeadSize = 0.7*norm([ignored_x(1)-x(1),ignored_x(2)-x(2)]); % to keep the arrow size
                     % couplings that are ignored will be shown in grey solid lines
-                    quiver(x(1),x(2),ignored_x(1)-x(1),ignored_x(2)-x(2),'AutoScale','off','LineWidth',coupling_visu.LineWidth,'Color',color_minor,'LineStyle','-','MaxHeadSize',MaxHeadSize)
+                    plot_arrow(x', (ignored_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_minor, '-', MaxHeadSize);
                 end
             end
         end
@@ -57,19 +57,19 @@ function plot_coupling_lines(M, x0, varargin)
             adj_x = x0(adj_v,:);
 
             % plot adjacency
-            MaxHeadSize = 0.3/norm([adj_x(1)-x(1),adj_x(2)-x(2)]); % to keep the arrow size 
+            MaxHeadSize = 0.7*norm([adj_x(1)-x(1),adj_x(2)-x(2)]); % to keep the arrow size
             if ~isempty(belonging_vector) && belonging_vector(v) ~= belonging_vector(adj_v)
                 % couplings between groups will be shown in black dashed lines.
-                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',coupling_visu.LineWidth,'Color',color_main,'LineStyle',':','MaxHeadSize',MaxHeadSize)
+                plot_arrow(x', (adj_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_main, ':', MaxHeadSize);
             else
                 % couplings inside a group will be shown in black solid lines
-                quiver(x(1),x(2),adj_x(1)-x(1),adj_x(2)-x(2),'AutoScale','off','LineWidth',coupling_visu.LineWidth,'Color',color_main,'LineStyle','-','MaxHeadSize',MaxHeadSize)
+                plot_arrow(x', (adj_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_main, '-', MaxHeadSize);
             end
 
             if coupling_visu.isShowValue
                 % plot coupling weights
                 text((x(1)+adj_x(1))/2,(x(2)+adj_x(2))/2,...
-                    num2str(round(M(v,adj_v),2)),'FontSize', coupling_visu.FontSize, 'LineWidth',coupling_visu.LineWidth,'Color',color_main);
+                    num2str(round(M(v,adj_v),2)), 'FontSize', coupling_visu.FontSize, 'LineWidth', coupling_visu.LineWidth, 'Color', color_main, MaxHeadSize);
             end
         end
     end
@@ -101,5 +101,28 @@ function [M, x0, belonging_vector, coupling_info, coupling_visu] = parse_inputs(
     belonging_vector = p.Results.belonging_vector;
     coupling_info = p.Results.coupling_info;
     coupling_visu = p.Results.coupling_visu;
+end
 
+%% local function to plot one arrow between vehicles
+function [] = plot_arrow(x, u, radius, linewidth, color, linestyle, headsize)
+    % Only use position.
+    x = x(1:2);
+    u = u(1:2);
+
+    % Transform arrow size so that it starts and ends not in the vehicle middle, but at a circle around the center with given radius.
+    l = sqrt(u(1) * u(1) + u(2) * u(2));
+    x = x + radius * u / l;
+    u = u - 2 * radius * u / l;
+
+    % Transform direction to not contain arrow head.
+    headsize = min(headsize, 0.07);
+    u_without_head = u * (1 - headsize / l);
+
+    % Create triangle for arrow head from normal.
+    n = 0.4 * headsize / l * [0 -1; 1 0] * u;
+    head = [x + u, x + u_without_head + n, x + u_without_head - n, x + u];
+    
+    % Plot.
+    line([x(1), x(1) + u_without_head(1)], [x(2), x(2) + u_without_head(2)], 'Color', color, 'LineStyle', linestyle, 'LineWidth', linewidth);
+    patch(head(1,:), head(2,:), color, 'EdgeColor', color, 'LineWidth', linewidth);
 end
