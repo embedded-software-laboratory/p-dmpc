@@ -32,7 +32,7 @@ else
     factory = HLCFactory();
     factory.set_scenario(scenario);
     if scenario.options.isPB == true
-    %if false
+    % if false
         %% simulate distribution locally using the Parallel Computing Toolbox
         %get_parallel_pool(scenario.options.amount);
         get_parallel_pool(2);
@@ -41,6 +41,7 @@ else
         plotter = PlotterOnline(factory.scenario);
         afterEach(factory.visualization_data_queue, @plotter.data_queue_callback);
         spmd(2)
+            % TODO sort vehicle ids
             hlc = factory.get_hlc(scenario.options.veh_ids);
             [result,scenario] = hlc.run();
         end

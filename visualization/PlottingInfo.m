@@ -11,6 +11,7 @@ classdef PlottingInfo < handle
         reachable_sets
         exploration
         step
+        veh_ids % vehicle_ids to whcih the plot info belong
         tick_now
         lanelet_crossing_areas
         coupling_weights_reduced
@@ -20,7 +21,8 @@ classdef PlottingInfo < handle
     end
 
     methods (Static)
-        function obj = PlottingInfo(result, k, tick_now, exploration_struct, plot_options)
+        function obj = PlottingInfo(veh_ids, result, k, tick_now, exploration_struct, plot_options)
+            obj.veh_ids = veh_ids;
             obj.step = k;
             obj.tick_now = tick_now;
             obj.trajectory_predictions = result.trajectory_predictions(:,k);

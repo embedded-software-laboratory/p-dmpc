@@ -4,7 +4,13 @@ classdef (Abstract) HLCInterface < handle
         % Must be an array of vehicles. In distributed HLC case the array contains
         % exactly 1 integer
         vehicle_ids
+        
+        % amount of vehicle controlled by this HLC
+        amount
 
+        % index of vehicle in vehicle list (only used if amount=1)
+        index_in_vehicle_list
+        
         % scenario
         scenario
 
@@ -50,6 +56,8 @@ classdef (Abstract) HLCInterface < handle
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
             obj.vehicle_ids = [];
+            obj.amount = 0;
+            obj.index_in_vehicle_list = 1; % set default to 1 (used by communication init to get any communication class)
             obj.ros_subscribers = {};
             obj.k = 0;
             obj.controller_name = '';
@@ -81,6 +89,12 @@ classdef (Abstract) HLCInterface < handle
         % 1 vehicle ID implies distributed
         function set_vehicle_ids( obj, vehicle_ids )
             obj.vehicle_ids = vehicle_ids;
+            obj.amount = length(vehicle_ids);
+            if obj.amount == 1
+                obj.index_in_vehicle_list = find([obj.scenario.vehicle.ID] == obj.vehicle_ids(1),1);
+            else
+                obj.index_in_vehicle_list = [];
+            end
         end
 
         function set_scenario( obj, scenario )
@@ -125,7 +139,7 @@ classdef (Abstract) HLCInterface < handle
             if obj.scenario.options.isPB
                 % In priority-based computation, vehicles communicate via ROS 2
                 % Initialize the communication network of ROS 2
-                [obj.scenario, obj.ros_subscribers] = communication_init(obj.scenario, obj.hlc_adapter);
+                communication_init(obj);
             end
 
             obj.vehs_fallback_times = zeros(1,obj.scenario.options.amount);

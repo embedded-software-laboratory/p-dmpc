@@ -54,7 +54,7 @@ classdef SimLab < InterfaceExperiment
                 % visualize time step
                 % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                plotting_info = PlottingInfo(result, obj.k, tick_now, exploration_struct, obj.scenario.options.optionsPlotOnline);
+                plotting_info = PlottingInfo(obj.veh_ids, result, obj.k, tick_now, exploration_struct, obj.scenario.options.optionsPlotOnline);
                 if obj.use_visualization_data_queue
                     send(obj.visualization_data_queue, plotting_info);
                 else

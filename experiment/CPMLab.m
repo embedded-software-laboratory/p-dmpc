@@ -23,6 +23,7 @@ classdef CPMLab < InterfaceExperiment
         g29_handler
         g29_last_position
         pos_init
+        index_in_vehicle_list
     end
     
     methods
@@ -34,6 +35,11 @@ classdef CPMLab < InterfaceExperiment
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(amount,1), zeros(amount,1));
+            if obj.amount == 1
+                obj.index_in_vehicle_list = find(scenario.options.veh_ids == obj.veh_ids(1),1);
+            else
+                obj.index_in_vehicle_list = [];
+            end
         end
         
         function setup(obj)
@@ -133,13 +139,23 @@ classdef CPMLab < InterfaceExperiment
             
             % for first iteration use real poses
             if obj.pos_init == false
-                x0 = zeros(amount,4);
+                x0 = zeros(obj.amount,4);
                 pose = [obj.sample(end).state_list.pose];
-                x0(:,1) = [pose.x];
-                x0(:,2) = [pose.y];
-                x0(:,3) = [pose.yaw];
-                x0(:,4) = [obj.sample(end).state_list.speed];
-                [ ~, trim_indices ] = obj.measure_node();
+                if obj.amount == 1
+                    % TODO debug sample in lab
+                    x0(:,1) = pose.x(obj.index_in_vehicle_list);
+                    x0(:,2) = pose.y(obj.index_in_vehicle_list);
+                    x0(:,3) = pose.yaw(obj.index_in_vehicle_list);
+                    x0(:,4) = [obj.sample(end).state_list.speed(obj.index_in_vehicle_list)];
+                    [ ~, trim_indices ] = obj.measure_node();
+                else
+                    x0(:,1) = [pose.x];
+                    x0(:,2) = [pose.y];
+                    x0(:,3) = [pose.yaw];
+                    x0(:,4) = [obj.sample(end).state_list.speed];
+                    [ ~, trim_indices ] = obj.measure_node();
+
+                end
                 obj.pos_init = true;
             else
                 [ x0, trim_indices ] = obj.measure_node();
@@ -171,7 +187,7 @@ classdef CPMLab < InterfaceExperiment
             obj.k = k;
             % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.scenario.options.amount,1);
-            for iVeh = 1:obj.scenario.options.amount
+            for iVeh = 1:obj.amount
                 n_traj_pts = obj.scenario.options.Hp;
                 n_predicted_points = size(y_pred{iVeh},1);
                 idx_predicted_points = 1:n_predicted_points/n_traj_pts:n_predicted_points;

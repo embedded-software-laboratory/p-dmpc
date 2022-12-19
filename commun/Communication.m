@@ -30,21 +30,21 @@ classdef Communication
             obj.options = struct("History","keeplast","Depth",40,"Durability","transientlocal");
         end
 
-        function obj = create_publisher(obj)
+        function obj = create_publisher(obj, rand)
             % workaround to be able to create publisher in the lab
             obj.publisher = ros2publisher(obj.ros2_node,"/parameter_events");
             % create publisher: each vehicle send message only to its own topic with name '/vehicle_ID'
-            topic_name_publish = ['/vehicle_',num2str(obj.vehicle_id)]; 
+            topic_name_publish = ['/vehicle_',num2str(obj.vehicle_id), num2str(rand)]; 
             obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/Traffic", obj.options);
         end
 
-        function ros_subscribers = create_subscriber(obj, vehs_to_be_subscribed)
+        function ros_subscribers = create_subscriber(obj, vehs_to_be_subscribed, rand)
 
             ros_subscribers = cell(length(vehs_to_be_subscribed), 1);
             % create subscribers: all topics should be subscribed
             for i = 1:length(vehs_to_be_subscribed)
                 veh_id = vehs_to_be_subscribed(i);
-                topic_name_subscribe = ['/vehicle_',num2str(veh_id)];
+                topic_name_subscribe = ['/vehicle_',num2str(veh_id), num2str(rand)];
 %                 callback = {@(msg) disp(msg)}; % callback function which will be executed automatically when receiving new message 
 %                 obj.subscribe{iVeh} = ros2subscriber(obj.ros2_node,topic_name_subscribe,"veh_msgs/Traffic",@callback_when_receiving_message,options);
 %                 obj.subscribe{iVeh} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Traffic", options);
