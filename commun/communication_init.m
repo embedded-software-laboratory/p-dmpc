@@ -69,16 +69,11 @@ Hp = hlc.scenario.options.Hp;
 if isempty(hlc.scenario.vehicles(1).communicate)
     start = tic;
     disp('Creating ROS 2 publishers...')
-    if hlc.amount == 1
-        hlc.scenario.vehicles(hlc.index_in_vehicle_list).communicate = Communication(); % create instance of the Comunication class
-        hlc.scenario.vehicles(hlc.index_in_vehicle_list).communicate = initialize_communication(hlc.scenario.vehicles(hlc.index_in_vehicle_list).communicate, hlc.scenario.vehicles(iVeh).ID); % initialize
-        hlc.scenario.vehicles(hlc.index_in_vehicle_list).communicate = create_publisher(hlc.scenario.vehicles(hlc.index_in_vehicle_list).communicate, num); % create publisher
-    else
-        for iVeh = 1:nVeh
-            hlc.scenario.vehicles(iVeh).communicate = Communication(); % create instance of the Comunication class
-            hlc.scenario.vehicles(iVeh).communicate = initialize_communication(hlc.scenario.vehicles(iVeh).communicate, hlc.scenario.vehicles(iVeh).ID); % initialize
-            hlc.scenario.vehicles(iVeh).communicate = create_publisher(hlc.scenario.vehicles(iVeh).communicate, num); % create publisher
-        end
+    for index = hlc.indices_in_vehicle_list
+        hlc.scenario.vehicles(index).communicate = Communication(); % create instance of the Comunication class
+        hlc.scenario.vehicles(index).communicate = initialize_communication(hlc.scenario.vehicles(index).communicate, hlc.scenario.vehicles(index).ID); % initialize
+        hlc.scenario.vehicles(index).communicate = create_publisher(hlc.scenario.vehicles(index).communicate, num); % create publisher
+
     end
 end
 
@@ -89,24 +84,24 @@ end
 % time-consuming to create many subscribers.
 % The subscribers will be used by all vehicles.
 disp('Creating ROS 2 subscribers...')
-vehs_to_be_subscribed = hlc.vehicle_ids;
-hlc.ros_subscribers = create_subscriber(hlc.scenario.vehicles(hlc.index_in_vehicle_list).communicate,vehs_to_be_subscribed, num);
+vehs_to_be_subscribed = hlc.scenario.options.veh_ids;
+hlc.ros_subscribers = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate,vehs_to_be_subscribed, num);
 duration = toc(start);
 disp(['Finished in ' num2str(duration) ' seconds.'])
 
 if ~hlc.scenario.options.is_mixed_traffic
     % Communicate predicted trims, pridicted lanelets and areas to other vehicles
-    for jVeh = 1:nVeh
-        predicted_trims = repmat(trims_measured(jVeh), 1, Hp+1); % current trim and predicted trims in the prediction horizon
+    for veh_index = hlc.indices_in_vehicle_list
+        predicted_trims = repmat(trims_measured(veh_index), 1, Hp+1); % current trim and predicted trims in the prediction horizon
 
-        x0 = x0_measured(jVeh,indices().x); % vehicle position x
-        y0 = x0_measured(jVeh,indices().y); % vehicle position y
+        x0 = x0_measured(veh_index,indices().x); % vehicle position x
+        y0 = x0_measured(veh_index,indices().y); % vehicle position y
 
-        predicted_lanelets = get_predicted_lanelets(hlc.scenario,jVeh,predicted_trims(1),x0,y0);
+        predicted_lanelets = get_predicted_lanelets(hlc.scenario,veh_index,predicted_trims(1),x0,y0);
 
         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
         is_fallback = false; % whether vehicle should take fallback
-        hlc.scenario.vehicles(jVeh).communicate.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback);
+        hlc.scenario.vehicles(veh_index).communicate.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback);
     end
 end
 pause(1.2) % ensure ROS messages are received

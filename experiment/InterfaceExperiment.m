@@ -28,7 +28,7 @@ classdef (Abstract) InterfaceExperiment < handle
 
         function [ x0, trim_indices ] = measure_node(obj)
             % take last planned state as new actual state
-            speeds = zeros(obj.amount,1);
+            speeds = zeros(obj.scenario.options.amount,1);
             for iVeh=1:obj.amount
                 speeds(iVeh) = obj.scenario.mpa.trims(obj.cur_node(iVeh,NodeInfo.trim)).speed;
             end

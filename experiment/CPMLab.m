@@ -23,7 +23,7 @@ classdef CPMLab < InterfaceExperiment
         g29_handler
         g29_last_position
         pos_init
-        index_in_vehicle_list
+        indices_in_vehicle_list
     end
     
     methods
@@ -36,9 +36,9 @@ classdef CPMLab < InterfaceExperiment
             obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(amount,1), zeros(amount,1));
             if obj.amount == 1
-                obj.index_in_vehicle_list = find(scenario.options.veh_ids == obj.veh_ids(1),1);
+                obj.indices_in_vehicle_list = [find(scenario.options.veh_ids == obj.vehicle_ids(1),1)];
             else
-                obj.index_in_vehicle_list = [];
+                obj.indices_in_vehicle_list = 1:obj.amount;
             end
         end
         
@@ -139,23 +139,15 @@ classdef CPMLab < InterfaceExperiment
             
             % for first iteration use real poses
             if obj.pos_init == false
-                x0 = zeros(obj.amount,4);
+                x0 = zeros(obj.scenario.options.amount,4);
                 pose = [obj.sample(end).state_list.pose];
-                if obj.amount == 1
-                    % TODO debug sample in lab
-                    x0(:,1) = pose.x(obj.index_in_vehicle_list);
-                    x0(:,2) = pose.y(obj.index_in_vehicle_list);
-                    x0(:,3) = pose.yaw(obj.index_in_vehicle_list);
-                    x0(:,4) = [obj.sample(end).state_list.speed(obj.index_in_vehicle_list)];
-                    [ ~, trim_indices ] = obj.measure_node();
-                else
-                    x0(:,1) = [pose.x];
-                    x0(:,2) = [pose.y];
-                    x0(:,3) = [pose.yaw];
-                    x0(:,4) = [obj.sample(end).state_list.speed];
-                    [ ~, trim_indices ] = obj.measure_node();
-
+                for index = obj.indices_in_vehicle_list
+                    x0(index,1) = pose.x(index);
+                    x0(index,2) = pose.y(index);
+                    x0(index,3) = pose.yaw(index);
+                    x0(index,4) = [obj.sample(end).state_list.speed(index)];
                 end
+                [ ~, trim_indices ] = obj.measure_node();
                 obj.pos_init = true;
             else
                 [ x0, trim_indices ] = obj.measure_node();

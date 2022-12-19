@@ -8,8 +8,8 @@ classdef (Abstract) HLCInterface < handle
         % amount of vehicle controlled by this HLC
         amount
 
-        % index of vehicle in vehicle list (only used if amount=1)
-        index_in_vehicle_list
+        % indices of vehicleList relevant for this HLC (e.g contains 1 index iff hlc.amount = 1)
+        indices_in_vehicle_list
         
         % scenario
         scenario
@@ -57,7 +57,7 @@ classdef (Abstract) HLCInterface < handle
             % Or should we make valid and useful default values?
             obj.vehicle_ids = [];
             obj.amount = 0;
-            obj.index_in_vehicle_list = 1; % set default to 1 (used by communication init to get any communication class)
+            obj.indices_in_vehicle_list = [];
             obj.ros_subscribers = {};
             obj.k = 0;
             obj.controller_name = '';
@@ -91,7 +91,9 @@ classdef (Abstract) HLCInterface < handle
             obj.vehicle_ids = vehicle_ids;
             obj.amount = length(vehicle_ids);
             if obj.amount == 1
-                obj.index_in_vehicle_list = find([obj.scenario.vehicle.ID] == obj.vehicle_ids(1),1);
+                obj.indices_in_vehicle_list = [find([obj.scenario.vehicle.ID] == obj.vehicle_ids(1),1)];
+            else
+                obj.indices_in_vehicle_list = 1:obj.amount;
             end
         end
 
