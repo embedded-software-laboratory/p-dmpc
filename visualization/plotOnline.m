@@ -35,13 +35,13 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
 
     % find all the plots with property "LineWidth 1", which are different to plot_lanelets (default "LineWidth 0.5")  
     % at every time step, delete all these plots while keep plot_lanelets
-    h = findobj('LineWidth',1);
-    delete(h)
+    h = findobj('LineWidth', 1);
+    delete(h);
     
     if exploration.doExploration
         visualize_exploration(exploration,scenario);
     end
-    
+
     if visu.isVideoMode
         % in video mode, lanelets should be plotted at each time step
         hold on
@@ -59,14 +59,12 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         if ~isempty(scenario.road_raw_data.lanelet)
             plot_lanelets(scenario.road_raw_data.lanelet,scenario.name);
         end
-
-        colormap("hot"); % set colormap
     elseif step_idx == 1
         % if not video mode, lanelets should be plotted only at the initial time step
         hold on
         box on
         axis equal
-        
+
         xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
         ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
     
@@ -78,19 +76,18 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         if ~isempty(scenario.road_raw_data.lanelet)
             plot_lanelets(scenario.road_raw_data.lanelet,scenario.options.scenario_name);
         end
-
-        colormap("hot"); % set colormap
     end
 
+    find_text_hotkey = findobj('Tag','hotkey');
     if visu.isShowHotkeyDescription
         % show description of hotkey
-        find_text_hotkey = findall(gcf,'Type','text','Tag','hotkey');
         if isempty(find_text_hotkey)
             HotkeyDesc = {'Hotkey:';
                           '{\itp}: show/hide priority colorbar';
                           '{\iti}: show/hide vehicle IDs';
                           '{\itc}: show/hide coupling lines';
                           '{\itw}: show/hide coupling weights';
+                          '{\ith}: show/hide hot key descriptions';
                           '{\itspace}: pause/start simulation';
                           '{\itreturn}: disable/enable plotting';
                           '{\itesc}: end simulation'};
@@ -107,31 +104,37 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
             end
             text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
         end
+    else
+        % remove hot keys description if it was painted
+        delete(find_text_hotkey);
     end
-
-    get_colormap = get(gcf,'Colormap');
-
-    % get colors
-    n_priorities = length(unique(priority_list)); % number of different priorities
-    n_colors_min = 5; % minimum number of colors
-    n_colors = max(n_colors_min,n_priorities); 
-    sticks = round(linspace(1,size(get_colormap,1),n_colors+1));
-    vehColor = get_colormap(sticks(2:end),:); % evenly sample from colormap
-    
+    % Define a new colormap in the first timestep, else get the colormap already associated with the plot.
+    if step_idx == 1
+        [priority_colormap, n_colors_max] = discrete_colormap();
+        colormap(priority_colormap);
+    else
+        priority_colormap = get(gcf, 'Colormap');
+        n_colors_max = size(priority_colormap, 1);
+    end
+ 
     if visu.isShowPriority
-        find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
-        if isempty(find_colorbar)
+        % Get plot's priority colorbar and set it to visible or define a new priority colorbar.
+        priority_colorbar = findobj('Tag','priority_colorbar');
+        if isempty(priority_colorbar)
             priority_colorbar = colorbar('Tag','priority_colorbar','FontName','Verdana','FontSize',9);
-            priority_colorbar.Title.String = '              Priority \newline(low value for high priority)'; % todo: find way to center the first line instead of using many spaces
+            priority_colorbar.Title.String = 'Priority';
             priority_colorbar.Title.FontSize = 9;
-            priority_colorbar.Ticks = 1:n_colors; % only show integer ticks
+            priority_colorbar.TickLabels = string(1:n_colors_max);
+            priority_colorbar.TickLength = 0;
         else
-            find_colorbar.Visible = 'on';
-            find_colorbar.Ticks = 1:n_colors;
+            priority_colorbar.Visible = 'on';
         end
-
-        caxis([0 n_colors]); % define range of colorbar
-%         clim([1 n_colors]) % renamed from caxis in R2022a
+        
+        % Plot labels in the middle of each priority color.
+        priority_colorbar.Ticks = 0.5:n_colors_max-0.5;
+        % Define the range of the colorbar according to the number of colors.
+        caxis([0 n_colors_max]);
+%         clim([0 n_colors_max]) % renamed from caxis in R2022a
     end
 
     %%
@@ -139,21 +142,23 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     for v=1:nVeh
         line(   iter.referenceTrajectoryPoints(v,:,1), ...
                 iter.referenceTrajectoryPoints(v,:,2), ...
-                'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize',3,'LineWidth',1 );
+                'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','o', ...
+                'MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize',3,'LineWidth',1 );
     end
 
     % predicted trajectory
     for v=1:nVeh
         line(   result.trajectory_predictions{v,step_idx}([1:scenario.options.tick_per_step+1:end,end],1), ...
                 result.trajectory_predictions{v,step_idx}([1:scenario.options.tick_per_step+1:end,end],2), ...
-                'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
+                'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','+', ...
+                'MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
                 % Matlab R2021a:
-                %'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
+                %'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
                 % Matlab R2020a:
-                %'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
+                %'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
         line(   result.trajectory_predictions{v,step_idx}(:,1), ...
                 result.trajectory_predictions{v,step_idx}(:,2), ...
-                'Color',vehColor(priority_list(v),:),'LineWidth',1 );
+                'Color',priority_colormap(priority_list(v),:),'LineWidth',1 );
     end
 
     % Vehicle rectangles
@@ -164,7 +169,7 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
         vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
         patch(   vehiclePolygon(1,:)...
                 ,vehiclePolygon(2,:)...
-                ,vehColor(priority_list(v),:)...
+                ,priority_colormap(priority_list(v),:)...
                 ,'LineWidth', 1 ...
         );
 
@@ -173,9 +178,12 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
 %             text(x(1),x(2),num2str(result.priority(v,step_idx)),'FontSize', 12, 'LineWidth',1,'Color','m');
 %         end
 
-        % plot the vehicle index
+        % plot the vehicle index in the middle of each vehicle on a lighter background
         if visu.isShowVehID
-            text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 16, 'LineWidth',1,'Color','b');
+            radius = veh.Width * 0.95 / 2;
+            rectangle('Position', [x(1)-radius, x(2)-radius, 2*radius, 2*radius], 'Curvature', [1,1], ...
+                      'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
+            text(x(1), x(2), num2str(v),'FontSize', 10, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
         end
 
         % plot the vehicle ID
@@ -220,8 +228,8 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
     end
 
     % plot scenario adjacency
-    coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',visu.isShowCoupling,'isShowValue',visu.isShowWeight);
     if visu.isShowCoupling
+        coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',visu.isShowCoupling,'isShowValue',visu.isShowWeight, 'radius', radius);
         x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
         if ~isempty(scenario.coupling_weights_reduced)

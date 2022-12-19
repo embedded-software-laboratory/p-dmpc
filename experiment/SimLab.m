@@ -72,6 +72,13 @@ classdef SimLab < InterfaceExperiment
                     else
                         disp('Hide couplings weights.')
                     end
+                case 'h'
+                    obj.visu.isShowHotkeyDescription = ~obj.visu.isShowHotkeyDescription;
+                    if obj.visu.isShowHotkeyDescription 
+                        disp('Show hot key descriptions.')
+                    else
+                        disp('Hide hot key descriptions.')
+                    end
                 case 'return'
                     obj.doOnlinePlot = ~obj.doOnlinePlot;
                     if obj.doOnlinePlot 
