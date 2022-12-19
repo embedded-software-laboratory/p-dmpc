@@ -10,13 +10,15 @@ classdef SimLab < InterfaceExperiment
     end
     
     methods
-        function obj = SimLab(scenario, visualization_data_queue)
+        function obj = SimLab(scenario, veh_ids, visualization_data_queue)
+            obj = obj@InterfaceExperiment(veh_ids);
             obj.scenario = scenario;
             obj.doOnlinePlot = obj.scenario.options.visu(1);
             obj.doExploration = obj.scenario.options.visu(2);
             obj.use_visualization_data_queue = false;    
             obj.visualization_data_queue = visualization_data_queue;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
+            obj.veh_ids = veh_ids;
         end
         
         function setup(obj)
@@ -33,7 +35,7 @@ classdef SimLab < InterfaceExperiment
 %             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
 %         end
         
-        function [ x0, trim_indices ] = measure(obj, ~)
+        function [ x0, trim_indices ] = measure(obj)
             [ x0, trim_indices ] = obj.measure_node();
         end
         

@@ -59,7 +59,7 @@ function [scenario, ros_subscribers] = communication_init(scenario, exp)
     Hp = scenario.options.Hp;
 
     % measure vehicles' initial poses and trims
-    [x0_measured, trims_measured] = exp.measure(false);
+    [x0_measured, trims_measured] = exp.measure();
 
     
 %     topicList = ros2("topic","list");

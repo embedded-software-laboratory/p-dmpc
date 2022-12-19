@@ -2,7 +2,6 @@ classdef CPMLab < InterfaceExperiment
 % CPMLAB    Instance of experiment interface for usage in the cpm lab.
     
     properties (Access=private)
-        vehicle_ids
         matlabParticipant
         matlabParticipantLab
         reader_vehicleStateList
@@ -23,19 +22,22 @@ classdef CPMLab < InterfaceExperiment
         visualize_second_manual_lane_change_counter
         g29_handler
         g29_last_position
+        pos_init
     end
     
     methods
-        function obj = CPMLab(scenario, vehicle_ids)
-            obj.vehicle_ids = vehicle_ids;
+        function obj = CPMLab(scenario, veh_ids)
+            obj = obj@InterfaceExperiment(veh_ids);
             obj.scenario = scenario;
+            obj.amount = size(obj.veh_ids);
+            obj.pos_init = false;
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
+            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(amount,1), zeros(amount,1));
         end
         
         function setup(obj)
-            assert(issorted(obj.vehicle_ids));
+            assert(issorted(obj.veh_ids));
 
             % Initialize data readers/writers...
             % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
@@ -123,21 +125,22 @@ classdef CPMLab < InterfaceExperiment
             gamepadData = receive(obj.gamepadSub, 1);
         end
 
-        function [ x0, trim_indices ] = measure(obj, controller_init)
+        function [ x0, trim_indices ] = measure(obj)
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
             if (sample_count > 1)
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
             
             % for first iteration use real poses
-            if controller_init == false
-                x0 = zeros(obj.scenario.options.amount,4);
+            if obj.pos_init == false
+                x0 = zeros(amount,4);
                 pose = [obj.sample(end).state_list.pose];
                 x0(:,1) = [pose.x];
                 x0(:,2) = [pose.y];
                 x0(:,3) = [pose.yaw];
                 x0(:,4) = [obj.sample(end).state_list.speed];
                 [ ~, trim_indices ] = obj.measure_node();
+                obj.pos_init = true;
             else
                 [ x0, trim_indices ] = obj.measure_node();
 
@@ -204,7 +207,7 @@ classdef CPMLab < InterfaceExperiment
                 
                 if ~is_manual_vehicle_expert_mode
                     vehicle_command_trajectory = VehicleCommandTrajectory;
-                    vehicle_command_trajectory.vehicle_id = uint8(obj.vehicle_ids(iVeh));
+                    vehicle_command_trajectory.vehicle_id = uint8(obj.veh_ids(iVeh));
                     vehicle_command_trajectory.trajectory_points = trajectory_points;
                     vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
                         uint64(obj.sample(end).t_now);

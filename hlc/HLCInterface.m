@@ -25,18 +25,22 @@ classdef (Abstract) HLCInterface < handle
         controller_name
         result
         k
+        iter;
+        info;
 
     end
     %TODO check for private vars
-    properties (Access=public)
+    properties (Access=private)
         initialized_reference_path
         got_stop;
         speedProfileMPAsInitialized;
         cooldown_after_lane_change;
         cooldown_second_manual_vehicle_after_lane_change;
-        controller_init;
-        iter;
-        info;
+        vehs_fallback_times; % record the number of successive fallback times of each vehicle% record the number of successive fallback times of each vehicle
+        info_old; % old information for fallback
+        scenario_static;
+        total_fallback_times; % total times of fallbacks
+        vehs_stop_duration;
     end
 
     methods
@@ -54,12 +58,14 @@ classdef (Abstract) HLCInterface < handle
             obj.speedProfileMPAsInitialized = false;
             obj.cooldown_after_lane_change = 0;
             obj.cooldown_second_manual_vehicle_after_lane_change = 0;
-            obj.controller_init = false;
+            obj.info_old = [];
+            obj.total_fallback_times = 0;
         end
 
         function [result,scenario] = run(obj)
-            obj.init_hlc()
-            obj.hlc_main_control_loop()
+            obj.init_hlc();
+            obj.hlc_main_control_loop();
+            obj.save_results();
             result = obj.result;
             scenario = obj.scenario;
         end
@@ -89,7 +95,7 @@ classdef (Abstract) HLCInterface < handle
             if obj.scenario.options.is_sim_lab == false
                 obj.hlc_adapter = CPMLab(obj.scenario, obj.vehicle_ids);
             else
-                obj.hlc_adapter = SimLab(obj.scenario, visualization_data_queue);
+                obj.hlc_adapter = SimLab(obj.scenario, obj.vehicle_ids, visualization_data_queue);
             end
             obj.hlc_adapter.setup();
         end
@@ -106,6 +112,9 @@ classdef (Abstract) HLCInterface < handle
             % init result struct
             obj.result = get_result_struct(obj.scenario);
 
+            % record the number of time steps that vehicles continually stop
+            obj.vehs_stop_duration = zeros(obj.scenario.options.amount,1);
+
             %TODO Shouldn't this value be already 0?
             obj.scenario.k = obj.k;
 
@@ -119,22 +128,18 @@ classdef (Abstract) HLCInterface < handle
                 [obj.scenario, obj.ros_subscribers] = communication_init(obj.scenario, obj.hlc_adapter);
             end
 
+            obj.vehs_fallback_times = zeros(1,obj.scenario.options.amount);
+
+            obj.scenario_static = obj.scenario;
+
+            % TODO still needed?
+            if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode || obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode
+                %r = rosrate(100000);
+            end
         end
 
 
         function hlc_main_control_loop(obj)
-
-            vehs_fallback_times = zeros(1,obj.scenario.options.amount); % record the number of successive fallback times of each vehicle
-            info_old = []; % old information for fallback
-            total_fallback_times = 0; % total times of fallbacks
-
-            vehs_stop_duration = zeros(obj.scenario.options.amount,1); % record the number of time steps that vehicles continually stop
-
-            if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode || obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode
-                %r = rosrate(100000);
-            end
-
-            scenario_static = obj.scenario;
 
             %% Main control loop
             while (~obj.got_stop)
@@ -147,8 +152,7 @@ classdef (Abstract) HLCInterface < handle
 
                 % Measurement
                 % -------------------------------------------------------------------------
-                [x0_measured, trims_measured] = obj.hlc_adapter.measure(obj.controller_init);% trims_measured： which trim
-                obj.controller_init = true;
+                [x0_measured, trims_measured] = obj.hlc_adapter.measure();% trims_measured： which trim
 
                 obj.scenario.k = obj.k;
 
@@ -268,7 +272,7 @@ classdef (Abstract) HLCInterface < handle
                 obj.result.distance(:,:,obj.k) = distance;
 
                 % dynamic scenario
-                obj.scenario = get_next_dynamic_obstacles_scenario(obj.scenario, scenario_static, obj.k);
+                obj.scenario = get_next_dynamic_obstacles_scenario(obj.scenario, obj.scenario_static, obj.k);
                 obj.result.iter_runtime(obj.k) = toc(obj.result.step_timer);
 
                 % The controller computes plans
@@ -287,9 +291,9 @@ classdef (Abstract) HLCInterface < handle
                         break
                     end
                 else
-                    vehs_fallback_times(obj.info.vehs_fallback) = vehs_fallback_times(obj.info.vehs_fallback) + 1;
+                    obj.vehs_fallback_times(obj.info.vehs_fallback) = obj.vehs_fallback_times(obj.info.vehs_fallback) + 1;
                     vehs_not_fallback = setdiff(1:obj.scenario.options.amount, obj.info.vehs_fallback);
-                    vehs_fallback_times(vehs_not_fallback) = 0; % reset
+                    obj.vehs_fallback_times(vehs_not_fallback) = 0; % reset
 
                     % check whether at least one vehicle has fallen back Hp times successively
 
@@ -300,12 +304,12 @@ classdef (Abstract) HLCInterface < handle
                         str_fb_type = sprintf('triggering %s', obj.scenario.options.fallback_type);
                         disp_tmp = sprintf(' %d,',obj.info.vehs_fallback); disp_tmp(end) = [];
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
-                        obj.info = pb_controller_fallback(obj.info, info_old, obj.scenario);
-                        total_fallback_times = total_fallback_times + 1;
+                        obj.info = pb_controller_fallback(obj.info, obj.info_old, obj.scenario);
+                        obj.total_fallback_times = obj.total_fallback_times + 1;
                     end
                 end
 
-                info_old = obj.info; % save variable in case of fallback
+                obj.info_old = obj.info; % save variable in case of fallback
                 %% save result of current time step
                 obj.result.controller_runtime(obj.k) = toc(controller_timer);
 
@@ -348,17 +352,17 @@ classdef (Abstract) HLCInterface < handle
                 % TODO check if deadlocked vehicles are coupled. Sometimes single
                 % vehicles stop because trajectory planner fails to work as intended
                 vehs_stop = any(ismember(obj.info.trim_indices,obj.scenario.mpa.trims_stop),2); % vehicles stop at the current time step
-                vehs_stop_duration( vehs_stop) = vehs_stop_duration(vehs_stop) + 1;
-                vehs_stop_duration(~vehs_stop) = 0; % reset others
+                obj.vehs_stop_duration( vehs_stop) = obj.vehs_stop_duration(vehs_stop) + 1;
+                obj.vehs_stop_duration(~vehs_stop) = 0; % reset others
 
                 threshold_stop_steps = 3*obj.scenario.options.Hp;
-                vehs_deadlocked = (vehs_stop_duration>threshold_stop_steps);
+                vehs_deadlocked = (obj.vehs_stop_duration>threshold_stop_steps);
                 n_deadlocked_vehicles = nnz(vehs_deadlocked);
                 % TODO n_coupled_deadlocked_vehicles
                 if n_deadlocked_vehicles > 0
                     veh_idcs_deadlocked = find(vehs_deadlocked);
                     veh_str = sprintf("%4d",veh_idcs_deadlocked);
-                    t_str = sprintf("%4d",vehs_stop_duration(vehs_deadlocked));
+                    t_str = sprintf("%4d",obj.vehs_stop_duration(vehs_deadlocked));
                     fprintf("Deadlock. Vehicle:%s\n",veh_str);
                     fprintf("    For timesteps:%s\n",t_str)
                     obj.result.is_deadlock(obj.k) = 1;
@@ -373,10 +377,12 @@ classdef (Abstract) HLCInterface < handle
                 obj.got_stop = obj.hlc_adapter.is_stop() || obj.got_stop;
 
             end
+        end
 
+        function save_results(obj)
             %% save results at end of experiment
-            obj.result.total_fallback_times = total_fallback_times;
-            disp(['Total times of fallback: ' num2str(total_fallback_times) '.'])
+            obj.result.total_fallback_times = obj.total_fallback_times;
+            disp(['Total times of fallback: ' num2str(obj.total_fallback_times) '.'])
 
             obj.result.t_total = obj.k*obj.scenario.options.dt;
             obj.result.nSteps = obj.k;
@@ -413,7 +419,7 @@ classdef (Abstract) HLCInterface < handle
                 %     warning('File with the same name exists, timestamp will be added to the file name.')
                 %     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
                 % end
-                
+
                 result = obj.result;
                 save(obj.result.output_path,'result');
                 disp(['Simulation results were saved under ' obj.result.output_path])
