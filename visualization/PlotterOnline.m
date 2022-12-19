@@ -48,37 +48,6 @@ classdef PlotterOnline < handle
 
             set(0,'DefaultTextFontname', 'Verdana');
             set(0,'DefaultAxesFontName', 'Verdana');
-
-            find_text_hotkey = findobj('Tag','hotkey');
-            if obj.plot_options.isShowHotkeyDescription
-                % show description of hotkey
-                if isempty(find_text_hotkey)
-                    HotkeyDesc = {'Hotkey:';
-                        '{\itp}: show/hide priority colorbar';
-                        '{\iti}: show/hide vehicle IDs';
-                        '{\itc}: show/hide coupling lines';
-                        '{\itw}: show/hide coupling weights';
-                        '{\ith}: show/hide hot key descriptions';
-                        '{\itspace}: pause/start simulation';
-                        '{\itreturn}: disable/enable plotting';
-                        '{\itesc}: end simulation'};
-                    if strcmp(scenario.name,'Commonroad')
-                        x_text_hotkey = scenario.options.plot_limits(1,1) - 1.5;
-                        y_text_hotkey = scenario.options.plot_limits(2,2) - 0.5;
-                    elseif strcmp(scenario.name,'Circle_scenario')
-                        x_text_hotkey = scenario.options.plot_limits(1,1) - 2.0;
-                        y_text_hotkey = scenario.options.plot_limits(2,2) - 0.5;
-                    else
-                        % to be define according to the specific scenario
-                        x_text_hotkey = scenario.options.plot_limits(1,1) - 1.5;
-                        y_text_hotkey = scenario.options.plot_limits(2,2) - 0.5;
-                    end
-                    text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
-                end
-            else
-                % remove hot keys description if it was painted
-                delete(find_text_hotkey);
-            end
             hold on
         end
 
@@ -143,6 +112,37 @@ classdef PlotterOnline < handle
             else
                 priority_colormap = get(gcf, 'Colormap');
                 n_colors_max = size(priority_colormap, 1);
+            end
+
+            find_text_hotkey = findobj('Tag','hotkey');
+            if obj.plot_options.isShowHotkeyDescription
+                % show description of hotkey
+                if isempty(find_text_hotkey)
+                    HotkeyDesc = {'Hotkey:';
+                        '{\itp}: show/hide priority colorbar';
+                        '{\iti}: show/hide vehicle IDs';
+                        '{\itc}: show/hide coupling lines';
+                        '{\itw}: show/hide coupling weights';
+                        '{\ith}: show/hide hot key descriptions';
+                        '{\itspace}: pause/start simulation';
+                        '{\itreturn}: disable/enable plotting';
+                        '{\itesc}: end simulation'};
+                    if strcmp(obj.scenario.options.scenario_name,'Commonroad')
+                        x_text_hotkey = obj.scenario.options.plot_limits(1,1) - 1.5;
+                        y_text_hotkey = obj.scenario.options.plot_limits(2,2) - 0.5;
+                    elseif strcmp(obj.scenario.options.scenario_name,'Circle_scenario')
+                        x_text_hotkey = obj.scenario.options.plot_limits(1,1) - 2.0;
+                        y_text_hotkey = obj.scenario.options.plot_limits(2,2) - 0.5;
+                    else
+                        % to be define according to the specific scenario
+                        x_text_hotkey = obj.scenario.options.plot_limits(1,1) - 1.5;
+                        y_text_hotkey = obj.scenario.options.plot_limits(2,2) - 0.5;
+                    end
+                    text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
+                end
+            else
+                % remove hot keys description if it was painted
+                delete(find_text_hotkey);
             end
 
             if obj.plot_options.isShowPriority
