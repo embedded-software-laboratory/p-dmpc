@@ -137,7 +137,7 @@ classdef PlotterOnline < handle
             end
 
             % Define a new colormap in the first timestep, else get the colormap already associated with the plot.
-            if step_idx == 1
+            if plotting_info.step == 1
                 [priority_colormap, n_colors_max] = discrete_colormap();
                 colormap(priority_colormap);
             else
@@ -256,7 +256,7 @@ classdef PlotterOnline < handle
 
             % plot scenario adjacency
             if obj.plot_options.isShowCoupling
-                coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',visu.isShowCoupling,'isShowValue',visu.isShowWeight, 'radius', radius);
+                coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',obj.plot_options.isShowCoupling,'isShowValue',obj.plot_options.isShowWeight, 'radius', radius);
                 x0 = cellfun(@(c)c(tick_now,:), plotting_info.trajectory_predictions, 'UniformOutput', false);
                 x0 = cell2mat(x0);
                 if ~isempty(plotting_info.coupling_weights_reduced)
