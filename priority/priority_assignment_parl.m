@@ -29,8 +29,8 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
         [CL_based_hierarchy, directed_adjacency] = obj.priority();
         indexVehicleExpertMode = 0;
         for j = 1:scenario.options.amount
-            if ((scenario.vehicle_ids(j) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
-                || (scenario.vehicle_ids(j) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
+            if ((scenario.options.veh_ids(j) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+                || (scenario.options.veh_ids(j) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
                 indexVehicleExpertMode = j;
             end
         end
