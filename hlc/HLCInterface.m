@@ -92,8 +92,6 @@ classdef (Abstract) HLCInterface < handle
             obj.amount = length(vehicle_ids);
             if obj.amount == 1
                 obj.index_in_vehicle_list = find([obj.scenario.vehicle.ID] == obj.vehicle_ids(1),1);
-            else
-                obj.index_in_vehicle_list = [];
             end
         end
 
@@ -129,7 +127,7 @@ classdef (Abstract) HLCInterface < handle
             % record the number of time steps that vehicles continually stop
             obj.vehs_stop_duration = zeros(obj.scenario.options.amount,1);
 
-            %TODO Shouldn't this value be already 0?
+            %TODO Shouldn't this value be already set (to 0)?
             obj.scenario.k = obj.k;
 
             % turn off warning if intersections are detected and fixed, collinear points or
