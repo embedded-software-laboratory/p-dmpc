@@ -187,7 +187,7 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
            iter.last_trajectory_index(iVeh) = reference.ReferenceIndex(end);
         end
         
-        if strcmp(scenario.name, 'Commonroad')
+        if strcmp(scenario.options.scenario_name, 'Commonroad')
 
             % Vehicle in Expert-Mode does only consider boundaries when assuming RSS
             if ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
@@ -307,13 +307,14 @@ function [iter] = rhc_init(iter, scenario, x_measured, trims_measured, initializ
             end
         end
 
-        if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-            || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
+        if ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id)) && scenario.manual_mpa_initialized) ...
+            || ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id)) && scenario.second_manual_mpa_initialized)
             local_reachable_sets = scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
         else
             local_reachable_sets = scenario.mpa.local_reachable_sets_conv;
         end
         iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, scenario.options);
+
         
 
         % get each vehicle's currently occupied area

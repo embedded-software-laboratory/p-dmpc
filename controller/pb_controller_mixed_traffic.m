@@ -51,7 +51,7 @@ function [info, scenario, iter] = pb_controller_mixed_traffic(scenario, iter)
                 continue
             end
             
-            if scenario.vehicle_ids(vehicle_idx) ~= scenario.manual_vehicle_id && scenario.vehicle_ids(vehicle_idx) ~= scenario.second_manual_vehicle_id
+            if scenario.options.veh_ids(vehicle_idx) ~= scenario.manual_vehicle_id && scenario.options.veh_ids(vehicle_idx) ~= scenario.second_manual_vehicle_id
 
                 predecessors = group.predecessors;
                 index_first_manual_vehicle = 0;
@@ -60,7 +60,7 @@ function [info, scenario, iter] = pb_controller_mixed_traffic(scenario, iter)
                 coupled_manual_vehicles = find(coupling_weights(vehicle_idx,:)~=0); % indices of the coupled manual vehicles
 
                 for j = 1:length(predecessors)
-                    if scenario.vehicle_ids(predecessors(j)) == scenario.manual_vehicle_id
+                    if scenario.options.veh_ids(predecessors(j)) == scenario.manual_vehicle_id
                         % predecessor is first manual vehicle
 
                         if ismember(predecessors(j), coupled_manual_vehicles)
@@ -69,7 +69,7 @@ function [info, scenario, iter] = pb_controller_mixed_traffic(scenario, iter)
                         else
                             index_first_manual_vehicle = 0;
                         end
-                    elseif scenario.vehicle_ids(predecessors(j)) == scenario.second_manual_vehicle_id
+                    elseif scenario.options.veh_ids(predecessors(j)) == scenario.second_manual_vehicle_id
                         % predecessor is second manual vehicle
                     
                         if ismember(predecessors(j), coupled_manual_vehicles)
@@ -102,7 +102,7 @@ function [info, scenario, iter] = pb_controller_mixed_traffic(scenario, iter)
 
                     if info_v.is_exhausted
                         % if graph search is exhausted, only autonomous vehicles take fallback to prevent collision with first manual vehicle 
-                        disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
+                        disp(['Graph search exhausted for vehicle ' num2str(scenario.options.veh_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
                         %sub_graph_fallback = belonging_vector_total(vehicle_idx);
                         %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                         %info.vehs_fallback = unique(info.vehs_fallback,'stable');
@@ -130,7 +130,7 @@ function [info, scenario, iter] = pb_controller_mixed_traffic(scenario, iter)
 
                     if info_v.is_exhausted
                         % if graph search is exhausted, only autonomous vehicles take fallback to prevent collision with second manual vehicle 
-                        disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
+                        disp(['Graph search exhausted for vehicle ' num2str(scenario.options.veh_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
                         %sub_graph_fallback = belonging_vector_total(vehicle_idx);
                         %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                         %info.vehs_fallback = unique(info.vehs_fallback,'stable');
@@ -169,7 +169,7 @@ function [info, scenario, iter] = pb_controller_mixed_traffic(scenario, iter)
 
                 if info_v.is_exhausted
                     % if graph search is exhausted, this vehicles and all autonomous vehicles that have couplings will take fallback 
-                    disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
+                    disp(['Graph search exhausted for vehicle ' num2str(scenario.options.veh_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
                     %sub_graph_fallback = belonging_vector_total(vehicle_idx);
                     %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                     %info.vehs_fallback = unique(info.vehs_fallback,'stable');
@@ -192,7 +192,7 @@ function [info, scenario, iter] = pb_controller_mixed_traffic(scenario, iter)
     
                 if info_v.is_exhausted
                     % if graph search is exhausted, this manual vehicle will take fallback
-                    disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
+                    disp(['Graph search exhausted for vehicle ' num2str(scenario.options.veh_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
                     %sub_graph_fallback = belonging_vector_total(vehicle_idx);
                     %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                     %info.vehs_fallback = unique(info.vehs_fallback,'stable');

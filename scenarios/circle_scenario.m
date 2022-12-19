@@ -54,9 +54,9 @@ function scenario = circle_scenario(options)
  
         if options.isParl && (options.max_num_CLs < options.amount)
              % if parallel computation is used
-             scenario.controller_name = strcat('par. PB-', scenario.controller_name, " ", scenario.options.priority);
+             scenario.controller_name = strcat('par. PB-', scenario.controller_name, ' ', char(scenario.options.priority));
         else
-            scenario.controller_name = strcat('seq. PB-', scenario.controller_name, " ", scenario.options.priority);
+            scenario.controller_name = strcat('seq. PB-', scenario.controller_name, ' ', char(scenario.options.priority));
         end
      end
 
