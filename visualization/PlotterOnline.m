@@ -45,20 +45,20 @@ classdef PlotterOnline < handle
             xlim(scenario.options.plot_limits(1,:));
             ylim(scenario.options.plot_limits(2,:));
             daspect([1 1 1])
-            colormap("hot"); % set colormap
 
             set(0,'DefaultTextFontname', 'Verdana');
             set(0,'DefaultAxesFontName', 'Verdana');
 
+            find_text_hotkey = findobj('Tag','hotkey'); 
             if obj.plot_options.isShowHotkeyDescription
                 % show description of hotkey
-                find_text_hotkey = findall(gcf,'Type','text','Tag','hotkey');
                 if isempty(find_text_hotkey)
                     HotkeyDesc = {'Hotkey:';
                         '{\itp}: show/hide priority colorbar';
                         '{\iti}: show/hide vehicle IDs';
                         '{\itc}: show/hide coupling lines';
                         '{\itw}: show/hide coupling weights';
+                        '{\ith}: show/hide hot key descriptions'; 
                         '{\itspace}: pause/start simulation';
                         '{\itreturn}: disable/enable plotting';
                         '{\itesc}: end simulation'};
@@ -75,6 +75,9 @@ classdef PlotterOnline < handle
                     end
                     text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'FontSize',12, 'Tag','hotkey');
                 end
+            else
+                % remove hot keys description if it was painted
+                delete(find_text_hotkey);
             end
             hold on
         end
@@ -110,8 +113,8 @@ classdef PlotterOnline < handle
 
             % find all the plots with property "LineWidth 1", which are different to plot_lanelets (default "LineWidth 0.5")
             % at every time step, delete all these plots while keep plot_lanelets
-            h = findobj('LineWidth',1);
-            delete(h)
+            h = findobj('LineWidth', 1);
+            delete(h);
 
             if plotting_info.exploration.doExploration
                 visualize_exploration(plotting_info.exploration, obj.scenario.options.amount, obj.scenario.options.Hp);
@@ -133,29 +136,32 @@ classdef PlotterOnline < handle
                 colormap("hot"); % set colormap
             end
 
-            get_colormap = get(gcf,'Colormap');
-
-            % get colors
-            n_priorities = length(unique(priority_list)); % number of different priorities
-            n_colors_min = 5; % minimum number of colors
-            n_colors = max(n_colors_min,n_priorities);
-            sticks = round(linspace(1,size(get_colormap,1),n_colors+1));
-            vehColor = get_colormap(sticks(2:end),:); % evenly sample from colormap
+            % Define a new colormap in the first timestep, else get the colormap already associated with the plot.
+            if step_idx == 1
+                [priority_colormap, n_colors_max] = discrete_colormap();
+                colormap(priority_colormap);
+            else
+                priority_colormap = get(gcf, 'Colormap');
+                n_colors_max = size(priority_colormap, 1);
+            end
 
             if obj.plot_options.isShowPriority
-                find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
-                if isempty(find_colorbar)
+                % Get plot's priority colorbar and set it to visible or define a new priority colorbar.
+                priority_colorbar = findobj('Tag','priority_colorbar');
+                if isempty(priority_colorbar)
                     priority_colorbar = colorbar('Tag','priority_colorbar','FontName','Verdana','FontSize',9);
-                    priority_colorbar.Title.String = '              Priority \newline(low value for high priority)'; % todo: find way to center the first line instead of using many spaces
-                    priority_colorbar.Title.FontSize = 9;
-                    priority_colorbar.Ticks = 1:n_colors; % only show integer ticks
+                    priority_colorbar.Title.String = 'Priority';
+                    priority_colorbar.TickLabels = string(1:n_colors_max);
+                    priority_colorbar.TickLength = 0;
                 else
-                    find_colorbar.Visible = 'on';
-                    find_colorbar.Ticks = 1:n_colors;
+                    priority_colorbar.Visible = 'on';
                 end
 
-                caxis([0 n_colors]); % define range of colorbar
-                %         clim([1 n_colors]) % renamed from caxis in R2022a
+                % Plot labels in the middle of each priority color.
+                priority_colorbar.Ticks = 0.5:n_colors_max-0.5;
+                % Define the range of the colorbar according to the number of colors.
+                caxis([0 n_colors_max]);
+                %         clim([0 n_colors_max]) % renamed from caxis in R2022a
             end
 
             %%
@@ -163,21 +169,23 @@ classdef PlotterOnline < handle
             for v=1:obj.nVeh
                 line(   plotting_info.ref_trajectory(v,:,1), ...
                     plotting_info.ref_trajectory(v,:,2), ...
-                    'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','o','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize',3,'LineWidth',1 );
+                    'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','o', ... 
+                    'MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize',3,'LineWidth',1 ); 
             end
 
             % predicted trajectory
             for v=1:obj.nVeh
                 line(   plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step+1:end,end],1), ...
                     plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step+1:end,end],2), ...
-                    'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
+                    'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','+', ... 
+                    'MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 ); 
                 % Matlab R2021a:
-                %'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
+                %'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 ); 
                 % Matlab R2020a:
-                %'Color',vehColor(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
+                %'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 ); 
                 line(   plotting_info.trajectory_predictions{v}(:,1), ...
                     plotting_info.trajectory_predictions{v}(:,2), ...
-                    'Color',vehColor(priority_list(v),:),'LineWidth',1 );
+                    'Color',priority_colormap(priority_list(v),:),'LineWidth',1 );
             end
 
             % Vehicle rectangles
@@ -188,7 +196,7 @@ classdef PlotterOnline < handle
                 vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
                 patch(   vehiclePolygon(1,:)...
                     ,vehiclePolygon(2,:)...
-                    ,vehColor(priority_list(v),:)...
+                    ,priority_colormap(priority_list(v),:)... 
                     ,'LineWidth', 1 ...
                     );
 
@@ -197,9 +205,12 @@ classdef PlotterOnline < handle
                 %             text(x(1),x(2),num2str(result.priority(v,plotting_info.step)),'FontSize', 12, 'LineWidth',1,'Color','m');
                 %         end
 
-                % plot the vehicle index
+                % plot the vehicle index in the middle of each vehicle on a lighter background 
                 if obj.plot_options.isShowVehID
-                    text(x(1)+0.1,x(2)+0.1,num2str(v),'FontSize', 16, 'LineWidth',1,'Color','b');
+                    radius = veh.Width * 0.95 / 2;
+                    rectangle('Position', [x(1)-radius, x(2)-radius, 2*radius, 2*radius], 'Curvature', [1,1], ...
+                        'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
+                    text(x(1), x(2), num2str(v),'FontSize', 10, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
                 end
 
                 % plot the vehicle ID
@@ -244,8 +255,8 @@ classdef PlotterOnline < handle
             end
 
             % plot scenario adjacency
-            coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',obj.plot_options.isShowCoupling,'isShowValue',obj.plot_options.isShowWeight);
             if obj.plot_options.isShowCoupling
+                coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',visu.isShowCoupling,'isShowValue',visu.isShowWeight, 'radius', radius); 
                 x0 = cellfun(@(c)c(tick_now,:), plotting_info.trajectory_predictions, 'UniformOutput', false);
                 x0 = cell2mat(x0);
                 if ~isempty(plotting_info.coupling_weights_reduced)
@@ -369,6 +380,13 @@ classdef PlotterOnline < handle
                         disp('Show couplings weights.')
                     else
                         disp('Hide couplings weights.')
+                    end
+                case 'h'
+                    obj.plot_options.isShowHotkeyDescription = ~obj.plot_options.isShowHotkeyDescription;
+                    if obj.plot_options.isShowHotkeyDescription
+                        disp('Show hot key descriptions.')
+                    else
+                        disp('Hide hot key descriptions.')
                     end
                 case 'return'
                     obj.doOnlinePlot = ~obj.doOnlinePlot;
