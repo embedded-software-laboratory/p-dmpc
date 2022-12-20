@@ -31,11 +31,11 @@
 
 #### Create Matlab Docker image as required
 Create individual Matlab Docker image (with Python, gcc, ROS):
--	Create container based on mathworks/matlab docker image. Use docker run -it  --name MyMatlab -p 8888:8888 -p 6080:6080 -p 5901:5901 --shm-size=512M mathworks/matlab:r2022a -vnc as a base container
+-	Create container based on mathworks/matlab docker image. Use "docker run -it  --name MyMatlab -p 8888:8888 -p 6080:6080 -p 5901:5901 --shm-size=512M mathworks/matlab:r2022a -vnc" as a base container
 -	Access the container via your browser http://hostname:6080
 -	Execute matlab as root
 -	Activate matlab using your license or a license server( Set env variable MLM_LICENSE_FILE to use a license server)
--	Install ros toolbox
+-	Install ros toolbox, parallel computing toolbox, Statistics and Machine Learning Toolbox
 -	Install python 3.9,  cmake, gcc
 -	Remove your matlab license (Navigate to matlab folder and delete license files)
 -	docker commit containerID  yourNewImage to build you own Matlab Image based on the modified container
