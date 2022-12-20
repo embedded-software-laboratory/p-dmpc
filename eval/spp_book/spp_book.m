@@ -96,11 +96,11 @@ end
             scenario.name = options.scenario_name;
             scenario.manual_vehicle_id = 0;
             scenario.second_manual_vehicle_id = 0;
-            scenario.vehicle_ids = options.veh_ids;
+            scenario.options.veh_ids = options.veh_ids;
             scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
             for iVeh = 1:options.amount
                 % initialize vehicle ids of all vehicles
-                scenario.vehicles(iVeh).ID = scenario.vehicle_ids(iVeh);
+                scenario.vehicles(iVeh).ID = scenario.options.veh_ids(iVeh);
             end
             scenarios{inVeh,iSce} = scenario;
         end

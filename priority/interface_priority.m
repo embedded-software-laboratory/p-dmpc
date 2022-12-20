@@ -46,8 +46,7 @@ classdef (Abstract) interface_priority < handle
     end
 
     methods(Static)
-        function coupling_directed = direct_coupling(scenario, topo_groups)
-            coupling_undirected = scenario.adjacency(:,:,end);
+        function coupling_directed = direct_coupling(coupling_undirected, topo_groups)
             % determine directed adjacency
             coupling_directed = coupling_undirected;
             [rows, cols] = find(coupling_undirected~=0);

@@ -1,4 +1,4 @@
-function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, root_to_node)
+function [iChop, evaluated_nodes, is_valid] = eval_path_exact(iter, scenario, tree, root_to_node)
 % EVAL_PATH_EXACT   Evaluate if a whole path is valid.
 
     is_valid = false;
@@ -6,7 +6,7 @@ function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, ro
     evaluated_nodes = false(size(root_to_node));
     % Collision check on path from root
     nNodes = numel(root_to_node);
-    shapes = cell(scenario.options.amount,1);
+    shapes = cell(iter.amount,1);
     % maneuver shapes correspond to movement TO node, so start from 2
     for iNode = 2:nNodes
         % Check if exact evaluation needs to be done
@@ -14,7 +14,7 @@ function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, ro
         % midpoints = zeros(2,scenario.options.amount);
         if ~tree.node{root_to_node(iNode)}(1,NodeInfo.exactEval)
             node_parent = tree.node{root_to_node(iNode-1)};
-            for iVeh = 1 : scenario.options.amount
+            for iVeh = 1 : iter.amount
                 t1 = node_parent(iVeh,NodeInfo.trim);
                 t2 = tree.node{root_to_node(iNode)}(iVeh,NodeInfo.trim);
 
@@ -22,9 +22,9 @@ function [iChop, evaluated_nodes, is_valid] = eval_path_exact(scenario, tree, ro
                 if scenario.options.is_mixed_traffic
                     % first check if mixed_traffic_priority is used to make a short
                     % circuit
-                    if ((scenario.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa)) ...
-                        || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(scenario.vehicles(iVeh).vehicle_mpa))
-                        mpa = scenario.vehicles(iVeh).vehicle_mpa;
+                    if ((iter.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(iter.vehicles(iVeh).vehicle_mpa)) ...
+                        || ((scenario.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(iter.vehicles(iVeh).vehicle_mpa))
+                        mpa = iter.vehicles(iVeh).vehicle_mpa;
                         maneuver = mpa.maneuvers{t1,t2};
                     else
                         maneuver = scenario.mpa.maneuvers{t1,t2};

@@ -5,10 +5,10 @@ function [u, y_pred, info] = pb_controller_parl_backup(scenario, iter)
     assert( ~isempty(scenario.adjacency) )
 
     % determine planning levels
-    if scenario.assignPrios || isempty(scenario.directed_coupling)
-        [isDAG, topo_groups] = topological_sorting_coloring(scenario.adjacency);
+    if scenario.assignPrios || isempty(iter.directed_coupling)
+        [isDAG, topo_groups] = topological_sorting_coloring(iter.adjacency);
     else
-        [isDAG, topo_groups] = kahn(scenario.directed_coupling);
+        [isDAG, topo_groups] = kahn(iter.directed_coupling);
     end
 
     assert( isDAG, 'Coupling matrix is not a DAG' );
@@ -64,20 +64,19 @@ function [u, y_pred, info] = pb_controller_parl_backup(scenario, iter)
                 % Filter out vehicles with lower or same priority.
                 priority_filter = false(1,nVeh);
                 priority_filter(group.members(1:grp_member_idx)) = true; % keep all with higher priority and self
-                scenario_filtered = filter_scenario(scenario, priority_filter);
                 iter_filtered = filter_iter(iter, priority_filter);
     
                 self_index = sum(priority_filter(1:vehicle_idx)); % why 1:vehicle_idx?
                 self_index = sum(priority_filter);  
-                v2o_filter = true(1,scenario_filtered.options.amount);
+                v2o_filter = true(1,iter_filtered.amount);
                 v2o_filter(self_index) = false;
     
                 % add predicted trajecotries as obstacle
-                [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered, iter_filtered, v2o_filter, info_shapes_tmp(1:grp_member_idx-1,:));
+                [scenario, iter_v] = vehicles_as_dynamic_obstacles(scenario, iter_filtered, v2o_filter, info_shapes_tmp(1:grp_member_idx-1,:));
 %                 scenario_v = scenario_filtered; iter_v = iter_filtered; % without collision avoidance
 %                 scenario_v.dynamic_obstacle_reachableSets = 
                 % execute sub controller for 1-veh scenario
-                [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
+                [u_v,y_pred_v,info_v] = sub_controller(scenario, iter_v);
                 
                 % prepare output data
                 

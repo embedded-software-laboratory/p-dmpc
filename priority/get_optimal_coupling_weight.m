@@ -8,22 +8,22 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
     % Filter scenario and iter
     filter_self = false(1,scenario.options.amount);
     filter_self(veh_j) = true;
-    scenario_v = filter_scenario(scenario,filter_self);
+    iter_v = filter_iter(iter,filter_self);
     % Reduce the prediction horizon by one
-    scenario_v.options.Hp = scenario_v.options.Hp - 1;
+    scenario.options.Hp = scenario.options.Hp - 1;
     % Add reachable sets as dynamic obstacles
     reachable_sets_i = iter.reachable_sets(veh_i,2:end);
     reachable_sets_i_full = iter.reachable_sets(veh_i,:);
     % Turn polyshape to plain array (repeat the first row to enclosed the shape)
     reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
-    scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
+    iter_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
 
     reachable_sets_i_array_full = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i_full); 
     plot_options_RS = struct('Color',[0 0.4470 0.7410],'LineWidth',0.45,'LineStyle','-');
 
     % Reduce the information by one step
-    scenario_v.mpa.transition_matrix(:,:,1) = [];
-    scenario_v.mpa.transition_matrix_single(:,:,1) = [];
+    scenario.mpa.transition_matrix(:,:,1) = [];
+    scenario.mpa.transition_matrix_single(:,:,1) = [];
 
     iter_v = filter_iter(iter,filter_self);
 
@@ -32,7 +32,7 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
     iter_v.referenceTrajectoryPoints(:,1,:) = [];
     iter_v.vRef(1) = [];
 
-    lanelet_boundary = [scenario_v.vehicles.lanelet_boundary{1},[nan;nan],scenario_v.vehicles.lanelet_boundary{2}];
+    lanelet_boundary = [iter_v.lanelet_boundary{1},[nan;nan],iter_v.lanelet_boundary{2}];
     plot_options_LB = struct('Color','k','LineWidth',0.65,'LineStyle','-');
 
     states_current = iter_v.x0;
@@ -74,7 +74,7 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario,iter,v
             speed0_next = scenario.mpa.trims(trim_next).speed;
             iter_v.x0 = [x0_next,y0_next,yaw0_next,speed0_next];
 
-            info_v = graph_search(scenario_v,iter_v);
+            info_v = graph_search(scenario,iter_v);
             if info_v.is_exhausted || info_v.is_semi_exhausted
                 are_valid(iTrim) = false;
             else

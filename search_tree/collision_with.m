@@ -1,4 +1,4 @@
-function collision = collision_with(index, shapes, shapes_for_lanelet_check, scenario, iStep)
+function collision = collision_with(iter, index, shapes, shapes_for_lanelet_check, scenario, iStep)
 % COLLISION_WITH    Determine whether position has is a collision.
 
     collision = false;
@@ -15,9 +15,9 @@ function collision = collision_with(index, shapes, shapes_for_lanelet_check, sce
         end
     end
     
-    if ~isempty(scenario.dynamic_obstacle_area)
-        for i = 1:size(scenario.dynamic_obstacle_area,1)
-            if intersect_sat(shapes{index}, scenario.dynamic_obstacle_area{i,iStep}) 
+    if ~isempty(iter.dynamic_obstacle_area)
+        for i = 1:size(iter.dynamic_obstacle_area,1)
+            if intersect_sat(shapes{index}, iter.dynamic_obstacle_area{i,iStep}) 
                 collision = true;
                 %disp(sprintf("vehicle id responsible for collision with dynamic obstacles: %d", scenario.vehicles.ID));
 %                 disp('there is collision with dynamic obstacles')
@@ -36,8 +36,8 @@ function collision = collision_with(index, shapes, shapes_for_lanelet_check, sce
         end
     end
     
-    if ~isempty(scenario.vehicle_to_lanelet)
-        lane_idx = nonzeros(scenario.vehicle_to_lanelet(index,:))';
+    if ~isempty(iter.vehicle_to_lanelet)
+        lane_idx = nonzeros(iter.vehicle_to_lanelet(index,:))';
         for i = lane_idx
             %if intersect_lanelets(shapes{index},scenario.lanelet_boundary{i})
             if intersect_lanelets(shapes{index}, scenario.lanelets{i})
@@ -49,8 +49,8 @@ function collision = collision_with(index, shapes, shapes_for_lanelet_check, sce
     end
     
 
-    if ~isempty(scenario.vehicles(1,index).lanelet_boundary)
-        if intersect_lanelet_boundary(shapes_for_lanelet_check{index}, scenario.vehicles(1,index).lanelet_boundary) 
+    if ~isempty(iter.predicted_lanelet_boundary(index,:)) % TODO use iter.lanelet_boundary
+        if intersect_lanelet_boundary(shapes_for_lanelet_check{index}, iter.predicted_lanelet_boundary(index,:)) % TODO use iter.lanelet_boundary
             %disp(sprintf("vehicle id responsible for collision: %d", scenario.vehicles.vehicle_id));
             collision = true;
             return;
@@ -58,9 +58,9 @@ function collision = collision_with(index, shapes, shapes_for_lanelet_check, sce
     end
 
     % check if collides with the reachable sets of coupling vehicles with higher priorities 
-    if ~isempty(scenario.dynamic_obstacle_reachableSets)
-        for i = 1:size(scenario.dynamic_obstacle_reachableSets,1)
-            if intersect_sat(shapes{index},scenario.dynamic_obstacle_reachableSets{i,iStep}) 
+    if ~isempty(iter.dynamic_obstacle_reachableSets)
+        for i = 1:size(iter.dynamic_obstacle_reachableSets,1)
+            if intersect_sat(shapes{index},iter.dynamic_obstacle_reachableSets{i,iStep}) 
                 collision = true;
                 return;
             end

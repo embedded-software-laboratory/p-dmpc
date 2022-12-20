@@ -5,23 +5,24 @@ classdef mixed_traffic_priority < interface_priority
     
     properties (Access=private)
         scenario
-        
+        iter
     end
     
     methods 
-        function obj = mixed_traffic_priority(scenario)
+        function obj = mixed_traffic_priority(scenario,iter)
             obj.scenario = scenario;
+            obj.iter = iter;
         end
         
         function [groups, directed_adjacency, prios] = priority(obj)
             groups = struct;
-            nVeh = length(obj.scenario.vehicles);
+            nVeh = length(obj.iter.vehicles);
 
             prios = zeros(1, nVeh);
             for i = 1:nVeh
-                if obj.scenario.vehicle_ids(i) == obj.scenario.manual_vehicle_id
+                if obj.scenario.options.veh_ids(i) == obj.scenario.manual_vehicle_id
                     prios(1) = i;
-                elseif obj.scenario.vehicle_ids(i) == obj.scenario.second_manual_vehicle_id
+                elseif obj.scenario.options.veh_ids(i) == obj.scenario.second_manual_vehicle_id
                     prios(2) = i;
                 else
                     for j = 0:(nVeh-1)

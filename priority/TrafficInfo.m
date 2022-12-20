@@ -62,20 +62,20 @@ classdef TrafficInfo
             % This function estimates traffic status
 
             % get previous coupling matrix
-            if scenario.k>1
-                for i = 1:length([scenario.coupling_info.veh_with_ROW])
-                    veh_with_ROW = scenario.coupling_info(i).veh_with_ROW;
-                    veh_without_ROW = scenario.coupling_info(i).veh_without_ROW;
+            if iter.k>1
+                for i = 1:length([iter.coupling_info.veh_with_ROW])
+                    veh_with_ROW = iter.coupling_info(i).veh_with_ROW;
+                    veh_without_ROW = iter.coupling_info(i).veh_without_ROW;
                     obj.directed_adjacency_old(veh_with_ROW,veh_without_ROW) = 1;
                 end
             end
         
-            obj = obj.update_vehs_at_intersection(scenario,iter.x0);
+            obj = obj.update_vehs_at_intersection(iter,scenario,iter.x0);
 
             for veh_i = 1:(obj.nVeh-1)
                 for veh_j = (veh_i+1):obj.nVeh
                     % TODO: here was the reachable set coupling check, use adjacency which is need either way (to avoid double calculation)
-                    if scenario.adjacency(veh_i,veh_j,scenario.k)
+                    if iter.adjacency(veh_i,veh_j)
                         % the selected two vehicles are considered as coupled
                         if ~scenario.options.mixed_traffic_config.consider_rss &&((scenario.options.veh_ids(veh_i) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
                             || (scenario.options.veh_ids(veh_i) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id) && scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode))
@@ -99,10 +99,10 @@ classdef TrafficInfo
     end
 
     methods (Access = private)
-        function obj = update_vehs_at_intersection(obj,scenario,x0)
+        function obj = update_vehs_at_intersection(obj,iter,scenario,x0)
             % This function updates the vehicles at intersection and the time
             % they entered the intersection
-            obj.time_enter_intersection = scenario.time_enter_intersection;
+            obj.time_enter_intersection = iter.time_enter_intersection;
             if isempty(obj.time_enter_intersection)
                 % this is empty only at the initial time step
                 obj.time_enter_intersection = inf*ones(1,obj.nVeh); % time step when vehicle enters the intersection
@@ -113,10 +113,10 @@ classdef TrafficInfo
             distances_to_center = sqrt(sum((x0(:,1:2) - scenario.intersection_center).^2,2));
             obj.vehs_at_intersection = find(distances_to_center < obj.distance_to_CP_threshold);
         
-            new_veh_at_intersection = setdiff(obj.vehs_at_intersection, scenario.last_vehs_at_intersection);
+            new_veh_at_intersection = setdiff(obj.vehs_at_intersection, iter.last_vehs_at_intersection);
         
-            veh_leave_intersection = setdiff(scenario.last_vehs_at_intersection, obj.vehs_at_intersection);
-            obj.time_enter_intersection(new_veh_at_intersection) = scenario.k;
+            veh_leave_intersection = setdiff(iter.last_vehs_at_intersection, obj.vehs_at_intersection);
+            obj.time_enter_intersection(new_veh_at_intersection) = iter.k;
             obj.time_enter_intersection(veh_leave_intersection) = inf; % set to inf if vehicle leaves the intersection
         end
 
@@ -132,7 +132,7 @@ classdef TrafficInfo
             veh_info_i.position = [iter.x0(veh_i,indices().x), iter.x0(veh_i,indices().y)];
             veh_info_i.yaw = iter.x0(veh_i,indices().heading);
             veh_info_i.trim = iter.trim_indices(veh_i);
-            veh_info_i.length = scenario.vehicles(veh_i).Length;
+            veh_info_i.length = iter.vehicles(veh_i).Length;
             predicted_lanelets_i = iter.predicted_lanelets{veh_i};
 
             veh_info_j = struct('ID',[],'position',[],'yaw',[],'trim',[],'predicted_lanelet',[],'length',[],...
@@ -141,118 +141,134 @@ classdef TrafficInfo
             veh_info_j.position = [iter.x0(veh_j,indices().x), iter.x0(veh_j,indices().y)];
             veh_info_j.yaw = iter.x0(veh_j,indices().heading);
             veh_info_j.trim = iter.trim_indices(veh_j);
-            veh_info_j.length = scenario.vehicles(veh_j).Length;
+            veh_info_j.length = iter.vehicles(veh_j).Length;
             predicted_lanelets_j = iter.predicted_lanelets{veh_j};
 
-            for pred_lan_i = predicted_lanelets_i                    
-                for pred_lan_j = predicted_lanelets_j
-    
-                    veh_info_i.predicted_lanelet = pred_lan_i;
-                    veh_info_j.predicted_lanelet = pred_lan_j;
 
-                    if pred_lan_i==predicted_lanelets_i(end) && pred_lan_j==predicted_lanelets_j(end)
-                        is_last_lan_pair = true;
-                    else
-                        is_last_lan_pair = false;
-                    end
-                        
-                    % center line of the lanelet
-                    veh_info_i.lanelet_x = scenario.lanelets{pred_lan_i}(:,LaneletInfo.cx); 
-                    veh_info_i.lanelet_y = scenario.lanelets{pred_lan_i}(:,LaneletInfo.cy);
-                    veh_info_j.lanelet_x = scenario.lanelets{pred_lan_j}(:,LaneletInfo.cx); 
-                    veh_info_j.lanelet_y = scenario.lanelets{pred_lan_j}(:,LaneletInfo.cy);
+            if ~isempty(predicted_lanelets_i)
+                for pred_lan_i = predicted_lanelets_i                    
+                    for pred_lan_j = predicted_lanelets_j
+        
+                        veh_info_i.predicted_lanelet = pred_lan_i;
+                        veh_info_j.predicted_lanelet = pred_lan_j;
 
-                    [lanelet_type,collision_type,is_continue,lanelet_relationship,is_find_lanelet_relationship,is_move_side_by_side] = ...
-                        obj.get_collision_and_lanelet_type(veh_info_i,veh_info_j,is_last_lan_pair,scenario.lanelet_relationships,overlap_reachable_sets, scenario.options.is_mixed_traffic);
-
-                    if is_continue
-                        continue
-                    end
-    
-                    % check if both vehicles are at the intersection 
-                    if ismember(veh_i,obj.vehs_at_intersection) && ismember(veh_j,obj.vehs_at_intersection)
-                        obj.coupling_info(count).is_at_intersection = true;
-                    else
-                        obj.coupling_info(count).is_at_intersection = false;
-                    end
-    
-                    % current distance between two vehicles
-                    distance_two_vehs = norm(veh_info_i.position-veh_info_j.position,2);
-                    assumed_collision_point = lanelet_relationship.point;
-
-                    distance_to_collision_i = norm(veh_info_i.position-assumed_collision_point);
-                    distance_to_collision_j = norm(veh_info_j.position-assumed_collision_point);
-
-                    if collision_type.is_rear_end
-                        obj.coupling_info(count).collision_type = CollisionType.type_1;
-                        % If two vehicles has a rear-end collision possibility, they STAC (shortest time to achieve a collision) is the TTC (time to catch) 
-                        has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
-                        % Calculate the shortest time to achieve a collision
-                        if has_ROW               
-                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_i.trim, veh_info_j.trim, distance_two_vehs, scenario.options.dt);
+                        if pred_lan_i==predicted_lanelets_i(end) && pred_lan_j==predicted_lanelets_j(end)
+                            is_last_lan_pair = true;
                         else
-                            [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_j.trim, veh_info_i.trim, distance_two_vehs, scenario.options.dt);
+                            is_last_lan_pair = false;
                         end
-%                         waiting_time = 0; % in rear-end collision, the waiting time is not needed
-                    else
-                        obj.coupling_info(count).collision_type = CollisionType.type_2; % side-impact collision
-                        % If two vehicles has a side-impact collision possibility, check if they move in parallel
-                        if is_move_side_by_side
-                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
-                            STAC = distance_two_vehs/2/max([scenario.mpa.trims.speed])*2;
-                            waiting_time = 0;
-                        else
-                            time_to_collision_point_i = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_i.trim,distance_to_collision_i,scenario.options.dt);
-                            time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_j.trim,distance_to_collision_j,scenario.options.dt);
-                            % determine which vehicle has the ROW 
-                            % trick: a shorter time to collision point corresponds to a shorter distance to collision point, thus no code adaption is need
-                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, time_to_collision_point_i, time_to_collision_point_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
                             
-                            STAC = max(time_to_collision_point_i,time_to_collision_point_j);
-                            waiting_time = abs(time_to_collision_point_i-time_to_collision_point_j);
+                        % center line of the lanelet
+                        veh_info_i.lanelet_x = scenario.lanelets{pred_lan_i}(:,LaneletInfo.cx); 
+                        veh_info_i.lanelet_y = scenario.lanelets{pred_lan_i}(:,LaneletInfo.cy);
+                        veh_info_j.lanelet_x = scenario.lanelets{pred_lan_j}(:,LaneletInfo.cx); 
+                        veh_info_j.lanelet_y = scenario.lanelets{pred_lan_j}(:,LaneletInfo.cy);
+
+                        [lanelet_type,collision_type,is_continue,lanelet_relationship,is_find_lanelet_relationship,is_move_side_by_side] = ...
+                            obj.get_collision_and_lanelet_type(veh_info_i,veh_info_j,is_last_lan_pair,scenario.lanelet_relationships,overlap_reachable_sets, scenario.options.is_mixed_traffic);
+
+                        if is_continue
+                            continue
+                        end
+        
+                        % check if both vehicles are at the intersection 
+                        if ismember(veh_i,obj.vehs_at_intersection) && ismember(veh_j,obj.vehs_at_intersection)
+                            obj.coupling_info(count).is_at_intersection = true;
+                        else
+                            obj.coupling_info(count).is_at_intersection = false;
+                        end
+        
+                        % current distance between two vehicles
+                        distance_two_vehs = norm(veh_info_i.position-veh_info_j.position,2);
+                        assumed_collision_point = lanelet_relationship.point;
+
+                        distance_to_collision_i = norm(veh_info_i.position-assumed_collision_point);
+                        distance_to_collision_j = norm(veh_info_j.position-assumed_collision_point);
+
+                        if collision_type.is_rear_end
+                            obj.coupling_info(count).collision_type = CollisionType.type_1;
+                            % If two vehicles has a rear-end collision possibility, they STAC (shortest time to achieve a collision) is the TTC (time to catch) 
+                            has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
+                            % Calculate the shortest time to achieve a collision
+                            if has_ROW               
+                                [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_i.trim, veh_info_j.trim, distance_two_vehs, scenario.options.dt);
+                            else
+                                [STAC, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, veh_info_j.trim, veh_info_i.trim, distance_two_vehs, scenario.options.dt);
+                            end
+    %                         waiting_time = 0; % in rear-end collision, the waiting time is not needed
+                        else
+                            obj.coupling_info(count).collision_type = CollisionType.type_2; % side-impact collision
+                            % If two vehicles has a side-impact collision possibility, check if they move in parallel
+                            if is_move_side_by_side
+                                has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, distance_to_collision_i, distance_to_collision_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
+                                STAC = distance_two_vehs/2/max([scenario.mpa.trims.speed])*2;
+                                waiting_time = 0;
+                            else
+                                time_to_collision_point_i = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_i.trim,distance_to_collision_i,scenario.options.dt);
+                                time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa,veh_info_j.trim,distance_to_collision_j,scenario.options.dt);
+                                % determine which vehicle has the ROW 
+                                % trick: a shorter time to collision point corresponds to a shorter distance to collision point, thus no code adaption is need
+                                has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, time_to_collision_point_i, time_to_collision_point_j, obj.coupling_info(count).is_at_intersection, lanelet_type.is_forking, scenario, iter);
+
+                                STAC = max(time_to_collision_point_i,time_to_collision_point_j);
+                                waiting_time = abs(time_to_collision_point_i-time_to_collision_point_j);
+                            end
+
                         end
 
+                        STAC_adapted = STAC + obj.waiting_time_factor*waiting_time; % adapted STAC
+        
+                        % store coupling information
+                        obj.coupling_info(count).is_move_side_by_side = is_move_side_by_side; 
+                        obj.coupling_info(count).STAC = STAC;
+                        obj.coupling_info(count).lanelet_relationship = lanelet_relationship.type;
+                        obj.coupling_info(count).is_ignored = false; % whether the coupling is ignored
+
+                        if has_ROW
+                            veh_with_ROW = veh_i; veh_without_ROW = veh_j;
+                        else
+                            veh_with_ROW = veh_j; veh_without_ROW = veh_i;
+                        end
+                        
+                        switch scenario.options.coupling_weight_mode
+                            case 'STAC'
+                                obj.coupling_weights(veh_with_ROW,veh_without_ROW) = obj.weighting_function(STAC_adapted, obj.sensitive_factor);
+                                if collision_type.is_side_impact
+                                    % As side-impact collision is harder to avoid, we add more weight to it
+                                    obj.coupling_weights(veh_with_ROW,veh_without_ROW) = obj.side_impact_weight_scale_factor*obj.coupling_weights(veh_with_ROW,veh_without_ROW);
+                                end
+                            case 'random'
+                                obj.coupling_weights(veh_with_ROW,veh_without_ROW) = rand(scenario.random_stream,1);
+                            case 'constant'
+                                obj.coupling_weights(veh_with_ROW,veh_without_ROW) = 0.5;
+                            case 'optimal'
+                                obj.coupling_weights(veh_with_ROW,veh_without_ROW) = get_optimal_coupling_weight(scenario,iter,veh_with_ROW,veh_without_ROW);
+                        end
+
+                        obj.coupling_info(count).veh_with_ROW = veh_with_ROW;
+                        obj.coupling_info(count).veh_without_ROW = veh_without_ROW;
+
+                        stop_flag = true;
+                        break
                     end
 
-                    STAC_adapted = STAC + obj.waiting_time_factor*waiting_time; % adapted STAC
-    
-                    % store coupling information
-                    obj.coupling_info(count).is_move_side_by_side = is_move_side_by_side; 
-                    obj.coupling_info(count).STAC = STAC;
-                    obj.coupling_info(count).lanelet_relationship = lanelet_relationship.type;
-                    obj.coupling_info(count).is_ignored = false; % whether the coupling is ignored  
-
-                    if has_ROW
-                        veh_with_ROW = veh_i; veh_without_ROW = veh_j;
-                    else
-                        veh_with_ROW = veh_j; veh_without_ROW = veh_i;
+                    if stop_flag
+                        break % go to the next pair of vehicles
                     end
-                    
-                    switch scenario.options.coupling_weight_mode
-                        case 'STAC'
-                            obj.coupling_weights(veh_with_ROW,veh_without_ROW) = obj.weighting_function(STAC_adapted, obj.sensitive_factor);
-                            if collision_type.is_side_impact
-                                % As side-impact collision is harder to avoid, we add more weight to it
-                                obj.coupling_weights(veh_with_ROW,veh_without_ROW) = obj.side_impact_weight_scale_factor*obj.coupling_weights(veh_with_ROW,veh_without_ROW);
-                            end
-                        case 'random'
-                            obj.coupling_weights(veh_with_ROW,veh_without_ROW) = rand(scenario.random_stream,1);
-                        case 'constant'
-                            obj.coupling_weights(veh_with_ROW,veh_without_ROW) = 0.5;
-                        case 'optimal'
-                            obj.coupling_weights(veh_with_ROW,veh_without_ROW) = get_optimal_coupling_weight(scenario,iter,veh_with_ROW,veh_without_ROW);
-                    end
-
-                    obj.coupling_info(count).veh_with_ROW = veh_with_ROW;  
-                    obj.coupling_info(count).veh_without_ROW = veh_without_ROW; 
-
-                    stop_flag = true;
-                    break
                 end
-
-                if stop_flag
-                    break % go to the next pair of vehicles
+            else % temporary fir for scenarios without lanelets
+                has_ROW = obj.determine_who_has_ROW(veh_i, veh_j, 0, 0, false, false, scenario, iter);
+                if has_ROW
+                    veh_with_ROW = veh_i; veh_without_ROW = veh_j;
+                else
+                    veh_with_ROW = veh_j; veh_without_ROW = veh_i;
                 end
+                
+                obj.coupling_weights(veh_with_ROW,veh_without_ROW) = 0.5; % only constant weighting
+
+                obj.coupling_info(count).veh_with_ROW = veh_with_ROW;
+                obj.coupling_info(count).veh_without_ROW = veh_without_ROW;
+                obj.coupling_info(count).is_ignored = false;
             end
         end
 
@@ -421,16 +437,16 @@ classdef TrafficInfo
                         end
                     end
                 case 'random_priority'
-                    [~,~,priority_list] = random_priority().priority(scenario);
+                    [~,~,priority_list] = random_priority().priority(iter,scenario);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'constant_priority'
-                    [~,~,priority_list] = constant_priority().priority(scenario);
+                    [~,~,priority_list] = constant_priority().priority(scenario,iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'FCA_priority'
                     [~,~,~,priority_list] = FCA_priority().priority(scenario, iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'coloring_priority'
-                    [~,~,priority_list] = coloring_priority().priority(scenario);
+                    [~,~,priority_list] = coloring_priority().priority(iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 otherwise
                     warning("Priority must be one of the following: 'STAC_priority', 'random_priority', 'constant_priority', 'coloring_priority', 'FCA_priority'.")

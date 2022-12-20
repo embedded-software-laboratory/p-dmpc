@@ -5,10 +5,10 @@ function [u, y_pred, info, scenario] = pb_controller_parl(scenario, iter)
     assert( ~isempty(scenario.adjacency) )
 
     % determine planning levels
-    if scenario.assignPrios || isempty(scenario.directed_coupling)
-        [isDAG, topo_groups] = topological_sorting_coloring(scenario.adjacency);
+    if scenario.assignPrios || isempty(iter.directed_coupling)
+        [isDAG, topo_groups] = topological_sorting_coloring(iter.adjacency);
     else
-        [isDAG, topo_groups] = kahn(scenario.directed_coupling);
+        [isDAG, topo_groups] = kahn(iter.directed_coupling);
     end
     assert( isDAG, 'Coupling matrix is not a DAG' );
     
@@ -50,27 +50,26 @@ function [u, y_pred, info, scenario] = pb_controller_parl(scenario, iter)
             priority_filter_other_grps = false(1,scenario.options.amount);
             priority_filter_other_grps(group.coupled_with_other_grps{grp_member_idx}) = true; % keep all coupled vehicle with higher priority
 
-            scenario_filtered_same_grp = filter_scenario(scenario, priority_filter_same_grp);
             iter_filtered_same_grp = filter_iter(iter, priority_filter_same_grp);
             iter_filtered_other_grps = filter_iter(iter, priority_filter_other_grps);
 
             self_index = sum(priority_filter_same_grp(1:vehicle_idx));        
-            v2o_filter = true(1,scenario_filtered_same_grp.nVeh);
+            v2o_filter = true(1,iter_filtered_same_grp.amount);
             v2o_filter(self_index) = false;
 
             % add predicted trajecotries of the coupled vehicles with higher priorities in the same group as obstacles
-            [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered_same_grp, iter_filtered_same_grp, v2o_filter, info.shapes(group.coupled_with_same_grp{grp_member_idx},:));
+            [scenario, iter_v] = vehicles_as_dynamic_obstacles(scenario, iter_filtered_same_grp, v2o_filter, info.shapes(group.coupled_with_same_grp{grp_member_idx},:));
 
             % initial trims of coupled vehicles with higher priorities in the other groups
             initial_trims_other_grps = iter_filtered_other_grps.trim_indices;
             reachable_sets_other_grps = scenario.mpa.stationary_reachable_sets_conv(initial_trims_other_grps,:);
             
             % add reachable sets of the coupled vehicles with higher priorities in other groups as dynamic obsticles
-            scenario_v.dynamic_obstacle_reachableSets = ...
-                vehicles_reachable_sets_as_obstacles(scenario_v.dynamic_obstacle_reachableSets, iter_filtered_other_grps, reachable_sets_other_grps);
+            iter_v.dynamic_obstacle_reachableSets = ...
+                vehicles_reachable_sets_as_obstacles(iter_v.dynamic_obstacle_reachableSets, iter_filtered_other_grps, reachable_sets_other_grps);
 
             % execute sub controller for 1-veh scenario
-            [u_v,y_pred_v,info_v] = sub_controller(scenario_v, iter_v);
+            [u_v,y_pred_v,info_v] = sub_controller(scenario, iter_v);
             
             % prepare output data
             info.tree{vehicle_idx} = info_v.tree;

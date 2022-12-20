@@ -1,4 +1,4 @@
-function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupling_vehs_without_ROW)
+function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupling_vehs_without_ROW)
 % CONSIDER_VEHS_WITH_LP Stategies to let vehicle with the right-of-way
 % consider vehicle without the right-of-way 
 % '1': do not consider 
@@ -29,10 +29,10 @@ function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_c
                 % front to move forward.
                 switch scenario_v.options.priority
                     case 'STAC_priority'
-                        find_coupling = [scenario_v.coupling_info.veh_with_ROW]==vehicle_idx & [scenario_v.coupling_info.veh_without_ROW]==veh_without_ROW;
+                        find_coupling = [iter.coupling_info.veh_with_ROW]==vehicle_idx & [iter.coupling_info.veh_without_ROW]==veh_without_ROW;
 
-                        if ~scenario_v.coupling_info(find_coupling).is_ignored && strcmp(scenario_v.coupling_info(find_coupling).collision_type,CollisionType.type_2) ...
-                                && strcmp(scenario_v.coupling_info(find_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
+                        if ~iter.coupling_info(find_coupling).is_ignored && strcmp(iter.coupling_info(find_coupling).collision_type,CollisionType.type_2) ...
+                                && strcmp(iter.coupling_info(find_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
                             % the emergency braking maneuver is only considered if
                             % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
                             scenario_v.obstacles{end+1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;
@@ -55,12 +55,12 @@ function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_c
                 if latest_msg.time_step > 0
                     % the message does not come from the initial time step
                     predicted_areas = arrayfun(@(array) {[array.x';array.y']}, latest_msg.predicted_areas);
-                    shift_step = scenario_v.k - latest_msg.time_step; % times that the prediction should be shifted and the last prediction should be repeated
+                    shift_step = iter.k - latest_msg.time_step; % times that the prediction should be shifted and the last prediction should be repeated
                     if shift_step > 1
                         disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_i) ', considered vehicle: ' num2str(veh_without_ROW)])
                     end
                     predicted_areas = del_first_rpt_last(predicted_areas(:)', shift_step);
-                    scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas;
+                    iter.dynamic_obstacle_area(end+1,:) = predicted_areas;
                 end
             otherwise
                 warning("Please specify one of the following strategies to let vehicle with a higher priority also consider vehicle with a lower priority: '1', '2', '3', '4', '5'.")

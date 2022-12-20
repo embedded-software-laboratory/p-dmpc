@@ -18,7 +18,7 @@ classdef right_of_way_priority < interface_priority
         %% priority
         function [veh_at_intersection,groups,directed_adjacency,priority_list] = priority(obj,scenario,iter)
             % assign priorities to vehicles
-            nVeh = length(scenario.vehicles);
+            nVeh = length(iter.vehicles);
             Hp = size(iter.referenceTrajectoryPoints,2);
             intersection_center = [2.25, 2];
             lanelets_idx = zeros(nVeh, Hp);
@@ -60,7 +60,7 @@ classdef right_of_way_priority < interface_priority
  
             end
             
-            adjacency= scenario.adjacency(:,:,end);
+            adjacency= iter.adajacency;
             
             % assign priorities to vehicles crossing the intersection
             % (i.e., at the intersection, but not driving consecutively)
@@ -68,8 +68,8 @@ classdef right_of_way_priority < interface_priority
                 % if there were vehicles at intersection at last step, remained vehicles at intersection keep priorities as last step,
                 % and assign lower priorities to new vehicles coming into intersection based on the distance to the intersection center
 
-                [~, idx,~] = intersect(scenario.last_vehs_at_intersection,veh_at_intersection);
-                remained_veh_at_intersection = scenario.last_vehs_at_intersection(sort(idx));
+                [~, idx,~] = intersect(iter.last_vehs_at_intersection,veh_at_intersection);
+                remained_veh_at_intersection = iter.last_vehs_at_intersection(sort(idx));
 
                 % new incoming vehicles at intersection
                 new_veh_at_intersection = setdiff(veh_at_intersection, remained_veh_at_intersection);

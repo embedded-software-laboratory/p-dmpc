@@ -144,8 +144,8 @@ classdef CPMLab < InterfaceExperiment
                 % find out index of vehicle in Expert-Mode
                 indexVehicleExpertMode = 0;
                 for j = 1:obj.scenario.options.amount
-                    if ((obj.scenario.vehicle_ids(j) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
-                        || (obj.scenario.vehicle_ids(j) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
+                    if ((obj.scenario.options.veh_ids(j) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
+                        || (obj.scenario.options.veh_ids(j) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
                         indexVehicleExpertMode = j;
                     end
                 end
@@ -182,8 +182,8 @@ classdef CPMLab < InterfaceExperiment
                 
                     yaw = y_pred{iVeh}(i_predicted_points,3);
 
-                    if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-                        || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
+                    if ((scenario.options.veh_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
+                        || ((scenario.options.veh_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
                         speed = scenario.vehicles(iVeh).vehicle_mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
                     else
                         speed = obj.scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
@@ -193,8 +193,8 @@ classdef CPMLab < InterfaceExperiment
                     trajectory_points(i_traj_pt).vy = sin(yaw)*speed;
                 end
 
-                is_manual_vehicle_expert_mode = (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
-                    || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.options.secondManualVehicleMode == 2);
+                is_manual_vehicle_expert_mode = (scenario.options.veh_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
+                    || ((scenario.options.veh_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.options.secondManualVehicleMode == 2);
                     
                 if (is_manual_vehicle_expert_mode)
                     obj.out_of_map_limits(iVeh) = false;
@@ -211,7 +211,7 @@ classdef CPMLab < InterfaceExperiment
                     vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
                         uint64(obj.sample(end).t_now + obj.dt_period_nanos + 1);
 
-                    if (scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id)
+                    if (scenario.options.veh_ids(iVeh) == scenario.manual_vehicle_id)
                         if scenario.updated_manual_vehicle_path || obj.visualize_manual_lane_change_counter > 0
     
                             [visualization_command_line] = lab_visualizer(trajectory_points, 'laneChange');
@@ -229,7 +229,7 @@ classdef CPMLab < InterfaceExperiment
                             obj.writer_visualization.write(visualization_command_line);
                         end
 
-                    elseif (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id)
+                    elseif (scenario.options.veh_ids(iVeh) == scenario.second_manual_vehicle_id)
                         if scenario.updated_second_manual_vehicle_path || obj.visualize_second_manual_lane_change_counter > 0
 
                             [visualization_command_line] = lab_visualizer(trajectory_points, 'laneChange');
@@ -251,7 +251,7 @@ classdef CPMLab < InterfaceExperiment
                     obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
                 end
 
-                if  scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 1
+                if  scenario.options.veh_ids(iVeh) == scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 1
                     if obj.scenario.options.force_feedback_enabled
                         obj.g29_last_position = obj.g29_handler.g29_send_message(obj.sample(end).state_list(iVeh).steering_servo, 0.3, obj.g29_last_position); 
                     else

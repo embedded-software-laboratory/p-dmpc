@@ -1,9 +1,9 @@
-function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
+function [info, scenario, iter] = pb_controller_mixed_traffic(scenario, iter)
 % PB_CONTROLLER    Plan trajectory for one time step using a priority-based controller.
 %     Controller simulates multiple distributed controllers.
 
     if strcmp(scenario.options.priority, 'mixed_traffic_priority')
-        obj = mixed_traffic_priority(scenario);
+        obj = mixed_traffic_priority(scenario,iter);
         [groups, directed_adjacency] = obj.priority(); 
         right_of_way = false;
         veh_at_intersection = [];
@@ -26,9 +26,9 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
     end
     
     % update properties of scenario
-    scenario.directed_coupling = directed_adjacency;
-    scenario.priority_list = priority_list;
-    scenario.last_vehs_at_intersection = veh_at_intersection;
+    iter.directed_coupling = directed_adjacency;
+    iter.priority_list = priority_list;
+    iter.last_vehs_at_intersection = veh_at_intersection;
     
     % initialize variable to store control results
     info = ControllResultsInfo(nVeh, Hp, [scenario.vehicles.ID]);
@@ -51,7 +51,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 continue
             end
             
-            if scenario.vehicle_ids(vehicle_idx) ~= scenario.manual_vehicle_id && scenario.vehicle_ids(vehicle_idx) ~= scenario.second_manual_vehicle_id
+            if scenario.options.veh_ids(vehicle_idx) ~= scenario.manual_vehicle_id && scenario.options.veh_ids(vehicle_idx) ~= scenario.second_manual_vehicle_id
 
                 predecessors = group.predecessors;
                 index_first_manual_vehicle = 0;
@@ -60,7 +60,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 coupled_manual_vehicles = find(coupling_weights(vehicle_idx,:)~=0); % indices of the coupled manual vehicles
 
                 for j = 1:length(predecessors)
-                    if scenario.vehicle_ids(predecessors(j)) == scenario.manual_vehicle_id
+                    if scenario.options.veh_ids(predecessors(j)) == scenario.manual_vehicle_id
                         % predecessor is first manual vehicle
 
                         if ismember(predecessors(j), coupled_manual_vehicles)
@@ -69,7 +69,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                         else
                             index_first_manual_vehicle = 0;
                         end
-                    elseif scenario.vehicle_ids(predecessors(j)) == scenario.second_manual_vehicle_id
+                    elseif scenario.options.veh_ids(predecessors(j)) == scenario.second_manual_vehicle_id
                         % predecessor is second manual vehicle
                     
                         if ismember(predecessors(j), coupled_manual_vehicles)
@@ -84,7 +84,6 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 % only keep self
                 filter_self = false(1,scenario.options.amount);
                 filter_self(vehicle_idx) = true;
-                scenario_v = filter_scenario(scenario, filter_self);
                 iter_v = filter_iter(iter, filter_self);
 
                 if index_first_manual_vehicle ~= 0
@@ -94,16 +93,16 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                     reachable_sets_i = iter.reachable_sets(index_first_manual_vehicle,:);
                     % turn polyshape to plain array (repeat the first row to enclosed the shape)
                     reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
-                    scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
+                    iter_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
 
                     subcontroller_timer = tic;
                     % execute sub controller for 1-veh scenario
-                    info_v = sub_controller(scenario_v, iter_v);
+                    info_v = sub_controller(scenario, iter_v);
                     info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
 
                     if info_v.is_exhausted
                         % if graph search is exhausted, only autonomous vehicles take fallback to prevent collision with first manual vehicle 
-                        disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                        disp(['Graph search exhausted for vehicle ' num2str(scenario.options.veh_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
                         %sub_graph_fallback = belonging_vector_total(vehicle_idx);
                         %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                         %info.vehs_fallback = unique(info.vehs_fallback,'stable');
@@ -122,16 +121,16 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                     reachable_sets_i = iter.reachable_sets(index_second_manual_vehicle,:);
                     % turn polyshape to plain array (repeat the first row to enclosed the shape)
                     reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i); 
-                    scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
+                    iter_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
 
                     subcontroller_timer = tic;
                     % execute sub controller for 1-veh scenario
-                    info_v = sub_controller(scenario_v, iter_v);
+                    info_v = sub_controller(scenario, iter_v);
                     info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
 
                     if info_v.is_exhausted
                         % if graph search is exhausted, only autonomous vehicles take fallback to prevent collision with second manual vehicle 
-                        disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                        disp(['Graph search exhausted for vehicle ' num2str(scenario.options.veh_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
                         %sub_graph_fallback = belonging_vector_total(vehicle_idx);
                         %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                         %info.vehs_fallback = unique(info.vehs_fallback,'stable');
@@ -147,31 +146,30 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 autonomous_vehicle_indices = setdiff(predecessors, manual_indices);
                 
                 % Filter out vehicles that are not adjacent
-                veh_adjacent = find(scenario.adjacency(vehicle_idx,:,end));
+                veh_adjacent = find(iter.adjacency(vehicle_idx,:));
                 autonomous_vehicles_adjacent = intersect(autonomous_vehicle_indices,veh_adjacent);
 
                 % Filter out vehicles with lower or same priority.
                 priority_filter = false(1,scenario.options.amount);
                 priority_filter(autonomous_vehicles_adjacent) = true; % keep all with higher priority
                 priority_filter(vehicle_idx) = true; % keep self
-                scenario_filtered = filter_scenario(scenario, priority_filter);
                 iter_filtered = filter_iter(iter, priority_filter);
 
                 self_index = sum(priority_filter(1:vehicle_idx));        
-                v2o_filter = true(1,scenario_filtered.options.amount);
+                v2o_filter = true(1,iter_filtered.amount);
                 v2o_filter(self_index) = false;
 
                 % add predicted trajecotries of vehicles with higher priority as dynamic obstacle
-                [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario_filtered, iter_filtered, v2o_filter, info.shapes(autonomous_vehicles_adjacent,:));
+                [scenario, iter_v] = vehicles_as_dynamic_obstacles(scenario, iter_filtered, v2o_filter, info.shapes(autonomous_vehicles_adjacent,:));
 
                 subcontroller_timer = tic;
                 % execute sub controller for 1-veh scenario
-                info_v = sub_controller(scenario_v, iter_v);
+                info_v = sub_controller(scenario, iter_v);
                 info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
 
                 if info_v.is_exhausted
                     % if graph search is exhausted, this vehicles and all autonomous vehicles that have couplings will take fallback 
-                    disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                    disp(['Graph search exhausted for vehicle ' num2str(scenario.options.veh_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
                     %sub_graph_fallback = belonging_vector_total(vehicle_idx);
                     %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                     %info.vehs_fallback = unique(info.vehs_fallback,'stable');
@@ -185,17 +183,16 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                  % only keep self
                 filter_self = false(1,scenario.options.amount);
                 filter_self(vehicle_idx) = true;
-                scenario_v = filter_scenario(scenario, filter_self);
                 iter_v = filter_iter(iter, filter_self);
                 
                 subcontroller_timer = tic;
                 % execute sub controller for 1-veh scenario
-                info_v = sub_controller(scenario_v, iter_v);
+                info_v = sub_controller(scenario, iter_v);
                 info.subcontroller_runtime(vehicle_idx) = toc(subcontroller_timer);
     
                 if info_v.is_exhausted
                     % if graph search is exhausted, this manual vehicle will take fallback
-                    disp(['Graph search exhausted for vehicle ' num2str(scenario.vehicle_ids(vehicle_idx)) ', at time step: ' num2str(scenario.k) '.'])
+                    disp(['Graph search exhausted for vehicle ' num2str(scenario.options.veh_ids(vehicle_idx)) ', at time step: ' num2str(iter.k) '.'])
                     %sub_graph_fallback = belonging_vector_total(vehicle_idx);
                     %info.vehs_fallback = [info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
                     %info.vehs_fallback = unique(info.vehs_fallback,'stable');
@@ -219,7 +216,7 @@ function [info, scenario] = pb_controller_mixed_traffic(scenario, iter)
                 predicted_areas = info.shapes(vehicle_idx,:);
 
                 % send message
-                send_message(scenario.vehicles(vehicle_idx).communicate, scenario.k, predicted_trims, predicted_lanelets, predicted_areas);
+                send_message(scenario.vehicles(vehicle_idx).communicate, iter.k, predicted_trims, predicted_lanelets, predicted_areas);
             end
             
         end

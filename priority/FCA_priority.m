@@ -14,14 +14,14 @@ classdef FCA_priority < interface_priority
         
         function [veh_at_intersection,groups,directed_adjacency,priority_list] = priority(obj,scenario,iter)
 
-            nVeh = length(scenario.vehicles);
+            nVeh = length(iter.vehicles);
             Hp = size(iter.referenceTrajectoryPoints,2);
             veh_at_intersection = [];
 
             %% assign priorities to vehicles based on future collision assessment
             
             % adjacency matrix
-            adjacency= scenario.semi_adjacency(:,:,end);
+            adjacency= iter.adjacency;
             collisions = zeros(1,nVeh);
             
             veh = Vehicle();
@@ -55,9 +55,9 @@ classdef FCA_priority < interface_priority
                     end
                     
                     % check collistion between vehicles and dynamic obstacles
-                    if ~isempty(scenario.dynamic_obstacle_area)
-                        for i = 1:size(scenario.dynamic_obstacle_area,1)
-                            if intersect_sat(shape_n,scenario.dynamic_obstacle_area{i,istep}) 
+                    if ~isempty(iter.dynamic_obstacle_area)
+                        for i = 1:size(iter.dynamic_obstacle_area,1)
+                            if intersect_sat(shape_n,iter.dynamic_obstacle_area{i,istep}) 
                                 collisions(nveh) = collisions(nveh) + 1;
                             end
                         end
