@@ -1,5 +1,6 @@
 {
     "recommendations": [
-        "affenwiesel.matlab-formatter"
+        "affenwiesel.matlab-formatter",
+        "streetsidesoftware.code-spell-checker"
     ]
 }
