@@ -180,7 +180,7 @@ classdef (Abstract) HLCInterface < handle
                 % ----------------------------------------------------------------------
 
                 % Update the iteration data and sample reference trajectory
-                [obj.iter,obj.scenario] = rhc_init(obj.scenario,x0_measured,trims_measured, obj.initialized_reference_path, obj.ros_subscribers);
+                rhc_init(obj,x0_measured,trims_measured);
                 obj.initialized_reference_path = true;
 
                 % collision checking

@@ -32,7 +32,7 @@ classdef HLCFactory < handle
                 dry_run = true;
             end
             if dry_run
-                obj.dryRunHlc();
+                obj.dry_run_hlc();
             end
 
             if obj.scenario.options.scenario_name == Scenario_Type.Commonroad
@@ -103,7 +103,7 @@ classdef HLCFactory < handle
         %
         % Important note: This might take some time depending on how hard to
         % solve the first timestep of this scenario is.
-        function dryRunHlc(obj)
+        function dry_run_hlc(obj)
             disp("Starting dry run of HLC - TODO Implement");
 
             % Reset visualization + result + iter etc. to its initial value
