@@ -92,10 +92,10 @@ function plotOnline(result,step_idx,tick_now,exploration,visu)
                           '{\itspace}: pause/start simulation';
                           '{\itreturn}: disable/enable plotting';
                           '{\itesc}: end simulation'};
-            if strcmp(scenario.name,'Commonroad')
+            if strcmp(scenario.options.scenario_name,'Commonroad')
                 x_text_hotkey = scenario.options.plot_limits(1,1) - 1.5;
                 y_text_hotkey = scenario.options.plot_limits(2,2) - 0.5;
-            elseif strcmp(scenario.name,'Circle_scenario')
+            elseif strcmp(scenario.options.scenario_name,'Circle_scenario')
                 x_text_hotkey = scenario.options.plot_limits(1,1) - 2.0;
                 y_text_hotkey = scenario.options.plot_limits(2,2) - 0.5;
             else

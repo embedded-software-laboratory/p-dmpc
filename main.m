@@ -7,7 +7,7 @@ function [result,scenario,options] = main(varargin)
 
 
     % check if OptionsMain object is given as input
-    options = read_object_from_input(varargin,'OptionsMain');
+    options = read_object_from_input(varargin, 'Config');
     % If options are not given, determine from UI
     if isempty(options)
         try
