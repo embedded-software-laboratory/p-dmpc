@@ -95,7 +95,7 @@ classdef PbControllerSeq < HLCInterface
                                     scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
                                 else
                                     % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
-                                    reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i,:);
+                                    reachable_sets_i = latest_msg.reachable_sets;
                                     % turn polyshape to plain array (repeat the first row to enclosed the shape)
                                     reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i);
                                     scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
@@ -128,7 +128,7 @@ classdef PbControllerSeq < HLCInterface
                     end
 
                     % consider coupled vehicles with lower priorities
-                    scenario_v = consider_vehs_with_LP(scenario_v, obj.iter, vehicle_idx, all_coupled_vehs_with_LP);
+                    scenario_v = consider_vehs_with_LP(scenario_v, obj.iter, vehicle_idx, all_coupled_vehs_with_LP, obj.ros_subscribers);
 
                     % execute sub controller for 1-veh scenario
                     info_v = obj.sub_controller(scenario_v, iter_v);
@@ -179,13 +179,15 @@ classdef PbControllerSeq < HLCInterface
                     x0 = states_current(indices().x);
                     y0 = states_current(indices().y);
 
-                    [predicted_lanelets,~,~] = get_predicted_lanelets(obj.scenario, vehicle_k, trim_current, x0, y0);
+                    [predicted_lanelets,~,~] = get_predicted_lanelets(obj.scenario, vehicle_k, x0, y0);
                     predicted_areas_k = obj.info.shapes(vehicle_k,:);
+
+                    reachable_sets = obj.iter.reachable_sets(vehicle_k,:);
 
                     is_fallback = false;
 
                     % send message
-                    send_message(obj.scenario.vehicles(vehicle_k).communicate, obj.scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, is_fallback);
+                    send_message(obj.scenario.vehicles(vehicle_k).communicate, obj.scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, reachable_sets, is_fallback);
                     msg_send_time(vehicle_k) = toc(msg_send_tic);
                 end
             end

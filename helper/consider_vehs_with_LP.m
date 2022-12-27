@@ -1,4 +1,4 @@
-function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupling_vehs_without_ROW)
+function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupling_vehs_without_ROW, ros_subscribers)
 % CONSIDER_VEHS_WITH_LP Stategies to let vehicle with the right-of-way
 % consider vehicle without the right-of-way 
 % '1': do not consider 
@@ -51,7 +51,7 @@ function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_couplin
                 scenario_v.obstacles(end+1) = {[x_reachable_sets';y_reachable_sets']};
             case '5'
                 % consider old trajectory as dynamic obstacle
-                latest_msg = scenario_v.ros_subscribers{veh_without_ROW}.LatestMessage;
+                latest_msg = ros_subscribers{veh_without_ROW}.LatestMessage;
                 if latest_msg.time_step > 0
                     % the message does not come from the initial time step
                     predicted_areas = arrayfun(@(array) {[array.x';array.y']}, latest_msg.predicted_areas);

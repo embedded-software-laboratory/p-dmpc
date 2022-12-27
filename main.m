@@ -1,4 +1,4 @@
-function [result,scenario] = main(varargin)
+function [result, scenario] = main(varargin)
 % MAIN  main function for graph-based receeding horizon control
 
 if verLessThan('matlab','9.12')
@@ -31,7 +31,7 @@ if scenario.options.isPB == true && scenario.options.is_sim_lab == false
 else
     factory = HLCFactory();
     factory.set_scenario(scenario);
-    %if scenario.options.isPB == true
+    % if scenario.options.isPB == true
     if false
         %% simulate distribution locally using the Parallel Computing Toolbox
         %get_parallel_pool(scenario.options.amount);

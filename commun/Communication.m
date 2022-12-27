@@ -52,7 +52,7 @@ classdef Communication
             end
         end
 
-        function send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas, is_fallback)
+        function send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas, reachable_sets, is_fallback)
             % vehicle send message to its topic
             obj.msg_to_be_sent.time_step = int32(time_step);
             obj.msg_to_be_sent.vehicle_id = int32(obj.vehicle_id);
@@ -71,10 +71,10 @@ classdef Communication
             end     
 
             % comment out if vehicles send their reachable sets to others
-%             for j = 1:length(reachable_sets)
-%                 msg.reachable_sets(j).x = vehicle.reachable_sets{j}.Vertices(:,1);
-%                 msg.reachable_sets(j).y = vehicle.reachable_sets{j}.Vertices(:,2);
-%             end
+            for i = 1:length(reachable_sets)
+                msg.reachable_sets(i).x = reachable_sets{i}.Vertices(:,1);
+                msg.reachable_sets(i).y = reachable_sets{i}.Vertices(:,2);
+            end
 
             send(obj.publisher, obj.msg_to_be_sent);
         end

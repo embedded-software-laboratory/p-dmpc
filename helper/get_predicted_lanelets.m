@@ -1,4 +1,4 @@
-function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanelets(scenario, iter, iVeh, trim_current, x0, y0)
+function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanelets(scenario, iVeh, x0, y0)
 % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
 % based on vehile's current states and reference path. 
 % 

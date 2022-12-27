@@ -97,11 +97,12 @@ if ~hlc.scenario.options.is_mixed_traffic
         x0 = x0_measured(veh_index,indices().x); % vehicle position x
         y0 = x0_measured(veh_index,indices().y); % vehicle position y
 
-        predicted_lanelets = get_predicted_lanelets(hlc.scenario,veh_index,predicted_trims(1),x0,y0);
+        predicted_lanelets = get_predicted_lanelets(hlc.scenario,veh_index,x0,y0);
 
         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+        reachable_sets = {}; % for initial time step, the reachable areas are not predicted yet
         is_fallback = false; % whether vehicle should take fallback
-        hlc.scenario.vehicles(veh_index).communicate.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback);
+        hlc.scenario.vehicles(veh_index).communicate.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, reachable_sets, is_fallback);
     end
 end
 pause(1.2) % ensure ROS messages are received
