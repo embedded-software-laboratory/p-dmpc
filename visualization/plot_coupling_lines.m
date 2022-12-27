@@ -69,7 +69,7 @@ function plot_coupling_lines(M, x0, varargin)
             if coupling_visu.isShowValue
                 % plot coupling weights
                 text((x(1)+adj_x(1))/2,(x(2)+adj_x(2))/2,...
-                    num2str(round(M(v,adj_v),2)), 'FontSize', coupling_visu.FontSize, 'LineWidth', coupling_visu.LineWidth, 'Color', color_main, MaxHeadSize);
+                    num2str(round(M(v,adj_v),2)), 'FontSize', coupling_visu.FontSize, 'LineWidth', coupling_visu.LineWidth, 'Color', color_main);
             end
         end
     end
