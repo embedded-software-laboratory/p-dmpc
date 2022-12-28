@@ -22,14 +22,14 @@ function eval_coloring_paper()
     lvl_dist = calc_level_dist(c);
 
     % plot & save figure
-    fig = figure('position', [100 100 600 630], 'color', [1 1 1]);
+    fig = figure();
     histogram(lvl_dist, 'FaceAlpha', 1);
     set(gca, 'yscale', 'log');
     set(gca, 'XTick', 1:size(c, 1));
     ylabel('\# Prio. Assignments', 'Interpreter', 'LaTex');
     xlabel('Computation Levels', 'Interpreter', 'LaTex');
     set_figure_properties(fig, ExportFigConfig.paper());
-    export_fig(fig, fullfile('./results/level.pdf'));
+    export_fig(fig, fullfile('./results/levels.pdf'));
     close(fig);
 
     %% computation time <-> topological levels
@@ -114,18 +114,17 @@ function eval_coloring_paper()
         'coloring_priority'
         };
 
-    % TODO options from json
     options = OptionsMain;
     options.trim_set = 9;
     options.T_end = 180;
-    options.Hp = 6;
+    options.Hp = 8;
     options.isPB = true;
     options.isParl = true;
     options.is_sim_lab = true;
     options.visu = [false, false];
     options.strategy_consider_veh_without_ROW = '2'; % '2': consider currently occupied area as static obstacle
     options.isAllowInheritROW = true;
-    options.strategy_enter_lanelet_crossing_area = '2'; % do not enter lanelet crossing area
+    options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area 
     options.collisionAvoidanceMode = 1;
     options.consider_RSS = false;
     options.isSaveResult = 1;
@@ -147,4 +146,15 @@ function eval_coloring_paper()
 
     % plot Computation levels histogram excluding deadlock
     plot_levels(results);
+
+    % plot lanelets map
+    figure_handle = figure();
+
+    plot_lanelets(scenarios(1).road_raw_data.lanelet, scenarios(1).name);
+    axis equal;
+    xlabel('$x$ [m]', 'Interpreter','latex');
+    ylabel('$y$ [m]', 'Interpreter','latex');
+    set_figure_properties(figure_handle, ExportFigConfig.paper('paperheight', 6));
+    export_fig(figure_handle, './results/lab_map.pdf');
+    close(figure_handle);
 end
