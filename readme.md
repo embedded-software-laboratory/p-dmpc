@@ -28,7 +28,7 @@ Please refer to the respective publication if you are using it for your work. Th
 
 <details>
 <summary>
-P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority Assignment in Distributed MPC," TechRxiv, Preprint, https://doi.org/10.36227/techrxiv.20304015.v1.
+P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority Assignment in Distributed MPC," TechRxiv, Preprint, https://doi.org/10.36227/techrxiv.20304015.v1.  
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://doi.org/10.36227/techrxiv.20304015.v1) 
@@ -50,7 +50,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning," in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
+P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning," in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.  
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/TCST.2022.3214718) 
