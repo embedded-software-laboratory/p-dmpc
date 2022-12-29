@@ -37,7 +37,7 @@ classdef HLCFactory < handle
 
             if obj.scenario.options.scenario_name == Scenario_Type.Commonroad
                 if obj.scenario.options.isPB
-                    hlc = PbControllerSeq();
+                    hlc = PbControllerParl();
                 else
                     hlc = CentralizedController();
                 end

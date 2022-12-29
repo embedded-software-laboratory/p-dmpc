@@ -56,7 +56,7 @@ classdef ControllResultsInfo
             obj.predicted_trims = zeros(nVeh,Hp+1);
             obj.y_predicted = cell(nVeh,1);
             obj.computation_levels = inf;
-            obj.vehs_fallback = [];
+            obj.vehs_fallback = int32.empty;
             obj.is_exhausted = false(nVeh,1);
             obj.u = zeros(nVeh,1); 
 

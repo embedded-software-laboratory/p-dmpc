@@ -74,7 +74,7 @@ classdef PbControllerSeq < HLCInterface
 
                         if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
                             % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
-                            latest_msg = read_message(scenario_v.vehicles.communicate, obj.ros_subscribers{veh_with_HP_i}, scenario_v.k);
+                            latest_msg = read_message(scenario_v.vehicles.communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, scenario_v.k);
                             predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                             oldness_msg = scenario_v.k - latest_msg.time_step;
                             if oldness_msg ~= 0
@@ -89,13 +89,13 @@ classdef PbControllerSeq < HLCInterface
                                 % their latest messages are sent:
                                 % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step.
                                 % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step.
-                                latest_msg = obj.ros_subscribers{veh_with_HP_i}.LatestMessage;
+                                latest_msg = obj.ros_subscribers.predictions{veh_with_HP_i}.LatestMessage;
                                 if latest_msg.time_step == scenario_v.k
                                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                                     scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
                                 else
                                     % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
-                                    reachable_sets_i = latest_msg.reachable_sets;
+                                    reachable_sets_i = iter.reachable_sets;
                                     % turn polyshape to plain array (repeat the first row to enclosed the shape)
                                     reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i);
                                     scenario_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
@@ -104,7 +104,7 @@ classdef PbControllerSeq < HLCInterface
                                 % otherwise add one-step delayed trajectories as dynamic obstacles
                                 if scenario_v.k>1
                                     % the old trajectories are available from the second time step onwards
-                                    old_msg = read_message(scenario_v.vehicles.communicate, obj.ros_subscribers{veh_with_HP_i}, scenario_v.k-1);
+                                    old_msg = read_message(scenario_v.vehicles.communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, scenario_v.k-1);
                                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, old_msg.predicted_areas);
                                     oldness_msg = scenario_v.k - old_msg.time_step;
                                     if oldness_msg ~= 0
@@ -182,12 +182,8 @@ classdef PbControllerSeq < HLCInterface
                     [predicted_lanelets,~,~] = get_predicted_lanelets(obj.scenario, vehicle_k, x0, y0);
                     predicted_areas_k = obj.info.shapes(vehicle_k,:);
 
-                    reachable_sets = obj.iter.reachable_sets(vehicle_k,:);
-
-                    is_fallback = false;
-
                     % send message
-                    send_message(obj.scenario.vehicles(vehicle_k).communicate, obj.scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, reachable_sets, is_fallback);
+                    obj.scenario.vehicles(vehicle_k).communicate.predictions.send_message(obj.scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, obj.info.vehs_fallback);
                     msg_send_time(vehicle_k) = toc(msg_send_tic);
                 end
             end

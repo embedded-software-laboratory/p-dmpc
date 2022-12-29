@@ -141,12 +141,10 @@ classdef CPMLab < InterfaceExperiment
             if obj.pos_init == false
                 x0 = zeros(obj.scenario.options.amount,4);
                 pose = [obj.sample(end).state_list.pose];
-                for index = obj.indices_in_vehicle_list
-                    x0(index,1) = pose.x(index);
-                    x0(index,2) = pose.y(index);
-                    x0(index,3) = pose.yaw(index);
-                    x0(index,4) = [obj.sample(end).state_list.speed(index)];
-                end
+                x0(:,1) = [pose.x];
+                x0(:,2) = [pose.y];
+                x0(:,3) = [pose.yaw];
+                x0(:,4) = [obj.sample(end).state_list.speed];
                 [ ~, trim_indices ] = obj.measure_node();
                 obj.pos_init = true;
             else
@@ -179,7 +177,7 @@ classdef CPMLab < InterfaceExperiment
             obj.k = k;
             % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.scenario.options.amount,1);
-            for iVeh = 1:obj.amount
+            for iVeh = obj.indices_in_vehicle_list
                 n_traj_pts = obj.scenario.options.Hp;
                 n_predicted_points = size(y_pred{iVeh},1);
                 idx_predicted_points = 1:n_predicted_points/n_traj_pts:n_predicted_points;

@@ -49,7 +49,7 @@ else
         scenario={scenario{:}};
         plotter.close_figure();
     else
-        hlc = factory.get_hlc(scenario.options.veh_ids(1));
+        hlc = factory.get_hlc(scenario.options.veh_ids(2));
         [result,scenario] = hlc.run();
     end
 end

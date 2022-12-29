@@ -1,4 +1,4 @@
-classdef Communication
+classdef TrafficCommunication
 % SCENARIO  Communication class
 
     properties
@@ -16,7 +16,7 @@ classdef Communication
     end
     
     methods
-        function obj = Communication()
+        function obj = TrafficCommunication()
             % Create node connected to ROS 2 network for communication
 %             setenv("ROS_DOMAIN_ID","11") % change domain ID from default value 0 to 11. Vehicles can only communicate inside the same domain.
 %             domain_ID = 11; % Vehicles can only communicate with vehicles in the same domain.
@@ -30,21 +30,21 @@ classdef Communication
             obj.options = struct("History","keeplast","Depth",40,"Durability","transientlocal");
         end
 
-        function obj = create_publisher(obj, rand)
+        function obj = create_publisher(obj)
             % workaround to be able to create publisher in the lab
             obj.publisher = ros2publisher(obj.ros2_node,"/parameter_events");
             % create publisher: each vehicle send message only to its own topic with name '/vehicle_ID'
-            topic_name_publish = ['/vehicle_',num2str(obj.vehicle_id), num2str(rand)]; 
+            topic_name_publish = ['/vehicle_',num2str(obj.vehicle_id), '_traffic']; 
             obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/Traffic", obj.options);
         end
 
-        function ros_subscribers = create_subscriber(obj, vehs_to_be_subscribed, rand)
+        function ros_subscribers = create_subscriber(obj, vehs_to_be_subscribed)
 
             ros_subscribers = cell(length(vehs_to_be_subscribed), 1);
             % create subscribers: all topics should be subscribed
             for i = 1:length(vehs_to_be_subscribed)
                 veh_id = vehs_to_be_subscribed(i);
-                topic_name_subscribe = ['/vehicle_',num2str(veh_id), num2str(rand)];
+                topic_name_subscribe = ['/vehicle_',num2str(veh_id), '_traffic'];
 %                 callback = {@(msg) disp(msg)}; % callback function which will be executed automatically when receiving new message 
 %                 obj.subscribe{iVeh} = ros2subscriber(obj.ros2_node,topic_name_subscribe,"veh_msgs/Traffic",@callback_when_receiving_message,options);
 %                 obj.subscribe{iVeh} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Traffic", options);
@@ -52,28 +52,30 @@ classdef Communication
             end
         end
 
-        function send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas, reachable_sets, is_fallback)
+        function send_message(obj, time_step, current_trim, predicted_lanelets, predicted_areas, reachable_sets, is_fallback)
             % vehicle send message to its topic
             obj.msg_to_be_sent.time_step = int32(time_step);
             obj.msg_to_be_sent.vehicle_id = int32(obj.vehicle_id);
-            obj.msg_to_be_sent.predicted_trims = int32(predicted_trims(:));
-            obj.msg_to_be_sent.predicted_lanelets = int32(predicted_lanelets(:));
+            obj.msg_to_be_sent.current_trim = int32(current_trim);
+            obj.msg_to_be_sent.predicted_lanelets = int32(predicted_lanelets);
 
-            if nargin <= 5
+            if nargin <= 6
                 is_fallback = false;
             end
             
             obj.msg_to_be_sent.is_fallback = is_fallback; % whether vehicle should take fallback
 
-            for i = 1:length(predicted_areas)
-                obj.msg_to_be_sent.predicted_areas(i).x = predicted_areas{i}(1,:)';
-                obj.msg_to_be_sent.predicted_areas(i).y = predicted_areas{i}(2,:)';
-            end     
+            % predicted occupied areas of current time step. normal offset
+            % at index 1, without offset at index 2
+            obj.msg_to_be_sent.predicted_areas(1).x = predicted_areas.normal_offset(1,:);
+            obj.msg_to_be_sent.predicted_areas(1).y = predicted_areas.normal_offset(2,:);
+            obj.msg_to_be_sent.predicted_areas(2).x = predicted_areas.without_offset(1,:);
+            obj.msg_to_be_sent.predicted_areas(2).y = predicted_areas.without_offset(2,:);
 
             % comment out if vehicles send their reachable sets to others
             for i = 1:length(reachable_sets)
-                msg.reachable_sets(i).x = reachable_sets{i}.Vertices(:,1);
-                msg.reachable_sets(i).y = reachable_sets{i}.Vertices(:,2);
+                obj.msg_to_be_sent.reachable_sets(i).x = reachable_sets{i}.Vertices(:,1);
+                obj.msg_to_be_sent.reachable_sets(i).y = reachable_sets{i}.Vertices(:,2);
             end
 
             send(obj.publisher, obj.msg_to_be_sent);
@@ -81,7 +83,7 @@ classdef Communication
 
         function latest_msg = read_message(~, sub, time_step)
             % Read message from the given time step
-            timeout = 0.5;      is_timeout = true;
+            timeout = 1.5;      is_timeout = true;
             read_start = tic;   read_time = toc(read_start);
             
             while read_time < timeout

@@ -10,7 +10,6 @@ function rhc_init(hlc, x_measured, trims_measured)
 
     if hlc.scenario.options.is_mixed_traffic
         if ~hlc.initialized_reference_path
-            reachable_sets = {};
             for iVeh = hlc.indices_in_vehicle_list
                 index = match_pose_to_lane(hlc.scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
 
@@ -27,7 +26,7 @@ function rhc_init(hlc, x_measured, trims_measured)
                             predicted_lanelets = index;                            
 
                             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                            hlc.scenario.vehicles(iVeh).communicate.send_message(hlc.scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas, reachable_sets); 
+                            hlc.scenario.vehicles(iVeh).communicate.predictions.send_message(hlc.scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas); 
                         end
 
                         continue
@@ -45,7 +44,7 @@ function rhc_init(hlc, x_measured, trims_measured)
                             predicted_lanelets = index;
 
                             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                            hlc.scenario.vehicles(iVeh).communicate.send_message(hlc.scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas, reachable_sets);  
+                            hlc.scenario.vehicles(iVeh).communicate.predictions.send_message(hlc.scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
                         end
                         
                         continue
@@ -86,7 +85,7 @@ function rhc_init(hlc, x_measured, trims_measured)
                     predicted_lanelets = get_predicted_lanelets(hlc.scenario,iVeh,predicted_trims(1),x0,y0);
 
                     predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                    hlc.scenario.vehicles(iVeh).communicate.send_message(hlc.scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas, reachable_sets);   
+                    hlc.scenario.vehicles(iVeh).communicate.predictions.send_message(hlc.scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
                 end        
             end
         else
@@ -171,7 +170,7 @@ function rhc_init(hlc, x_measured, trims_measured)
         if hlc.scenario.options.isPB
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
-            latest_msg_i = read_message(hlc.scenario.vehicles(iVeh).communicate, hlc.ros_subscribers{iVeh}, hlc.scenario.k-1);
+            latest_msg_i = read_message(hlc.scenario.vehicles(iVeh).communicate.predictions, hlc.ros_subscribers.predictions{iVeh}, hlc.scenario.k-1);
             oldness_msg = hlc.scenario.k - latest_msg_i.time_step;
             iter.trim_indices(iVeh) = latest_msg_i.predicted_trims(oldness_msg+1);
         else
@@ -374,6 +373,61 @@ function rhc_init(hlc, x_measured, trims_measured)
         braking_area = mpa.emergency_maneuvers{trim_current}.braking_with_offset;
         [turn_braking_area_x,turn_braking_area_y] = translate_global(yaw0,x0,y0,braking_area(1,:),braking_area(2,:));
         iter.emergency_maneuvers{iVeh}.braking_area = [turn_braking_area_x;turn_braking_area_y];
+
+
+        if hlc.scenario.options.isPB
+            %% Send data to sync iter for all vehicles (especially needed for priority assignment)
+           hlc.scenario.vehicles(iVeh).communicate.traffic.send_message(hlc.scenario.k, iter.trim_indices(iVeh), iter.predicted_lanelets{iVeh}, iter.occupied_areas{iVeh}, iter.reachable_sets(iVeh,:));
+        end
+
+    end
+
+    %% read messages from other vehicles (There shouldn't be any other vehicles if centralized)
+    other_vehicles = setdiff(1:hlc.scenario.options.amount, hlc.indices_in_vehicle_list);
+    for iVeh = other_vehicles
+    %for iVeh = hlc.indices_in_vehicle_list
+        latest_msg_i = read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{iVeh}, hlc.scenario.k);
+        iter.trim_indices(iVeh) = latest_msg_i.current_trim;
+        iter.predicted_lanelets{iVeh} = latest_msg_i.predicted_lanelets';
+        predicted_areas = latest_msg_i.predicted_areas;
+        iter.occupied_areas{iVeh}.normal_offset(1,:) = predicted_areas(1).x;
+        iter.occupied_areas{iVeh}.normal_offset(2,:) = predicted_areas(1).y;
+        iter.occupied_areas{iVeh}.without_offset(1,:) = predicted_areas(2).x;
+        iter.occupied_areas{iVeh}.without_offset(2,:) = predicted_areas(2).y;
+        iter.reachable_sets(iVeh,:) = (arrayfun(@(array) {polyshape(array.x,array.y)}, latest_msg_i.reachable_sets))';
+       
+        % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
+        % TODO is lanelets_index of other vehicles up to date?
+        predicted_lanelet_boundary = get_lanelets_boundary(iter.predicted_lanelets{iVeh}, hlc.scenario.lanelet_boundary, hlc.scenario.vehicles(iVeh).lanelets_index, hlc.scenario.options.is_sim_lab, hlc.scenario.vehicles(iVeh).is_loop);
+        iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
+
+        x0 = iter.x0(iVeh, idx.x);
+        y0 = iter.x0(iVeh, idx.y);
+        yaw0 = iter.x0(iVeh, idx.heading);
+        trim_current = iter.trim_indices(iVeh);
+
+        %% emergency maneuver for vehicle iVeh
+        % emergency left maneuver (without offset)
+        turn_left_area_without_offset = mpa.emergency_maneuvers{trim_current}.left{1};
+        [turn_left_area_without_offset_x,turn_left_area_without_offset_y] = translate_global(yaw0,x0,y0,turn_left_area_without_offset(1,:),turn_left_area_without_offset(2,:));
+        iter.emergency_maneuvers{iVeh}.left_area_without_offset = [turn_left_area_without_offset_x;turn_left_area_without_offset_y];
+        % emergency right maneuver (without offset)
+        turn_right_area_without_offset = mpa.emergency_maneuvers{trim_current}.right{1};
+        [turn_right_area_without_offset_x,turn_right_area_without_offset_y] = translate_global(yaw0,x0,y0,turn_right_area_without_offset(1,:),turn_right_area_without_offset(2,:));
+        iter.emergency_maneuvers{iVeh}.right_area_without_offset = [turn_right_area_without_offset_x;turn_right_area_without_offset_y];
+        % emergency braking maneuver (without offset)
+        braking_area_without_offset = mpa.emergency_maneuvers{trim_current}.braking_without_offset;
+        [turn_braking_area_without_offset_x,turn_braking_area_without_offset_y] = translate_global(yaw0,x0,y0,braking_area_without_offset(1,:),braking_area_without_offset(2,:));
+        iter.emergency_maneuvers{iVeh}.braking_area_without_offset = [turn_braking_area_without_offset_x;turn_braking_area_without_offset_y];
+        % emergency braking maneuver (with normal offset)
+        braking_area = mpa.emergency_maneuvers{trim_current}.braking_with_offset;
+        [turn_braking_area_x,turn_braking_area_y] = translate_global(yaw0,x0,y0,braking_area(1,:),braking_area(2,:));
+        iter.emergency_maneuvers{iVeh}.braking_area = [turn_braking_area_x;turn_braking_area_y];
+    end
+
+    if ( hlc.scenario.options.amount > 1 )
+        % update the coupling information
+        hlc.scenario = coupling_based_on_reachable_sets(hlc.scenario, iter);
     end
    
     hlc.iter = iter;

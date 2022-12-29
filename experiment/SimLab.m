@@ -71,7 +71,7 @@ classdef SimLab < InterfaceExperiment
         function got_stop = is_stop(obj)
             got_stop = false;
             % idle while paused, and check if we should stop early
-            if ~obj.use_visualization_data_queue
+            if obj.doOnlinePlot && ~obj.use_visualization_data_queue
                 while obj.plotter.paused
                     if obj.plotter.abort
                         disp('Aborted.');

@@ -91,7 +91,7 @@ classdef (Abstract) HLCInterface < handle
             obj.vehicle_ids = vehicle_ids;
             obj.amount = length(vehicle_ids);
             if obj.amount == 1
-                obj.indices_in_vehicle_list = [find([obj.scenario.vehicle.ID] == obj.vehicle_ids(1),1)];
+                obj.indices_in_vehicle_list = [find([obj.scenario.vehicles.ID] == obj.vehicle_ids(1),1)];
             else
                 obj.indices_in_vehicle_list = 1:obj.amount;
             end
@@ -203,8 +203,8 @@ classdef (Abstract) HLCInterface < handle
                 end
 
 
-                % visualize reachabel set of vehicle in Expert-Mode
-                for iVeh = 1:obj.scenario.options.amount
+                % visualize reachable set of vehicle in Expert-Mode
+                for iVeh = obj.indices_in_vehicle_list
                     if obj.scenario.options.visualize_reachable_set && ((obj.scenario.vehicle_ids(iVeh) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
                             || (obj.scenario.vehicle_ids(iVeh) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
                         [visualization_command] = lab_visualize_polygon(obj.scenario, obj.iter.reachable_sets{iVeh, end}.Vertices, iVeh);
@@ -255,18 +255,13 @@ classdef (Abstract) HLCInterface < handle
 
                 if ~isempty(obj.scenario.lanelets)
 
-                    if ( obj.scenario.options.amount > 1 )
-                        % update the coupling information
-                        obj.scenario = coupling_based_on_reachable_sets(obj.scenario, obj.iter);
-                    end
-
                     % update the lanelet boundary for each vehicle
-                    for iVeh = 1:obj.scenario.options.amount
+                    for iVeh = obj.indices_in_vehicle_list
                         obj.scenario.vehicles(iVeh).lanelet_boundary = obj.iter.predicted_lanelet_boundary(iVeh,1:2);
                     end
                 else
                     % for other scenarios, no lanelet boundary
-                    for iVeh = 1:obj.scenario.options.amount
+                    for iVeh = obj.indices_in_vehicle_list
                         obj.scenario.vehicles(iVeh).lanelet_boundary = {};
                     end
 
@@ -295,6 +290,9 @@ classdef (Abstract) HLCInterface < handle
                 %% controller %%
                 obj.controller();
 
+
+                %% TODO check for fallback messages and update obj.info.vehs_fallback 
+
                 %% fallback
                 if strcmp(obj.scenario.options.fallback_type,'noFallback')
                     % disable fallback
@@ -318,7 +316,7 @@ classdef (Abstract) HLCInterface < handle
                         str_fb_type = sprintf('triggering %s', obj.scenario.options.fallback_type);
                         disp_tmp = sprintf(' %d,',obj.info.vehs_fallback); disp_tmp(end) = [];
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
-                        obj.info = pb_controller_fallback(obj.info, obj.info_old, obj.scenario);
+                        obj.info = pb_controller_fallback(obj.info, obj.info_old, obj.scenario, obj.indices_in_vehicle_list);
                         obj.total_fallback_times = obj.total_fallback_times + 1;
                     end
                 end

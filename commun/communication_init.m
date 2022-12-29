@@ -12,12 +12,10 @@ function communication_init(hlc)
 %   scenario: instance of the class Scenario with instance of the class
 %   Communication added to it
 
-num = randi([0,100]);
-
 % generate custom message type (for vehicle communication) if not exist
 msgList = ros2("msg","list"); % get all ROS 2 message types
 [file_path,~,~] = fileparts(mfilename('fullpath'));
-if sum(cellfun(@(c)strcmp(c,'veh_msgs/Traffic'), msgList))==0
+if (sum(cellfun(@(c)strcmp(c,'veh_msgs/Traffic'), msgList))==0) || (sum(cellfun(@(c)strcmp(c,'veh_msgs/Predictions'), msgList))==0)
     % if the message type 'veh_msgs/Traffic' does not exist
     path_custom_msg = [file_path,filesep,'cust1'];
 
@@ -66,14 +64,17 @@ Hp = hlc.scenario.options.Hp;
 
 %     topicList = ros2("topic","list");
 %     nodeList = ros2("node","list");
-if isempty(hlc.scenario.vehicles(1).communicate)
+if isempty(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate)
     start = tic;
     disp('Creating ROS 2 publishers...')
     for index = hlc.indices_in_vehicle_list
-        hlc.scenario.vehicles(index).communicate = Communication(); % create instance of the Comunication class
-        hlc.scenario.vehicles(index).communicate = initialize_communication(hlc.scenario.vehicles(index).communicate, hlc.scenario.vehicles(index).ID); % initialize
-        hlc.scenario.vehicles(index).communicate = create_publisher(hlc.scenario.vehicles(index).communicate, num); % create publisher
+        hlc.scenario.vehicles(index).communicate.traffic = TrafficCommunication(); % create instance of the Comunication class
+        hlc.scenario.vehicles(index).communicate.traffic = initialize_communication(hlc.scenario.vehicles(index).communicate.traffic, hlc.scenario.vehicles(index).ID); % initialize
+        hlc.scenario.vehicles(index).communicate.traffic = create_publisher(hlc.scenario.vehicles(index).communicate.traffic); % create publisher
 
+        hlc.scenario.vehicles(index).communicate.predictions = PredictionsCommunication(); % create instance of the Comunication class
+        hlc.scenario.vehicles(index).communicate.predictions = initialize_communication(hlc.scenario.vehicles(index).communicate.predictions, hlc.scenario.vehicles(index).ID); % initialize
+        hlc.scenario.vehicles(index).communicate.predictions = create_publisher(hlc.scenario.vehicles(index).communicate.predictions); % create publisher
     end
 end
 
@@ -85,7 +86,8 @@ end
 % The subscribers will be used by all vehicles.
 disp('Creating ROS 2 subscribers...')
 vehs_to_be_subscribed = hlc.scenario.options.veh_ids;
-hlc.ros_subscribers = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate,vehs_to_be_subscribed, num);
+hlc.ros_subscribers.traffic = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic,vehs_to_be_subscribed);
+hlc.ros_subscribers.predictions = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.predictions,vehs_to_be_subscribed);
 duration = toc(start);
 disp(['Finished in ' num2str(duration) ' seconds.'])
 
@@ -100,11 +102,9 @@ if ~hlc.scenario.options.is_mixed_traffic
         predicted_lanelets = get_predicted_lanelets(hlc.scenario,veh_index,x0,y0);
 
         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-        reachable_sets = {}; % for initial time step, the reachable areas are not predicted yet
-        is_fallback = false; % whether vehicle should take fallback
-        hlc.scenario.vehicles(veh_index).communicate.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, reachable_sets, is_fallback);
+        hlc.scenario.vehicles(veh_index).communicate.predictions.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);
     end
 end
-pause(1.2) % ensure ROS messages are received
+pause(1.0) % ensure ROS messages are received
 end
 
