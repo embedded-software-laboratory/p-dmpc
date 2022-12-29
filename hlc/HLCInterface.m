@@ -163,6 +163,8 @@ classdef (Abstract) HLCInterface < handle
 
                 % increment interation counter
                 obj.k = obj.k+1;
+                
+                obj.scenario.k = obj.k;
 
                 % Measurement
                 % -------------------------------------------------------------------------

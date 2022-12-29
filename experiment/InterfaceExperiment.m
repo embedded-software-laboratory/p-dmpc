@@ -10,6 +10,7 @@ classdef (Abstract) InterfaceExperiment < handle
         k
         veh_ids % which vehicles will controlled by this experiment instance
         amount
+        indices_in_vehicle_list
     end
     
     methods (Abstract)
@@ -24,16 +25,17 @@ classdef (Abstract) InterfaceExperiment < handle
         function obj = InterfaceExperiment(veh_ids)
             obj.veh_ids = veh_ids;
             obj.amount = length(veh_ids);
+            if obj.amount == 1
+                obj.indices_in_vehicle_list = [find(scenario.options.veh_ids == obj.vehicle_ids(1),1)];
+            else
+                obj.indices_in_vehicle_list = 1:obj.amount;
+            end
         end
 
         function [ x0, trim_indices ] = measure_node(obj)
             % take last planned state as new actual state
             speeds = zeros(obj.scenario.options.amount,1);
-            debug = speeds(2);
-            test = obj.cur_node;
-            test2 = NodeInfo.trim;
-            test3 = obj.scenario.mpa.trims;
-            for iVeh=1:obj.amount
+            for iVeh=1:obj.indices_in_vehicle_list
                 speeds(iVeh) = obj.scenario.mpa.trims(obj.cur_node(iVeh,NodeInfo.trim)).speed;
             end
             x0 = [obj.cur_node(:,NodeInfo.x), obj.cur_node(:,NodeInfo.y), obj.cur_node(:,NodeInfo.yaw), speeds];

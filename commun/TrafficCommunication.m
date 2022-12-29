@@ -52,11 +52,11 @@ classdef TrafficCommunication
             end
         end
 
-        function send_message(obj, time_step, current_trim, predicted_lanelets, predicted_areas, reachable_sets, is_fallback)
+        function send_message(obj, time_step, current_trim_index, predicted_lanelets, predicted_areas, reachable_sets, is_fallback)
             % vehicle send message to its topic
             obj.msg_to_be_sent.time_step = int32(time_step);
             obj.msg_to_be_sent.vehicle_id = int32(obj.vehicle_id);
-            obj.msg_to_be_sent.current_trim = int32(current_trim);
+            obj.msg_to_be_sent.current_trim_index = int32(current_trim_index);
             obj.msg_to_be_sent.predicted_lanelets = int32(predicted_lanelets);
 
             if nargin <= 6

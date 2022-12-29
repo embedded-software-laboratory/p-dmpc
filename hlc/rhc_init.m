@@ -161,11 +161,9 @@ function rhc_init(hlc, x_measured, trims_measured)
     iter.occupied_areas = cell(nVeh, 1);                % currently occupied areas with normal offset of vehicles 
     iter.emergency_maneuvers = cell(nVeh, 1);   % occupied area of emergency braking maneuver
     
-
-    % states of all vehicles can be measured directly
-    iter.x0 = x_measured;
-    
     for iVeh = hlc.indices_in_vehicle_list
+        % states of controlled vehicles can be measured directly
+        iter.x0(iVeh,:) = x_measured(iVeh,:);
         % read predicted_trim_indices for iVeh
         if hlc.scenario.options.isPB
             % In parallel computation, obtain the predicted trims and predicted
@@ -175,7 +173,7 @@ function rhc_init(hlc, x_measured, trims_measured)
             iter.trim_indices(iVeh) = latest_msg_i.predicted_trims(oldness_msg+1);
         else
             % if parallel computation is not used, other vehicles' trims are measured 
-            iter.trim_indices = trims_measured;
+            iter.trim_indices(iVeh) = trims_measured(iVeh);
         end
 
         x0 = iter.x0(iVeh, idx.x);

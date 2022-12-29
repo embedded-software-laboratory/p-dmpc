@@ -23,7 +23,6 @@ classdef CPMLab < InterfaceExperiment
         g29_handler
         g29_last_position
         pos_init
-        indices_in_vehicle_list
     end
     
     methods
@@ -34,12 +33,7 @@ classdef CPMLab < InterfaceExperiment
             obj.pos_init = false;
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(amount,1), zeros(amount,1));
-            if obj.amount == 1
-                obj.indices_in_vehicle_list = [find(scenario.options.veh_ids == obj.vehicle_ids(1),1)];
-            else
-                obj.indices_in_vehicle_list = 1:obj.amount;
-            end
+            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.amount,1), zeros(obj.amount,1));
         end
         
         function setup(obj)
@@ -141,10 +135,13 @@ classdef CPMLab < InterfaceExperiment
             if obj.pos_init == false
                 x0 = zeros(obj.scenario.options.amount,4);
                 pose = [obj.sample(end).state_list.pose];
-                x0(:,1) = [pose.x];
-                x0(:,2) = [pose.y];
-                x0(:,3) = [pose.yaw];
-                x0(:,4) = [obj.sample(end).state_list.speed];
+                for index = obj.indices_in_vehicle_list
+                    x0(index,1) = pose.x(index);
+                    x0(index,2) = pose.y(index);
+                    x0(index,3) = pose.yaw(index);
+                    x0(index,4) = [obj.sample(end).state_list.speed(index)];
+                end
+
                 [ ~, trim_indices ] = obj.measure_node();
                 obj.pos_init = true;
             else
@@ -152,9 +149,9 @@ classdef CPMLab < InterfaceExperiment
 
                 % find out index of vehicle in Expert-Mode
                 indexVehicleExpertMode = 0;
-                for j = 1:obj.scenario.options.amount
-                    if ((obj.scenario.options.veh_ids(j) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
-                        || (obj.scenario.options.veh_ids(j) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
+                for j = obj.indices_in_vehicle_list
+                    if ((obj.scenario.vehicle_ids(j) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
+                        || (obj.scenario.vehicle_ids(j) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
                         indexVehicleExpertMode = j;
                     end
                 end
@@ -292,7 +289,7 @@ classdef CPMLab < InterfaceExperiment
         function stop_experiment = is_veh_at_map_border(obj, trajectory_points)
             % Vehicle command timeout is 1000 ms after the last valid_after_stamp,
             % so vehicle initiates stop between third and fourth trajectory point
-            vhlength = 0.25;
+            % vhlength = 0.25;
             vhwidth = 0.1;
             x_min =  vhwidth/2 + 0;  % vhlength + 0;
             x_max = -vhwidth/2 +  4.5; % -vhlength + 4.5;
