@@ -211,7 +211,7 @@ function rhc_init(hlc, x_measured, trims_measured)
                 hlc.scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
                 predicted_lanelet_boundary = cell(1, 3);
 
-                if hlc.scenario.options.consider_RSS
+                if hlc.scenario.options.mixed_traffic_config.consider_rss
                     % conisder boundary of predicted lanes
                     leftBound = [];
                     rightBound = [];
@@ -375,7 +375,7 @@ function rhc_init(hlc, x_measured, trims_measured)
 
         if hlc.scenario.options.isPB
             %% Send data to sync iter for all vehicles (especially needed for priority assignment)
-           hlc.scenario.vehicles(iVeh).communicate.traffic.send_message(hlc.scenario.k, iter.trim_indices(iVeh), iter.predicted_lanelets{iVeh}, iter.occupied_areas{iVeh}, iter.reachable_sets(iVeh,:));
+           hlc.scenario.vehicles(iVeh).communicate.traffic.send_message(hlc.scenario.k, iter.x0(iVeh,:), iter.trim_indices(iVeh), iter.predicted_lanelets{iVeh}, iter.occupied_areas{iVeh}, iter.reachable_sets(iVeh,:));
         end
 
     end
@@ -385,13 +385,14 @@ function rhc_init(hlc, x_measured, trims_measured)
     for iVeh = other_vehicles
     %for iVeh = hlc.indices_in_vehicle_list
         latest_msg_i = read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{iVeh}, hlc.scenario.k);
-        iter.trim_indices(iVeh) = latest_msg_i.current_trim;
+        iter.x0(iVeh,:) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
+        iter.trim_indices(iVeh) = latest_msg_i.current_trim_index;
         iter.predicted_lanelets{iVeh} = latest_msg_i.predicted_lanelets';
-        predicted_areas = latest_msg_i.predicted_areas;
-        iter.occupied_areas{iVeh}.normal_offset(1,:) = predicted_areas(1).x;
-        iter.occupied_areas{iVeh}.normal_offset(2,:) = predicted_areas(1).y;
-        iter.occupied_areas{iVeh}.without_offset(1,:) = predicted_areas(2).x;
-        iter.occupied_areas{iVeh}.without_offset(2,:) = predicted_areas(2).y;
+        occupied_areas = latest_msg_i.occupied_areas;
+        iter.occupied_areas{iVeh}.normal_offset(1,:) = occupied_areas(1).x;
+        iter.occupied_areas{iVeh}.normal_offset(2,:) = occupied_areas(1).y;
+        iter.occupied_areas{iVeh}.without_offset(1,:) = occupied_areas(2).x;
+        iter.occupied_areas{iVeh}.without_offset(2,:) = occupied_areas(2).y;
         iter.reachable_sets(iVeh,:) = (arrayfun(@(array) {polyshape(array.x,array.y)}, latest_msg_i.reachable_sets))';
        
         % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets

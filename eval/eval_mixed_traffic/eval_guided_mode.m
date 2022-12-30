@@ -18,7 +18,7 @@ function [options, vehicle_ids] = eval_guided_mode(collisionAvoidanceMode)
     options.force_feedback_enabled = true;
     options.manualVehicle_id2 = '9';
     options.secondManualVehicleMode = '1';
-    options.consider_RSS = false;
+    options.mixed_traffic_config.consider_rss = false;
     
     options.Hp = 6;
     options.trim_set = 4;

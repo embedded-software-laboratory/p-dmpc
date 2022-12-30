@@ -22,11 +22,12 @@ classdef (Abstract) InterfaceExperiment < handle
     end
     
     methods
-        function obj = InterfaceExperiment(veh_ids)
+        function obj = InterfaceExperiment(scenario, veh_ids)
+            obj.scenario = scenario;
             obj.veh_ids = veh_ids;
             obj.amount = length(veh_ids);
             if obj.amount == 1
-                obj.indices_in_vehicle_list = [find(scenario.options.veh_ids == obj.vehicle_ids(1),1)];
+                obj.indices_in_vehicle_list = [find(obj.scenario.options.veh_ids == obj.veh_ids(1),1)];
             else
                 obj.indices_in_vehicle_list = 1:obj.amount;
             end

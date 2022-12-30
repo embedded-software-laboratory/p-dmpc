@@ -41,7 +41,7 @@ classdef PbControllerParl < HLCInterface
             end
 
             runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
-            msg_send_time = zeros(1,nVeh);
+            msg_send_time = 0;
 
             vehicle_idx = obj.indices_in_vehicle_list(1);
 
@@ -184,13 +184,27 @@ classdef PbControllerParl < HLCInterface
 
                 % send message
                 obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.scenario.k, predicted_trims, predicted_lanelets, predicted_areas_k, obj.info.vehs_fallback);
-                msg_send_time(vehicle_idx) = toc(msg_send_tic);
+                msg_send_time = toc(msg_send_tic);
 
             end
 
-            obj.info.runtime_graph_search_each_veh = obj.info.runtime_graph_search_each_veh + msg_send_time;
+            % TODO save time for eval
+            %obj.info.runtime_graph_search_each_veh = zeros(obj.scenario.options.amount);
+            %obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.runtime_graph_search_each_grp + runtime_others;
+
+            %obj.info.runtime_graph_search_each_veh = obj.info.runtime_graph_search_each_veh + msg_send_time;
             % Calculate the total runtime of each group
-            obj.info = get_run_time_total_all_grps(obj.info, obj.scenario.parl_groups_info, CL_based_hierarchy, runtime_others);
+            %obj.info = get_run_time_total_all_grps(obj.info, obj.scenario.parl_groups_info, CL_based_hierarchy, runtime_others);
+
+
+            n_grps = length(obj.scenario.parl_groups_info);
+
+            obj.info.runtime_graph_search_each_veh = zeros(1,obj.scenario.options.amount);
+            obj.info.runtime_graph_search_max = 0;
+    
+            obj.info.runtime_subcontroller_each_veh = obj.info.runtime_graph_search_each_veh;
+            obj.info.runtime_subcontroller_each_grp = zeros(1,n_grps);
+            obj.info.runtime_subcontroller_max = 0;
 
             obj.scenario.lanelet_crossing_areas = lanelet_crossing_areas;
         end

@@ -66,7 +66,7 @@ end
     options.isAllowInheritROW = true;
     options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area 
     options.collisionAvoidanceMode = 1;
-    options.consider_RSS = false;
+    options.mixed_traffic_config.consider_rss = false;
     options.isSaveResult = 1;
     options.isSaveResultReduced = 1;
 

@@ -1,4 +1,4 @@
-function [result, scenario] = main(varargin)
+function [result, scenario] = mainb(varargin)
 % MAIN  main function for graph-based receeding horizon control
 
 if verLessThan('matlab','9.12')
@@ -31,23 +31,27 @@ if scenario.options.isPB == true && scenario.options.is_sim_lab == false
 else
     factory = HLCFactory();
     factory.set_scenario(scenario);
-    %if scenario.options.isPB == true
+    % if scenario.options.isPB == true
     if false
         %% simulate distribution locally using the Parallel Computing Toolbox
-        %get_parallel_pool(scenario.options.amount);
-        get_parallel_pool(2);
-        factory.set_visualization_data_queue;
-        % create central plotter - used by all workers via data queue
-        plotter = PlotterOnline(factory.scenario);
-        afterEach(factory.visualization_data_queue, @plotter.data_queue_callback);
-        spmd(2)
+        get_parallel_pool(scenario.options.amount);
+        plot = scenario.options.visu(1);
+        if plot
+            factory.set_visualization_data_queue;
+            % create central plotter - used by all workers via data queue
+            plotter = PlotterOnline(factory.scenario);
+            afterEach(factory.visualization_data_queue, @plotter.data_queue_callback);
+        end
+        spmd(scenario.options.amount)
             % TODO sort vehicle ids
             hlc = factory.get_hlc(scenario.options.veh_ids(labindex));
             [result,scenario] = hlc.run();
         end
+        if plot
+            plotter.close_figure();
+        end
         result={result{:}};
         scenario={scenario{:}};
-        plotter.close_figure();
     else
         hlc = factory.get_hlc(scenario.options.veh_ids(2));
         [result,scenario] = hlc.run();

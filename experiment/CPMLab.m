@@ -27,9 +27,7 @@ classdef CPMLab < InterfaceExperiment
     
     methods
         function obj = CPMLab(scenario, veh_ids)
-            obj = obj@InterfaceExperiment(veh_ids);
-            obj.scenario = scenario;
-            obj.amount = size(obj.veh_ids);
+            obj = obj@InterfaceExperiment(scenario, veh_ids);
             obj.pos_init = false;
             obj.visualize_manual_lane_change_counter = 0;
             obj.visualize_second_manual_lane_change_counter = 0;
@@ -170,7 +168,9 @@ classdef CPMLab < InterfaceExperiment
         function apply(obj, info, ~, k, scenario)
             y_pred = info.y_predicted;
             % simulate change of state
-            obj.cur_node = info.next_node;
+            for iVeh = obj.indices_in_vehicle_list
+                obj.cur_node(iVeh,:) = info.next_node(iVeh,:);
+            end
             obj.k = k;
             % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.scenario.options.amount,1);

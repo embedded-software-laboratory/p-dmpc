@@ -308,6 +308,11 @@ classdef PlotterOnline < handle
         end
 
         function data_queue_callback(obj, plotting_info)
+
+            
+            
+
+            
             start_simulation_timer(obj);
             simulated_time = obj.scenario.options.dt * (plotting_info.step);
             simulation_time = toc(obj.timer) + obj.simulation_time_before_pause;

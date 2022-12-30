@@ -98,13 +98,37 @@ if ~hlc.scenario.options.is_mixed_traffic
 
         x0 = x0_measured(veh_index,indices().x); % vehicle position x
         y0 = x0_measured(veh_index,indices().y); % vehicle position y
+        heading = x0_measured(veh_index,indices().heading);
+        speed = x0_measured(veh_index,indices().speed);
+        current_pose = [x0,y0,heading,speed];
 
         predicted_lanelets = get_predicted_lanelets(hlc.scenario,veh_index,x0,y0);
 
+        % get vehicles currently occupied area
+        x_rec1 = [-1, -1,  1,  1, -1] * (hlc.scenario.vehicles(veh_index).Length/2 + hlc.scenario.options.offset); % repeat the first entry to enclose the shape
+        y_rec1 = [-1,  1,  1, -1, -1] * (hlc.scenario.vehicles(veh_index).Width/2 + hlc.scenario.options.offset);
+        % calculate displacement of model shape
+        [x_rec2, y_rec2] = translate_global(heading, x0, y0, x_rec1, y_rec1);
+        occupied_area.normal_offset = [x_rec2; y_rec2];
+
+        x_rec1_without_offset = [-1, -1,  1,  1, -1] * (hlc.scenario.vehicles(veh_index).Length/2); % repeat the first entry to enclose the shape
+        y_rec1_without_offset = [-1,  1,  1, -1, -1] * (hlc.scenario.vehicles(veh_index).Width/2);
+        [x_rec2_without_offset, y_rec2_without_offset] = translate_global(heading, x0, y0, x_rec1_without_offset, y_rec1_without_offset);
+        occupied_area.without_offset = [x_rec2_without_offset; y_rec2_without_offset];
+
         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+        reachable_sets = {}; % for initial time step, the reachable sets are not computed yet
+        pause(4.0) % wait for all subscribers to be created
         hlc.scenario.vehicles(veh_index).communicate.predictions.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);
+        hlc.scenario.vehicles(veh_index).communicate.traffic.send_message(hlc.scenario.k, current_pose, predicted_trims(1), predicted_lanelets, occupied_area, reachable_sets);
     end
+    % read form all other vehicles to make sure all vehicles are ready
+    other_vehicles = setdiff(1:hlc.scenario.options.amount, hlc.indices_in_vehicle_list);
+    for veh_index = other_vehicles
+        disp(['reading from vehicle ', num2str(veh_index)]);
+        read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.scenario.k, 15.0);
+    end
+
 end
-pause(1.0) % ensure ROS messages are received
 end
 

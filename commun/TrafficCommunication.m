@@ -9,6 +9,7 @@ classdef TrafficCommunication
         stored_msgs;            % stored messages
         msg_to_be_sent;         % initialize message type
         options;                % options to create publisher and subscriber
+        pose_indices;           % index of x, y, heading etc. in array
     end
     
     properties (Dependent)
@@ -20,6 +21,7 @@ classdef TrafficCommunication
             % Create node connected to ROS 2 network for communication
 %             setenv("ROS_DOMAIN_ID","11") % change domain ID from default value 0 to 11. Vehicles can only communicate inside the same domain.
 %             domain_ID = 11; % Vehicles can only communicate with vehicles in the same domain.
+            obj.pose_indices = indices();
         end
         
         function obj = initialize_communication(obj, vehicle_id)
@@ -27,7 +29,7 @@ classdef TrafficCommunication
             node_name = ['/node_',num2str(obj.vehicle_id)];
             obj.ros2_node = ros2node(node_name);
             obj.msg_to_be_sent = ros2message('veh_msgs/Traffic'); % create ROS 2 message structure
-            obj.options = struct("History","keeplast","Depth",40,"Durability","transientlocal");
+            obj.options = struct("History","keeplast","Depth",40,"Reliability", "reliable", "Durability","transientlocal");
         end
 
         function obj = create_publisher(obj)
@@ -52,25 +54,29 @@ classdef TrafficCommunication
             end
         end
 
-        function send_message(obj, time_step, current_trim_index, predicted_lanelets, predicted_areas, reachable_sets, is_fallback)
+        function send_message(obj, time_step, current_pose, current_trim_index, predicted_lanelets, occupied_areas, reachable_sets, is_fallback)
             % vehicle send message to its topic
             obj.msg_to_be_sent.time_step = int32(time_step);
             obj.msg_to_be_sent.vehicle_id = int32(obj.vehicle_id);
+            obj.msg_to_be_sent.current_pose.x = current_pose(obj.pose_indices.x);
+            obj.msg_to_be_sent.current_pose.y = current_pose(obj.pose_indices.y);
+            obj.msg_to_be_sent.current_pose.heading = current_pose(obj.pose_indices.heading);
+            obj.msg_to_be_sent.current_pose.speed = current_pose(obj.pose_indices.speed);
             obj.msg_to_be_sent.current_trim_index = int32(current_trim_index);
             obj.msg_to_be_sent.predicted_lanelets = int32(predicted_lanelets);
 
-            if nargin <= 6
+            if nargin <= 7
                 is_fallback = false;
             end
             
             obj.msg_to_be_sent.is_fallback = is_fallback; % whether vehicle should take fallback
 
-            % predicted occupied areas of current time step. normal offset
+            % occupied areas of current time step. normal offset
             % at index 1, without offset at index 2
-            obj.msg_to_be_sent.predicted_areas(1).x = predicted_areas.normal_offset(1,:);
-            obj.msg_to_be_sent.predicted_areas(1).y = predicted_areas.normal_offset(2,:);
-            obj.msg_to_be_sent.predicted_areas(2).x = predicted_areas.without_offset(1,:);
-            obj.msg_to_be_sent.predicted_areas(2).y = predicted_areas.without_offset(2,:);
+            obj.msg_to_be_sent.occupied_areas(1).x = occupied_areas.normal_offset(1,:);
+            obj.msg_to_be_sent.occupied_areas(1).y = occupied_areas.normal_offset(2,:);
+            obj.msg_to_be_sent.occupied_areas(2).x = occupied_areas.without_offset(1,:);
+            obj.msg_to_be_sent.occupied_areas(2).y = occupied_areas.without_offset(2,:);
 
             % comment out if vehicles send their reachable sets to others
             for i = 1:length(reachable_sets)
@@ -81,15 +87,18 @@ classdef TrafficCommunication
             send(obj.publisher, obj.msg_to_be_sent);
         end
 
-        function latest_msg = read_message(~, sub, time_step)
+        function latest_msg = read_message(~, sub, time_step, timeout)
             % Read message from the given time step
-            timeout = 1.5;      is_timeout = true;
+            if nargin <= 3
+                timeout = 2.5; 
+            end
+            is_timeout = true;
             read_start = tic;   read_time = toc(read_start);
             
             while read_time < timeout
                 if ~isempty(sub.LatestMessage)
                     if sub.LatestMessage.time_step == time_step
-    %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
+                        % disp(['Get current message after ' num2str(read_time) ' seconds.'])
                         is_timeout = false;
                         break
                     end
@@ -99,7 +108,7 @@ classdef TrafficCommunication
             end
 
             if is_timeout
-                warning('Unable to receive the current message. The pevious message will be used.')
+                warning('Unable to receive the current message of step %i from vehicle %s. The pevious message will be used.', time_step, sub.TopicName)
             end
 
             % return the latest message

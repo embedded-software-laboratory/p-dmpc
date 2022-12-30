@@ -11,7 +11,7 @@ classdef PlottingInfo < handle
         reachable_sets
         exploration
         step
-        veh_ids % vehicle_ids to whcih the plot info belong
+        veh_indices % vehicles to which the plot info belong
         tick_now
         lanelet_crossing_areas
         coupling_weights_reduced
@@ -21,8 +21,8 @@ classdef PlottingInfo < handle
     end
 
     methods (Static)
-        function obj = PlottingInfo(veh_ids, result, k, tick_now, exploration_struct, plot_options)
-            obj.veh_ids = veh_ids;
+        function obj = PlottingInfo(veh_indices, result, k, tick_now, exploration_struct, plot_options)
+            obj.veh_indices = veh_indices;
             obj.step = k;
             obj.tick_now = tick_now;
             obj.trajectory_predictions = result.trajectory_predictions(:,k);
@@ -50,6 +50,24 @@ classdef PlottingInfo < handle
                 obj.coupling_info = result.coupling_info{k};
             end
             obj.exploration = exploration_struct;
+        end
+    end
+
+    methods
+        function filter(obj, overall_amount_of_veh, plot_options)
+            filter_self = false(1,overall_amount_of_veh);
+            filter_self(obj.veh_indices(1)) = true;
+            obj.trajectory_predictions = obj.trajectory_predictions{filter_self};
+            obj.ref_trajectory = obj.ref_trajectory(filter_self,:,:);
+            obj.priorities = obj.priorities(filter_self);
+            if plot_options.isShowReachableSets
+                obj.reachable_sets = obj.reachable_sets{filter_self,:};
+            end
+            if plot_options.isShowLaneletCrossingAreas
+                obj.lanelet_crossing_areas = obj.lanelet_crossing_areas{filter_self};
+            end
+            % TODO what to do with tree in distributed case? 
+            % obj.exploration_struct.info.tree = obj.exploration_struct.info.tree;            
         end
     end
 end

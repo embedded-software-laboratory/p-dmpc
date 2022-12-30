@@ -11,14 +11,12 @@ classdef SimLab < InterfaceExperiment
     
     methods
         function obj = SimLab(scenario, veh_ids, visualization_data_queue)
-            obj = obj@InterfaceExperiment(veh_ids);
-            obj.scenario = scenario;
+            obj = obj@InterfaceExperiment(scenario, veh_ids);
             obj.doOnlinePlot = obj.scenario.options.visu(1);
             obj.doExploration = obj.scenario.options.visu(2);
             obj.use_visualization_data_queue = false;    
             obj.visualization_data_queue = visualization_data_queue;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
-            obj.veh_ids = veh_ids;
         end
         
         function setup(obj)
@@ -41,7 +39,9 @@ classdef SimLab < InterfaceExperiment
         
         function apply(obj, info, result, k, ~)
             % simulate change of state
-            obj.cur_node = info.next_node;
+            for iVeh = obj.indices_in_vehicle_list
+                obj.cur_node(iVeh,:) = info.next_node(iVeh,:);
+            end
             obj.k = k;            
             % init struct for exploration plot
             if obj.doExploration
@@ -54,8 +54,11 @@ classdef SimLab < InterfaceExperiment
                 % visualize time step
                 % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                plotting_info = PlottingInfo(obj.veh_ids, result, obj.k, tick_now, exploration_struct, obj.scenario.options.optionsPlotOnline);
+                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, obj.k, tick_now, exploration_struct, obj.scenario.options.optionsPlotOnline);
                 if obj.use_visualization_data_queue
+                    %filter plotting info for controlled vehicles before
+                    %sending
+                    plotting_info.filter(obj.scenario.options.amount, obj.scenario.options.optionsPlotOnline);
                     send(obj.visualization_data_queue, plotting_info);
                 else
                     % wait to simulate realtime plotting

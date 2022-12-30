@@ -70,9 +70,12 @@ classdef PredictionsCommunication
             send(obj.publisher, obj.msg_to_be_sent);
         end
 
-        function latest_msg = read_message(~, sub, time_step)
+        function latest_msg = read_message(~, sub, time_step, timeout)
             % Read message from the given time step
-            timeout = 0.8;      is_timeout = true;
+            if nargin <= 3
+                timeout = 0.5; 
+            end
+            is_timeout = true;
             read_start = tic;   read_time = toc(read_start);
             
             while read_time < timeout
@@ -88,7 +91,7 @@ classdef PredictionsCommunication
             end
 
             if is_timeout
-                warning('Unable to receive the current message. The pevious message will be used.')
+                warning('Unable to receive the current message of step %i. The pevious message will be used.', time_step)
             end
 
             % return the latest message

@@ -169,9 +169,7 @@ classdef (Abstract) HLCInterface < handle
                 % Measurement
                 % -------------------------------------------------------------------------
                 [x0_measured, trims_measured] = obj.hlc_adapter.measure();% trims_measured： which trim
-
-                obj.scenario.k = obj.k;
-
+                
                 if mod(obj.k,10)==0
                     % only display 0, 10, 20, ...
                     disp(['>>> Time step ' num2str(obj.scenario.k)])

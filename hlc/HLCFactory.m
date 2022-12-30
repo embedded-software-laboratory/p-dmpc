@@ -37,7 +37,11 @@ classdef HLCFactory < handle
 
             if obj.scenario.options.scenario_name == Scenario_Type.Commonroad
                 if obj.scenario.options.isPB
-                    hlc = PbControllerParl();
+                    if length(vehicle_ids)==1
+                        hlc = PbControllerParl();
+                    else
+                        hlc = PbControllerSeq();
+                    end
                 else
                     hlc = CentralizedController();
                 end
