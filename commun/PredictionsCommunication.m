@@ -91,7 +91,8 @@ classdef PredictionsCommunication
             end
 
             if is_timeout
-                warning('Unable to receive the current message of step %i. The pevious message will be used.', time_step)
+                warning(['Unable to receive the current message of step %i from vehicle %s. The pevious message from step ' ...
+                    '%i will be used.'], time_step, sub.TopicName, sub.LatestMessage.time_step)
             end
 
             % return the latest message

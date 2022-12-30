@@ -88,6 +88,9 @@ disp('Creating ROS 2 subscribers...')
 vehs_to_be_subscribed = hlc.scenario.options.veh_ids;
 hlc.ros_subscribers.traffic = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic,vehs_to_be_subscribed);
 hlc.ros_subscribers.predictions = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.predictions,vehs_to_be_subscribed);
+if length(hlc.indices_in_vehicle_list) == 1
+    pause(3.0) % wait for all subscribers to be created
+end
 duration = toc(start);
 disp(['Finished in ' num2str(duration) ' seconds.'])
 
@@ -117,8 +120,7 @@ if ~hlc.scenario.options.is_mixed_traffic
         occupied_area.without_offset = [x_rec2_without_offset; y_rec2_without_offset];
 
         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-        reachable_sets = {}; % for initial time step, the reachable sets are not computed yet
-        pause(4.0) % wait for all subscribers to be created
+        reachable_sets = {}; % for initial time step, the reachable sets are not computed yet       
         hlc.scenario.vehicles(veh_index).communicate.predictions.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);
         hlc.scenario.vehicles(veh_index).communicate.traffic.send_message(hlc.scenario.k, current_pose, predicted_trims(1), predicted_lanelets, occupied_area, reachable_sets);
     end
@@ -126,8 +128,9 @@ if ~hlc.scenario.options.is_mixed_traffic
     other_vehicles = setdiff(1:hlc.scenario.options.amount, hlc.indices_in_vehicle_list);
     for veh_index = other_vehicles
         disp(['reading from vehicle ', num2str(veh_index)]);
-        read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.scenario.k, 15.0);
+        read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.scenario.k, 10.0);
     end
+    pause(1.2);
 
 end
 end

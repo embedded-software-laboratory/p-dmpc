@@ -48,15 +48,6 @@ classdef PbControllerParl < HLCInterface
             if ismember(vehicle_idx, obj.info.vehs_fallback)
                 obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
             else
-
-                %                %% Get CL of this vehicle
-                %                for level_id = 1:length(CL_based_hierarchy)
-                %                    if ismember(vehicle_idx, CL_based_hierarchy(level_id).members)
-                %                        veh_level = level_id;
-                %                        break;
-                %                    end
-                %                end
-
                 subcontroller_timer = tic;
 
                 % only keep self
@@ -88,7 +79,7 @@ classdef PbControllerParl < HLCInterface
                             % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
                             predicted_areas_i = del_first_rpt_last(predicted_areas_i,oldness_msg);
                         end
-                        scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;d
+                        scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
 
                     else
                         % if they are in different groups

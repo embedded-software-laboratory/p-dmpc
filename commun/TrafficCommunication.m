@@ -90,7 +90,7 @@ classdef TrafficCommunication
         function latest_msg = read_message(~, sub, time_step, timeout)
             % Read message from the given time step
             if nargin <= 3
-                timeout = 2.5; 
+                timeout = 0.7; 
             end
             is_timeout = true;
             read_start = tic;   read_time = toc(read_start);
@@ -101,6 +101,10 @@ classdef TrafficCommunication
                         % disp(['Get current message after ' num2str(read_time) ' seconds.'])
                         is_timeout = false;
                         break
+                    elseif sub.LatestMessage.time_step > time_step
+                        disp(['missed message ',num2str(time_step),'. Using ', num2str(sub.LatestMessage.time_step)])
+                        is_timeout = false;
+                        break
                     end
                 end
                 read_time = toc(read_start);
@@ -108,7 +112,8 @@ classdef TrafficCommunication
             end
 
             if is_timeout
-                warning('Unable to receive the current message of step %i from vehicle %s. The pevious message will be used.', time_step, sub.TopicName)
+                warning(['Unable to receive the current message of step %i from vehicle %s. The pevious message from step ' ...
+                    '%i will be used.'], time_step, sub.TopicName, sub.LatestMessage.time_step)
             end
 
             % return the latest message
