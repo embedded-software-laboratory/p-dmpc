@@ -12,7 +12,9 @@ classdef PlotterOnline < handle
         vehicles
         nVeh
         timer % used to simulate real time plotting while receiving data from visualiuation queue
-        simulation_time_before_pause
+        simulation_time_before_pause % used to backup timer wehen pausing visualization
+        time_step % keep track wich time step should be plotted next
+        plotting_info_collection % collect plotting info from each vehicle via data queue
     end
     methods
         function obj = PlotterOnline(scenario)
@@ -22,9 +24,11 @@ classdef PlotterOnline < handle
             obj.resolution = [1920 1080];
             obj.plot_options = scenario.options.optionsPlotOnline;
             obj.scenario = scenario;
+            obj.time_step = 1;
             obj.strategy = HLCFactory.get_controller_name(obj.scenario.options);
             obj.vehicles = scenario.vehicles;
             obj.nVeh = scenario.options.amount;
+            % obj.plotting_info_collection = false(scenario.options.T_end / scenario.options.dt, obj.nVeh);
             obj.simulation_time_before_pause = 0 ;
             obj.fig = figure(...
                 'Visible','On'...
@@ -308,18 +312,38 @@ classdef PlotterOnline < handle
         end
 
         function data_queue_callback(obj, plotting_info)
-
-            
-            
-
-            
             start_simulation_timer(obj);
             simulated_time = obj.scenario.options.dt * (plotting_info.step);
             simulation_time = toc(obj.timer) + obj.simulation_time_before_pause;
-            pause(simulated_time - simulation_time);
-            obj.plotOnline(plotting_info);
+
+            % TODO What to do if message is lost? timeout per plotting timestep?
+            % save info
+            field_name = strcat('step',num2str(plotting_info.step));
+            obj.plotting_info_collection.(field_name){plotting_info.veh_indices(1)} = plotting_info;
+
+            % check if time step is complete (all vehicles received)
+            field_name = strcat('step',num2str(obj.time_step));
+            if length(obj.plotting_info_collection.(field_name)) == obj.nVeh
+                complete = true;
+                for i = 1:length(obj.plotting_info_collection.(field_name))
+                    if isempty(obj.plotting_info_collection.(field_name){i})
+                        complete = false;
+                        break;
+                    end
+                end
+                if complete
+                    complete_plotting_info = obj.merge_plotting_infos(obj.plotting_info_collection.(field_name));
+                    pause(simulated_time - simulation_time);
+                    obj.plotOnline(complete_plotting_info);
+
+                    %delete field
+                    obj.plotting_info_collection = rmfield(obj.plotting_info_collection,field_name);
+                    obj.time_step = obj.time_step + 1;
+                end
+            end            
+            
             if obj.abort
-                disp('Not yet implemented');
+                disp('Aborting experiment not yet implemented');
                 obj.abort = ~obj.abort;
             end
             if obj.paused
@@ -329,7 +353,7 @@ classdef PlotterOnline < handle
                 obj.simulation_time_before_pause = simulation_time;
                 while (obj.paused)
                     %pause to allow key callback to be executed
-                    pause(0.2);
+                    pause(0.1);
                 end
             end
         end
@@ -340,6 +364,41 @@ classdef PlotterOnline < handle
         function start_simulation_timer(obj)
             if isempty(obj.timer)
                 obj.timer=tic;
+            end
+        end
+
+        function complete_plotting_info = merge_plotting_infos(obj, plotting_info_collection)
+            complete_plotting_info = plotting_info_collection{1};
+            complete_plotting_info.veh_indices = cellfun(@(x) x.veh_indices(1), plotting_info_collection);
+            for i = 1:length(plotting_info_collection)
+                info = plotting_info_collection{i};
+                trajectory_predictions{i,1} = info.trajectory_predictions;
+                ref_trajectory(i,:,:) = info.ref_trajectory(1,:,:);
+            end
+            complete_plotting_info.trajectory_predictions = trajectory_predictions;
+            complete_plotting_info.ref_trajectory = ref_trajectory;
+            complete_plotting_info.priorities = cellfun(@(x) x.priorities, plotting_info_collection)';
+            n_obstacles = 0;
+            for x = plotting_info_collection
+                n_obstacles =+ x{1}.n_obstacles;
+            end
+            complete_plotting_info.n_obstacles = n_obstacles;
+            complete_plotting_info.obstacles = cellfun(@(x) x.obstacles, plotting_info_collection, 'UniformOutput', false);
+            n_dynamic_obstacles = 0;
+            for x = plotting_info_collection
+                n_dynamic_obstacles =+ x{1}.n_dynamic_obstacles;
+            end
+            complete_plotting_info.n_dynamic_obstacles = n_dynamic_obstacles;
+            complete_plotting_info.dynamic_obstacles = cellfun(@(x) x.dynamic_obstacles, plotting_info_collection, 'UniformOutput', false);
+            complete_plotting_info.dynamic_obstacles_shape = cellfun(@(x) x.dynamic_obstacles_shape, plotting_info_collection, 'UniformOutput', false);
+            if obj.plot_options.isShowReachableSets
+                for i = 1:length(plotting_info_collection)
+                    info = plotting_info_collection{i};
+                    complete_plotting_info.reachable_sets{i,:} = info.reachable_sets;
+                end
+            end
+            if obj.plot_options.isShowLaneletCrossingAreas
+                complete_plotting_info.lanelet_crossing_areas = cellfun(@(x) x.lanelet_crossing_areas, plotting_info_collection, 'UniformOutput', false);
             end
         end
 

@@ -373,9 +373,9 @@ function rhc_init(hlc, x_measured, trims_measured)
         iter.emergency_maneuvers{iVeh}.braking_area = [turn_braking_area_x;turn_braking_area_y];
 
 
-        if hlc.scenario.options.isPB
+        if hlc.scenario.options.isPB && length(hlc.indices_in_vehicle_list == 1)
             %% Send data to sync iter for all vehicles (especially needed for priority assignment)
-           hlc.scenario.vehicles(iVeh).communicate.traffic.send_message(hlc.scenario.k, iter.x0(iVeh,:), iter.trim_indices(iVeh), iter.predicted_lanelets{iVeh}, iter.occupied_areas{iVeh}, iter.reachable_sets(iVeh,:));
+            hlc.scenario.vehicles(iVeh).communicate.traffic.send_message(hlc.scenario.k, iter.x0(iVeh,:), iter.trim_indices(iVeh), iter.predicted_lanelets{iVeh}, iter.occupied_areas{iVeh}, iter.reachable_sets(iVeh,:));
         end
 
     end

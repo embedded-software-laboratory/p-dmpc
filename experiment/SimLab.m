@@ -58,7 +58,7 @@ classdef SimLab < InterfaceExperiment
                 if obj.use_visualization_data_queue
                     %filter plotting info for controlled vehicles before
                     %sending
-                    plotting_info.filter(obj.scenario.options.amount, obj.scenario.options.optionsPlotOnline);
+                    plotting_info = plotting_info.filter(obj.scenario.options.amount, obj.scenario.options.optionsPlotOnline);
                     send(obj.visualization_data_queue, plotting_info);
                 else
                     % wait to simulate realtime plotting
