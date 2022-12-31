@@ -26,8 +26,9 @@ if isempty(scenario)
 end
 % write scenario to disk if distributed
 if scenario.options.isPB == true && scenario.options.is_sim_lab == false
+% if scenario.options.isPB == true
     save('scenario.mat','scenario');
-    disp('Scenario was written to disk. Select run_scenario_distributed in LCC next.')
+    disp('Scenario was written to disk. Select main_lab_distributed(vehicle_id) in LCC next.')
 else
     factory = HLCFactory();
     factory.set_scenario(scenario);

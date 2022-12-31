@@ -312,10 +312,6 @@ classdef PlotterOnline < handle
         end
 
         function data_queue_callback(obj, plotting_info)
-            start_simulation_timer(obj);
-            simulated_time = obj.scenario.options.dt * (plotting_info.step);
-            simulation_time = toc(obj.timer) + obj.simulation_time_before_pause;
-
             % TODO What to do if message is lost? timeout per plotting timestep?
             % save info
             field_name = strcat('step',num2str(plotting_info.step));
@@ -333,7 +329,18 @@ classdef PlotterOnline < handle
                 end
                 if complete
                     complete_plotting_info = obj.merge_plotting_infos(obj.plotting_info_collection.(field_name));
-                    pause(simulated_time - simulation_time);
+                    start_simulation_timer(obj);
+                    simulated_time = obj.scenario.options.dt * (complete_plotting_info.step);
+                    simulation_time = toc(obj.timer) + obj.simulation_time_before_pause;
+                    time_diff = simulated_time - simulation_time;
+                    % avoid plotter trying catching up when simulation is
+                    % slow
+                    if time_diff < 0
+                        obj.simulation_time_before_pause = obj.simulation_time_before_pause + time_diff;
+                        disp(time_diff)
+                    else
+                        pause(time_diff);
+                    end
                     obj.plotOnline(complete_plotting_info);
 
                     %delete field
@@ -380,13 +387,13 @@ classdef PlotterOnline < handle
             complete_plotting_info.priorities = cellfun(@(x) x.priorities, plotting_info_collection)';
             n_obstacles = 0;
             for x = plotting_info_collection
-                n_obstacles =+ x{1}.n_obstacles;
+                n_obstacles = n_obstacles + x{1}.n_obstacles;
             end
             complete_plotting_info.n_obstacles = n_obstacles;
             complete_plotting_info.obstacles = cellfun(@(x) x.obstacles, plotting_info_collection, 'UniformOutput', false);
             n_dynamic_obstacles = 0;
             for x = plotting_info_collection
-                n_dynamic_obstacles =+ x{1}.n_dynamic_obstacles;
+                n_dynamic_obstacles = n_dynamic_obstacles + x{1}.n_dynamic_obstacles;
             end
             complete_plotting_info.n_dynamic_obstacles = n_dynamic_obstacles;
             complete_plotting_info.dynamic_obstacles = cellfun(@(x) x.dynamic_obstacles, plotting_info_collection, 'UniformOutput', false);

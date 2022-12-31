@@ -28,8 +28,8 @@ classdef TrafficCommunication
             obj.vehicle_id = vehicle_id;
             node_name = ['/node_',num2str(obj.vehicle_id)];
             obj.ros2_node = ros2node(node_name);
-            obj.msg_to_be_sent = ros2message('veh_msgs/Traffic'); % create ROS 2 message structure
-            obj.options = struct("History","keeplast","Depth",40,"Reliability", "reliable", "Durability","transientlocal");
+            obj.msg_to_be_sent = ros2message("veh_msgs/Traffic", "DataFormat","struct"); % create ROS 2 message structure
+            obj.options = struct("DataFormat","struct","History","keeplast","Depth",40,"Reliability", "reliable", "Durability","transientlocal");
         end
 
         function obj = create_publisher(obj)
@@ -90,7 +90,7 @@ classdef TrafficCommunication
         function latest_msg = read_message(~, sub, time_step, timeout)
             % Read message from the given time step
             if nargin <= 3
-                timeout = 0.7; 
+                timeout = 2.0; 
             end
             is_timeout = true;
             read_start = tic;   read_time = toc(read_start);
