@@ -291,7 +291,9 @@ classdef (Abstract) HLCInterface < handle
                 obj.controller();
 
 
-                %% TODO check for fallback messages and update obj.info.vehs_fallback 
+                %% TODO check for fallback messages and update obj.info.vehs_fallback
+                % join obj.info.vehs_fallback from all vehicles an make it unique
+
 
                 %% fallback
                 if strcmp(obj.scenario.options.fallback_type,'noFallback')

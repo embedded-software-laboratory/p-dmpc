@@ -337,7 +337,6 @@ classdef PlotterOnline < handle
                     % slow
                     if time_diff < 0
                         obj.simulation_time_before_pause = obj.simulation_time_before_pause + time_diff;
-                        disp(time_diff)
                     else
                         pause(time_diff);
                     end
