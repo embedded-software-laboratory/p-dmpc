@@ -90,7 +90,7 @@ classdef TrafficCommunication
         function latest_msg = read_message(~, sub, time_step, timeout)
             % Read message from the given time step
             if nargin <= 3
-                timeout = 2.0; 
+                timeout = 1.0; 
             end
             is_timeout = true;
             read_start = tic;   read_time = toc(read_start);

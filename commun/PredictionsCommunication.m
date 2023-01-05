@@ -81,7 +81,7 @@ classdef PredictionsCommunication
             while read_time < timeout
                 if ~isempty(sub.LatestMessage)
                     if sub.LatestMessage.time_step == time_step
-    %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
+                        %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
                         is_timeout = false;
                         break
                     end

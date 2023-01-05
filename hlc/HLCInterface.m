@@ -290,9 +290,16 @@ classdef (Abstract) HLCInterface < handle
                 %% controller %%
                 obj.controller();
 
-
-                %% TODO check for fallback messages and update obj.info.vehs_fallback
-                % join obj.info.vehs_fallback from all vehicles an make it unique
+                % If using distributed hlcs, collect fallback info from all
+                % other vehicles
+                if obj.amount == 1
+                    other_vehicles = setdiff(1:obj.scenario.options.amount, obj.indices_in_vehicle_list);
+                    for veh_id = other_vehicles
+                        latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.scenario.k);
+                        fallback_info_veh_id = latest_msg.vehs_fallback;
+                        obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
+                    end
+                end
 
 
                 %% fallback

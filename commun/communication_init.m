@@ -89,7 +89,7 @@ vehs_to_be_subscribed = hlc.scenario.options.veh_ids;
 hlc.ros_subscribers.traffic = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic,vehs_to_be_subscribed);
 hlc.ros_subscribers.predictions = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.predictions,vehs_to_be_subscribed);
 if length(hlc.indices_in_vehicle_list) == 1
-    pause(3.0) % wait for all subscribers to be created
+    pause(5.0) % wait for all subscribers to be created
 end
 duration = toc(start);
 disp(['Finished in ' num2str(duration) ' seconds.'])
@@ -131,7 +131,6 @@ if ~hlc.scenario.options.is_mixed_traffic
         read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.scenario.k, 10.0);
     end
     pause(1.2);
-
 end
 end
 

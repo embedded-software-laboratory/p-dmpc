@@ -65,9 +65,8 @@ classdef SimLab < InterfaceExperiment
                     pause(obj.scenario.options.dt-result.step_time(obj.k))
                     obj.plotter.plotOnline(plotting_info);
                 end
-            else
                 % pause so that `keyPressCallback()` can be executed in time
-                pause(0.01)
+                pause(0.01);
             end
         end
         
