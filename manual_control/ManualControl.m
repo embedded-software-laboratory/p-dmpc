@@ -1,11 +1,12 @@
 classdef (Abstract) ManualControl
     
-    properties (Access = private)
+    properties (Access = protected)
         vehicle_id
         input_device_id
         joy_node
         joy_subscriber
-        control_mode                % 1 for Manual, 2 for Semi-Autonomous
+        reader_vehicleStateList
+        g29_force_feedback
     end
 
     methods
@@ -18,6 +19,11 @@ classdef (Abstract) ManualControl
                 cmdStr = ['gnome-terminal --' ' ' 'launch_g29_force_feedback.sh'];
                 system(cmdStr);
             end
+        end
+
+        function input_device_data = decode_input_data()
+            % generic data from different input devices
+            input_device_data = struct(); % steering und throttle
         end
     end
 end
