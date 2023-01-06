@@ -61,6 +61,11 @@ Hp = hlc.scenario.options.Hp;
 % measure vehicles' initial poses and trims
 [x0_measured, trims_measured] = hlc.hlc_adapter.measure();
 
+% init global message storage for callbacks
+% initialize the global variable
+global stored_traffic_msgs;
+stored_traffic_msgs = struct('time_step',[],'vehicle_id',[],'is_fallback',[],'current_pose',[],'current_trim_index',[],'predicted_lanelets',[],'occupied_areas',[],'reachable_sets',[], 'MessageType',[]);
+
 
 %     topicList = ros2("topic","list");
 %     nodeList = ros2("node","list");
@@ -120,15 +125,35 @@ if ~hlc.scenario.options.is_mixed_traffic
         occupied_area.without_offset = [x_rec2_without_offset; y_rec2_without_offset];
 
         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-        reachable_sets = {}; % for initial time step, the reachable sets are not computed yet       
+        reachable_sets = {}; % for initial time step, the reachable sets are not computed yet
         hlc.scenario.vehicles(veh_index).communicate.predictions.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);
         hlc.scenario.vehicles(veh_index).communicate.traffic.send_message(hlc.scenario.k, current_pose, predicted_trims(1), predicted_lanelets, occupied_area, reachable_sets);
     end
     % read form all other vehicles to make sure all vehicles are ready
     other_vehicles = setdiff(1:hlc.scenario.options.amount, hlc.indices_in_vehicle_list);
     for veh_index = other_vehicles
-        disp(['reading from vehicle ', num2str(veh_index)]);
+        disp(['reading initial msg from vehicle ', num2str(veh_index)]);
         read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.scenario.k, 10.0);
+
+        %         timeout = 10.0;
+        %         time_step = 0;
+        %         is_timeout = true;
+        %         read_start = tic;   read_time = toc(read_start);
+        %         while read_time < timeout
+        %             if ~isempty(hlc.ros_subscribers.traffic{veh_index}.LatestMessage)
+        %                 if hlc.ros_subscribers.traffic{veh_index}.LatestMessage.time_step == time_step
+        %                     % disp(['Get current message after ' num2str(read_time) ' seconds.'])
+        %                     is_timeout = false;
+        %                     break
+        %                 elseif sub.LatestMessage.time_step > time_step
+        %                     disp(['missed message ',num2str(time_step),'. Using ', num2str(hlc.ros_subscribers.traffic{veh_index}.LatestMessage.time_step)])
+        %                     is_timeout = false;
+        %                     break
+        %                 end
+        %             end
+        %             read_time = toc(read_start);
+        %             pause(1e-2);
+        %         end
     end
     pause(1.2);
 end

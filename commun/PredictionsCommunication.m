@@ -98,14 +98,5 @@ classdef PredictionsCommunication
             % return the latest message
             latest_msg = sub.LatestMessage;
         end
-
-%         function obj = get_stored_msgs(obj)
-%             % get the stored messages
-%             global stored_msgs_global
-%             obj.stored_msgs = stored_msgs_global;
-%         end
-
-    end
-    
-    
+    end   
 end

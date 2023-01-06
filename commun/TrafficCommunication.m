@@ -50,7 +50,7 @@ classdef TrafficCommunication
 %                 callback = {@(msg) disp(msg)}; % callback function which will be executed automatically when receiving new message 
 %                 obj.subscribe{iVeh} = ros2subscriber(obj.ros2_node,topic_name_subscribe,"veh_msgs/Traffic",@callback_when_receiving_message,options);
 %                 obj.subscribe{iVeh} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Traffic", options);
-                ros_subscribers{i} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Traffic", obj.options);
+                ros_subscribers{i} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Traffic", @callback_traffic_communication, obj.options);
             end
         end
 
@@ -120,13 +120,30 @@ classdef TrafficCommunication
             latest_msg = sub.LatestMessage;
         end
 
-%         function obj = get_stored_msgs(obj)
-%             % get the stored messages
-%             global stored_msgs_global
-%             obj.stored_msgs = stored_msgs_global;
-%         end
+        function latest_msg = read_messages(~, time_step, timeout)
+             % Read message from the given time step
+            if nargin <= 2
+                timeout = 1.0; 
+            end
+            global stored_traffic_msgs;
+            is_timeout = true;
+            read_start = tic;   read_time = toc(read_start);
+            while read_time < timeout
+                find_msgs = [stored_traffic_msgs.time_step]==time_step;
+                if length(stored_traffic_msgs(find_msgs)) == 4
+                    is_timeout = false;
+                    latest_msg = stored_traffic_msgs(find_msgs);
+                    break
+                end
+                read_time = toc(read_start);
+                pause(1e-4)
+            end
+
+            if is_timeout
+                error(['Unable to receive the current message of step %i.'], time_step)
+            end
+
+        end
 
     end
-    
-    
 end
