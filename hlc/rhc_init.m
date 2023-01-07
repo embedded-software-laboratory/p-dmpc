@@ -16,7 +16,7 @@ function rhc_init(hlc, x_measured, trims_measured)
                 if hlc.scenario.manual_vehicle_id == hlc.scenario.vehicle_ids(iVeh)
                     if hlc.scenario.options.firstManualVehicleMode == 1
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
-                        [updated_ref_path, hlc.scenario] = generate_manual_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, index(1), false);
+                        updated_ref_path = generate_manual_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, index(1), false);
                     else
                         if hlc.scenario.options.isPB
                             % Communicate predicted trims, predicted lanelets and areas to other vehicles
@@ -26,7 +26,7 @@ function rhc_init(hlc, x_measured, trims_measured)
                             predicted_lanelets = index;                            
 
                             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                            hlc.scenario.vehicles(iVeh).communicate.predictions.send_message(hlc.scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas); 
+                            hlc.scenario.vehicles(iVeh).communicate.predictions.send_message(hlc.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas); 
                         end
 
                         continue
@@ -34,7 +34,7 @@ function rhc_init(hlc, x_measured, trims_measured)
                 elseif hlc.scenario.second_manual_vehicle_id == hlc.scenario.vehicle_ids(iVeh)
                     if hlc.scenario.options.secondManualVehicleMode == 1
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
-                        [updated_ref_path, hlc.scenario] = generate_manual_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, index(1), false);
+                        updated_ref_path = generate_manual_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, index(1), false);
                     else
                         if hlc.scenario.options.isPB
                             % Communicate predicted trims, predicted lanelets and areas to other vehicles
@@ -44,7 +44,7 @@ function rhc_init(hlc, x_measured, trims_measured)
                             predicted_lanelets = index;
 
                             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                            hlc.scenario.vehicles(iVeh).communicate.predictions.send_message(hlc.scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
+                            hlc.scenario.vehicles(iVeh).communicate.predictions.send_message(hlc.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);  
                         end
                         
                         continue
@@ -52,10 +52,10 @@ function rhc_init(hlc, x_measured, trims_measured)
                 else
                     if hlc.scenario.options.is_eval
                          % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                        [updated_ref_path, hlc.scenario, hlc.scenario.vehicles(iVeh).lane_change_indices, hlc.scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, 0);
+                        [updated_ref_path, hlc.iter.lane_change_indices(iVeh,:,:), hlc.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, 0);
                     else
                          % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                        [updated_ref_path, hlc.scenario, hlc.scenario.vehicles(iVeh).lane_change_indices, hlc.scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, index(1));
+                         [updated_ref_path, hlc.iter.lane_change_indices(iVeh,:,:), hlc.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, index(1));
                     end
                 end
                 
@@ -85,20 +85,20 @@ function rhc_init(hlc, x_measured, trims_measured)
                     predicted_lanelets = get_predicted_lanelets(hlc.scenario,iVeh,predicted_trims(1),x0,y0);
 
                     predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                    hlc.scenario.vehicles(iVeh).communicate.predictions.send_message(hlc.scenario.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
+                    hlc.scenario.vehicles(iVeh).communicate.predictions.send_message(hlc.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
                 end        
             end
         else
             for iVeh = hlc.indices_in_vehicle_list
-                hlc.scenario.vehicles(iVeh).autoUpdatedPath = false;
-                for i = 1:length(hlc.scenario.vehicles(iVeh).predicted_lanelets)
+                hlc.iter.vehicles(iVeh).autoUpdatedPath = false;
+                for i = 1:length(hlc.iter.predicted_lanelets{iVeh})
                     % if last lane is reached, then lane will be automatically updated
-                    if hlc.scenario.vehicles(iVeh).predicted_lanelets(i) == hlc.scenario.vehicles(iVeh).lanelets_index(end-1)
+                    if hlc.iter.predicted_lanelets{iVeh}(i) == hlc.scenario.vehicles(iVeh).lanelets_index(end-1)
                         if hlc.scenario.manual_vehicle_id == hlc.scenario.vehicle_ids(iVeh) && ~hlc.scenario.updated_manual_vehicle_path
                             if hlc.scenario.options.firstManualVehicleMode == 1
                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
-                                [updated_ref_path, hlc.scenario] = generate_manual_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, hlc.scenario.vehicles(iVeh).lanelets_index(end-1), false);
-                                hlc.scenario.vehicles(iVeh).autoUpdatedPath = true;
+                                updated_ref_path = generate_manual_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, hlc.scenario.vehicles(iVeh).lanelets_index(end-1), false);
+                                hlc.iter.auto_updated_path(iVeh) = true;
                             else
                                 continue
                             end     
@@ -106,20 +106,20 @@ function rhc_init(hlc, x_measured, trims_measured)
                             if hlc.scenario.options.secondManualVehicleMode == 1
                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
                                 [updated_ref_path, hlc.scenario] = generate_manual_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, hlc.scenario.vehicles(iVeh).lanelets_index(end-1), false);
-                                hlc.scenario.vehicles(iVeh).autoUpdatedPath = true;
+                                hlc.iter.auto_updated_path(iVeh) = true;
                             else
                                 continue
                             end      
                         else
                             % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                            [updated_ref_path, hlc.scenario, hlc.scenario.vehicles(iVeh).lane_change_indices, hlc.scenario.vehicles(iVeh).lane_change_lanes] = generate_random_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, hlc.scenario.vehicles(iVeh).lanelets_index(end-1));
-                            hlc.scenario.vehicles(iVeh).autoUpdatedPath = true;
+                            [updated_ref_path, hlc.iter.lane_change_indices(iVeh,:,:), hlc.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(hlc.scenario, hlc.scenario.vehicle_ids(iVeh), 10, hlc.scenario.vehicles(iVeh).lanelets_index(end-1));
+                            hlc.iter.auto_updated_path(iVeh) = true;
                         end
 
                         % save lanes before update to add for boundaries
-                        if hlc.scenario.vehicles(iVeh).autoUpdatedPath && length(hlc.scenario.vehicles(iVeh).lanelets_index) > 3
-                            hlc.scenario.vehicles(iVeh).lanes_before_update(1,1) = hlc.scenario.vehicles(iVeh).lanelets_index(end-2);
-                            hlc.scenario.vehicles(iVeh).lanes_before_update(1,2) = hlc.scenario.vehicles(iVeh).lanelets_index(end-3);
+                        if hlc.iter.auto_updated_path(iVeh) && length(hlc.scenario.vehicles(iVeh).lanelets_index) > 3
+                            hlc.iter.lanes_before_update(iVeh,1,1) = hlc.scenario.vehicles(iVeh).lanelets_index(end-2);
+                            hlc.iter.lanes_before_update(iVeh,1,2) = hlc.scenario.vehicles(iVeh).lanelets_index(end-3);
                         end
                         
                         updatedRefPath = updated_ref_path.path;
@@ -137,9 +137,9 @@ function rhc_init(hlc, x_measured, trims_measured)
                         hlc.scenario.vehicles(iVeh).yaw_start = yaw(1);
                         hlc.scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
                         break
-                    elseif hlc.scenario.vehicles(iVeh).predicted_lanelets(i) == hlc.scenario.vehicles(iVeh).lanelets_index(3)
+                    elseif hlc.iter.predicted_lanelets{iVeh}(i) == hlc.scenario.vehicles(iVeh).lanelets_index(3)
                         % do not consider the lanes before path update for the boundaries anymore
-                        hlc.scenario.vehicles(iVeh).lanes_before_update = zeros(1,2);
+                        hlc.iter.lanes_before_update(iVeh,:,:) = zeros(1,2);
                     end
                 end
             end
@@ -149,18 +149,6 @@ function rhc_init(hlc, x_measured, trims_measured)
     nVeh = hlc.scenario.options.amount;
     Hp = hlc.scenario.options.Hp;
     
-    iter = struct;
-    iter.referenceTrajectoryPoints = zeros(nVeh,Hp,2);
-    iter.referenceTrajectoryIndex = zeros(nVeh,Hp,1);
-    iter.x0 = zeros(nVeh, 4);                           % state
-    iter.trim_indices = zeros(nVeh, 1);                 % current trim
-    iter.vRef = zeros(nVeh,Hp);                         % reference speed  
-    iter.predicted_lanelets = cell(nVeh, 1);
-    iter.predicted_lanelet_boundary = cell(nVeh, 3);    % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
-    iter.reachable_sets = cell(nVeh, Hp);               % cells to store instances of MATLAB calss `polyshape`
-    iter.occupied_areas = cell(nVeh, 1);                % currently occupied areas with normal offset of vehicles 
-    iter.emergency_maneuvers = cell(nVeh, 1);   % occupied area of emergency braking maneuver
-    
     for iVeh = hlc.indices_in_vehicle_list
         % states of controlled vehicles can be measured directly
         iter.x0(iVeh,:) = x_measured(iVeh,:);
@@ -168,8 +156,8 @@ function rhc_init(hlc, x_measured, trims_measured)
         if hlc.scenario.options.isPB
             % In parallel computation, obtain the predicted trims and predicted
             % lanelets of other vehicles from the received messages
-            latest_msg_i = read_message(hlc.scenario.vehicles(iVeh).communicate.predictions, hlc.ros_subscribers.predictions{iVeh}, hlc.scenario.k-1);
-            oldness_msg = hlc.scenario.k - latest_msg_i.time_step;
+            latest_msg_i = read_message(hlc.scenario.vehicles(iVeh).communicate.predictions, hlc.ros_subscribers.predictions{iVeh}, hlc.k-1);
+            oldness_msg = hlc.k - latest_msg_i.time_step;
             iter.trim_indices(iVeh) = latest_msg_i.predicted_trims(oldness_msg+1);
         else
             % if parallel computation is not used, other vehicles' trims are measured 
@@ -183,7 +171,7 @@ function rhc_init(hlc, x_measured, trims_measured)
 
         % Compute the predicted lanelets of iVeh vehicle
         % Byproducts: reference path and reference speed profile
-        [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(hlc.scenario, iVeh, x0, y0);
+        [predicted_lanelets,reference,v_ref] = get_predicted_lanelets(hlc.scenario, hlc.iter, iVeh, x0, y0);
 
 
         % For non manual vehicles: Update ref speed and ref trajectory
@@ -196,11 +184,11 @@ function rhc_init(hlc, x_measured, trims_measured)
             iter.referenceTrajectoryPoints(iVeh,:,:) = reference.ReferencePoints;
             iter.referenceTrajectoryIndex(iVeh,:,:) = reference.ReferenceIndex;
 
-            hlc.scenario.vehicles(iVeh).last_trajectory_index = reference.ReferenceIndex(end);
+            hlc.iter.last_trajectory_index(iVeh) = reference.ReferenceIndex(end);
         end
         
 
-        if ~isempty(hlc.scenario.lanelets)
+        if strcmp(hlc.scenario.options.scenario_name, 'Commonroad')
 
             % Vehicle in Expert-Mode does only consider boundaries when assuming RSS
             % use computed predicted_lanes and compute predicted_lanelet_boundary
@@ -208,7 +196,6 @@ function rhc_init(hlc, x_measured, trims_measured)
                 || (hlc.scenario.options.veh_ids(iVeh) == str2double(hlc.scenario.options.mixed_traffic_config.second_manual_vehicle_id) && hlc.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode))
 
                 iter.predicted_lanelets{iVeh} = predicted_lanelets;
-                hlc.scenario.vehicles(iVeh).predicted_lanelets = iter.predicted_lanelets{iVeh};
                 predicted_lanelet_boundary = cell(1, 3);
 
                 if hlc.scenario.options.mixed_traffic_config.consider_rss
@@ -234,32 +221,32 @@ function rhc_init(hlc, x_measured, trims_measured)
                 end
             else
                 % Read the predicted lanelets of vehicle iVeh
-                if hlc.scenario.options.isPB && ~hlc.scenario.vehicles(iVeh).autoUpdatedPath
+                if hlc.scenario.options.isPB && ~hlc.iter.auto_updated_path(iVeh)
                     % from received messages if parallel computation is used 
                     predicted_lanelets = latest_msg_i.predicted_lanelets(:)'; % make row vector
                 end
 
                 % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
-                if hlc.scenario.vehicles(iVeh).lanes_before_update ~= zeros(1,2)
-                    for i = 1:length(hlc.scenario.vehicles(iVeh).lanes_before_update)
+                if hlc.iter.lanes_before_update(iVeh,:,:) ~= zeros(1,2)
+                    for i = 1:length(hlc.iter.lanes_before_update(iVeh,:,:))
                         if ~ismember(hlc.scenario.vehicles(iVeh).lanelets_index(1), predicted_lanelets)
                             % prevent that first lane is no longer considered when adding lanes before update later
                             predicted_lanelets = [hlc.scenario.vehicles(iVeh).lanelets_index(1), predicted_lanelets];
                         end
 
-                        if ~ismember(hlc.scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets)
-                            predicted_lanelets = [hlc.scenario.vehicles(iVeh).lanes_before_update(1,i), predicted_lanelets];
+                        if ~ismember(hlc.iter.lanes_before_update{iVeh}(1,i), predicted_lanelets)
+                            predicted_lanelets = [hlc.iter.lanes_before_update(iVeh,1,i), predicted_lanelets];
                         end
                     end
                 end
 
                 % if there is a lane change in the random path, add the boundary of the lane before the change as the vehicle might be still on the lane before change
                 if ~hlc.scenario.options.is_sim_lab && hlc.scenario.manual_vehicle_id ~= hlc.scenario.vehicle_ids(iVeh) && hlc.scenario.second_manual_vehicle_id ~= hlc.scenario.vehicle_ids(iVeh)
-                    if ~isempty(hlc.scenario.vehicles(iVeh).lane_change_lanes)
-                        hlc.scenario.vehicles(iVeh).lane_change_lanes = nonzeros(hlc.scenario.vehicles(iVeh).lane_change_lanes);
-                        for i = 1:(length(hlc.scenario.vehicles(iVeh).lane_change_lanes)/2)
-                            beforeLaneChange = hlc.scenario.vehicles(iVeh).lanelets_index(hlc.scenario.vehicles(iVeh).lane_change_lanes(i));
-                            laneChange = hlc.scenario.vehicles(iVeh).lanelets_index(hlc.scenario.vehicles(iVeh).lane_change_lanes(i+(length(hlc.scenario.vehicles(iVeh).lane_change_lanes))/2));
+                    if ~isempty(hlc.iter.lane_change_lanes(iVeh,:,:))
+                        hlc.iter.lane_change_lanes(iVeh,:,:) = nonzeros(hlc.iter.lane_change_lanes(iVeh,:,:));
+                        for i = 1:(length(hlc.iter.lane_change_lanes(iVeh,:,:))/2)
+                            beforeLaneChange = hlc.scenario.vehicles(iVeh).lanelets_index(hlc.iter.lane_change_lanes(iVeh,i));
+                            laneChange = hlc.scenario.vehicles(iVeh).lanelets_index(hlc.iter.lane_change_lanes(iVeh,i+(length(hlc.iter.lane_change_lanes(iVeh,:,:)))/2));
                             if ~ismember(beforeLaneChange, predicted_lanelets) && ismember(laneChange, predicted_lanelets)
                                 predicted_lanelets = [beforeLaneChange, predicted_lanelets];
                             end
@@ -320,17 +307,16 @@ function rhc_init(hlc, x_measured, trims_measured)
                     end
                 end
             end
-
-            % Compute reachable sets for vehicle iVeh
-            if ((hlc.scenario.options.veh_ids(iVeh) == str2double(hlc.scenario.options.mixed_traffic_config.first_manual_vehicle_id)) && hlc.scenario.manual_mpa_initialized) ...
-                    || ((hlc.scenario.options.veh_ids(iVeh) == str2double(hlc.scenario.options.mixed_traffic_config.second_manual_vehicle_id)) && hlc.scenario.second_manual_mpa_initialized)
-                local_reachable_sets = hlc.scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
-            else
-                local_reachable_sets = hlc.scenario.mpa.local_reachable_sets_conv;
-            end
-            iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, hlc.scenario.options);
         end
 
+        % Compute reachable sets for vehicle iVeh
+        if ((hlc.scenario.options.veh_ids(iVeh) == str2double(hlc.scenario.options.mixed_traffic_config.first_manual_vehicle_id)) && hlc.scenario.manual_mpa_initialized) ...
+                || ((hlc.scenario.options.veh_ids(iVeh) == str2double(hlc.scenario.options.mixed_traffic_config.second_manual_vehicle_id)) && hlc.scenario.second_manual_mpa_initialized)
+            local_reachable_sets = hlc.scenario.vehicles(iVeh).vehicle_mpa.local_reachable_sets;
+        else
+            local_reachable_sets = hlc.scenario.mpa.local_reachable_sets_conv;
+        end
+        iter.reachable_sets(iVeh,:) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current,:), predicted_lanelet_boundary, hlc.scenario.options);
 
         % get vehicles currently occupied area
         x_rec1 = [-1, -1,  1,  1, -1] * (hlc.scenario.vehicles(iVeh).Length/2 + hlc.scenario.options.offset); % repeat the first entry to enclose the shape
@@ -428,7 +414,7 @@ function rhc_init(hlc, x_measured, trims_measured)
 
     if ( hlc.scenario.options.amount > 1 )
         % update the coupling information
-        hlc.scenario = coupling_based_on_reachable_sets(hlc.scenario, iter);
+        hlc.iter = coupling_based_on_reachable_sets(hlc.scenario, hlc.iter); % TODO_DATA: Scenario changes here
     end
    
     hlc.iter = iter;

@@ -40,7 +40,7 @@ function [collision] = collision_check_InterX(iter, shape, scenario, iStep)
     end
 
     % get lanelet boundary
-    lanelet_boundary = iter.predicted_lanelet_boundary; % TODO use iter
+    lanelet_boundary = iter.vehicles.lanelet_boundary; %TODO use iter
 
 %     obstacles_shapes = [static_obstacles(:)', lanelet_crossing_areas(:)', predicted_occpuied_areas(:)', reachable_sets(:)'];
     for i = 1:length(static_obstacles)

@@ -1,4 +1,4 @@
-function info = pb_controller_fallback(info, info_old, scenario, indices_in_vehicle_list)
+function info = pb_controller_fallback(iter, info, info_old, scenario, indices_in_vehicle_list)
 % pb_controller_fallback    planning by using last priority and trajectories directly
 
     tick_per_step = scenario.options.tick_per_step + 1;
@@ -28,10 +28,10 @@ function info = pb_controller_fallback(info, info_old, scenario, indices_in_vehi
                 x0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().x);
                 y0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().y);
     
-                [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, vehicle_idx, trim_current, x0, y0);
+                [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, iter, vehicle_idx, trim_current, x0, y0);
                 
                 % send message
-                scenario.vehicles(vehicle_idx).communicate.predictions.send_message(scenario.k, predicted_trims, predicted_lanelets, info.shapes(vehicle_idx,:), info.vehs_fallback);
+                scenario.vehicles(vehicle_idx).communicate.predictions.send_message(iter.k, predicted_trims, predicted_lanelets, info.shapes(vehicle_idx,:), info.vehs_fallback);
             end
         end
     end

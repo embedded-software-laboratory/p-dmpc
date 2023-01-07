@@ -30,7 +30,7 @@ function info = graph_search(scenario, iter)
         % 2. InterX: works for both convex and non-convex polygons
         method = 'InterX';
         % if 'InterX' is used, all obstacles can be vectorized to speed up the collision checking 
-        [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter,scenario);
+        [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter, scenario);
 %         lanelet_boundary = {};
     else
         method = 'sat';

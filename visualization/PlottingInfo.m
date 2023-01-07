@@ -27,15 +27,15 @@ classdef PlottingInfo
             obj.tick_now = tick_now;
             obj.trajectory_predictions = result.trajectory_predictions(:,k);
             obj.ref_trajectory = result.iteration_structs{k}.referenceTrajectoryPoints;
-            obj.priorities = result.priority(:,k);
+            obj.priorities = result.priority_list(:,k);
             obj.n_obstacles = size(result.scenario.obstacles,2);
-            obj.n_dynamic_obstacles = size(result.scenario.dynamic_obstacle_fullres,1);
+            obj.n_dynamic_obstacles = size(result.iteration_structs{k}.dynamic_obstacle_fullres,1);
             if obj.n_obstacles > 0
                 obj.obstacles = result.scenario.obstacles;
             end
             if obj.n_dynamic_obstacles > 0
-                obj.dynamic_obstacles = result.scenario.dynamic_obstacle_fullres{:,k};
-                obj.dynamic_obstacles_shape = result.scenario.dynamic_obstacle_shape;
+                obj.dynamic_obstacles = result.iteration_structs{k}.dynamic_obstacle_fullres{:,k};
+                obj.dynamic_obstacles_shape = result.iteration_structs{k}.dynamic_obstacle_shape;
             end
             if plot_options.isShowReachableSets
                 obj.reachable_sets = result.iteration_structs{k}.reachable_sets;
@@ -45,7 +45,7 @@ classdef PlottingInfo
             end
             obj.directed_coupling = result.directed_coupling{k};
             if ~isempty(result.scenario.coupling_weights_reduced)
-                obj.coupling_weights_reduced = result.scenario.coupling_weights_reduced;
+                obj.coupling_weights_reduced = result.iteration_structs{k}.coupling_weights_reduced;
                 obj.belonging_vector = result.belonging_vector(:,k);
                 obj.coupling_info = result.coupling_info{k};
             end

@@ -44,7 +44,6 @@ classdef (Abstract) HLCInterface < handle
         cooldown_second_manual_vehicle_after_lane_change;
         vehs_fallback_times; % record the number of successive fallback times of each vehicle% record the number of successive fallback times of each vehicle
         info_old; % old information for fallback
-        scenario_static;
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
     end
@@ -130,11 +129,13 @@ classdef (Abstract) HLCInterface < handle
             obj.vehs_stop_duration = zeros(obj.scenario.options.amount,1);
 
             %TODO Shouldn't this value be already set (to 0)?
-            obj.scenario.k = obj.k;
+            obj.iter.k = obj.k;
 
             % turn off warning if intersections are detected and fixed, collinear points or
             % overlapping points are removed when using MATLAB function `polyshape`
             warning('off','MATLAB:polyshape:repairedBySimplify')
+
+            obj.iter = IterationData(obj.scenario,obj.k);
 
             if obj.scenario.options.isPB
                 % In priority-based computation, vehicles communicate via ROS 2
@@ -144,10 +145,9 @@ classdef (Abstract) HLCInterface < handle
 
             obj.vehs_fallback_times = zeros(1,obj.scenario.options.amount);
 
-            obj.scenario_static = obj.scenario;
-
             % TODO still needed?
-            if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode || obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode
+            if obj.scenario.options.is_mixed_traffic && ...
+               (obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode || obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode)
                 %r = rosrate(100000);
             end
         end
@@ -164,7 +164,7 @@ classdef (Abstract) HLCInterface < handle
                 % increment interation counter
                 obj.k = obj.k+1;
                 
-                obj.scenario.k = obj.k;
+                obj.iter.k = obj.k;
 
                 % Measurement
                 % -------------------------------------------------------------------------
@@ -172,7 +172,7 @@ classdef (Abstract) HLCInterface < handle
                 
                 if mod(obj.k,10)==0
                     % only display 0, 10, 20, ...
-                    disp(['>>> Time step ' num2str(obj.scenario.k)])
+                    disp(['>>> Time step ' num2str(obj.k)])
                 end
 
 
@@ -205,8 +205,8 @@ classdef (Abstract) HLCInterface < handle
 
                 % visualize reachable set of vehicle in Expert-Mode
                 for iVeh = obj.indices_in_vehicle_list
-                    if obj.scenario.options.visualize_reachable_set && ((obj.scenario.vehicle_ids(iVeh) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
-                            || (obj.scenario.vehicle_ids(iVeh) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
+                    if obj.scenario.options.visualize_reachable_set && ((obj.scenario.options.veh_ids(iVeh) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
+                            || (obj.scenario.options.veh_ids(iVeh) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
                         [visualization_command] = lab_visualize_polygon(obj.scenario, obj.iter.reachable_sets{iVeh, end}.Vertices, iVeh);
                         obj.hlc_adapter.visualize(visualization_command);
                     end
@@ -218,7 +218,7 @@ classdef (Abstract) HLCInterface < handle
                             wheelData = obj.hlc_adapter.getWheelData();
                             % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
                             modeHandler = GuidedMode(obj.scenario,x0_measured,obj.scenario.manual_vehicle_id,obj.vehicle_ids,obj.cooldown_after_lane_change,obj.speedProfileMPAsInitialized,wheelData,true);
-                            obj.scenario = modeHandler.scenario;
+                            obj.scenario = modeHandler.scenario; % TODO_DATA: Scenario changes here
                             obj.scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
                             obj.speedProfileMPAsInitialized = true;
                         end
@@ -231,7 +231,7 @@ classdef (Abstract) HLCInterface < handle
                         if (obj.scenario.options.secondManualVehicleMode == 1)
                             % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
                             modeHandler = GuidedMode(obj.scenario,x0_measured,obj.scenario.second_manual_vehicle_id,obj.vehicle_ids,obj.cooldown_second_manual_vehicle_after_lane_change,obj.speedProfileMPAsInitialized,gamepadData,false);
-                            obj.scenario = modeHandler.scenario;
+                            obj.scenario = modeHandler.scenario; % TODO_DATA: Scenario changes here
                             obj.scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
                             obj.speedProfileMPAsInitialized = true;
                         end
@@ -250,26 +250,9 @@ classdef (Abstract) HLCInterface < handle
                     end
                 end
 
-                % For parallel computation, information from previous time step is need, for example,
-                % the previous fail-safe trajectory is used again if a new fail-safe trajectory cannot be found.
-
-                if ~isempty(obj.scenario.lanelets)
-
-                    % update the lanelet boundary for each vehicle
-                    for iVeh = obj.indices_in_vehicle_list
-                        obj.scenario.vehicles(iVeh).lanelet_boundary = obj.iter.predicted_lanelet_boundary(iVeh,1:2);
-                    end
-                else
-                    % for other scenarios, no lanelet boundary
-                    for iVeh = obj.indices_in_vehicle_list
-                        obj.scenario.vehicles(iVeh).lanelet_boundary = {};
-                    end
-
-                end
-
                 % calculate the distance
                 distance = zeros(obj.scenario.options.amount,obj.scenario.options.amount);
-                adjacency = obj.scenario.adjacency(:,:,end);
+                adjacency = obj.iter.adjacency;
 
                 for jVeh = 1:obj.scenario.options.amount-1
                     adjacent_vehicle = find(adjacency(jVeh,:));
@@ -281,7 +264,6 @@ classdef (Abstract) HLCInterface < handle
                 obj.result.distance(:,:,obj.k) = distance;
 
                 % dynamic scenario
-                obj.scenario = get_next_dynamic_obstacles_scenario(obj.scenario, obj.scenario_static, obj.k);
                 obj.result.iter_runtime(obj.k) = toc(obj.result.step_timer);
 
                 % The controller computes plans
@@ -325,7 +307,7 @@ classdef (Abstract) HLCInterface < handle
                         str_fb_type = sprintf('triggering %s', obj.scenario.options.fallback_type);
                         disp_tmp = sprintf(' %d,',obj.info.vehs_fallback); disp_tmp(end) = [];
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
-                        obj.info = pb_controller_fallback(obj.info, obj.info_old, obj.scenario, obj.indices_in_vehicle_list);
+                        obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.indices_in_vehicle_list);
                         obj.total_fallback_times = obj.total_fallback_times + 1;
                     end
                 end
@@ -343,28 +325,29 @@ classdef (Abstract) HLCInterface < handle
                 obj.result.subcontroller_runtime_each_veh(:,obj.k) = obj.info.runtime_subcontroller_each_veh;
                 obj.result.vehicle_path_fullres(:,obj.k) = obj.info.vehicle_fullres_path(:);
                 obj.result.n_expanded(obj.k) = obj.info.n_expanded;
-                obj.result.priority(:,obj.k) = obj.scenario.priority_list;
+                obj.result.priority_list(:,obj.k) = obj.iter.priority_list;
+                obj.result.coupling_adjacency(:,:,obj.k) = obj.iter.adjacency;
                 obj.result.computation_levels(obj.k) = obj.info.computation_levels;
                 obj.result.step_time(obj.k) = toc(obj.result.step_timer);
 
                 obj.result.runtime_subcontroller_max(obj.k) = obj.info.runtime_subcontroller_max;
                 obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
-                obj.result.directed_coupling{obj.k} = obj.scenario.directed_coupling;
+                obj.result.directed_coupling{obj.k} = obj.iter.directed_coupling;
                 if obj.scenario.options.isPB && strcmp(obj.scenario.options.scenario_name,'Commonroad')
-                    obj.result.determine_couplings_time(obj.k) = obj.scenario.timer.determine_couplings;
-                    obj.result.group_vehs_time(obj.k) = obj.scenario.timer.group_vehs;
-                    obj.result.assign_priority_time(obj.k) = obj.scenario.timer.assign_priority;
-                    obj.result.num_couplings(obj.k) = nnz(obj.scenario.directed_coupling);
-                    obj.result.num_couplings_ignored(obj.k) = nnz(obj.scenario.directed_coupling) - nnz(obj.scenario.directed_coupling_reduced);
-                    obj.result.num_couplings_between_grps(obj.k) = obj.scenario.num_couplings_between_grps;
-                    obj.result.num_couplings_between_grps_ignored(obj.k) = obj.scenario.num_couplings_between_grps_ignored;
-                    obj.result.belonging_vector(:,obj.k) = obj.scenario.belonging_vector;
-                    obj.result.coupling_weights_reduced{obj.k} = obj.scenario.coupling_weights_reduced;
-                    obj.result.coupling_info{obj.k} = obj.scenario.coupling_info;
-                    obj.result.coupling_weights_optimal{obj.k} = obj.scenario.coupling_weights_optimal;
-                    obj.result.parl_groups_info{obj.k} = obj.scenario.parl_groups_info;
-                    obj.result.lanelet_crossing_areas{obj.k} = obj.scenario.lanelet_crossing_areas;
-                    obj.scenario.lanelet_crossing_areas = {};
+                    obj.result.determine_couplings_time(obj.k) = obj.iter.timer.determine_couplings;
+                    obj.result.group_vehs_time(obj.k) = obj.iter.timer.group_vehs;
+                    obj.result.assign_priority_time(obj.k) = obj.iter.timer.assign_priority;
+                    obj.result.num_couplings(obj.k) = nnz(obj.iter.directed_coupling);
+                    obj.result.num_couplings_ignored(obj.k) = nnz(obj.iter.directed_coupling) - nnz(obj.iter.directed_coupling_reduced);
+                    obj.result.num_couplings_between_grps(obj.k) = obj.iter.num_couplings_between_grps;
+                    obj.result.num_couplings_between_grps_ignored(obj.k) = obj.iter.num_couplings_between_grps_ignored;
+                    obj.result.belonging_vector(:,obj.k) = obj.iter.belonging_vector;
+                    obj.result.coupling_weights_reduced{obj.k} = obj.iter.coupling_weights_reduced;
+                    obj.result.coupling_info{obj.k} = obj.iter.coupling_info;
+                    obj.result.coupling_weights_optimal{obj.k} = obj.iter.coupling_weights_optimal;
+                    obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
+                    obj.result.lanelet_crossing_areas{obj.k} = obj.iter.lanelet_crossing_areas;
+                    obj.iter.lanelet_crossing_areas = {};
                 end
                 obj.result.vehs_fallback{obj.k} = obj.info.vehs_fallback;
 
@@ -411,15 +394,6 @@ classdef (Abstract) HLCInterface < handle
             disp(['Total runtime: ' num2str(round(obj.result.t_total,2)) ' seconds.'])
 
             if obj.scenario.options.isSaveResult
-                % Delete varibales used for ROS 2 since some of them cannot be saved
-                % Create comma-separated list
-                empty_cells = cell(1,obj.scenario.options.amount);
-
-                [obj.result.scenario.vehicles.communicate] = empty_cells{:};
-                % for i_iter = 1:length(result.iteration_structs)
-                %     result.iteration_structs{i_iter}.scenario = [];
-                % end
-
                 obj.result.mpa = obj.scenario.mpa;
 
                 % Delete unimportant data
@@ -453,7 +427,7 @@ classdef (Abstract) HLCInterface < handle
             [obj.result.scenario.vehicles.communicate] = empty_cells{:};
             [obj.scenario.vehicles.communicate] = empty_cells{:};
             obj.hlc_adapter.end_run()
+
         end
     end
-
 end

@@ -1,4 +1,4 @@
-function scenario_v = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupling_vehs_without_ROW, ros_subscribers)
+function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupling_vehs_without_ROW, ros_subscribers)
 % CONSIDER_VEHS_WITH_LP Stategies to let vehicle with the right-of-way
 % consider vehicle without the right-of-way 
 % '1': do not consider 

@@ -15,7 +15,6 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     road_data = RoadData().get_road_data();
 %     if options.isParl
         scenario.lanelets = road_data.lanelets;
-        scenario.adjacency_lanelets = road_data.adjacency_lanelets;
         scenario.semi_adjacency_lanelets = road_data.semi_adjacency_lanelets;
         scenario.intersection_lanelets = road_data.intersection_lanelets;
         scenario.lanelet_boundary = road_data.lanelet_boundary;

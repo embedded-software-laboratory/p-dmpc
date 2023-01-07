@@ -49,20 +49,7 @@ function scenario = circle_scenario(options)
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
     
     if options.isPB
-        % undirected coupling adjacency is complete
-        scenario.adjacency = ones(nVeh,nVeh);
-        scenario.semi_adjacency = ones(nVeh,nVeh);
-       if scenario.assignPrios
-            scenario.directed_coupling = [];
-       else
-            scenario.directed_coupling = triu(ones(nVeh))-eye(nVeh);
-       end
-    else
-        % no coupling?
-        scenario.adjacency = zeros(nVeh,nVeh);
-        scenario.directed_coupling = zeros(nVeh,nVeh);
-        % not priority-based
-        scenario.priority_list = ones(1,nVeh);
+       scenario.assignPrios = true;
     end
 
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);

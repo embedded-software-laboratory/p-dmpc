@@ -5,11 +5,11 @@ classdef mixed_traffic_priority < interface_priority
     
     properties (Access=private)
         scenario
-        iter
+        iter        
     end
     
     methods 
-        function obj = mixed_traffic_priority(scenario,iter)
+        function obj = mixed_traffic_priority(scenario, iter)
             obj.scenario = scenario;
             obj.iter = iter;
         end

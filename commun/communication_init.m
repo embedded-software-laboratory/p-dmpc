@@ -110,7 +110,7 @@ if ~hlc.scenario.options.is_mixed_traffic
         speed = x0_measured(veh_index,indices().speed);
         current_pose = [x0,y0,heading,speed];
 
-        predicted_lanelets = get_predicted_lanelets(hlc.scenario,veh_index,x0,y0);
+        predicted_lanelets = get_predicted_lanelets(hlc.scenario, hlc.iter, veh_index,x0,y0);
 
         % get vehicles currently occupied area
         x_rec1 = [-1, -1,  1,  1, -1] * (hlc.scenario.vehicles(veh_index).Length/2 + hlc.scenario.options.offset); % repeat the first entry to enclose the shape
@@ -127,7 +127,7 @@ if ~hlc.scenario.options.is_mixed_traffic
         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
         reachable_sets = {}; % for initial time step, the reachable sets are not computed yet
         hlc.scenario.vehicles(veh_index).communicate.predictions.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);
-        hlc.scenario.vehicles(veh_index).communicate.traffic.send_message(hlc.scenario.k, current_pose, predicted_trims(1), predicted_lanelets, occupied_area, reachable_sets);
+        hlc.scenario.vehicles(veh_index).communicate.traffic.send_message(hlc.k, current_pose, predicted_trims(1), predicted_lanelets, occupied_area, reachable_sets);
     end
     % read form all other vehicles to make sure all vehicles are ready
     other_vehicles = setdiff(1:hlc.scenario.options.amount, hlc.indices_in_vehicle_list);
@@ -156,6 +156,7 @@ if ~hlc.scenario.options.is_mixed_traffic
         %         end
     end
     pause(1.2);
+    disp('communication initialized');
 end
 end
 

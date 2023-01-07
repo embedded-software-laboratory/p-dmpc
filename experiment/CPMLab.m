@@ -148,8 +148,8 @@ classdef CPMLab < InterfaceExperiment
                 % find out index of vehicle in Expert-Mode
                 indexVehicleExpertMode = 0;
                 for j = obj.indices_in_vehicle_list
-                    if ((obj.scenario.vehicle_ids(j) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
-                        || (obj.scenario.vehicle_ids(j) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
+                    if ((obj.scenario.options.veh_ids(j) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
+                        || (obj.scenario.options.veh_ids(j) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
                         indexVehicleExpertMode = j;
                     end
                 end

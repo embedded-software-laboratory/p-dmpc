@@ -30,13 +30,6 @@ classdef Scenario
         lanelet_relationships;          % relationship between two adjacent lanelets
         adjacency_lanelets;             % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent 
         semi_adjacency_lanelets;        % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent but not intersecting
-        last_vehs_at_intersection = [];  % store information about which vehicles were at the intersection in the last time step
-        k;                              % simulation steps
-        coupling_weights = [];          % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
-        coupling_weights_optimal = [];  % "optimal" coupling weights
-        coupling_weights_reduced = [];  % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas
-        coupling_weights_random = [];   % random coupling weights
-        coupling_info;                  % couling information of each coupling pair
         priority_list = 1;             % priority list of vehicles; a smaller value for a higher priority
         time_enter_intersection = []; % time step when vehicle enters the intersection
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center

@@ -15,7 +15,7 @@ classdef CentralizedController < HLCInterface
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback
-                disp(['Graph search exhausted at time step: ' num2str(obj.scenario.k) '.'])
+                disp(['Graph search exhausted at time step: ' num2str(obj.k) '.'])
                 % all vehicles fall back
                 obj.info.vehs_fallback = 1:obj.scenario.options.amount;
                 obj.info.is_exhausted(obj.info.vehs_fallback) = true;

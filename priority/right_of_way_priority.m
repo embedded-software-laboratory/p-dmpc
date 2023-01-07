@@ -60,7 +60,7 @@ classdef right_of_way_priority < interface_priority
  
             end
             
-            adjacency= iter.adajacency;
+            adjacency = iter.adjacency;
             
             % assign priorities to vehicles crossing the intersection
             % (i.e., at the intersection, but not driving consecutively)

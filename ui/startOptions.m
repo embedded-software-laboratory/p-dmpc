@@ -5,8 +5,7 @@ ui = CPMStartOptionsUI();
 
 % CPM Lab
 % FirstManualVehicleID
-firstManualVehicleID = list_first_manual_vehicle();
-ui.FirstManualVehicleMVIDListBox.Items = firstManualVehicleID(:,1);
+firstManualVehicleID = list_first_manual_vehicle();i.FirstManualVehicleMVIDListBox.Items = firstManualVehicleID(:,1);
 
 % ControlModeFirstManualVehicle
 controlMode = list_control_mode();

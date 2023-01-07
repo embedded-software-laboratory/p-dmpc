@@ -33,7 +33,7 @@ function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, lanelet] 
     % 1. Add column [nan;nan] to separate left and right boundaries 
     % Note that lanelet boundaries are considered as open curves
     % transform nested structure to one cell array
-    scenario_vehicles_lanelet_boundary_cell = iter.predicted_lanelet_boundary(:,1:2);
+    scenario_vehicles_lanelet_boundary_cell = iter.vehicles.lanelet_boundary(:,1:2);
     lanelet_boundary_tmp = cellfun(@(c)[c,[nan;nan]],scenario_vehicles_lanelet_boundary_cell,'UniformOutput',false); 
 
     lanelet_boundary = [lanelet_boundary_tmp{:}];
