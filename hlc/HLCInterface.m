@@ -277,7 +277,7 @@ classdef (Abstract) HLCInterface < handle
                 if obj.amount == 1
                     other_vehicles = setdiff(1:obj.scenario.options.amount, obj.indices_in_vehicle_list);
                     for veh_id = other_vehicles
-                        latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.scenario.k);
+                        latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k);
                         fallback_info_veh_id = latest_msg.vehs_fallback;
                         obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
                     end
@@ -394,6 +394,8 @@ classdef (Abstract) HLCInterface < handle
             disp(['Total runtime: ' num2str(round(obj.result.t_total,2)) ' seconds.'])
 
             if obj.scenario.options.isSaveResult
+                empty_cells = cell(1,obj.scenario.options.amount);
+                [obj.result.scenario.vehicles.communicate] = empty_cells{:};
                 obj.result.mpa = obj.scenario.mpa;
 
                 % Delete unimportant data

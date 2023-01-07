@@ -73,7 +73,7 @@ classdef PbControllerSeq < HLCInterface
 
                         if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
                             % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
-                            latest_msg = read_message(obj.scenario.vehicles.communicate.predictions{vehicle_idx}, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k);
+                            latest_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k);
                             predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                             oldness_msg = obj.k - latest_msg.time_step;
                             if oldness_msg ~= 0
@@ -103,7 +103,7 @@ classdef PbControllerSeq < HLCInterface
                                 % otherwise add one-step delayed trajectories as dynamic obstacles
                                 if obj.k>1
                                     % the old trajectories are available from the second time step onwards
-                                    old_msg = read_message(obj.scenario.vehicles.communicate.predictions{vehicle_idx}, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k-1);
+                                    old_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k-1);
                                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, old_msg.predicted_areas);
                                     oldness_msg = obj.k - old_msg.time_step;
                                     if oldness_msg ~= 0
@@ -127,7 +127,7 @@ classdef PbControllerSeq < HLCInterface
                     end
 
                     % consider coupled vehicles with lower priorities
-                    iter_v = consider_vehs_with_LP(obj.scenario, obj.iter, vehicle_idx, all_coupled_vehs_with_LP, obj.ros_subscribers);
+                    iter_v = consider_vehs_with_LP(obj.scenario, iter_v, vehicle_idx, all_coupled_vehs_with_LP, obj.ros_subscribers);
 
                     % execute sub controller for 1-veh scenario
                     info_v = obj.sub_controller(obj.scenario, iter_v);

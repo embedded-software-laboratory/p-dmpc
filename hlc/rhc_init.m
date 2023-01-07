@@ -371,7 +371,7 @@ function rhc_init(hlc, x_measured, trims_measured)
     %latest_msgs = read_messages(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.k);
     for iVeh = other_vehicles
     %for iVeh = hlc.indices_in_vehicle_list
-        latest_msg_i = read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{iVeh}, hlc.scenario.k);
+        latest_msg_i = read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{iVeh}, hlc.k);
         %latest_msg_i = latest_msgs(find([latest_msgs.vehicle_id] == hlc.scenario.options.veh_ids(iVeh),1));
         hlc.iter.x0(iVeh,:) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
         hlc.iter.trim_indices(iVeh) = latest_msg_i.current_trim_index;

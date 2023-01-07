@@ -44,7 +44,7 @@ classdef PlottingInfo
                 obj.lanelet_crossing_areas = result.lanelet_crossing_areas{k};
             end
             obj.directed_coupling = result.directed_coupling{k};
-            if ~isempty(result.scenario.coupling_weights_reduced)
+            if ~isempty(result.iteration_structs{k}.coupling_weights_reduced)
                 obj.coupling_weights_reduced = result.iteration_structs{k}.coupling_weights_reduced;
                 obj.belonging_vector = result.belonging_vector(:,k);
                 obj.coupling_info = result.coupling_info{k};

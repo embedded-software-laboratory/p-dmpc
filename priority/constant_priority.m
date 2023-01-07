@@ -11,7 +11,7 @@ classdef constant_priority < interface_priority
         
         function [groups, directed_adjacency, priority_list] = priority(obj,scenario,iter)
 
-            directed_adjacency = iter.adjacency(:,:,end);
+            directed_adjacency = iter.adjacency;
             nVeh = scenario.options.amount;
             ConstPrio = 1:nVeh;
 
