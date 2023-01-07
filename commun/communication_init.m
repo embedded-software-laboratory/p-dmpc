@@ -126,14 +126,14 @@ if ~hlc.scenario.options.is_mixed_traffic
 
         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
         reachable_sets = {}; % for initial time step, the reachable sets are not computed yet
-        hlc.scenario.vehicles(veh_index).communicate.predictions.send_message(hlc.scenario.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);
+        hlc.scenario.vehicles(veh_index).communicate.predictions.send_message(hlc.k, predicted_trims, predicted_lanelets, predicted_occupied_areas);
         hlc.scenario.vehicles(veh_index).communicate.traffic.send_message(hlc.k, current_pose, predicted_trims(1), predicted_lanelets, occupied_area, reachable_sets);
     end
     % read form all other vehicles to make sure all vehicles are ready
     other_vehicles = setdiff(1:hlc.scenario.options.amount, hlc.indices_in_vehicle_list);
     for veh_index = other_vehicles
         disp(['reading initial msg from vehicle ', num2str(veh_index)]);
-        read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.scenario.k, 10.0);
+        read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.k, 10.0);
 
         %         timeout = 10.0;
         %         time_step = 0;

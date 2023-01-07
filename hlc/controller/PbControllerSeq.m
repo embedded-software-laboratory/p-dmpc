@@ -29,7 +29,7 @@ classdef PbControllerSeq < HLCInterface
 
             obj.iter.num_couplings_between_grps = 0; % number of couplings between groups
             obj.iter.num_couplings_between_grps_ignored = 0; % ignored number of couplings between groups by using lanelet crossing lanelets
-            for iCoupling = 1:length([iter.scenario.coupling_info.veh_with_ROW])
+            for iCoupling = 1:length([obj.iter.coupling_info.veh_with_ROW])
                 veh_ij = [obj.iter.coupling_info(iCoupling).veh_with_ROW,obj.iter.coupling_info(iCoupling).veh_without_ROW];
                 is_same_grp = any(cellfun(@(c) all(ismember(veh_ij,c)),{obj.iter.parl_groups_info.vertices}));
                 if ~is_same_grp
@@ -127,7 +127,7 @@ classdef PbControllerSeq < HLCInterface
                     end
 
                     % consider coupled vehicles with lower priorities
-                    iter_v = consider_vehs_with_LP(scenario_v, obj.iter, vehicle_idx, all_coupled_vehs_with_LP, obj.ros_subscribers);
+                    iter_v = consider_vehs_with_LP(obj.scenario, obj.iter, vehicle_idx, all_coupled_vehs_with_LP, obj.ros_subscribers);
 
                     % execute sub controller for 1-veh scenario
                     info_v = obj.sub_controller(obj.scenario, iter_v);
