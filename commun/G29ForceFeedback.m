@@ -39,21 +39,22 @@ classdef G29ForceFeedback
         end
 
 
-        function send_message(obj, angle, torque)
+        function send_message(obj, data)
             % send desired position and torque to steering wheel
         
-            position = (-1.0) * angle;
+            position = (-1.0) * data.angle;
 
             if position == 0.0 && obj.last_position == 0.0
-                torque = 0.0;
+                data.torque = 0.0;
             end
 
             obj.msg_to_be_sent.position = single(position);
-            obj.msg_to_be_sent.torque = single(torque);
+            obj.msg_to_be_sent.torque = single(data.torque);
             obj.last_position = position;
             send(obj.g29Pub, obj.msg_to_be_sent);
         end
-
+    end
+    methods (Static)
         function last_position = get_last_position()
             last_position = obj.last_position;
         end
