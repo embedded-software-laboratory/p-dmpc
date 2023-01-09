@@ -47,7 +47,7 @@ classdef HLCFactory < handle
                 end
             else
                 if obj.scenario.options.isPB
-                    hlc = PbController();
+                    hlc = PbControllerSeq();
                 else
                     hlc = CentralizedController();
                 end

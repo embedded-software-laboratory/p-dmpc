@@ -46,7 +46,7 @@ classdef PlottingInfo
             obj.directed_coupling = result.directed_coupling{k};
             if ~isempty(result.iteration_structs{k}.coupling_weights_reduced)
                 obj.coupling_weights_reduced = result.iteration_structs{k}.coupling_weights_reduced;
-                if result.scenario.options.isPB
+                if result.scenario.options.isPB && result.scenario.options.scenario_name == Scenario_Type.Commonroad
                     obj.belonging_vector = result.belonging_vector(:,k);
                     obj.coupling_info = result.coupling_info{k};
                 end
