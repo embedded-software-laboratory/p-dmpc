@@ -1,4 +1,4 @@
-function [result,scenario] = main_lab_distributed(vehicle_id)    
+function [result,scenario] = main_distributed(vehicle_id)    
 
 if verLessThan('matlab','9.12')
     warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")

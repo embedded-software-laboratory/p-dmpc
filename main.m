@@ -25,13 +25,12 @@ if isempty(scenario)
     scenario = create_scenario(options, random_seed);
 end
 
-% TODO remove - has been added for simplier debugging
-save('scenario.mat','scenario');
-
-% write scenario to disk if distributed
-if scenario.options.isPB == true && scenario.options.is_sim_lab == false
+% write scenario to disk if distributed (for lab or local debugging with main_distributed())
+if scenario.options.isPB == true
     save('scenario.mat','scenario');
-    disp('Scenario was written to disk. Select main_lab_distributed(vehicle_id) in LCC next.')
+end
+if scenario.options.isPB && scenario.options.is_sim_lab == false && scenario.options.isParl
+    disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
 else
     factory = HLCFactory();
     factory.set_scenario(scenario);
@@ -46,7 +45,6 @@ else
             afterEach(factory.visualization_data_queue, @plotter.data_queue_callback);
         end
         spmd(scenario.options.amount)
-            % TODO sort vehicle ids
             hlc = factory.get_hlc(scenario.options.veh_ids(labindex));
             [result,scenario] = hlc.run();
         end
