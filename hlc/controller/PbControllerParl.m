@@ -1,3 +1,4 @@
+
 classdef PbControllerParl < HLCInterface
     methods
         function obj = PbControllerParl()
@@ -69,6 +70,11 @@ classdef PbControllerParl < HLCInterface
                 if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
                     latest_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k);
+%                     obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback);
+%                     if ismember(vehicle_k, obj.info.vehs_fallback)
+%                         % if the selected vehicle should take fallback
+%                         continue
+%                     end
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                     oldness_msg = obj.k - latest_msg.time_step;
                     if oldness_msg ~= 0
@@ -159,29 +165,37 @@ classdef PbControllerParl < HLCInterface
             end
             %% Send own data to other vehicles
 
-            msg_send_tic = tic;
-            predicted_trims = obj.info.predicted_trims(vehicle_idx,:); % including the current trim
+            if ~ismember(vehicle_idx, obj.info.vehs_fallback)
+                % if the selected vehicle should take fallback
 
-            states_current = obj.info.y_predicted{vehicle_idx}(1,:);
-            x0 = states_current(indices().x);
-            y0 = states_current(indices().y);
+                msg_send_tic = tic;
+                predicted_trims = obj.info.predicted_trims(vehicle_idx,:); % including the current trim
 
-            [predicted_lanelets,~,~] = get_predicted_lanelets(obj.scenario, obj.iter, vehicle_idx, x0, y0);
-            predicted_areas_k = obj.info.shapes(vehicle_idx,:);
+                states_current = obj.info.y_predicted{vehicle_idx}(1,:);
+                x0 = states_current(indices().x);
+                y0 = states_current(indices().y);
 
-            % send message
-            obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, predicted_trims, predicted_lanelets, predicted_areas_k, obj.info.vehs_fallback);
-            msg_send_time = toc(msg_send_tic);
+                [predicted_lanelets,~,~] = get_predicted_lanelets(obj.scenario, obj.iter, vehicle_idx, x0, y0);
+                predicted_areas_k = obj.info.shapes(vehicle_idx,:);
+
+                % send message
+                obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, predicted_trims, predicted_lanelets, predicted_areas_k, obj.info.vehs_fallback);
+                msg_send_time = toc(msg_send_tic);
 
 
-            % TODO save time for eval
-            %obj.info.runtime_graph_search_each_veh = zeros(obj.scenario.options.amount);
-            %obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.runtime_graph_search_each_grp + runtime_others;
+                % TODO save time for eval
+                %obj.info.runtime_graph_search_each_veh = zeros(obj.scenario.options.amount);
+                %obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.runtime_graph_search_each_grp + runtime_others;
 
-            %obj.info.runtime_graph_search_each_veh = obj.info.runtime_graph_search_each_veh + msg_send_time;
-            % Calculate the total runtime of each group
-            %obj.info = get_run_time_total_all_grps(obj.info, obj.iter.parl_groups_info, CL_based_hierarchy, runtime_others);
+                %obj.info.runtime_graph_search_each_veh = obj.info.runtime_graph_search_each_veh + msg_send_time;
+                % Calculate the total runtime of each group
+                %obj.info = get_run_time_total_all_grps(obj.info, obj.iter.parl_groups_info, CL_based_hierarchy, runtime_others);
 
+            else
+                msg_send_tic = tic;
+                obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, int32.empty(), int32.empty(), {}, obj.info.vehs_fallback);
+                msg_send_time = toc(msg_send_tic);
+            end
 
             n_grps = length(obj.iter.parl_groups_info);
 

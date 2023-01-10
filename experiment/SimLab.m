@@ -24,7 +24,7 @@ classdef SimLab < InterfaceExperiment
                 obj.use_visualization_data_queue = true;
             end
             if obj.doOnlinePlot && ~obj.use_visualization_data_queue
-                obj.plotter = PlotterOnline(obj.scenario);
+                obj.plotter = PlotterOnline(obj.scenario, obj.indices_in_vehicle_list);
             end
         end
 

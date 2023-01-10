@@ -24,19 +24,19 @@ if isempty(scenario)
     random_seed = RandStream('mt19937ar');
     scenario = create_scenario(options, random_seed);
 end
-% write scenario to disk if distributed
 
 % TODO remove - has been added for simplier debugging
 save('scenario.mat','scenario');
 
+% write scenario to disk if distributed
 if scenario.options.isPB == true && scenario.options.is_sim_lab == false
     save('scenario.mat','scenario');
     disp('Scenario was written to disk. Select main_lab_distributed(vehicle_id) in LCC next.')
 else
     factory = HLCFactory();
     factory.set_scenario(scenario);
-    if scenario.options.isPB == true && scenario.options.scenario_name == Scenario_Type.Commonroad
-    %if false
+    %if scenario.options.isPB == true
+    if false
         %% simulate distribution locally using the Parallel Computing Toolbox
         get_parallel_pool(scenario.options.amount);
         plot = scenario.options.visu(1);

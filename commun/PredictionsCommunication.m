@@ -38,14 +38,13 @@ classdef PredictionsCommunication
             obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/Predictions", obj.options);
         end
 
-        function ros_subscribers = create_subscriber(obj, vehs_to_be_subscribed)
+        function ros_subscribers = create_subscriber(obj, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount)
 
-            ros_subscribers = cell(length(vehs_to_be_subscribed), 1);
-            % create subscribers: all topics should be subscribed
-            for i = 1:length(vehs_to_be_subscribed)
-                veh_id = vehs_to_be_subscribed(i);
+            ros_subscribers = cell(amount, 1);
+            for i = 1:length(veh_indices_to_be_subscribed)
+                veh_id = veh_ids_to_be_subscribed(i);
                 topic_name_subscribe = ['/vehicle_',num2str(veh_id), '_pred'];
-                ros_subscribers{i} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Predictions", obj.options);
+                ros_subscribers{veh_indices_to_be_subscribed(i)} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Predictions", obj.options);
             end
         end
 

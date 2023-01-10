@@ -35,22 +35,14 @@ classdef HLCFactory < handle
                 obj.dry_run_hlc();
             end
 
-            if obj.scenario.options.scenario_name == Scenario_Type.Commonroad
-                if obj.scenario.options.isPB
-                    if length(vehicle_ids)==1
-                        hlc = PbControllerParl();
-                    else
-                        hlc = PbControllerSeq();
-                    end
+            if obj.scenario.options.isPB
+                if length(vehicle_ids)==1
+                    hlc = PbControllerParl();
                 else
-                    hlc = CentralizedController();
+                    hlc = PbControllerSeq();
                 end
             else
-                if obj.scenario.options.isPB
-                    hlc = PbControllerSeq();
-                else
-                    hlc = CentralizedController();
-                end
+                hlc = CentralizedController();
             end
 
             %TODO filter scenario for veh id

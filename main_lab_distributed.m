@@ -11,10 +11,6 @@ scenario = load('scenario.mat', 'scenario').scenario;
 factory = HLCFactory();
 factory.set_scenario(scenario);
 if scenario.options.isPB == true
-    plot = scenario.options.visu(1);
-    if plot
-        warning("Plotting doesn't work when using distributed deployment")
-    end
     hlc = factory.get_hlc(vehicle_id);
     [result,scenario] = hlc.run();
 else

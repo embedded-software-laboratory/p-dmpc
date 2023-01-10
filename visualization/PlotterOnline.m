@@ -11,13 +11,14 @@ classdef PlotterOnline < handle
         strategy
         vehicles
         nVeh
+        veh_indices % indices of vehicles for which this plotter instance is responsible
         timer % used to simulate real time plotting while receiving data from visualiuation queue
-        simulation_time_before_pause % used to backup timer wehen pausing visualization
+        simulation_time_offset % used to backup timer when visualization is paused
         time_step % keep track wich time step should be plotted next
         plotting_info_collection % collect plotting info from each vehicle via data queue
     end
     methods
-        function obj = PlotterOnline(scenario)
+        function obj = PlotterOnline(scenario, veh_indices)
             % variables for key press callback
             obj.paused = false;
             obj.abort = false;
@@ -27,9 +28,17 @@ classdef PlotterOnline < handle
             obj.time_step = 1;
             obj.strategy = HLCFactory.get_controller_name(obj.scenario.options);
             obj.vehicles = scenario.vehicles;
-            obj.nVeh = scenario.options.amount;
-            % obj.plotting_info_collection = false(scenario.options.T_end / scenario.options.dt, obj.nVeh);
-            obj.simulation_time_before_pause = 0 ;
+            if nargin <= 1
+                obj.veh_indices = 1:scenario.options.amount;
+                obj.nVeh = scenario.options.amount;
+
+            else
+                obj.veh_indices = veh_indices;
+                obj.nVeh = length(veh_indices);
+                % deactivate coupling lines for dist. plotting
+                obj.plot_options.isShowCoupling = 0;
+            end
+            obj.simulation_time_offset = 0 ;
             obj.fig = figure(...
                 'Visible','On'...
                 ,'Color',[1 1 1]...
@@ -170,7 +179,7 @@ classdef PlotterOnline < handle
 
             %%
             % Sampled reference trajectory points
-            for v=1:obj.nVeh
+            for v=obj.veh_indices
                 line(   plotting_info.ref_trajectory(v,:,1), ...
                     plotting_info.ref_trajectory(v,:,2), ...
                     'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','o', ...
@@ -178,7 +187,7 @@ classdef PlotterOnline < handle
             end
 
             % predicted trajectory
-            for v=1:obj.nVeh
+            for v=obj.veh_indices
                 line(   plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step+1:end,end],1), ...
                     plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step+1:end,end],2), ...
                     'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','+', ...
@@ -193,7 +202,7 @@ classdef PlotterOnline < handle
             end
 
             % Vehicle rectangles
-            for v=1:obj.nVeh
+            for v=obj.veh_indices
                 veh = obj.vehicles(v);
                 pos_step = plotting_info.trajectory_predictions{v};
                 x = pos_step(tick_now,:);
@@ -331,12 +340,12 @@ classdef PlotterOnline < handle
                     complete_plotting_info = obj.merge_plotting_infos(obj.plotting_info_collection.(field_name));
                     start_simulation_timer(obj);
                     simulated_time = obj.scenario.options.dt * (complete_plotting_info.step);
-                    simulation_time = toc(obj.timer) + obj.simulation_time_before_pause;
+                    simulation_time = toc(obj.timer) + obj.simulation_time_offset;
                     time_diff = simulated_time - simulation_time;
                     % avoid plotter trying catching up when simulation is
                     % slow
                     if time_diff < 0
-                        obj.simulation_time_before_pause = obj.simulation_time_before_pause + time_diff;
+                        obj.simulation_time_offset = obj.simulation_time_offset + time_diff;
                     else
                         pause(time_diff);
                     end
@@ -356,7 +365,7 @@ classdef PlotterOnline < handle
                 % reset timer
                 obj.timer = [];
                 % save simulation
-                obj.simulation_time_before_pause = simulation_time;
+                obj.simulation_time_offset = simulation_time;
                 while (obj.paused)
                     %pause to allow key callback to be executed
                     pause(0.1);
@@ -438,11 +447,15 @@ classdef PlotterOnline < handle
                         end
                     end
                 case 'c'
-                    obj.plot_options.isShowCoupling = ~obj.plot_options.isShowCoupling;
-                    if obj.plot_options.isShowCoupling
-                        disp('Show couplings lines.')
+                    if obj.nVeh == 1
+                        disp('Coupling lines not supported for distributed plotting')
                     else
-                        disp('Hide couplings lines.')
+                        obj.plot_options.isShowCoupling = ~obj.plot_options.isShowCoupling;
+                        if obj.plot_options.isShowCoupling
+                            disp('Show couplings lines.')
+                        else
+                            disp('Hide couplings lines.')
+                        end
                     end
                 case 'w'
                     obj.plot_options.isShowWeight = ~obj.plot_options.isShowWeight;

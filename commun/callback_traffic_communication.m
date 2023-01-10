@@ -28,7 +28,7 @@ function callback_traffic_communication(msg)
 
 
     % delete messages older than a certain time steps compared to the time step of newly received message
-    threshold_older = 5;
+    threshold_older = 2;
     find_old_msgs = [stored_traffic_msgs.time_step]<=msg.time_step-threshold_older;
     stored_traffic_msgs(find_old_msgs) = [];
 end
