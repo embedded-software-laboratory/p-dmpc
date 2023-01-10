@@ -280,10 +280,10 @@ labOptions.customResultName = ui.CustomfilenameEditField.Value;
 labOptions.isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
 
 % Write Config to disk
-encodedJSON = jsonencode(labOptions);
-fid = fopen('Config.json','w');
-fprintf(fid, encodedJSON);
-fclose('all');
+% encodedJSON = jsonencode(labOptions);
+% fid = fopen('Config.json','w');
+% fprintf(fid, encodedJSON);
+% fclose('all');
 % save('config.mat','labOptions');
 
 % close app
