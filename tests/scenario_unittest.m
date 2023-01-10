@@ -11,12 +11,5 @@ function testRunScenario1(testcase)
     options = Config();
     options = options.importFromJson(rawJson);
 
-    %random seed for reproducibility
-    random_seed = RandStream('mt19937ar');
-
-    %create scenario
-    scenario = create_scenario(options, random_seed);
-
-    %run scenario
-    run_scenario(scenario);
+    main(options);
 end
