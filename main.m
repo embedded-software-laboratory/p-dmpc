@@ -35,8 +35,7 @@ if scenario.options.isPB == true && scenario.options.is_sim_lab == false
 else
     factory = HLCFactory();
     factory.set_scenario(scenario);
-    %if scenario.options.isPB == true
-    if false
+    if scenario.options.isPB == true && scenario.options.isParl
         %% simulate distribution locally using the Parallel Computing Toolbox
         get_parallel_pool(scenario.options.amount);
         plot = scenario.options.visu(1);

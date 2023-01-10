@@ -32,6 +32,7 @@ ui.ScenarioListBox.Items = scenario(:,2);
 % controlStrategy
 controlStrategy = list_control_strategy();
 ui.ControlStrategyListBox.Items = controlStrategy(:,2);
+ui.ControlStrategyListBox.ValueChangedFcn = @(~, ~) callbackPBSelected(ui);
 
 % priorityAssignmentMethod
 priorityAssignmentMethod = list_priority_assignment_methods();
@@ -44,6 +45,10 @@ ui.AmountofVehiclesListBox.Items = vehicleAmount(:,1);
 % visualization
 visualization = list_visualization();
 ui.TypeofVisualizationListBox_2.Items = visualization(:,2);
+
+% isParl 
+isParl = list_is_parl(); 
+ui.ParallelComputationListBox.Items = isParl(:,2);
 
 % change visibility of vehicle ID selection depending on environment selection
 ui.FirstManualVehicleMVIDListBox.ValueChangedFcn = @(~, ~) setControlModesVisibility(ui);
@@ -65,6 +70,7 @@ try %#ok<TRYNC>
     ui.SecondMVIDListBox.Value = previousSelection.secondManualVehicleIDSelection;
     ui.ControlModeSecondMVListBox.Value = previousSelection.secondControlModeSelection;
     ui.CollisionAvoidanceListBox.Value = previousSelection.collisionAvoidanceSelection;
+    ui.ParallelComputationListBox.Value = previousSelection.isParlSelection; 
 
     ui.ScenarioListBox.Value = previousSelection.scenarioSelection;
     ui.ControlStrategyListBox.Value = previousSelection.controlStrategySelection;
@@ -135,6 +141,7 @@ controlStrategySelection = ui.ControlStrategyListBox.Value;
 priorityAssignmentMethodSelection = ui.PriorityAssignmentMethodListBox.Value;
 vehicleAmountSelection = ui.AmountofVehiclesListBox.Value;
 visualizationSelection = ui.TypeofVisualizationListBox_2.Value;
+isParlSelection = ui.ParallelComputationListBox.Value; 
 
 % sample time [s]
 dtSelection = ui.SampleTimesSpinner.Value;
@@ -158,14 +165,8 @@ customResultName = ui.CustomfilenameEditField.Value;
 isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
 save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'collisionAvoidanceSelection',...
     'environmentSelection', 'trafficModeSelection', 'forceFeedbackSelection', 'considerRSSSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
-    'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection', ...
+    'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection', ...
     'isSaveResult','customResultName','isAllowInheritROW');
-
-
-
-% save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection',...
-%     'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
-%     'dtSelection','HpSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection');
 
 %% Convert to legacy/outputs
 % initialize
@@ -225,6 +226,12 @@ labOptions.visu = visualization{...
     strcmp({visualization{:, 2}}, visualizationSelection),...
     3};
 
+isParlHelper = isParl{... 
+strcmp({isParl{:, 2}}, isParlSelection),... 
+    2}; 
+ 
+labOptions.isParl = strcmp(isParlHelper, 'yes');
+
 % visualization + node exploration only allowed for centralized controller
 if labOptions.isPB == 2 && strcmp(visualizationSelection, 'visualization + node exploration')
     labOptions.visu = visualization{2,3};
@@ -273,11 +280,11 @@ labOptions.customResultName = ui.CustomfilenameEditField.Value;
 labOptions.isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
 
 % Write Config to disk
-% encodedJSON = jsonencode(labOptions);
-% fid = fopen('Config.json','w');
-% fprintf(fid, encodedJSON);
-% fclose('all');
-save('config.mat','labOptions');
+encodedJSON = jsonencode(labOptions);
+fid = fopen('Config.json','w');
+fprintf(fid, encodedJSON);
+fclose('all');
+% save('config.mat','labOptions');
 
 % close app
 ui.delete;
@@ -358,7 +365,7 @@ function setCpmLabElementsVisibility(ui)
         ui.ControlStrategyListBox.Enable = 'Off';
         ui.PriorityAssignmentMethodListBox.Enable = 'Off';
         ui.AmountofVehiclesListBox.Enable = 'Off';
-        ui.TypeofVisualizationListBox_2.Enable = 'Off';      
+        ui.TypeofVisualizationListBox_2.Enable = 'Off';       
     else
         ui.TrafficModeButtonGroup.Visible = 'Off';
         ui.FirstManualVehicleMVIDListBox.Enable = 'Off';
@@ -392,7 +399,7 @@ function setMixedTrafficElementsVisibility(ui)
         ui.ControlStrategyListBox.Enable = 'Off';
         ui.PriorityAssignmentMethodListBox.Enable = 'Off';
         ui.AmountofVehiclesListBox.Enable = 'Off';
-        ui.TypeofVisualizationListBox_2.Enable = 'Off';
+        ui.TypeofVisualizationListBox_2.Enable = 'Off';   
     else
         ui.FirstManualVehicleMVIDListBox.Enable = 'Off';
         ui.ControlModeFirstMVListBox.Enable = 'Off';
@@ -443,6 +450,26 @@ function setForceFeedbackVisibility(ui)
         ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
         ui.ConsiderRSSRulesButtonGroup.Visible = 'On';
     end
+end
+ 
+% callback function if parallel computation is selected/unselected 
+function callbackPBSelected(ui) 
+    if strcmp(ui.ControlStrategyListBox.Value,'pb non-coop') 
+        ui.MaxComputationLevelsSpinner.Enable = 'on'; 
+        ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'on'; 
+        ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'on';
+        ui.ParallelComputationListBox.Enable = 'on'; 
+
+        ui.Label_4.Visible = 'Off'; 
+    else 
+        ui.MaxComputationLevelsSpinner.Enable = 'off'; 
+        ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'off'; 
+        ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'off';
+        ui.ParallelComputationListBox.Enable = 'off'; 
+ 
+        ui.Label_4.Text = sprintf("If not priority-based, the maximum allowed number of computation levels is irrelevant."); 
+        ui.Label_4.Visible = 'On'; 
+    end 
 end
 
 %{
@@ -507,7 +534,14 @@ function [ list ] = list_second_manual_vehicle
     '20', pi+2*pi/15*(1:21); ...
     };
 end
-
+ 
+function [ list ] = list_is_parl 
+    list = {... 
+    '1', 'yes'; ... 
+    '2', 'no'; ... 
+    }; 
+end 
+ 
 function [ list ] = list_collision_avoidance
     list = {...
     'Priority_based', 'Priority-based'; ...

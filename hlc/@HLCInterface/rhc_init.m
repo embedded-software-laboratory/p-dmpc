@@ -1,8 +1,6 @@
 function rhc_init(obj, x_measured, trims_measured)
 % RHC_INIT  Preprocessing step for RHC controller
 
-    iter.k = k;
-
     idx = indices();
     visualize_trajectory_index_lab = false;
     visualize_boundaries_lab = false;

@@ -35,9 +35,12 @@ classdef PlotterOnline < handle
             else
                 obj.veh_indices = veh_indices;
                 obj.nVeh = length(veh_indices);
+            end
+            if obj.nVeh == 1
                 % deactivate coupling lines for dist. plotting
                 obj.plot_options.isShowCoupling = 0;
             end
+
             obj.simulation_time_offset = 0 ;
             obj.fig = figure(...
                 'Visible','On'...

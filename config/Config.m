@@ -8,6 +8,7 @@ classdef Config
         amount = 20;            % integer, number of vehicles
         angles                  % 1-by-nVeh scalar vector
         visu = [true;false];    % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
+        isParl = false;         % true/false, is use parallel(distributed) computation
         scenario_name = 'Commonroad'    % one of the follows: {'Circle_scenario','Commonroad'}
         priority Priority_strategies = 'right_of_way_priority'; % one of the following: {'topo_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority','STAC_priority'}, defines which priority assignmen strategy is used
         dt = 0.2;           % scalar, sample time
@@ -81,6 +82,7 @@ classdef Config
             obj.angles = struct.angles;
             obj.amount = struct.amount;
             obj.visu = struct.visu;
+            obj.isParl = struct.isParl;
             obj.scenario_name = struct.scenario_name;
             obj.priority = struct.priority;
             obj.dt = struct.dt;
