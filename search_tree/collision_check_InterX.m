@@ -34,7 +34,7 @@ function [collision] = collision_check_InterX(iter, shape, scenario, iStep)
     % get reachable sets of the coupling vehicles in the current time step
     [~, n_reachableSets_Hp] = size(iter.dynamic_obstacle_reachableSets);
     if iStep <= n_reachableSets_Hp
-        reachable_sets = iter.dynamic_obstacle_reachableSets(:,iStep)';
+        reachable_sets = scenario.dynamic_obstacle_reachableSets(:,iStep)';
     else
         reachable_sets = {};
     end

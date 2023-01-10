@@ -121,7 +121,7 @@ function rhc_init(obj, x_measured, trims_measured)
                             obj.iter.lanes_before_update(iVeh,1,1) = obj.scenario.vehicles(iVeh).lanelets_index(end-2);
                             obj.iter.lanes_before_update(iVeh,1,2) = obj.scenario.vehicles(iVeh).lanelets_index(end-3);
                         end
-                        
+
                         updatedRefPath = updated_ref_path.path;
                         obj.scenario.vehicles(iVeh).x_start = updatedRefPath(1,1);
                         obj.scenario.vehicles(iVeh).y_start = updatedRefPath(1,2);
