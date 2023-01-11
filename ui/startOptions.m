@@ -48,7 +48,7 @@ ui.TypeofVisualizationListBox_2.Items = visualization(:,2);
 
 % isParl 
 isParl = list_is_parl(); 
-ui.ParallelComputationListBox.Items = isParl(:,2);
+ui.ParallelComputationDistributedExecutionListBox.Items = isParl(:,2);
 
 % change visibility of vehicle ID selection depending on environment selection
 ui.FirstManualVehicleMVIDListBox.ValueChangedFcn = @(~, ~) setControlModesVisibility(ui);
@@ -70,7 +70,7 @@ try %#ok<TRYNC>
     ui.SecondMVIDListBox.Value = previousSelection.secondManualVehicleIDSelection;
     ui.ControlModeSecondMVListBox.Value = previousSelection.secondControlModeSelection;
     ui.CollisionAvoidanceListBox.Value = previousSelection.collisionAvoidanceSelection;
-    ui.ParallelComputationListBox.Value = previousSelection.isParlSelection; 
+    ui.ParallelComputationDistributedExecutionListBox.Value = previousSelection.isParlSelection; 
 
     ui.ScenarioListBox.Value = previousSelection.scenarioSelection;
     ui.ControlStrategyListBox.Value = previousSelection.controlStrategySelection;
@@ -141,7 +141,7 @@ controlStrategySelection = ui.ControlStrategyListBox.Value;
 priorityAssignmentMethodSelection = ui.PriorityAssignmentMethodListBox.Value;
 vehicleAmountSelection = ui.AmountofVehiclesListBox.Value;
 visualizationSelection = ui.TypeofVisualizationListBox_2.Value;
-isParlSelection = ui.ParallelComputationListBox.Value; 
+isParlSelection = ui.ParallelComputationDistributedExecutionListBox.Value; 
 
 % sample time [s]
 dtSelection = ui.SampleTimesSpinner.Value;
@@ -458,14 +458,14 @@ function callbackPBSelected(ui)
         ui.MaxComputationLevelsSpinner.Enable = 'on'; 
         ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'on'; 
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'on';
-        ui.ParallelComputationListBox.Enable = 'on'; 
+        ui.ParallelComputationDistributedExecutionListBox.Enable = 'on'; 
 
         ui.Label_4.Visible = 'Off'; 
     else 
         ui.MaxComputationLevelsSpinner.Enable = 'off'; 
         ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'off'; 
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'off';
-        ui.ParallelComputationListBox.Enable = 'off'; 
+        ui.ParallelComputationDistributedExecutionListBox.Enable = 'off'; 
  
         ui.Label_4.Text = sprintf("If not priority-based, the maximum allowed number of computation levels is irrelevant."); 
         ui.Label_4.Visible = 'On'; 
