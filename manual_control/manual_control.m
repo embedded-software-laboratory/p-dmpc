@@ -1,4 +1,4 @@
-function manual_control(vehicle_id, input_device_id, control_mode, force_feedback_enabled)
+function manual_control(vehicle_id, input_device_id, control_mode)
     
     n_manual_vehicle = length(vehicle_id);
 
@@ -10,7 +10,7 @@ function manual_control(vehicle_id, input_device_id, control_mode, force_feedbac
     for i = 1:n_manual_vehicle
         switch control_mode(i)
             case ControlMode.ManualMode
-                manual_controller{i} = ManualMode(vehicle_id(i), input_device_id(i), force_feedback_enabled(i));
+                manual_controller{i} = ManualMode(vehicle_id(i), input_device_id(i));
             case ControlMode.SemiAutonomousMode
                 manual_controller{i} = SemiAutonomousMode();%TODO%
         end

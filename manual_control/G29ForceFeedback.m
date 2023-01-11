@@ -17,7 +17,7 @@ classdef G29ForceFeedback
             if sum(cellfun(@(c)strcmp(c,'ros_g29_force_feedback/ForceFeedback'), msgList))==0
                 
                 [file_path,~,~] = fileparts(mfilename('fullpath'));
-                path_custom_msg = [file_path,filesep,'custom_msg'];
+                path_custom_msg = [file_path,filesep,'../commun/cust2'];
                 
                 % Generate custom messages. NOTE that Python 3.7, CMake, and a C++
                 % compiler are required (see
@@ -44,14 +44,14 @@ classdef G29ForceFeedback
         
             position = (-1.0) * data.angle;
 
-            if position == 0.0 && obj.last_position == 0.0
+            if true %position == 0.0 && obj.last_position == 0.0
                 data.torque = 0.0;
             end
 
             obj.msg_to_be_sent.position = single(position);
             obj.msg_to_be_sent.torque = single(data.torque);
             obj.last_position = position;
-            send(obj.g29Pub, obj.msg_to_be_sent);
+            send(obj.g29_pub, obj.msg_to_be_sent);
         end
     end
     methods (Static)

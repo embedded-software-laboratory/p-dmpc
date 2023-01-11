@@ -4,4 +4,4 @@
 source /opt/ros/eloquent/setup.bash
 
 # launch ros2node
-ros2 launch launch_j0.xml
+ros2 launch ./manual_control/launch_j0.xml
