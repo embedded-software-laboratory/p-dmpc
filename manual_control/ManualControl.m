@@ -26,6 +26,7 @@ classdef (Abstract) ManualControl < handle
 
         function input_device_data = decode_input_data(obj)
             % generic data from different input devices
+            % TODO separate accelerator pedal and brake pedal
             input_device_data = struct('throttle',0,'steering',0,'timestamp',uint64(0)); % throttle,steering,timestamp
             joy_msg = obj.joy_subscriber.LatestMessage;
 
