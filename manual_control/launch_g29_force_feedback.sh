@@ -1,6 +1,6 @@
 #!/bin/bash
-
-force_feedback_dir=~/Documents/ros2_ws;
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+force_feedback_dir="${SCRIPT_DIR}/ros2_ws"
 
 cd $force_feedback_dir
 source /opt/ros/eloquent/setup.bash
