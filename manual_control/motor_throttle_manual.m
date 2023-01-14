@@ -37,7 +37,7 @@ function result = compute_max_acceleration(speed)
     % see https://gitlab.lrz.de/tum-cps/commonroad-vehicle-models/-/blob/master/vehicleModels_commonRoad.pdf
     scale = 1/18;
     max_acceleration = 11.5 * scale;
-    speed_no_slip = 5 * scale;
+    speed_no_slip = 7.5 * scale;
     
     if (speed < speed_no_slip)
         result = max_acceleration;
@@ -60,11 +60,17 @@ end
 
 function result = compute_motor_throttle(acceleration_desired, speed)
     % https://www.sciencedirect.com/science/article/pii/S2405896320324319
-    % TODO no backwards motion from braking
-    % TODO lose speed faster
     p5 = -1.42;
     p6 =  6.90;
     p7 =  1.34;
-    x = ( acceleration_desired - p5 * speed ) / p6;
-    result = sign(x) * nthroot( abs(x) , p7 );
+
+    is_braking = (acceleration_desired < 0);
+    is_stop = ( abs(speed) < 0.05);
+    if (is_braking && is_stop)
+        P = 1;
+        result = -P * speed;
+    else
+        x = ( acceleration_desired - p5 * speed ) / p6;
+        result = sign(x) * nthroot( abs(x) , p7 );
+    end
 end

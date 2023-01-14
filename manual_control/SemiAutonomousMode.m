@@ -5,10 +5,5 @@ classdef SemiAutonomousMode < ManualControl
             obj.node = ros2node("/semi_autonomous_node");
             % TODO: init semi autonomous manual control
         end
-
-        function result = compute_force_feedback_data(obj,vehicle_state)
-            obj.force_feedback_angle = vehicle_state.steering_servo;
-            result = struct('angle',obj.force_feedback_angle,'torque',0.3);
-        end
     end
 end

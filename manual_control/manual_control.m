@@ -22,10 +22,15 @@ function manual_control(vehicle_id, input_device_id, control_mode)
         t_start = tic;
         for i = 1:n_manual_vehicle
             input_device_data = manual_controller{i}.decode_input_data();
+            if isempty(input_device_data)
+                continue
+            end
+
             [result, force_feedback] = manual_controller{i}.MessageProcessing(input_device_data);
             if isempty(result)
                 continue
             end
+            
             manual_controller{i}.apply(result, force_feedback);
         end
         t_loop = toc(t_start);

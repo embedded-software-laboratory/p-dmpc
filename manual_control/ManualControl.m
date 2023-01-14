@@ -6,10 +6,8 @@ classdef (Abstract) ManualControl < handle
         joy_node
         joy_subscriber
         reader_vehicleState
-        g29_force_feedback
-        force_feedback_angle
-        dt_period_nanos = uint64(4*1e7)
-        dds_participant
+        g29_force_feedback G29ForceFeedback
+        dds_participant DDS.DomainParticipant
     end
     properties (Constant)
         dt_seconds = 0.02;
@@ -19,7 +17,6 @@ classdef (Abstract) ManualControl < handle
         function obj = ManualControl(vehicle_id, input_device_id)
             obj.vehicle_id = vehicle_id;
             obj.input_device_id = input_device_id;
-            obj.force_feedback_angle = 0;
             % TODO tmux
             cmdStr = ['gnome-terminal --' ' ' './manual_control/launch_j' num2str(input_device_id) '.sh'];
             system(cmdStr);
@@ -37,6 +34,10 @@ classdef (Abstract) ManualControl < handle
                 'timestamp',uint64(0) ...
             );
             joy_msg = obj.joy_subscriber.LatestMessage;
+            if isempty(joy_msg)
+                input_device_data = [];
+                return
+            end
 
             timestamp_sec = uint64(joy_msg.header.stamp.sec);
             timestamp_nanosec = uint64(joy_msg.header.stamp.nanosec);
@@ -62,9 +63,5 @@ classdef (Abstract) ManualControl < handle
                 end
             end
         end
-    end
-
-    methods (Abstract)
-        compute_force_feedback_data(obj)
     end
 end

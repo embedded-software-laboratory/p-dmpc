@@ -2,7 +2,6 @@ classdef ManualMode < ManualControl
 
     properties (Access = private)
         writer_vehicleCommandDirect
-        steering_over_time (3,1) double
     end
 
     methods
@@ -19,8 +18,26 @@ classdef ManualMode < ManualControl
                 'No MATLAB IDL-files found in %s', dds_idl_matlab);
             addpath(dds_idl_matlab)
             
-            dds_domain = getenv('DDS_DOMAIN');
-            obj.dds_participant = DDS.DomainParticipant( 'BuiltinQosLibExp::Generic.BestEffort', str2double(dds_domain) );
+            % add QoS profile
+            script_directory = fileparts([mfilename('fullpath') '.m']);
+            qos_xml = fullfile(script_directory, 'qos.xml');
+            assert(isfile(qos_xml),...
+                'Missing QOS XML "%s"', qos_xml);
+            qos_env_var = "NDDS_QOS_PROFILES";
+            qos_profiles = getenv( qos_env_var );
+
+            if ~( contains( qos_profiles, qos_xml ) )
+                qos_path = ['file://' , qos_xml];
+                if ~isemtpy(qos_profiles)
+                    qos_path = [';' qos_path];
+                end
+                qos_profiles = [qos_profiles, qos_path];
+                
+                setenv( qos_env_var , qos_profiles );
+            end
+
+            dds_domain = '21';
+            obj.dds_participant = DDS.DomainParticipant( 'ManualControlLibrary::Base', str2double(dds_domain) );
             obj.writer_vehicleCommandDirect = DDS.DataWriter(DDS.Publisher(obj.dds_participant), 'VehicleCommandDirect', 'vehicleCommandDirect');
             obj.reader_vehicleState = DDS.DataReader(DDS.Subscriber(obj.dds_participant), 'VehicleState', 'vehicleState');
             obj.g29_force_feedback = G29ForceFeedback(); % TODO: use this or rewrite?
@@ -55,12 +72,12 @@ classdef ManualMode < ManualControl
             vehicle_command_direct.header.create_stamp.nanoseconds = ... 
                 uint64(generic_data.timestamp);
             vehicle_command_direct.header.valid_after_stamp.nanoseconds = ...
-                uint64(generic_data.timestamp+obj.dt_period_nanos);
+                uint64(generic_data.timestamp);
 
             result = vehicle_command_direct;
 
 
-            force_feedback = obj.compute_force_feedback_data(vehicle_state, steering);
+            force_feedback = G29ForceFeedback.compute_force_feedback_manual_mode(vehicle_state, steering);
         end
 
 
@@ -78,35 +95,6 @@ classdef ManualMode < ManualControl
         function apply(obj, result, force_feedback)
             obj.writer_vehicleCommandDirect.write(result);
             obj.g29_force_feedback.send_message(force_feedback)
-        end
-
-        function result = compute_force_feedback_data(obj, vehicle_state, steering)
-            arguments
-                obj (1,1) ManualMode
-                vehicle_state (1,1) VehicleState
-                steering (1,1) double
-            end
-            % TODO simplify for smooth torque
-            [steering_speed, steering_acceleration] = obj.compute_steering_derivatives(steering);
-            inertia_steering_column = 0.01;
-            b_ps = 3;
-            k1 = 300;
-            k2 = 5;
-            scale = 1/18;
-            L_f = 1.3;
-            L_r = L_f;
-            L = L_r + L_f;
-            steering_angle_max_rad = 35 / 180 * pi;
-            steering_angle_rad = steering * steering_angle_max_rad;
-            side_slip_angle = L_r / L * steering_angle_rad;
-            v_x = vehicle_state.speed / scale ;
-            v_y = atan(side_slip_angle) * v_x;
-            torque = -inertia_steering_column * steering_acceleration ...
-                - b_ps * steering_speed ...
-                + k1 * ( (v_y + L_f * vehicle_state.imu_yaw_rate) / v_x - steering_angle_rad ) ...
-                - k2 * steering_angle_rad;
-            result.torque = torque;
-            result.position = 0;
         end
     end
 end
