@@ -3,7 +3,6 @@ classdef G29ForceFeedback
     properties(Access = private)
         g29_pub;             % publisher
         msg_to_be_sent;     % initialize message type
-        last_position;
     end
 
     methods
@@ -11,7 +10,6 @@ classdef G29ForceFeedback
         % function to initialize ROS 2 publisher for ros_g29_force_feedback
         
             g29_node = ros2node("/g29");
-            obj.last_position = 0.0;
             
             msgList = ros2("msg","list"); % get all ROS 2 message types
             if sum(cellfun(@(c)strcmp(c,'ros_g29_force_feedback/ForceFeedback'), msgList))==0
@@ -30,27 +28,14 @@ classdef G29ForceFeedback
             
             obj.msg_to_be_sent = ros2message('ros_g29_force_feedback/ForceFeedback');
         
-            % workaround to be able to create publisher
-            obj.g29_pub = ros2publisher(g29_node,"/parameter_events");
-            pause(0.2)
-        
             obj.g29_pub = ros2publisher(g29_node,'/ff_target','ros_g29_force_feedback/ForceFeedback');
-            % create publisher
         end
 
 
         function send_message(obj, data)
             % send desired position and torque to steering wheel
-        
-            position = (-1.0) * data.angle;
-
-            if true %position == 0.0 && obj.last_position == 0.0
-                data.torque = 0.0;
-            end
-
-            obj.msg_to_be_sent.position = single(position);
+            obj.msg_to_be_sent.position = single(data.position);
             obj.msg_to_be_sent.torque = single(data.torque);
-            obj.last_position = position;
             send(obj.g29_pub, obj.msg_to_be_sent);
         end
     end

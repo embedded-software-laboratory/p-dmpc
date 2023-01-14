@@ -2,8 +2,8 @@ function result = motor_throttle_manual(...
     accelerator_pedal_position, brake_pedal_position, speed...
 )
 arguments
-    accelerator_pedal_position (1,1) double = 0;
-    brake_pedal_position (1,1) double = 0;
+    accelerator_pedal_position (1,1) double = -1;
+    brake_pedal_position (1,1) double = -1;
     speed (1,1) double = 0;
 end
 
@@ -15,7 +15,7 @@ result = compute_motor_throttle(acceleration_desired, speed);
 
 end
 
-function result = compute_desired_acceleration(brake_pedal_position, speed, accelerator_pedal_position)
+function result = compute_desired_acceleration(accelerator_pedal_position, brake_pedal_position, speed)
     acceleration_from_brake = motor_throttle_from_pedal_and_max_acceleration( ...
         brake_pedal_position, compute_min_acceleration() ...
     );
@@ -51,14 +51,17 @@ function result = motor_throttle_from_pedal_and_max_acceleration( ...
 )
     min_acceleration = 0;
     d_acceleration = max_acceleration - min_acceleration;
-    min_pedal_position = 0;
+    min_pedal_position = -1;
     max_pedal_position = 1;
     d_pedal = max_pedal_position - min_pedal_position;
-    result = pedal_position / d_pedal * d_acceleration + min_acceleration;
+    result = (pedal_position - min_pedal_position) / d_pedal * d_acceleration ...
+        + min_acceleration;
 end
 
 function result = compute_motor_throttle(acceleration_desired, speed)
     % https://www.sciencedirect.com/science/article/pii/S2405896320324319
+    % TODO no backwards motion from braking
+    % TODO lose speed faster
     p5 = -1.42;
     p6 =  6.90;
     p7 =  1.34;

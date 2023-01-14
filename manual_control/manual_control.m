@@ -16,13 +16,20 @@ function manual_control(vehicle_id, input_device_id, control_mode)
         end
     end
     
+%     rate = ros2rate(manual_controller{1}.joy_node, ManualControl.rate_hz);
+% only possible from R2022b
      while true
+        t_start = tic;
         for i = 1:n_manual_vehicle
             input_device_data = manual_controller{i}.decode_input_data();
             [result, force_feedback] = manual_controller{i}.MessageProcessing(input_device_data);
+            if isempty(result)
+                continue
+            end
             manual_controller{i}.apply(result, force_feedback);
         end
-     
+        t_loop = toc(t_start);
+        pause(ManualControl.dt_seconds - t_loop);
     end
 
     

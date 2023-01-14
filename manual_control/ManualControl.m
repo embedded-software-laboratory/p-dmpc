@@ -9,7 +9,10 @@ classdef (Abstract) ManualControl < handle
         g29_force_feedback
         force_feedback_angle
         dt_period_nanos = uint64(4*1e7)
-        matlab_participant
+        dds_participant
+    end
+    properties (Constant)
+        dt_seconds = 0.02;
     end
 
     methods
@@ -17,6 +20,7 @@ classdef (Abstract) ManualControl < handle
             obj.vehicle_id = vehicle_id;
             obj.input_device_id = input_device_id;
             obj.force_feedback_angle = 0;
+            % TODO tmux
             cmdStr = ['gnome-terminal --' ' ' './manual_control/launch_j' num2str(input_device_id) '.sh'];
             system(cmdStr);
             cmdStr = ['gnome-terminal --' ' ' './manual_control/launch_g29_force_feedback.sh'];
@@ -26,8 +30,12 @@ classdef (Abstract) ManualControl < handle
 
         function input_device_data = decode_input_data(obj)
             % generic data from different input devices
-            % TODO separate accelerator pedal and brake pedal
-            input_device_data = struct('throttle',0,'steering',0,'timestamp',uint64(0)); % throttle,steering,timestamp
+            input_device_data = struct( ...
+                'throttle',0, ...
+                'brake',0, ...
+                'steering',0, ...
+                'timestamp',uint64(0) ...
+            );
             joy_msg = obj.joy_subscriber.LatestMessage;
 
             timestamp_sec = uint64(joy_msg.header.stamp.sec);
@@ -36,30 +44,27 @@ classdef (Abstract) ManualControl < handle
 
             switch length(joy_msg.buttons)
                 case 25 % wheel
-                    input_device_data.steering = joy_msg.axes(1);
-                    if joy_msg.axes(3) >= 0 %throttle pedal
-                        input_device_data.throttle = joy_msg.axes(3);
-                    elseif joy_msg.axes(4) >= 0 %brake pedal
-                        input_device_data.throttle = (-1) * joy_msg.axes(4);
-                    end
-                 case 11 % gamepad - not necessary right now
-                    input_device_data.steering = joy_msg.axes(1);
-                    if joy_msg.axes(3) >= 0 %throttle pedal
-                        input_device_data.throttle = joy_msg.axes(3);
-                    elseif joy_msg.axes(6) >= 0 %brake pedal
-                        input_device_data.throttle = (-1) * joy_msg.axes(4);
-                    end
+                    brake_axes = joy_msg.axes(4);
+                case 11 % gamepad - not necessary right now
+                    brake_axes = joy_msg.axes(6);
             end
+            input_device_data.steering = joy_msg.axes(1);
+            input_device_data.throttle = joy_msg.axes(3);
+            input_device_data.brake = brake_axes;
         end
 
-        function force_feedback_data = calculate_force_feedback_data(obj) 
+        function result = read_vehicle_state(obj)
+            result = [];
             [sample, ~, sample_count, ~] = obj.reader_vehicleState.take();
             for i = 1 : sample_count
                 if sample(i).vehicle_id == obj.vehicle_id
-                    obj.force_feedback_angle = sample(i).steering_servo;
+                    result = sample(i);
                 end
             end
-            force_feedback_data = struct('angle',obj.force_feedback_angle,'torque',0.3);
         end
+    end
+
+    methods (Abstract)
+        compute_force_feedback_data(obj)
     end
 end
