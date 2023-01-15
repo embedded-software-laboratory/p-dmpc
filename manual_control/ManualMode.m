@@ -58,9 +58,18 @@ classdef ManualMode < ManualControl
             vehicle_command_direct = VehicleCommandDirect;
             vehicle_command_direct.vehicle_id = uint8(obj.vehicle_id);
 
-
-            steering = generic_data.steering;
+            % Steering
+            % Scale steering command to match the G29 + muCar combination
+            theta_max_full = 3*pi;
+            theta_max_g29 = 2.5*pi;
+            delta_max_full = 0.98;
+            delta_max = 0.61;
+            theta_max = theta_max_full * delta_max / delta_max_full;
+            steering = generic_data.steering * theta_max_g29 / theta_max;
+            % Limit steering angle
+            steering = max(1, min( -1, steering));
             
+            % Throttle
             throttle = motor_throttle_manual( ...
                 generic_data.throttle, ...
                 generic_data.brake, ...
@@ -75,7 +84,6 @@ classdef ManualMode < ManualControl
                 uint64(generic_data.timestamp);
 
             result = vehicle_command_direct;
-
 
             force_feedback = G29ForceFeedback.compute_force_feedback_manual_mode(vehicle_state, steering);
         end
