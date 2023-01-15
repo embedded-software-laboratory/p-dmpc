@@ -67,21 +67,16 @@ classdef HLCFactory < handle
 
     methods (Static)
         function controller_name = get_controller_name(options)
-            if options.scenario_name == Scenario_Type.Commonroad
-                if options.isPB
+            if options.isPB
+                if options.isParl
                     controller_name = strcat('par. PB-','RHGS-', char(options.priority));
                 else
-                    controller_name = strcat('centralized-', 'RHGS-', char(options.priority));
+                    controller_name = strcat('seq. PB-','RHGS-', char(options.priority));
                 end
             else
-                if options.isPB
-                    controller_name = strcat('RHGS', '-PB');
-                else
-                    controller_name = strcat('RHGS', '-centralized');
-                end
+                controller_name = strcat('centralized-', 'RHGS-', char(options.priority));
             end
         end
-
     end
 
     methods (Access=private)

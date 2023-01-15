@@ -80,13 +80,17 @@ classdef FileNameConstructor
             );
         end
 
-        function scenario_name = gen_scenario_name(options)
+        function scenario_name = gen_scenario_name(options, vehs)
             priority = char(options.priority);
 
 
             if isempty(options.customResultName)
                 % use default name
-                scenario_name = ['trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_dt',num2str(options.dt),'_nVeh',num2str(options.amount),'_T',num2str(options.T_end),'_',priority];
+                if options.isParl
+                    scenario_name = ['veh_', num2str(options.veh_ids(vehs)),'_trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_dt',num2str(options.dt),'_nVeh',num2str(options.amount),'_T',num2str(options.T_end),'_',priority];
+                else
+                    scenario_name = ['trims',num2str(options.trim_set),'_Hp',num2str(options.Hp),'_dt',num2str(options.dt),'_nVeh',num2str(options.amount),'_T',num2str(options.T_end),'_',priority];
+                end
                 veh_ids_str = sprintf('-%d',options.veh_ids);
                 scenario_name = [scenario_name, '_ids', veh_ids_str];
                 if options.isPB
@@ -132,10 +136,11 @@ classdef FileNameConstructor
             end
         end
 
-        function results_full_path = get_results_full_path(options)
+        function results_full_path = get_results_full_path(options, vehs)
             % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
             % results are saved.
-            results_name = [FileNameConstructor.gen_scenario_name(options), '.mat'];
+            % INPUT: options, vehs(vehicles for which this HLC is responsible.)
+            results_name = [FileNameConstructor.gen_scenario_name(options, vehs), '.mat'];
 
             results_full_path = fullfile( ...
                 FileNameConstructor.gen_results_folder_path(options) ...

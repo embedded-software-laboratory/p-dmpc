@@ -197,15 +197,11 @@ classdef PbControllerParl < HLCInterface
                 msg_send_time = toc(msg_send_tic);
             end
 
-            n_grps = length(obj.iter.parl_groups_info);
-
-            obj.info.runtime_graph_search_each_veh = zeros(1,obj.scenario.options.amount);
-            obj.info.runtime_graph_search_max = 0;
-
-            obj.info.runtime_subcontroller_each_veh = obj.info.runtime_graph_search_each_veh;
-            obj.info.runtime_subcontroller_each_grp = zeros(1,n_grps);
-            obj.info.runtime_subcontroller_max = 0;
-
+            obj.info.runtime_graph_search_each_veh(vehicle_idx) = obj.info.runtime_graph_search_each_veh(vehicle_idx) + msg_send_time;
+            obj.info.runtime_graph_search_max = obj.info.runtime_graph_search_each_veh(vehicle_idx);
+            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_graph_search_each_veh(vehicle_idx) + runtime_others;
+            obj.info.runtime_subcontroller_max = obj.info.runtime_graph_search_max + runtime_others;
+            obj.info.computation_levels = length(CL_based_hierarchy);
             obj.scenario.lanelet_crossing_areas = lanelet_crossing_areas;
         end
     end

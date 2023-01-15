@@ -70,7 +70,8 @@ try %#ok<TRYNC>
     ui.SecondMVIDListBox.Value = previousSelection.secondManualVehicleIDSelection;
     ui.ControlModeSecondMVListBox.Value = previousSelection.secondControlModeSelection;
     ui.CollisionAvoidanceListBox.Value = previousSelection.collisionAvoidanceSelection;
-    ui.ParallelComputationDistributedExecutionListBox.Value = previousSelection.isParlSelection; 
+    ui.ParallelComputationDistributedExecutionListBox.Value = previousSelection.isParlSelection;
+    ui.CustomVehicleIdsEditField.Value = previousSelection.veh_ids;
 
     ui.ScenarioListBox.Value = previousSelection.scenarioSelection;
     ui.ControlStrategyListBox.Value = previousSelection.controlStrategySelection;
@@ -141,7 +142,8 @@ controlStrategySelection = ui.ControlStrategyListBox.Value;
 priorityAssignmentMethodSelection = ui.PriorityAssignmentMethodListBox.Value;
 vehicleAmountSelection = ui.AmountofVehiclesListBox.Value;
 visualizationSelection = ui.TypeofVisualizationListBox_2.Value;
-isParlSelection = ui.ParallelComputationDistributedExecutionListBox.Value; 
+isParlSelection = ui.ParallelComputationDistributedExecutionListBox.Value;
+veh_ids = ui.CustomVehicleIdsEditField.Value;
 
 % sample time [s]
 dtSelection = ui.SampleTimesSpinner.Value;
@@ -165,7 +167,7 @@ customResultName = ui.CustomfilenameEditField.Value;
 isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
 save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'collisionAvoidanceSelection',...
     'environmentSelection', 'trafficModeSelection', 'forceFeedbackSelection', 'considerRSSSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
-    'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection','strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection', ...
+    'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection', 'veh_ids', 'strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection', ...
     'isSaveResult','customResultName','isAllowInheritROW');
 
 %% Convert to legacy/outputs
@@ -221,6 +223,14 @@ labOptions.angles = vehicleAmount{...
     2};    
 
 labOptions.amount = str2num(vehicleAmountSelection);
+
+veh_ids = ui.CustomVehicleIdsEditField.Value;
+if veh_ids ~= ""
+    veh_ids(~isstrprop(veh_ids,'digit')) = ' '; %replace non-numeric characters with empty space
+    labOptions.veh_ids = str2double(strsplit(strtrim(veh_ids)));
+else
+    labOptions.veh_ids = [];
+end
 
 labOptions.visu = visualization{...
     strcmp({visualization{:, 2}}, visualizationSelection),...
@@ -280,10 +290,10 @@ labOptions.customResultName = ui.CustomfilenameEditField.Value;
 labOptions.isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
 
 % Write Config to disk
-% encodedJSON = jsonencode(labOptions);
-% fid = fopen('Config.json','w');
-% fprintf(fid, encodedJSON);
-% fclose('all');
+encodedJSON = jsonencode(labOptions);
+fid = fopen('Config.json','w');
+fprintf(fid, encodedJSON);
+fclose('all');
 % save('config.mat','labOptions');
 
 % close app
@@ -361,11 +371,11 @@ function setCpmLabElementsVisibility(ui)
     if get_environment_selection(ui, true)
         ui.TrafficModeButtonGroup.Visible = 'On';
 
-        ui.ScenarioListBox.Enable = 'Off';
-        ui.ControlStrategyListBox.Enable = 'Off';
-        ui.PriorityAssignmentMethodListBox.Enable = 'Off';
-        ui.AmountofVehiclesListBox.Enable = 'Off';
-        ui.TypeofVisualizationListBox_2.Enable = 'Off';       
+        ui.ScenarioListBox.Enable = 'On';
+        ui.ControlStrategyListBox.Enable = 'On';
+        ui.PriorityAssignmentMethodListBox.Enable = 'On';
+        ui.AmountofVehiclesListBox.Enable = 'On';
+        ui.TypeofVisualizationListBox_2.Enable = 'On';       
     else
         ui.TrafficModeButtonGroup.Visible = 'Off';
         ui.FirstManualVehicleMVIDListBox.Enable = 'Off';
@@ -412,8 +422,8 @@ function setMixedTrafficElementsVisibility(ui)
         ui.ScenarioListBox.Enable = 'On';
         ui.ControlStrategyListBox.Enable = 'On';
         ui.PriorityAssignmentMethodListBox.Enable = 'On';
-        ui.AmountofVehiclesListBox.Enable = 'Off';
-        ui.TypeofVisualizationListBox_2.Enable = 'Off';
+        ui.AmountofVehiclesListBox.Enable = 'On';
+        ui.TypeofVisualizationListBox_2.Enable = 'On';
     end
 end
 

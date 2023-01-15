@@ -83,6 +83,7 @@ classdef Config
             obj.amount = struct.amount;
             obj.visu = struct.visu;
             obj.isParl = struct.isParl;
+            obj.veh_ids = struct.veh_ids;
             obj.scenario_name = struct.scenario_name;
             obj.priority = struct.priority;
             obj.dt = struct.dt;

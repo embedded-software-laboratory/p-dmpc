@@ -27,13 +27,12 @@ if options.is_sim_lab
                     vehicle_ids = sort(randsample(random_seed,9:40,options.amount),'ascend');
                 else
                     vehicle_ids = sort(randsample(random_seed,1:40,options.amount),'ascend');
-                end      
-
+                end
         end
     else
         vehicle_ids = options.veh_ids;
     end
-    options.veh_ids = vehicle_ids;
+    options.veh_ids = sort(vehicle_ids);
     options.is_mixed_traffic = 0;
 else
     disp('Running in CPM Lab...')
@@ -64,13 +63,11 @@ else
             options.priority = 'mixed_traffic_priority';
             options.visualize_reachable_set = true;
         end
-    else
-        options.firstManualVehicleMode = 0;
-        options.secondManualVehicleMode = 0;
-        options.collisionAvoidanceMode = 0;
     end
-    options.veh_ids = vehicle_ids;
+    options.veh_ids = sort(vehicle_ids);
 end
+
+assert(length(options.veh_ids) == options.amount);
 
 %% Setup Scenario
 switch options.scenario_name

@@ -109,8 +109,7 @@ classdef (Abstract) HLCInterface < handle
                 obj.hlc_adapter = CPMLab(obj.scenario, obj.vehicle_ids);
             else
                 obj.hlc_adapter = SimLab(obj.scenario, obj.vehicle_ids, visualization_data_queue);
-            end
-            obj.hlc_adapter.setup();
+            end            
         end
     end
 
@@ -123,7 +122,7 @@ classdef (Abstract) HLCInterface < handle
         function init_hlc( obj )
 
             % init result struct
-            obj.result = get_result_struct(obj.scenario);
+            obj.result = get_result_struct(obj);
 
             % record the number of time steps that vehicles continually stop
             obj.vehs_stop_duration = zeros(obj.scenario.options.amount,1);
@@ -137,18 +136,27 @@ classdef (Abstract) HLCInterface < handle
 
             obj.iter = IterationData(obj.scenario,obj.k);
 
-            if obj.scenario.options.isPB
-                % In priority-based computation, vehicles communicate via ROS 2
-                % Initialize the communication network of ROS 2
-                communication_init(obj);
-            end
-
             obj.vehs_fallback_times = zeros(1,obj.scenario.options.amount);
 
             % TODO still needed?
             if obj.scenario.options.is_mixed_traffic && ...
                (obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode || obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode)
                 %r = rosrate(100000);
+            end
+
+            if obj.scenario.options.isPB
+                % In priority-based computation, vehicles communicate via ROS 2
+                % Create publishers and subscribers before experiment setup
+                create_publishers(obj);
+                create_subscribers(obj);
+            end
+
+            obj.hlc_adapter.setup();
+
+            if obj.scenario.options.isPB
+                % In priority-based computation, vehicles communicate via ROS 2
+                % Initialize the communication network of ROS 2
+                communication_init(obj);
             end
         end
 
@@ -262,8 +270,6 @@ classdef (Abstract) HLCInterface < handle
                     end
                 end
                 obj.result.distance(:,:,obj.k) = distance;
-
-                % dynamic scenario
                 obj.result.iter_runtime(obj.k) = toc(obj.result.step_timer);
 
                 % The controller computes plans
@@ -395,6 +401,8 @@ classdef (Abstract) HLCInterface < handle
 
             if obj.scenario.options.isSaveResult
                 empty_cells = cell(1,obj.scenario.options.amount);
+                % delete ros nodes, because they can't be written to a
+                % file.
                 [obj.result.scenario.vehicles.communicate] = empty_cells{:};
                 obj.result.mpa = obj.scenario.mpa;
 
