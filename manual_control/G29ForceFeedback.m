@@ -66,6 +66,12 @@ classdef G29ForceFeedback
             % + 0.4 * abs(steering) * sin(vehicle_state.speed / speed_max * pi / 2) ...
             %     + 0.5 * sin(vehicle_state.speed / speed_max * pi / 2);
 
+            % more than linear increase with speed, degressive increase with steering
+            torque = 0.2 ...
+                + 0.8 * (vehicle_state.speed ./speed_max) .* ...
+                (0.3 + 0.7*(sin(abs(steering)) * pi / 2));
+            result.position = 0;
+
 
             % Separate in torque that acts towards center and torque that acts outwards
             speed_min_torque = 0.1;
@@ -73,16 +79,14 @@ classdef G29ForceFeedback
                 [steering_speed, ~] = compute_steering_derivatives(obj, steering);
                 if sign(steering_speed) ~= sign(steering)
                     result.position = -sign(steering_speed);
-                else
-                    result.position = 0;
+                    torque_standstill = 0.3;
+                    torque = (1 - vehicle_state.speed/speed_min_torque) * torque_standstill ...
+                        + (vehicle_state.speed/speed_min_torque) * torque;
                 end
             end
-            % more than linear increase with speed, degressive increase with steering
-            torque = 0.2 ...
-                + 0.8 * (vehicle_state.speed ./speed_max) .* ...
-                (0.3 + 0.7*(sin(abs(steering)) * pi / 2));
 
-            torque = min(1, (10 * steering) ^ 2) * torque; % for smooth torque increase at 0 degree
+            % for smooth torque increase at 0 degree
+            torque = min(1, (10 * steering) ^ 2) * torque;
             result.torque = torque;
         end
 
