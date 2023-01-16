@@ -64,8 +64,8 @@ classdef ManualMode < ManualControl
             theta_max_g29 = 2.5*pi;
             delta_max_full = 0.98;
             delta_max = 0.61;
-            theta_max = theta_max_full * delta_max / delta_max_full;
-            steering = generic_data.steering * theta_max_g29 / theta_max;
+            theta_delta_max = theta_max_full * delta_max / delta_max_full;
+            steering = generic_data.steering * theta_max_g29 / theta_delta_max;
             % Limit steering angle
             steering = max(1, min( -1, steering));
             
@@ -76,6 +76,7 @@ classdef ManualMode < ManualControl
                 vehicle_state.speed ...
             );
 
+            % Command
             vehicle_command_direct.motor_throttle = double(throttle);
             vehicle_command_direct.steering_servo = double(steering);
             vehicle_command_direct.header.create_stamp.nanoseconds = ... 
@@ -85,19 +86,8 @@ classdef ManualMode < ManualControl
 
             result = vehicle_command_direct;
 
-            force_feedback = G29ForceFeedback.compute_force_feedback_manual_mode(vehicle_state, steering);
-        end
-
-
-        
-        function [steering_speed, steering_acceleration ] = compute_steering_derivatives(obj, steering)
-            obj.steering_over_time(3) = steering;
-            obj.steering_over_time = circshift(obj.steering_over_time,1);
-            dt = ManualControl.dt_seconds;
-            d_speed = diff(obj.steering_over_time);
-            steering_speed = d_speed(1) / dt;
-            dd_speed = diff(d_speed);
-            steering_acceleration = dd_speed / dt^2;
+            % Force feedback
+            force_feedback = g29_force_feedback.compute_force_feedback_manual_mode(vehicle_state, steering);
         end
 
         function apply(obj, result, force_feedback)
