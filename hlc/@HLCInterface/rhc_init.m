@@ -11,10 +11,10 @@ function rhc_init(obj, x_measured, trims_measured)
             for iVeh = obj.indices_in_vehicle_list
                 index = match_pose_to_lane(obj.scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
 
-                if obj.scenario.manual_vehicle_id == obj.scenario.vehicle_ids(iVeh)
-                    if obj.scenario.options.firstManualVehicleMode == 1
+                if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id == obj.scenario.options.veh_ids(iVeh)
+                    if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Guided_mode
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
-                        updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.vehicle_ids(iVeh), 10, index(1), false);
+                        updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1), false);
                     else
                         if obj.scenario.options.isPB
                             % Communicate predicted trims, predicted lanelets and areas to other vehicles
@@ -29,10 +29,10 @@ function rhc_init(obj, x_measured, trims_measured)
 
                         continue
                     end     
-                elseif obj.scenario.second_manual_vehicle_id == obj.scenario.vehicle_ids(iVeh)
-                    if obj.scenario.options.secondManualVehicleMode == 1
+                elseif obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id == obj.scenario.options.veh_ids(iVeh)
+                    if obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Guided_mode
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
-                        updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.vehicle_ids(iVeh), 10, index(1), false);
+                        updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1), false);
                     else
                         if obj.scenario.options.isPB
                             % Communicate predicted trims, predicted lanelets and areas to other vehicles
@@ -50,10 +50,10 @@ function rhc_init(obj, x_measured, trims_measured)
                 else
                     if obj.scenario.options.is_eval
                          % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                        [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.vehicle_ids(iVeh), 10, 0);
+                        [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, 0);
                     else
                          % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                         [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.vehicle_ids(iVeh), 10, index(1));
+                         [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1));
                     end
                 end
                 
@@ -92,25 +92,25 @@ function rhc_init(obj, x_measured, trims_measured)
                 for i = 1:length(obj.iter.predicted_lanelets{iVeh})
                     % if last lane is reached, then lane will be automatically updated
                     if obj.iter.predicted_lanelets{iVeh}(i) == obj.scenario.vehicles(iVeh).lanelets_index(end-1)
-                        if obj.scenario.manual_vehicle_id == obj.scenario.vehicle_ids(iVeh) && ~obj.scenario.updated_manual_vehicle_path
-                            if obj.scenario.options.firstManualVehicleMode == 1
+                        if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id == obj.scenario.options.veh_ids(iVeh) && ~obj.scenario.updated_manual_vehicle_path
+                            if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Guided_mode
                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
-                                updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.vehicle_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1), false);
+                                updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1), false);
                                 obj.iter.auto_updated_path(iVeh) = true;
                             else
                                 continue
                             end     
-                        elseif obj.scenario.second_manual_vehicle_id == obj.scenario.vehicle_ids(iVeh) && ~obj.scenario.updated_second_manual_vehicle_path
-                            if obj.scenario.options.secondManualVehicleMode == 1
+                        elseif obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id == obj.scenario.options.veh_ids(iVeh) && ~obj.scenario.updated_second_manual_vehicle_path
+                            if obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Guided_mode
                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
-                                [updated_ref_path, obj.scenario] = generate_manual_path(obj.scenario, obj.scenario.vehicle_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1), false);
+                                [updated_ref_path, obj.scenario] = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1), false);
                                 obj.iter.auto_updated_path(iVeh) = true;
                             else
                                 continue
                             end      
                         else
                             % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                            [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.vehicle_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1));
+                            [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1));
                             obj.iter.auto_updated_path(iVeh) = true;
                         end
 
@@ -150,18 +150,8 @@ function rhc_init(obj, x_measured, trims_measured)
     for iVeh = obj.indices_in_vehicle_list
         % states of controlled vehicles can be measured directly
         obj.iter.x0(iVeh,:) = x_measured(iVeh,:);
-        % read predicted_trim_indices for iVeh
-        if obj.scenario.options.isPB
-            % In parallel computation, obtain the predicted trims and predicted
-            % lanelets of other vehicles from the received messages
-            latest_msg_i = read_message(obj.scenario.vehicles(iVeh).communicate.predictions, obj.ros_subscribers.predictions{iVeh}, obj.k-1);
-            oldness_msg = obj.k - latest_msg_i.time_step;
-            obj.iter.trim_indices(iVeh) = latest_msg_i.predicted_trims(oldness_msg+1);
-        else
-            % if parallel computation is not used, other vehicles' trims are measured 
-            obj.iter.trim_indices(iVeh) = trims_measured(iVeh);
-        end
-
+        % get own trim
+        obj.iter.trim_indices(iVeh) = trims_measured(iVeh);
         x0 = obj.iter.x0(iVeh, idx.x);
         y0 = obj.iter.x0(iVeh, idx.y);
         yaw0 = obj.iter.x0(iVeh, idx.heading);
@@ -218,12 +208,6 @@ function rhc_init(obj, x_measured, trims_measured)
                     end
                 end
             else
-                % Read the predicted lanelets of vehicle iVeh
-                if obj.scenario.options.isPB && ~obj.iter.auto_updated_path(iVeh)
-                    % from received messages if parallel computation is used 
-                    predicted_lanelets = latest_msg_i.predicted_lanelets(:)'; % make row vector
-                end
-
                 % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
                 if obj.iter.lanes_before_update(iVeh,:,:) ~= zeros(1,2)
                     for i = 1:length(obj.iter.lanes_before_update(iVeh,:,:))
@@ -239,7 +223,7 @@ function rhc_init(obj, x_measured, trims_measured)
                 end
 
                 % if there is a lane change in the random path, add the boundary of the lane before the change as the vehicle might be still on the lane before change
-                if ~obj.scenario.options.is_sim_lab && obj.scenario.manual_vehicle_id ~= obj.scenario.vehicle_ids(iVeh) && obj.scenario.second_manual_vehicle_id ~= obj.scenario.vehicle_ids(iVeh)
+                if ~obj.scenario.options.is_sim_lab && obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id ~= obj.scenario.options.veh_ids(iVeh) && obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id ~= obj.scenario.options.veh_ids(iVeh)
                     if ~isempty(obj.iter.lane_change_lanes(iVeh,:,:))
                         obj.iter.lane_change_lanes(iVeh,:,:) = nonzeros(obj.iter.lane_change_lanes(iVeh,:,:));
                         for i = 1:(length(obj.iter.lane_change_lanes(iVeh,:,:))/2)
