@@ -28,7 +28,7 @@ classdef ManualMode < ManualControl
 
             if ~( contains( qos_profiles, qos_xml ) )
                 qos_path = ['file://' , qos_xml];
-                if ~isemtpy(qos_profiles)
+                if ~(isempty(qos_profiles))
                     qos_path = [';' qos_path];
                 end
                 qos_profiles = [qos_profiles, qos_path];
@@ -37,6 +37,7 @@ classdef ManualMode < ManualControl
             end
 
             dds_domain = '21';
+%             dds_domain = getenv('DDS_DOMAIN');
             obj.dds_participant = DDS.DomainParticipant( 'ManualControlLibrary::Base', str2double(dds_domain) );
             obj.writer_vehicleCommandDirect = DDS.DataWriter(DDS.Publisher(obj.dds_participant), 'VehicleCommandDirect', 'vehicleCommandDirect');
             obj.reader_vehicleState = DDS.DataReader(DDS.Subscriber(obj.dds_participant), 'VehicleState', 'vehicleState');
@@ -63,11 +64,13 @@ classdef ManualMode < ManualControl
             theta_max_full = 3*pi;
             theta_max_g29 = 2.5*pi;
             delta_max_full = 0.98;
-            delta_max = 0.4767; % TODO Check if minimum radius is actually 0.3m
+            delta_max = 0.4135;
             theta_delta_max = theta_max_full * delta_max / delta_max_full;
             steering = generic_data.steering * theta_max_g29 / theta_delta_max;
+            
             % Limit steering angle
-            steering = max(1, min( -1, steering));
+            steering = min(1, max( -1, steering));
+
             
             % Throttle
             throttle = motor_throttle_manual( ...
@@ -87,7 +90,7 @@ classdef ManualMode < ManualControl
             result = vehicle_command_direct;
 
             % Force feedback
-            force_feedback = g29_force_feedback.compute_force_feedback_manual_mode(vehicle_state, steering);
+            force_feedback = obj.g29_force_feedback.compute_force_feedback_manual_mode(vehicle_state, steering);
         end
 
         function apply(obj, result, force_feedback)
