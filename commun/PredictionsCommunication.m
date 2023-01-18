@@ -48,14 +48,12 @@ classdef PredictionsCommunication
             end
         end
 
-        function send_message(obj, time_step, predicted_trims, predicted_lanelets, predicted_areas, vehs_fallback)
+        function send_message(obj, time_step, predicted_areas, vehs_fallback)
             % vehicle send message to its topic
             obj.msg_to_be_sent.time_step = int32(time_step);
             obj.msg_to_be_sent.vehicle_id = int32(obj.vehicle_id);
-            obj.msg_to_be_sent.predicted_trims = int32(predicted_trims(:));
-            obj.msg_to_be_sent.predicted_lanelets = int32(predicted_lanelets(:));
 
-            if nargin <= 5
+            if nargin <= 3
                 vehs_fallback = int32.empty();
             end
             

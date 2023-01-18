@@ -25,7 +25,7 @@ classdef PbControllerSeq < HLCInterface
             n_expended = zeros(nVeh,1);
 
             directed_graph = digraph(obj.iter.directed_coupling);
-            [belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
+            [obj.belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
 
             obj.iter.num_couplings_between_grps = 0; % number of couplings between groups
             obj.iter.num_couplings_between_grps_ignored = 0; % ignored number of couplings between groups by using lanelet crossing lanelets
@@ -136,8 +136,8 @@ classdef PbControllerSeq < HLCInterface
                         %                 disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
                         switch obj.scenario.options.fallback_type
                             case 'localFallback'
-                                sub_graph_fallback = belonging_vector_total(vehicle_idx);
-                                obj.info.vehs_fallback = [obj.info.vehs_fallback, find(belonging_vector_total==sub_graph_fallback)];
+                                sub_graph_fallback = obj.belonging_vector_total(vehicle_idx);
+                                obj.info.vehs_fallback = [obj.info.vehs_fallback, find(obj.belonging_vector_total==sub_graph_fallback)];
                                 obj.info.vehs_fallback = unique(obj.info.vehs_fallback,'stable');
                             case 'globalFallback'
                                 % global fallback: all vehicles take fallback
@@ -170,19 +170,10 @@ classdef PbControllerSeq < HLCInterface
                         % if the selected vehicle should take fallback
                         continue
                     end
-                    msg_send_tic = tic;
-                    predicted_trims = obj.info.predicted_trims(vehicle_k,:); % including the current trim
-                    trim_current = predicted_trims(2);
-
-                    states_current = obj.info.y_predicted{vehicle_k}(1,:);
-                    x0 = states_current(indices().x);
-                    y0 = states_current(indices().y);
-
-                    [predicted_lanelets,~,~] = get_predicted_lanelets(obj.scenario, obj.iter, vehicle_k, x0, y0);
-                    predicted_areas_k = obj.info.shapes(vehicle_k,:);
-
                     % send message
-                    obj.scenario.vehicles(vehicle_k).communicate.predictions.send_message(obj.k, predicted_trims, predicted_lanelets, predicted_areas_k, obj.info.vehs_fallback);
+                    msg_send_tic = tic;
+                    predicted_areas_k = obj.info.shapes(vehicle_k,:);
+                    obj.scenario.vehicles(vehicle_k).communicate.predictions.send_message(obj.k, predicted_areas_k, obj.info.vehs_fallback);
                     msg_send_time(vehicle_k) = toc(msg_send_tic);
                 end
             end

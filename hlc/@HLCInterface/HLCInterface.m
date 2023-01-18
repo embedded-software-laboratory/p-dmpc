@@ -1,4 +1,5 @@
 classdef (Abstract) HLCInterface < handle
+    %TODO check for private/protected vars
     properties (Access=public)
         % For which vehicle IDs to start the HLC
         % Must be an array of vehicles. In distributed HLC case the array contains
@@ -35,7 +36,9 @@ classdef (Abstract) HLCInterface < handle
         info;
 
     end
-    %TODO check for private vars
+    properties (Access=protected)
+        belonging_vector_total;
+    end
     properties (Access=private)
         initialized_reference_path
         got_stop;
@@ -278,22 +281,34 @@ classdef (Abstract) HLCInterface < handle
                 %% controller %%
                 obj.controller();
 
-                % If using distributed hlcs, collect fallback info from all
-                % other vehicles
+                % If using distributed hlcs, collect fallback info from
+                % other vehicles as required
                 if obj.amount == 1
-                    other_vehicles = setdiff(1:obj.scenario.options.amount, obj.indices_in_vehicle_list);
-                    for veh_id = other_vehicles
-                        latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k);
-                        fallback_info_veh_id = latest_msg.vehs_fallback;
-                        obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
+                    if obj.scenario.options.fallback_type == "localFallback"
+                        sub_graph_fallback = obj.belonging_vector_total(obj.indices_in_vehicle_list(1));
+                        other_vehicles = [obj.info.vehs_fallback, find(obj.belonging_vector_total==sub_graph_fallback)];
+                        % remove own vehicle. No need to read from own
+                        % publisher
+                        other_vehicles = setdiff(other_vehicles,obj.indices_in_vehicle_list(1),'stable');
+                        for veh_id = other_vehicles
+                            latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k);
+                            fallback_info_veh_id = latest_msg.vehs_fallback;
+                            obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
+                        end
+                    else 
+                        other_vehicles = setdiff(1:obj.scenario.options.amount, obj.indices_in_vehicle_list);
+                        for veh_id = other_vehicles
+                            latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k);
+                            fallback_info_veh_id = latest_msg.vehs_fallback;
+                            obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
+                        end
                     end
                 end
 
-
                 %% fallback
                 if strcmp(obj.scenario.options.fallback_type,'noFallback')
-                    % disable fallback
-                    if any(obj.info.is_exhausted)
+                    % disabled fallback
+                    if ~isempty(obj.info.vehs_fallback)
                         disp('Fallback is disabled. Simulation ends.')
                         obj.result.distance(:,:,obj.k) = [];
                         obj.result.iter_runtime(obj.k) = [];

@@ -21,16 +21,12 @@ function info = pb_controller_fallback(iter, info, info_old, scenario, indices_i
             % prepare output data
             info = store_control_info(info,info_v,scenario);
     
-            if scenario.options.isPB
+            % data only need to be updated if isDealPredictionInconsistency
+            % is off, because only old reachable sets but no old predicted areas
+            % are used by controller
+            if scenario.options.isPB && scenario.options.isDealPredictionInconsistency == false            
                 % send message
-                predicted_trims = info.predicted_trims(vehicle_idx,:);
-                x0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().x);
-                y0 = info.vehicle_fullres_path{vehicle_idx}(1,indices().y);
-    
-                [predicted_lanelets,~,~] = get_predicted_lanelets(scenario, iter, vehicle_idx, x0, y0);
-                
-                % send message
-                scenario.vehicles(vehicle_idx).communicate.predictions.send_message(iter.k, predicted_trims, predicted_lanelets, info.shapes(vehicle_idx,:), info.vehs_fallback);
+                scenario.vehicles(vehicle_idx).communicate.predictions.send_message(iter.k, info.shapes(vehicle_idx,:), info.vehs_fallback);
             end
         end
     end

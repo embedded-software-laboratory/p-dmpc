@@ -35,7 +35,7 @@ amount = hlc.scenario.options.amount;
 % subscribe to all other vehicles
 hlc.ros_subscribers.traffic = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic,veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount);
 % subscribe to all vehicles
-hlc.ros_subscribers.predictions = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.predictions,1:hlc.scenario.options.amount, hlc.scenario.options.veh_ids, amount);
+hlc.ros_subscribers.predictions = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.predictions,veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount);
 if length(hlc.indices_in_vehicle_list) == 1
     pause(5.0) % wait for all subscribers to be created in distributed case, because otherwise early sent messages will be lost.
 end

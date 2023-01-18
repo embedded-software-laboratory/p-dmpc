@@ -116,9 +116,10 @@ classdef TrafficCommunication
             latest_msg = sub.LatestMessage;
         end
 
-        function latest_msg = read_messages(~, time_step, timeout)
+        function latest_msg = read_messages(~, time_step, amount, timeout)
              % Read message from the given time step
-            if nargin <= 2
+             % amount of vehicles to read form. Typically all vehicles - 1
+            if nargin <= 3
                 timeout = 1.0; 
             end
             global stored_traffic_msgs;
@@ -126,7 +127,7 @@ classdef TrafficCommunication
             read_start = tic;   read_time = toc(read_start);
             while read_time < timeout
                 find_msgs = [stored_traffic_msgs.time_step]==time_step;
-                if length(stored_traffic_msgs(find_msgs)) == 4
+                if length(stored_traffic_msgs(find_msgs)) == amount
                     is_timeout = false;
                     latest_msg = stored_traffic_msgs(find_msgs);
                     break

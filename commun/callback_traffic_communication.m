@@ -19,9 +19,13 @@ function callback_traffic_communication(msg)
 
         % no message with the same publisher and time step exists -> store the new message
         if isempty([stored_traffic_msgs.time_step])
-            % if empty
+            % if empty (no messages received so far)
             stored_traffic_msgs(1) = msg;
         else
+            veh_id_msg = find([stored_traffic_msgs.vehicle_id]==msg.vehicle_id);
+            time_step_msg = find([stored_traffic_msgs.time_step]==msg.time_step);
+            outdated_msg = intersect(veh_id_msg,time_step_msg);
+            stored_traffic_msgs(outdated_msg) = [];
             % else append a new row
             stored_traffic_msgs(end+1) = msg;
         end
