@@ -11,7 +11,7 @@ function rhc_init(obj, x_measured, trims_measured)
             for iVeh = obj.indices_in_vehicle_list
                 index = match_pose_to_lane(obj.scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
 
-                if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id == obj.scenario.options.veh_ids(iVeh)
+                if str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh)
                     if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Guided_mode
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
                         updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1), false);
@@ -29,7 +29,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
                         continue
                     end     
-                elseif obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id == obj.scenario.options.veh_ids(iVeh)
+                elseif str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh)
                     if obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Guided_mode
                         % function to generate random path for manual vehicles based on CPM Lab road geometry
                         updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1), false);
@@ -92,7 +92,7 @@ function rhc_init(obj, x_measured, trims_measured)
                 for i = 1:length(obj.iter.predicted_lanelets{iVeh})
                     % if last lane is reached, then lane will be automatically updated
                     if obj.iter.predicted_lanelets{iVeh}(i) == obj.scenario.vehicles(iVeh).lanelets_index(end-1)
-                        if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id == obj.scenario.options.veh_ids(iVeh) && ~obj.scenario.updated_manual_vehicle_path
+                        if str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh) && ~obj.scenario.updated_manual_vehicle_path
                             if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Guided_mode
                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
                                 updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1), false);
@@ -100,7 +100,7 @@ function rhc_init(obj, x_measured, trims_measured)
                             else
                                 continue
                             end     
-                        elseif obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id == obj.scenario.options.veh_ids(iVeh) && ~obj.scenario.updated_second_manual_vehicle_path
+                        elseif str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh) && ~obj.scenario.updated_second_manual_vehicle_path
                             if obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Guided_mode
                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
                                 [updated_ref_path, obj.scenario] = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1), false);
@@ -220,18 +220,21 @@ function rhc_init(obj, x_measured, trims_measured)
                 end
 
                 % if there is a lane change in the random path, add the boundary of the lane before the change as the vehicle might be still on the lane before change
-                if ~obj.scenario.options.is_sim_lab && obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id ~= obj.scenario.options.veh_ids(iVeh) && obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id ~= obj.scenario.options.veh_ids(iVeh)
-                    if ~isempty(obj.iter.lane_change_lanes(iVeh,:,:))
-                        obj.iter.lane_change_lanes(iVeh,:,:) = nonzeros(obj.iter.lane_change_lanes(iVeh,:,:));
-                        for i = 1:(length(obj.iter.lane_change_lanes(iVeh,:,:))/2)
-                            beforeLaneChange = obj.scenario.vehicles(iVeh).lanelets_index(obj.iter.lane_change_lanes(iVeh,i));
-                            laneChange = obj.scenario.vehicles(iVeh).lanelets_index(obj.iter.lane_change_lanes(iVeh,i+(length(obj.iter.lane_change_lanes(iVeh,:,:)))/2));
-                            if ~ismember(beforeLaneChange, predicted_lanelets) && ismember(laneChange, predicted_lanelets)
-                                predicted_lanelets = [beforeLaneChange, predicted_lanelets];
-                            end
-                        end
-                    end
-                end
+%                 if ~obj.scenario.options.is_sim_lab && str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) ~= obj.scenario.options.veh_ids(iVeh) && str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) ~= obj.scenario.options.veh_ids(iVeh)
+%                     if ~isempty(obj.iter.lane_change_lanes(iVeh,:,:))
+%                         debug = nonzeros(obj.iter.lane_change_lanes(iVeh,:,:));
+%                         assign = obj.iter.lane_change_lanes(iVeh,:,:);
+%                         assign2 = debug;
+%                         obj.iter.lane_change_lanes(iVeh,:,:) = debug;
+%                         for i = 1:(length(obj.iter.lane_change_lanes(iVeh,:,:))/2)
+%                             beforeLaneChange = obj.scenario.vehicles(iVeh).lanelets_index(obj.iter.lane_change_lanes(iVeh,i));
+%                             laneChange = obj.scenario.vehicles(iVeh).lanelets_index(obj.iter.lane_change_lanes(iVeh,i+(length(obj.iter.lane_change_lanes(iVeh,:,:)))/2));
+%                             if ~ismember(beforeLaneChange, predicted_lanelets) && ismember(laneChange, predicted_lanelets)
+%                                 predicted_lanelets = [beforeLaneChange, predicted_lanelets];
+%                             end
+%                         end
+%                     end
+%                 end
 
                 obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;
                 

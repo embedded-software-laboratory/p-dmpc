@@ -10,7 +10,7 @@ function create_publishers(hlc)
 % generate custom message type (for vehicle communication) if not exist
 msgList = ros2("msg","list"); % get all ROS 2 message types
 [file_path,~,~] = fileparts(mfilename('fullpath'));
-if (sum(cellfun(@(c)strcmp(c,'veh_msgs/Traffic'), msgList))==0) || (sum(cellfun(@(c)strcmp(c,'veh_msgs/Predictions'), msgList))==0)
+if ((sum(cellfun(@(c)strcmp(c,'veh_msgs/Traffic'), msgList))==0) || (sum(cellfun(@(c)strcmp(c,'veh_msgs/Predictions'), msgList))==0))
     % if the message type 'veh_msgs/Traffic' does not exist
     path_custom_msg = [file_path,filesep,'cust1'];
 

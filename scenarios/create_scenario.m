@@ -66,6 +66,10 @@ else
     end
     options.veh_ids = sort(vehicle_ids);
 end
+if  ~options.is_mixed_traffic
+    options.mixed_traffic_config.first_manual_vehicle_id = 0;
+    options.mixed_traffic_config.second_manual_vehicle_id = 0;
+end
 
 assert(length(options.veh_ids) == options.amount);
 
