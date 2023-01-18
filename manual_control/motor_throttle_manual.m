@@ -62,8 +62,8 @@ end
 
 function result = compute_motor_throttle(acceleration_desired, speed)
     % https://www.sciencedirect.com/science/article/pii/S2405896320324319
-    p5 = -1.42;
-    p6 = 6.90;
+    p5 = -1;
+    p6 = 4.5;
     p7 = 1.34;
 
     % TODO check and tune s.t. acceleration is reached
