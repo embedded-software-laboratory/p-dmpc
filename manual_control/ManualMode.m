@@ -63,7 +63,7 @@ classdef ManualMode < ManualControl
             theta_max_full = 3*pi;
             theta_max_g29 = 2.5*pi;
             delta_max_full = 0.98;
-            delta_max = 0.61;
+            delta_max = 0.4767; % TODO Check if minimum radius is actually 0.3m
             theta_delta_max = theta_max_full * delta_max / delta_max_full;
             steering = generic_data.steering * theta_max_g29 / theta_delta_max;
             % Limit steering angle
