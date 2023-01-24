@@ -26,6 +26,7 @@
 - Use Visual Studio Code, team's workspace settings in "/.vscode"
 - Use formatter and spell checker, see recommendations
 - End each `function` with an `end`
+- use `arguments` block for function input checks and easier-to-read code without documentation
 
 # C++
 - private members start with underscore, i.e., _member
