@@ -35,8 +35,7 @@ classdef (Abstract) ManualControl < handle
             );
             joy_msg = obj.joy_subscriber.LatestMessage;
             if isempty(joy_msg)
-                input_device_data = [];
-                return
+                error('Could not read joy input.');
             end
 
             timestamp_sec = uint64(joy_msg.header.stamp.sec);

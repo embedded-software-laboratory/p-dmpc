@@ -51,9 +51,7 @@ classdef ManualMode < ManualControl
 
             vehicle_state = obj.read_vehicle_state();
             if isempty(vehicle_state)
-                result = [];
-                force_feedback = [];
-                return
+                error('Could not read vehicle state.');
             end
 
             vehicle_command_direct = VehicleCommandDirect;
