@@ -15,13 +15,16 @@ recording_file = fullfile(...
 
 dataByVehicle = preprocessing(dds_domain, recording_file);
 
-plot(dataByVehicle(iVeh).state.create_stamp, dataByVehicle(iVeh).state.imu_acceleration_forward,'Linewidth',1);
+vehicle = dataByVehicle(~isempty(dataByVehicle));
+
+figure
+plot(vehicle.state.create_stamp, vehicle.state.imu_acceleration_forward,'Linewidth',1);
 xlabel('$t$ [s]','Interpreter','LaTex') 
 ylabel('$a$ [m/s$^2$]','Interpreter','LaTex')
 title('Acceleration','Interpreter','LaTex')
 
-daData = dataByVehicle(~isempty(dataByVehicle));
-plot(daData.state.speed,daData.state.imu_acceleration_forward,'.');
+figure
+plot(vehicle.state.speed,vehicle.state.imu_acceleration_forward,'.');
 xlabel('$v$ [m/s]','Interpreter','LaTex') 
 ylabel('$a$ [m/s$^2$]','Interpreter','LaTex')
 title('Acceleration','Interpreter','LaTex')

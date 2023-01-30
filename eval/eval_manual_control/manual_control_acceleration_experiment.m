@@ -32,7 +32,6 @@ function manual_control_acceleration_experiment(vehicle_id, input_device_id)
         catch e
             warning(e.message);
         end
-        disp(t)
 
         t_loop = toc(t_loop_start);
         pause(ManualControl.dt_seconds - t_loop);
