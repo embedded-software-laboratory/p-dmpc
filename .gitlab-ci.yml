@@ -28,10 +28,11 @@ Scenario Unittest:
   stage: Test
   script:
     - matlab -batch "openProject('graph_based_planning.prj'); results = runtests('tests/scenario_unittest.m'); assertSuccess(results);"
+  artifacts:
+    paths:
+      - results/
+    expire_in: 1 week  
   tags:
     - docker
-  cache:
-    key: default
-    paths:
-      - commun/cust1/matlab_msg_gen
+
     
