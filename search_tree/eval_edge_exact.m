@@ -18,7 +18,7 @@ function [is_valid, shapes] = eval_edge_exact(iter, scenario, tree, iNode, vehic
 %   shapes: occupied area of the vehicle if the selected node is chosen
 % 
 
-    if nargin < 7
+    if nargin < 8
         method = 'sat'; % use the default method, separating axis theorem, to check if collide
     end
 
