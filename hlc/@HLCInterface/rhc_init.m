@@ -222,10 +222,7 @@ function rhc_init(obj, x_measured, trims_measured)
                 % if there is a lane change in the random path, add the boundary of the lane before the change as the vehicle might be still on the lane before change
 %                 if ~obj.scenario.options.is_sim_lab && str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) ~= obj.scenario.options.veh_ids(iVeh) && str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) ~= obj.scenario.options.veh_ids(iVeh)
 %                     if ~isempty(obj.iter.lane_change_lanes(iVeh,:,:))
-%                         debug = nonzeros(obj.iter.lane_change_lanes(iVeh,:,:));
-%                         assign = obj.iter.lane_change_lanes(iVeh,:,:);
-%                         assign2 = debug;
-%                         obj.iter.lane_change_lanes(iVeh,:,:) = debug;
+%                         obj.iter.lane_change_lanes(iVeh,:,:) = nonzeros(obj.iter.lane_change_lanes(iVeh,:,:));
 %                         for i = 1:(length(obj.iter.lane_change_lanes(iVeh,:,:))/2)
 %                             beforeLaneChange = obj.scenario.vehicles(iVeh).lanelets_index(obj.iter.lane_change_lanes(iVeh,i));
 %                             laneChange = obj.scenario.vehicles(iVeh).lanelets_index(obj.iter.lane_change_lanes(iVeh,i+(length(obj.iter.lane_change_lanes(iVeh,:,:)))/2));
