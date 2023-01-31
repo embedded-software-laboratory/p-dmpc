@@ -3,12 +3,17 @@ stages:
 
 .matlab_defaults:
   image:
-    name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab_with_ros:latest
+    name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab:test
     entrypoint: [""]
-  variables:
-    MLM_LICENSE_FILE: 50022@license3.rz.rwth-aachen.de
-    
 
+
+Startup unittest:
+  extends: .matlab_defaults
+  stage: Test
+  script:
+    - matlab -batch "mex -setup C; mex -setup C++; openProject('graph_based_planning.prj')"
+  tags:
+    - docker
 
 Intersect unittest:
   extends: .matlab_defaults

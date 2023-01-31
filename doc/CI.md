@@ -1,4 +1,4 @@
-### Create a Job
+# Create a Job
 
 - Go to gitlab-ci.yml
 - Add a Job:
@@ -14,9 +14,8 @@
 ```
 
 
-
-### Setup Matlab Continuous Integration
-#### Server Requirements
+# Setup Matlab Continuous Integration
+## Server Requirements
 -	Install Docker
 -	Make sure Docker is running and started automatically during system boot
 -	Install gitlab runner (for Linux) Install GitLab Runner using the official GitLab repositories | GitLab
@@ -29,7 +28,8 @@
 -	Start Runner
 
 
-#### Create Matlab Docker image as required
+## Create Matlab Docker image
+### Manually create image
 Create individual Matlab Docker image (with Python, gcc, ROS):
 -	Create container based on mathworks/matlab docker image. Use "docker run -it  --name MyMatlab -p 8888:8888 -p 6080:6080 -p 5901:5901 --shm-size=512M mathworks/matlab:r2022a -vnc" as a base container
 -	Access the container via your browser http://hostname:6080
@@ -41,3 +41,9 @@ Create individual Matlab Docker image (with Python, gcc, ROS):
 -	docker commit containerID  yourNewImage to build you own Matlab Image based on the modified container
 -	Tag image like your gitlab registry (docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG])
 -	Push image to gitlab container registry
+
+### Automatically create image
+A Dockerfile exists to install Matlab in a clean Ubuntu 18.04. Docker image. It was tested for Ubuntu 18.04, Matlab R2022a and the corresponding ROS Toolbox dependencies. _For other versions small changes might be necessary_.
+- Set variables in ```SETTINGS``` section of the install script ```docker/install.sh```.
+- Execute script ```./docker/install.sh```.
+A more detailed documentation can be found in ```docker/readme.md```.
