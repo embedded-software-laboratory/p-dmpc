@@ -57,12 +57,7 @@ classdef ManualMode < ManualControl
             obj.writer_vehicleCommandDirect = DDS.DataWriter(DDS.Publisher(obj.dds_participant), 'VehicleCommandDirect', 'vehicleCommandDirect');
             obj.reader_vehicleState = DDS.DataReader(DDS.Subscriber(obj.dds_participant), 'VehicleState', 'vehicleState');
             obj.reader_vehicleState.WaitSet = 1;
-            obj.reader_vehicleState.WaitSetTimeout = 0.03; %vehicle sends in 20 ms rate
-
-            % Sometimes, the vehicleState messages are not received.
-            disp('wait for vehicleState message')
-            obj.wait_for_vehicle_state();
-
+            obj.reader_vehicleState.WaitSetTimeout = 0.03; %vehicle sends in 20 ms rate, account for network jitter
         end
 
         function [result, force_feedback] = MessageProcessing(obj, generic_data)
@@ -192,19 +187,6 @@ classdef ManualMode < ManualControl
                 + min_acceleration;
         end
 
-    end
-
-    methods (Access = private)
-        function wait_for_vehicle_state(obj)
-            % TODO Remove
-            wait_set_timout = obj.reader_vehicleState.WaitSetTimeout;
-            obj.reader_vehicleState.WaitSetTimeout = 60;
-            vehicle_state = obj.read_vehicle_state();
-            if isempty(vehicle_state)
-                error("could not read vehicle state")
-            end
-            obj.reader_vehicleState.WaitSetTimeout = wait_set_timout;
-        end
     end
 
 end
