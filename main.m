@@ -48,6 +48,7 @@ if scenario.options.isPB && scenario.options.is_sim_lab == false && scenario.opt
 else
     factory = HLCFactory();
     factory.set_scenario(scenario);
+    dry_run = ~scenario.options.is_sim_lab;
     if scenario.options.isPB == true && scenario.options.isParl
         %% simulate distribution locally using the Parallel Computing Toolbox
         get_parallel_pool(scenario.options.amount);
@@ -59,7 +60,7 @@ else
             afterEach(factory.visualization_data_queue, @plotter.data_queue_callback);
         end
         spmd(scenario.options.amount)
-            hlc = factory.get_hlc(scenario.options.veh_ids(labindex));
+            hlc = factory.get_hlc(scenario.options.veh_ids(labindex), dry_run);
             [result,scenario] = hlc.run();
         end
         if plot
@@ -68,7 +69,7 @@ else
         result={result{:}};
         scenario={scenario{:}};
     else
-        hlc = factory.get_hlc(scenario.options.veh_ids);
+        hlc = factory.get_hlc(scenario.options.veh_ids, dry_run);
         [result,scenario] = hlc.run();
     end
 end

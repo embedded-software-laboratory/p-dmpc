@@ -15,11 +15,6 @@ classdef (Abstract) HLCInterface < handle
         % scenario
         scenario
 
-%         % Wether to use the DistributedHlc (control 1 vehicle) or the
-%         % CentralHlc (controls all vehicles)
-%         % We can still run the DistributedHlc on a single machine!
-%         is_distributed logical
-
         % Adapter for the lab
         % or one for a local simulation
         hlc_adapter
@@ -79,14 +74,6 @@ classdef (Abstract) HLCInterface < handle
             result = obj.result;
             scenario = obj.scenario;
         end
-
-%         function withDistributedPlanning( obj )
-%             obj.is_distributed = true;
-%         end
-% 
-%         function withCentralPlanning( obj )
-%             obj.is_distributed = false;
-%         end
 
         % 1 vehicle ID implies distributed
         function set_vehicle_ids( obj, vehicle_ids )

@@ -32,13 +32,16 @@ classdef HLCFactory < handle
                 dry_run = true;
             end
             if dry_run
-                obj.dry_run_hlc();
+                obj.dry_run_hlc(vehicle_ids);
             end
 
             if obj.scenario.options.isPB
                 if length(vehicle_ids)==1
+                    % PB Controller for exactly 1 vehicle. Communicates
+                    % with the other HLCs
                     hlc = PbControllerParl();
                 else
+                    % PB Controller controlling all vehicles
                     hlc = PbControllerSeq();
                 end
             else
@@ -94,11 +97,24 @@ classdef HLCFactory < handle
         %
         % Important note: This might take some time depending on how hard to
         % solve the first timestep of this scenario is.
-        function dry_run_hlc(obj)
-            disp("Starting dry run of HLC - TODO Implement");
-
-            % Reset visualization + result + iter etc. to its initial value
-            % TODO implement
+        function dry_run_hlc(obj, vehicle_ids)
+            disp("Starting dry run of HLC");
+            visu_backup = obj.scenario.options.visu;
+            is_sim_lab_backup = obj.scenario.options.is_sim_lab;
+            T_end_backup = obj.scenario.options.T_end;
+            save_result_backup = obj.scenario.options.isSaveResult;
+            % avoid sending any data to Cpm Lab. Thus, use Sim Lab
+            obj.scenario.options.is_sim_lab = true;
+            obj.scenario.options.visu = [false, false];
+            obj.scenario.options.T_end = 2 * obj.scenario.options.dt;
+            obj.scenario.options.isSaveResult = false;
+            hlc = obj.get_hlc(vehicle_ids, false);
+            hlc.run();
+            obj.scenario.options.is_sim_lab = is_sim_lab_backup;
+            obj.scenario.options.visu = visu_backup;
+            obj.scenario.options.T_end = T_end_backup;
+            obj.scenario.options.isSaveResult = save_result_backup;
+            disp("Dry Run Completed");
         end
     end
 end
