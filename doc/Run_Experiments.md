@@ -9,7 +9,7 @@
 * Make sure that the main computer in the CPM Lab is configured to use MATLAB R2022a
   * you can change version by:
   * `cd ~/.local/bin`
-  * `ls -s /usr/local/MATLAB/R2022a/bin/matlab matlab `
+  * `ln -sf /usr/local/MATLAB/R2022a/bin/matlab matlab `
 
 ### No Parallel Computation / Distributed Execution
 
