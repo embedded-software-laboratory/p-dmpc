@@ -4,12 +4,12 @@ classdef ManualMode < ManualControl
         writer_vehicleCommandDirect
     end
 
-    properties (Access = public)
+    properties (Access = public, Constant)
         % Related to throttle
         % Parameters BMW 320i, see https://gitlab.lrz.de/tum-cps/commonroad-vehicle-models/-/blob/master/vehicleModels_commonRoad.pdf
         scale = 1/18;
-        max_acceleration = 11.5 * obj.scale;
-        switching_speed = 7.22 * obj.scale;
+        max_acceleration = 11.5 * ManualMode.scale;
+        switching_speed = 7.22 * ManualMode.scale;
         p5 = -1;
         p6 = 4.5;
         p7 = 1.34;
