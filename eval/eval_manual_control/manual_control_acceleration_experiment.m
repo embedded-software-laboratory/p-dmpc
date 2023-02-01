@@ -3,20 +3,9 @@ function manual_control_acceleration_experiment(vehicle_id, input_device_id)
     manual_controller = ManualMode(vehicle_id, input_device_id);
 
     t_exp_start = 0;
-    t_exp_brake = 3;
-    t_exp_end = t_exp_brake + 2;
+    t_exp_brake = 2;
+    t_exp_end = t_exp_brake + 1;
     t = 0;
-
-    pause(10)
-    disp('ready in 5...')
-    pause(2)
-    disp('3...')
-    pause(1)
-    disp('2...')
-    pause(1)
-    disp('1...')
-    pause(1)
-    disp('go!')
     
     while t < t_exp_end
         t_loop_start = tic;
@@ -42,7 +31,7 @@ function manual_control_acceleration_experiment(vehicle_id, input_device_id)
     
             manual_controller.apply(result, force_feedback);
         catch e
-            warning(e.message);
+            warning(e.getReport);            
         end
 
         t_loop = toc(t_loop_start);

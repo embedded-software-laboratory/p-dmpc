@@ -56,6 +56,12 @@ classdef ManualMode < ManualControl
             obj.dds_participant = DDS.DomainParticipant('ManualControlLibrary::Base', str2double(dds_domain));
             obj.writer_vehicleCommandDirect = DDS.DataWriter(DDS.Publisher(obj.dds_participant), 'VehicleCommandDirect', 'vehicleCommandDirect');
             obj.reader_vehicleState = DDS.DataReader(DDS.Subscriber(obj.dds_participant), 'VehicleState', 'vehicleState');
+            obj.reader_vehicleState.WaitSet = 1;
+            obj.reader_vehicleState.WaitSetTimeout = 0.03; %vehicle sends in 20 ms rate
+
+            % Sometimes, the vehicleState messages are not received.
+            disp('wait for vehicleState message')
+            obj.wait_for_vehicle_state();
 
         end
 
@@ -85,7 +91,7 @@ classdef ManualMode < ManualControl
             steering = min(1, max(-1, steering));
 
             % Throttle
-            throttle = motor_throttle( ...
+            throttle = ManualMode.motor_throttle( ...
             generic_data.throttle, ...
                 generic_data.brake, ...
                 vehicle_state.speed ...
@@ -110,70 +116,69 @@ classdef ManualMode < ManualControl
             obj.g29_force_feedback.send_message(force_feedback)
         end
 
+    end
+    methods (Static)
         function result = motor_throttle( ...
-                obj, accelerator_pedal_position, brake_pedal_position, speed ...
+                accelerator_pedal_position, brake_pedal_position, speed ...
             )
 
             arguments
-                obj ManualMode;
                 accelerator_pedal_position (1, 1) double = -1;
                 brake_pedal_position (1, 1) double = -1;
                 speed (1, 1) double = 0;
             end
 
-            acceleration_desired = compute_desired_acceleration( ...
-                obj, accelerator_pedal_position, brake_pedal_position, speed ...
+            acceleration_desired = ManualMode.compute_desired_acceleration( ...
+                accelerator_pedal_position, brake_pedal_position, speed ...
             );
 
-            result = compute_motor_throttle(acceleration_desired, speed);
+            result = ManualMode.compute_motor_throttle(acceleration_desired, speed);
 
         end
 
         function result = compute_desired_acceleration( ...
-                obj, accelerator_pedal_position, brake_pedal_position, speed ...
+                accelerator_pedal_position, brake_pedal_position, speed ...
             )
-            acceleration_from_brake = motor_throttle_from_pedal_and_max_acceleration( ...
-                obj, brake_pedal_position, compute_min_acceleration() ...
+            acceleration_from_brake = ManualMode.motor_throttle_from_pedal_and_max_acceleration( ...
+                brake_pedal_position, ManualMode.compute_min_acceleration() ...
             );
 
-            acceleration_from_accelerator = motor_throttle_from_pedal_and_max_acceleration( ...
-                accelerator_pedal_position, compute_max_acceleration(speed) ...
+            acceleration_from_accelerator = ManualMode.motor_throttle_from_pedal_and_max_acceleration( ...
+                accelerator_pedal_position, ManualMode.compute_max_acceleration(speed) ...
             );
             result = acceleration_from_brake + acceleration_from_accelerator;
         end
 
-        function result = compute_min_acceleration(obj)
-            result = -obj.max_acceleration;
+        function result = compute_min_acceleration()
+            result = -ManualMode.max_acceleration;
         end
 
-        function result = compute_max_acceleration(obj, speed)
+        function result = compute_max_acceleration(speed)
 
-            is_wheel_slip = (speed < obj.switching_speed);
+            is_wheel_slip = (speed < ManualMode.switching_speed);
             result = zeros(size(speed));
-            result(is_wheel_slip) = obj.max_acceleration;
-            result(~is_wheel_slip) = obj.max_acceleration * obj.switching_speed ./ speed(~is_wheel_slip);
+            result(is_wheel_slip) = ManualMode.max_acceleration;
+            result(~is_wheel_slip) = ManualMode.max_acceleration * ManualMode.switching_speed ./ speed(~is_wheel_slip);
 
         end
 
-        function result = compute_motor_throttle(obj, acceleration_desired, speed)
+        function result = compute_motor_throttle(acceleration_desired, speed)
             % https://www.sciencedirect.com/science/article/pii/S2405896320324319
 
-            % TODO check and tune s.t. acceleration is reached
             is_braking = (acceleration_desired < 0);
-            is_stop = (abs(speed) < 0.05);
+            is_stop = (speed < 0.1);
 
             if (is_braking && is_stop)
-                result = -obj.p_stop * speed;
+                result = -ManualMode.p_stop * speed;
             else
-                x = (acceleration_desired - obj.p5 * speed) / obj.p6;
-                result = sign(x) * nthroot(abs(x), obj.p7);
+                x = (acceleration_desired - ManualMode.p5 * speed) / ManualMode.p6;
+                result = sign(x) * nthroot(abs(x), ManualMode.p7);
             end
+            % TODO Different dynamics for braking
+            result = min(1, max(-1, result));
 
         end
 
-    end
-
-    methods (Static)
 
         function result = motor_throttle_from_pedal_and_max_acceleration( ...
                 pedal_position, max_acceleration ...
@@ -187,6 +192,19 @@ classdef ManualMode < ManualControl
                 + min_acceleration;
         end
 
+    end
+
+    methods (Access = private)
+        function wait_for_vehicle_state(obj)
+            % TODO Remove
+            wait_set_timout = obj.reader_vehicleState.WaitSetTimeout;
+            obj.reader_vehicleState.WaitSetTimeout = 60;
+            vehicle_state = obj.read_vehicle_state();
+            if isempty(vehicle_state)
+                error("could not read vehicle state")
+            end
+            obj.reader_vehicleState.WaitSetTimeout = wait_set_timout;
+        end
     end
 
 end

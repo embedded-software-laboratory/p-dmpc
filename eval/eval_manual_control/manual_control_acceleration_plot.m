@@ -15,26 +15,39 @@ recording_file = fullfile(...
 
 dataByVehicle = preprocessing(dds_domain, recording_file);
 
-vehicle = dataByVehicle(~isempty(dataByVehicle));
 
-figure
-plot(vehicle.state.create_stamp, vehicle.state.imu_acceleration_forward,'Linewidth',1);
-xlabel('$t$ [s]','Interpreter','LaTex') 
-ylabel('$a$ [m/s$^2$]','Interpreter','LaTex')
+vehicle = dataByVehicle(end);
+
+% dspeed = diff(vehicle.state.speed);
+% dt = diff(vehicle.state.create_stamp);
+% acceleration = dspeed./dt;
 
 figure
 hold on
+plot(vehicle.state.create_stamp, vehicle.state.imu_acceleration_forward,'Linewidth',1);
+% plot(vehicle.state.create_stamp,[0; acceleration]);
+xlabel('$t$ [s]','Interpreter','LaTex') 
+ylabel('$a$ [m/s$^2$]','Interpreter','LaTex')
+
+fig = figure;
+hold on
+
 % Data
-plot(vehicle.state.speed,vehicle.state.imu_acceleration_forward,'.');
+plot(vehicle.state.speed,vehicle.state.imu_acceleration_forward);
+% plot(vehicle.state.speed,[0; acceleration]);
 % limits
-manual_mode = ManualMode(111,11);
 speed_sorted = sort(vehicle.state.speed);
-max_acceleration = manual_mode.compute_max_acceleration(speed_sorted);
-min_acceleration = manual_mode.compute_min_acceleration();
-plot(speed_sorted,max_acceleration,'--');
-plot(speed_sorted,repmat(min_acceleration,1,length(speed_sorted)),'--');
+max_acceleration = ManualMode.compute_max_acceleration(speed_sorted);
+min_acceleration = ManualMode.compute_min_acceleration();
+color_order = rwth_color_order;
+plot(speed_sorted,max_acceleration,'--','Color',color_order(5,:));
+plot(speed_sorted,repmat(min_acceleration,1,length(speed_sorted)),'--','Color',color_order(5,:));
 % lables
 xlabel('$v$ [m/s]','Interpreter','LaTex') 
 ylabel('$a$ [m/s$^2$]','Interpreter','LaTex')
+set_figure_properties(fig,ExportFigConfig.paper);
+
+filepath = fullfile('.','results','hdv_acceleration.pdf');
+export_fig(fig,filepath);
 
 end
