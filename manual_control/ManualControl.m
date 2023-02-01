@@ -6,7 +6,7 @@ classdef (Abstract) ManualControl < handle
         joy_node
         joy_subscriber
         reader_vehicleState
-        g29_force_feedback G29ForceFeedback
+        g29_force_feedback G29ForceFeedback = G29ForceFeedback();
         dds_participant DDS.DomainParticipant
     end
     properties (Constant)

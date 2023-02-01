@@ -6,6 +6,18 @@ function manual_control_acceleration_experiment(vehicle_id, input_device_id)
     t_exp_brake = 3;
     t_exp_end = t_exp_brake + 2;
     t = 0;
+
+    pause(10)
+    disp('ready in 5...')
+    pause(2)
+    disp('3...')
+    pause(1)
+    disp('2...')
+    pause(1)
+    disp('1...')
+    pause(1)
+    disp('go!')
+    
     while t < t_exp_end
         t_loop_start = tic;
         
