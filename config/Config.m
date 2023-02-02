@@ -8,7 +8,7 @@ classdef Config
         amount = 20;            % integer, number of vehicles
         angles                  % 1-by-nVeh scalar vector
         visu = [true;false];    % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
-        isParl = false;         % true/false, is use parallel computation
+        isParl = false;         % true/false, is use parallel(distributed) computation
         scenario_name = 'Commonroad'    % one of the follows: {'Circle_scenario','Commonroad'}
         priority Priority_strategies = 'right_of_way_priority'; % one of the following: {'topo_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority','STAC_priority'}, defines which priority assignmen strategy is used
         dt = 0.2;           % scalar, sample time
@@ -55,7 +55,7 @@ classdef Config
         is_load_mpa = true;             % true/false, the offline computed MPA  will be load if exists
         coupling_weight_mode = 'STAC';  % one of the following {'STAC','random','constant','optimal'}
 
-        optionsPlotOnline = OptionsPlotOnline;      % setup for online plotting
+        optionsPlotOnline = OptionsPlotOnline();    % setup for online plotting
         bound_reachable_sets = true;                % true/false, if true, reachable sets are bounded by lanelet boundaries
 
         is_force_parallel_vehs_in_same_grp = true;  % true/false, if true, vehicles move in parallel will be forced in the same group
@@ -83,6 +83,7 @@ classdef Config
             obj.amount = struct.amount;
             obj.visu = struct.visu;
             obj.isParl = struct.isParl;
+            obj.veh_ids = struct.veh_ids;
             obj.scenario_name = struct.scenario_name;
             obj.priority = struct.priority;
             obj.dt = struct.dt;

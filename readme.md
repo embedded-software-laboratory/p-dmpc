@@ -24,6 +24,10 @@ For MATLAB R2022a
         * Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) community version is sufficient. Select "Desktop development with C++" during the installation.
     2. Configure your C++ compiler using `mex -setup` in the MATLAB command window.
 
+# Run Exeriments
+
+See [here](/doc/Run_Experiments.md)
+
 # References
 Please refer to the respective publication if you are using it for your work. Thank you very much!
 

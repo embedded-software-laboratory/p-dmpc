@@ -1,108 +1,61 @@
-function scenario = communication_init(scenario, iter, exp)
-% COMMUNICATION_INIT This function initializes the communication network.
-% ROS 2 nodes are created for each vehicle. Each vehicle has its own topic
-% and sends its data only to its own topic.
-% 
+function communication_init(hlc)
+% COMMUNICATION_INIT This function initializes the communication network
+% by sending initial messages. This function also waits for other hlc
+% running on other machines or in other processes on the same machine (synchronization)
+%
 % INPUT:
-%   scenario: instance of the class Scenario
-%   
-%   exp: object of the class 'SimLab' or 'CPMLab'
-% 
-% OUTPUT:
-%   scenario: instance of the class Scenario with instance of the class
-%   Communication added to it
+%   hlc: Controller implementing the HLCInterface
+%
 
-    % generate custom message type (for vehicle communication) if not exist
-    msgList = ros2("msg","list"); % get all ROS 2 message types
-    [file_path,~,~] = fileparts(mfilename('fullpath'));
-    if sum(cellfun(@(c)strcmp(c,'veh_msgs/Traffic'), msgList))==0
-        % if the message type 'veh_msgs/Traffic' does not exist 
-        path_custom_msg = [file_path,filesep,'cust1'];
-        
-        % Generate custom messages. NOTE that Python, CMake, and a C++ compiler are required (see
-        % https://de.mathworks.com/help/ros/gs/ros-system-requirements.html
-        % for more details according to your own MATLAB version).
-        %
-        % Useful functions: 
-        % 1. pyenv % check python version used by MATLAB
-        % 2. pyenv('Version','requiredPythonVersionNumber') or pyenv('Version','fullPathOfPythonExe')
-        % 3. !cmake --version % CMake version 
-        % 4. mex -setup % set c language compiler
-        %
-        % Note that sometimes ros2genmsg fails although all denpendencies
-        % exist because the path where the custom messages are stored is
-        % too deep. Try to move them to shallower path and try again.
-        disp('Generating ROS 2 custom message type...')
-        try
-            ros2genmsg(path_custom_msg)
-        catch ME
-            disp(['If all environments for ros2genmsg() are prepared but still failed, try to move the whole folder to a ' ...
-                'shallower path and run again if you use Windows machine, which sadly has a max path limit constraint.'])
-            throw(ME)
-        end
+% measure vehicles' initial poses and trims
+[x0_measured, trims_measured] = hlc.hlc_adapter.measure();
+
+Hp = hlc.scenario.options.Hp;
+
+%% send initial message such that subscriber isn't empty during first controller time step.
+%% Also used for initial synchronization for distributed runs
+if ~hlc.scenario.options.is_mixed_traffic
+    % Communicate predicted trims, pridicted lanelets and areas to other vehicles
+    for veh_index = hlc.indices_in_vehicle_list
+        predicted_trims = repmat(trims_measured(veh_index), 1, Hp+1); % current trim and predicted trims in the prediction horizon
+
+        x0 = x0_measured(veh_index,indices().x); % vehicle position x
+        y0 = x0_measured(veh_index,indices().y); % vehicle position y
+        heading = x0_measured(veh_index,indices().heading);
+        speed = x0_measured(veh_index,indices().speed);
+        current_pose = [x0,y0,heading,speed];
+
+        predicted_lanelets = get_predicted_lanelets(hlc.scenario, hlc.iter, veh_index,x0,y0);
+
+        % get vehicles currently occupied area
+        x_rec1 = [-1, -1,  1,  1, -1] * (hlc.scenario.vehicles(veh_index).Length/2 + hlc.scenario.options.offset); % repeat the first entry to enclose the shape
+        y_rec1 = [-1,  1,  1, -1, -1] * (hlc.scenario.vehicles(veh_index).Width/2 + hlc.scenario.options.offset);
+        % calculate displacement of model shape
+        [x_rec2, y_rec2] = translate_global(heading, x0, y0, x_rec1, y_rec1);
+        occupied_area.normal_offset = [x_rec2; y_rec2];
+
+        x_rec1_without_offset = [-1, -1,  1,  1, -1] * (hlc.scenario.vehicles(veh_index).Length/2); % repeat the first entry to enclose the shape
+        y_rec1_without_offset = [-1,  1,  1, -1, -1] * (hlc.scenario.vehicles(veh_index).Width/2);
+        [x_rec2_without_offset, y_rec2_without_offset] = translate_global(heading, x0, y0, x_rec1_without_offset, y_rec1_without_offset);
+        occupied_area.without_offset = [x_rec2_without_offset; y_rec2_without_offset];
+
+        predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+        reachable_sets = {}; % for initial time step, the reachable sets are not computed yet
+        hlc.scenario.vehicles(veh_index).communicate.predictions.send_message(hlc.k, predicted_occupied_areas);
+        hlc.scenario.vehicles(veh_index).communicate.traffic.send_message(hlc.k, current_pose, predicted_trims(1), predicted_lanelets, occupied_area, reachable_sets);
     end
-
-    if sum(cellfun(@(c)strcmp(c,'ros_g29_force_feedback/ForceFeedback'), msgList))==0
-        if ~scenario.options.is_sim_lab    
-            if ispc
-                error('You are using a Windows machine, please do not select lab mode!')
-            end
-            % This message type is only needed for lab mode but not
-            % simulation mode
-            path_custom_msg = [file_path,filesep,'cust2'];
-            disp('Generating ROS 2 custom message type...')
-            ros2genmsg(path_custom_msg)
-        end
+    % read from all other vehicles to make sure all vehicles are ready (synchronization)
+    if length(hlc.indices_in_vehicle_list) ~= 1
+        other_vehicles = 1:hlc.scenario.options.amount; % still read from own publishers to make sure messages are arriving
+    else
+        other_vehicles = setdiff(1:hlc.scenario.options.amount, hlc.indices_in_vehicle_list);
     end
-
-    nVeh = scenario.options.amount;
-    Hp = scenario.options.Hp;
-
-    % measure vehicles' initial poses and trims
-    [x0_measured, trims_measured] = exp.measure(false);
-
-    
-%     topicList = ros2("topic","list");
-%     nodeList = ros2("node","list");
-    if isempty(scenario.vehicles(1).communicate)
-        start = tic; 
-        disp('Creating ROS 2 publishers...')
-        for iVeh = 1:nVeh
-            scenario.vehicles(iVeh).communicate = Communication(); % create instance of the Comunication class
-            scenario.vehicles(iVeh).communicate = initialize_communication(scenario.vehicles(iVeh).communicate, scenario.vehicles(iVeh).ID); % initialize
-            scenario.vehicles(iVeh).communicate = create_publisher(scenario.vehicles(iVeh).communicate); % create publisher
-        end
+    for veh_index = other_vehicles
+        disp(['reading initial msg from vehicle ', num2str(veh_index)]);
+        read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.k, 10.0);
+        read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.predictions, hlc.ros_subscribers.predictions{veh_index}, hlc.k, 10.0);
     end
-    
-    % Create subscribers.
-    % Each vehicle subscribes all other vehicles.
-    % NOTE that subscribers are create only once but not loopover all
-    % vehicles to let all of them subscribe others because it is
-    % time-consuming to create many subscribers. 
-    % The subscribers will be used by all vehicles.
-    if isempty(scenario.ros_subscribers)
-        disp('Creating ROS 2 subscribers...')
-        vehs_to_be_subscribed = [scenario.vehicles.ID];
-        scenario.ros_subscribers = create_subscriber(scenario.vehicles(1).communicate,vehs_to_be_subscribed);
-        duration = toc(start);
-        disp(['Finished in ' num2str(duration) ' seconds.'])
-    end
-
-    if ~scenario.options.is_mixed_traffic
-        % Communicate predicted trims, pridicted lanelets and areas to other vehicles
-        for jVeh = 1:nVeh
-            predicted_trims = repmat(trims_measured(jVeh), 1, Hp+1); % current trim and predicted trims in the prediction horizon
-
-            x0 = x0_measured(jVeh,indices().x); % vehicle position x
-            y0 = x0_measured(jVeh,indices().y); % vehicle position y
-
-            predicted_lanelets = get_predicted_lanelets(scenario,iter,jVeh,predicted_trims(1),x0,y0);
-
-            predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-            is_fallback = false; % whether vehicle should take fallback
-            scenario.vehicles(jVeh).communicate.send_message(iter.k, predicted_trims, predicted_lanelets, predicted_occupied_areas, is_fallback);   
-        end
-    end
-    pause(0.2) % ensure ROS messages are received
+    disp('communication initialized');
+end
 end
 

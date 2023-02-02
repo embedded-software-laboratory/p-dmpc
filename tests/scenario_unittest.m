@@ -7,16 +7,19 @@ end
 function testRunScenario1(testcase)
 
     %load Config from json
-    rawJson = fileread('tests/ConfigScenario.json');
+    rawJson = fileread('tests/Config_Commonroad_pb_7_visu_non_parl.json');
     options = Config();
     options = options.importFromJson(rawJson);
 
-    %random seed for reproducibility
-    random_seed = RandStream('mt19937ar');
+    main(options);
+end
 
-    %create scenario
-    scenario = create_scenario(options, random_seed);
+function testRunScenario2(testcase)
 
-    %run scenario
-    run_scenario(scenario);
+    %load Config from json
+    rawJson = fileread('tests/Config_Commonroad_pb_2_no_visu_parl.json');
+    options = Config();
+    options = options.importFromJson(rawJson);
+
+    main(options);
 end

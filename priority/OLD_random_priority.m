@@ -18,14 +18,7 @@ classdef random_priority < interface_priority
             % levels. If parallel computation is not used, the maximum
             % number of computation level is set to the number of vehicles.
             nVeh = options.amount;
-
-            if ~options.isParl
-                % set the maximum number of computation levels to the number of vehicles
-                % (i.e., all vehicles are in the different computation
-                % levels and they plan trajectory one after another)
-                options.max_num_CLs = nVeh;
-            end
-            
+           
             n_grps = ceil(nVeh/options.max_num_CLs);
             parl_groups_info(n_grps) = struct('vertices',[],'num_CLs',[]);
             directed_adjacency = zeros(nVeh,nVeh);

@@ -13,7 +13,7 @@ function [options, vehicle_ids] = eval_expert_mode(consider_RSS)
         options.force_feedback_enabled = false;
         options.manualVehicle_id2 = 'No second MV';
         options.secondManualVehicleMode = '1';
-        options.consider_RSS = consider_RSS;
+        options.mixed_traffic_config.consider_rss = consider_RSS;
         
         options.Hp = 6;
         options.trim_set = 4;

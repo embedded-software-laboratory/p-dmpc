@@ -89,6 +89,4 @@ classdef IterationData
             obj.vehicles = scenario.vehicles;
         end
     end
-
-
 end

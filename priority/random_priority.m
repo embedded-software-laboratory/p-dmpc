@@ -10,7 +10,7 @@ classdef random_priority < interface_priority
             obj.is_assign_unique_priority = false; % whether to asign unique priority
         end
         
-        function [groups, directed_adjacency, priority_list] = priority(obj,iter,scenario)
+        function [groups, directed_adjacency, priority_list] = priority(obj,scenario,iter)
             priority_rand_stream = RandStream("mt19937ar","Seed",iter.k);
             directed_adjacency = iter.adjacency(:,:,end);
             nVeh = scenario.options.amount;

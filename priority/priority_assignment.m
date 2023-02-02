@@ -5,7 +5,7 @@ function [veh_at_intersection, groups, directed_adjacency, priority_list] = prio
             [veh_at_intersection, groups, directed_adjacency, priority_list] = right_of_way_priority().priority(scenario,iter);
 
         case 'constant_priority'
-            [groups, directed_adjacency, priority_list] = constant_priority().priority(scenario);
+            [groups, directed_adjacency, priority_list] = constant_priority().priority(scenario, iter);
 
         case 'random_priority'
             [groups, directed_adjacency, priority_list] = random_priority().priority(scenario);
@@ -14,7 +14,7 @@ function [veh_at_intersection, groups, directed_adjacency, priority_list] = prio
             [veh_at_intersection, groups, directed_adjacency, priority_list] = FCA_priority().priority(scenario,iter);
 
         case 'mixed_traffic_priority'
-            obj = mixed_traffic_priority(scenario,iter);
+            obj = mixed_traffic_priority(scenario, iter);
             [groups, directed_adjacency, priority_list] = obj.priority();
 
         case 'coloring_priority'

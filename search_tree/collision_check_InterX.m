@@ -34,13 +34,13 @@ function [collision] = collision_check_InterX(iter, shape, scenario, iStep)
     % get reachable sets of the coupling vehicles in the current time step
     [~, n_reachableSets_Hp] = size(iter.dynamic_obstacle_reachableSets);
     if iStep <= n_reachableSets_Hp
-        reachable_sets = iter.dynamic_obstacle_reachableSets(:,iStep)';
+        reachable_sets = scenario.dynamic_obstacle_reachableSets(:,iStep)';
     else
         reachable_sets = {};
     end
 
     % get lanelet boundary
-    lanelet_boundary = iter.predicted_lanelet_boundary; % TODO use iter
+    lanelet_boundary = iter.vehicles.lanelet_boundary; %TODO use iter
 
 %     obstacles_shapes = [static_obstacles(:)', lanelet_crossing_areas(:)', predicted_occpuied_areas(:)', reachable_sets(:)'];
     for i = 1:length(static_obstacles)

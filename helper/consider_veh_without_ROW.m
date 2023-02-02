@@ -36,7 +36,7 @@ function scenario_v = consider_veh_without_ROW(scenario_v, iter, all_coupling_ve
                 scenario_v.obstacles(end+1) = reachable_sets_LP_array;
             case '3'
                 % old trajectory as dynamic obstacle
-                latest_msg_LP = scenario_v.ros_subscribers{veh_LP}.LatestMessage;
+                latest_msg_LP = scenario_v.ros_subscribers.predictions{veh_LP}.LatestMessage;
                 if latest_msg_LP.time_step > 0
                     % the message does not come from the initial time step
                     predicted_areas_LP = arrayfun(@(array) {[array.x';array.y']}, latest_msg_LP.predicted_areas);

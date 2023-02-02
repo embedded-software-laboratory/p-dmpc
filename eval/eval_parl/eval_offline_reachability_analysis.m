@@ -4,7 +4,6 @@ options = OptionsMain;
 options.scenario_name = 'Commonroad';
 options.amount = 20;
 options.isPB = true;
-options.isParl = true;
 options.dt = 0.2;
 options.recursive_feasibility = true;
 

@@ -15,7 +15,6 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     road_data = RoadData().get_road_data();
 %     if options.isParl
         scenario.lanelets = road_data.lanelets;
-        scenario.adjacency_lanelets = road_data.adjacency_lanelets;
         scenario.semi_adjacency_lanelets = road_data.semi_adjacency_lanelets;
         scenario.intersection_lanelets = road_data.intersection_lanelets;
         scenario.lanelet_boundary = road_data.lanelet_boundary;
@@ -90,14 +89,6 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
     
     if options.isPB 
        scenario.assignPrios = true;
-       scenario.controller = @pb_controller_parl;
-
-       if options.isParl && (options.max_num_CLs < options.amount)
-            % if parallel computation is used
-            scenario.controller_name = strcat('par. PB-', scenario.controller_name, ' ', char(scenario.options.priority));
-       else
-           scenario.controller_name = strcat('seq. PB-', scenario.controller_name, ' ', char(scenario.options.priority));
-       end
     end
 
     

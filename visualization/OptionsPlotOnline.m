@@ -4,9 +4,9 @@ classdef OptionsPlotOnline
 
     properties
         isShowVehID = true;                 % is show vehicle IDs
-        isShowPriority = false;              % is show priority colorbar
-        isShowCoupling = false;             % is show coupling edges
-        isShowWeight = false;               % is show coupling weights
+        isShowPriority = true;              % is show priority colorbar
+        isShowCoupling = true;              % is show coupling edges
+        isShowWeight = true;                % is show coupling weights
         isShowHotkeyDescription = false;    % is show description of hotkeys
         isShowReachableSets = false;
         vehsReachableSets = [];             % reachable sets of those vehicles will be shown

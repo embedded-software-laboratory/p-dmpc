@@ -28,7 +28,7 @@ classdef FreeFlowSpeed
             
             % prepare simulation options
             options = OptionsMain;
-            options.consider_RSS = false;
+            options.mixed_traffic_config.consider_rss = false;
             options.is_sim_lab = true;
             options.customResultName = '';
             options.scenario_name = 'Commonroad';
@@ -37,7 +37,6 @@ classdef FreeFlowSpeed
             options.priority = 'STAC_priority';
             options.T_end = 20;
             options.isPB = true;
-            options.isParl = true;
             options.isAllowInheritROW = true;
             options.max_num_CLs = 2;
             options.strategy_consider_veh_without_ROW = '3';

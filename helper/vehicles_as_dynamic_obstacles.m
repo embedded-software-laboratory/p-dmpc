@@ -1,4 +1,4 @@
-function [scenario_v, iter_v] = vehicles_as_dynamic_obstacles(scenario, iter, vehicle_filter, shapes)
+function [iter_v] = vehicles_as_dynamic_obstacles(iter, vehicle_filter, shapes)
 % VEHICLES_AS_OBSTACLES     This function converts a scenario representation based on the scenario
 %                           and iter structs into a different scenario, in which the selected
 %                           vehicles are represented as dynamic obstacles along their predicted path
