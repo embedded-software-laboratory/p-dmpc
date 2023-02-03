@@ -1,16 +1,23 @@
 classdef (Abstract) PbControllerInterface < HLCInterface
+    properties (Access=protected)
+        runtime_others;
+        CL_based_hierarchy;
+        n_expended;
+    end
+    
     methods
         function obj = PbControllerInterface()
             obj = obj@HLCInterface();
         end
     end
+    
     methods (Access = protected)
 
         function init_step(obj)
             runtime_others_tic = tic;
 
             assign_priority_timer = tic;
-            [obj.scenario,obj.iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(obj.scenario, obj.iter);
+            [obj.scenario,obj.iter,obj.CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(obj.scenario, obj.iter);
             obj.iter.timer.assign_priority = toc(assign_priority_timer);
 
             nVeh = obj.scenario.options.amount;
@@ -18,7 +25,7 @@ classdef (Abstract) PbControllerInterface < HLCInterface
 
             % initialize variable to store control results
             obj.info = ControllResultsInfo(nVeh, Hp, [obj.scenario.vehicles.ID]);
-            n_expended = zeros(nVeh,1);
+            obj.n_expended = zeros(nVeh,1);
 
             directed_graph = digraph(obj.iter.directed_coupling);
             [obj.belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
@@ -36,8 +43,7 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                 end
             end
 
-            runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
-            msg_send_time = 0;
+            obj.runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
         end
 
         function plan_single_vehicle(obj, vehicle_idx)
@@ -152,7 +158,7 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                 obj.info = store_control_info(obj.info, info_v, obj.scenario);
             end
             obj.info.runtime_graph_search_each_veh(vehicle_idx) = toc(subcontroller_timer);
-            n_expended(vehicle_idx) = info_v.tree.size();
+            obj.n_expended(vehicle_idx) = info_v.tree.size();
 
             if obj.iter.k==inf
                 plot_obstacles(obj.scenario)

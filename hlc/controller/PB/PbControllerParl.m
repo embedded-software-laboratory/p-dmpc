@@ -11,6 +11,8 @@ classdef PbControllerParl < PbControllerInterface
             % between groups plan in pararllel. Controller simulates multiple
             % distributed controllers in a for-loop.
 
+            obj.init_step();
+
             vehicle_idx = obj.indices_in_vehicle_list(1);
 
             % plan for vehicle_idx
@@ -36,9 +38,9 @@ classdef PbControllerParl < PbControllerInterface
 
             obj.info.runtime_graph_search_each_veh(vehicle_idx) = obj.info.runtime_graph_search_each_veh(vehicle_idx) + msg_send_time;
             obj.info.runtime_graph_search_max = obj.info.runtime_graph_search_each_veh(vehicle_idx);
-            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_graph_search_each_veh(vehicle_idx) + runtime_others;
-            obj.info.runtime_subcontroller_max = obj.info.runtime_graph_search_max + runtime_others;
-            obj.info.computation_levels = length(CL_based_hierarchy);
+            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_graph_search_each_veh(vehicle_idx) + obj.runtime_others;
+            obj.info.runtime_subcontroller_max = obj.info.runtime_graph_search_max + obj.runtime_others;
+            obj.info.computation_levels = length(obj.CL_based_hierarchy);
             obj.scenario.lanelet_crossing_areas = lanelet_crossing_areas;
         end
     end
