@@ -62,9 +62,6 @@ classdef PbControllerParl < HLCInterface
             coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp); % coupled vehicles with higher priorities in the same group
             coupled_vehs_other_grps_with_HP = setdiff(all_coupled_vehs_with_HP, coupled_vehs_same_grp_with_HP); % coupled vehicles with higher priorities in other groups
 
-
-            %% TODO wait for coupled veh same group higher HP
-
             for veh_with_HP_i = all_coupled_vehs_with_HP
 
                 if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
@@ -73,7 +70,7 @@ classdef PbControllerParl < HLCInterface
 %                     obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback);
 %                     if ismember(vehicle_k, obj.info.vehs_fallback)
 %                         % if the selected vehicle should take fallback
-%                         continue
+%                         break
 %                     end
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                     oldness_msg = obj.k - latest_msg.time_step;
@@ -90,13 +87,13 @@ classdef PbControllerParl < HLCInterface
                         % their latest messages are sent:
                         % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step.
                         % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step.
-                        latest_msg = obj.ros_subscribers{veh_with_HP_i}.predictions.LatestMessage;
+                        latest_msg = obj.ros_subscribers.predictions{veh_with_HP_i}.LatestMessage;
                         if latest_msg.time_step == obj.k
                             predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                             iter_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
                         else
                             % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
-                            reachable_sets_i = obj.iter.reachable_sets{iVeh,:};
+                            reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i,:);
                             % turn polyshape to plain array (repeat the first row to enclosed the shape)
                             reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i);
                             iter_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
@@ -174,15 +171,6 @@ classdef PbControllerParl < HLCInterface
                 % send message
                 obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, predicted_areas_k, obj.info.vehs_fallback);
                 msg_send_time = toc(msg_send_tic);
-
-
-                % TODO save time for eval
-                %obj.info.runtime_graph_search_each_veh = zeros(obj.scenario.options.amount);
-                %obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.runtime_graph_search_each_grp + runtime_others;
-
-                %obj.info.runtime_graph_search_each_veh = obj.info.runtime_graph_search_each_veh + msg_send_time;
-                % Calculate the total runtime of each group
-                %obj.info = get_run_time_total_all_grps(obj.info, obj.iter.parl_groups_info, CL_based_hierarchy, runtime_others);
 
             else
                 msg_send_tic = tic;

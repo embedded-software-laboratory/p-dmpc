@@ -94,7 +94,7 @@ classdef PbControllerSeq < HLCInterface
                                     iter_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
                                 else
                                     % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
-                                    reachable_sets_i = iter.reachable_sets;
+                                    reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i,:);
                                     % turn polyshape to plain array (repeat the first row to enclosed the shape)
                                     reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets_i);
                                     iter_v.dynamic_obstacle_reachableSets(end+1,:) = reachable_sets_i_array;
@@ -163,8 +163,6 @@ classdef PbControllerSeq < HLCInterface
                 end
 
                 % Communicate data to other vehicles
-                % Trick: vehicles will wait for the last vehicle in the same computation level has planned
-                % to avoid receiving messages of the current time step from vehicles in the same computation level.
                 for vehicle_k = vehs_level_i
                     if ismember(vehicle_k, obj.info.vehs_fallback)
                         % if the selected vehicle should take fallback
