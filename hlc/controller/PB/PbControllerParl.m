@@ -11,7 +11,7 @@ classdef PbControllerParl < PbControllerInterface
             % between groups plan in pararllel. Controller simulates multiple
             % distributed controllers in a for-loop.
 
-            obj.init_step();
+            runtime_others = obj.init_step();
 
             vehicle_idx = obj.indices_in_vehicle_list(1);
 
@@ -20,26 +20,12 @@ classdef PbControllerParl < PbControllerInterface
 
             %% Send own data to other vehicles
 
-            if ~ismember(vehicle_idx, obj.info.vehs_fallback)
-                % if the selected vehicle should take fallback
-
-                msg_send_tic = tic;
-                predicted_areas_k = obj.info.shapes(vehicle_idx,:);
-
-                % send message
-                obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, predicted_areas_k, obj.info.vehs_fallback);
-                msg_send_time = toc(msg_send_tic);
-
-            else
-                msg_send_tic = tic;
-                obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, {}, obj.info.vehs_fallback);
-                msg_send_time = toc(msg_send_tic);
-            end
+            msg_send_time = obj.publish_predicitons(vehicle_idx);
 
             obj.info.runtime_graph_search_each_veh(vehicle_idx) = obj.info.runtime_graph_search_each_veh(vehicle_idx) + msg_send_time;
             obj.info.runtime_graph_search_max = obj.info.runtime_graph_search_each_veh(vehicle_idx);
-            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_graph_search_each_veh(vehicle_idx) + obj.runtime_others;
-            obj.info.runtime_subcontroller_max = obj.info.runtime_graph_search_max + obj.runtime_others;
+            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_graph_search_each_veh(vehicle_idx) + runtime_others;
+            obj.info.runtime_subcontroller_max = obj.info.runtime_graph_search_max + runtime_others;
             obj.info.computation_levels = length(obj.CL_based_hierarchy);
             obj.scenario.lanelet_crossing_areas = obj.lanelet_crossing_areas;
         end

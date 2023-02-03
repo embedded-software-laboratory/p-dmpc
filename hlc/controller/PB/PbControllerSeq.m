@@ -11,7 +11,7 @@ classdef PbControllerSeq < PbControllerInterface
             % between groups plan in pararllel. Controller simulates multiple
             % distributed controllers in a for-loop.            
 
-            obj.init_step();
+            runtime_others = obj.init_step();
 
             msg_send_time = zeros(1,obj.amount);
 
@@ -31,21 +31,13 @@ classdef PbControllerSeq < PbControllerInterface
 
                 % Communicate data to other vehicles
                 for vehicle_k = vehs_level_i
-                    if ismember(vehicle_k, obj.info.vehs_fallback)
-                        % if the selected vehicle should take fallback
-                        continue
-                    end
-                    % send message
-                    msg_send_tic = tic;
-                    predicted_areas_k = obj.info.shapes(vehicle_k,:);
-                    obj.scenario.vehicles(vehicle_k).communicate.predictions.send_message(obj.k, predicted_areas_k, obj.info.vehs_fallback);
-                    msg_send_time(vehicle_k) = toc(msg_send_tic);
+                    msg_send_time(vehicle_k) = obj.publish_predicitons(vehicle_k);
                 end
             end
 
             obj.info.runtime_graph_search_each_veh = obj.info.runtime_graph_search_each_veh + msg_send_time;
             % Calculate the total runtime of each group
-            obj.info = get_run_time_total_all_grps(obj.info, obj.iter.parl_groups_info, obj.CL_based_hierarchy, obj.runtime_others);
+            obj.info = get_run_time_total_all_grps(obj.info, obj.iter.parl_groups_info, obj.CL_based_hierarchy, runtime_others);
 
             obj.scenario.lanelet_crossing_areas = obj.lanelet_crossing_areas;
         end

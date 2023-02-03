@@ -1,6 +1,5 @@
 classdef (Abstract) PbControllerInterface < HLCInterface
     properties (Access=protected)
-        runtime_others;
         CL_based_hierarchy;
         n_expended;
         lanelet_crossing_areas;
@@ -14,7 +13,7 @@ classdef (Abstract) PbControllerInterface < HLCInterface
     
     methods (Access = protected)
 
-        function init_step(obj)
+        function runtime_others = init_step(obj)
             runtime_others_tic = tic;
 
             assign_priority_timer = tic;
@@ -44,7 +43,7 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                 end
             end
 
-            obj.runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
+            runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
         end
 
         function plan_single_vehicle(obj, vehicle_idx)
@@ -74,11 +73,11 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                 if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
                     latest_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k);
-                    %                     obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback);
-                    %                     if ismember(vehicle_k, obj.info.vehs_fallback)
-                    %                         % if the selected vehicle should take fallback
-                    %                         break
-                    %                     end
+                    obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback);
+                    if ismember(vehicle_idx, obj.info.vehs_fallback)
+                        % if the selected vehicle should take fallback
+                        return;
+                    end
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                     oldness_msg = obj.k - latest_msg.time_step;
                     if oldness_msg ~= 0
@@ -95,6 +94,11 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                         % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step.
                         latest_msg = obj.ros_subscribers.predictions{veh_with_HP_i}.LatestMessage;
                         if latest_msg.time_step == obj.k
+                            obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback);
+                            if ismember(vehicle_idx, obj.info.vehs_fallback)
+                                % if the selected vehicle should take fallback
+                                return;
+                            end
                             predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                             iter_v.dynamic_obstacle_area(end+1,:) = predicted_areas_i;
                         else
@@ -165,6 +169,23 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                 plot_obstacles(obj.scenario)
                 plot_obstacles(info_v.shapes)
                 graphs_visualization(obj.iter.belonging_vector, obj.scenario.coupling_weights, 'ShowWeights', true)
+            end
+        end
+
+        function msg_send_time = publish_predicitons(obj, vehicle_idx)
+            if ~ismember(vehicle_idx, obj.info.vehs_fallback)
+                % if the selected vehicle should take fallback
+
+                msg_send_tic = tic;
+                predicted_areas_k = obj.info.shapes(vehicle_idx,:);
+                % send message
+                obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, predicted_areas_k, obj.info.vehs_fallback);
+                msg_send_time = toc(msg_send_tic);
+
+            else
+                msg_send_tic = tic;
+                obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, {}, obj.info.vehs_fallback);
+                msg_send_time = toc(msg_send_tic);
             end
         end
     end
