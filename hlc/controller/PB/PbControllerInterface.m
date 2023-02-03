@@ -3,6 +3,7 @@ classdef (Abstract) PbControllerInterface < HLCInterface
         runtime_others;
         CL_based_hierarchy;
         n_expended;
+        lanelet_crossing_areas;
     end
     
     methods
@@ -17,7 +18,7 @@ classdef (Abstract) PbControllerInterface < HLCInterface
             runtime_others_tic = tic;
 
             assign_priority_timer = tic;
-            [obj.scenario,obj.iter,obj.CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(obj.scenario, obj.iter);
+            [obj.scenario,obj.iter,obj.CL_based_hierarchy,obj.lanelet_crossing_areas] = priority_assignment_parl(obj.scenario, obj.iter);
             obj.iter.timer.assign_priority = toc(assign_priority_timer);
 
             nVeh = obj.scenario.options.amount;
@@ -123,7 +124,7 @@ classdef (Abstract) PbControllerInterface < HLCInterface
 
             if ~strcmp(obj.scenario.options.strategy_enter_lanelet_crossing_area,'1')
                 % Set lanelet intersecting areas as static obstacles if vehicle with lower priorities is not allowed to enter those area
-                iter_v.lanelet_crossing_areas = lanelet_crossing_areas{vehicle_idx};
+                iter_v.lanelet_crossing_areas = obj.lanelet_crossing_areas{vehicle_idx};
                 if isempty(iter_v.lanelet_crossing_areas)
                     iter_v.lanelet_crossing_areas = {}; % convert from 'double' to 'cell'
                 end

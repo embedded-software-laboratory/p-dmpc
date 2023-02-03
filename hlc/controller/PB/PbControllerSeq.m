@@ -15,8 +15,8 @@ classdef PbControllerSeq < PbControllerInterface
 
             msg_send_time = zeros(1,obj.amount);
 
-            for level_j = 1:length(CL_based_hierarchy)
-                vehs_level_i = CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
+            for level_j = 1:length(obj.CL_based_hierarchy)
+                vehs_level_i = obj.CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
 
                 for vehicle_idx = vehs_level_i
                     if ismember(vehicle_idx, obj.info.vehs_fallback)
@@ -45,9 +45,9 @@ classdef PbControllerSeq < PbControllerInterface
 
             obj.info.runtime_graph_search_each_veh = obj.info.runtime_graph_search_each_veh + msg_send_time;
             % Calculate the total runtime of each group
-            obj.info = get_run_time_total_all_grps(obj.info, obj.iter.parl_groups_info, CL_based_hierarchy, obj.runtime_others);
+            obj.info = get_run_time_total_all_grps(obj.info, obj.iter.parl_groups_info, obj.CL_based_hierarchy, obj.runtime_others);
 
-            obj.scenario.lanelet_crossing_areas = lanelet_crossing_areas;
+            obj.scenario.lanelet_crossing_areas = obj.lanelet_crossing_areas;
         end
     end
 end

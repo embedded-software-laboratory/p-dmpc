@@ -41,7 +41,7 @@ classdef PbControllerParl < PbControllerInterface
             obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_graph_search_each_veh(vehicle_idx) + obj.runtime_others;
             obj.info.runtime_subcontroller_max = obj.info.runtime_graph_search_max + obj.runtime_others;
             obj.info.computation_levels = length(obj.CL_based_hierarchy);
-            obj.scenario.lanelet_crossing_areas = lanelet_crossing_areas;
+            obj.scenario.lanelet_crossing_areas = obj.lanelet_crossing_areas;
         end
     end
 end
