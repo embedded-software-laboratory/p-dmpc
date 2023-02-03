@@ -5,12 +5,47 @@ classdef (Abstract) PbControllerInterface < HLCInterface
         end
     end
     methods (Access = protected)
-        function plan_single_vehicle(obj)
-%             if ismember(vehicle_idx, obj.info.vehs_fallback)
-%                 % jump to next vehicle if the selected vehicle should take fallback
-%                 obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
-%                 continue
-%             end
+
+        function init_step(obj)
+            runtime_others_tic = tic;
+
+            assign_priority_timer = tic;
+            [obj.scenario,obj.iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_assignment_parl(obj.scenario, obj.iter);
+            obj.iter.timer.assign_priority = toc(assign_priority_timer);
+
+            nVeh = obj.scenario.options.amount;
+            Hp = obj.scenario.options.Hp;
+
+            % initialize variable to store control results
+            obj.info = ControllResultsInfo(nVeh, Hp, [obj.scenario.vehicles.ID]);
+            n_expended = zeros(nVeh,1);
+
+            directed_graph = digraph(obj.iter.directed_coupling);
+            [obj.belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
+
+            obj.iter.num_couplings_between_grps = 0; % number of couplings between groups
+            obj.iter.num_couplings_between_grps_ignored = 0; % ignored number of couplings between groups by using lanelet crossing lanelets
+            for iCoupling = 1:length([obj.iter.coupling_info.veh_with_ROW])
+                veh_ij = [obj.iter.coupling_info(iCoupling).veh_with_ROW,obj.iter.coupling_info(iCoupling).veh_without_ROW];
+                is_same_grp = any(cellfun(@(c) all(ismember(veh_ij,c)),{obj.iter.parl_groups_info.vertices}));
+                if ~is_same_grp
+                    obj.iter.num_couplings_between_grps = obj.iter.num_couplings_between_grps + 1;
+                    if obj.iter.coupling_info(iCoupling).is_ignored
+                        obj.iter.num_couplings_between_grps_ignored = obj.iter.num_couplings_between_grps_ignored + 1;
+                    end
+                end
+            end
+
+            runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
+            msg_send_time = 0;
+        end
+
+        function plan_single_vehicle(obj, vehicle_idx)
+            %             if ismember(vehicle_idx, obj.info.vehs_fallback)
+            %                 % jump to next vehicle if the selected vehicle should take fallback
+            %                 obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
+            %                 continue
+            %             end
             subcontroller_timer = tic;
 
             % only keep self
@@ -27,12 +62,16 @@ classdef (Abstract) PbControllerInterface < HLCInterface
             coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp); % coupled vehicles with higher priorities in the same group
             coupled_vehs_other_grps_with_HP = setdiff(all_coupled_vehs_with_HP, coupled_vehs_same_grp_with_HP); % coupled vehicles with higher priorities in other groups
 
-            for i_HP = 1:length(all_coupled_vehs_with_HP)
-                veh_with_HP_i = all_coupled_vehs_with_HP(i_HP);
+            for veh_with_HP_i = all_coupled_vehs_with_HP
 
                 if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
                     latest_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k);
+                    %                     obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback);
+                    %                     if ismember(vehicle_k, obj.info.vehs_fallback)
+                    %                         % if the selected vehicle should take fallback
+                    %                         break
+                    %                     end
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
                     oldness_msg = obj.k - latest_msg.time_step;
                     if oldness_msg ~= 0
@@ -88,6 +127,7 @@ classdef (Abstract) PbControllerInterface < HLCInterface
             % consider coupled vehicles with lower priorities
             iter_v = consider_vehs_with_LP(obj.scenario, iter_v, vehicle_idx, all_coupled_vehs_with_LP, obj.ros_subscribers);
 
+            %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
             info_v = obj.sub_controller(obj.scenario, iter_v);
             if info_v.is_exhausted
