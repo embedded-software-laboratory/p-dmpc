@@ -1,4 +1,5 @@
 classdef ManualMode < ManualControl
+% MANUAL_MODE       Specific Instance of manual controller (ManualControl) in manual control mode
 
     properties (Access = private)
         writer_vehicleCommandDirect
@@ -19,7 +20,10 @@ classdef ManualMode < ManualControl
     methods
 
         function obj = ManualMode(vehicle_id, input_device_id)
+            % call constructor of parent class
             obj = obj@ManualControl(vehicle_id, input_device_id);
+
+            % initialize communication with input device
             obj.joy_node = ros2node("/manual_node");
             obj.joy_subscriber = ros2subscriber(obj.joy_node, ['/j' num2str(obj.input_device_id)], "sensor_msgs/Joy");
 
@@ -51,6 +55,7 @@ classdef ManualMode < ManualControl
                 setenv(qos_env_var, qos_profiles);
             end
 
+            % initialize communication with vehicles
             dds_domain = '21';
             %             dds_domain = getenv('DDS_DOMAIN');
             obj.dds_participant = DDS.DomainParticipant('ManualControlLibrary::Base', str2double(dds_domain));
@@ -63,7 +68,7 @@ classdef ManualMode < ManualControl
         function [result, force_feedback] = MessageProcessing(obj, generic_data)
             % result should contain everything needed fot vehicleCommandDirect
             % force_feedback should contain position and torque
-
+            
             vehicle_state = obj.read_vehicle_state();
 
             if isempty(vehicle_state)

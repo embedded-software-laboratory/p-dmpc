@@ -1,4 +1,6 @@
 function manual_control(vehicle_id, input_device_id, control_mode)
+%   MANUAL_CONTROL      Main function for handling the manual input from multiple devices with/without force feedback
+%                       implements functionality for differenct control modes
 
     n_manual_vehicle = length(vehicle_id);
 
@@ -7,6 +9,7 @@ function manual_control(vehicle_id, input_device_id, control_mode)
 
     manual_controller = cell(n_manual_vehicle, 1);
 
+    % initialize manual controller in their assigned control mode
     for i = 1:n_manual_vehicle
 
         switch control_mode(i)
@@ -20,6 +23,7 @@ function manual_control(vehicle_id, input_device_id, control_mode)
 
     %     rate = ros2rate(manual_controller{1}.joy_node, ManualControl.rate_hz);
     % only possible from R2022b
+    % main control loop
     while true
         t_start = tic;
 

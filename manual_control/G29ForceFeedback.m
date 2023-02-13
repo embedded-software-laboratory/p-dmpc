@@ -1,4 +1,5 @@
 classdef G29ForceFeedback < handle
+% G29FORCEFEEDBACK      Class handling everything about force feedback for the Logitech G29 Gaming Wheel
 
     properties (Access = private)
         g29_pub; % publisher

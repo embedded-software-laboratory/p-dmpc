@@ -1,4 +1,5 @@
 classdef (Abstract) ManualControl < handle
+% MANUALCONTROL     Abstract interface class implementing common functions for different control modes
     
     properties (Access = protected)
         vehicle_id
