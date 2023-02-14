@@ -4,29 +4,29 @@ classdef (Abstract) HLCInterface < handle
         % For which vehicle IDs to start the HLC
         % Must be an array of vehicles. In distributed HLC case the array contains
         % exactly 1 integer
-        vehicle_ids
+        vehicle_ids;
         
         % amount of vehicle controlled by this HLC
-        amount
+        amount;
 
         % indices of vehicleList relevant for this HLC (e.g contains 1 index iff hlc.amount = 1)
-        indices_in_vehicle_list
+        indices_in_vehicle_list;
         
         % scenario
-        scenario
+        scenario;
 
         % Adapter for the lab
         % or one for a local simulation
-        hlc_adapter
+        hlc_adapter;
 
         % Ros Subscribers for Inter HLC Communication (distributed HLCs) or
         % to simualate distributed communication in pb-sequential controller
-        ros_subscribers
+        ros_subscribers;
 
-        sub_controller = @graph_search
-        controller_name
-        result
-        k
+        sub_controller = @graph_search;
+        controller_name;
+        result;
+        k;
         iter;
         info;
 
@@ -37,7 +37,7 @@ classdef (Abstract) HLCInterface < handle
         belonging_vector_total;
     end
     properties (Access=private)
-        initialized_reference_path
+        initialized_reference_path;
         got_stop;
         speedProfileMPAsInitialized;
         cooldown_after_lane_change;
