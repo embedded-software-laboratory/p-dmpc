@@ -76,7 +76,7 @@ classdef GuidedMode
                 if modeHandler.steering > 0.4 || (scenario.options.force_feedback_enabled && modeHandler.LeftLaneChangeButton == 1)
                     disp("entered steering left");
                     % find out current lane of manual vehicle
-                    index = match_pose_to_lane(scenario, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y), vehicle_iteration_index);
+                    index = map_position_to_closest_lanelets(scenario.road_raw_data.lanelet, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y), vehicle_iteration_index);
                     index_successor = 0;
 
                     for iVeh = 1:scenario.options.amount
@@ -102,7 +102,7 @@ classdef GuidedMode
                 elseif modeHandler.steering < -0.4 || (scenario.options.force_feedback_enabled && modeHandler.RightLaneChangeButton == 1)
                     disp("entered steering right");
                     % find out current lane of manual vehicle
-                    index = match_pose_to_lane(scenario, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y), vehicle_iteration_index);
+                    index = map_position_to_closest_lanelets(scenario.road_raw_data.lanelet, x_measured(vehicle_iteration_index, idx.x), x_measured(vehicle_iteration_index, idx.y), vehicle_iteration_index);
                     index_successor = 0;
 
                     for iVeh = 1:scenario.options.amount

@@ -1,4 +1,4 @@
-function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, lanelet] = vectorize_all_obstacles(iter,scenario)
+function [vehicle_obstacles, hdv_obstacles , lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter,scenario)
 % VECTORIZE_ALL_OBSTACLES This function vectorizes all obstacles, including
 % static and dynamic obstacles as well as lanelet boundaries, to 
 % a single two-row matrix. The first row is for x-coordinates and the
@@ -18,6 +18,7 @@ function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, lanelet] 
 %   prediction horizon.
 % 
     vehicle_obstacles = cell(1,scenario.options.Hp);
+    hdv_obstacles = cell(1,scenario.options.Hp);
 
     % get static occupied areas of the considered vehicles
     current_occupied_areas = scenario.obstacles;
@@ -40,6 +41,8 @@ function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, lanelet] 
 
     [~, n_occupiedAreas_Hp] = size(iter.dynamic_obstacle_area);
     [~, n_reachableSets_Hp] = size(iter.dynamic_obstacle_reachableSets);
+    [~, n_hdvSets_Hp] = size(iter.hdv_reachable_sets);
+    adjacent_hdv = find(iter.hdv_adjacency);
 
     for iStep = 1:scenario.options.Hp
         % get predicted occupied areas of the coupling vehicles in the current time step
@@ -57,13 +60,23 @@ function [vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, lanelet] 
             reachable_sets = {};
         end
         check_closeness(reachable_sets)
+
+        % get reachable sets of the coupling vehicles in the current time step
+        if iStep <= n_hdvSets_Hp && ~isempty(adjacent_hdv)
+            hdv_reachable_sets = iter.hdv_reachable_sets(adjacent_hdv,iStep)';
+        else
+            hdv_reachable_sets = {};
+        end
+        check_closeness(hdv_reachable_sets)
     
         veh_obstacles_polygons_tmp = [current_occupied_areas(:)', predicted_occpuied_areas(:)', reachable_sets(:)'];
 
         veh_obstacles_polygons = cellfun(@(c)[c,[nan;nan]],veh_obstacles_polygons_tmp,'UniformOutput',false); 
+        hdv_obstacles_polygons = cellfun(@(c)[c,[nan;nan]],hdv_reachable_sets(:)','UniformOutput',false);
     
         % all obstacles, include static obstacles, dynamic obstacles and lanelet boundaries
-        vehicle_obstacles{iStep} = [veh_obstacles_polygons{:}];        
+        vehicle_obstacles{iStep} = [veh_obstacles_polygons{:}];
+        hdv_obstacles{iStep} = [hdv_obstacles_polygons{:}];
     end
 end
 
@@ -72,6 +85,9 @@ end
 function check_closeness(cell_array)
 % This function checks closeness of the input shapes contained in cell
 % array
+    if all(cellfun('isempty',cell_array))
+        return;
+    end
     for i = 1:length(cell_array)
         assert(all(cell_array{i}(:,1)==cell_array{i}(:,end)))
     end

@@ -25,7 +25,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
     if scenario.options.is_mixed_traffic && ...
         (((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
         || (scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id) && scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode)))
-        predicted_lanelets = match_pose_to_lane(scenario, x0, y0);
+        predicted_lanelets = map_position_to_closest_lanelets(scenario.road_raw_data.lanelet, x0, y0);
         reference = [];
         v_ref = 0;
         return

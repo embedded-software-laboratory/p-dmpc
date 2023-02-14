@@ -1,4 +1,4 @@
-function [is_valid, shapes] = eval_edge_exact(iter, scenario, tree, iNode, vehicle_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
+function [is_valid, shapes] = eval_edge_exact(iter, scenario, tree, iNode, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
 % EVAL_EDGE_EXACT   Evaluate if step is valid.
 % 
 % INPUT:
@@ -102,8 +102,17 @@ function [is_valid, shapes] = eval_edge_exact(iter, scenario, tree, iNode, vehic
                         is_valid = false;
                         return
                     end
-                    if InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
+                    if scenario.options.amount > 1 && InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
                         % check collision with crossing area of lanelets
+                        is_valid = false;
+                        return
+                    end
+
+                    is_hdv_obstacle = ~all(all(isnan(hdv_obstacles{iStep})));
+                    if (is_hdv_obstacle && ...
+                        InterX(shapes{iVeh}, hdv_obstacles{iStep}) ...
+                    )
+                        % check collision with manual vehicle obstacles
                         is_valid = false;
                         return
                     end

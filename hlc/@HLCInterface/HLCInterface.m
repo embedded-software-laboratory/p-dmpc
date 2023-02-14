@@ -30,6 +30,8 @@ classdef (Abstract) HLCInterface < handle
         iter;
         info;
 
+        manual_vehicles;
+
     end
     properties (Access=protected)
         belonging_vector_total;
@@ -141,6 +143,11 @@ classdef (Abstract) HLCInterface < handle
                 create_subscribers(obj);
             end
 
+            % init all manually controlled vehicles
+            for hdv_id = obj.scenario.options.hdv_ids
+                obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
+            end
+
             obj.hlc_adapter.setup();
 
             if obj.scenario.options.isPB
@@ -172,7 +179,6 @@ classdef (Abstract) HLCInterface < handle
                     % only display 0, 10, 20, ...
                     disp(['>>> Time step ' num2str(obj.k)])
                 end
-
 
                 % Control
                 % ----------------------------------------------------------------------

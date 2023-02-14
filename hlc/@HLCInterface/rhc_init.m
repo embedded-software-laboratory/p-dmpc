@@ -6,143 +6,179 @@ function rhc_init(obj, x_measured, trims_measured)
     visualize_boundaries_lab = false;
     predicted_lanelet_boundary = {[]};
 
-    if obj.scenario.options.is_mixed_traffic
-        if ~obj.initialized_reference_path
-            for iVeh = obj.indices_in_vehicle_list
-                index = match_pose_to_lane(obj.scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
+%     if obj.scenario.options.is_mixed_traffic
+%         if ~obj.initialized_reference_path
+%             for iVeh = obj.indices_in_vehicle_list
+%                 index = map_position_to_closest_lanelets(obj.scenario, x_measured(iVeh, idx.x), x_measured(iVeh, idx.y));
+% 
+%                 if str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh)
+%                     if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Guided_mode
+%                         % function to generate random path for manual vehicles based on CPM Lab road geometry
+%                         updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1), false);
+%                     else
+%                         if obj.scenario.options.isPB
+%                             % Communicate predicted trims, predicted lanelets and areas to other vehicles
+%                             predicted_trims = repmat(trims_measured(iVeh), 1, obj.scenario.options.Hp+1); % current trim and predicted trims in the prediction horizon
+% 
+%                             % use index, as vehicle in Expert-Mode has no defined trajectory
+%                             predicted_lanelets = index;                            
+% 
+%                             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+%                             obj.scenario.vehicles(iVeh).communicate.predictions.send_message(obj.k-1, predicted_occupied_areas); 
+%                         end
+% 
+%                         continue
+%                     end     
+%                 elseif str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh)
+%                     if obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Guided_mode
+%                         % function to generate random path for manual vehicles based on CPM Lab road geometry
+%                         updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1), false);
+%                     else
+%                         if obj.scenario.options.isPB
+%                             % Communicate predicted trims, predicted lanelets and areas to other vehicles
+%                             predicted_trims = repmat(trims_measured(iVeh), 1, obj.scenario.options.Hp+1); % current trim and predicted trims in the prediction horizon
+% 
+%                             % use index, as vehicle in Expert-Mode has no defined trajectory
+%                             predicted_lanelets = index;
+% 
+%                             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+%                             obj.scenario.vehicles(iVeh).communicate.predictions.send_message(obj.k-1, predicted_occupied_areas);  
+%                         end
+%                         
+%                         continue
+%                     end      
+%                 else
+%                     if obj.scenario.options.is_eval
+%                          % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+%                         [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, 0);
+%                     else
+%                          % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+%                          [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1));
+%                     end
+%                 end
+%                 
+%                 % TODO_DATA: Scenario changes here
+%                 updatedRefPath = updated_ref_path.path;
+%                 obj.scenario.vehicles(iVeh).x_start = updatedRefPath(1,1);
+%                 obj.scenario.vehicles(iVeh).y_start = updatedRefPath(1,2);
+%                 obj.scenario.vehicles(iVeh).x_goal = updatedRefPath(2:end,1);
+%                 obj.scenario.vehicles(iVeh).y_goal = updatedRefPath(2:end,2);
+%                 
+%                 obj.scenario.vehicles(iVeh).referenceTrajectory = [obj.scenario.vehicles(iVeh).x_start obj.scenario.vehicles(iVeh).y_start
+%                                         obj.scenario.vehicles(iVeh).x_goal  obj.scenario.vehicles(iVeh).y_goal];
+%                 obj.scenario.vehicles(iVeh).lanelets_index = updated_ref_path.lanelets_index;
+%                 obj.scenario.vehicles(iVeh).points_index = updated_ref_path.points_index;
+% 
+%                 yaw = calculate_yaw(updatedRefPath);
+%                 obj.scenario.vehicles(iVeh).yaw_start = yaw(1);
+%                 obj.scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
+% 
+%                 if obj.scenario.options.isPB
+%                     % Communicate predicted trims, predicted lanelets and areas to other vehicles
+%                     predicted_trims = repmat(trims_measured(iVeh), 1, obj.scenario.options.Hp+1); % current trim and predicted trims in the prediction horizon
+% 
+%                     x0 = x_measured(iVeh,idx.x); % vehicle position x
+%                     y0 = x_measured(iVeh,idx.y); % vehicle position y
+% 
+%                     predicted_lanelets = get_predicted_lanelets(obj.scenario,iVeh,predicted_trims(1),x0,y0);
+% 
+%                     predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
+%                     obj.scenario.vehicles(iVeh).communicate.predictions.send_message(obj.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
+%                 end        
+%             end
+%         else
+%             for iVeh = obj.indices_in_vehicle_list
+%                 obj.iter.vehicles(iVeh).autoUpdatedPath = false;
+%                 for i = 1:length(obj.iter.predicted_lanelets{iVeh})
+%                     % if last lane is reached, then lane will be automatically updated
+%                     if obj.iter.predicted_lanelets{iVeh}(i) == obj.scenario.vehicles(iVeh).lanelets_index(end-1)
+%                         if str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh) && ~obj.scenario.updated_manual_vehicle_path
+%                             if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Guided_mode
+%                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
+%                                 updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1), false);
+%                                 obj.iter.auto_updated_path(iVeh) = true;
+%                             else
+%                                 continue
+%                             end     
+%                         elseif str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh) && ~obj.scenario.updated_second_manual_vehicle_path
+%                             if obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Guided_mode
+%                                 % function to generate random path for manual vehicles based on CPM Lab road geometry
+%                                 [updated_ref_path, obj.scenario] = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1), false);
+%                                 obj.iter.auto_updated_path(iVeh) = true;
+%                             else
+%                                 continue
+%                             end      
+%                         else
+%                             % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+%                             [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1));
+%                             obj.iter.auto_updated_path(iVeh) = true;
+%                         end
+% 
+%                         % save lanes before update to add for boundaries
+%                         if obj.iter.auto_updated_path(iVeh) && length(obj.scenario.vehicles(iVeh).lanelets_index) > 3
+%                             obj.iter.lanes_before_update(iVeh,1,1) = obj.scenario.vehicles(iVeh).lanelets_index(end-2);
+%                             obj.iter.lanes_before_update(iVeh,1,2) = obj.scenario.vehicles(iVeh).lanelets_index(end-3);
+%                         end
+% 
+%                         updatedRefPath = updated_ref_path.path;
+%                         obj.scenario.vehicles(iVeh).x_start = updatedRefPath(1,1);
+%                         obj.scenario.vehicles(iVeh).y_start = updatedRefPath(1,2);
+%                         obj.scenario.vehicles(iVeh).x_goal = updatedRefPath(2:end,1);
+%                         obj.scenario.vehicles(iVeh).y_goal = updatedRefPath(2:end,2);
+%                         
+%                         obj.scenario.vehicles(iVeh).referenceTrajectory = [obj.scenario.vehicles(iVeh).x_start obj.scenario.vehicles(iVeh).y_start
+%                                                 obj.scenario.vehicles(iVeh).x_goal  obj.scenario.vehicles(iVeh).y_goal];
+%                         obj.scenario.vehicles(iVeh).lanelets_index = updated_ref_path.lanelets_index;
+%                         obj.scenario.vehicles(iVeh).points_index = updated_ref_path.points_index;
+% 
+%                         yaw = calculate_yaw(updatedRefPath);
+%                         obj.scenario.vehicles(iVeh).yaw_start = yaw(1);
+%                         obj.scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
+%                         break
+%                     elseif obj.iter.predicted_lanelets{iVeh}(i) == obj.scenario.vehicles(iVeh).lanelets_index(3)
+%                         % do not consider the lanes before path update for the boundaries anymore
+%                         obj.iter.lanes_before_update(iVeh,:,:) = zeros(1,2);
+%                     end
+%                 end
+%             end
+%         end
+%     end
 
-                if str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh)
-                    if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Guided_mode
-                        % function to generate random path for manual vehicles based on CPM Lab road geometry
-                        updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1), false);
-                    else
-                        if obj.scenario.options.isPB
-                            % Communicate predicted trims, predicted lanelets and areas to other vehicles
-                            predicted_trims = repmat(trims_measured(iVeh), 1, obj.scenario.options.Hp+1); % current trim and predicted trims in the prediction horizon
+    % init HDV: compute current lanelet id and reachable sets intersected
+    % with current & successor lane;
+    hdv_amount = length(obj.scenario.options.hdv_ids);
 
-                            % use index, as vehicle in Expert-Mode has no defined trajectory
-                            predicted_lanelets = index;                            
+    for iHdv = 1:hdv_amount
 
-                            predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                            obj.scenario.vehicles(iVeh).communicate.predictions.send_message(obj.k-1, predicted_occupied_areas); 
-                        end
+        % init reachable sets of hdvs
+        lanelet_struct = obj.scenario.road_raw_data.lanelet;
+        x_hdv = x_measured(obj.scenario.options.amount+iHdv,:);
+        lanelet_id_hdv = map_position_to_closest_lanelets(obj.scenario.lanelets, x_hdv(idx.x), x_hdv(idx.y));
+        reachable_sets = obj.manual_vehicles(iHdv).compute_reachable_lane(x_hdv,lanelet_id_hdv);
+        
+        % turn polyshape to plain array (repeat the first row to enclosed the shape)
+        polyshapes = [reachable_sets{:}];
+        empty_sets = [polyshapes.NumRegions] == 0;
+        reachable_sets_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets(~empty_sets)); 
+        obj.iter.hdv_reachable_sets(iHdv,empty_sets) = {[]};
+        obj.iter.hdv_reachable_sets(iHdv,~empty_sets) = reachable_sets_array;
 
-                        continue
-                    end     
-                elseif str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh)
-                    if obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Guided_mode
-                        % function to generate random path for manual vehicles based on CPM Lab road geometry
-                        updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1), false);
-                    else
-                        if obj.scenario.options.isPB
-                            % Communicate predicted trims, predicted lanelets and areas to other vehicles
-                            predicted_trims = repmat(trims_measured(iVeh), 1, obj.scenario.options.Hp+1); % current trim and predicted trims in the prediction horizon
-
-                            % use index, as vehicle in Expert-Mode has no defined trajectory
-                            predicted_lanelets = index;
-
-                            predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                            obj.scenario.vehicles(iVeh).communicate.predictions.send_message(obj.k-1, predicted_occupied_areas);  
-                        end
-                        
-                        continue
-                    end      
-                else
-                    if obj.scenario.options.is_eval
-                         % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                        [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, 0);
-                    else
-                         % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                         [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, index(1));
-                    end
-                end
-                
-                % TODO_DATA: Scenario changes here
-                updatedRefPath = updated_ref_path.path;
-                obj.scenario.vehicles(iVeh).x_start = updatedRefPath(1,1);
-                obj.scenario.vehicles(iVeh).y_start = updatedRefPath(1,2);
-                obj.scenario.vehicles(iVeh).x_goal = updatedRefPath(2:end,1);
-                obj.scenario.vehicles(iVeh).y_goal = updatedRefPath(2:end,2);
-                
-                obj.scenario.vehicles(iVeh).referenceTrajectory = [obj.scenario.vehicles(iVeh).x_start obj.scenario.vehicles(iVeh).y_start
-                                        obj.scenario.vehicles(iVeh).x_goal  obj.scenario.vehicles(iVeh).y_goal];
-                obj.scenario.vehicles(iVeh).lanelets_index = updated_ref_path.lanelets_index;
-                obj.scenario.vehicles(iVeh).points_index = updated_ref_path.points_index;
-
-                yaw = calculate_yaw(updatedRefPath);
-                obj.scenario.vehicles(iVeh).yaw_start = yaw(1);
-                obj.scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
-
-                if obj.scenario.options.isPB
-                    % Communicate predicted trims, predicted lanelets and areas to other vehicles
-                    predicted_trims = repmat(trims_measured(iVeh), 1, obj.scenario.options.Hp+1); % current trim and predicted trims in the prediction horizon
-
-                    x0 = x_measured(iVeh,idx.x); % vehicle position x
-                    y0 = x_measured(iVeh,idx.y); % vehicle position y
-
-                    predicted_lanelets = get_predicted_lanelets(obj.scenario,iVeh,predicted_trims(1),x0,y0);
-
-                    predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
-                    obj.scenario.vehicles(iVeh).communicate.predictions.send_message(obj.k-1, predicted_trims, predicted_lanelets, predicted_occupied_areas);   
-                end        
-            end
-        else
-            for iVeh = obj.indices_in_vehicle_list
-                obj.iter.vehicles(iVeh).autoUpdatedPath = false;
-                for i = 1:length(obj.iter.predicted_lanelets{iVeh})
-                    % if last lane is reached, then lane will be automatically updated
-                    if obj.iter.predicted_lanelets{iVeh}(i) == obj.scenario.vehicles(iVeh).lanelets_index(end-1)
-                        if str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh) && ~obj.scenario.updated_manual_vehicle_path
-                            if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Guided_mode
-                                % function to generate random path for manual vehicles based on CPM Lab road geometry
-                                updated_ref_path = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1), false);
-                                obj.iter.auto_updated_path(iVeh) = true;
-                            else
-                                continue
-                            end     
-                        elseif str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) == obj.scenario.options.veh_ids(iVeh) && ~obj.scenario.updated_second_manual_vehicle_path
-                            if obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Guided_mode
-                                % function to generate random path for manual vehicles based on CPM Lab road geometry
-                                [updated_ref_path, obj.scenario] = generate_manual_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1), false);
-                                obj.iter.auto_updated_path(iVeh) = true;
-                            else
-                                continue
-                            end      
-                        else
-                            % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                            [updated_ref_path, obj.iter.lane_change_indices(iVeh,:,:), obj.iter.lane_change_lanes(iVeh,:,:)] = generate_random_path(obj.scenario, obj.scenario.options.veh_ids(iVeh), 10, obj.scenario.vehicles(iVeh).lanelets_index(end-1));
-                            obj.iter.auto_updated_path(iVeh) = true;
-                        end
-
-                        % save lanes before update to add for boundaries
-                        if obj.iter.auto_updated_path(iVeh) && length(obj.scenario.vehicles(iVeh).lanelets_index) > 3
-                            obj.iter.lanes_before_update(iVeh,1,1) = obj.scenario.vehicles(iVeh).lanelets_index(end-2);
-                            obj.iter.lanes_before_update(iVeh,1,2) = obj.scenario.vehicles(iVeh).lanelets_index(end-3);
-                        end
-
-                        updatedRefPath = updated_ref_path.path;
-                        obj.scenario.vehicles(iVeh).x_start = updatedRefPath(1,1);
-                        obj.scenario.vehicles(iVeh).y_start = updatedRefPath(1,2);
-                        obj.scenario.vehicles(iVeh).x_goal = updatedRefPath(2:end,1);
-                        obj.scenario.vehicles(iVeh).y_goal = updatedRefPath(2:end,2);
-                        
-                        obj.scenario.vehicles(iVeh).referenceTrajectory = [obj.scenario.vehicles(iVeh).x_start obj.scenario.vehicles(iVeh).y_start
-                                                obj.scenario.vehicles(iVeh).x_goal  obj.scenario.vehicles(iVeh).y_goal];
-                        obj.scenario.vehicles(iVeh).lanelets_index = updated_ref_path.lanelets_index;
-                        obj.scenario.vehicles(iVeh).points_index = updated_ref_path.points_index;
-
-                        yaw = calculate_yaw(updatedRefPath);
-                        obj.scenario.vehicles(iVeh).yaw_start = yaw(1);
-                        obj.scenario.vehicles(iVeh).yaw_goal = yaw(2:end); 
-                        break
-                    elseif obj.iter.predicted_lanelets{iVeh}(i) == obj.scenario.vehicles(iVeh).lanelets_index(3)
-                        % do not consider the lanes before path update for the boundaries anymore
-                        obj.iter.lanes_before_update(iVeh,:,:) = zeros(1,2);
-                    end
-                end
-            end
+        % update reduced coupling adjacency for cav/hdv-pairs
+        for iVeh = obj.indices_in_vehicle_list
+            x_cav = x_measured(iVeh,:);
+            lanelet_id_cav = map_position_to_closest_lanelets(obj.scenario.lanelets, x_cav(idx.x), x_cav(idx.y));
+            obj.iter.hdv_adjacency(iVeh, iHdv) = ~is_hdv_behind( ...
+                lanelet_id_cav, ...
+                x_cav, ...
+                lanelet_id_hdv, ...
+                x_hdv, ...
+                lanelet_struct ...
+            );
         end
     end
+    
+    % remove manual vehicle states for further calculations
+    x_measured = x_measured(1:obj.scenario.options.amount,:);
 
     for iVeh = obj.indices_in_vehicle_list
         % states of controlled vehicles can be measured directly

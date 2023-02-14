@@ -135,28 +135,33 @@ classdef CPMLab < InterfaceExperiment
             end
             
             % for first iteration use real poses
-            if obj.pos_init == false
-                x0 = zeros(obj.scenario.options.amount,4);
-                pose = [obj.sample(end).state_list.pose];
-                for index = obj.indices_in_vehicle_list
-                    x0(index,1) = pose(index).x;
-                    x0(index,2) = pose(index).y;
-                    x0(index,3) = pose(index).yaw;
-                    x0(index,4) = [obj.sample(end).state_list(index).speed];
+            if (obj.pos_init == false)
+                for index = 1:length(state_list)
+                    if ismember(state_list(index).vehicle_id, obj.veh_ids) % measure cav states
+                        list_index = obj.indices_in_vehicle_list(index); % use list to prevent breaking distributed control
+                        x0(list_index,1) = state_list(index).pose.x;
+                        x0(list_index,2) = state_list(index).pose.y;
+                        x0(list_index,3) = state_list(index).pose.yaw;
+                        x0(list_index,4) = [state_list(index).speed];
+                    end
                 end
 
                 [ ~, trim_indices ] = obj.measure_node();
                 obj.pos_init = true;
             else
-                [ x0, trim_indices ] = obj.measure_node();
+                [ x0(1:obj.scenario.options.amount,:), trim_indices ] = obj.measure_node(); % get cav states from current node
+            end
 
-                % find out index of vehicle in Expert-Mode
-                indexVehicleExpertMode = 0;
-                for j = obj.indices_in_vehicle_list
-                    if ((obj.scenario.options.veh_ids(j) == str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) && obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
-                        || (obj.scenario.options.veh_ids(j) == str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) && obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode))
-                        indexVehicleExpertMode = j;
-                    end
+            % Always measure HDV
+            hdv_index = 1;
+            for index = 1:length(state_list)
+                if ismember(state_list(index).vehicle_id, obj.scenario.options.hdv_ids)
+                    list_index = obj.scenario.options.amount+hdv_index; 
+                    hdv_index = hdv_index + 1;
+                    x0(list_index,1) = state_list(index).pose.x;
+                    x0(list_index,2) = state_list(index).pose.y;
+                    x0(list_index,3) = state_list(index).pose.yaw;
+                    x0(list_index,4) = [state_list(index).speed];
                 end
 
                 % use real poses for vehicle in Expert Mode
@@ -307,4 +312,3 @@ classdef CPMLab < InterfaceExperiment
         end
     end
 end
-

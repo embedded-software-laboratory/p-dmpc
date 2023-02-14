@@ -66,5 +66,14 @@ function collision = collision_with(iter, index, shapes, shapes_for_lanelet_chec
             end
         end
     end
+
+    if ~any(iter.hdv_adjacency)
+        for i = find(iter.hdv_adjacency)
+            if intersect_sat(shapes{index}, iter.hdv_reachable_sets{i,iStep})
+                collision = true;
+                return;
+            end
+        end
+    end
  
 end

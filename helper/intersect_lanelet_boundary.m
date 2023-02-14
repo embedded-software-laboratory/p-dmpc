@@ -23,7 +23,7 @@ function collision = intersect_lanelet_boundary(shapes, boundary)
             collision = true;
              %disp('There is collision with the left boundary')
              %disp(n);
-             %lane = match_pose_to_lane(boundary_points_left(1,n), boundary_points_left(2,n));
+             %lane = map_position_to_closest_lanelets(boundary_points_left(1,n), boundary_points_left(2,n));
              %disp(sprintf("lane: %d", lane));
 %             disp('There is collision with left boundary')
             return;
@@ -40,7 +40,7 @@ function collision = intersect_lanelet_boundary(shapes, boundary)
             collision = true;
              %disp('There is collision with the right boundary')
              %disp(n);
-             %lane = match_pose_to_lane(boundary_points_right(1,n), boundary_points_right(2,n));
+             %lane = map_position_to_closest_lanelets(boundary_points_right(1,n), boundary_points_right(2,n));
              %disp(sprintf("lane: %d", lane));
 %             disp('There is collision with right boundary')
             return;

@@ -32,4 +32,5 @@ function iter = filter_iter(iter, vehicle_filter) % TODO: Add new fields
     iter.vehicle_to_lanelet = iter.vehicle_to_lanelet(vehicle_filter);
     iter.vehicles = iter.vehicles(vehicle_filter);
     iter.amount = sum(vehicle_filter);
+    iter.hdv_adjacency = iter.hdv_adjacency(vehicle_filter,:);
 end

@@ -11,6 +11,7 @@ classdef IterationData
         predicted_lanelets                              % vehicle's predicted lanelets
         predicted_lanelet_boundary                      % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
         reachable_sets                                  % cells to store instances of MATLAB calss `polyshape`
+        hdv_reachable_sets                              % reachable sets of hdvs
         occupied_areas                                  % currently occupied areas with normal offset of vehicles 
         emergency_maneuvers                             % occupied area of emergency braking maneuver
         last_trajectory_index                           % initial trajectory index
@@ -19,6 +20,7 @@ classdef IterationData
         lanes_before_update                             % lanes before path has been automatically updated in CPM Lab mode
         auto_updated_path                               % set in rhc_init to memorize when path is updated automatically
         adjacency                                       % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
+        hdv_adjacency                                   % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
         semi_adjacency                                  % OUTDATED (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two semi-adjacent lanelets and their distance are smaller enough
         obstacles
         dynamic_obstacle_area
@@ -50,6 +52,7 @@ classdef IterationData
         function obj = IterationData(scenario,k)
             nVeh = scenario.options.amount;
             Hp = scenario.options.Hp;
+            hdv_amount = length(scenario.options.hdv_ids);
             obj.k = k;
             obj.referenceTrajectoryPoints = zeros(nVeh,Hp,2);
             obj.referenceTrajectoryIndex = zeros(nVeh,Hp,1);
@@ -59,6 +62,7 @@ classdef IterationData
             obj.predicted_lanelets = cell(nVeh, 1);
             obj.predicted_lanelet_boundary = cell(nVeh, 3);
             obj.reachable_sets = cell(nVeh, Hp);
+            obj.hdv_reachable_sets = cell(hdv_amount, Hp);
             obj.occupied_areas = cell(nVeh, 1);
             obj.emergency_maneuvers = cell(nVeh, 1);
             obj.last_trajectory_index = ones(nVeh,1)*10;
@@ -67,6 +71,7 @@ classdef IterationData
             obj.lanes_before_update = zeros(nVeh,1,2);
             obj.auto_updated_path = false(nVeh,1);
             obj.adjacency = zeros(nVeh,nVeh);
+            obj.hdv_adjacency = zeros(nVeh,hdv_amount);
             obj.semi_adjacency = zeros(nVeh,nVeh);
             obj.dynamic_obstacle_area = scenario.dynamic_obstacle_area;
             obj.dynamic_obstacle_shape = scenario.dynamic_obstacle_shape;

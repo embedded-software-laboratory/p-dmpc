@@ -3,6 +3,17 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
 % NOTE: If new trim need to be added, please use successive number!
 
     switch trim_set
+        case 0 % trim set for manual vehicles TODO: graph weight must be nonnegative
+            %% 6 trims: two speeds (-1.5 m/s and 1.5 m/s), three steering (-pi/9, 0, pi/9)
+            steering = (-1:1) * pi/9;
+            ntrims = numel(steering)*2;
+            trim_inputs = zeros(ntrims,2);
+            trim_inputs(1:ntrims/2,1) = steering;
+            trim_inputs(ntrims/2+1:end,1) = steering;
+            trim_inputs(1:ntrims/2,2) = -1.5;
+            trim_inputs(ntrims/2+1:end,2) = 1.5;
+            % All states connected
+            trim_adjacency = ones(ntrims);
         case 1
             %% 3 trims: three speeds (0, 0.75 and 1.5 m/s), one steering (0 deg)
             speeds = 0:0.75:1.5;
