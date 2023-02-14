@@ -77,15 +77,8 @@ classdef TrafficInfo
                     % TODO: here was the reachable set coupling check, use adjacency which is need either way (to avoid double calculation)
                     if iter.adjacency(veh_i,veh_j)
                         % the selected two vehicles are considered as coupled
-                        if ~scenario.options.mixed_traffic_config.consider_rss &&((scenario.options.veh_ids(veh_i) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
-                            || (scenario.options.veh_ids(veh_i) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id) && scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode))
-                            % Naive approach: not necessary to determine collision point and ROW, as manual vehicle has highest priority
-                            obj.coupling_weights(veh_i,veh_j) = 1;
-                            continue
-                        else
-                            overlap_reachable_sets = intersect(iter.reachable_sets{veh_i,end}, iter.reachable_sets{veh_j,end});
-                            obj = obj.get_coupling_info(scenario,iter,veh_i,veh_j,overlap_reachable_sets);
-                        end
+                        overlap_reachable_sets = intersect(iter.reachable_sets{veh_i,end}, iter.reachable_sets{veh_j,end});
+                        obj = obj.get_coupling_info(scenario,iter,veh_i,veh_j,overlap_reachable_sets);
                     end  
                 end
             end

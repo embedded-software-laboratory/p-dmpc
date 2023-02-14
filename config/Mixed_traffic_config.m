@@ -2,13 +2,13 @@ classdef Mixed_traffic_config
     %Mixed_traffic_config Configuration specificed to mixed traffic mode
     
     properties
-        first_manual_vehicle_mode Control_Mode
-        first_manual_vehicle_id string
-        force_feedback logical
-        second_manual_vehicle_mode Control_Mode
-        second_manual_vehicle_id string
-        consider_rss logical
-        collision_avoidance Collision_Avoidance_Mode
+        first_manual_vehicle_mode Control_Mode = Control_Mode.Expert_mode;
+        first_manual_vehicle_id string = '0';
+        force_feedback logical = false;
+        second_manual_vehicle_mode Control_Mode = Control_Mode.Expert_mode;
+        second_manual_vehicle_id string = '0';
+        consider_rss logical = false;
+        collision_avoidance Collision_Avoidance_Mode = Collision_Avoidance_Mode.Reachability_Analysis_Expert_Mode;
     end
 
     methods

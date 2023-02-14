@@ -10,7 +10,7 @@ classdef Config
         visu = [true;false];    % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
         isParl = false;         % true/false, is use parallel(distributed) computation
         scenario_name = 'Commonroad'    % one of the follows: {'Circle_scenario','Commonroad'}
-        priority Priority_strategies = 'right_of_way_priority'; % one of the following: {'topo_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority','STAC_priority'}, defines which priority assignmen strategy is used
+        priority Priority_strategies = Priority_strategies.constant_priority; % defines which priority assignmen strategy is used
         dt = 0.2;           % scalar, sample time
         Hp = 6;             % scalar, prediction horizon
         trim_set = 7;       % scalar, ID of trim primitives
