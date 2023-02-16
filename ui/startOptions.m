@@ -148,14 +148,14 @@ manual_control_config = ManualControlConfig;
 manual_control_config.amount = str2double(hdv_amount_selection)*is_manual_control;
 
 hdv_ids = ui.HDVIDsEditField.Value;
-if hdv_ids ~= ""
+if hdv_ids ~= "" && is_manual_control
     hdv_ids(~isstrprop(hdv_ids,'digit')) = ' '; %replace non-numeric characters with empty space
     manual_control_config.hdv_ids = str2double(strsplit(strtrim(hdv_ids)));
 else
     manual_control_config.hdv_ids = [];
 end
 
-assert(length(manual_control_config.hdv_ids) == manual_control_config.amount, ['Type in exactly ', num2str(manual_control_config.amount), ' HDV ID(s)']);
+assert(length(manual_control_config.hdv_ids)*is_manual_control == manual_control_config.amount*is_manual_control, ['Type in exactly ', num2str(manual_control_config.amount), ' HDV ID(s)']);
 
 
 %labOptions.is_eval = false;
