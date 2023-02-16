@@ -144,7 +144,7 @@ classdef (Abstract) HLCInterface < handle
             end
 
             % init all manually controlled vehicles
-            for hdv_id = obj.scenario.options.hdv_ids
+            for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
                 obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
             end
 

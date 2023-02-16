@@ -52,7 +52,7 @@ classdef IterationData
         function obj = IterationData(scenario,k)
             nVeh = scenario.options.amount;
             Hp = scenario.options.Hp;
-            hdv_amount = length(scenario.options.hdv_ids);
+            hdv_amount = scenario.options.manual_control_config.amount;
             obj.k = k;
             obj.referenceTrajectoryPoints = zeros(nVeh,Hp,2);
             obj.referenceTrajectoryIndex = zeros(nVeh,Hp,1);

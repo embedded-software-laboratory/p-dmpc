@@ -155,7 +155,7 @@ classdef CPMLab < InterfaceExperiment
             % Always measure HDV
             hdv_index = 1;
             for index = 1:length(state_list)
-                if ismember(state_list(index).vehicle_id, obj.scenario.options.hdv_ids)
+                if ismember(state_list(index).vehicle_id, obj.scenario.options.manual_control_config.hdv_ids)
                     list_index = obj.scenario.options.amount+hdv_index; 
                     hdv_index = hdv_index + 1;
                     x0(list_index,1) = state_list(index).pose.x;
