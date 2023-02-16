@@ -14,16 +14,6 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     cur_trim_id = tuple2index(curTrim(:),trim_length);
     successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
 
-    for iVeh = 1 : iter.amount
-        if scenario.options.is_mixed_traffic
-            % first check if mixed_traffic_priority is used to make a short
-            % circuit
-            if ((iter.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-                || ((iter.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
-                manual_successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
-            end
-        end
-    end
     nTrims = numel(successor_trim_ids);
     
     expX     = zeros(iter.amount,nTrims);
@@ -44,24 +34,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             itrim2 = expTrim(iVeh,iTrim);
 
             % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-            if scenario.options.is_mixed_traffic
-                % first check if mixed_traffic_priority is used to make a short
-                % circuit
-                if ((iter.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(iter.vehicles(iVeh).vehicle_mpa)) ...
-                    || ((iter.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(iter.vehicles(iVeh).vehicle_mpa))
-                    id = manual_successor_trim_ids(iTrim);
-                    expTrim(:,iTrim) = trim_tuple(id,:);
-                    itrim1 = curTrim(iVeh);
-                    itrim2 = expTrim(iVeh,iTrim);
-    
-                    mpa = iter.vehicles(iVeh).vehicle_mpa;
-                    maneuver = mpa.maneuvers{itrim1, itrim2};
-                else
-                    maneuver = scenario.mpa.maneuvers{itrim1, itrim2};
-                end
-            else
-                maneuver = scenario.mpa.maneuvers{itrim1, itrim2};
-            end
+            maneuver = scenario.mpa.maneuvers{itrim1, itrim2};
             
             c = cos(curYaw(iVeh));
             s = sin(curYaw(iVeh));

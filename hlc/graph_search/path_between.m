@@ -4,20 +4,8 @@ function search_path = path_between(iCur,iNext, tree, scenario)
     n_veh = size(tree.x,1);
     search_path = cell(1, n_veh);
     for iVeh = 1:n_veh
-        % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-        if strcmp(scenario.options.priority,'mixed_traffic_priority')
-            % first check if mixed_traffic_priority is used to make a short
-            % circuit
-            if ((iter.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(iter.vehicles(iVeh).vehicle_mpa)) ...
-                || ((iter.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(iter.vehicles(iVeh).vehicle_mpa))
-                mpa = iter.vehicles(iVeh).vehicle_mpa;
-                maneuver = mpa.maneuvers{tree.trim(iVeh,iCur), tree.trim(iVeh,iNext)};
-            else
-                maneuver = scenario.mpa.maneuvers{tree.trim(iVeh,iCur), tree.trim(iVeh,iNext)};
-            end
-        else
-            maneuver = scenario.mpa.maneuvers{tree.trim(iVeh,iCur), tree.trim(iVeh,iNext)};
-        end
+        maneuver = scenario.mpa.maneuvers{tree.trim(iVeh,iCur), tree.trim(iVeh,iNext)};
+        
         assert(~isempty(maneuver),'manuevers{%d, %d} is empty.',tree.trim(iVeh,iCur), tree.trim(iVeh,iNext));
         
         x = tree.x(iVeh,iCur);

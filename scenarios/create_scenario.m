@@ -3,8 +3,6 @@ function scenario = create_scenario(options, random_seed)
 
 %% options preprocessing
 % Use options to setup scenario
-manualVehicle_id = 0;
-manualVehicle_id2 = 0;
 options.max_num_CLs = min(options.max_num_CLs, options.amount);
 if options.is_sim_lab
     disp('Running in MATLAB simulation...')
@@ -33,42 +31,13 @@ if options.is_sim_lab
         vehicle_ids = options.veh_ids;
     end
     options.veh_ids = sort(vehicle_ids);
-    options.is_mixed_traffic = 0;
+    options.is_manual_control = 0;
 else
     disp('Running in CPM Lab...')
     vehicle_ids = options.veh_ids;
     options.isPB = true;
 
-    if options.is_mixed_traffic
-
-        manualVehicle_id = options.manualVehicle_id;
-
-        if ~strcmp(manualVehicle_id, 'No MV')
-            manualVehicle_id = str2double(options.manualVehicle_id);
-            options.mixed_traffic_config.first_manual_vehicle_mode = str2double(options.mixed_traffic_config.first_manual_vehicle_mode);
-
-            if ~strcmp(options.manualVehicle_id2, 'No second MV')
-                manualVehicle_id2 = str2double(options.manualVehicle_id2);
-                options.mixed_traffic_config.second_manual_vehicle_mode = str2double(ooptions.mixed_traffic_config.second_manual_vehicle_mode);
-            end
-        else
-            manualVehicle_id = 0;
-        end
-
-        if options.collisionAvoidanceMode == 1
-            options.priority = 'right_of_way_priority';
-        elseif options.collisionAvoidanceMode == 2
-            options.priority = 'right_of_way_priority';
-        else
-            options.priority = 'mixed_traffic_priority';
-            options.visualize_reachable_set = true;
-        end
-    end
     options.veh_ids = sort(vehicle_ids);
-end
-if  ~options.is_mixed_traffic
-    options.mixed_traffic_config.first_manual_vehicle_id = 0;
-    options.mixed_traffic_config.second_manual_vehicle_id = 0;
 end
 
 assert(length(options.veh_ids) == options.amount);
@@ -78,7 +47,7 @@ switch options.scenario_name
     case 'Circle_scenario'
         scenario = circle_scenario(options);
     case 'Commonroad'
-        scenario = commonroad(options, vehicle_ids, manualVehicle_id, manualVehicle_id2, options.is_sim_lab);
+        scenario = commonroad(options, vehicle_ids, options.is_sim_lab);
 end
 
 for iVeh = 1:options.amount

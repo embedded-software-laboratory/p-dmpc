@@ -1,5 +1,5 @@
 classdef ManualControlConfig
-    %Mixed_traffic_config Configuration specificed to mixed traffic mode
+%MANUALCONTROLCONFIG Configuration specificed to Manual Control Scenarios
     
     properties
       amount = 0;
@@ -11,7 +11,7 @@ classdef ManualControlConfig
         end
 
         function obj = assign_data(obj, struct)
-            %Mixed_traffic_config Construct an instance of this class
+            %ManualControlConfig Construct an instance of this class
             %   Detailed explanation goes here
             obj.amount = struct.amount;
             obj.hdv_ids = struct.hdv_ids;

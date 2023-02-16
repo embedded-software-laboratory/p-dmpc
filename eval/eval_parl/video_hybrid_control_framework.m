@@ -2,7 +2,6 @@
 %% two vehicles, parallel planning, visualize reachable sets
 % prepare simulation options
 options = OptionsMain;
-options.mixed_traffic_config.consider_rss = false;
 options.is_sim_lab = true;
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;

@@ -1,6 +1,6 @@
 function result = hdv_reachable_set_experiment()
     options = Config();
-    options.mixed_traffic_config = Mixed_traffic_config();
+    options.manual_control_config = ManualControlConfig();
     options.trim_set = 4;
     options.T_end = 1;
     options.Hp = 6;

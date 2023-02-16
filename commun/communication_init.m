@@ -14,7 +14,7 @@ Hp = hlc.scenario.options.Hp;
 
 %% send initial message such that subscriber isn't empty during first controller time step.
 %% Also used for initial synchronization for distributed runs
-if ~hlc.scenario.options.is_mixed_traffic
+if ~hlc.scenario.options.is_manual_control
     % Communicate predicted trims, pridicted lanelets and areas to other vehicles
     for veh_index = hlc.indices_in_vehicle_list
         predicted_trims = repmat(trims_measured(veh_index), 1, Hp+1); % current trim and predicted trims in the prediction horizon

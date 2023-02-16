@@ -1,4 +1,4 @@
-function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,lanelet_boundary] = commonroad_lanelets(mixedTrafficScenarioLanelets)
+function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,lanelet_boundary] = commonroad_lanelets()
 
 % COMMONROAD_LANELETS
 
@@ -10,10 +10,6 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
 % boundary: the inner boundary and outer boundary of the Scenario
 % commonroad: raw commonroad data
 % lanelet_boundary: left and right boundaries of each lanelet
-    
-    if nargin==0
-        mixedTrafficScenarioLanelets = false;
-    end
     
     %% path of the road data
     [file_path,name,ext] = fileparts(mfilename('fullpath'));

@@ -44,19 +44,7 @@ function [is_valid, shapes] = eval_edge_exact(iter, scenario, tree, iNode, vehic
         t1 = pTrim(iVeh);
         t2 = cTrim(iVeh);
 
-        % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-        if scenario.options.is_mixed_traffic
-            % first check if mixed_traffic_priority is used to make a short circuit
-            if ((iter.vehicles(iVeh).ID == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized && ~isempty(iter.vehicles(iVeh).vehicle_mpa)) ...
-                || ((iter.vehicles(iVeh).ID == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized && ~isempty(iter.vehicles(iVeh).vehicle_mpa))
-                mpa = iter.vehicles(iVeh).vehicle_mpa;
-                maneuver = mpa.maneuvers{t1,t2};
-            else
-                maneuver = scenario.mpa.maneuvers{t1,t2};
-            end
-        else
-            maneuver = scenario.mpa.maneuvers{t1,t2};
-        end
+        maneuver = scenario.mpa.maneuvers{t1,t2};
     
         c = cos(pYaw(iVeh));
         s = sin(pYaw(iVeh));
@@ -119,13 +107,7 @@ function [is_valid, shapes] = eval_edge_exact(iter, scenario, tree, iNode, vehic
                 end
 
                 % check collision with lanelet obstacles
-                if scenario.options.is_mixed_traffic
-                    % in mixed traffic scenario, boundary data could be full of nan
-                    if ~all(isnan(lanelet_boundary),'all') && InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
-                        is_valid = false;
-                        return
-                    end
-                elseif InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
+                if InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
                     is_valid = false;
                     return
                 end

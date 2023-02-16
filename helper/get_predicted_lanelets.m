@@ -21,23 +21,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
 % 
 %   v_ref: reference speed
 
-    % use index based on pose, as vehicle in Expert-Mode has no defined trajectory
-    if scenario.options.is_mixed_traffic && ...
-        (((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
-        || (scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id) && scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode)))
-        predicted_lanelets = map_position_to_closest_lanelets(scenario.road_raw_data.lanelet, x0, y0);
-        reference = [];
-        v_ref = 0;
-        return
-    end
-
-    if scenario.options.is_mixed_traffic && ...
-        (((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id)) && scenario.manual_mpa_initialized) ...
-        || ((scenario.options.veh_ids(iVeh) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id)) && scenario.second_manual_mpa_initialized))
-        mpa = scenario.vehicles(iVeh).vehicle_mpa;
-    else
-        mpa = scenario.mpa;
-    end
+    mpa = scenario.mpa;
  
     Hp = size(mpa.transition_matrix_single,3);
 
@@ -53,8 +37,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
         v_ref*scenario.options.dt, ...                                       % distance traveled in one timestep
         iter.auto_updated_path(iVeh), ...        % if the path has been updated automatically
         scenario.options.isPB, ...                        % parallel computation
-        iter.last_trajectory_index(iVeh), ...  % last trajectory index of vehicle
-        scenario.options.is_mixed_traffic...                % prevent loops in mixed traffic
+        iter.last_trajectory_index(iVeh) ...  % last trajectory index of vehicle
     );
 
     ref_points_index = reshape(reference.ReferenceIndex,Hp,1);

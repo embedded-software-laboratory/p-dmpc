@@ -77,7 +77,6 @@ classdef Config
         function obj = assign_data(obj,struct)
             % Assign data to struct (see an example at the bottom)
             obj.is_sim_lab = struct.is_sim_lab;
-            obj.is_mixed_traffic = struct.is_mixed_traffic;
             obj.isPB = struct.isPB;
             obj.angles = struct.angles;
             obj.amount = struct.amount;
@@ -99,10 +98,10 @@ classdef Config
             obj.is_eval = struct.is_eval;
             obj.visualize_reachable_set = struct.visualize_reachable_set;
             obj.is_free_flow = struct.is_free_flow;
-            %create and set mixed_traffic_config object
-            mt_config = Mixed_traffic_config();
-            mt_config = mt_config.assign_data(struct.mixed_traffic_config);
-            obj.mixed_traffic_config = mt_config;
+            %create and set ManualControlConfig object
+            manual_control_config = ManualControlConfig();
+            manual_control_config = manual_control_config.assign_data(struct.manual_control_config);
+            obj.manual_control_config = manual_control_config;
         end
 
         function result = get.tick_per_step(obj)

@@ -6,11 +6,6 @@ classdef Scenario
         obstacles = {};                  % static obstacles = {[xs;ys],...}
         lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
         mpa;
-        manual_mpa_initialized = false;
-        updated_manual_vehicle_path = false;
-        second_manual_mpa_initialized = false;
-        updated_second_manual_vehicle_path = false;
-        g29_force_feedback                      % to send position and torque to Logitech G29 steering wheel
         options;
         speed_profile_mpas = [];        
         
