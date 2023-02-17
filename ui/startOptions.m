@@ -282,7 +282,11 @@ end
 
 function setCpmLabElementsVisibility(ui)
     % if lab mode is selected
-    ui.AddHDVsCheckBox.Enable = get_environment_selection(ui, true);
+    is_cpm_lab_selection = get_environment_selection(ui, true);
+    ui.AddHDVsCheckBox.Enable = is_cpm_lab_selection;
+    ui.AddHDVsCheckBox.Value = ui.AddHDVsCheckBox.Value && is_cpm_lab_selection;
+    ui.AmountHDVsListBox.Enable = ui.AmountHDVsListBox.Enable && is_cpm_lab_selection;
+    ui.HDVIDsEditField.Enable = ui.HDVIDsEditField.Enable && is_cpm_lab_selection;
 end
 
 function setManualControlElementsVisibility(ui)
