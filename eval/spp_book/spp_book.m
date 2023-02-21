@@ -66,7 +66,6 @@ end
     options.isAllowInheritROW = true;
     options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area 
     options.collisionAvoidanceMode = 1;
-    options.mixed_traffic_config.consider_rss = false;
     options.isSaveResult = 1;
     options.isSaveResultReduced = 1;
 
@@ -90,13 +89,10 @@ end
             options.scenario_name = 'Commonroad';
             veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
             options.veh_ids = veh_ids;
-            scenario = commonroad(options, options.veh_ids, 0, 0, options.is_sim_lab);
+            scenario = commonroad(options, options.veh_ids, options.is_sim_lab);
             scenario.random_stream = random_stream;
             scenario.name = options.scenario_name;
-            scenario.manual_vehicle_id = 0;
-            scenario.second_manual_vehicle_id = 0;
             scenario.options.veh_ids = options.veh_ids;
-            scenario.mixedTrafficCollisionAvoidanceMode = options.collisionAvoidanceMode;
             for iVeh = 1:options.amount
                 % initialize vehicle ids of all vehicles
                 scenario.vehicles(iVeh).ID = scenario.options.veh_ids(iVeh);

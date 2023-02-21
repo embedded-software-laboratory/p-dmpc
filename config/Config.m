@@ -2,15 +2,15 @@ classdef Config
 
     properties
         is_sim_lab = true;              % true/false, is simulation or lab experiment
-        is_mixed_traffic = false;       % true/false, is mixed trafficfc
-        mixed_traffic_config Mixed_traffic_config; % mixed traffic config
+        is_manual_control = false;       % true/false, are manually controlled vehicles involved
+        manual_control_config ManualControlConfig; % manual control config
         isPB = true;            % true/false, is prioritize vehicles
-        amount = 20;            % integer, number of vehicles
+        amount = 20;            % integer, number of vehicles, does not include manual vehicles
         angles                  % 1-by-nVeh scalar vector
         visu = [true;false];    % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
         isParl = false;         % true/false, is use parallel(distributed) computation
         scenario_name = 'Commonroad'    % one of the follows: {'Circle_scenario','Commonroad'}
-        priority Priority_strategies = 'right_of_way_priority'; % one of the following: {'topo_priority','right_of_way_priority','constant_priority','random_priority','FCA_priority','STAC_priority'}, defines which priority assignmen strategy is used
+        priority Priority_strategies = Priority_strategies.constant_priority; % defines which priority assignmen strategy is used
         dt = 0.2;           % scalar, sample time
         Hp = 6;             % scalar, prediction horizon
         trim_set = 7;       % scalar, ID of trim primitives
@@ -40,7 +40,7 @@ classdef Config
                                             % 'global' means once a vehicle triggers fallback, all other vehicles must also take fallback.
                                             % 'local' means once a vehicle triggers fallback, only vehicles that have direct or undirected couplings with it will take fallabck. 
         
-        veh_ids = [];                           % vehicle IDs
+        veh_ids = [];                           % vehicle IDs only of autonomous vehicles
         random_idx = [];                        % integer, random choose different vehicles
         isDealPredictionInconsistency = true;   % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
         is_allow_non_convex = true;             % true/false, whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
@@ -77,7 +77,6 @@ classdef Config
         function obj = assign_data(obj,struct)
             % Assign data to struct (see an example at the bottom)
             obj.is_sim_lab = struct.is_sim_lab;
-            obj.is_mixed_traffic = struct.is_mixed_traffic;
             obj.isPB = struct.isPB;
             obj.angles = struct.angles;
             obj.amount = struct.amount;
@@ -99,10 +98,10 @@ classdef Config
             obj.is_eval = struct.is_eval;
             obj.visualize_reachable_set = struct.visualize_reachable_set;
             obj.is_free_flow = struct.is_free_flow;
-            %create and set mixed_traffic_config object
-            mt_config = Mixed_traffic_config();
-            mt_config = mt_config.assign_data(struct.mixed_traffic_config);
-            obj.mixed_traffic_config = mt_config;
+            %create and set ManualControlConfig object
+            manual_control_config = ManualControlConfig();
+            manual_control_config = manual_control_config.assign_data(struct.manual_control_config);
+            obj.manual_control_config = manual_control_config;
         end
 
         function result = get.tick_per_step(obj)

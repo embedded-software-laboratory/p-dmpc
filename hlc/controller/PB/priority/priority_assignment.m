@@ -13,10 +13,6 @@ function [veh_at_intersection, groups, directed_adjacency, priority_list] = prio
         case 'FCA_priority'
             [veh_at_intersection, groups, directed_adjacency, priority_list] = FCA_priority().priority(scenario,iter);
 
-        case 'mixed_traffic_priority'
-            obj = mixed_traffic_priority(scenario, iter);
-            [groups, directed_adjacency, priority_list] = obj.priority();
-
         case 'coloring_priority'
             [groups, directed_adjacency, priority_list] = coloring_priority().priority(scenario);
 

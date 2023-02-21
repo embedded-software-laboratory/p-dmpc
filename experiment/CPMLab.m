@@ -14,14 +14,6 @@ classdef CPMLab < InterfaceExperiment
         dt_period_nanos
         sample
         out_of_map_limits
-        wheelNode
-        wheelSub
-        gamepadNode
-        gamepadSub
-        visualize_manual_lane_change_counter
-        visualize_second_manual_lane_change_counter
-        g29_handler
-        g29_last_position
         pos_init
     end
     
@@ -29,8 +21,6 @@ classdef CPMLab < InterfaceExperiment
         function obj = CPMLab(scenario, veh_ids)
             obj = obj@InterfaceExperiment(scenario, veh_ids);
             obj.pos_init = false;
-            obj.visualize_manual_lane_change_counter = 0;
-            obj.visualize_second_manual_lane_change_counter = 0;
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.amount,1), zeros(obj.amount,1));
             if ispc
                 error('You are using a Windows machine, please do not select lab mode!')
@@ -86,46 +76,6 @@ classdef CPMLab < InterfaceExperiment
             while (~got_stop && ~got_start)
                 [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
             end
-            
-            if obj.scenario.options.is_mixed_traffic
-                if str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) ~= 0
-                    if obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Guided_mode
-                        % setup subscriber for joy package
-                        obj.wheelNode = ros2node("/wheel");
-                        obj.wheelSub = ros2subscriber(obj.wheelNode,"/j0");
-    
-                        % setup handler to rotate wheel to specified position
-                        obj.g29_handler = G29ForceFeedback();
-                        obj.g29_last_position = 0.01;
-                    else
-                        pathToScript = fullfile(pwd,'/experiment','expert_mode_script.sh');
-                        if obj.scenario.options.force_feedback_enabled
-                            feedback = 1;
-                        else
-                            feedback = 0;
-                        end
-    
-                        % ------------------------------------------
-                        % comment out both following lines to disable automatic execution of Expert Mode
-                        cmdStr = ['gnome-terminal --' ' ' pathToScript ' ' num2str(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) ' ' num2str(feedback)];
-                        system(cmdStr);
-                        % ------------------------------------------
-                    end
-                end           
-
-                if str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) ~= 0
-                    obj.gamepadNode = ros2node("/gamepad");
-                    obj.gamepadSub = ros2subscriber(obj.gamepadNode,"/j1");
-                end
-            end
-        end
-
-        function wheelData = getWheelData(obj)
-            wheelData = receive(obj.wheelSub, 1);
-        end
-
-        function gamepadData = getGamepadData(obj)
-            gamepadData = receive(obj.gamepadSub, 1);
         end
 
         function [ x0, trim_indices ] = measure(obj)
@@ -133,30 +83,37 @@ classdef CPMLab < InterfaceExperiment
             if (sample_count > 1)
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
+
+            x0 = zeros(obj.scenario.options.amount+obj.scenario.options.manual_control_config.amount,4);
             
             % for first iteration use real poses
-            if obj.pos_init == false
-                x0 = zeros(obj.scenario.options.amount,4);
-                pose = [obj.sample(end).state_list.pose];
-                for index = obj.indices_in_vehicle_list
-                    x0(index,1) = pose(index).x;
-                    x0(index,2) = pose(index).y;
-                    x0(index,3) = pose(index).yaw;
-                    x0(index,4) = [obj.sample(end).state_list(index).speed];
+            if (obj.pos_init == false)
+                for index = 1:length(state_list)
+                    if ismember(state_list(index).vehicle_id, obj.veh_ids) % measure cav states
+                        list_index = obj.indices_in_vehicle_list(index); % use list to prevent breaking distributed control
+                        x0(list_index,1) = state_list(index).pose.x;
+                        x0(list_index,2) = state_list(index).pose.y;
+                        x0(list_index,3) = state_list(index).pose.yaw;
+                        x0(list_index,4) = [state_list(index).speed];
+                    end
                 end
 
                 [ ~, trim_indices ] = obj.measure_node();
                 obj.pos_init = true;
             else
-                [ x0, trim_indices ] = obj.measure_node();
+                [ x0(1:obj.scenario.options.amount,:), trim_indices ] = obj.measure_node(); % get cav states from current node
+            end
 
-                % find out index of vehicle in Expert-Mode
-                indexVehicleExpertMode = 0;
-                for j = obj.indices_in_vehicle_list
-                    if ((obj.scenario.options.veh_ids(j) == str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) && obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
-                        || (obj.scenario.options.veh_ids(j) == str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) && obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode))
-                        indexVehicleExpertMode = j;
-                    end
+            % Always measure HDV
+            hdv_index = 1;
+            for index = 1:length(state_list)
+                if ismember(state_list(index).vehicle_id, obj.scenario.options.manual_control_config.hdv_ids)
+                    list_index = obj.scenario.options.amount+hdv_index; 
+                    hdv_index = hdv_index + 1;
+                    x0(list_index,1) = state_list(index).pose.x;
+                    x0(list_index,2) = state_list(index).pose.y;
+                    x0(list_index,3) = state_list(index).pose.yaw;
+                    x0(list_index,4) = [state_list(index).speed];
                 end
 
                 % use real poses for vehicle in Expert Mode
@@ -192,83 +149,22 @@ classdef CPMLab < InterfaceExperiment
                     trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points,2);
                 
                     yaw = y_pred{iVeh}(i_predicted_points,3);
-
-                    if ((obj.scenario.options.veh_ids(iVeh) == str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id)) && scenario.manual_mpa_initialized) ...
-                        || ((obj.scenario.options.veh_ids(iVeh) == str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id)) && scenario.second_manual_mpa_initialized)
-                        speed = scenario.vehicles(iVeh).vehicle_mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
-                    else
-                        speed = obj.scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
-                    end
                     
                     trajectory_points(i_traj_pt).vx = cos(yaw)*speed;
                     trajectory_points(i_traj_pt).vy = sin(yaw)*speed;
                 end
 
-                is_manual_vehicle_expert_mode = (obj.scenario.options.veh_ids(iVeh) == str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) && obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
-                    || ((obj.scenario.options.veh_ids(iVeh) == str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id) && obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode));
-                    
-                if (is_manual_vehicle_expert_mode)
-                    obj.out_of_map_limits(iVeh) = false;
-                else
-                    obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
-                end
-                
-                if ~is_manual_vehicle_expert_mode
-                    vehicle_command_trajectory = VehicleCommandTrajectory;
-                    vehicle_command_trajectory.vehicle_id = uint8(obj.scenario.options.veh_ids(iVeh));
-                    vehicle_command_trajectory.trajectory_points = trajectory_points;
-                    vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
-                        uint64(obj.sample(end).t_now);
-                    vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
-                        uint64(obj.sample(end).t_now + obj.dt_period_nanos + 1);
+                obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
 
-                    if (obj.scenario.options.veh_ids(iVeh) == str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id))
-                        if scenario.updated_manual_vehicle_path || obj.visualize_manual_lane_change_counter > 0
-    
-                            [visualization_command_line] = lab_visualizer(trajectory_points, 'laneChange');
-                            obj.writer_visualization.write(visualization_command_line);
+                vehicle_command_trajectory = VehicleCommandTrajectory;
+                vehicle_command_trajectory.vehicle_id = uint8(obj.scenario.options.veh_ids(iVeh));
+                vehicle_command_trajectory.trajectory_points = trajectory_points;
+                vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
+                    uint64(obj.sample(end).t_now);
+                vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
+                    uint64(obj.sample(end).t_now + obj.dt_period_nanos + 1);
 
-                            if obj.visualize_manual_lane_change_counter == 0
-                                obj.visualize_manual_lane_change_counter = 4;
-                            else
-                                obj.visualize_manual_lane_change_counter = obj.visualize_manual_lane_change_counter - 1;
-                            end
-                        end
-
-                        if scenario.options.visualizeReferenceTrajectory
-                            [visualization_command_line] = lab_visualizer(scenario.vehicles(iVeh).referenceTrajectory, 'referenceTrajectory');
-                            obj.writer_visualization.write(visualization_command_line);
-                        end
-
-                    elseif (obj.scenario.options.veh_ids(iVeh) == str2double(obj.scenario.options.mixed_traffic_config.second_manual_vehicle_id))
-                        if scenario.updated_second_manual_vehicle_path || obj.visualize_second_manual_lane_change_counter > 0
-
-                            [visualization_command_line] = lab_visualizer(trajectory_points, 'laneChange');
-                            obj.writer_visualization.write(visualization_command_line);
-
-                            if obj.visualize_second_manual_lane_change_counter == 0
-                                obj.visualize_second_manual_lane_change_counter = 4;
-                            else
-                                obj.visualize_second_manual_lane_change_counter = obj.visualize_second_manual_lane_change_counter - 1;
-                            end
-                        end
-
-                        if scenario.options.visualizeReferenceTrajectory
-                            [visualization_command_line] = lab_visualizer(scenario.vehicles(iVeh).referenceTrajectory, 'referenceTrajectory');
-                            obj.writer_visualization.write(visualization_command_line);
-                        end
-                    end
-
-                    obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
-                end
-
-                if  obj.scenario.options.veh_ids(iVeh) == str2double(obj.scenario.options.mixed_traffic_config.first_manual_vehicle_id) && obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Guided_mode
-                    if obj.scenario.options.force_feedback_enabled
-                        obj.g29_last_position = obj.g29_handler.g29_send_message(obj.sample(end).state_list(iVeh).steering_servo, 0.3, obj.g29_last_position); 
-                    else
-                        obj.g29_last_position = obj.g29_handler.g29_send_message(0.01, 0.3, obj.g29_last_position);
-                    end
-                end
+                obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
             end
         end
 
@@ -307,4 +203,3 @@ classdef CPMLab < InterfaceExperiment
         end
     end
 end
-

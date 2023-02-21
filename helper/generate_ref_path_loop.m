@@ -33,7 +33,7 @@ ref_path = struct;
                 loop = 1; starting_lanelet = 32;
             case 8
                 loop = 1; starting_lanelet = 28;
-    
+
             case 9
                 loop = 2; starting_lanelet = 1;
             case 10

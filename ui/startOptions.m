@@ -3,27 +3,6 @@ disp('App is executed, select your configuration there')
 %% Create UI and populate
 ui = CPMStartOptionsUI();
 
-% CPM Lab
-% FirstManualVehicleID
-firstManualVehicleID = list_first_manual_vehicle();i.FirstManualVehicleMVIDListBox.Items = firstManualVehicleID(:,1);
-
-% ControlModeFirstManualVehicle
-controlMode = list_control_mode();
-ui.ControlModeFirstMVListBox.Items = controlMode(:,2);
-
-% SecondManualVehicleID
-secondManualVehicleID = list_second_manual_vehicle();
-ui.SecondMVIDListBox.Items = secondManualVehicleID(:,1);
-
-% ControlModeSecondManualVehicle
-secondControlMode = list_control_mode();
-ui.ControlModeSecondMVListBox.Items = secondControlMode(:,2);
-
-% Collision Avoidance
-collisionAvoidance = list_collision_avoidance();
-ui.CollisionAvoidanceListBox.Items = collisionAvoidance(:,2);
-
-
 % Simulation
 % scenario
 scenario = list_scenario();
@@ -51,25 +30,17 @@ isParl = list_is_parl();
 ui.ParallelComputationDistributedExecutionListBox.Items = isParl(:,2);
 
 % change visibility of vehicle ID selection depending on environment selection
-ui.FirstManualVehicleMVIDListBox.ValueChangedFcn = @(~, ~) setControlModesVisibility(ui);
-ui.SecondMVIDListBox.ValueChangedFcn = @(~, ~) setSecondControlModesVisibility(ui);
 %ui.ControlStrategyListBox.ValueChangedFcn = @(~, ~) setVisualizationVisibility(ui);
 ui.EnvironmentButtonGroup.SelectionChangedFcn = @(~, ~) setCpmLabElementsVisibility(ui);
-ui.TrafficModeButtonGroup.SelectionChangedFcn = @(~, ~) setMixedTrafficElementsVisibility(ui);
-ui.ControlModeFirstMVListBox.ValueChangedFcn = @(~, ~) setForceFeedbackVisibility(ui);
+ui.AddHDVsCheckBox.ValueChangedFcn = @(~, ~) setManualControlElementsVisibility(ui);
 
 %% load previous choices, if possible
 try %#ok<TRYNC>
     previousSelection = load([tempdir 'scenarioControllerSelection']);
+    ui.AddHDVsCheckBox.Value = previousSelection.is_manual_control;
+    ui.AmountHDVsListBox.Value = previousSelection.hdv_amount_selection;
+    ui.HDVIDsEditField.Value = previousSelection.hdv_ids;
     ui.EnvironmentButtonGroup.SelectedObject = ui.EnvironmentButtonGroup.Buttons(previousSelection.environmentSelection);
-    ui.TrafficModeButtonGroup.SelectedObject =  ui.TrafficModeButtonGroup.Buttons(previousSelection.trafficModeSelection);
-    ui.ForceFeedbackFirstMVButtonGroup.SelectedObject = ui.ForceFeedbackFirstMVButtonGroup.Buttons(previousSelection.forceFeedbackSelection);
-    ui.ConsiderRSSRulesButtonGroup.SelectedObject = ui.ConsiderRSSRulesButtonGroup.Buttons(previousSelection.considerRSSSelection);
-    ui.FirstManualVehicleMVIDListBox.Value = previousSelection.firstManualVehicleIDSelection;
-    ui.ControlModeFirstMVListBox.Value = previousSelection.controlModeSelection;
-    ui.SecondMVIDListBox.Value = previousSelection.secondManualVehicleIDSelection;
-    ui.ControlModeSecondMVListBox.Value = previousSelection.secondControlModeSelection;
-    ui.CollisionAvoidanceListBox.Value = previousSelection.collisionAvoidanceSelection;
     ui.ParallelComputationDistributedExecutionListBox.Value = previousSelection.isParlSelection;
     ui.CustomVehicleIdsEditField.Value = previousSelection.veh_ids;
 
@@ -112,6 +83,7 @@ end
 
 %% Trigger UI change handles
 setCpmLabElementsVisibility(ui);
+setManualControlElementsVisibility(ui);
 
 %% Run App
 % wait until UI is closed or Start pressed
@@ -127,15 +99,7 @@ end
 disp('Configuration Setup App finished, extracting data')
 
 %% Extract Choices & Save for next time
-firstManualVehicleIDSelection = ui.FirstManualVehicleMVIDListBox.Value;
-secondManualVehicleIDSelection = ui.SecondMVIDListBox.Value;
-controlModeSelection = ui.ControlModeFirstMVListBox.Value;
-secondControlModeSelection = ui.ControlModeSecondMVListBox.Value;
-collisionAvoidanceSelection = ui.CollisionAvoidanceListBox.Value;
 environmentSelection = get_environment_selection(ui);
-trafficModeSelection = get_traffic_mode_selection(ui);
-forceFeedbackSelection = get_force_feedback_selection(ui);
-considerRSSSelection = get_rss_selection(ui);
 
 scenarioSelection = ui.ScenarioListBox.Value;
 controlStrategySelection = ui.ControlStrategyListBox.Value;
@@ -144,6 +108,10 @@ vehicleAmountSelection = ui.AmountofVehiclesListBox.Value;
 visualizationSelection = ui.TypeofVisualizationListBox_2.Value;
 isParlSelection = ui.ParallelComputationDistributedExecutionListBox.Value;
 veh_ids = ui.CustomVehicleIdsEditField.Value;
+hdv_ids = ui.HDVIDsEditField.Value;
+hdv_amount_selection = ui.AmountHDVsListBox.Value;
+is_manual_control = ui.AddHDVsCheckBox.Value;
+
 
 % sample time [s]
 dtSelection = ui.SampleTimesSpinner.Value;
@@ -165,52 +133,38 @@ isSaveResult = ui.SaveresultCheckBox.Value;
 customResultName = ui.CustomfilenameEditField.Value;
 % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
 isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
-save([tempdir 'scenarioControllerSelection'], 'firstManualVehicleIDSelection', 'controlModeSelection', 'secondManualVehicleIDSelection', 'secondControlModeSelection', 'collisionAvoidanceSelection',...
-    'environmentSelection', 'trafficModeSelection', 'forceFeedbackSelection', 'considerRSSSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
+save([tempdir 'scenarioControllerSelection'], 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
+    'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
     'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection', 'veh_ids', 'strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection', ...
     'isSaveResult','customResultName','isAllowInheritROW');
 
 %% Convert to legacy/outputs
 % initialize
 labOptions = Config();
-mixed_traffic_config_struct = struct;
 
-mixed_traffic_config_struct.first_manual_vehicle_id = firstManualVehicleID{...
-    strcmp({firstManualVehicleID{:, 1}}, firstManualVehicleIDSelection),...
-    1};
 
-mixed_traffic_config_struct.first_manual_vehicle_mode = controlMode{...
-    strcmp({controlMode{:, 2}}, controlModeSelection),...
-    1};
+manual_control_config = ManualControlConfig;
 
-mixed_traffic_config_struct.second_manual_vehicle_id = secondManualVehicleID{...
-    strcmp({secondManualVehicleID{:, 1}}, secondManualVehicleIDSelection),...
-    1};
+manual_control_config.amount = str2double(hdv_amount_selection)*is_manual_control;
 
-mixed_traffic_config_struct.second_manual_vehicle_mode = secondControlMode{...
-    strcmp({secondControlMode{:, 2}}, secondControlModeSelection),...
-    1};
+hdv_ids = ui.HDVIDsEditField.Value;
+if hdv_ids ~= "" && is_manual_control
+    hdv_ids(~isstrprop(hdv_ids,'digit')) = ' '; %replace non-numeric characters with empty space
+    manual_control_config.hdv_ids = str2double(strsplit(strtrim(hdv_ids)));
+else
+    manual_control_config.hdv_ids = [];
+end
 
-mixed_traffic_config_struct.collision_avoidance = (collisionAvoidance{...
-    strcmp({collisionAvoidance{:, 2}}, collisionAvoidanceSelection),...
-    1});
+assert(length(manual_control_config.hdv_ids)*is_manual_control == manual_control_config.amount*is_manual_control, ['Type in exactly ', num2str(manual_control_config.amount), ' HDV ID(s)']);
 
-mixed_traffic_config_struct.force_feedback = get_force_feedback_selection(ui, true);
-
-mixed_traffic_config_struct.consider_rss = get_rss_selection(ui, true);
-
-mixed_traffic_config = Mixed_traffic_config();
-mixed_traffic_config = mixed_traffic_config.assign_data(mixed_traffic_config_struct);
 
 %labOptions.is_eval = false;
 
 %labOptions.visualize_reachable_set = false;
 
-labOptions.mixed_traffic_config = mixed_traffic_config;
+labOptions.manual_control_config = manual_control_config;
 
 labOptions.is_sim_lab = ~get_environment_selection(ui, true);
-
-labOptions.is_mixed_traffic = get_traffic_mode_selection(ui, true);
 
 controlStrategyHelper = controlStrategy{...
     strcmp({controlStrategy{:, 2}}, controlStrategySelection),...
@@ -311,49 +265,9 @@ function out = get_environment_selection(ui, output_as_bool)
     end
 end
 
-function out = get_traffic_mode_selection(ui, output_as_bool)
+function out = get_add_hdv_selection(ui)
     % selection of traffic mode
-    out = ui.TrafficModeButtonGroup.SelectedObject == ui.TrafficModeButtonGroup.Buttons;
-    
-    % is mixed traffic selected
-    if nargin > 1 && output_as_bool
-        out = isequal([1 0], out);
-    end
-end
-
-function out = get_force_feedback_selection(ui, output_as_bool)
-    % selection of environment
-    out = ui.ForceFeedbackFirstMVButtonGroup.SelectedObject == ui.ForceFeedbackFirstMVButtonGroup.Buttons;
-    
-    % is force feedback selected
-    if nargin > 1 && output_as_bool
-        out = isequal([1 0], out);
-    end
-end
-
-function out = get_rss_selection(ui, output_as_bool)
-    % selection of environment
-    out = ui.ConsiderRSSRulesButtonGroup.SelectedObject == ui.ConsiderRSSRulesButtonGroup.Buttons;
-    
-    % is force feedback selected
-    if nargin > 1 && output_as_bool
-        out = isequal([1 0], out);
-    end
-end
-
-function out = get_first_manual_vehicle_selection(ui)
-    % true if no manual vehicle selected
-    out = strcmp(ui.FirstManualVehicleMVIDListBox.Value, 'No MV');
-end
-
-function out = get_first_control_mode_selection(ui)
-    % true if Guided-Mode selected
-    out = strcmp(ui.ControlModeFirstMVListBox.Value, 'Guided-Mode');
-end
-
-function out = get_second_manual_vehicle_selection(ui)
-    % true if no second manual vehicle selected
-    out = strcmp(ui.SecondMVIDListBox.Value, 'No second MV');
+    out = ui.AddHDVsCheckBox.Value;
 end
 
 function out = get_circle_selection(ui)
@@ -368,98 +282,18 @@ end
 
 function setCpmLabElementsVisibility(ui)
     % if lab mode is selected
-    if get_environment_selection(ui, true)
-        ui.TrafficModeButtonGroup.Visible = 'On';
-
-        ui.ScenarioListBox.Enable = 'On';
-        ui.ControlStrategyListBox.Enable = 'On';
-        ui.PriorityAssignmentMethodListBox.Enable = 'On';
-        ui.AmountofVehiclesListBox.Enable = 'On';
-        ui.TypeofVisualizationListBox_2.Enable = 'On';       
-    else
-        ui.TrafficModeButtonGroup.Visible = 'Off';
-        ui.FirstManualVehicleMVIDListBox.Enable = 'Off';
-        ui.ControlModeFirstMVListBox.Enable = 'Off';
-        ui.SecondMVIDListBox.Enable = 'Off';
-        ui.ControlModeSecondMVListBox.Enable = 'Off';
-        ui.CollisionAvoidanceListBox.Enable = 'Off';
-        ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
-        ui.ConsiderRSSRulesButtonGroup.Visible = 'Off';
-
-        ui.ScenarioListBox.Enable = 'On';
-        ui.ControlStrategyListBox.Enable = 'On';
-        ui.PriorityAssignmentMethodListBox.Enable = 'On';
-        ui.AmountofVehiclesListBox.Enable = 'On';
-        ui.TypeofVisualizationListBox_2.Enable = 'On';
-    end
+    is_cpm_lab_selection = get_environment_selection(ui, true);
+    ui.AddHDVsCheckBox.Enable = is_cpm_lab_selection;
+    ui.AddHDVsCheckBox.Value = ui.AddHDVsCheckBox.Value && is_cpm_lab_selection;
+    ui.AmountHDVsListBox.Enable = ui.AmountHDVsListBox.Enable && is_cpm_lab_selection;
+    ui.HDVIDsEditField.Enable = ui.HDVIDsEditField.Enable && is_cpm_lab_selection;
 end
 
-function setMixedTrafficElementsVisibility(ui)
-    % if mixed traffic is selected
-    if get_traffic_mode_selection(ui, true)
-        ui.FirstManualVehicleMVIDListBox.Enable = 'On';
-        ui.ControlModeFirstMVListBox.Enable = 'On';
-        ui.SecondMVIDListBox.Enable = 'On';
-        ui.ControlModeSecondMVListBox.Enable = 'On';
-        ui.CollisionAvoidanceListBox.Enable = 'On';
-        ui.ForceFeedbackFirstMVButtonGroup.Visible = 'On';
-        ui.ConsiderRSSRulesButtonGroup.Visible = 'On';
-
-        ui.ScenarioListBox.Enable = 'Off';
-        ui.ControlStrategyListBox.Enable = 'Off';
-        ui.PriorityAssignmentMethodListBox.Enable = 'Off';
-        ui.AmountofVehiclesListBox.Enable = 'Off';
-        ui.TypeofVisualizationListBox_2.Enable = 'Off';   
-    else
-        ui.FirstManualVehicleMVIDListBox.Enable = 'Off';
-        ui.ControlModeFirstMVListBox.Enable = 'Off';
-        ui.SecondMVIDListBox.Enable = 'Off';
-        ui.ControlModeSecondMVListBox.Enable = 'Off';
-        ui.CollisionAvoidanceListBox.Enable = 'Off';
-        ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
-        ui.ConsiderRSSRulesButtonGroup.Visible = 'Off';
-
-        ui.ScenarioListBox.Enable = 'On';
-        ui.ControlStrategyListBox.Enable = 'On';
-        ui.PriorityAssignmentMethodListBox.Enable = 'On';
-        ui.AmountofVehiclesListBox.Enable = 'On';
-        ui.TypeofVisualizationListBox_2.Enable = 'On';
-    end
-end
-
-function setControlModesVisibility(ui)
-    % if no manual vehicle is selected
-    if get_first_manual_vehicle_selection(ui)
-        ui.ControlModeFirstMVListBox.Enable = 'Off';
-        ui.SecondMVIDListBox.Enable = 'Off';
-        ui.ControlModeSecondMVListBox.Enable = 'Off';
-        ui.CollisionAvoidanceListBox.Enable = 'Off';
-        ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
-        ui.ConsiderRSSRulesButtonGroup.Visible = 'Off';
-    else
-        ui.ControlModeFirstMVListBox.Enable = 'On';
-        ui.SecondMVIDListBox.Enable = 'On'; 
-        ui.ControlModeSecondMVListBox.Enable = 'On';
-        ui.CollisionAvoidanceListBox.Enable = 'On';
-    end
-end
-
-function setSecondControlModesVisibility(ui)
-    if get_second_manual_vehicle_selection(ui)
-        ui.ControlModeSecondMVListBox.Enable = 'Off';
-    else
-        ui.ControlModeSecondMVListBox.Enable = 'On';
-    end
-end
-
-function setForceFeedbackVisibility(ui)
-    if get_first_control_mode_selection(ui)
-        ui.ForceFeedbackFirstMVButtonGroup.Visible = 'On';
-        ui.ConsiderRSSRulesButtonGroup.Visible = 'Off';
-    else
-        ui.ForceFeedbackFirstMVButtonGroup.Visible = 'Off';
-        ui.ConsiderRSSRulesButtonGroup.Visible = 'On';
-    end
+function setManualControlElementsVisibility(ui)
+    % if hdvs should be added
+    is_add_hdvs = get_add_hdv_selection(ui);
+    ui.AmountHDVsListBox.Enable = is_add_hdvs;
+    ui.HDVIDsEditField.Enable = is_add_hdvs;
 end
  
 % callback function if parallel computation is selected/unselected 
@@ -492,58 +326,6 @@ function setVisualizationVisibility(ui)
     end
 end
 %}
-
-function [ list ] = list_first_manual_vehicle
-    list = {...
-    'No MV', pi+pi; ...
-    '1', pi+pi*(1:2); ...
-    '2', pi+2*pi/3*(1:3); ...
-    '3', pi+2*pi/4*(1:4); ...
-    '4', pi+2*pi/5*(1:5); ...
-    '5', pi+2*pi/6*(1:6); ...
-    '6', pi+2*pi/7*(1:7); ...
-    '7', pi+2*pi/8*(1:8); ...
-    '8', pi+2*pi/9*(1:10); ...
-    '9', pi+2*pi/10*(1:10); ...
-    '10', pi+2*pi/11*(1:11); ...
-    '11', pi+2*pi/12*(1:12); ...
-    '12', pi+2*pi/13*(1:13); ...
-    '13', pi+2*pi/14*(1:14); ...
-    '14', pi+2*pi/15*(1:15); ...
-    '15', pi+2*pi/15*(1:16); ...
-    '16', pi+2*pi/15*(1:17); ...
-    '17', pi+2*pi/15*(1:18); ...
-    '18', pi+2*pi/15*(1:19); ...
-    '19', pi+2*pi/15*(1:20); ...
-    '20', pi+2*pi/15*(1:21); ...
-    };
-end
-
-function [ list ] = list_second_manual_vehicle
-    list = {...
-    'No second MV', pi+pi; ...
-    '1', pi+pi*(1:2); ...
-    '2', pi+2*pi/3*(1:3); ...
-    '3', pi+2*pi/4*(1:4); ...
-    '4', pi+2*pi/5*(1:5); ...
-    '5', pi+2*pi/6*(1:6); ...
-    '6', pi+2*pi/7*(1:7); ...
-    '7', pi+2*pi/8*(1:8); ...
-    '8', pi+2*pi/9*(1:10); ...
-    '9', pi+2*pi/10*(1:10); ...
-    '10', pi+2*pi/11*(1:11); ...
-    '11', pi+2*pi/12*(1:12); ...
-    '12', pi+2*pi/13*(1:13); ...
-    '13', pi+2*pi/14*(1:14); ...
-    '14', pi+2*pi/15*(1:15); ...
-    '15', pi+2*pi/15*(1:16); ...
-    '16', pi+2*pi/15*(1:17); ...
-    '17', pi+2*pi/15*(1:18); ...
-    '18', pi+2*pi/15*(1:19); ...
-    '19', pi+2*pi/15*(1:20); ...
-    '20', pi+2*pi/15*(1:21); ...
-    };
-end
  
 function [ list ] = list_is_parl 
     list = {... 
@@ -551,22 +333,6 @@ function [ list ] = list_is_parl
     '2', 'no'; ... 
     }; 
 end 
- 
-function [ list ] = list_collision_avoidance
-    list = {...
-    'Priority_based', 'Priority-based'; ...
-    'Reachability_Analysis_Guided_Mode', 'Reachability Analysis Guided-Mode'; ...
-    'Reachability_Analysis_Expert_Mode', 'Reachability Analysis Expert-Mode'; ...
-    };
-end
-
-%last column eaquals the values of the Control_Mode.m enum
-function [ list ] = list_control_mode
-    list = {...
-    'Guided_Mode', 'Guided-Mode'; ...
-    'Expert_Mode', 'Expert-Mode'; ...
-    };
-end
 
 function [ list ] = list_scenario
     list = {...

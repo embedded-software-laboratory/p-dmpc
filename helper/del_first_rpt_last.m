@@ -20,5 +20,10 @@ function [data_out] = del_first_rpt_last(data_in, repeat_times)
         repeat_times = 1; % default value
     end
 
-    data_out = horzcat(data_in(:,1+repeat_times:end), repmat(data_in(:,end),1,repeat_times));
+    try
+        data_out = horzcat(data_in(:,1+repeat_times:end), repmat(data_in(:,end),1,repeat_times));
+    catch
+        disp(data_in)
+        disp(repeat_times)
+    end
 end

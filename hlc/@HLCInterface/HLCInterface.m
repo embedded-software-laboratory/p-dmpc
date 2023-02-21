@@ -30,6 +30,8 @@ classdef (Abstract) HLCInterface < handle
         iter;
         info;
 
+        manual_vehicles;
+
     end
     properties (Access=protected)
         belonging_vector_total;
@@ -128,17 +130,16 @@ classdef (Abstract) HLCInterface < handle
 
             obj.vehs_fallback_times = zeros(1,obj.scenario.options.amount);
 
-            % TODO still needed?
-            if obj.scenario.options.is_mixed_traffic && ...
-               (obj.scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode || obj.scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode)
-                %r = rosrate(100000);
-            end
-
             if obj.scenario.options.isPB
                 % In priority-based computation, vehicles communicate via ROS 2
                 % Create publishers and subscribers before experiment setup
                 create_publishers(obj);
                 create_subscribers(obj);
+            end
+
+            % init all manually controlled vehicles
+            for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
+                obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
             end
 
             obj.hlc_adapter.setup();
@@ -173,7 +174,6 @@ classdef (Abstract) HLCInterface < handle
                     disp(['>>> Time step ' num2str(obj.k)])
                 end
 
-
                 % Control
                 % ----------------------------------------------------------------------
 
@@ -207,44 +207,6 @@ classdef (Abstract) HLCInterface < handle
                             || (obj.scenario.options.veh_ids(iVeh) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
                         [visualization_command] = lab_visualize_polygon(obj.scenario, obj.iter.reachable_sets{iVeh, end}.Vertices, iVeh);
                         obj.hlc_adapter.visualize(visualization_command);
-                    end
-                end
-
-                if obj.scenario.options.is_mixed_traffic
-                    if obj.scenario.manual_vehicle_id ~= 0
-                        if (obj.scenario.options.firstManualVehicleMode == 1)
-                            wheelData = obj.hlc_adapter.getWheelData();
-                            % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
-                            modeHandler = GuidedMode(obj.scenario,x0_measured,obj.scenario.manual_vehicle_id,obj.vehicle_ids,obj.cooldown_after_lane_change,obj.speedProfileMPAsInitialized,wheelData,true);
-                            obj.scenario = modeHandler.scenario; % TODO_DATA: Scenario changes here
-                            obj.scenario.updated_manual_vehicle_path = modeHandler.updatedPath;
-                            obj.speedProfileMPAsInitialized = true;
-                        end
-                    end
-
-                    if obj.scenario.second_manual_vehicle_id ~= 0
-                        % function that updates the gamepad data
-                        gamepadData = obj.hlc_adapter.getGamepadData();
-
-                        if (obj.scenario.options.secondManualVehicleMode == 1)
-                            % function that translates current steering angle into lane change and velocity profile inputs into velocity changes
-                            modeHandler = GuidedMode(obj.scenario,x0_measured,obj.scenario.second_manual_vehicle_id,obj.vehicle_ids,obj.cooldown_second_manual_vehicle_after_lane_change,obj.speedProfileMPAsInitialized,gamepadData,false);
-                            obj.scenario = modeHandler.scenario; % TODO_DATA: Scenario changes here
-                            obj.scenario.updated_second_manual_vehicle_path = modeHandler.updatedPath;
-                            obj.speedProfileMPAsInitialized = true;
-                        end
-                    end
-
-                    if obj.scenario.updated_manual_vehicle_path
-                        obj.cooldown_after_lane_change = 0;
-                    else
-                        obj.cooldown_after_lane_change = obj.cooldown_after_lane_change + 1;
-                    end
-
-                    if obj.scenario.updated_second_manual_vehicle_path
-                        obj.cooldown_second_manual_vehicle_after_lane_change = 0;
-                    else
-                        obj.cooldown_second_manual_vehicle_after_lane_change = obj.cooldown_second_manual_vehicle_after_lane_change + 1;
                     end
                 end
 

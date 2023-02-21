@@ -33,7 +33,29 @@ Please refer to the respective publication if you are using it for your work. Th
 
 <details>
 <summary>
-P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning," in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
+P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs", ResearchGate, Preprint, 2023, doi: 10.13140/RG.2.2.24697.13923
+<br>
+
+<!-- icons from https://simpleicons.org/ -->
+[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://dx.doi.org/10.13140/RG.2.2.24697.13923) 
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
+[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/G93nqfdmD48) 
+</summary>
+<p>
+
+The results of the publication can be reproduced by running
+```matlab
+startup()
+hdv_reachable_set_experiment()
+```
+The results are saved in the folder "results".
+
+</p>
+</details>
+
+<details>
+<summary>
+P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning", in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/TCST.2022.3214718) 
@@ -54,13 +76,21 @@ The results are saved in the folder "results".
 </p>
 </details>
 
-
 <details>
 <summary>
 References in Bibtex format
 </summary>
 <p>
+
 ```bibtex
+@article{scheffe2023scaled,
+    author = {Patrick Scheffe and Bassam Alrifaee},
+    title  = {A Scaled Experiment Platform to Study Interactions Between Humans and CAVs},
+    year   = {2023},
+    month  = {2},
+    doi    = {10.13140/RG.2.2.24697.13923}
+} 
+
 @article{scheffe2022receding,
     author  = {Patrick Scheffe and Matheus Vitor de Andrade Pedrosa and Kathrin Flaßkamp and Bassam Alrifaee},
     journal = {IEEE Transactions on Control Systems Technology}, 
@@ -72,6 +102,7 @@ References in Bibtex format
     doi     = {10.1109/TCST.2022.3214718}}
 }
 ```
+
 </p>
 </details>
 

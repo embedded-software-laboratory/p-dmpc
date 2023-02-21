@@ -1,4 +1,4 @@
-function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
+function scenario = commonroad(options,vehicle_ids,is_sim_lab)
 % Commonroad_Scenario   
 
     scenario = Scenario();
@@ -31,7 +31,7 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
         veh = Vehicle();
         veh.trim_config = 1;
 
-        if is_sim_lab || ~scenario.options.is_mixed_traffic
+        if is_sim_lab
             if isempty(options.reference_path.lanelets_index)
                 lanelets_index = [];
             else
@@ -40,13 +40,8 @@ function scenario = commonroad(options,vehicle_ids,mVehid,m2Vehid,is_sim_lab)
             ref_path = generate_ref_path_loop(vehicle_ids(iveh), scenario.lanelets, lanelets_index);% function to generate refpath based on CPM Lab road geometry
             %[ref_path, scenario] = generate_random_path(scenario, vehicle_ids(iveh), 20, (vehicle_ids(iveh)+31));
         else
-            if (mVehid == vehicle_ids(iveh) || m2Vehid == vehicle_ids(iveh))
-                % function to generate random path for manual vehicles based on CPM Lab road geometry
-                [ref_path, scenario] = generate_manual_path(scenario, vehicle_ids(iveh), 3, (vehicle_ids(iveh)+31), false);       
-            else
-                % function to generate random path for autonomous vehicles based on CPM Lab road geometry
-                [ref_path, scenario, veh.lane_change_indices, veh.lane_change_lanes] = generate_random_path(scenario, vehicle_ids(iveh), 3, (vehicle_ids(iveh)+31));
-            end
+            % function to generate random path for autonomous vehicles based on CPM Lab road geometry
+            [ref_path, scenario, veh.lane_change_indices, veh.lane_change_lanes] = generate_random_path(scenario, vehicle_ids(iveh), 3, (vehicle_ids(iveh)+31));
         end
         
 %         refPath = ref_path.path;

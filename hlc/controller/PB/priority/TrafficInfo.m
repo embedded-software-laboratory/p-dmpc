@@ -77,15 +77,8 @@ classdef TrafficInfo
                     % TODO: here was the reachable set coupling check, use adjacency which is need either way (to avoid double calculation)
                     if iter.adjacency(veh_i,veh_j)
                         % the selected two vehicles are considered as coupled
-                        if ~scenario.options.mixed_traffic_config.consider_rss &&((scenario.options.veh_ids(veh_i) == str2double(scenario.options.mixed_traffic_config.first_manual_vehicle_id) && scenario.options.mixed_traffic_config.first_manual_vehicle_mode == Control_Mode.Expert_mode) ...
-                            || (scenario.options.veh_ids(veh_i) == str2double(scenario.options.mixed_traffic_config.second_manual_vehicle_id) && scenario.options.mixed_traffic_config.second_manual_vehicle_mode == Control_Mode.Expert_mode))
-                            % Naive approach: not necessary to determine collision point and ROW, as manual vehicle has highest priority
-                            obj.coupling_weights(veh_i,veh_j) = 1;
-                            continue
-                        else
-                            overlap_reachable_sets = intersect(iter.reachable_sets{veh_i,end}, iter.reachable_sets{veh_j,end});
-                            obj = obj.get_coupling_info(scenario,iter,veh_i,veh_j,overlap_reachable_sets);
-                        end
+                        overlap_reachable_sets = intersect(iter.reachable_sets{veh_i,end}, iter.reachable_sets{veh_j,end});
+                        obj = obj.get_coupling_info(scenario,iter,veh_i,veh_j,overlap_reachable_sets);
                     end  
                 end
             end
@@ -165,7 +158,7 @@ classdef TrafficInfo
                         veh_info_j.lanelet_y = scenario.lanelets{pred_lan_j}(:,LaneletInfo.cy);
 
                         [lanelet_type,collision_type,is_continue,lanelet_relationship,is_find_lanelet_relationship,is_move_side_by_side] = ...
-                            obj.get_collision_and_lanelet_type(veh_info_i,veh_info_j,is_last_lan_pair,scenario.lanelet_relationships,overlap_reachable_sets, scenario.options.is_mixed_traffic);
+                            obj.get_collision_and_lanelet_type(veh_info_i,veh_info_j,is_last_lan_pair,scenario.lanelet_relationships,overlap_reachable_sets, scenario.options.is_manual_control);
 
                         if is_continue
                             continue
@@ -274,7 +267,7 @@ classdef TrafficInfo
 
 
         function [lanelet_type,collision_type,is_continue,lanelet_relationship,is_find_lanelet_relationship,is_move_side_by_side] = ...
-                get_collision_and_lanelet_type(obj,veh_info_i,veh_info_j,is_last_lan_pair,lanelet_relationships,overlap_reachable_sets, is_mixed_traffic)
+                get_collision_and_lanelet_type(obj,veh_info_i,veh_info_j,is_last_lan_pair,lanelet_relationships,overlap_reachable_sets, is_manual_control)
         
             % Initialize variables
             lanelet_type = struct('is_same',false,'is_left_or_right',false,'is_forking',false,'is_merging',false,'is_crossing',false,'is_longitudinal',false);
@@ -372,7 +365,7 @@ classdef TrafficInfo
                         lanelet_relationship.point = [x_centroid,y_centroid];
                     end
                 end
-            elseif lanelet_type.is_merging || (is_mixed_traffic && lanelet_type.is_left_or_right)
+            elseif lanelet_type.is_merging || (is_manual_control && lanelet_type.is_left_or_right)
                 % For two vehicles dirve at merging lanelets, both two collision types are possible:
                 % 1. Rear-end collision: if the difference between their distances to collision point is larger than a certain velue (such as 1.5*vehicleLength)
                 % 2. Side-impact collision: otherwise
