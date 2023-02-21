@@ -1,8 +1,19 @@
 # Create a Job
 
 - Go to gitlab-ci.yml
-- Add a Job:
+- Add a Job or extend another job
 
+### Job for a scenario test *with* code coverage data collection:
+```
+`JobName:
+  extends: .matlab_with coverage
+  variables:
+    TEST_FILES: "'file1', 'file2', ..., 'filen'"
+    COVERAGE_FOLDERS: "'folder1', 'folder2', ..., 'folderm"
+```
+As the overall code coverage value is computed as the average of all job coverages, tests for the same folders should be collected in one job to get a meaningful overall coverage value.
+
+### Job for a scenario test *without* code coverage data collection:
 ```
 `JobName:
   extends: .matlab_defaults
