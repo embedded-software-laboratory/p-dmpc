@@ -58,7 +58,7 @@ classdef CPMLab < InterfaceExperiment
             % Sync start with infrastructure
             % Send ready signal for all assigned vehicle ids
             disp('Sending ready signal');
-            for iVehicle = obj.veh_ids
+            for iVehicle = [obj.veh_ids,obj.scenario.options.manual_control_config.hdv_ids]    
                 ready_msg = ReadyStatus;
                 ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
                 ready_stamp = TimeStamp;
@@ -83,6 +83,8 @@ classdef CPMLab < InterfaceExperiment
             if (sample_count > 1)
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
+
+            state_list = obj.sample(end);
 
             x0 = zeros(obj.scenario.options.amount+obj.scenario.options.manual_control_config.amount,4);
             
@@ -114,15 +116,6 @@ classdef CPMLab < InterfaceExperiment
                     x0(list_index,2) = state_list(index).pose.y;
                     x0(list_index,3) = state_list(index).pose.yaw;
                     x0(list_index,4) = [state_list(index).speed];
-                end
-
-                % use real poses for vehicle in Expert Mode
-                if indexVehicleExpertMode ~= 0
-                    pose = [obj.sample(end).state_list.pose];
-                    x0(indexVehicleExpertMode,1) = [pose(1,indexVehicleExpertMode).x];
-                    x0(indexVehicleExpertMode,2) = [pose(1,indexVehicleExpertMode).y];
-                    x0(indexVehicleExpertMode,3) = [pose(1,indexVehicleExpertMode).yaw];
-                    x0(indexVehicleExpertMode,4) = [obj.sample(end).state_list(1,indexVehicleExpertMode).speed];
                 end
             end
         end

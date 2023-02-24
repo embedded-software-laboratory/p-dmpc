@@ -8,7 +8,8 @@ function rhc_init(obj, x_measured, trims_measured)
 
     % init HDV: compute current lanelet id and reachable sets intersected
     % with current & successor lane;
-    hdv_amount = obj.scenario.options.manual_control_config.amount;
+    hdv_amount = obj.scenario.options.manual_control_config.amount ...
+        * (~obj.scenario.options.is_sim_lab);
 
     for iHdv = 1:hdv_amount
 
