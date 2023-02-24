@@ -1,6 +1,7 @@
 # Reduce Gitlab Repository Size
 reference: https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html
 
+**In general it is always a good idea to first test the process on a duplicated repository (Export project and import as a new one).**
 
 ## Pre-Requisites
 - Install one of the following tools to filter large files from the history of a git repository:
@@ -29,9 +30,6 @@ including the full history
 2. Move into the newly cloned repository:
    
    ```cd project.git```
-3. Change to URL of the repository:
-
-    ```git remote set-url origin https://git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning.git```
 
 
 ## 3. Optional: Analyze the git repository's history for large files
@@ -63,6 +61,7 @@ to remove references to large commits, merge requests, pipelines and environment
 
   - purging specific file: ```java -jar path/to/bfg.jar --delete-files path/to/file```
   - purging files larger than a specific size: ```java -jar path/to/bfg.jar --strip-blobs-bigger-than 10M```
+  - purging the N largest files: ```java -jar path/to/bfg.jar --strip-biggest-blobs N```
 
   Afterwards, really delete the unwanted data with:
 
@@ -75,11 +74,13 @@ to remove references to large commits, merge requests, pipelines and environment
 
 ## 5. Push the changes to the remote repository
 
-1. Unprotect [protected branches](https://docs.gitlab.com/ee/user/project/protected_tags.html) and [tags](https://docs.gitlab.com/ee/user/project/protected_tags.html) (remember which ones to [restore](#4-reprotect-protected-branches-and-tags) them later):
+1. Add the URL of the remote repository:
+
+    ```git remote set-url origin https://git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning.git```
+2. Unprotect [protected branches](https://docs.gitlab.com/ee/user/project/protected_tags.html) and [tags](https://docs.gitlab.com/ee/user/project/protected_tags.html) (remember which ones to [restore](#4-reprotect-protected-branches-and-tags) them later):
 
     In the project on the left sidebar, select ```Settings > Repository```, expand ```Protected branches/tags``` and unprotect all branches/tags.
-2. Remove mirror option if step 9 :
-3.  Push all changes overwriting the remote repository:
+3. Push all changes overwriting the remote repository:
     - ```git push origin --force 'refs/heads/*'```
     - ```git push origin --force 'refs/tags/*'```
     - ```git push origin --force 'refs/replace/*'```
@@ -94,8 +95,8 @@ to remove references to large commits, merge requests, pipelines and environment
 ## 6. Cleanup Repository
 reference: https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html#repository-cleanup
 
-1. In the project on the left sidebar, select ```Settings > Repository```.
-2. Upload the ```commit-map``` file created by git-filter-repo.
+1. In the project on the left sidebar, select ```Settings > Repository``` and expand ```Repository cleanup```.
+2. Upload the ```commit-map``` file created by git-filter-repo or bgf.
 3. Select ```Start cleanup.```
 4. When completed, you get an email with the recalculated repository size.
 5. To see the reduction in storage utilization in the project statics, you might have to wait 5-10 minutes, as those are cached.
