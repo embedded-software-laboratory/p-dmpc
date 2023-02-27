@@ -1,6 +1,7 @@
 function result = map_position_to_closest_lanelets(lanelets, vehicle_x, vehicle_y)
 
     min_distance = inf;
+    offset = 0.1; % offset for mutiple closest lanelets
 
     for iLanelet = 1:length(lanelets)
         centerline = [
@@ -14,7 +15,7 @@ function result = map_position_to_closest_lanelets(lanelets, vehicle_x, vehicle_
         if min_distance_squared < min_distance
             min_distance = min_distance_squared;
             result = iLanelet;
-        elseif min_distance_squared == min_distance
+        elseif min_distance_squared <= min_distance+offset
             result = unique([result iLanelet]);
         end
     end
