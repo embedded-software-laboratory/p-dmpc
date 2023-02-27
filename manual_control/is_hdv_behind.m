@@ -14,7 +14,7 @@ function result = is_hdv_behind(lanelet_id_cav, x_cav, lanelet_id_hdv, x_hdv, la
         return;
     end
 
-    hdv_on_same_lanelet = (any(ismember(lanelet_id_hdv, lanelet_id_hdv)));
+    hdv_on_same_lanelet = (any(ismember(lanelet_id_hdv, lanelet_id_cav)));
     if hdv_on_same_lanelet
         vector_cav_hdv = x_hdv(1:2) - x_cav(1:2);
         vector_yaw = [cos(x_hdv(3)) sin(x_hdv(3))];
