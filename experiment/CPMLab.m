@@ -58,7 +58,7 @@ classdef CPMLab < InterfaceExperiment
             % Sync start with infrastructure
             % Send ready signal for all assigned vehicle ids
             disp('Sending ready signal');
-            for iVehicle = [obj.veh_ids,obj.scenario.options.manual_control_config.hdv_ids]    
+            for iVehicle = sort([obj.veh_ids,obj.scenario.options.manual_control_config.hdv_ids])    
                 ready_msg = ReadyStatus;
                 ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
                 ready_stamp = TimeStamp;
@@ -84,15 +84,17 @@ classdef CPMLab < InterfaceExperiment
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
 
-            state_list = obj.sample(end);
+            state_list = obj.sample(end).state_list;
 
             x0 = zeros(obj.scenario.options.amount+obj.scenario.options.manual_control_config.amount,4);
             
             % for first iteration use real poses
             if (obj.pos_init == false)
+                cav_index = 1;
                 for index = 1:length(state_list)
                     if ismember(state_list(index).vehicle_id, obj.veh_ids) % measure cav states
-                        list_index = obj.indices_in_vehicle_list(index); % use list to prevent breaking distributed control
+                        list_index = obj.indices_in_vehicle_list(cav_index); % use list to prevent breaking distributed control
+                        cav_index = cav_index + 1;
                         x0(list_index,1) = state_list(index).pose.x;
                         x0(list_index,2) = state_list(index).pose.y;
                         x0(list_index,3) = state_list(index).pose.yaw;
@@ -142,6 +144,8 @@ classdef CPMLab < InterfaceExperiment
                     trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points,2);
                 
                     yaw = y_pred{iVeh}(i_predicted_points,3);
+
+                    speed = scenario.mpa.trims(y_pred{iVeh}(i_predicted_points,4)).speed;
                     
                     trajectory_points(i_traj_pt).vx = cos(yaw)*speed;
                     trajectory_points(i_traj_pt).vy = sin(yaw)*speed;
