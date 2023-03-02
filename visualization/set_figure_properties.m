@@ -83,6 +83,13 @@ end
             catch
                 % continue
             end
+            try
+                set(h_graphic,...
+                    'FontSize',export_fig_config.fontsize,...
+                    'FontName',export_fig_config.fontname);
+            catch
+                % continue
+            end
         end
     end
     
