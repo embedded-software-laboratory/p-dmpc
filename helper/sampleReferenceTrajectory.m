@@ -1,4 +1,4 @@
-function [reference,curTrajectoryIndex] = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize, autoUpdatedPath, isParl, lastTrajectoryIndex, is_mixed_traffic)
+function [reference,curTrajectoryIndex] = sampleReferenceTrajectory(nSamples, referenceTrajectory, vehicle_x,vehicle_y, stepSize, auto_updated_path, isPB, lastTrajectoryIndex)
 % SAMPLEREFERENCETRAJETORY  Computes equidistant points along a piecewise linear curve. The first
 % point is the point on the curve closest to the given point
 % (vehicle_x,vehicle_y). All following points are on the curve with a
@@ -22,11 +22,6 @@ function [reference,curTrajectoryIndex] = sampleReferenceTrajectory(nSamples, re
 %     [~, ~, xp, yp, TrajectoryIndex ] = getShortestDistance(referenceTrajectory(:,1),referenceTrajectory(:,2),vehicle_x,vehicle_y);
     [~, ~, xp, yp, ~, ~, TrajectoryIndex ] = get_arc_distance_to_endpoint(vehicle_x,vehicle_y, referenceTrajectory(:,1),referenceTrajectory(:,2));
     curTrajectoryIndex = TrajectoryIndex; % store the trajectory index of the current position of the vehicle
-
-    % lanelet has at most 12 points, an index higher than 12 points compared to last index means we skipped a lane
-    if is_mixed_traffic && (TrajectoryIndex > (lastTrajectoryIndex + 12))
-        TrajectoryIndex = lastTrajectoryIndex + 1;
-    end
     
     nLinePieces = size(referenceTrajectory,1);
     currentPoint = [xp yp];
@@ -77,7 +72,7 @@ function [reference,curTrajectoryIndex] = sampleReferenceTrajectory(nSamples, re
 
                 if (Is_refPath_loop && Is_refPoint_last)
                     TrajectoryIndex = 1;
-                elseif (Is_refPoint_last && autoUpdatedPath)
+                elseif (Is_refPoint_last && auto_updated_path)
                     % to prevent endless loop if vehicle is closer to last lane after an automated update than to the first lane
                     TrajectoryIndex = 1;
                 end
@@ -90,7 +85,7 @@ function [reference,curTrajectoryIndex] = sampleReferenceTrajectory(nSamples, re
         % record step
         reference.ReferencePoints(i,:) = currentPoint;
 
-        if autoUpdatedPath && isParl
+        if auto_updated_path && isPB
             % if path has been updated automatically, set index manually to first lane
             reference.ReferenceIndex(i,:) = 2;
         else

@@ -144,21 +144,19 @@ classdef MotionPrimitiveAutomaton
                 
             % For parallel computation, reachability analysis are used
             offline_RA = tic;
-            % no need for reachability analysis if only one vehicle 
-            if options.isPB
-                is_calculate_reachable_sets_of_CP = false; % whether to calculate center point's reachable sets
-                if options.is_use_dynamic_programming
-                    % use dynamic programming
-                    [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
-                        reachability_analysis_offline_DP(obj,options.Hp,is_calculate_reachable_sets_of_CP);
-                else
-                    % otherwise use brute-force algorithm
-                    [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
-                        reachability_analysis_offline(obj,options.Hp,is_calculate_reachable_sets_of_CP);
-                end
+            % no need for reachability analysis if only one vehicle
+            is_calculate_reachable_sets_of_CP = false; % whether to calculate center point's reachable sets
+            if options.is_use_dynamic_programming
+                % use dynamic programming
+                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
+                    reachability_analysis_offline_DP(obj,options.Hp,is_calculate_reachable_sets_of_CP);
+            else
+                % otherwise use brute-force algorithm
+                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
+                    reachability_analysis_offline(obj,options.Hp,is_calculate_reachable_sets_of_CP);
             end
             obj.offline_reachability_computation_time = toc(offline_RA);
-            
+
             if options.is_save_mpa
                 save_mpa(obj,mpa_full_path); % save mpa to library
             end

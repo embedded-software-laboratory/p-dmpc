@@ -1,4 +1,4 @@
-function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanelets(scenario, iVeh, trim_current, x0, y0)
+function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanelets(scenario, iter, iVeh, x0, y0)
 % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
 % based on vehile's current states and reference path. 
 % 
@@ -21,21 +21,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
 % 
 %   v_ref: reference speed
 
-    % use index based on pose, as vehicle in Expert-Mode has no defined trajectory
-    if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id && scenario.options.firstManualVehicleMode == 2) ...
-        || (scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id && scenario.options.secondManualVehicleMode == 2))
-        predicted_lanelets = match_pose_to_lane(scenario, x0, y0);
-        reference = [];
-        v_ref = 0;
-        return
-    end
-
-    if ((scenario.vehicle_ids(iVeh) == scenario.manual_vehicle_id) && scenario.manual_mpa_initialized) ...
-        || ((scenario.vehicle_ids(iVeh) == scenario.second_manual_vehicle_id) && scenario.second_manual_mpa_initialized)
-        mpa = scenario.vehicles(iVeh).vehicle_mpa;
-    else
-        mpa = scenario.mpa;
-    end
+    mpa = scenario.mpa;
  
     Hp = size(mpa.transition_matrix_single,3);
 
@@ -49,10 +35,9 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
         x0, ...                                             % vehicle position x
         y0, ...                                             % vehicle position y
         v_ref*scenario.options.dt, ...                                       % distance traveled in one timestep
-        scenario.vehicles(iVeh).autoUpdatedPath, ...        % if the path has been updated automatically
-        scenario.options.isParl, ...                        % parallel computation
-        scenario.vehicles(iVeh).last_trajectory_index, ...  % last trajectory index of vehicle
-        scenario.options.is_mixed_traffic...                % prevent loops in mixed traffic
+        iter.auto_updated_path(iVeh), ...        % if the path has been updated automatically
+        scenario.options.isPB, ...                        % parallel computation
+        iter.last_trajectory_index(iVeh) ...  % last trajectory index of vehicle
     );
 
     ref_points_index = reshape(reference.ReferenceIndex,Hp,1);
@@ -75,7 +60,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
 
         predicted_lanelets_idx = unique(predicted_lanelets_idx,'stable'); % use 'stable' to keep the order
 
-        if scenario.options.isParl
+        if scenario.options.isPB
             % at least two lanelets needed to predicted if parallel computation is used
             if length(predicted_lanelets_idx) == 1
                 % at least predict two lanelets to avoid that the endpoint of the

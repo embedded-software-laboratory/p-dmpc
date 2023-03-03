@@ -8,10 +8,10 @@ function isValid = check_lanelet_boundary(scenario, boundary, shapes)
     boundary_points_right = boundary{1,2};
     lanes = [];
 
-    %currentLane = match_pose_to_lane(scenario.vehicles.x_position, scenario.vehicles.y_position);
+    %currentLane = map_position_to_closest_lanelets(scenario.vehicles.x_position, scenario.vehicles.y_position);
 
     for i = 1:length(shapes)
-        shapeLane = match_pose_to_lane(scenario, shapes(1,i), shapes(2,i));
+        shapeLane = map_position_to_closest_lanelets(scenario.road_raw_data.lanelet, shapes(1,i), shapes(2,i));
 
         if ~ismember(shapeLane, lanes)
             lanes = [lanes; shapeLane];

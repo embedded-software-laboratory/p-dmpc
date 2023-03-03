@@ -10,6 +10,7 @@
 Install MATLAB R2022a with the following toolboxes:
 - Statistics and Machine Learning Toolbox
 - ROS Toolbox
+- Parallel Computing Toolbox
 ## System Requirements for MATLAB ROS 2 Toolbox
 In our priority-based trajectory planning, vehicles communicate using the MATLAB ROS 2 toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python software, CMake software, and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).  
 For MATLAB R2022a
@@ -23,36 +24,38 @@ For MATLAB R2022a
         * Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) community version is sufficient. Select "Desktop development with C++" during the installation.
     2. Configure your C++ compiler using `mex -setup` in the MATLAB command window.
 
+# Run Exeriments
+
+See [here](/doc/Run_Experiments.md)
+
 # References
 Please refer to the respective publication if you are using it for your work. Thank you very much!
 
 <details>
 <summary>
-P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority Assignment in Distributed MPC," TechRxiv, Preprint, https://doi.org/10.36227/techrxiv.20304015.v1.
+P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs", ResearchGate, Preprint, 2023, doi: 10.13140/RG.2.2.24697.13923
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
-[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://doi.org/10.36227/techrxiv.20304015.v1) 
+[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://dx.doi.org/10.13140/RG.2.2.24697.13923) 
 [![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
-[![Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4847598/tree)
+[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/G93nqfdmD48) 
 </summary>
 <p>
 
 The results of the publication can be reproduced by running
 ```matlab
 startup()
-eval_coloring_paper()
+hdv_reachable_set_experiment()
 ```
 The results are saved in the folder "results".
 
 </p>
 </details>
 
-
 <details>
 <summary>
-P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning," in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
-<br>
+P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning", in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/TCST.2022.3214718) 
@@ -73,7 +76,6 @@ The results are saved in the folder "results".
 </p>
 </details>
 
-
 <details>
 <summary>
 References in Bibtex format
@@ -81,12 +83,12 @@ References in Bibtex format
 <p>
 
 ```bibtex
-@article{scheffe2022reducing,
-    author = {Patrick Scheffe and Julius Kahle and Bassam Alrifaee},
-    title  = {{Reducing Computation Time with Priority Assignment in Distributed MPC}},
-    year   = {2022},
-    month  = {7},
-    doi    = {10.36227/techrxiv.20304015.v1}
+@article{scheffe2023scaled,
+    author = {Patrick Scheffe and Bassam Alrifaee},
+    title  = {A Scaled Experiment Platform to Study Interactions Between Humans and CAVs},
+    year   = {2023},
+    month  = {2},
+    doi    = {10.13140/RG.2.2.24697.13923}
 } 
 
 @article{scheffe2022receding,

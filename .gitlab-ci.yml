@@ -3,18 +3,66 @@ stages:
 
 .matlab_defaults:
   image:
-    name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab_with_ros:latest
+    name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab:test
     entrypoint: [""]
+
+.matlab_with_coverage:
+  extends: .matlab_defaults
+  stage: Test
   variables:
-    MLM_LICENSE_FILE: 50022@license3.rz.rwth-aachen.de
-    
+    TEST_FILES:
+      description: "List of strings containing the paths to the different test files."
+    COVERAGE_FOLDERS:
+      description: "List of strings containing the folders to compute the code coverage for."
+  script:
+    - echo "Testing files $TEST_FILES."
+    - echo "Generating code coverage for folders $COVERAGE_FOLDERS."
+    - matlab -batch
+       "openProject('graph_based_planning.prj');
+        [results, coverage] = test_with_code_coverage({$TEST_FILES}, {$COVERAGE_FOLDERS});
+        fprintf('Code coverage %s%%\n', coverage);
+        assertSuccess(results);"
+  coverage: /Code coverage ([\.\d]*)%/
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: tests/coverage/coverageReport.xml
+  tags:
+    - docker
 
 
-Intersect unittest:
+Startup unittest:
   extends: .matlab_defaults
   stage: Test
   script:
-    - ls
-    - matlab -batch "startup(); results = runtests('tests/intersect_unittest.m'); assertSuccess(results);"
+    - matlab -batch "mex -setup C; mex -setup C++; openProject('graph_based_planning.prj')"
+  tags:
+    - docker
+
+
+Helper Tests:
+  extends: .matlab_with_coverage
+  variables:
+    TEST_FILES: "'tests/coupling_lanelets_unittest.m'"
+    COVERAGE_FOLDERS: "'helper'"
+
+
+Lanelets Tests:
+  extends: .matlab_with_coverage
+  variables:
+    TEST_FILES: "'tests/intersect_unittest.m'"
+    COVERAGE_FOLDERS: "'lanelets'"
+
+
+Scenario Unittest:
+  extends: .matlab_defaults
+  stage: Test
+  script:
+    - matlab -batch "openProject('graph_based_planning.prj'); results = runtests('tests/scenario_unittest.m'); assertSuccess(results);"
+  artifacts:
+    paths:
+      - results/
+    expire_in: 1 week  
   tags:
     - docker

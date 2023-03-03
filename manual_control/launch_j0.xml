@@ -1,0 +1,9 @@
+<?xml version='1.0'?>
+<launch>
+    <node pkg='joy' name='joy0' exec='joy_node'>
+        <param name='dev' value='/dev/input/js0'/>
+        <param name='default_trig_val' value='true'/>
+        <param name='coalesce_interval' value='0.02'/>
+        <remap from='joy' to='j0'/>
+    </node>
+</launch>

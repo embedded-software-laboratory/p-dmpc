@@ -60,14 +60,12 @@ end
     options.T_end = 180;
     options.Hp = 8;
     options.isPB = true;
-    options.isParl = true;
     options.is_sim_lab = true;
     options.visu = [visu_options.do_plot_online, false];
     options.strategy_consider_veh_without_ROW = '2'; % '2': consider currently occupied area as static obstacle
     options.isAllowInheritROW = true;
     options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area 
     options.collisionAvoidanceMode = 1;
-    options.consider_RSS = false;
     options.isSaveResult = 1;
     options.isSaveResultReduced = 1;
     options.scenario_name = 'Commonroad';

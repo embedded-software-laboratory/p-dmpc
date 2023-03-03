@@ -2,7 +2,6 @@
 
 % prepare simulation options
 options = OptionsMain;
-options.consider_RSS = false;
 options.is_sim_lab = true;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
@@ -14,7 +13,6 @@ options.dt = 0.2;
 options.max_num_CLs = 2;
 options.priority = 'STAC_priority';
 options.isPB = true;
-options.isParl = true;
 options.isAllowInheritROW = false;
 options.isSaveResult = false
 options.isSaveResultReduced = true;

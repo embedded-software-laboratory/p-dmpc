@@ -2,7 +2,6 @@
 %% two vehicles, parallel planning, visualize reachable sets
 % prepare simulation options
 options = OptionsMain;
-options.consider_RSS = false;
 options.is_sim_lab = true;
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;
@@ -13,7 +12,6 @@ options.dt = 0.2;
 
 options.priority = 'STAC_priority';
 options.isPB = true;
-options.isParl = true;
 options.isAllowInheritROW = false;
 options.isSaveResult = true;
 options.isSaveResultReduced = false;

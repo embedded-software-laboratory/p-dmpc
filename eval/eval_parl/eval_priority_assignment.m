@@ -3,7 +3,6 @@ priority_assign_options = {'STAC_priority','random_priority','constant_priority'
 
 % prepare simulation options
 options = OptionsMain;
-options.consider_RSS = false;
 options.is_sim_lab = true;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
@@ -12,7 +11,6 @@ options.Hp = 5;
 options.dt = 0.2;
 options.T_end = 20;
 options.isPB = true;
-options.isParl = true;
 options.isAllowInheritROW = false;
 options.max_num_CLs = 4;
 options.strategy_consider_veh_without_ROW = '3';
@@ -128,7 +126,6 @@ e_differentNumVehs{1}.save_fig(fig,file_name)
 priority_assign_options = {'STAC_priority','random_priority','constant_priority'};
 % prepare simulation options
 options = OptionsMain;
-options.consider_RSS = false;
 options.is_sim_lab = true;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
@@ -137,7 +134,6 @@ options.Hp = 5;
 options.dt = 0.2;
 options.T_end = 20;
 options.isPB = true;
-options.isParl = true;
 options.isAllowInheritROW = false;
 options.max_num_CLs = 4;
 options.strategy_consider_veh_without_ROW = '3';

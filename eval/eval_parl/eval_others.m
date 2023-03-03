@@ -138,7 +138,6 @@ EvaluationParl.save_fig(fig,file_name)
 %%
 % prepare simulation options
 options = OptionsMain;
-options.consider_RSS = false;
 options.is_sim_lab = true;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
@@ -147,7 +146,6 @@ options.Hp = 5;
 options.dt = 0.2;
 options.T_end = 20;
 options.isPB = true;
-options.isParl = true;
 options.isAllowInheritROW = true;
 options.max_num_CLs = 3;
 options.strategy_consider_veh_without_ROW = '3';
@@ -173,7 +171,6 @@ options.trim_set = 9;
 options.Hp = 5;
 options.amount = 20;
 options.isPB = true;
-options.isParl = true;
 options.dt = 0.2;
 options.recursive_feasibility = true;
 
@@ -270,7 +267,6 @@ options.trim_set = 13;
 options.Hp = 4;
 options.amount = 20;
 options.isPB = true;
-options.isParl = true;
 options.dt = 0.2;
 options.recursive_feasibility = true;
 options.is_use_dynamic_programming = false;
@@ -384,7 +380,6 @@ options.trim_set = 13;
 options.Hp = 4;
 options.amount = 20;
 options.isPB = true;
-options.isParl = true;
 options.dt = 0.2;
 options.recursive_feasibility = true;
 options.is_use_dynamic_programming = false;

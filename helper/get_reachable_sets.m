@@ -58,7 +58,7 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
             end
         end
 
-        if isempty(ploy_reachable_sets.Vertices) && options.consider_RSS
+        if isempty(ploy_reachable_sets.Vertices)
             % empy reachable set due to intersection with wrong lanelet boundary
             % restore reachable set
             ploy_reachable_sets = polyshape(reachable_set_x, reachable_set_y, 'Simplify', false);

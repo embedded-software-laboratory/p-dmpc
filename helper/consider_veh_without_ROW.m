@@ -36,16 +36,16 @@ function scenario_v = consider_veh_without_ROW(scenario_v, iter, all_coupling_ve
                 scenario_v.obstacles(end+1) = reachable_sets_LP_array;
             case '3'
                 % old trajectory as dynamic obstacle
-                latest_msg_LP = scenario_v.ros_subscribers{veh_LP}.LatestMessage;
+                latest_msg_LP = scenario_v.ros_subscribers.predictions{veh_LP}.LatestMessage;
                 if latest_msg_LP.time_step > 0
                     % the message does not come from the initial time step
                     predicted_areas_LP = arrayfun(@(array) {[array.x';array.y']}, latest_msg_LP.predicted_areas);
-                    shift_step = scenario_v.k - latest_msg_LP.time_step; % times that the prediction should be shifted and the last prediction should be repeated
+                    shift_step = iter.k - latest_msg_LP.time_step; % times that the prediction should be shifted and the last prediction should be repeated
                     if shift_step > 1
                         disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_i) ', considered vehicle: ' num2str(veh_LP)])
                     end
                     predicted_areas_LP = del_first_rpt_last(predicted_areas_LP(:)', shift_step);
-                    scenario_v.dynamic_obstacle_area(end+1,:) = predicted_areas_LP;
+                    iter.dynamic_obstacle_area(end+1,:) = predicted_areas_LP;
                 end
             case '4'
                 % consider the occupied area of emergency braking maneuver as static obstacle

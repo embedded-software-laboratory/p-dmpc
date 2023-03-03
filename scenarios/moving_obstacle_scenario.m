@@ -18,7 +18,7 @@ function scenario = moving_obstacle_scenario(options)
     veh.referenceTrajectory = [veh.x_start veh.y_start;veh.x_goal veh.y_goal];
     
     scenario.vehicles = veh;
-    scenario.vehicle_ids = 1;
+    scenario.options.veh_ids = 1;
     
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
 
@@ -44,7 +44,7 @@ function scenario = moving_obstacle_scenario(options)
 
     
     nVeh = 1;
-    scenario.adjacency = zeros(nVeh,nVeh);
+    %scenario.adjacency = zeros(nVeh,nVeh);
     scenario.assignPrios = true;
     scenario.controller_name = strcat(scenario.controller_name, '-centralized');
     scenario.options.isPB = false;

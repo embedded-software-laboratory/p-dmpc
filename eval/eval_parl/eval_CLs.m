@@ -1,7 +1,6 @@
 %% Generate data: different allowed number of computation levels and different sample time
 % prepare simulation options
 options = OptionsMain;
-options.consider_RSS = false;
 options.is_sim_lab = true;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
@@ -10,7 +9,6 @@ options.Hp = 6;
 options.T_end = 8;
 options.priority = 'STAC_priority';
 options.isPB = true;
-options.isParl = true;
 options.isAllowInheritROW = false;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '1';

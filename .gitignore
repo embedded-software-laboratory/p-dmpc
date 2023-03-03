@@ -1,5 +1,6 @@
 # Ignore output
 results/
+profile_results
 
 # Ignore PDF file
 *.pdf
@@ -134,3 +135,6 @@ $RECYCLE.BIN/
 *.mp4
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,windows,matlab,visualstudiocode
+ui/Config.json
+
+Config.json
