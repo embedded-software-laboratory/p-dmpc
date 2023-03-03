@@ -21,13 +21,10 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
             for iSeed = 1:nSeeds
                 scenarios(iVeh, iSeed).options.priority = ...
                     algorithm{i_priority};
-                scenarios(iVeh, iSeed).controller_name = strcat( ...
-                    "seq. PB-RHGS ", ...
-                    algorithm{i_priority} ...
-                );
                 % run simulation
                 results_full_path = FileNameConstructor.get_results_full_path( ...
-                scenarios(iVeh, iSeed).options ...
+                scenarios(iVeh, iSeed).options, ...
+                1:iVeh ...
                 );
 
                 if isfile(results_full_path)
@@ -36,7 +33,7 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
                     result = r.result;
                 else
                     % run simulation
-                    [result, ~, ~] = main(scenarios(iVeh, iSeed));
+                    result = main(scenarios(iVeh, iSeed));
                 end
 
                 results{iVeh, i_priority, iSeed} = clean_result(result);
@@ -58,7 +55,7 @@ end
 function result = clean_result(result_in)
     result.scenario = result_in.scenario;
     result.is_deadlock = result_in.is_deadlock;
-    result.priority = result_in.priority;
+    %result.priority = result_in.priority;
     result.t_total = result_in.t_total;
     result.nSteps = result_in.nSteps;
     result.controller_runtime = result_in.controller_runtime;
