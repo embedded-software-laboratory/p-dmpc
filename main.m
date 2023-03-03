@@ -4,23 +4,22 @@ function [result, scenario] = main(varargin)
     if verLessThan('matlab','9.12')
         warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
     end
-    
-    
-    % check if Config object is given as input
-    options = read_object_from_input(varargin,'Config');
-    % If options are not given, determine from UI
-    if isempty(options)
-        try
-            options = startOptions();
-        catch ME
-            warning(ME.message);
-            return
-        end
-    end
-    
+
     % check if Scenario object is given as input
     scenario = read_object_from_input(varargin, 'Scenario');
+    % check if Config object is given as input
+    options = read_object_from_input(varargin,'Config');
+    
+    % If options are not given, determine from UI
     if isempty(scenario)
+        if isempty(options)
+            try
+                options = startOptions();
+            catch ME
+                warning(ME.message);
+                return
+            end
+        end
         random_seed = RandStream('mt19937ar');
         scenario = create_scenario(options, random_seed);
     end
