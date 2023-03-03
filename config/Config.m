@@ -3,7 +3,7 @@ classdef Config
     properties
         is_sim_lab = true;              % true/false, is simulation or lab experiment
         is_manual_control = false;       % true/false, are manually controlled vehicles involved
-        manual_control_config ManualControlConfig; % manual control config
+        manual_control_config ManualControlConfig = ManualControlConfig; % manual control config
         isPB = true;            % true/false, is prioritize vehicles
         amount = 20;            % integer, number of vehicles, does not include manual vehicles
         angles                  % 1-by-nVeh scalar vector
