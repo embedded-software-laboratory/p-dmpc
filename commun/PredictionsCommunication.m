@@ -57,7 +57,7 @@ classdef PredictionsCommunication
                 vehs_fallback = int32.empty();
             end
             
-            obj.msg_to_be_sent.vehs_fallback = vehs_fallback; % which vehicles should take fallback
+            obj.msg_to_be_sent.vehs_fallback = int32(vehs_fallback); % which vehicles should take fallback
 
             for i = 1:length(predicted_areas)
                 obj.msg_to_be_sent.predicted_areas(i).x = predicted_areas{i}(1,:)';
