@@ -3,7 +3,7 @@ function collision = collision_with(iter, index, shapes, shapes_for_lanelet_chec
 
     collision = false;
     
-    obstacles = scenario.obstacles;
+    obstacles = iter.obstacles;
             
     nobs = numel(obstacles);
     for i = 1:nobs

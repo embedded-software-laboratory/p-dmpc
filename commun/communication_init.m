@@ -19,13 +19,16 @@ if ~hlc.scenario.options.is_manual_control
     for veh_index = hlc.indices_in_vehicle_list
         predicted_trims = repmat(trims_measured(veh_index), 1, Hp+1); % current trim and predicted trims in the prediction horizon
 
-        x0 = x0_measured(veh_index,indices().x); % vehicle position x
-        y0 = x0_measured(veh_index,indices().y); % vehicle position y
-        heading = x0_measured(veh_index,indices().heading);
-        speed = x0_measured(veh_index,indices().speed);
+        hlc.iter.x0(veh_index,:) = x0_measured(veh_index,:);
+        % get own trim
+        hlc.iter.trim_indices(veh_index) = trims_measured(veh_index);
+        x0 = hlc.iter.x0(veh_index, indices().x);
+        y0 = hlc.iter.x0(veh_index, indices().y);
+        heading = hlc.iter.x0(veh_index, indices().heading);
+        speed = hlc.iter.x0(veh_index, indices().speed);
         current_pose = [x0,y0,heading,speed];
 
-        predicted_lanelets = get_predicted_lanelets(hlc.scenario, hlc.iter, veh_index,x0,y0);
+        predicted_lanelets = get_predicted_lanelets(hlc.scenario, hlc.iter, veh_index, x0, y0);
 
         % get vehicles currently occupied area
         x_rec1 = [-1, -1,  1,  1, -1] * (hlc.scenario.vehicles(veh_index).Length/2 + hlc.scenario.options.offset); % repeat the first entry to enclose the shape

@@ -14,6 +14,7 @@ classdef PbControllerSeq < PbControllerInterface
             runtime_others = obj.init_step();
 
             msg_send_time = zeros(1,obj.amount);
+            runtime_planning = zeros(1, obj.amount);
 
             for level_j = 1:length(obj.CL_based_hierarchy)
                 vehs_level_i = obj.CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
@@ -26,7 +27,7 @@ classdef PbControllerSeq < PbControllerInterface
                     end
                     
                     % plan for vehicle_idx
-                    obj.plan_single_vehicle(vehicle_idx);
+                    runtime_planning(vehicle_idx) = obj.plan_single_vehicle(vehicle_idx);
                 end
 
                 % Communicate data to other vehicles
@@ -35,11 +36,12 @@ classdef PbControllerSeq < PbControllerInterface
                 end
             end
 
-            obj.info.runtime_graph_search_each_veh = obj.info.runtime_graph_search_each_veh + msg_send_time;
             % Calculate the total runtime of each group
-            obj.info = get_run_time_total_all_grps(obj.info, obj.iter.parl_groups_info, obj.CL_based_hierarchy, runtime_others);
+            obj.info = get_run_time_total_all_grps(obj.info, ...
+                obj.iter.parl_groups_info, obj.CL_based_hierarchy, ...
+                msg_send_time, runtime_others, runtime_planning);
 
-            obj.scenario.lanelet_crossing_areas = obj.lanelet_crossing_areas;
+            obj.iter.lanelet_crossing_areas = obj.lanelet_crossing_areas;
         end
     end
 end

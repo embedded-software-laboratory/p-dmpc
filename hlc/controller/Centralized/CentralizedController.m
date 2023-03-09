@@ -25,6 +25,7 @@ classdef CentralizedController < HLCInterface
             end
 
             obj.info.runtime_subcontroller_each_veh = toc(subcontroller_timer);
+            obj.info.runtime_graph_search_each_veh = obj.info.runtime_subcontroller_each_veh;
             % for centralize controller, all vehicles are in the same group
             obj.info.runtime_subcontroller_each_grp = obj.info.runtime_subcontroller_each_veh;
             obj.info.runtime_subcontroller_max = obj.info.runtime_subcontroller_each_veh;
