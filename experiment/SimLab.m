@@ -16,7 +16,6 @@ classdef SimLab < InterfaceExperiment
             obj.doExploration = obj.scenario.options.visu(2);
             obj.use_visualization_data_queue = false;    
             obj.visualization_data_queue = visualization_data_queue;
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
         end
         
         function setup(obj)

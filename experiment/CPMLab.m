@@ -21,7 +21,6 @@ classdef CPMLab < InterfaceExperiment
         function obj = CPMLab(scenario, veh_ids)
             obj = obj@InterfaceExperiment(scenario, veh_ids);
             obj.pos_init = false;
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.amount,1), zeros(obj.amount,1));
             if ispc
                 error('You are using a Windows machine, please do not select lab mode!')
             end

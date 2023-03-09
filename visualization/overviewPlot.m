@@ -12,7 +12,7 @@ end
 scenario = result.scenario;
 
 nVeh = scenario.options.amount;
-nObst = size(scenario.obstacles,2);
+nObst = size(result.obstacles,2);
 nDynObst = size(scenario.dynamic_obstacle_fullres,1);
 
 
@@ -49,8 +49,8 @@ for step = 1:nFigs
     
         % Obstacle rectangle
         for obs = 1:nObst
-            patch(   scenario.obstacles{obs}(1,:)...
-                    ,scenario.obstacles{obs}(2,:)...
+            patch(   result.obstacles{obs}(1,:)...
+                    ,result.obstacles{obs}(2,:)...
                     ,[0.5 0.5 0.5]...
             );
         end

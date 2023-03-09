@@ -18,10 +18,10 @@ function [collision] = collision_check_InterX(iter, shape, scenario, iStep)
     collision = false;
     
     % get static occupied areas of the considered vehicles
-    static_obstacles = scenario.obstacles;
+    static_obstacles = iter.obstacles;
 
     % get intersecting areas of lanelets
-    lanelet_crossing_areas = scenario.lanelet_crossing_areas;
+    lanelet_crossing_areas = iter.lanelet_crossing_areas;
     
     % get predicted occupied areas of the coupling vehicles in the current time step
     [~, n_occupiedAreas_Hp] = size(iter.dynamic_obstacle_area);

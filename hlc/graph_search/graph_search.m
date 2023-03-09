@@ -80,7 +80,6 @@ function info = graph_search(scenario, iter)
                 info.is_exhausted = false;
                 info.is_semi_exhausted = true;
             else
-                info.n_expanded = info.tree.size();
                 info.is_exhausted = true;
                 info.is_semi_exhausted  =true;
             end
