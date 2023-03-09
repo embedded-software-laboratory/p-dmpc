@@ -17,7 +17,7 @@ function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_couplin
 
             case '2'
                 % consider currently occupied area as static obstacle
-                scenario_v.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset; % add as static obstacles
+                iter.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset; % add as static obstacles
 
             case '3'
                 % consider the occupied area of emergency braking maneuver
@@ -35,12 +35,12 @@ function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_couplin
                                 && strcmp(iter.coupling_info(find_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
                             % the emergency braking maneuver is only considered if
                             % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
-                            scenario_v.obstacles{end+1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;
+                            iter.obstacles{end+1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;
                         else
-                            scenario_v.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
+                            iter.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
                         end
                     otherwise
-                        scenario_v.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
+                        iter.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
                 end
 
             case '4'
@@ -48,7 +48,7 @@ function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_couplin
                 reachable_sets = iter.reachable_sets{veh_without_ROW,1};
                 % get boundary of the polygon
                 [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
-                scenario_v.obstacles(end+1) = {[x_reachable_sets';y_reachable_sets']};
+                iter.obstacles(end+1) = {[x_reachable_sets';y_reachable_sets']};
             case '5'
                 % consider old trajectory as dynamic obstacle
                 latest_msg = ros_subscribers.predictions{veh_without_ROW}.LatestMessage;

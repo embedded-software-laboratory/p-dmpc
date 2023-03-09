@@ -21,7 +21,7 @@ function [vehicle_obstacles, hdv_obstacles , lanelet_boundary, lanelet_crossing_
     hdv_obstacles = cell(1,scenario.options.Hp);
 
     % get static occupied areas of the considered vehicles
-    current_occupied_areas = scenario.obstacles;
+    current_occupied_areas = iter.obstacles;
     check_closeness(current_occupied_areas)
 
     % Preprocess intersecting areas of lanelets
