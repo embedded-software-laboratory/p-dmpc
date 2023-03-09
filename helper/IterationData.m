@@ -88,7 +88,7 @@ classdef IterationData
             obj.time_enter_intersection = [];
             obj.priority_list = ones(nVeh,1);
             obj.belonging_vector = zeros(nVeh,1);
-            obj.obstacles = {};
+            obj.obstacles = scenario.obstacles;
             obj.lanelet_crossing_areas = {};
             obj.amount = nVeh;
             obj.vehicles = scenario.vehicles;
