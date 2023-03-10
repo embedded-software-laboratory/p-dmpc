@@ -47,7 +47,7 @@ switch options.scenario_name
     case 'Circle_scenario'
         scenario = circle_scenario(options);
     case 'Commonroad'
-        scenario = commonroad(options, vehicle_ids, options.is_sim_lab);
+        scenario = commonroad(options, vehicle_ids);
 end
 
 for iVeh = 1:options.amount
