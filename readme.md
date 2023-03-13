@@ -33,6 +33,27 @@ Please refer to the respective publication if you are using it for your work. Th
 
 <details>
 <summary>
+P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority Assignment in Distributed MPC," TechRxiv, Preprint, 2023, doi: 10.36227/techrxiv.20304015.v2
+<br>
+
+<!-- icons from https://simpleicons.org/ -->
+[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://doi.org/10.36227/techrxiv.20304015.v2) 
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
+[![Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4847598/tree)
+</summary>
+<p>
+
+The results of the publication can be reproduced by running
+```matlab
+eval_coloring_paper()
+```
+The results are saved in the folder "results".
+
+</p>
+</details>
+
+<details>
+<summary>
 P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs", ResearchGate, Preprint, 2023, doi: 10.13140/RG.2.2.24697.13923
 <br>
 
@@ -45,7 +66,6 @@ P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions 
 
 The results of the publication can be reproduced by running
 ```matlab
-startup()
 hdv_reachable_set_experiment()
 ```
 The results are saved in the folder "results".
@@ -59,7 +79,7 @@ P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Co
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/TCST.2022.3214718) 
-[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc) 
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/pub/rhgs) 
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://www.youtube.com/watch?v=7LB7I5SOpQE) 
 [![Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/7778016)
 </summary>
@@ -68,7 +88,6 @@ P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Co
 
 The results of the publication can be reproduced by running
 ```matlab
-startup()
 eval_rhgs()
 ```
 The results are saved in the folder "results".
@@ -83,6 +102,14 @@ References in Bibtex format
 <p>
 
 ```bibtex
+@article{scheffe2023reducing,
+    author = {Patrick Scheffe and Julius Kahle and Bassam Alrifaee},
+    title  = {Reducing Computation Time with Priority Assignment in Distributed MPC},
+    year   = {2023},
+    month  = {2},
+    doi    = {10.36227/techrxiv.20304015.v2}
+}
+
 @article{scheffe2023scaled,
     author = {Patrick Scheffe and Bassam Alrifaee},
     title  = {A Scaled Experiment Platform to Study Interactions Between Humans and CAVs},
@@ -99,7 +126,7 @@ References in Bibtex format
     volume  = {},
     number  = {},
     pages   = {1-14},
-    doi     = {10.1109/TCST.2022.3214718}}
+    doi     = {10.1109/TCST.2022.3214718}
 }
 ```
 
