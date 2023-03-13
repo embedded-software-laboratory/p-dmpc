@@ -29,7 +29,7 @@ for iVeh = 1:numel(scenario.vehicles)
 end
 
 % Obstacles
-for o = scenario.obstacles
+for o = result.obstacles
     oCont = o{:};
     patch(oCont(1,:),oCont(2,:),[0.5 0.5 0.5]);
 end

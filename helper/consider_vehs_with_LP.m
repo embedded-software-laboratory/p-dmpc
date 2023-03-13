@@ -1,4 +1,4 @@
-function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_coupling_vehs_without_ROW, ros_subscribers)
+function iter = consider_vehs_with_LP(scenario, iter, vehicle_idx, all_coupling_vehs_without_ROW, ros_subscribers)
 % CONSIDER_VEHS_WITH_LP Stategies to let vehicle with the right-of-way
 % consider vehicle without the right-of-way 
 % '1': do not consider 
@@ -11,13 +11,13 @@ function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_couplin
         veh_without_ROW = all_coupling_vehs_without_ROW(i_LP);
         
         % stategies to let vehicle with the right-of-way consider vehicle without the right-of-way
-        switch scenario_v.options.strategy_consider_veh_without_ROW
+        switch scenario.options.strategy_consider_veh_without_ROW
             case '1'
                 % do not consider
 
             case '2'
                 % consider currently occupied area as static obstacle
-                scenario_v.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset; % add as static obstacles
+                iter.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset; % add as static obstacles
 
             case '3'
                 % consider the occupied area of emergency braking maneuver
@@ -27,7 +27,7 @@ function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_couplin
                 % possibility). Cases that vehicles drive successively are not
                 % included to avoid that vehicles behind push vehicles in
                 % front to move forward.
-                switch scenario_v.options.priority
+                switch scenario.options.priority
                     case 'STAC_priority'
                         find_coupling = [iter.coupling_info.veh_with_ROW]==vehicle_idx & [iter.coupling_info.veh_without_ROW]==veh_without_ROW;
 
@@ -35,12 +35,12 @@ function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_couplin
                                 && strcmp(iter.coupling_info(find_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
                             % the emergency braking maneuver is only considered if
                             % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
-                            scenario_v.obstacles{end+1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;
+                            iter.obstacles{end+1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;
                         else
-                            scenario_v.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
+                            iter.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
                         end
                     otherwise
-                        scenario_v.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
+                        iter.obstacles{end+1} = iter.occupied_areas{veh_without_ROW}.normal_offset;
                 end
 
             case '4'
@@ -48,7 +48,7 @@ function iter = consider_vehs_with_LP(scenario_v, iter, vehicle_idx, all_couplin
                 reachable_sets = iter.reachable_sets{veh_without_ROW,1};
                 % get boundary of the polygon
                 [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
-                scenario_v.obstacles(end+1) = {[x_reachable_sets';y_reachable_sets']};
+                iter.obstacles(end+1) = {[x_reachable_sets';y_reachable_sets']};
             case '5'
                 % consider old trajectory as dynamic obstacle
                 latest_msg = ros_subscribers.predictions{veh_without_ROW}.LatestMessage;

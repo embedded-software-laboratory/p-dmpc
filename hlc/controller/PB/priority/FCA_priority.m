@@ -46,9 +46,9 @@ classdef FCA_priority < interface_priority
                     shape_n = [x_globals_n;y_globals_n];
                    
                     % check collistion between vehicles and static obstacles
-                    if ~isempty(scenario.obstacles)
-                        for i = 1:numel(scenario.obstacles)
-                            if intersect_sat(shape_n,scenario.obstacles{i}) 
+                    if ~isempty(iter.obstacles)
+                        for i = 1:numel(iter.obstacles)
+                            if intersect_sat(shape_n,iter.obstacles{i}) 
                                 collisions(nveh) = collisions(nveh) + 1;
                             end
                         end

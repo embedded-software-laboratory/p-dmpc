@@ -254,7 +254,7 @@ classdef PlotterOnline < handle
 
                 end
 
-                if obj.plot_options.isShowLaneletCrossingAreas
+                if obj.plot_options.isShowLaneletCrossingAreas && ~isempty(plotting_info.lanelet_crossing_areas)
                     LCA = plotting_info.lanelet_crossing_areas{v};
                     if ~isempty(LCA)
                         if isempty(obj.plot_options.vehsLaneletCorssingAreas)

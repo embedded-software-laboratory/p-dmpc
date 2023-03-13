@@ -233,22 +233,23 @@ classdef (Abstract) HLCInterface < handle
                 % If using distributed hlcs, collect fallback info from
                 % other vehicles as required
                 if obj.amount == 1
+                    irrelevant_vehicles = union(obj.indices_in_vehicle_list(1), obj.info.vehs_fallback);
                     if obj.scenario.options.fallback_type == "localFallback"
                         sub_graph_fallback = obj.belonging_vector_total(obj.indices_in_vehicle_list(1));
-                        other_vehicles = [obj.info.vehs_fallback, find(obj.belonging_vector_total==sub_graph_fallback)];
+                        other_vehicles = find(obj.belonging_vector_total==sub_graph_fallback);
                         % remove own vehicle. No need to read from own
                         % publisher
-                        other_vehicles = setdiff(other_vehicles,obj.indices_in_vehicle_list(1),'stable');
+                        other_vehicles = setdiff(other_vehicles, irrelevant_vehicles,'stable');
                         for veh_id = other_vehicles
                             latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k);
-                            fallback_info_veh_id = latest_msg.vehs_fallback;
+                            fallback_info_veh_id = latest_msg.vehs_fallback';
                             obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
                         end
                     else 
-                        other_vehicles = setdiff(1:obj.scenario.options.amount, obj.indices_in_vehicle_list);
+                        other_vehicles = setdiff(1:obj.scenario.options.amount, irrelevant_vehicles);
                         for veh_id = other_vehicles
                             latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k);
-                            fallback_info_veh_id = latest_msg.vehs_fallback;
+                            fallback_info_veh_id = latest_msg.vehs_fallback';
                             obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
                         end
                     end
@@ -293,12 +294,16 @@ classdef (Abstract) HLCInterface < handle
                 obj.result.trajectory_predictions(:,obj.k) = obj.info.y_predicted;
                 obj.result.controller_outputs{obj.k} = obj.info.u;
                 obj.result.subcontroller_runtime_each_veh(:,obj.k) = obj.info.runtime_subcontroller_each_veh;
+                obj.result.graph_search_runtime_each_veh(:,obj.k) = obj.info.runtime_graph_search_each_veh;
                 obj.result.vehicle_path_fullres(:,obj.k) = obj.info.vehicle_fullres_path(:);
-                obj.result.n_expanded(obj.k) = obj.info.n_expanded;
+                obj.result.n_expanded(:,obj.k) = obj.info.n_expanded;
                 obj.result.priority_list(:,obj.k) = obj.iter.priority_list;
                 obj.result.coupling_adjacency(:,:,obj.k) = obj.iter.adjacency;
                 obj.result.computation_levels(obj.k) = obj.info.computation_levels;
                 obj.result.step_time(obj.k) = toc(obj.result.step_timer);
+                obj.result.obstacles = obj.iter.obstacles;
+                % reset iter obstacles to scenario default/static obstacles
+                obj.iter.obstacles = obj.scenario.obstacles;
 
                 obj.result.runtime_subcontroller_max(obj.k) = obj.info.runtime_subcontroller_max;
                 obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
@@ -317,6 +322,7 @@ classdef (Abstract) HLCInterface < handle
                     obj.result.coupling_weights_optimal{obj.k} = obj.iter.coupling_weights_optimal;
                     obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
                     obj.result.lanelet_crossing_areas{obj.k} = obj.iter.lanelet_crossing_areas;
+                    % important: reset lanelet crossing areas
                     obj.iter.lanelet_crossing_areas = {};
                 end
                 obj.result.vehs_fallback{obj.k} = obj.info.vehs_fallback;

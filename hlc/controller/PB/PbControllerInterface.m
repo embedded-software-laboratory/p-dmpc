@@ -1,7 +1,6 @@
 classdef (Abstract) PbControllerInterface < HLCInterface
     properties (Access=protected)
         CL_based_hierarchy;
-        n_expended;
         lanelet_crossing_areas;
     end
     
@@ -25,7 +24,6 @@ classdef (Abstract) PbControllerInterface < HLCInterface
 
             % initialize variable to store control results
             obj.info = ControllResultsInfo(nVeh, Hp, [obj.scenario.vehicles.ID]);
-            obj.n_expended = zeros(nVeh,1);
 
             directed_graph = digraph(obj.iter.directed_coupling);
             [obj.belonging_vector_total,~] = conncomp(directed_graph,'Type','weak'); % graph decomposition
@@ -43,15 +41,10 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                 end
             end
 
-            runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search
+            runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search and msg send time
         end
 
-        function plan_single_vehicle(obj, vehicle_idx)
-            %             if ismember(vehicle_idx, obj.info.vehs_fallback)
-            %                 % jump to next vehicle if the selected vehicle should take fallback
-            %                 obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
-            %                 continue
-            %             end
+        function subcontroller_time = plan_single_vehicle(obj, vehicle_idx)
             subcontroller_timer = tic;
 
             % only keep self
@@ -73,9 +66,11 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                 if ismember(veh_with_HP_i,coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
                     latest_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k);
-                    obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback);
+                    obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
                     if ismember(vehicle_idx, obj.info.vehs_fallback)
                         % if the selected vehicle should take fallback
+                        subcontroller_time = toc(subcontroller_timer);
+                        obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
                         return;
                     end
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
@@ -94,9 +89,11 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                         % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step.
                         latest_msg = obj.ros_subscribers.predictions{veh_with_HP_i}.LatestMessage;
                         if latest_msg.time_step == obj.k
-                            obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback);
+                            obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
                             if ismember(vehicle_idx, obj.info.vehs_fallback)
                                 % if the selected vehicle should take fallback
+                                subcontroller_time = toc(subcontroller_timer);
+                                obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
                                 return;
                             end
                             predicted_areas_i = arrayfun(@(array) {[array.x(:)';array.y(:)']}, latest_msg.predicted_areas);
@@ -140,7 +137,9 @@ classdef (Abstract) PbControllerInterface < HLCInterface
 
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
+            graph_search_timer = tic;
             info_v = obj.sub_controller(obj.scenario, iter_v);
+            obj.info.runtime_graph_search_each_veh(vehicle_idx) = toc(graph_search_timer);
             if info_v.is_exhausted
                 % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
                 %                 disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
@@ -151,10 +150,10 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                         obj.info.vehs_fallback = unique(obj.info.vehs_fallback,'stable');
                     case 'globalFallback'
                         % global fallback: all vehicles take fallback
-                        obj.info.vehs_fallback = 1:obj.scenario.options.amount;
+                        obj.info.vehs_fallback = int32(1):int32(obj.scenario.options.amount);
                     case 'noFallback'
                         % Fallback is disabled. Simulation will end.
-                        obj.info.vehs_fallback = 1:obj.scenario.options.amount;
+                        obj.info.vehs_fallback = int32(1):int32(obj.scenario.options.amount);
                     otherwise
                         warning("Please define one of the follows as fallback strategy: 'noFallback', 'localFallback', and 'globalFallback'.")
                 end
@@ -162,14 +161,12 @@ classdef (Abstract) PbControllerInterface < HLCInterface
             else
                 obj.info = store_control_info(obj.info, info_v, obj.scenario);
             end
-            obj.info.runtime_graph_search_each_veh(vehicle_idx) = toc(subcontroller_timer);
-            obj.n_expended(vehicle_idx) = info_v.tree.size();
-
             if obj.iter.k==inf
                 plot_obstacles(obj.scenario)
                 plot_obstacles(info_v.shapes)
                 graphs_visualization(obj.iter.belonging_vector, obj.scenario.coupling_weights, 'ShowWeights', true)
             end
+            subcontroller_time = toc(subcontroller_timer);
         end
 
         function msg_send_time = publish_predicitons(obj, vehicle_idx)
