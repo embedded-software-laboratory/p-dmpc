@@ -33,7 +33,6 @@ classdef Config < handle
         isAllowInheritROW = false;      % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
 
         is_eval = false;                % true/false, 
-        visualize_reachable_set = false;    % true/false, 
         is_free_flow = false;           % true/false, if true, vehicles do not need to consider other vehicles.
         fallback_type = 'localFallback';    % one of the following {'no','local','global'}, 
                                             % 'no' for disable fallback; 

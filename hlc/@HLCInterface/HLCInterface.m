@@ -200,16 +200,6 @@ classdef (Abstract) HLCInterface < handle
                     break
                 end
 
-
-                % visualize reachable set of vehicle in Expert-Mode
-                for iVeh = obj.indices_in_vehicle_list
-                    if obj.scenario.options.visualize_reachable_set && ((obj.scenario.options.veh_ids(iVeh) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
-                            || (obj.scenario.options.veh_ids(iVeh) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
-                        [visualization_command] = lab_visualize_polygon(obj.scenario, obj.iter.reachable_sets{iVeh, end}.Vertices, iVeh);
-                        obj.hlc_adapter.visualize(visualization_command);
-                    end
-                end
-
                 % calculate the distance
                 distance = zeros(obj.scenario.options.amount,obj.scenario.options.amount);
                 adjacency = obj.iter.adjacency;

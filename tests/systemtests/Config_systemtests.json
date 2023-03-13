@@ -14,7 +14,6 @@
         false,
         false
     ],
-    "visualize_reachable_set": false,
     
     "is_manual_control": false,
     "manual_control_config": {
