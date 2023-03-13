@@ -1,0 +1,25 @@
+{
+    "amount": 2,
+
+    "T_end": 10,
+    "max_num_CLs": 4,
+    "trim_set": 6,
+    
+    "isSaveResult": false,
+    "isSaveResultReduced": false,
+    "is_save_mpa": false,
+    "is_load_mpa": true,
+
+    "visu": [
+        false,
+        false
+    ],
+    "visualizeReferenceTrajectory": false,
+    "visualize_reachable_set": false,
+    
+    "is_manual_control": false,
+    "manual_control_config": {
+        "hdv_ids":  [],
+        "amount": 0
+    }
+}

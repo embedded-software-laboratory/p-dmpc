@@ -1,0 +1,42 @@
+{
+    "scenario_name": "Circle_scenario",
+    "amount": 2,
+    "angles": [
+        6.2831853071795862,
+        9.42477796076938
+    ],
+
+    "T_end": 4,
+    "max_num_CLs": 4,
+    "trim_set": 6,
+
+    "isSaveResult": false,
+    "isSaveResultReduced": false,
+    "is_save_mpa": false,
+    "is_load_mpa": true,
+
+    "visu": [
+        true,
+        false
+    ],
+    "optionsPlotOnline": {
+        "isShowVehID": true,
+        "isShowPriority": true,
+        "isShowCoupling": true,
+        "isShowWeight": true,
+        "isShowHotkeyDescription": true,
+        "isShowReachableSets": true,
+        "vehsReachableSets": [],
+        "isShowLaneletCrossingAreas": false,
+        "vehsLaneletCorssingAreas": [],
+        "isVideoMode": false
+    },
+    "visualizeReferenceTrajectory": true,
+    "visualize_reachable_set": false,
+
+    "is_manual_control": false,
+    "manual_control_config": {
+        "hdv_ids":  [],
+        "amount": 0
+    }
+}
