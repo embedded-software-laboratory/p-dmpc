@@ -54,7 +54,7 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(isempty(lastwarn), lastwarn);
 
             main(options);
-            testCast.verifyTrue(true);
+            testCase.verifyTrue(true);
         end
     end
 
