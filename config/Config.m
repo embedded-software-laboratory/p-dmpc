@@ -6,7 +6,6 @@ classdef Config < handle
         manual_control_config ManualControlConfig; % manual control config
         isPB = true;            % true/false, is prioritize vehicles
         amount = 20;            % integer, number of vehicles, does not include manual vehicles
-        angles                  % 1-by-nVeh scalar vector
         visu = [true;false];    % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
         isParl = false;         % true/false, is use parallel(distributed) computation
         scenario_name = 'Commonroad'    % one of the follows: {'Circle_scenario','Commonroad'}

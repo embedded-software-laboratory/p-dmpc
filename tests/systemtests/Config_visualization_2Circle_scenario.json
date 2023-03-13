@@ -1,10 +1,6 @@
 {
     "scenario_name": "Circle_scenario",
     "amount": 2,
-    "angles": [
-        6.2831853071795862,
-        9.42477796076938
-    ],
 
     "T_end": 4,
     "max_num_CLs": 4,
