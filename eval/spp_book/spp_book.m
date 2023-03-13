@@ -89,7 +89,7 @@ end
             options.scenario_name = 'Commonroad';
             veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
             options.veh_ids = veh_ids;
-            scenario = commonroad(options, options.veh_ids, options.is_sim_lab);
+            scenario = commonroad(options, options.veh_ids);
             scenario.random_stream = random_stream;
             scenario.name = options.scenario_name;
             scenario.options.veh_ids = options.veh_ids;
