@@ -1,4 +1,4 @@
-classdef Config
+classdef Config < handle
 
     properties
         is_sim_lab = true;              % true/false, is simulation or lab experiment
@@ -75,33 +75,21 @@ classdef Config
         end
 
         function obj = assign_data(obj,struct)
-            % Assign data to struct (see an example at the bottom)
-            obj.is_sim_lab = struct.is_sim_lab;
-            obj.isPB = struct.isPB;
-            obj.angles = struct.angles;
-            obj.amount = struct.amount;
-            obj.visu = struct.visu;
-            obj.isParl = struct.isParl;
-            obj.veh_ids = struct.veh_ids;
-            obj.scenario_name = struct.scenario_name;
-            obj.priority = struct.priority;
-            obj.dt = struct.dt;
-            obj.Hp = struct.Hp;
-            obj.trim_set = struct.trim_set;
-            obj.T_end = struct.T_end;
-            obj.max_num_CLs = struct.max_num_CLs;
-            obj.strategy_consider_veh_without_ROW = struct.strategy_consider_veh_without_ROW;
-            obj.strategy_enter_lanelet_crossing_area = struct.strategy_enter_lanelet_crossing_area;
-            obj.isSaveResult = struct.isSaveResult;
-            obj.customResultName = struct.customResultName;
-            obj.isAllowInheritROW = struct.isAllowInheritROW;
-            obj.is_eval = struct.is_eval;
-            obj.visualize_reachable_set = struct.visualize_reachable_set;
-            obj.is_free_flow = struct.is_free_flow;
-            %create and set ManualControlConfig object
-            manual_control_config = ManualControlConfig();
-            manual_control_config = manual_control_config.assign_data(struct.manual_control_config);
-            obj.manual_control_config = manual_control_config;
+            fn = fieldnames(struct);
+            if isempty(fn)
+                return
+            end
+            for i_field = 1:length(fn)
+                field = fn{i_field};
+                if ~isempty(struct.(field)) && ~findprop(obj, field).Dependent
+                    if strcmp(field, 'manual_control_config')
+                        obj.manual_control_config = ManualControlConfig();
+                        obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
+                    else
+                        obj.(field) = struct.(field);
+                    end
+                end
+            end
         end
 
         function result = get.tick_per_step(obj)

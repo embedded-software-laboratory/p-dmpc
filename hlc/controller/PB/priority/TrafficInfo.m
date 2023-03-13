@@ -430,7 +430,7 @@ classdef TrafficInfo
                         end
                     end
                 case 'random_priority'
-                    [~,~,priority_list] = random_priority().priority(iter,scenario);
+                    [~,~,priority_list] = random_priority().priority(scenario,iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'constant_priority'
                     [~,~,priority_list] = constant_priority().priority(scenario,iter);
