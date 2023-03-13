@@ -19,7 +19,7 @@ classdef systemtests < matlab.unittest.TestCase
             options.isPB = false;
 
             main(options);
-            testCase.verifyTrue(isempty(lastwarn));
+            testCase.verifyTrue(isempty(lastwarn), lastwarn);
         end
 
         function priority_based(testCase, scenario_name, parallel, priority)
@@ -39,7 +39,7 @@ classdef systemtests < matlab.unittest.TestCase
             end
 
             main(options);
-            testCase.verifyTrue(isempty(lastwarn));
+            testCase.verifyTrue(isempty(lastwarn), lastwarn);
         end
 
         function visualization(testCase, scenario_name)
@@ -51,7 +51,7 @@ classdef systemtests < matlab.unittest.TestCase
             options = options.importFromJson(rawJson);
 
             main(options);
-            testCase.verifyTrue(isempty(lastwarn));
+            testCase.verifyTrue(isempty(lastwarn), lastwarn);
         end
     end
 
