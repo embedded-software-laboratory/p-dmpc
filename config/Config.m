@@ -60,8 +60,6 @@ classdef Config < handle
 
         is_force_parallel_vehs_in_same_grp = true;  % true/false, if true, vehicles move in parallel will be forced in the same group
         reference_path = struct('lanelets_index',[],'start_point',[]);  % custom reference path
-        visualizeReferenceTrajectory = false;
-
     end
 
     properties(Dependent)
@@ -81,12 +79,20 @@ classdef Config < handle
             end
             for i_field = 1:length(fn)
                 field = fn{i_field};
-                if ~isempty(struct.(field)) && ~findprop(obj, field).Dependent
-                    if strcmp(field, 'manual_control_config')
-                        obj.manual_control_config = ManualControlConfig();
-                        obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
+                if ~isempty(struct.(field)) 
+                    if isprop(obj,field)
+                        if ~findprop(obj, field).Dependent
+                            if strcmp(field, 'manual_control_config')
+                                obj.manual_control_config = ManualControlConfig();
+                                obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
+                            else
+                                obj.(field) = struct.(field);
+                            end
+                        else
+                            warning('Cannot set property %s for class Config as it is a dependent property', field);
+                        end
                     else
-                        obj.(field) = struct.(field);
+                        warning('Cannot set property %s for class Config as it does not exist', field);
                     end
                 end
             end

@@ -28,7 +28,6 @@
         "vehsLaneletCorssingAreas": [],
         "isVideoMode": true
     },
-    "visualizeReferenceTrajectory": true,
     "visualize_reachable_set": false,
     "isPB": true,
     "strategy_enter_lanelet_crossing_area": "1",

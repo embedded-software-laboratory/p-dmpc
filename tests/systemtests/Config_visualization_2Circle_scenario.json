@@ -31,7 +31,6 @@
         "vehsLaneletCorssingAreas": [],
         "isVideoMode": false
     },
-    "visualizeReferenceTrajectory": true,
     "visualize_reachable_set": false,
 
     "is_manual_control": false,
