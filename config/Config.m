@@ -1,4 +1,4 @@
-classdef Config < handle
+classdef Config < matlab.mixin.Copyable
 
     properties
         is_sim_lab = true;              % true/false, is simulation or lab experiment

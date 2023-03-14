@@ -11,16 +11,16 @@ arguments
 end
 disp('Creating scenarios...')
 scenarios(length(nVeh),length(seed)) = Scenario();
+options_copy = copy(options);
 for iVeh = 1:length(nVeh)
     for iSeed = 1:length(seed)
-        random_stream = RandStream('mt19937ar','Seed',iSeed);
+        options = copy(options_copy)
         options.amount = nVeh(iVeh);
+        random_stream = RandStream('mt19937ar','Seed',seed(iSeed));
         veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
         options.veh_ids = veh_ids;
-        scenario = commonroad(options, options.veh_ids, options.is_sim_lab);
+        scenario = commonroad(options, options.veh_ids);
         scenario.random_stream = random_stream;
-        scenario.options.scenario_name = options.scenario_name;
-        scenario.options.veh_ids = options.veh_ids;
         for idVeh = 1:options.amount
             % initialize vehicle ids of all vehicles
             scenario.vehicles(idVeh).ID = scenario.options.veh_ids(idVeh);
