@@ -118,15 +118,6 @@ classdef CPMLab < InterfaceExperiment
                     x0(list_index,3) = state_list(index).pose.yaw;
                     x0(list_index,4) = [state_list(index).speed];
                 end
-
-                % use real poses for vehicle in Expert Mode
-                if indexVehicleExpertMode ~= 0
-                    pose = [obj.sample(end).state_list.pose];
-                    x0(indexVehicleExpertMode,1) = [pose(1,indexVehicleExpertMode).x];
-                    x0(indexVehicleExpertMode,2) = [pose(1,indexVehicleExpertMode).y];
-                    x0(indexVehicleExpertMode,3) = [pose(1,indexVehicleExpertMode).yaw];
-                    x0(indexVehicleExpertMode,4) = [obj.sample(end).state_list(1,indexVehicleExpertMode).speed];
-                end
             end
         end
         
