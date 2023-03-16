@@ -46,7 +46,7 @@ classdef systemtests < matlab.unittest.TestCase
 
         function visualization(testCase, scenario_name)
             lastwarn('');
-            fprintf('\nvisualization systemtest for %s', scenario_name)
+            fprintf('\nvisualization systemtest for %s\n', scenario_name)
             %load Config from json
             rawJson = fileread(['tests/systemtests/Config_visualization_2', scenario_name, '.json']);
             options = Config();

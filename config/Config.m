@@ -72,26 +72,21 @@ classdef Config < handle
 
         function obj = assign_data(obj,struct)
             fn = fieldnames(struct);
-            if isempty(fn)
-                return
-            end
             for i_field = 1:length(fn)
                 field = fn{i_field};
-                if ~isempty(struct.(field)) 
-                    if isprop(obj,field)
-                        if ~findprop(obj, field).Dependent
-                            if strcmp(field, 'manual_control_config')
-                                obj.manual_control_config = ManualControlConfig();
-                                obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
-                            else
-                                obj.(field) = struct.(field);
-                            end
-                        else
-                            warning('Cannot set property %s for class Config as it is a dependent property', field);
-                        end
-                    else
-                        warning('Cannot set property %s for class Config as it does not exist', field);
-                    end
+                if ~isprop(obj,field)
+                    warning('Cannot set property %s for class Config as it does not exist', field);
+                    continue;
+                end
+                if findprop(obj, field).Dependent
+                    warning('Cannot set property %s for class Config as it is a dependent property', field);
+                    continue;
+                end
+                if strcmp(field, 'manual_control_config')
+                    obj.manual_control_config = ManualControlConfig();
+                    obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
+                else
+                    obj.(field) = struct.(field);
                 end
             end
         end
