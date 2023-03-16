@@ -15,12 +15,11 @@ function scenario = commonroad(options,vehicle_ids)
     road_data = RoadData().get_road_data();
 %     if options.isParl
         scenario.lanelets = road_data.lanelets;
-        scenario.semi_adjacency_lanelets = road_data.semi_adjacency_lanelets;
         scenario.intersection_lanelets = road_data.intersection_lanelets;
         scenario.lanelet_boundary = road_data.lanelet_boundary;
         scenario.road_raw_data = road_data.road_raw_data;
 %     else
-%         [scenario.lanelets, scenario.adjacency_lanelets, scenario.semi_adjacency_lanelets, scenario.intersection_lanelets, scenario.road_raw_data, scenario.lanelet_boundary] =...
+%         [scenario.lanelets, scenario.adjacency_lanelets, scenario.intersection_lanelets, scenario.road_raw_data, scenario.lanelet_boundary] =...
 %             commonroad_lanelets();
 %     end
     scenario.lanelet_relationships  = road_data.lanelet_relationships;

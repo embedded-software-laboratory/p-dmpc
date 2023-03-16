@@ -1,11 +1,10 @@
-function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,lanelet_boundary] = commonroad_lanelets()
+function [lanelets,adjacency,intersection_lanelets, commonroad,lanelet_boundary] = commonroad_lanelets()
 
 % COMMONROAD_LANELETS
 
 % Returns:
 % lanelets： lanelet information of rightBound, leftBound, and central line of each lanelet
 % adjacency: (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent to each other
-% semi_adjacency: (nLanelets x nLanelets) matrix, consecutive adjacent lanelets
 % intersection_lanelets: lanelet index of the intersection
 % boundary: the inner boundary and outer boundary of the Scenario
 % commonroad: raw commonroad data
@@ -20,7 +19,7 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
     % if the needed road data alread exist, simply load it, otherwise
     % they will be calculated and saved.
     if isfile(road_full_path)
-        load(road_full_path,'lanelets','adjacency','semi_adjacency','intersection_lanelets', 'commonroad','lanelet_boundary');
+        load(road_full_path,'lanelets','adjacency','intersection_lanelets', 'commonroad','lanelet_boundary');
         return
     end
 
@@ -151,8 +150,6 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
         adj(i,adjacent_index) = 1;
      
     end
-    semi_adjacency = adj + adj' + eye(Nlanelets, Nlanelets); % same lanelet is always adjacent
-    semi_adjacency = (semi_adjacency > 0);
     
     %% lanelets boundary
     lanelet_boundary = cell(1,Nlanelets);
@@ -329,7 +326,7 @@ function [lanelets,adjacency,semi_adjacency,intersection_lanelets, commonroad,la
     
     %% save all the road data offline
     save(road_full_path,...
-        'lanelets','adjacency','semi_adjacency','intersection_lanelets', 'commonroad','lanelet_boundary',...
+        'lanelets','adjacency','intersection_lanelets', 'commonroad','lanelet_boundary',...
         '-mat')
 end
 
