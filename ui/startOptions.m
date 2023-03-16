@@ -172,10 +172,6 @@ controlStrategyHelper = controlStrategy{...
 
 labOptions.isPB = (strcmp(controlStrategyHelper, 'pb non-coop'));
 
-labOptions.angles = vehicleAmount{... 
-    strcmp({vehicleAmount{:,1}}, vehicleAmountSelection),... 
-    2};    
-
 labOptions.amount = str2num(vehicleAmountSelection);
 
 veh_ids = ui.CustomVehicleIdsEditField.Value;

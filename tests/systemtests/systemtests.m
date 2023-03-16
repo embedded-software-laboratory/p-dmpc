@@ -9,6 +9,7 @@ classdef systemtests < matlab.unittest.TestCase
 
     methods (Test)
         function centralized(testCase, scenario_name)
+            lastwarn('');
             fprintf('\ncentralized systemtest for %s\n', scenario_name);
             %load Config from json
             rawJson = fileread('tests/systemtests/Config_systemtests.json');
@@ -16,12 +17,14 @@ classdef systemtests < matlab.unittest.TestCase
             options = options.importFromJson(rawJson);
             options.scenario_name = scenario_name;
             options.isPB = false;
+            testCase.verifyEmpty(lastwarn);
 
             main(options);
             testCase.verifyTrue(true);
         end
 
         function priority_based(testCase, scenario_name, parallel, priority)
+            lastwarn('');
             fprintf('\nprioritized %s systemtest for %s with %s priority\n', parallel, scenario_name, priority);
             %load Config from json
             rawJson = fileread('tests/systemtests/Config_systemtests.json');
@@ -35,17 +38,20 @@ classdef systemtests < matlab.unittest.TestCase
             elseif strcmp(parallel, 'sequential')
                 options.isParl = false;
             end
+            testCase.verifyEmpty(lastwarn);
 
             main(options);
             testCase.verifyTrue(true);
         end
 
         function visualization(testCase, scenario_name)
-            fprintf('\nvisualization systemtest for %s', scenario_name)
+            lastwarn('');
+            fprintf('\nvisualization systemtest for %s\n', scenario_name)
             %load Config from json
             rawJson = fileread(['tests/systemtests/Config_visualization_2', scenario_name, '.json']);
             options = Config();
             options = options.importFromJson(rawJson);
+            testCase.verifyEmpty(lastwarn);
 
             main(options);
             testCase.verifyTrue(true);
