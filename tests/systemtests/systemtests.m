@@ -17,7 +17,7 @@ classdef systemtests < matlab.unittest.TestCase
             options = options.importFromJson(rawJson);
             options.scenario_name = scenario_name;
             options.isPB = false;
-            testCase.verifyTrue(isempty(lastwarn), lastwarn);
+            testCase.verifyEmpty(lastwarn);
 
             main(options);
             testCase.verifyTrue(true);
@@ -38,7 +38,7 @@ classdef systemtests < matlab.unittest.TestCase
             elseif strcmp(parallel, 'sequential')
                 options.isParl = false;
             end
-            testCase.verifyTrue(isempty(lastwarn), lastwarn);
+            testCase.verifyEmpty(lastwarn);
 
             main(options);
             testCase.verifyTrue(true);
@@ -51,7 +51,7 @@ classdef systemtests < matlab.unittest.TestCase
             rawJson = fileread(['tests/systemtests/Config_visualization_2', scenario_name, '.json']);
             options = Config();
             options = options.importFromJson(rawJson);
-            testCase.verifyTrue(isempty(lastwarn), lastwarn);
+            testCase.verifyEmpty(lastwarn);
 
             main(options);
             testCase.verifyTrue(true);
