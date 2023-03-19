@@ -1,0 +1,8 @@
+BasedOnStyle: Google
+AlignAfterOpenBracket: DontAlign
+AlignEscapedNewlines: DontAlign
+ColumnLimit: '240'
+IndentWidth: '4'
+NamespaceIndentation: All
+TabWidth: '4'
+UseTab: ForIndentation

@@ -79,6 +79,8 @@ try %#ok<TRYNC>
 
     % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
     ui.AllowInheritingtheRightofWayCheckBox.Value = previousSelection.isAllowInheritROW;
+
+    ui.useCCheckBox.Value = previousSelection.use_cpp;
 end
 
 %% Trigger UI change handles
@@ -111,6 +113,7 @@ veh_ids = ui.CustomVehicleIdsEditField.Value;
 hdv_ids = ui.HDVIDsEditField.Value;
 hdv_amount_selection = ui.AmountHDVsListBox.Value;
 is_manual_control = ui.AddHDVsCheckBox.Value;
+use_cpp = ui.useCCheckBox.Value;
 
 
 % sample time [s]
@@ -133,7 +136,7 @@ isSaveResult = ui.SaveresultCheckBox.Value;
 customResultName = ui.CustomfilenameEditField.Value;
 % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
 isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
-save([tempdir 'scenarioControllerSelection'], 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
+save([tempdir 'scenarioControllerSelection'],'use_cpp', 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
     'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection',...
     'isParlSelection', 'dtSelection','HpSelection','trim_setSelection','T_endSelection','max_num_CLsSelection', 'veh_ids', 'strategy_consider_veh_without_ROWSelection','strategy_enter_crossing_areaSelection', ...
     'isSaveResult','customResultName','isAllowInheritROW');
@@ -238,6 +241,9 @@ labOptions.customResultName = ui.CustomfilenameEditField.Value;
 
 % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
 labOptions.isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
+
+% if available, use C++ optimizer
+labOptions.use_cpp = use_cpp;
 
 % Write Config to disk
 encodedJSON = jsonencode(labOptions);
