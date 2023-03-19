@@ -149,6 +149,12 @@ classdef (Abstract) HLCInterface < handle
                 % Initialize the communication network of ROS 2
                 communication_init(obj);
             end
+
+            if ~obj.scenario.options.isPB && obj.scenario.options.use_cpp
+                % When using C++, you don't want to send the scenario over
+                % and over again, so it is done in the init function
+                optimizer(Function.InitializeWithScenario, obj.scenario);
+            end
         end
 
 

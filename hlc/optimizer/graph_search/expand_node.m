@@ -12,6 +12,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
 
     k_exp = curK+1;
     cur_trim_id = tuple2index(curTrim(:),trim_length);
+    % TODO: mpa Verkleinerung bug fix
     successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
 
     nTrims = numel(successor_trim_ids);

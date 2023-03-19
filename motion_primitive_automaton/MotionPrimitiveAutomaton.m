@@ -56,7 +56,9 @@ classdef MotionPrimitiveAutomaton
             % Note: if MPA properties are changed, then reload all MPAs!
             if isfile(mpa_full_path) && options.is_load_mpa && nargout==1 
                 % if number of function output arguments is not one, do not load offline MPA as the second output is not available offline 
+                disp("Loading mpa...");
                 load(mpa_full_path,"mpa");
+                disp("Finished loading mpa...");
                 obj = mpa;
                 disp('Offline MPA was found and loaded.')
                 return
@@ -136,7 +138,13 @@ classdef MotionPrimitiveAutomaton
             end
 
             % compute maneuver matrix for trimProduct
-            obj.transition_matrix = compute_product_maneuver_matrix(obj,nVeh_mpa,options.Hp);
+
+            if ~options.isPB && options.use_cpp
+                % way too big for Centralized Search
+                % obj.transition_matrix = compute_product_maneuver_matrix(obj,nVeh_mpa,options.Hp);
+            else
+                obj.transition_matrix = compute_product_maneuver_matrix(obj,nVeh_mpa,options.Hp);
+            end
             
             % variables to store reachable sets in different time steps
             obj.local_reachable_sets = cell(n_trims,options.Hp);
@@ -166,7 +174,7 @@ classdef MotionPrimitiveAutomaton
         function max_speed = get_max_speed_of_mpa(obj)
             % returns maximum speed of mpa (nSamples x 1)
             % TODO replace with more reasonable version.
-            N = size(obj.transition_matrix,3);
+            N = size(obj.transition_matrix_single,3);
             max_speed = max([obj.trims(:).speed]);
             max_speed = max_speed * ones(N,1);
             max_speed(end) = max_speed(end)/2;
@@ -178,7 +186,7 @@ classdef MotionPrimitiveAutomaton
             % is not general, but works for current MPAs
             % PROBLEM Sometimes vehicle stays in stop, as it is cheapest
             % for first action
-            N = size(obj.transition_matrix,3);
+            N = size(obj.transition_matrix_single,3);
             max_speed = zeros(N,1);
             max_speed_last = obj.trims(cur_trim_id).speed;
             for k = 1:N
@@ -345,7 +353,7 @@ classdef MotionPrimitiveAutomaton
         function save_mpa(obj,mpa_full_path)
             % Save MPA to library
             mpa = obj;
-            save(mpa_full_path,'mpa');
+            save(mpa_full_path, 'mpa', '-v7.3');
         end
 
 

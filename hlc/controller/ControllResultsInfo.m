@@ -79,14 +79,20 @@ classdef ControllResultsInfo
                 obj.y_predicted(vehicle_idx) = info_v.y_predicted; % store the information of the predicted output
             else
                 % for centralized control
-                obj.tree = info_v.tree; % only for node explorationslee
-                obj.n_expanded = info_v.tree.size();
-                obj.next_node = set_node(obj.next_node,1:scenario.options.amount,info_v);
-                obj.shapes = info_v.shapes;
-                obj.vehicle_fullres_path = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, scenario)';
-                obj.predicted_trims = info_v.predicted_trims; % store the planned trims in the future Hp time steps
-%                 obj.trim_indices = info_v.trim_indices; % dependent variable
-                obj.y_predicted = info_v.y_predicted(:); % store the information of the predicted output
+                if scenario.options.use_cpp % this is stupid and I don't like it, but it is a minimally invasive procedure
+                    obj.next_node = info_v.next_node;
+                    obj.predicted_trims = info_v.predicted_trims;
+                    obj.y_predicted = info_v.y_predicted(:);
+                else
+                    obj.tree = info_v.tree; % only for node explorationslee
+                    obj.n_expanded = info_v.tree.size();
+                    obj.next_node = set_node(obj.next_node,1:scenario.options.amount,info_v);
+                    obj.shapes = info_v.shapes;
+                    obj.vehicle_fullres_path = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, scenario)';
+                    obj.predicted_trims = info_v.predicted_trims; % store the planned trims in the future Hp time steps
+%                     obj.trim_indices = info_v.trim_indices; % dependent variable
+                    obj.y_predicted = info_v.y_predicted(:); % store the information of the predicted output
+                end
             end
 
             % Predicted trim of the next time step
