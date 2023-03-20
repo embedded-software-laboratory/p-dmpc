@@ -24,7 +24,7 @@ function scenario = moving_obstacle_scenario(options)
 
     scenario.options = OptionsMain;
     scenario.options.visu = [options.do_plot_online 0];
-    scenario.options.is_sim_lab = true;
+    scenario.options.environment = Environment.Simulation;
     scenario.options.trim_set = 9;
     scenario.options.amount = 1;
     scenario.options.dt = 0.2;

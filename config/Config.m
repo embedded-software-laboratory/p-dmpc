@@ -1,7 +1,7 @@
 classdef Config < handle
 
     properties
-        is_sim_lab = true;              % true/false, is simulation or lab experiment
+        environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
         is_manual_control = false;       % true/false, are manually controlled vehicles involved
         manual_control_config ManualControlConfig; % manual control config
         isPB = true;            % true/false, is prioritize vehicles

@@ -3,7 +3,7 @@ nVeh_s = 1:2:40;
 
 % prepare simulation options
 options = OptionsMain;
-options.is_sim_lab = true;
+options.environment = Environment.Simulation;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;

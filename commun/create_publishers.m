@@ -38,7 +38,7 @@ if ((sum(cellfun(@(c)strcmp(c,'veh_msgs/Traffic'), msgList))==0) || (sum(cellfun
 end
 
 if sum(cellfun(@(c)strcmp(c,'ros_g29_force_feedback/ForceFeedback'), msgList))==0
-    if ~hlc.scenario.options.is_sim_lab
+    if hlc.scenario.options.environment == Environment.CPMLab
         % This message type is only needed for lab mode but not
         % simulation mode
         path_custom_msg = [file_path,filesep,'cust2'];

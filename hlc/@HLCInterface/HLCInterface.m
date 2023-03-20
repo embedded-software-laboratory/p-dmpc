@@ -97,10 +97,13 @@ classdef (Abstract) HLCInterface < handle
         end
 
         function set_hlc_adapter( obj, visualization_data_queue )
-            if obj.scenario.options.is_sim_lab == false
-                obj.hlc_adapter = CPMLab(obj.scenario, obj.vehicle_ids);
-            else
-                obj.hlc_adapter = SimLab(obj.scenario, obj.vehicle_ids, visualization_data_queue);
+            switch(obj.scenario.options.environment)
+                case Environment.CPMLab
+                    obj.hlc_adapter = CPMLab(obj.scenario, obj.vehicle_ids);
+                case Environment.Simulation
+                    obj.hlc_adapter = SimLab(obj.scenario, obj.vehicle_ids, visualization_data_queue);
+                case Environment.UnifiedLabAPI
+                    obj.hlc_adapter = UnifiedLabAPI(obj.scenario, obj.vehicle_ids); %, visualization_data_queue);
             end            
         end
     end
