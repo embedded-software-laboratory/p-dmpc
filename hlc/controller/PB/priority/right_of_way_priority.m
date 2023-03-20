@@ -26,29 +26,6 @@ classdef right_of_way_priority < interface_priority
             directed_adjacency = zeros(nVeh,nVeh);
             % assign priorities to vehicles driving consecutively
             
-            % semi_adjacency matrix
-            semi_adjacency= scenario.semi_adjacency(:,:,end); 
-
-            
-            % update the undirected adjacency matrix to a directed adajacency matrix
-            for nveh = 1: nVeh-1
-
-                % check semi_adjacent vehicles (i.e. vehicles driving consecutively)
-                veh_semi_adjacent = find(semi_adjacency(nveh,:));
-                
-                % check the vehicles whose index is larger than the current vehicle, no repeated check
-                veh_semi_adjacent = veh_semi_adjacent(veh_semi_adjacent > nveh);
-                
-                for iveh = veh_semi_adjacent  
-                    is_leading_vehicle = check_driving_order(scenario,iter, nveh, iveh);
-                    if is_leading_vehicle
-                        directed_adjacency(nveh, iveh) = 1;
-                    else
-                        directed_adjacency(iveh, nveh) = 1;            
-                    end                  
-                end         
-            end
-            
             % identify vehicles at intersection and assign priorities accordingly
             for veh_idx = 1:nVeh   
                 lanelets_idx(veh_idx,:) = lanelets_index(veh_idx,iter,scenario);
@@ -95,14 +72,10 @@ classdef right_of_way_priority < interface_priority
                     for veh_idx = 1:n_veh_at_intersection - 1 
                         veh_higher_prior = veh_at_intersection(veh_idx);
                         veh_adjacent = find(adjacency(veh_higher_prior,:));
-                        veh_semi_adjacent = find(semi_adjacency(veh_higher_prior,:));
-
-                        % find the vehicles that do not drive consecutively
-                        veh_adjacent_diff = setdiff(veh_adjacent, veh_semi_adjacent);
 
                         for veh_adj_idx = (veh_idx+1):n_veh_at_intersection
                             veh_lower_prior = veh_at_intersection(veh_adj_idx);
-                            if ismember(veh_lower_prior,veh_adjacent_diff)
+                            if ismember(veh_lower_prior,veh_adjacent)
                                 directed_adjacency(veh_higher_prior,veh_lower_prior) = 1;
 %                                 directed_adjacency(veh_lower_prior,veh_higher_prior) = 0;
                             end 
