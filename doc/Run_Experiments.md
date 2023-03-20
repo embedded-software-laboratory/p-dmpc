@@ -35,6 +35,10 @@
 
  * select main_distributed.m as script in LCC and click deploy in LCC.
 
+# Unified Lab API
+
+If you run into problems with the standard c++ library libstdc++ try one of the ways described here: https://de.mathworks.com/matlabcentral/answers/329796-issue-with-libstdc-so-6
+
 # Debug Parallel Computation
 
 Matlab Parallel Computation Toolbox doesn't support debugging. However, you can select the config by executing main.m and activate parallel compuatation in the UI. The scenario will be written to the disk. Afterwards, you can open multiple matlab instances on your PC and execute main_distributed(1 vehicle id). You have to open as many Matlab instances as vehicles selected in the UI.

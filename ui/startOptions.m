@@ -5,7 +5,7 @@ ui = CPMStartOptionsUI();
 
 % Simulation
 % scenario
-scenario = list_scenario();
+scenario = list_scenario(ui);
 ui.ScenarioListBox.Items = scenario(:,2);
 
 % controlStrategy
@@ -31,7 +31,7 @@ ui.ParallelComputationDistributedExecutionListBox.Items = isParl(:,2);
 
 % change visibility of vehicle ID selection depending on environment selection
 %ui.ControlStrategyListBox.ValueChangedFcn = @(~, ~) setVisualizationVisibility(ui);
-ui.EnvironmentButtonGroup.SelectionChangedFcn = @(~, ~) setCpmLabElementsVisibility(ui);
+ui.EnvironmentButtonGroup.SelectionChangedFcn = @(~, ~) setEnvironmentElementsVisibility(ui);
 ui.AddHDVsCheckBox.ValueChangedFcn = @(~, ~) setManualControlElementsVisibility(ui);
 
 %% load previous choices, if possible
@@ -84,7 +84,7 @@ try %#ok<TRYNC>
 end
 
 %% Trigger UI change handles
-setCpmLabElementsVisibility(ui);
+setEnvironmentElementsVisibility(ui);
 setManualControlElementsVisibility(ui);
 
 %% Run App
@@ -167,7 +167,7 @@ assert(length(manual_control_config.hdv_ids)*is_manual_control == manual_control
 
 labOptions.manual_control_config = manual_control_config;
 
-labOptions.is_sim_lab = ~get_environment_selection(ui, true);
+labOptions.environment = get_environment_selection(ui, true);
 
 controlStrategyHelper = controlStrategy{...
     strcmp({controlStrategy{:, 2}}, controlStrategySelection),...
@@ -257,13 +257,19 @@ ui.delete;
 end
 
 
-function out = get_environment_selection(ui, output_as_bool)
+function out = get_environment_selection(ui, output_as_enum)
     % selection of environment
     out = ui.EnvironmentButtonGroup.SelectedObject == ui.EnvironmentButtonGroup.Buttons;
     
     % is CPM lab selected
-    if nargin > 1 && output_as_bool
-        out = isequal([1 0], out);
+    if nargin > 1 && output_as_enum
+        if isequal([1 0 0], out)
+            out = Environment.CPMLab;
+        elseif isequal([0 1 0], out)
+            out = Environment.Simulation;
+        else % isequal([0 0 1], out)
+            out = Environment.UnifiedLabAPI;
+        end
     end
 end
 
@@ -282,13 +288,17 @@ function out = get_pb_non_coop_selection(ui)
     out = strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop');
 end
 
-function setCpmLabElementsVisibility(ui)
+function setEnvironmentElementsVisibility(ui)
     % if lab mode is selected
-    is_cpm_lab_selection = get_environment_selection(ui, true);
-    ui.AddHDVsCheckBox.Enable = is_cpm_lab_selection;
-    ui.AddHDVsCheckBox.Value = ui.AddHDVsCheckBox.Value && is_cpm_lab_selection;
-    ui.AmountHDVsListBox.Enable = ui.AmountHDVsListBox.Enable && is_cpm_lab_selection;
-    ui.HDVIDsEditField.Enable = ui.HDVIDsEditField.Enable && is_cpm_lab_selection;
+    is_lab_selection = (get_environment_selection(ui, true) == Environment.CPMLab ...
+                            || get_environment_selection(ui, true) == Environment.UnifiedLabAPI);
+    ui.AddHDVsCheckBox.Enable = is_lab_selection;
+    ui.AddHDVsCheckBox.Value = ui.AddHDVsCheckBox.Value && is_lab_selection;
+    ui.AmountHDVsListBox.Enable = ui.AmountHDVsListBox.Enable && is_lab_selection;
+    ui.HDVIDsEditField.Enable = ui.HDVIDsEditField.Enable && is_lab_selection;
+
+    scenario = list_scenario(ui);
+    ui.ScenarioListBox.Items = scenario(:,2);
 end
 
 function setManualControlElementsVisibility(ui)
@@ -336,11 +346,16 @@ function [ list ] = list_is_parl
     }; 
 end 
 
-function [ list ] = list_scenario
+function [ list ] = list_scenario(ui)
+    is_unified_lab_interface_selected = get_environment_selection(ui, true) == Environment.UnifiedLabAPI;
     list = {...
     'Circle_scenario','Circle Scenario';...
     'Commonroad','Commonroad'...
     };
+    if is_unified_lab_interface_selected
+        list{3,1} = 'Lab_default';
+        list{3,2} = 'Lab Default (ULA only)';
+    end
 end
 
 function [ list ] = list_control_strategy

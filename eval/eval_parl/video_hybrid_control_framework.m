@@ -2,7 +2,7 @@
 %% two vehicles, parallel planning, visualize reachable sets
 % prepare simulation options
 options = OptionsMain;
-options.is_sim_lab = true;
+options.environment = Environment.Simulation;
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;
 options.Hp = 6;

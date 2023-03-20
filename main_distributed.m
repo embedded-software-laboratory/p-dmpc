@@ -12,7 +12,7 @@ scenario = load('scenario.mat', 'scenario').scenario;
 % get HLC
 factory = HLCFactory();
 factory.set_scenario(scenario);
-dry_run = ~scenario.options.is_sim_lab;
+dry_run = (scenario.options.environment == Environment.CPMLab); % TODO: Use dry run also for unified lab api?
 if scenario.options.isPB == true
     hlc = factory.get_hlc(vehicle_id, dry_run);
     [result,scenario] = hlc.run();
