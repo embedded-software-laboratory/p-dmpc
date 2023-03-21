@@ -29,6 +29,7 @@ function eval_coloring_paper()
     ylabel('\# Prio. Assignments', 'Interpreter', 'LaTex');
     xlabel('Computation Levels', 'Interpreter', 'LaTex');
     set_figure_properties(fig, ExportFigConfig.paper());
+    mkdir('./results')
     export_fig(fig, fullfile('./results/levels.pdf'));
     close(fig);
 
@@ -119,7 +120,7 @@ function eval_coloring_paper()
     options.T_end = 180;
     options.Hp = 8;
     options.isPB = true;
-    options.is_sim_lab = true;
+    options.environment = Environment.Simulation;
     options.visu = [false, false];
     options.strategy_consider_veh_without_ROW = '2'; % '2': consider currently occupied area as static obstacle
     options.isAllowInheritROW = true;
