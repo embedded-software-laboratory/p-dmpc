@@ -118,7 +118,6 @@ classdef PlotterOnline < handle
                 ylim(obj.scenario.options.plot_limits(2,:));
                 daspect([1 1 1])
                 plot_lanelets(obj.scenario.road_raw_data.lanelet,obj.scenario.options.scenario_name);
-                colormap("hot"); % set colormap
             end
 
             % Define a new colormap in the first timestep, else get the colormap already associated with the plot.
