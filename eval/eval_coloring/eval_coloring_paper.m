@@ -114,19 +114,16 @@ function eval_coloring_paper()
         'coloring_priority'
         };
 
-    options = OptionsMain;
+    options = Config;
     options.trim_set = 9;
     options.T_end = 180;
     options.Hp = 8;
     options.isPB = true;
-    options.isParl = true;
     options.is_sim_lab = true;
     options.visu = [false, false];
     options.strategy_consider_veh_without_ROW = '2'; % '2': consider currently occupied area as static obstacle
     options.isAllowInheritROW = true;
     options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area 
-    options.collisionAvoidanceMode = 1;
-    options.consider_RSS = false;
     options.isSaveResult = 1;
     options.isSaveResultReduced = 1;
     options.scenario_name = 'Commonroad';
@@ -150,7 +147,7 @@ function eval_coloring_paper()
     % plot lanelets map
     figure_handle = figure();
 
-    plot_lanelets(scenarios(1).road_raw_data.lanelet, scenarios(1).name);
+    plot_lanelets(scenarios(1).road_raw_data.lanelet, scenarios(1).options.scenario_name);
     axis equal;
     xlabel('$x$ [m]', 'Interpreter','latex');
     ylabel('$y$ [m]', 'Interpreter','latex');
