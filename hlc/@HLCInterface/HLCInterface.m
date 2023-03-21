@@ -97,10 +97,13 @@ classdef (Abstract) HLCInterface < handle
         end
 
         function set_hlc_adapter( obj, visualization_data_queue )
-            if obj.scenario.options.is_sim_lab == false
-                obj.hlc_adapter = CPMLab(obj.scenario, obj.vehicle_ids);
-            else
-                obj.hlc_adapter = SimLab(obj.scenario, obj.vehicle_ids, visualization_data_queue);
+            switch(obj.scenario.options.environment)
+                case Environment.CPMLab
+                    obj.hlc_adapter = CPMLab(obj.scenario, obj.vehicle_ids);
+                case Environment.Simulation
+                    obj.hlc_adapter = SimLab(obj.scenario, obj.vehicle_ids, visualization_data_queue);
+                case Environment.UnifiedLabAPI
+                    obj.hlc_adapter = UnifiedLabAPI(obj.scenario, obj.vehicle_ids); %, visualization_data_queue);
             end            
         end
     end
@@ -148,6 +151,12 @@ classdef (Abstract) HLCInterface < handle
                 % In priority-based computation, vehicles communicate via ROS 2
                 % Initialize the communication network of ROS 2
                 communication_init(obj);
+            end
+
+            if ~obj.scenario.options.isPB && obj.scenario.options.use_cpp
+                % When using C++, you don't want to send the scenario over
+                % and over again, so it is done in the init function
+                optimizer(Function.InitializeWithScenario, obj.scenario);
             end
         end
 
@@ -198,16 +207,6 @@ classdef (Abstract) HLCInterface < handle
 
                 if is_collision_occur
                     break
-                end
-
-
-                % visualize reachable set of vehicle in Expert-Mode
-                for iVeh = obj.indices_in_vehicle_list
-                    if obj.scenario.options.visualize_reachable_set && ((obj.scenario.options.veh_ids(iVeh) == obj.scenario.manual_vehicle_id && obj.scenario.options.firstManualVehicleMode == 2) ...
-                            || (obj.scenario.options.veh_ids(iVeh) == obj.scenario.second_manual_vehicle_id && obj.scenario.options.secondManualVehicleMode == 2))
-                        [visualization_command] = lab_visualize_polygon(obj.scenario, obj.iter.reachable_sets{iVeh, end}.Vertices, iVeh);
-                        obj.hlc_adapter.visualize(visualization_command);
-                    end
                 end
 
                 % calculate the distance

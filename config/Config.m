@@ -1,12 +1,11 @@
 classdef Config < matlab.mixin.Copyable
 
     properties
-        is_sim_lab = true;              % true/false, is simulation or lab experiment
+        environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
         is_manual_control = false;       % true/false, are manually controlled vehicles involved
         manual_control_config ManualControlConfig = ManualControlConfig; % manual control config
         isPB = true;            % true/false, is prioritize vehicles
         amount = 20;            % integer, number of vehicles, does not include manual vehicles
-        angles                  % 1-by-nVeh scalar vector
         visu = [true;false];    % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
         isParl = false;         % true/false, is use parallel(distributed) computation
         scenario_name = 'Commonroad'    % one of the follows: {'Circle_scenario','Commonroad'}
@@ -33,7 +32,6 @@ classdef Config < matlab.mixin.Copyable
         isAllowInheritROW = false;      % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
 
         is_eval = false;                % true/false, 
-        visualize_reachable_set = false;    % true/false, 
         is_free_flow = false;           % true/false, if true, vehicles do not need to consider other vehicles.
         fallback_type = 'localFallback';    % one of the following {'no','local','global'}, 
                                             % 'no' for disable fallback; 
@@ -60,7 +58,7 @@ classdef Config < matlab.mixin.Copyable
 
         is_force_parallel_vehs_in_same_grp = true;  % true/false, if true, vehicles move in parallel will be forced in the same group
         reference_path = struct('lanelets_index',[],'start_point',[]);  % custom reference path
-        visualizeReferenceTrajectory = false;
+        use_cpp = false;
 
     end
 
@@ -76,18 +74,21 @@ classdef Config < matlab.mixin.Copyable
 
         function obj = assign_data(obj,struct)
             fn = fieldnames(struct);
-            if isempty(fn)
-                return
-            end
             for i_field = 1:length(fn)
                 field = fn{i_field};
-                if ~isempty(struct.(field)) && ~findprop(obj, field).Dependent
-                    if strcmp(field, 'manual_control_config')
-                        obj.manual_control_config = ManualControlConfig();
-                        obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
-                    else
-                        obj.(field) = struct.(field);
-                    end
+                if ~isprop(obj,field)
+                    warning('Cannot set property %s for class Config as it does not exist', field);
+                    continue;
+                end
+                if findprop(obj, field).Dependent
+                    warning('Cannot set property %s for class Config as it is a dependent property', field);
+                    continue;
+                end
+                if strcmp(field, 'manual_control_config')
+                    obj.manual_control_config = ManualControlConfig();
+                    obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
+                else
+                    obj.(field) = struct.(field);
                 end
             end
         end

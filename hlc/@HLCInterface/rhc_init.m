@@ -8,7 +8,8 @@ function rhc_init(obj, x_measured, trims_measured)
 
     % init HDV: compute current lanelet id and reachable sets intersected
     % with current & successor lane;
-    hdv_amount = obj.scenario.options.manual_control_config.amount;
+    hdv_amount = obj.scenario.options.manual_control_config.amount ...
+        * (~(obj.scenario.options.environment == Environment.Simulation));
 
     for iHdv = 1:hdv_amount
 
@@ -105,7 +106,7 @@ function rhc_init(obj, x_measured, trims_measured)
             end
 
             % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
-            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.options.is_sim_lab, obj.scenario.vehicles(iVeh).is_loop);
+            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.options.environment, obj.scenario.vehicles(iVeh).is_loop);
             obj.iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
 
             if visualize_boundaries_lab
@@ -207,7 +208,7 @@ function rhc_init(obj, x_measured, trims_measured)
             % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
             % TODO is lanelets_index of other vehicles up to date?
             if obj.scenario.options.scenario_name == Scenario_Type.Commonroad
-                predicted_lanelet_boundary = get_lanelets_boundary(obj.iter.predicted_lanelets{iVeh}, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.options.is_sim_lab, obj.scenario.vehicles(iVeh).is_loop);
+                predicted_lanelet_boundary = get_lanelets_boundary(obj.iter.predicted_lanelets{iVeh}, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.options.environment, obj.scenario.vehicles(iVeh).is_loop);
                 obj.iter.predicted_lanelet_boundary(iVeh,:) = predicted_lanelet_boundary;
             end
 

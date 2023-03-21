@@ -1,7 +1,7 @@
 %% Generate data: different allowed number of computation levels and different sample time
 % prepare simulation options
 options = OptionsMain;
-options.is_sim_lab = true;
+options.environment = Environment.Simulation;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;

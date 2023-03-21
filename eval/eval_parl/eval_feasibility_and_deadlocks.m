@@ -7,7 +7,7 @@ nVeh_s = 30:2:40;
 
 % prepare simulation options
 options = OptionsMain;
-options.is_sim_lab = true;
+options.environment = Environment.Simulation;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;
@@ -143,7 +143,7 @@ strategy_feasibility_deadlock = {{'3','4'},{'3','1'},{'1','4'},{'1','1'}};
 
 % prepare simulation options
 options = OptionsMain;
-options.is_sim_lab = true;
+options.environment = Environment.Simulation;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;

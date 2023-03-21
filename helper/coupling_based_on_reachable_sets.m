@@ -31,6 +31,5 @@ function [iter] = coupling_based_on_reachable_sets(scenario, iter)
     end
 
     iter.adjacency = adjacency;
-    iter.semi_adjacency = adjacency;
 end
 

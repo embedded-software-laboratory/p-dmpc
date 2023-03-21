@@ -15,12 +15,11 @@ function scenario = commonroad(options,vehicle_ids)
     road_data = RoadData().get_road_data();
 %     if options.isParl
         scenario.lanelets = road_data.lanelets;
-        scenario.semi_adjacency_lanelets = road_data.semi_adjacency_lanelets;
         scenario.intersection_lanelets = road_data.intersection_lanelets;
         scenario.lanelet_boundary = road_data.lanelet_boundary;
         scenario.road_raw_data = road_data.road_raw_data;
 %     else
-%         [scenario.lanelets, scenario.adjacency_lanelets, scenario.semi_adjacency_lanelets, scenario.intersection_lanelets, scenario.road_raw_data, scenario.lanelet_boundary] =...
+%         [scenario.lanelets, scenario.adjacency_lanelets, scenario.intersection_lanelets, scenario.road_raw_data, scenario.lanelet_boundary] =...
 %             commonroad_lanelets();
 %     end
     scenario.lanelet_relationships  = road_data.lanelet_relationships;
@@ -36,7 +35,6 @@ function scenario = commonroad(options,vehicle_ids)
             lanelets_index = options.reference_path.lanelets_index{iveh};
         end
         ref_path = generate_ref_path_loop(vehicle_ids(iveh), scenario.lanelets, lanelets_index);% function to generate refpath based on CPM Lab road geometry
-
         veh.lanelets_index = ref_path.lanelets_index;
         lanelet_ij = [ref_path.lanelets_index(1),ref_path.lanelets_index(end)];
 

@@ -3,7 +3,7 @@ priority_assign_options = {'STAC_priority','random_priority','constant_priority'
 
 % prepare simulation options
 options = OptionsMain;
-options.is_sim_lab = true;
+options.environment = Environment.Simulation;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;
@@ -126,7 +126,7 @@ e_differentNumVehs{1}.save_fig(fig,file_name)
 priority_assign_options = {'STAC_priority','random_priority','constant_priority'};
 % prepare simulation options
 options = OptionsMain;
-options.is_sim_lab = true;
+options.environment = Environment.Simulation;
 options.customResultName = '';
 options.scenario_name = 'Commonroad';
 options.trim_set = 9;

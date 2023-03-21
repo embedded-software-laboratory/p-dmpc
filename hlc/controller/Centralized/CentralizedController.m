@@ -11,17 +11,36 @@ classdef CentralizedController < HLCInterface
 
             % falsifies controller_runtime slightly
             subcontroller_timer = tic;
-            info_v = obj.sub_controller(obj.scenario, obj.iter);
-            if info_v.is_exhausted
-                % if graph search is exhausted, this vehicles and all vehicles that have directed or
-                % undirected couplings with this vehicle will take fallback
-                disp(['Graph search exhausted at time step: ' num2str(obj.k) '.'])
-                % all vehicles fall back
-                obj.info.vehs_fallback = 1:obj.scenario.options.amount;
-                obj.info.is_exhausted(obj.info.vehs_fallback) = true;
-            else
-                % prepare output data
+
+            if obj.scenario.options.use_cpp
+                [info_v.next_node, info_v.predicted_trims, info_v.y_predicted] = ...
+                optimizer(Function.GraphSearchCentralizedOptimalPolymorphic, obj.iter);
+
+                %optimizer(Function.GraphSearchCentralizedOptimalPolymorphicSpeedHeuristic, obj.iter);
+                %optimizer(Function.GraphSearchCentralizedOptimalPolymorphic, obj.iter);
+                %optimizer(Function.GraphSearchCentralizedOptimalMemorySaving, obj.iter);
+                %optimizer(Function.GraphSearchCentralizedParallelNaiveMonteCarloPolymorphic, obj.iter);
+                %optimizer(Function.GraphSearchCentralizedParallelNaiveMonteCarlo, obj.iter);
+                %optimizer(Function.GraphSearchCentralizedOptimal, obj.iter);
+                %optimizer(Function.GraphSearchCentralizedNaiveMonteCarloPolymorphic, obj.iter);
+                %optimizer(Function.GraphSearchCentralizedNaiveMonteCarlo, obj.iter);
+                
+                
+
                 obj.info = store_control_info(obj.info, info_v, obj.scenario);
+            else
+                info_v = obj.sub_controller(obj.scenario, obj.iter);
+                if info_v.is_exhausted
+                    % if graph search is exhausted, this vehicles and all vehicles that have directed or
+                    % undirected couplings with this vehicle will take fallback
+                    disp(['Graph search exhausted at time step: ' num2str(obj.k) '.'])
+                    % all vehicles fall back
+                    obj.info.vehs_fallback = 1:obj.scenario.options.amount;
+                    obj.info.is_exhausted(obj.info.vehs_fallback) = true;
+                else
+                    % prepare output data
+                   obj.info = store_control_info(obj.info, info_v, obj.scenario);
+                end
             end
 
             obj.info.runtime_subcontroller_each_veh = toc(subcontroller_timer);
