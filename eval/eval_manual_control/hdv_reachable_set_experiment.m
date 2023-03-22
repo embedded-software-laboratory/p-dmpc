@@ -7,13 +7,13 @@ function result = hdv_reachable_set_experiment()
     options.isPB = true;
     options.isParl = false;
     options.environment = Environment.Simulation;
-    options.visu = [true, false];
+    options.is_plot_online = true;
     options.isSaveResult = 1;
     options.isSaveResultReduced = 0;
     options.bound_reachable_sets = false;
 
     % visualization for video
-    options.optionsPlotOnline.isShowCoupling = false;
+    options.options_plot_online.plot_coupling = false;
 
     vehicle_ids = [8, 9];
 

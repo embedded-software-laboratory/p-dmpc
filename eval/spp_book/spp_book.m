@@ -2,7 +2,7 @@
 function results = spp_book(visu_options)
     % spp_book Generates evaluation results for the SPP book chapter
 arguments
-    visu_options.do_plot_online      (1,1) logical = 0;
+    visu_options.is_plot_online      (1,1) logical = 0;
     visu_options.is_video_exported   (1,1) logical = 0;
 end
 
@@ -61,7 +61,7 @@ end
     options.Hp = 8;
     options.isPB = true;
     options.environment = Environment.Simulation;
-    options.visu = [visu_options.do_plot_online, false];
+    options.is_plot_online = visu_options.is_plot_online;
     options.strategy_consider_veh_without_ROW = '2'; % '2': consider currently occupied area as static obstacle
     options.isAllowInheritROW = true;
     options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area 
@@ -70,7 +70,7 @@ end
     options.isSaveResultReduced = 1;
 
     % visualization for video
-    options.optionsPlotOnline.isShowCoupling = true;
+    options.options_plot_online.plot_coupling = true;
     
 
     nsVeh = 1:20;

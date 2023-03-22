@@ -16,9 +16,8 @@ options.max_num_CLs = 4;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '4';
 options.isSaveResult = true;
-options.visu = [false,false];
+options.is_plot_online = false;
 options.is_eval = false;
-options.visualize_reachable_set = false;
 
 e_differentNumVehs = cell(length(priority_assign_options),1);
 n_simulations = numel(e_differentNumVehs);
@@ -139,9 +138,8 @@ options.max_num_CLs = 4;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '4';
 options.isSaveResult = true;
-options.visu = [false,false];
+options.is_plot_online = false;
 options.is_eval = false;
-options.visualize_reachable_set = false;
 options.amount = 16;
 
 random_stream = RandStream('mt19937ar');

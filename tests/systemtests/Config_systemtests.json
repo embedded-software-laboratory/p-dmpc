@@ -10,10 +10,9 @@
     "is_save_mpa": false,
     "is_load_mpa": true,
 
-    "visu": [
-        false,
-        false
-    ],
+    "options_plot_online": {
+        "is_active": false
+    },
     
     "is_manual_control": false,
     "manual_control_config": {

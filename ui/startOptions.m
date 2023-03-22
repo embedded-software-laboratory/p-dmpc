@@ -21,10 +21,6 @@ ui.PriorityAssignmentMethodListBox.Items = priorityAssignmentMethod(:,2);
 vehicleAmount = list_vehicle_amount();
 ui.AmountofVehiclesListBox.Items = vehicleAmount(:,1);
 
-% visualization
-visualization = list_visualization();
-ui.TypeofVisualizationListBox_2.Items = visualization(:,2);
-
 % isParl 
 isParl = list_is_parl(); 
 ui.ParallelComputationDistributedExecutionListBox.Items = isParl(:,2);
@@ -48,7 +44,7 @@ try %#ok<TRYNC>
     ui.ControlStrategyListBox.Value = previousSelection.controlStrategySelection;
     ui.PriorityAssignmentMethodListBox.Value = previousSelection.priorityAssignmentMethodSelection;
     ui.AmountofVehiclesListBox.Value = previousSelection.vehicleAmountSelection;
-    ui.TypeofVisualizationListBox_2.Value = previousSelection.visualizationSelection;
+    ui.DoOnlinePlotListBox.Value = previousSelection.visualizationSelection;
 
     % sample time [s]
     ui.SampleTimesSpinner.Value = previousSelection.dtSelection;
@@ -107,7 +103,7 @@ scenarioSelection = ui.ScenarioListBox.Value;
 controlStrategySelection = ui.ControlStrategyListBox.Value;
 priorityAssignmentMethodSelection = ui.PriorityAssignmentMethodListBox.Value;
 vehicleAmountSelection = ui.AmountofVehiclesListBox.Value;
-visualizationSelection = ui.TypeofVisualizationListBox_2.Value;
+visualizationSelection = ui.DoOnlinePlotListBox.Value;
 isParlSelection = ui.ParallelComputationDistributedExecutionListBox.Value;
 veh_ids = ui.CustomVehicleIdsEditField.Value;
 hdv_ids = ui.HDVIDsEditField.Value;
@@ -163,8 +159,6 @@ assert(length(manual_control_config.hdv_ids)*is_manual_control == manual_control
 
 %labOptions.is_eval = false;
 
-%labOptions.visualize_reachable_set = false;
-
 labOptions.manual_control_config = manual_control_config;
 
 labOptions.environment = get_environment_selection(ui, true);
@@ -185,20 +179,14 @@ else
     labOptions.veh_ids = [];
 end
 
-labOptions.visu = visualization{...
-    strcmp({visualization{:, 2}}, visualizationSelection),...
-    3};
+labOptions.options_plot_online = OptionsPlotOnline();
+labOptions.options_plot_online.is_active = strcmp(visualizationSelection, 'yes');
 
 isParlHelper = isParl{... 
 strcmp({isParl{:, 2}}, isParlSelection),... 
     2}; 
  
 labOptions.isParl = strcmp(isParlHelper, 'yes');
-
-% visualization + node exploration only allowed for centralized controller
-if labOptions.isPB == 2 && strcmp(visualizationSelection, 'visualization + node exploration')
-    labOptions.visu = visualization{2,3};
-end
 
 labOptions.scenario_name = scenario{...
     strcmp({scenario{:, 2}}, scenarioSelection),...
@@ -328,16 +316,6 @@ function callbackPBSelected(ui)
     end 
 end
 
-%{
-function setVisualizationVisibility(ui)
-    % no node exploration if pb non-coop is selected
-    if get_pb_non_coop_selection(ui)
-        set(ui.TypeofVisualizationListBox_2, 'visualization + node exploration', 'Off');
-    else
-        set(ui.TypeofVisualizationListBox_2, 'visualization + node exploration', 'On');
-    end
-end
-%}
  
 function [ list ] = list_is_parl 
     list = {... 
@@ -375,15 +353,6 @@ function [ list ] = list_priority_assignment_methods
     'STAC_priority','STAC Priority'
     };
 end 
-
-
-function [ list ] = list_visualization
-    list = {...
-    '1', 'no visualization',                    [false,false]; ...
-    '2', 'vehicle visualization',               [true,false]; ...
-    '3', 'visualization + node exploration',    [true,true]; ... % only for centralized controller
-    };
-end
 
 function [ list ] = list_vehicle_amount
     list = {...

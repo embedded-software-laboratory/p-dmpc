@@ -23,7 +23,7 @@ fig = figure('Visible','Off'...
 test_mode = false;
 if test_mode
     exp.k = 1; %#ok<UNRCH>
-    plotOnline(result,1,1,[],scenario.options.optionsPlotOnline);
+    plotOnline(result,1,1,[],scenario.options.options_plot_online);
     set_figure_properties(fig,ExportFigConfig.video());
     frame = getframe(fig);
     imwrite(frame,['output\video_', vid_name, '.png']);
@@ -42,12 +42,12 @@ startTimer = tic;
 disp('Exporting video ...');
 wb = waitbar(0, 'Exporting video ...','Name','Video Export Progress');
 
-scenario.options.optionsPlotOnline.isVideoMode = 1;
+scenario.options.options_plot_online.is_video_mode = 1;
 
 for step_idx = 1:nSteps
     for frame_idx = frame_ticks
         clf
-        plotOnline(result,step_idx,frame_idx,[],scenario.options.optionsPlotOnline);
+        plotOnline(result,step_idx,frame_idx,[],scenario.options.options_plot_online);
         set_figure_properties(fig,ExportFigConfig.video());
         frame = getframe(fig);
         writeVideo(v,frame);

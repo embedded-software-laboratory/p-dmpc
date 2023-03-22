@@ -41,9 +41,8 @@ classdef FreeFlowSpeed
             options.strategy_consider_veh_without_ROW = '3';
             options.strategy_enter_lanelet_crossing_area = '4';
             options.isSaveResult = true;
-            options.visu = [false,false];
+            options.is_plot_online = false;
             options.is_eval = false;
-            options.visualize_reachable_set = false;
             options.amount = 20;
             options.is_free_flow = true;
             

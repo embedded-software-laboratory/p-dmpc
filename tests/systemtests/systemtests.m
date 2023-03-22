@@ -2,7 +2,7 @@ classdef systemtests < matlab.unittest.TestCase
 
     properties (TestParameter)
         priority = {'coloring', 'constant', 'random', 'FCA', 'STAC'};
-        % priority = {'coloring', 'right_of_way', 'constant', 'random', 'FCA', 'STAC'};
+        %priority = {'coloring', 'right_of_way', 'constant', 'random', 'FCA', 'STAC'};
         scenario_name = {'Circle_scenario', 'Commonroad'};
         parallel = {'sequential', 'parallel'};
     end

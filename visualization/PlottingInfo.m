@@ -9,7 +9,6 @@ classdef PlottingInfo
         dynamic_obstacles
         dynamic_obstacles_shape
         reachable_sets
-        exploration
         step
         veh_indices % vehicles to which the plot info belong
         tick_now
@@ -21,7 +20,7 @@ classdef PlottingInfo
     end
 
     methods (Static)
-        function obj = PlottingInfo(veh_indices, result, k, tick_now, exploration_struct, plot_options)
+        function obj = PlottingInfo(veh_indices, result, k, tick_now, plot_options)
             obj.veh_indices = veh_indices;
             obj.step = k;
             obj.tick_now = tick_now;
@@ -37,10 +36,10 @@ classdef PlottingInfo
                 obj.dynamic_obstacles = result.iteration_structs{k}.dynamic_obstacle_fullres{:,k};
                 obj.dynamic_obstacles_shape = result.iteration_structs{k}.dynamic_obstacle_shape;
             end
-            if plot_options.isShowReachableSets
+            if plot_options.plot_reachable_sets
                 obj.reachable_sets = result.iteration_structs{k}.reachable_sets;
             end
-            if plot_options.isShowLaneletCrossingAreas
+            if plot_options.plot_lanelet_crossing_areaas
                 obj.lanelet_crossing_areas = result.lanelet_crossing_areas{k};
             end
             obj.directed_coupling = result.directed_coupling{k};
@@ -51,7 +50,6 @@ classdef PlottingInfo
                     obj.coupling_info = result.coupling_info{k};
                 end
             end
-            obj.exploration = exploration_struct;
         end
     end
 
@@ -62,14 +60,12 @@ classdef PlottingInfo
             obj.trajectory_predictions = obj.trajectory_predictions{filter_self'};
             obj.ref_trajectory = obj.ref_trajectory(filter_self,:,:);
             obj.priorities = obj.priorities(filter_self');
-            if plot_options.isShowReachableSets
+            if plot_options.plot_reachable_sets
                 obj.reachable_sets = obj.reachable_sets{filter_self,:};
             end
-            if plot_options.isShowLaneletCrossingAreas
+            if plot_options.plot_lanelet_crossing_areaas
                 obj.lanelet_crossing_areas = obj.lanelet_crossing_areas{filter_self};
             end
-            % TODO what to do with tree in distributed case? 
-            % obj.exploration_struct.info.tree = obj.exploration_struct.info.tree;            
         end
     end
 end

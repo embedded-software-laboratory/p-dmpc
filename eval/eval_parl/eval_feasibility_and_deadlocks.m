@@ -20,9 +20,8 @@ options.priority = 'STAC_priority';
 options.isPB = true;
 options.isAllowInheritROW = false;
 options.isSaveResult = true;
-options.visu = [false,false];
+options.is_plot_online = false;
 options.is_eval = false;
-options.visualize_reachable_set = false;
 
 random_times = 3;
 e_feasibility_differentNumVehs = cell(length(strategy_feasibility_deadlock)*random_times,length(nVeh_s));
@@ -157,9 +156,8 @@ options.priority = 'STAC_priority';
 options.isPB = true;
 options.isAllowInheritROW = false;
 options.isSaveResult = true;
-options.visu = [false,false];
+options.is_plot_online = false;
 options.is_eval = false;
-options.visualize_reachable_set = false;
 
 random_times = 1;
 e_feasibility_sameNumVehs = cell(random_times,length(strategy_feasibility_deadlock));

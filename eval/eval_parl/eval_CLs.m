@@ -13,9 +13,8 @@ options.isAllowInheritROW = false;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '1';
 options.isSaveResult = true;
-options.visu = [0,false];
+options.is_plot_online = false;
 options.is_eval = false;
-options.visualize_reachable_set = false;
 options.dt = 0.2;
 
 options.veh_ids = [11,18,19,20,26,27,29,31,32,40];
@@ -180,9 +179,9 @@ options.max_num_CLs = 1;
 full_path = FileNameConstructor.get_results_full_path(options);
 load(full_path,'result')
 
-result.scenario.options.optionsPlotOnline.isVideoMode = true;
-result.scenario.options.optionsPlotOnline.isShowCoupling = false;
-result.scenario.options.optionsPlotOnline.isShowPriority = false;
+result.scenario.options.options_plot_online.is_video_mode = true;
+result.scenario.options.options_plot_online.plot_coupling = false;
+result.scenario.options.options_plot_online.plot_priority = false;
 
 videoExportSetup.framerate = 5;
 exportVideo(result,videoExportSetup)

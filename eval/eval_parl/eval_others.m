@@ -83,11 +83,11 @@ t_fig = tiledlayout(1,1,'Padding','compact','TileSpacing','compact');
 step = 1;
 tick_now = 1;
 
-visu.isShowVehID = true;             
-visu.isShowPriority = false;         
-visu.isShowCoupling = false;          
-visu.isShowWeight = false;           
-visu.isShowHotkeyDescription = false;
+visu.plot_vehicle_id = true;             
+visu.plot_priority = false;         
+visu.plot_coupling = false;          
+visu.plot_weight = false;           
+visu.plot_hotkey_description = false;
 nexttile
 
 vehColor = hsv(num_loops);
@@ -127,7 +127,7 @@ for v=1:nVeh
     veh = vehs{v};
     x = [veh.x_start,veh.y_start,veh.yaw_start];
     % plot the vehicle index
-    if visu.isShowVehID
+    if visu.plot_vehicle_id
         text(x(1)+0.1,x(2)+0.1,num2str(v), 'LineWidth',0.2,'Color','k');
     end
 end
@@ -151,9 +151,8 @@ options.max_num_CLs = 3;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '4';
 options.isSaveResult = true;
-options.visu = [false,false];
+options.is_plot_online = false;
 options.is_eval = false;
-options.visualize_reachable_set = false;
 options.priority = 'STAC_priority';
 options.amount = 20;
 

@@ -99,19 +99,19 @@ classdef HLCFactory < handle
         % solve the first timestep of this scenario is.
         function dry_run_hlc(obj, vehicle_ids)
             disp("Starting dry run of HLC");
-            visu_backup = obj.scenario.options.visu;
+            plot_backup = obj.scenario.options.options_plot_online.is_active;
             environment_backup = obj.scenario.options.environment;
             T_end_backup = obj.scenario.options.T_end;
             save_result_backup = obj.scenario.options.isSaveResult;
             % avoid sending any data to Cpm Lab. Thus, use Sim Lab
             obj.scenario.options.environment = Environment.Simulation;
-            obj.scenario.options.visu = [false, false];
+            obj.scenario.options.options_plot_online.is_active = false;
             obj.scenario.options.T_end = 2 * obj.scenario.options.dt;
             obj.scenario.options.isSaveResult = false;
             hlc = obj.get_hlc(vehicle_ids, false);
             hlc.run();
             obj.scenario.options.environment = environment_backup;
-            obj.scenario.options.visu = visu_backup;
+            obj.scenario.options.options_plot_online.is_active = plot_backup;
             obj.scenario.options.T_end = T_end_backup;
             obj.scenario.options.isSaveResult = save_result_backup;
             disp("Dry Run Completed");
