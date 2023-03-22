@@ -15,9 +15,8 @@ options.isPB = true;
 options.isAllowInheritROW = false;
 options.isSaveResult = true;
 options.isSaveResultReduced = false;
-options.visu = [true,false];
+options.is_plot_online = true;
 options.is_eval = false;
-options.visualize_reachable_set = false;
 options.strategy_consider_veh_without_ROW = '3';
 
 
@@ -27,9 +26,9 @@ i = 1;
 switch i
     case 1
         options.T_end = 3;
-        options.optionsPlotOnline.isShowReachableSets = true;
-        options.optionsPlotOnline.isShowLaneletCrossingAreas = false;
-        options.optionsPlotOnline.vehsReachableSets = [2];
+        options.options_plot_online.plot_reachable_sets = true;
+        options.options_plot_online.plot_lanelet_crossing_areaas = false;
+        options.options_plot_online.vehicles_reachable_sets = [2];
         options.bound_reachable_sets = false;
         options.strategy_enter_lanelet_crossing_area = '1';
         options.max_num_CLs = 1;
@@ -37,8 +36,8 @@ switch i
         options.amount = 2;
     case 2
         options.T_end = 3;
-        options.optionsPlotOnline.isShowReachableSets = true;
-        options.optionsPlotOnline.isShowLaneletCrossingAreas = false;
+        options.options_plot_online.plot_reachable_sets = true;
+        options.options_plot_online.plot_lanelet_crossing_areaas = false;
         options.bound_reachable_sets = true;
         options.strategy_enter_lanelet_crossing_area = '1';
         options.max_num_CLs = 1;
@@ -46,8 +45,8 @@ switch i
         options.amount = 2;
     case 3
         options.T_end = 3;
-        options.optionsPlotOnline.isShowReachableSets = false;
-        options.optionsPlotOnline.isShowLaneletCrossingAreas = true;
+        options.options_plot_online.plot_reachable_sets = false;
+        options.options_plot_online.plot_lanelet_crossing_areaas = true;
         options.bound_reachable_sets = true;
         options.strategy_enter_lanelet_crossing_area = '4';
         options.max_num_CLs = 1;
@@ -55,8 +54,8 @@ switch i
         options.amount = 2;
     case 4
         options.T_end = 30;
-        options.optionsPlotOnline.isShowReachableSets = false;
-        options.optionsPlotOnline.isShowLaneletCrossingAreas = false;
+        options.options_plot_online.plot_reachable_sets = false;
+        options.options_plot_online.plot_lanelet_crossing_areaas = false;
         options.bound_reachable_sets = true;
         options.strategy_enter_lanelet_crossing_area = '4';
         options.max_num_CLs = 3;
@@ -65,8 +64,8 @@ switch i
         options.veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
     case 5
         options.T_end = 10;
-        options.optionsPlotOnline.isShowReachableSets = false;
-        options.optionsPlotOnline.isShowLaneletCrossingAreas = false;
+        options.options_plot_online.plot_reachable_sets = false;
+        options.options_plot_online.plot_lanelet_crossing_areaas = false;
         options.bound_reachable_sets = true;
         options.strategy_enter_lanelet_crossing_area = '1';
         options.max_num_CLs = 4;
@@ -78,9 +77,9 @@ end
 
 
 
-% options.optionsPlotOnline.vehsReachableSets = find(options.veh_ids==41);
+% options.options_plot_online.vehicles_reachable_sets = find(options.veh_ids==41);
 % 
-% options.optionsPlotOnline.vehsLaneletCorssingAreas = find(options.veh_ids==18);
+% options.options_plot_online.vehicles_lanelet_crossing_areas = find(options.veh_ids==18);
 
 full_path = FileNameConstructor.get_results_full_path(options);
 if isfile(full_path)
@@ -97,9 +96,9 @@ end
 load(full_path)
 
 %%
-result.scenario.options.optionsPlotOnline.isVideoMode = true;
-result.scenario.options.optionsPlotOnline.isShowCoupling = true;
-result.scenario.options.optionsPlotOnline.isShowPriority = false;
+result.scenario.options.options_plot_online.is_video_mode = true;
+result.scenario.options.options_plot_online.plot_coupling = true;
+result.scenario.options.options_plot_online.plot_priority = false;
 
 videoExportSetup.framerate = 5;
 exportVideo(result,videoExportSetup)

@@ -18,8 +18,8 @@ function export_desired_videos(res)
             else
                 error('Experiment results required in "results" folder')
             end
-            r_full.scenario.options.optionsPlotOnline.isShowPriority = true;
-            r_full.scenario.options.optionsPlotOnline.isShowCoupling = true;
+            r_full.scenario.options.options_plot_online.plot_priority = true;
+            r_full.scenario.options.options_plot_online.plot_coupling = true;
             exportVideo(r_full);
     end
 end

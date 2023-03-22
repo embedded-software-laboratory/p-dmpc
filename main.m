@@ -52,7 +52,7 @@ function [result, scenario] = main(varargin)
         if scenario.options.isPB == true && scenario.options.isParl
             %% simulate distribution locally using the Parallel Computing Toolbox
             get_parallel_pool(scenario.options.amount);
-            plot = scenario.options.visu(1);
+            plot = scenario.options.options_plot_online.is_active;
             if plot
                 factory.set_visualization_data_queue;
                 % create central plotter - used by all workers via data queue

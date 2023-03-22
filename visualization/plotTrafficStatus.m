@@ -1,4 +1,4 @@
-function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
+function plotTrafficStatus(result,step_idx,tick_now,visu)
 % PLOTONLINE    Plot function used for plotting the simulation state in a specified tick
 %               during a specified time step
 % 
@@ -9,7 +9,7 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
 % 
 %   tick_now: tick index
 % 
-%   visu: struct with fields: 'isShowVehID', 'isShowPriority', 'isShowCoupling' and 'isShowWeight'
+%   visu: struct with fields: 'plot_vehicle_id', 'plot_priority', 'plot_coupling' and 'plot_weight'
 % 
 
     scenario = result.scenario;
@@ -22,9 +22,6 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
     if nargin < 3
         tick_now = 1;
     end 
-    if isempty(exploration)
-        exploration.doExploration = false;
-    end    
     
     %% Simulation state / scenario plot
 
@@ -32,10 +29,6 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
     % at every time step, delete all these plots while keep plot_lanelets
 %     h = findobj('LineWidth',0.2);
 %     delete(h)
-    
-    if exploration.doExploration
-        visualize_exploration(exploration,scenario);
-    end
     
     hold on
     box on
@@ -55,7 +48,7 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
 
     colormap("hot"); % set colormap
 
-    if visu.isShowHotkeyDescription
+    if visu.plot_hotkey_description
         % show description of hotkey
         find_text_hotkey = findall(gcf,'Type','text','Tag','hotkey');
         if isempty(find_text_hotkey)
@@ -104,7 +97,7 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
     vehColor = get_colormap(sticks(2:end-1),:); % evenly sample from colormap
     
     find_colorbar = findall(gcf,'Type','ColorBar','Tag','priority_colorbar');
-    if visu.isShowPriority
+    if visu.plot_priority
         if isempty(find_colorbar)
             priority_colorbar = colorbar('Tag','priority_colorbar','FontName','Verdana','FontSize',9);
             priority_colorbar.Title.String = '              Priority \newline(low value for high priority)'; % todo: find way to center the first line instead of using many spaces
@@ -164,23 +157,23 @@ function plotTrafficStatus(result,step_idx,tick_now,exploration,visu)
         x = pos_step(tick_now,:);
 
         % plot the priority
-%         if visu.isShowPriority
+%         if visu.plot_priority
 %             text(x(1),x(2),num2str(result.priority(v,step_idx)), 'LineWidth',0.2,'Color','m');
 %         end
 
         % plot the vehicle index
-        if visu.isShowVehID
+        if visu.plot_vehicle_id
             text(x(1)+0.1,x(2)+0.1,num2str(v), 'LineWidth',0.2,'Color','b');
         end
         % plot the vehicle ID
-%         if visu.isShowVehID
+%         if visu.plot_vehicle_id
 %             text(x(1)+0.1,x(2)+0.1,num2str(veh.ID), 'LineWidth',0.2,'Color','b');
 %         end
     end
 
     % plot scenario adjacency
-    coupling_visu = struct('FontSize',9,'LineWidth',0.5,'isShowLine',visu.isShowCoupling,'isShowValue',visu.isShowWeight);
-    if visu.isShowCoupling
+    coupling_visu = struct('FontSize',9,'LineWidth',0.5,'isShowLine',visu.plot_coupling,'isShowValue',visu.plot_weight);
+    if visu.plot_coupling
         x0 = cellfun(@(c)c(tick_now,:), result.trajectory_predictions(:,step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
         if ~isempty(iter.coupling_weights_reduced)

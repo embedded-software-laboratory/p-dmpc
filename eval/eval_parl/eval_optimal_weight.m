@@ -16,9 +16,8 @@ options.isPB = true;
 options.isAllowInheritROW = false;
 options.isSaveResult = true;
 options.isSaveResultReduced = true;
-options.visu = [false,false];
+options.is_plot_online = false;
 options.is_eval = false;
-options.visualize_reachable_set = false;
 options.strategy_consider_veh_without_ROW = '3';
 options.strategy_enter_lanelet_crossing_area = '1';
 options.isSaveResultReduced = true;
@@ -53,11 +52,11 @@ x_margin = 0;   y_margin = 0;
 fig_x_position = fig_x - 2*x_margin;
 fig_y_position = fig_y - 2*y_margin;
 
-visu.isShowVehID = true;                % is show vehicle IDs
-visu.isShowPriority = false;            % is show priority colorbar
-visu.isShowCoupling = false;             % is show coupling edges
-visu.isShowWeight = false;              % is show coupling weights
-visu.isShowHotkeyDescription = false;   % is show description of hotkeys
+visu.plot_vehicle_id = true;                % is show vehicle IDs
+visu.plot_priority = false;            % is show priority colorbar
+visu.plot_coupling = false;             % is show coupling edges
+visu.plot_weight = false;              % is show coupling weights
+visu.plot_hotkey_description = false;   % is show description of hotkeys
 visu.color_mode = 'group'; % vehicles in the same group have the same color
 
 step_index  = 35;

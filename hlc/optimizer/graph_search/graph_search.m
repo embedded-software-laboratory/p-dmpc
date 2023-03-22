@@ -124,9 +124,6 @@ function info = graph_search(scenario, iter)
             new_open_values = info.tree.g(new_open_nodes) * g_weight + info.tree.h(new_open_nodes) * h_weight;
             % add child nodes
             pq.push(new_open_nodes,new_open_values);
-
-            % % plot exploration
-            % info.plot = visualize_exploration(scenario, info.tree, info.plot);
         end
     end
 end

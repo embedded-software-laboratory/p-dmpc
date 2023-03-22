@@ -64,7 +64,7 @@ function cav_occupied_area_plot(result, step_idx, tick_now, visu)
             , 'LineWidth', 1 ...
         );
 
-        if visu.isShowVehID
+        if visu.plot_vehicle_id
             radius = veh.Width * 0.95/2;
             rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
                 'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
