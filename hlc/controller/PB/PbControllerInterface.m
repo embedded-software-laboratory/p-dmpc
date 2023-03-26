@@ -146,7 +146,7 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                 switch obj.scenario.options.fallback_type
                     case 'localFallback'
                         sub_graph_fallback = obj.belonging_vector_total(vehicle_idx);
-                        obj.info.vehs_fallback = [obj.info.vehs_fallback, find(obj.belonging_vector_total==sub_graph_fallback)];
+                        obj.info.vehs_fallback = [obj.info.vehs_fallback; find(obj.belonging_vector_total==sub_graph_fallback)'];
                         obj.info.vehs_fallback = unique(obj.info.vehs_fallback,'stable');
                     case 'globalFallback'
                         % global fallback: all vehicles take fallback
