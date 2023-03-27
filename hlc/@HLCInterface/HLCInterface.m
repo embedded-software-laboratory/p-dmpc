@@ -181,23 +181,26 @@ classdef (Abstract) HLCInterface < handle
                 obj.rhc_init(x0_measured,trims_measured);
                 obj.initialized_reference_path = true;
 
-                % collision checking
-                is_collision_occur = false;
-                for iiVeh = 1:obj.scenario.options.amount-1
-                    for jjVeh = iiVeh+1:obj.scenario.options.amount
-                        if InterX(obj.iter.occupied_areas{iiVeh}.without_offset,obj.iter.occupied_areas{jjVeh}.without_offset)
-                            warning(['Collision between vehicle ' num2str(iiVeh) ' and vehicle ' num2str(jjVeh) ' occur! Simulation ends.'])
-                            is_collision_occur = true;
+                if ~(obj.scenario.options.is_allow_collisions || obj.scenario.options.is_free_flow)
+                    % collision checking
+                    is_collision_occur = false;
+                    for iiVeh = 1:obj.scenario.options.amount-1
+                        for jjVeh = iiVeh+1:obj.scenario.options.amount
+                            if InterX(obj.iter.occupied_areas{iiVeh}.without_offset,obj.iter.occupied_areas{jjVeh}.without_offset)
+                                warning(['Collision between vehicle ' num2str(iiVeh) ' and vehicle ' num2str(jjVeh) ' occur! Simulation ends.'])
+                                is_collision_occur = true;
+                                disp(['Collision between vehicle ' num2str(iiVeh) ' and vehicle ' num2str(jjVeh) ' occur at timestep ' num2str(obj.k) '! Simulation ends.'])
+                                break
+                            end
+                        end
+                        if is_collision_occur
                             break
                         end
                     end
+    
                     if is_collision_occur
                         break
                     end
-                end
-
-                if is_collision_occur
-                    break
                 end
 
                 % calculate the distance

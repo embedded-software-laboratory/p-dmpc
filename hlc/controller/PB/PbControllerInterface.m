@@ -141,9 +141,24 @@ classdef (Abstract) PbControllerInterface < HLCInterface
             info_v = obj.sub_controller(obj.scenario, iter_v);
             obj.info.runtime_graph_search_each_veh(vehicle_idx) = toc(graph_search_timer);
             if info_v.is_exhausted
-                % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
-                %                 disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
-                switch obj.scenario.options.fallback_type
+                if ~obj.scenario.options.isDealPredictionInconsistency
+                    % Fallback strategy will not be used if the prediction inconsistency problem is not addressed (by considering reachable sets)
+                    % Delete all obstacles and plan trajectory again
+                    disp(['exhausted without fallback: vehicle' num2str(vehicle_idx)])
+                    iter_v.obstacles = {};
+                    iter_v.lanelet_crossing_areas = {};
+%                     iter_v.predicted_lanelet_boundary = {};
+                    iter_v.dynamic_obstacle_area = {};
+                    iter_v.dynamic_obstacle_reachableSets = {};
+                    iter_v.hdv_reachable_sets = {};
+                    info_v = obj.sub_controller(obj.scenario, iter_v);
+                    obj.info.is_exhausted(vehicle_idx) = info_v.is_exhausted;
+                    obj.info = store_control_info(obj.info, info_v, obj.scenario);
+                else
+                    obj.info.is_exhausted(vehicle_idx) = info_v.is_exhausted;
+                    % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
+                    % disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
+                    switch obj.scenario.options.fallback_type
                     case 'localFallback'
                         sub_graph_fallback = obj.belonging_vector_total(vehicle_idx);
                         obj.info.vehs_fallback = [obj.info.vehs_fallback, find(obj.belonging_vector_total==sub_graph_fallback)];
@@ -156,11 +171,13 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                         obj.info.vehs_fallback = int32(1):int32(obj.scenario.options.amount);
                     otherwise
                         warning("Please define one of the follows as fallback strategy: 'noFallback', 'localFallback', and 'globalFallback'.")
+                    end
                 end
-                obj.info.is_exhausted(vehicle_idx) = true;
+
             else
                 obj.info = store_control_info(obj.info, info_v, obj.scenario);
             end
+
             if obj.iter.k==inf
                 plot_obstacles(obj.scenario)
                 plot_obstacles(info_v.shapes)
@@ -178,7 +195,6 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                 % send message
                 obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, predicted_areas_k, obj.info.vehs_fallback);
                 msg_send_time = toc(msg_send_tic);
-
             else
                 msg_send_tic = tic;
                 obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, {}, obj.info.vehs_fallback);

@@ -58,6 +58,7 @@ classdef Config < handle
 
         is_force_parallel_vehs_in_same_grp = true;  % true/false, if true, vehicles move in parallel will be forced in the same group
         reference_path = struct('lanelets_index',[],'start_point',[]);  % custom reference path
+        is_allow_collisions = false; % true/false, if true, simulation will not be stopped if collisions occur
     end
 
     properties(Dependent)
@@ -68,6 +69,11 @@ classdef Config < handle
 
     methods
         function obj = Config()
+            % initialize 'manual_control_config'
+            manual_control_config = ManualControlConfig;
+            manual_control_config.amount = 0;
+            manual_control_config.hdv_ids = [];
+            obj.manual_control_config = manual_control_config;
         end
 
         function obj = assign_data(obj,struct)
