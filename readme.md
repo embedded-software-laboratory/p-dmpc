@@ -78,6 +78,29 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
+P. Scheffe, J. Xu and B. Alrifaee, "A Prediction Consistent Framework to Limit Computation Time in Priority-Based Trajectory Planning", ResearchGate, Preprint, 2023, doi: todo
+<br>
+
+<!-- icons from https://simpleicons.org/ -->
+[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://dx.doi.org/todo) 
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
+[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/todo) 
+</summary>
+<p>
+
+The results of the publication can be reproduced by running
+```matlab
+startup()
+eval_parallel_computation_prediction_inconsistency()
+eval_parallel_computation_CLs()
+```
+The results are saved in the folder "results".
+
+</p>
+</details>
+
+<details>
+<summary>
 References in Bibtex format
 </summary>
 <p>
@@ -100,6 +123,17 @@ References in Bibtex format
     number  = {},
     pages   = {1-14},
     doi     = {10.1109/TCST.2022.3214718}}
+}
+
+@article{scheffe2023prediction,
+    author  = {Patrick Scheffe and Jianye Xu and Bassam Alrifaee},
+    journal = {todo}, 
+    title   = {A Prediction Consistent Framework to Limit Computation Time in Priority-Based Trajectory Planning},
+    year    = {2023},
+    volume  = {},
+    number  = {},
+    pages   = {},
+    doi     = {todo}}
 }
 ```
 
