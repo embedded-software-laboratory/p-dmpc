@@ -17,7 +17,6 @@ options.isSaveResult = true;
 options.isSaveResultReduced = false;
 options.visu = [true,false];
 options.is_eval = false;
-options.visualize_reachable_set = false;
 options.strategy_consider_veh_without_ROW = '3';
 
 
@@ -82,7 +81,7 @@ end
 % 
 % options.optionsPlotOnline.vehsLaneletCorssingAreas = find(options.veh_ids==18);
 
-full_path = FileNameConstructor.get_results_full_path(options);
+full_path = FileNameConstructor.get_results_full_path(options,options.amount);
 if isfile(full_path)
     disp('File already exists.')
 else
