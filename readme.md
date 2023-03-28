@@ -90,7 +90,7 @@ P. Scheffe, J. Xu and B. Alrifaee, "A Prediction Consistent Framework to Limit C
 
 The results of the publication can be reproduced by running
 ```matlab
-startup()
+open graph_based_planning.prj
 eval_parallel_computation_prediction_inconsistency()
 eval_parallel_computation_CLs()
 ```
