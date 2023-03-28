@@ -58,14 +58,24 @@ function eval_parallel_computation_prediction_inconsistency()
     end
     disp('--------Simulation data prepared--------')
 
+    % get the path of the target folder to store figures 
+    [self_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file
+    idcs = strfind(self_path,filesep); % find all positions of '/'
+    main_folder = self_path(1:idcs(end-1)-1); % two folders up, i.e., to main folder
+    results_folder_path = fullfile(main_folder,'results'); % results folder
+    if ~isfolder(results_folder_path)
+        % create target folder if not exist
+        mkdir(results_folder_path)
+    end
+
     disp('--------Plot--------')
-    plot_prediction_inconsistency_addressed(results)
-    plot_prediction_inconsistency_not_addressed(results)
+    plot_prediction_inconsistency_addressed(results,results_folder_path)
+    plot_prediction_inconsistency_not_addressed(results,results_folder_path)
     disp('--------Plotted--------')
 end
 
 %% subfunction 1
-function plot_prediction_inconsistency_addressed(results)
+function plot_prediction_inconsistency_addressed(results,results_folder_path)
     close all
     %%% fig 1: footprints
     fig1 = figure();
@@ -130,8 +140,9 @@ function plot_prediction_inconsistency_addressed(results)
     export_config = ExportFigConfig.paper;
     export_config.paperwidth = 5;
     set_figure_properties(fig1, export_config)
-    filepath = fullfile('results', 'evalPaperConsiderReachableSetsA.pdf');
+    filepath = fullfile(results_folder_path,'evalPaperConsiderReachableSetsA.pdf'); % full path of the fig
     export_fig(fig1, filepath);
+    disp(['A figure was saved under ' filepath '.'])
     close(fig1);
 
     %     xlabel('(a) Footprints.')
@@ -194,8 +205,9 @@ function plot_prediction_inconsistency_addressed(results)
     export_config = ExportFigConfig.paper;
     export_config.paperwidth = 5;
     set_figure_properties(fig2, export_config)
-    filepath = fullfile('results', 'evalPaperConsiderReachableSetsB.pdf');
+    filepath = fullfile(results_folder_path, 'evalPaperConsiderReachableSetsB.pdf');
     export_fig(fig2, filepath);
+    disp(['A figure was saved under ' filepath '.'])
     close(fig2);
 %     xlabel('(b) Viewpoint of vehicle 3 at {\it k} = 5.')
     
@@ -245,14 +257,15 @@ function plot_prediction_inconsistency_addressed(results)
     export_config = ExportFigConfig.paper;
     export_config.paperwidth = 5;
     set_figure_properties(fig3, export_config)
-    filepath = fullfile('results', 'evalPaperConsiderReachableSetsC.pdf');
+    filepath = fullfile(results_folder_path, 'evalPaperConsiderReachableSetsC.pdf');
     export_fig(fig3, filepath);
+    disp(['A figure was saved under ' filepath '.'])
     close(fig3);
 %     xlabel('(c) Actual plans at {\it k} = 5.')
 end
 
 %% subfunction 2
-function plot_prediction_inconsistency_not_addressed(results)
+function plot_prediction_inconsistency_not_addressed(results,results_folder_path)
     close all
     %%% fig 1: footprints
     fig1 = figure();
@@ -318,8 +331,9 @@ function plot_prediction_inconsistency_not_addressed(results)
     export_config = ExportFigConfig.paper;
     export_config.paperwidth = 5;
     set_figure_properties(fig1, export_config)
-    filepath = fullfile('results', 'evalPaperConsiderPreviousPlansA.pdf');
+    filepath = fullfile(results_folder_path, 'evalPaperConsiderPreviousPlansA.pdf');
     export_fig(fig1, filepath);
+    disp(['A figure was saved under ' filepath '.'])
     close(fig1);
 %     xlabel('(a) Footprints.')
     
@@ -381,8 +395,9 @@ function plot_prediction_inconsistency_not_addressed(results)
     export_config = ExportFigConfig.paper;
     export_config.paperwidth = 5;
     set_figure_properties(fig2, export_config)
-    filepath = fullfile('results', 'evalPaperConsiderPreviousPlansB.pdf');
+    filepath = fullfile(results_folder_path, 'evalPaperConsiderPreviousPlansB.pdf');
     export_fig(fig2, filepath);
+    disp(['A figure was saved under ' filepath '.'])
     close(fig2);
     % xlabel('(b) Viewpoint of vehicle 3 at {\it k} = 5.')
 
@@ -430,7 +445,7 @@ function plot_prediction_inconsistency_not_addressed(results)
     export_config = ExportFigConfig.paper;
     export_config.paperwidth = 5;
     set_figure_properties(fig3, export_config)
-    filepath = fullfile('results', 'evalPaperConsiderPreviousPlansC.pdf');
+    filepath = fullfile(results_folder_path, 'evalPaperConsiderPreviousPlansC.pdf');
     export_fig(fig3, filepath);
     close(fig3);
     % xlabel('(c) Actual plans at {\it k} = 5.')

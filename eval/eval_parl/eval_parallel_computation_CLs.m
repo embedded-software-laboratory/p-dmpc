@@ -65,8 +65,18 @@ function eval_parallel_computation_CLs()
     disp('--------Free flow speed calculated--------')
     disp('--------Simulation data prepared--------')
 
+    % get the path of the target folder to store figures 
+    [self_path,~,~] = fileparts(mfilename('fullpath')); % get the path of the current file
+    idcs = strfind(self_path,filesep); % find all positions of '/'
+    main_folder = self_path(1:idcs(end-1)-1); % two folders up, i.e., to main folder
+    results_folder_path = fullfile(main_folder,'results'); % results folder
+    if ~isfolder(results_folder_path)
+        % create target folder if not exist
+        mkdir(results_folder_path)
+    end
+
     disp('--------Ploting--------')
-    plot_different_num_CLs(e_CLs,free_flow_speed,CLs_s)
+    plot_different_num_CLs(e_CLs,free_flow_speed,CLs_s,results_folder_path)
     disp('--------Plotted--------')
 
     % export video
@@ -81,7 +91,7 @@ function eval_parallel_computation_CLs()
 end
 
 %% plot average speed and the actual number of computation levels
-function plot_different_num_CLs(e_CLs,free_flow_speed,CLs_s)
+function plot_different_num_CLs(e_CLs,free_flow_speed,CLs_s,results_folder_path)
     close all
 
     %%% fig 1: Average speed (normalized)
@@ -120,8 +130,9 @@ function plot_different_num_CLs(e_CLs,free_flow_speed,CLs_s)
     export_config = ExportFigConfig.paper;
     export_config.paperwidth = 6;
     set_figure_properties(fig1, export_config)
-    filepath = fullfile('results', 'evalPaperCLsA.pdf');
+    filepath = fullfile(results_folder_path, 'evalPaperCLsA.pdf');
     export_fig(fig1, filepath);
+    disp(['A figure was saved under ' filepath '.'])
     close(fig1);
 
 
@@ -146,8 +157,9 @@ function plot_different_num_CLs(e_CLs,free_flow_speed,CLs_s)
     export_config = ExportFigConfig.paper;
     export_config.paperwidth = 6;
     set_figure_properties(fig2, export_config)
-    filepath = fullfile('results', 'evalPaperCLsB.pdf');
+    filepath = fullfile(results_folder_path, 'evalPaperCLsB.pdf');
     export_fig(fig2, filepath);
+    disp(['A figure was saved under ' filepath '.'])
     close(fig2);
 end
 
