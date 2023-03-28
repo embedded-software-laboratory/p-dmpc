@@ -2,9 +2,9 @@ classdef PlotterOnline < handle
     properties
         abort
         paused
-        fig
     end
     properties (Access = private)
+        fig
         resolution
         plot_options % struct to store logical variables indicating whether to show vehicle ID/priority/coupling/coupling weights
         scenario
@@ -320,6 +320,14 @@ classdef PlotterOnline < handle
 
         function close_figure(obj)
             close(obj.fig);
+        end
+
+        function set_figure_visibility(obj, option)
+            arguments
+                obj PlotterOnline
+                option (1,:) char {mustBeMember(option,{'On','Off'})} = 'On'
+            end
+            obj.fig.Visible = option;
         end
 
         function data_queue_callback(obj, plotting_info)
