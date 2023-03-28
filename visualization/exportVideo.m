@@ -36,7 +36,10 @@ disp('Exporting video ...');
 wb = waitbar(0, 'Exporting video ...','Name','Video Export Progress');
 
 scenario.options.options_plot_online.is_video_mode = 1;
+
 plotter = PlotterOnline(scenario);
+plotter.set_figure_visibility('Off');
+
 for step_idx = 1:nSteps
     for frame_idx = frame_ticks
         plotting_info = PlottingInfo(scenario.options.veh_ids,result,step_idx,frame_idx,scenario.options.options_plot_online);
