@@ -2,10 +2,10 @@ classdef PlotterOnline < handle
     properties
         abort
         paused
+        fig
     end
     properties (Access = private)
         resolution
-        fig
         plot_options % struct to store logical variables indicating whether to show vehicle ID/priority/coupling/coupling weights
         scenario
         strategy
@@ -308,6 +308,14 @@ classdef PlotterOnline < handle
             set(t,'HorizontalAlignment', 'center');
 
             drawnow
+        end
+
+        function fig = get_figure(obj)
+            fig = obj.fig;
+        end
+
+        function clear_figure(obj)
+            clf(obj.fig);
         end
 
         function close_figure(obj)
