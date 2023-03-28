@@ -1,5 +1,11 @@
-function plot_lanelets(road_raw_data,scenario_name)
+function plot_lanelets(road_raw_data,scenario_name,options)
 % PLOT_LANELETS     Plots the lanelet structure.
+
+    arguments
+        road_raw_data struct
+        scenario_name string
+        options.LineWidth {mustBeNumeric}= 0.15
+    end
 
     for i = 1 : length(road_raw_data)
 
@@ -17,13 +23,13 @@ function plot_lanelets(road_raw_data,scenario_name)
                     end
                 end
         end
-        plot_lanelet(road_raw_data(i),color);
+        plot_lanelet(road_raw_data(i),color,options);
         
     end
 
 end
 
-function plot_lanelet(road_raw_data, color)
+function plot_lanelet(road_raw_data, color, options)
             
             % left bound
             if strcmp(road_raw_data.rightBound.lineMarking,'dashed')
@@ -31,7 +37,7 @@ function plot_lanelet(road_raw_data, color)
             else
                 lineStyle = '-';
             end
-            line([road_raw_data.rightBound.point.x], [road_raw_data.rightBound.point.y], 'Color', color, 'LineWidth', 0.15, 'LineStyle', lineStyle);
+            line([road_raw_data.rightBound.point.x], [road_raw_data.rightBound.point.y], 'Color', color, 'LineWidth', options.LineWidth, 'LineStyle', lineStyle);
 
             % right bound
             if strcmp(road_raw_data.leftBound.lineMarking,'dashed')
@@ -39,6 +45,6 @@ function plot_lanelet(road_raw_data, color)
             else
                 lineStyle = '-';
             end
-            line([road_raw_data.leftBound.point.x], [road_raw_data.leftBound.point.y], 'Color', color, 'LineWidth', 0.15, 'LineStyle', lineStyle);
+            line([road_raw_data.leftBound.point.x], [road_raw_data.leftBound.point.y], 'Color', color, 'LineWidth', options.LineWidth, 'LineStyle', lineStyle);
 
 end
