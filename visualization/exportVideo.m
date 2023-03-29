@@ -1,6 +1,5 @@
 function exportVideo(result,videoExportSetup)
 % EXPORTVIDEO   Export Video from results of simulation.
-resolution = [1920 1080];
 scenario = result.scenario;
 nSteps = nnz(result.controller_runtime);
 
