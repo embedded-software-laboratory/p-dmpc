@@ -325,7 +325,7 @@ classdef PlotterOnline < handle
         function set_figure_visibility(obj, option)
             arguments
                 obj PlotterOnline
-                option (1,:) char {mustBeMember(option,{'On','Off'})} = 'On'
+                option (1,1) logical = true
             end
             obj.fig.Visible = option;
         end

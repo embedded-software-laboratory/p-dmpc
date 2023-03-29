@@ -38,7 +38,7 @@ wb = waitbar(0, 'Exporting video ...','Name','Video Export Progress');
 scenario.options.options_plot_online.is_video_mode = 1;
 
 plotter = PlotterOnline(scenario);
-plotter.set_figure_visibility('Off');
+plotter.set_figure_visibility(false);
 
 for step_idx = 1:nSteps
     for frame_idx = frame_ticks
