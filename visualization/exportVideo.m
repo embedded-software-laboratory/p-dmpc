@@ -13,15 +13,19 @@ else
     frame_ticks = round(linspace(2,scenario.options.tick_per_step+1,frame_per_step));
 end
 
+plotter = PlotterOnline(scenario);
+plotter.set_figure_visibility(false);
+
 test_mode = false;
 if test_mode
-    exp.k = 1; %#ok<UNRCH>
-    plotOnline(result,1,1,[],scenario.options.options_plot_online);
-    set_figure_properties(fig,ExportFigConfig.video());
-    frame = getframe(fig);
-    imwrite(frame,['output\video_', vid_name, '.png']);
+    plotting_info = PlottingInfo(scenario.options.veh_ids,result,1,1,scenario.options.options_plot_online);
+    plotter.plotOnline(plotting_info);
+    set_figure_properties(plotter.get_figure(),ExportFigConfig.video());
+    frame = getframe(plotter.get_figure());
+    imwrite(frame.cdata,['output\video_', scenario.options.scenario_name, '.png']);
     return
 end
+
 v = VideoWriter(...
     FileNameConstructor.gen_video_file_path(result.scenario.options), ...
     'Motion JPEG AVI' ...
@@ -36,9 +40,6 @@ disp('Exporting video ...');
 wb = waitbar(0, 'Exporting video ...','Name','Video Export Progress');
 
 scenario.options.options_plot_online.is_video_mode = 1;
-
-plotter = PlotterOnline(scenario);
-plotter.set_figure_visibility(false);
 
 for step_idx = 1:nSteps
     for frame_idx = frame_ticks
