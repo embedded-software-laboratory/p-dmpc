@@ -314,10 +314,6 @@ classdef PlotterOnline < handle
             fig = obj.fig;
         end
 
-        function clear_figure(obj)
-            clf(obj.fig);
-        end
-
         function close_figure(obj)
             close(obj.fig);
         end
