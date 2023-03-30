@@ -21,9 +21,8 @@ classdef coloring_priority < interface_priority
             groups = PB_predecessor_groups(topo_matrix);
     
             % Assign priority according to computation level
-            priority_list = obj.get_priority(groups);
-    
             coupling_directed = obj.direct_coupling(iter.adjacency, topo_matrix);
+            priority_list = obj.get_priority(coupling_directed);
         end
     end
 end
