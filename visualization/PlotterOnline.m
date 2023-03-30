@@ -23,7 +23,7 @@ classdef PlotterOnline < handle
             obj.paused = false;
             obj.abort = false;
             obj.resolution = [1920 1080];
-            obj.plot_options = scenario.options.optionsPlotOnline;
+            obj.plot_options = scenario.options.options_plot_online;
             obj.scenario = scenario;
             obj.time_step = 1;
             obj.strategy = HLCFactory.get_controller_name(obj.scenario.options);
@@ -38,7 +38,7 @@ classdef PlotterOnline < handle
             end
             if obj.nVeh == 1
                 % deactivate coupling lines for dist. plotting
-                obj.plot_options.isShowCoupling = 0;
+                obj.plot_options.plot_coupling = 0;
             end
 
             obj.simulation_time_offset = 0 ;
@@ -78,7 +78,7 @@ classdef PlotterOnline < handle
             %
             %   tick_now: tick index
             %
-            %   visu: struct with fields: 'isShowVehID', 'isShowPriority', 'isShowCoupling' and 'isShowWeight'
+            %   visu: struct with fields: 'plot_vehicle_id', 'plot_priority', 'plot_coupling' and 'plot_weight'
             %
 
             priority_list = plotting_info.priorities;
@@ -90,10 +90,6 @@ classdef PlotterOnline < handle
                 tick_now = 1;
             end
 
-            if isempty(plotting_info.exploration)
-                plotting_info.exploration.doExploration = false;
-            end
-
             %% Simulation state / scenario plot
 
             % find all the plots with property "LineWidth 1", which are different to plot_lanelets (default "LineWidth 0.5")
@@ -101,11 +97,7 @@ classdef PlotterOnline < handle
             h = findobj('LineWidth', 1);
             delete(h);
 
-            if plotting_info.exploration.doExploration
-                visualize_exploration(plotting_info.exploration, obj.scenario.options.amount, obj.scenario.options.Hp);
-            end
-
-            if obj.plot_options.isVideoMode
+            if obj.plot_options.is_video_mode
                 % in video mode, lanelets should be plotted at each time step
                 hold on
                 box on
@@ -118,7 +110,6 @@ classdef PlotterOnline < handle
                 ylim(obj.scenario.options.plot_limits(2,:));
                 daspect([1 1 1])
                 plot_lanelets(obj.scenario.road_raw_data.lanelet,obj.scenario.options.scenario_name);
-                colormap("hot"); % set colormap
             end
 
             % Define a new colormap in the first timestep, else get the colormap already associated with the plot.
@@ -131,7 +122,7 @@ classdef PlotterOnline < handle
             end
 
             find_text_hotkey = findobj('Tag','hotkey');
-            if obj.plot_options.isShowHotkeyDescription
+            if obj.plot_options.plot_hotkey_description
                 % show description of hotkey
                 if isempty(find_text_hotkey)
                     HotkeyDesc = {'Hotkey:';
@@ -161,7 +152,7 @@ classdef PlotterOnline < handle
                 delete(find_text_hotkey);
             end
 
-            if obj.plot_options.isShowPriority
+            if obj.plot_options.plot_priority
                 % Get plot's priority colorbar and set it to visible or define a new priority colorbar.
                 priority_colorbar = findobj('Tag','priority_colorbar');
                 if isempty(priority_colorbar)
@@ -217,12 +208,12 @@ classdef PlotterOnline < handle
                     );
 
                 % plot the priority
-                %         if obj.plot_options.isShowPriority
+                %         if obj.plot_options.plot_priority
                 %             text(x(1),x(2),num2str(result.priority(v,plotting_info.step)),'FontSize', 12, 'LineWidth',1,'Color','m');
                 %         end
 
                 % plot the vehicle index in the middle of each vehicle on a lighter background
-                if obj.plot_options.isShowVehID
+                if obj.plot_options.plot_vehicle_id
                     radius = veh.Width * 0.95 / 2;
                     rectangle('Position', [x(1)-radius, x(2)-radius, 2*radius, 2*radius], 'Curvature', [1,1], ...
                         'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
@@ -230,22 +221,22 @@ classdef PlotterOnline < handle
                 end
 
                 % plot the vehicle ID
-                %         if obj.plot_options.isShowVehID
+                %         if obj.plot_options.plot_vehicle_id
                 %             text(x(1)+0.1,x(2)+0.1,num2str(veh.ID),'FontSize', 12, 'LineWidth',1,'Color','b');
                 %         end
 
-                if obj.plot_options.isShowReachableSets
+                if obj.plot_options.plot_reachable_sets
                     if obj.scenario.options.bound_reachable_sets
                         text_RS = 'Bounded reachable set by lanelet boundaries';
                     else
                         text_RS = 'Unbounded reachable set';
                     end
 
-                    if isempty(obj.plot_options.vehsReachableSets)
+                    if isempty(obj.plot_options.vehicles_reachable_sets)
                         [RS_x,RS_y] = boundary(plotting_info.reachable_sets{v,obj.scenario.options.Hp});
                         line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
                         text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
-                    elseif ismember(v,obj.plot_options.vehsReachableSets)
+                    elseif ismember(v,obj.plot_options.vehicles_reachable_sets)
                         % specify vehicles whose reachable sets should be shown
                         [RS_x,RS_y] = boundary(plotting_info.reachable_sets{v,obj.scenario.options.Hp});
                         line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
@@ -254,13 +245,13 @@ classdef PlotterOnline < handle
 
                 end
 
-                if obj.plot_options.isShowLaneletCrossingAreas && ~isempty(plotting_info.lanelet_crossing_areas)
+                if obj.plot_options.plot_lanelet_crossing_areaas && ~isempty(plotting_info.lanelet_crossing_areas)
                     LCA = plotting_info.lanelet_crossing_areas{v};
                     if ~isempty(LCA)
-                        if isempty(obj.plot_options.vehsLaneletCorssingAreas)
+                        if isempty(obj.plot_options.vehicles_lanelet_crossing_areas)
                             LCAs_xy = [LCA{:}];
                             line(LCAs_xy(1,:),LCAs_xy(2,:),'LineWidth',1.0,'Color','k');
-                        elseif ismember(v,obj.plot_options.vehsLaneletCorssingAreas)
+                        elseif ismember(v,obj.plot_options.vehicles_lanelet_crossing_areas)
                             % specify vehicles whose lanelet crossing areas should be shown
                             LCAs_xy = [LCA{:}];
                             line(LCAs_xy(1,:),LCAs_xy(2,:),'LineWidth',1.0,'Color','k');
@@ -271,8 +262,8 @@ classdef PlotterOnline < handle
             end
 
             % plot scenario adjacency
-            if obj.plot_options.isShowCoupling
-                coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',obj.plot_options.isShowCoupling,'isShowValue',obj.plot_options.isShowWeight, 'radius', radius);
+            if obj.plot_options.plot_coupling
+                coupling_visu = struct('FontSize',9,'LineWidth',1,'isShowLine',obj.plot_options.plot_coupling,'isShowValue',obj.plot_options.plot_weight, 'radius', radius);
                 x0 = cellfun(@(c)c(tick_now,:), plotting_info.trajectory_predictions, 'UniformOutput', false);
                 x0 = cell2mat(x0);
                 if ~isempty(plotting_info.coupling_weights_reduced)
@@ -409,13 +400,13 @@ classdef PlotterOnline < handle
             complete_plotting_info.n_dynamic_obstacles = n_dynamic_obstacles;
             complete_plotting_info.dynamic_obstacles = cellfun(@(x) x.dynamic_obstacles, plotting_info_collection, 'UniformOutput', false);
             complete_plotting_info.dynamic_obstacles_shape = cellfun(@(x) x.dynamic_obstacles_shape, plotting_info_collection, 'UniformOutput', false);
-            if obj.plot_options.isShowReachableSets
+            if obj.plot_options.plot_reachable_sets
                 for i = 1:length(plotting_info_collection)
                     info = plotting_info_collection{i};
                     complete_plotting_info.reachable_sets{i,:} = info.reachable_sets;
                 end
             end
-            if obj.plot_options.isShowLaneletCrossingAreas
+            if obj.plot_options.plot_lanelet_crossing_areaas
                 complete_plotting_info.lanelet_crossing_areas = cellfun(@(x) x.lanelet_crossing_areas, plotting_info_collection, 'UniformOutput', false);
             end
         end
@@ -432,15 +423,15 @@ classdef PlotterOnline < handle
                         disp('Start simulation.')
                     end
                 case 'i'
-                    obj.plot_options.isShowVehID = ~obj.plot_options.isShowVehID;
-                    if obj.plot_options.isShowVehID
+                    obj.plot_options.plot_vehicle_id = ~obj.plot_options.plot_vehicle_id;
+                    if obj.plot_options.plot_vehicle_id
                         disp('Show vehicle.')
                     else
                         disp('Hide Vehicle IDs.')
                     end
                 case 'p'
-                    obj.plot_options.isShowPriority = ~obj.plot_options.isShowPriority;
-                    if obj.plot_options.isShowPriority
+                    obj.plot_options.plot_priority = ~obj.plot_options.plot_priority;
+                    if obj.plot_options.plot_priority
                         disp('Show vehicle priorities.')
                     else
                         disp('Hide vehicle priorities.')
@@ -453,23 +444,23 @@ classdef PlotterOnline < handle
                     if obj.nVeh == 1
                         disp('Coupling lines not supported for distributed plotting')
                     else
-                        obj.plot_options.isShowCoupling = ~obj.plot_options.isShowCoupling;
-                        if obj.plot_options.isShowCoupling
+                        obj.plot_options.plot_coupling = ~obj.plot_options.plot_coupling;
+                        if obj.plot_options.plot_coupling
                             disp('Show couplings lines.')
                         else
                             disp('Hide couplings lines.')
                         end
                     end
                 case 'w'
-                    obj.plot_options.isShowWeight = ~obj.plot_options.isShowWeight;
-                    if obj.plot_options.isShowWeight
+                    obj.plot_options.plot_weight = ~obj.plot_options.plot_weight;
+                    if obj.plot_options.plot_weight
                         disp('Show couplings weights.')
                     else
                         disp('Hide couplings weights.')
                     end
                 case 'h'
-                    obj.plot_options.isShowHotkeyDescription = ~obj.plot_options.isShowHotkeyDescription;
-                    if obj.plot_options.isShowHotkeyDescription
+                    obj.plot_options.plot_hotkey_description = ~obj.plot_options.plot_hotkey_description;
+                    if obj.plot_options.plot_hotkey_description
                         disp('Show hot key descriptions.')
                     else
                         disp('Hide hot key descriptions.')

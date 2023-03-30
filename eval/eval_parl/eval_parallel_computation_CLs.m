@@ -2,7 +2,7 @@ function eval_parallel_computation_CLs()
 %EVAL_PARALLEL_COMPUTATION_CLS Evaluate different number of computation levels
     disp('--------Prepare simulation data--------')
     options = Config();
-    options.is_sim_lab = true;
+    options.environment = Environment.Simulation;
     options.customResultName = '';
     options.scenario_name = 'Commonroad';
     options.trim_set = 9;

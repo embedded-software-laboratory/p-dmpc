@@ -39,6 +39,7 @@ classdef (Abstract) HLCInterface < handle
     properties (Access=private)
         initialized_reference_path;
         got_stop;
+        success; % to store unfinished results on error; set to true at the end of the main control loop
         speedProfileMPAsInitialized;
         cooldown_after_lane_change;
         cooldown_second_manual_vehicle_after_lane_change;
@@ -62,6 +63,7 @@ classdef (Abstract) HLCInterface < handle
             obj.controller_name = '';
             obj.initialized_reference_path = false;
             obj.got_stop = false;
+            obj.success = false;
             obj.speedProfileMPAsInitialized = false;
             obj.cooldown_after_lane_change = 0;
             obj.cooldown_second_manual_vehicle_after_lane_change = 0;
@@ -97,10 +99,13 @@ classdef (Abstract) HLCInterface < handle
         end
 
         function set_hlc_adapter( obj, visualization_data_queue )
-            if obj.scenario.options.is_sim_lab == false
-                obj.hlc_adapter = CPMLab(obj.scenario, obj.vehicle_ids);
-            else
-                obj.hlc_adapter = SimLab(obj.scenario, obj.vehicle_ids, visualization_data_queue);
+            switch(obj.scenario.options.environment)
+                case Environment.CPMLab
+                    obj.hlc_adapter = CPMLab(obj.scenario, obj.vehicle_ids);
+                case Environment.Simulation
+                    obj.hlc_adapter = SimLab(obj.scenario, obj.vehicle_ids, visualization_data_queue);
+                case Environment.UnifiedLabAPI
+                    obj.hlc_adapter = UnifiedLabAPI(obj.scenario, obj.vehicle_ids); %, visualization_data_queue);
             end            
         end
     end
@@ -149,10 +154,28 @@ classdef (Abstract) HLCInterface < handle
                 % Initialize the communication network of ROS 2
                 communication_init(obj);
             end
+
+            if ~obj.scenario.options.isPB && obj.scenario.options.use_cpp
+                % When using C++, you don't want to send the scenario over
+                % and over again, so it is done in the init function
+                optimizer(Function.InitializeWithScenario, obj.scenario);
+            end
         end
 
+        function clean_up(obj)
+            if ~obj.success
+                disp("Storing unfinished results up on error:")
+                % Don't store the last time step with erroneous data.
+                obj.k = obj.k - 1;
+                % Save the unfinished results.
+                obj.scenario.options.isSaveResult = true;
+                obj.result.output_path = 'results/unfinished_result.mat';
+                obj.save_results();
+            end
+        end
 
         function hlc_main_control_loop(obj)
+            cleanup = onCleanup(@obj.clean_up);
 
             %% Main control loop
             while (~obj.got_stop)
@@ -350,6 +373,7 @@ classdef (Abstract) HLCInterface < handle
                 obj.got_stop = obj.hlc_adapter.is_stop() || obj.got_stop;
 
             end
+            obj.success = true;
         end
 
         function save_results(obj)

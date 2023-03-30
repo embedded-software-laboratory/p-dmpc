@@ -2,7 +2,7 @@ function scenario = moving_obstacle_scenario(options)
 % MOVING_OBSTACLE_SCENARIO     Constructor for moving obstacle scenario
     arguments
         options.is_start_end   (1,1) logical = 0;
-        options.do_plot_online (1,1) logical = 1;
+        options.is_plot_online (1,1) logical = 1;
     end
 
     scenario = Scenario();
@@ -23,8 +23,8 @@ function scenario = moving_obstacle_scenario(options)
     scenario.model = BicycleModel(veh.Lf,veh.Lr);
 
     scenario.options = OptionsMain;
-    scenario.options.visu = [options.do_plot_online 0];
-    scenario.options.is_sim_lab = true;
+    scenario.options.is_plot_online = options.is_plot_online;
+    scenario.options.environment = Environment.Simulation;
     scenario.options.trim_set = 9;
     scenario.options.amount = 1;
     scenario.options.dt = 0.2;

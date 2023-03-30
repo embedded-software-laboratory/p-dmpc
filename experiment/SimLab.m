@@ -2,7 +2,6 @@ classdef SimLab < InterfaceExperiment
 % SIMLAB    Instance of experiment interface used for simulation in matlab.
     
     properties (Access=private)
-        doExploration
         plotter % own plotter to visualize if no visualization_data_queue is given
         visualization_data_queue
         use_visualization_data_queue
@@ -12,8 +11,7 @@ classdef SimLab < InterfaceExperiment
     methods
         function obj = SimLab(scenario, veh_ids, visualization_data_queue)
             obj = obj@InterfaceExperiment(scenario, veh_ids);
-            obj.doOnlinePlot = obj.scenario.options.visu(1);
-            obj.doExploration = obj.scenario.options.visu(2);
+            obj.doOnlinePlot = obj.scenario.options.options_plot_online.is_active;
             obj.use_visualization_data_queue = false;    
             obj.visualization_data_queue = visualization_data_queue;
         end
@@ -42,22 +40,15 @@ classdef SimLab < InterfaceExperiment
                 obj.cur_node(iVeh,:) = info.next_node(iVeh,:);
             end
             obj.k = k;            
-            % init struct for exploration plot
-            if obj.doExploration
-                exploration_struct.doExploration = true;
-                exploration_struct.info.tree = info.tree;
-            else
-                exploration_struct = [];
-            end
             if obj.doOnlinePlot
                 % visualize time step
                 % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, obj.k, tick_now, exploration_struct, obj.scenario.options.optionsPlotOnline);
+                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, obj.k, tick_now, obj.scenario.options.options_plot_online);
                 if obj.use_visualization_data_queue
                     %filter plotting info for controlled vehicles before
                     %sending
-                    plotting_info = plotting_info.filter(obj.scenario.options.amount, obj.scenario.options.optionsPlotOnline);
+                    plotting_info = plotting_info.filter(obj.scenario.options.amount, obj.scenario.options.options_plot_online);
                     send(obj.visualization_data_queue, plotting_info);
                 else
                     % wait to simulate realtime plotting

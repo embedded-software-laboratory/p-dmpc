@@ -5,7 +5,6 @@ classdef RoadData
     properties
         lanelets                % 1-by-nLanelets cell array, stores the coordinates of left bound, right bound, and centerline of each lanelet
         adjacency_lanelets      % nLanelets-by-nLanelets matrix. Entry is true iff two lanelets are adjacent
-        semi_adjacency_lanelets % nLanelets-by-nLanelets matrix. Entry is true iff two lanelets are semi-adjacent
         intersection_lanelets   % indices of lanelets of intersections
         lanelet_boundary        % 1-by-nLanelet cell array with each subcell being a 1-by-3 cell array. The first and second subcells store the left and right boundary of each lanelet.
                                 % The third subcell stores an object of MATLAB class `polyshape`. 
@@ -53,8 +52,8 @@ classdef RoadData
             % get IDs of lanelets at the intersection
             road_data.intersection_lanelets = road_data.get_intersection_lanelets();
 
-            % get adjacent lanelet relationships with `adjacency_lanelets` and `semi_adjacency_lanelets` as byproducts
-            [road_data.lanelet_relationships,road_data.adjacency_lanelets,road_data.semi_adjacency_lanelets] = road_data.get_lanelet_relationships();
+            % get adjacent lanelet relationships with `adjacency_lanelets` as byproduct
+            [road_data.lanelet_relationships,road_data.adjacency_lanelets] = road_data.get_lanelet_relationships();
         
             % get lanelet boundaries
             [road_data.lanelet_boundary,share_boundary_with] = road_data.get_lanelet_boundary();
@@ -88,7 +87,7 @@ classdef RoadData
             end
         end
 
-        function [lanelet_relationships,adjacency_lanelets,semi_adjacency_lanelets] = get_lanelet_relationships(obj)
+        function [lanelet_relationships,adjacency_lanelets] = get_lanelet_relationships(obj)
         % Determine the relationship between each lanelet-pair.
         % We classify five types of relationship.
         % 1. crossing 
@@ -106,7 +105,6 @@ classdef RoadData
             nLanelets = length(obj.lanelets);
             lanelet_relationships = cell(nLanelets,nLanelets);
             adjacency_lanelets = ones(nLanelets,nLanelets);
-            semi_adjacency_lanelets = ones(nLanelets,nLanelets);
             road_lanelets = obj.road_raw_data.lanelet;
             
             for i=1:nLanelets-1
@@ -250,23 +248,18 @@ classdef RoadData
                             y_intersect = P(2,1);
                             lanelet_relationships{i,j}.type = LaneletRelationshipType.type_5;
                             lanelet_relationships{i,j}.point = [x_intersect, y_intersect];
-                            % If two lanelets interset, the corresponding entry of `semi_adjacency_lanelets` should be zero 
-                            % This is also the only difference between `semi_adjacency_lanelets` and `adjacency_lanelets` 
-                            semi_adjacency_lanelets(i,j) = 0;
                         end
                     end
 
                     % two lanelets have no relationship and are thus not adjacent
                     if isempty(lanelet_relationships{i,j})
-                        % set the corresponding entry in the `adjacency_lanelets` and `semi_adjacency_lanelets` matrix to be zero
+                        % set the corresponding entry in the `adjacency_lanelets` matrix to be zero
                         adjacency_lanelets(i,j) = 0;
-                        semi_adjacency_lanelets(i,j) = 0;
                     end
                 end
             end
             % extract only the elements above the main diagonal, make the matrix symmetrical and add self as adjacency 
             adjacency_lanelets = triu(adjacency_lanelets,1) + triu(adjacency_lanelets,1)' + eye(nLanelets);
-            semi_adjacency_lanelets = triu(semi_adjacency_lanelets,1) + triu(semi_adjacency_lanelets,1)' + eye(nLanelets);
         end
 
         function [lanelet_boundary_extended, share_boundary_with] = get_lanelet_boundary(obj)
@@ -691,8 +684,6 @@ classdef RoadData
                                     obj.lanelet_relationships{min(ijShare),max(ijShare)} = obj.lanelet_relationships{iLan,jLan};
                                     obj.adjacency_lanelets(min(ijShare),max(ijShare)) = 1;
                                     obj.adjacency_lanelets(max(ijShare),min(ijShare)) = 1;
-                                    obj.semi_adjacency_lanelets(min(ijShare),max(ijShare)) = 1;
-                                    obj.semi_adjacency_lanelets(max(ijShare),min(ijShare)) = 1;
                                 end
                             end
                         end
@@ -706,7 +697,7 @@ classdef RoadData
             nLanelets = length(obj.lanelets);
             for i = 1:nLanelets-1
                 for j = i+1:nLanelets
-                    if obj.adjacency_lanelets(i,j) == 0  && obj.semi_adjacency_lanelets(i,j) == 0
+                    if obj.adjacency_lanelets(i,j) == 0
                         shape_intersecting = intersect(obj.lanelet_boundary{i}{3},obj.lanelet_boundary{j}{3});
                         if area(shape_intersecting) > 1e-3
                             obj.adjacency_lanelets(i,j) = 1;
@@ -716,9 +707,6 @@ classdef RoadData
                                 [x_centriod,y_centroid] = centroid(shape_intersecting);
                                 % set centroid of the intersecting area as the lanelet critical point
                                 obj.lanelet_relationships{i,j}.point = [x_centriod,y_centroid];
-                            else
-                                obj.semi_adjacency_lanelets(i,j) = 1;
-                                obj.semi_adjacency_lanelets(j,i) = 1;
                             end
                         end
                     end

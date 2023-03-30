@@ -6,9 +6,7 @@
     nVeh = size(iter.referenceTrajectoryPoints,1);
     Hp = size(iter.referenceTrajectoryPoints,2);
     adjacency = zeros(nVeh,nVeh);
-    semi_adjacency = zeros(nVeh,nVeh);
     adjacent = scenario.adjacency_lanelets;
-    semi_adjacent = scenario.semi_adjacency_lanelets;
     
     for i = 1:(nVeh-1)
         ref_points_i = reshape(iter.referenceTrajectoryPoints(i,:,:),Hp,2);
@@ -37,22 +35,6 @@
                         end                        
                     end
                     
-                    % check if lanelets are semi_adjacent
-                    if semi_adjacent(predicted_lanelets_i(k_i),predicted_lanelets_j(k_j)) == 1 
-                        % check if predicted references are within defined distance
-                        for k = 1:Hp 
-                            dist = norm((ref_points_i(k,:)-ref_points_j(k,:)),2);                    
-                            if dist < 1.4
-                                semi_adjacency(i,j) = 1;
-                                semi_adjacency(j,i) = 1;
-                                stop_flag = true;
-                            end
-                            if stop_flag
-                                break
-                            end
-                        end                        
-                    end
-                    
                     if stop_flag
                         break
                     end
@@ -66,6 +48,4 @@
     end
 
     iter.adjacency = adjacency;
-    iter.semi_adjacency = semi_adjacency;
-    
 end

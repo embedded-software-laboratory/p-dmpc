@@ -7,7 +7,7 @@ function free_flow_speed = get_free_flow_speed(dt)
 
     % prepare simulation options
     options = Config();
-    options.is_sim_lab = true;
+    options.environment = Environment.Simulation;
     options.customResultName = '';
     options.scenario_name = 'Commonroad';
     options.trim_set = 9;

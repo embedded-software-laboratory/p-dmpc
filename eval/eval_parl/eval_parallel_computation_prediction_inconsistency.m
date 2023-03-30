@@ -5,7 +5,7 @@ function eval_parallel_computation_prediction_inconsistency()
     isDealPredictionInconsistency = [true,false];
     % prepare simulation options
     options = Config();
-    options.is_sim_lab = true;
+    options.environment = Environment.Simulation;
     options.customResultName = '';
     options.scenario_name = 'Commonroad';
     options.trim_set = 9;
@@ -18,7 +18,7 @@ function eval_parallel_computation_prediction_inconsistency()
     options.isPB = true;
     options.isParl = true;
     options.isAllowInheritROW = false;
-    options.isSaveResult = true;
+    options.isSaveResult = false
     options.isSaveResultReduced = false;
     options.visu = [true,false];
     options.is_eval = false;

@@ -21,7 +21,6 @@ classdef IterationData
         auto_updated_path                               % set in rhc_init to memorize when path is updated automatically
         adjacency                                       % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
         hdv_adjacency                                   % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
-        semi_adjacency                                  % OUTDATED (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two semi-adjacent lanelets and their distance are smaller enough
         obstacles
         dynamic_obstacle_area
         dynamic_obstacle_shape
@@ -72,7 +71,6 @@ classdef IterationData
             obj.auto_updated_path = false(nVeh,1);
             obj.adjacency = zeros(nVeh,nVeh);
             obj.hdv_adjacency = zeros(nVeh,hdv_amount);
-            obj.semi_adjacency = zeros(nVeh,nVeh);
             obj.dynamic_obstacle_area = scenario.dynamic_obstacle_area;
             obj.dynamic_obstacle_shape = scenario.dynamic_obstacle_shape;
             obj.dynamic_obstacle_fullres = scenario.dynamic_obstacle_fullres;

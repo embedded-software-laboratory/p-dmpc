@@ -1,4 +1,4 @@
-function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_boundaries,lanelets_index, is_sim_lab, is_loop)
+function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_boundaries,lanelets_index, environment, is_loop)
 % GET_LANELETS_BOUNDARY Return the lanelet boundaries
 % INPUT:
 %   predicted_lanelets: vector, IDs of predicted lanelets
@@ -7,7 +7,7 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
 % 
 %   lanelets_index: IDs of the full lanelets
 % 
-%   is_sim_lab: if simulation mode
+%   environment: which environment is used (simulation, cpmlab, unified lab api)
 %
 %   is_loop: if the reference path is a loop
 % 
@@ -21,7 +21,7 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
     % extract the target lanelets
     predicted_lanelet_boundaries = lanelet_boundaries(predicted_lanelets);
 
-    if is_sim_lab
+    if environment == Environment.Simulation
         % determine the boundaries for each vehicle
         % Note that the last point of each lanelet boundary is deleted for a
         % smooth transition between two lanelet boundaries

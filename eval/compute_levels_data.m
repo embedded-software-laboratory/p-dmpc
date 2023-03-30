@@ -33,7 +33,6 @@ function [ data ] = compute_levels_data(res)
                     % no adjacency given in 1-veh scenarios
                     if scenario_tmp.options.amount > 1
                         scenario_tmp.adjacency = scenario_tmp.adjacency(:,:,1:iStep);
-                        scenario_tmp.semi_adjacency = scenario_tmp.semi_adjacency(:,:,1:iStep);
             
                         iter_tmp = result.iteration_structs{iStep};
                     

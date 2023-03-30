@@ -1,12 +1,11 @@
 classdef Config < handle
 
     properties
-        is_sim_lab = true;              % true/false, is simulation or lab experiment
+        environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
         is_manual_control = false;       % true/false, are manually controlled vehicles involved
         manual_control_config ManualControlConfig; % manual control config
         isPB = true;            % true/false, is prioritize vehicles
         amount = 20;            % integer, number of vehicles, does not include manual vehicles
-        visu = [true;false];    % 1-by-2 vector, online plotting is enabled if the first entry if true; node visualization is enabled if the second entry is true
         isParl = false;         % true/false, is use parallel(distributed) computation
         scenario_name = 'Commonroad'    % one of the follows: {'Circle_scenario','Commonroad'}
         priority Priority_strategies = Priority_strategies.constant_priority; % defines which priority assignmen strategy is used
@@ -53,12 +52,13 @@ classdef Config < handle
         is_load_mpa = true;             % true/false, the offline computed MPA  will be load if exists
         coupling_weight_mode = 'STAC';  % one of the following {'STAC','random','constant','optimal'}
 
-        optionsPlotOnline = OptionsPlotOnline();    % setup for online plotting
+        options_plot_online = OptionsPlotOnline();    % setup for online plotting
         bound_reachable_sets = true;                % true/false, if true, reachable sets are bounded by lanelet boundaries
 
         is_force_parallel_vehs_in_same_grp = true;  % true/false, if true, vehicles move in parallel will be forced in the same group
         reference_path = struct('lanelets_index',[],'start_point',[]);  % custom reference path
-        is_allow_collisions = false; % true/false, if true, simulation will not be stopped if collisions occur
+        use_cpp = false;
+
     end
 
     properties(Dependent)
@@ -91,6 +91,9 @@ classdef Config < handle
                 if strcmp(field, 'manual_control_config')
                     obj.manual_control_config = ManualControlConfig();
                     obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
+                elseif strcmp(field, 'options_plot_online')
+                    obj.options_plot_online = OptionsPlotOnline();
+                    obj.options_plot_online = obj.options_plot_online.assign_data(struct.options_plot_online);
                 else
                     obj.(field) = struct.(field);
                 end

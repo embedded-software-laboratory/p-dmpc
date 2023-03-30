@@ -29,7 +29,7 @@ function [result, scenario] = main(varargin)
     if scenario.options.isPB == true
         save('scenario.mat','scenario');
     end
-    if scenario.options.isPB && scenario.options.is_sim_lab == false && scenario.options.isParl
+    if scenario.options.isPB && scenario.options.environment == Environment.CPMLab && scenario.options.isParl
         disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
         if exist("commun/cust1/matlab_msg_gen", 'dir')
             try
@@ -48,11 +48,11 @@ function [result, scenario] = main(varargin)
     else
         factory = HLCFactory();
         factory.set_scenario(scenario);
-        dry_run = ~scenario.options.is_sim_lab;
+        dry_run = (scenario.options.environment == Environment.CPMLab); % TODO: dry run also for unified lab api?
         if scenario.options.isPB == true && scenario.options.isParl
             %% simulate distribution locally using the Parallel Computing Toolbox
             get_parallel_pool(scenario.options.amount);
-            plot = scenario.options.visu(1);
+            plot = scenario.options.options_plot_online.is_active;
             if plot
                 factory.set_visualization_data_queue;
                 % create central plotter - used by all workers via data queue

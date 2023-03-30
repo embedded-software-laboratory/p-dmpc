@@ -4,7 +4,7 @@ function scenario = create_scenario(options, random_seed)
 %% options preprocessing
 % Use options to setup scenario
 options.max_num_CLs = min(options.max_num_CLs, options.amount);
-if options.is_sim_lab
+if options.environment == Environment.Simulation
     disp('Running in MATLAB simulation...')
     if isempty(options.veh_ids)
         switch options.amount
@@ -33,7 +33,7 @@ if options.is_sim_lab
     options.veh_ids = sort(vehicle_ids);
     options.is_manual_control = 0;
 else
-    disp('Running in CPM Lab...')
+    disp('Running in CPM Lab or via Unified Lab API...')
     vehicle_ids = options.veh_ids;
     options.isPB = true;
 

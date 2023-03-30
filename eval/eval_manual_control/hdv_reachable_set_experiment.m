@@ -6,14 +6,14 @@ function result = hdv_reachable_set_experiment()
     options.Hp = 6;
     options.isPB = true;
     options.isParl = false;
-    options.is_sim_lab = true;
-    options.visu = [true, false];
+    options.environment = Environment.Simulation;
+    options.is_plot_online = true;
     options.isSaveResult = 1;
     options.isSaveResultReduced = 0;
     options.bound_reachable_sets = false;
 
     % visualization for video
-    options.optionsPlotOnline.isShowCoupling = false;
+    options.options_plot_online.plot_coupling = false;
 
     vehicle_ids = [8, 9];
 
