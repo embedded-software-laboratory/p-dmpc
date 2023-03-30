@@ -1,6 +1,5 @@
 function exportVideo(result,videoExportSetup)
 % EXPORTVIDEO   Export Video from results of simulation.
-resolution = [1920 1080];
 scenario = result.scenario;
 nSteps = nnz(result.controller_runtime);
 
@@ -12,25 +11,22 @@ else
     frame_per_step = framerate*scenario.options.dt;
     frame_ticks = round(linspace(2,scenario.options.tick_per_step+1,frame_per_step));
 end
- 
-fig = figure('Visible','Off'...
-            ,'Color',[1 1 1]...
-            ,'units','pixel'...
-            ,'OuterPosition',[100 100 resolution(1)/2 resolution(2)/2]...
-);
 
+plotter = PlotterOnline(scenario);
+plotter.set_figure_visibility(false);
 
 test_mode = false;
 if test_mode
-    exp.k = 1; %#ok<UNRCH>
-    plotOnline(result,1,1,[],scenario.options.options_plot_online);
-    set_figure_properties(fig,ExportFigConfig.video());
-    frame = getframe(fig);
-    imwrite(frame,['output\video_', vid_name, '.png']);
+    plotting_info = PlottingInfo(scenario.options.veh_ids,result,1,1,scenario.options.options_plot_online);
+    plotter.plotOnline(plotting_info);
+    set_figure_properties(plotter.get_figure(),ExportFigConfig.video());
+    frame = getframe(plotter.get_figure());
+    imwrite(frame.cdata,['output\video_', scenario.options.scenario_name, '.png']);
     return
 end
+
 v = VideoWriter(...
-    FileNameConstructor.gen_video_file_path(result.scenario.options), ...
+    FileNameConstructor.gen_video_file_path(scenario.options), ...
     'Motion JPEG AVI' ...
 );
 v.FrameRate = framerate; 
@@ -46,10 +42,10 @@ scenario.options.options_plot_online.is_video_mode = 1;
 
 for step_idx = 1:nSteps
     for frame_idx = frame_ticks
-        clf
-        plotOnline(result,step_idx,frame_idx,[],scenario.options.options_plot_online);
-        set_figure_properties(fig,ExportFigConfig.video());
-        frame = getframe(fig);
+        plotting_info = PlottingInfo(scenario.options.veh_ids,result,step_idx,frame_idx,scenario.options.options_plot_online);
+        plotter.plotOnline(plotting_info);
+        set_figure_properties(plotter.get_figure(),ExportFigConfig().video);
+        frame = getframe(plotter.get_figure());
         writeVideo(v,frame);
         progress = ( find(frame_ticks==frame_idx) / length(frame_ticks) )...
             * (1/nSteps) + ( (step_idx-1)/nSteps );
@@ -59,8 +55,8 @@ for step_idx = 1:nSteps
         );
     end
 end
+plotter.close_figure();
 close(wb);
 close(v);
-close(fig);
 
 end
