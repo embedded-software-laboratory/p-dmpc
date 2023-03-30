@@ -227,22 +227,34 @@ classdef PlotterOnline < handle
 
                 if obj.plot_options.plot_reachable_sets
                     if obj.scenario.options.bound_reachable_sets
-                        text_RS = 'Bounded reachable set by lanelet boundaries';
+                        text_RS = 'Reachable set';
                     else
                         text_RS = 'Unbounded reachable set';
                     end
 
                     if isempty(obj.plot_options.vehicles_reachable_sets)
-                        [RS_x,RS_y] = boundary(plotting_info.reachable_sets{v,obj.scenario.options.Hp});
-                        line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
+                        for i_RS = 1:length(plotting_info.reachable_sets{v,:})
+                            [RS_x,RS_y] = boundary(plotting_info.reachable_sets{v,i_RS});
+                            line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
+                        end
                         text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
                     elseif ismember(v,obj.plot_options.vehicles_reachable_sets)
                         % specify vehicles whose reachable sets should be shown
-                        [RS_x,RS_y] = boundary(plotting_info.reachable_sets{v,obj.scenario.options.Hp});
-                        line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
+                        for i_RS = 1:length(plotting_info.reachable_sets{v,:})
+                            [RS_x,RS_y] = boundary(plotting_info.reachable_sets{v,i_RS});
+                            line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
+                        end
                         text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
                     end
+                end
 
+                if obj.plot_options.plot_predicted_occupancy
+                    if isempty(obj.plot_options.vehicles_predicted_occupancy)
+                        plot_predicted_occupancy(obj.plot_options.trajectory_predictions,obj.scenario,color,trims_stop,is_one_step_shifted)
+
+                    else
+
+                    end
                 end
 
                 if obj.plot_options.plot_lanelet_crossing_areaas && ~isempty(plotting_info.lanelet_crossing_areas)
@@ -259,6 +271,21 @@ classdef PlotterOnline < handle
                         text(max(LCAs_xy(1,:))+0.02,max(LCAs_xy(2,:)),'Lanelet crossing area','LineWidth',2,'FontSize',16)
                     end
                 end
+
+                if obj.plot_options.plot_predicted_occupancy_previous && ~isempty(plotting_info.trajectory_previous)
+                    if isempty(obj.plot_options.vehicles_predicted_occupancy_previous)
+                        [RS_x,RS_y] = boundary(plotting_info.previous_trajectories{v,obj.scenario.options.Hp});
+                        line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
+                        text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
+                    elseif ismember(v,obj.plot_options.vehicles_predicted_occupancy_previous)
+                        % specify vehicles whose reachable sets should be shown
+                        [RS_x,RS_y] = boundary(plotting_info.previous_trajectories{v,obj.scenario.options.Hp});
+                        line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
+                        text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
+                    end
+                end
+
+
             end
 
             % plot scenario adjacency

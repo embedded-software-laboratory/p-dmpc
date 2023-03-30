@@ -18,9 +18,9 @@ function eval_parallel_computation_prediction_inconsistency()
     options.isPB = true;
     options.isParl = true;
     options.isAllowInheritROW = false;
-    options.isSaveResult = false
+    options.isSaveResult = true;
     options.isSaveResultReduced = false;
-    options.visu = [true,false];
+    options.options_plot_online = OptionsPlotOnline();
     options.is_eval = false;
     options.strategy_consider_veh_without_ROW = '1';
     options.strategy_enter_lanelet_crossing_area = '1';
@@ -46,11 +46,7 @@ function eval_parallel_computation_prediction_inconsistency()
                 disp('File already exists.')
             else
                 % run simulation
-                if exist('options','var') && exist('scenario','var')
-                    [~,~] = main(options,scenario);
-                else
-                    [~,scenario] = main(options);
-                end
+                [~,~] = main(options);
             end
             load(full_path,'result');
             results{i,veh_id} = result;
@@ -69,9 +65,22 @@ function eval_parallel_computation_prediction_inconsistency()
     end
 
     disp('--------Plot--------')
-    plot_prediction_inconsistency_addressed(results,results_folder_path)
-    plot_prediction_inconsistency_not_addressed(results,results_folder_path)
+    % plot_prediction_inconsistency_addressed(results,results_folder_path)
+    % plot_prediction_inconsistency_not_addressed(results,results_folder_path)
     disp('--------Plotted--------')
+
+    % export video
+    answer = questdlg('Would you like to export videos (may take several minutes)?', ...
+	    'Export videos?', ...
+	    'Yes','No','No');
+    if strcmp(answer,'Yes')
+        disp('--------Preparing simulation data for video--------')
+        % combine distuibuted simulation data
+        results_combined = combine_distributed_results(results);
+        disp('--------Exporting videos--------')
+        export_videos(results_combined)
+        disp('--------Videos exported--------')
+    end
 end
 
 %% subfunction 1
@@ -452,53 +461,41 @@ function plot_prediction_inconsistency_not_addressed(results,results_folder_path
 
 end
 
-%% helper function
-function p = plot_cell_arrays(cells,color,isFill)
-% Plot shapes contained in a cell array
-%     CM = jet(Hp); % colormap
-    hold on
-    if nargin==1
-        isFill = false;
-    end
-    if isFill
-        for j = size(cells,2):-1:1
-            shape = cells{j};
-            patch(shape(1,:),shape(2,:),color,'FaceAlpha',(1-j/(size(cells,2)+2))*0.5);
+function results_combined = combine_distributed_results(results)
+    results_combined = cell(size(results,1),1);
+    for i = 1:size(results,1)
+        result = results{i,1};
+        for j = 2:size(results,2)
+            trajectory_predictions = {results{i,j}.trajectory_predictions{j,:}};
+            [result.trajectory_predictions{j,:}] = trajectory_predictions{:};
+            for k = 1:length(results{i,j}.iteration_structs)
+                result.iteration_structs{k}.referenceTrajectoryPoints(j,:,:) = results{i,j}.iteration_structs{k}.referenceTrajectoryPoints(j,:,:);
+                result.iteration_structs{k}.referenceTrajectoryIndex(j,:) = results{i,j}.iteration_structs{k}.referenceTrajectoryIndex(j,:);
+                result.iteration_structs{k}.v_ref(j,:) = results{i,j}.iteration_structs{k}.v_ref(j,:);
+            end
         end
-    else
-        CM = rwth_color_order(size(cells,2)+3);
-        CM = CM(4:end,:);
-    
-        for j = 1:size(cells,2)
-            shape = cells{j};
-            p(j) = plot(shape(1,:),shape(2,:),'LineWidth',1,'Color',CM(j,:),'LineStyle','-.');
-        end
+        results_combined{i} = result;
     end
 end
 
-function plot_predicted_occupancy(trajectory_predictions,scenario,color,trims_stop,is_one_step_shifted)
-% plot predicted occupied areas
-    n_predictions = size(trajectory_predictions, 1);
-    n_ticks = n_predictions / scenario.options.Hp;
+% export videos
+function export_videos(results)
+    for i = 1:numel(results)
+        result = results{i};
+    
+        result.scenario.options.options_plot_online.is_video_mode = true;
+        result.scenario.options.options_plot_online.plot_coupling = true;
+        result.scenario.options.options_plot_online.plot_priority = true;
 
-    i = 0;
-    for tick = n_predictions-n_ticks+1:-n_ticks:1
-        if is_one_step_shifted && tick == 1
-            % ignore the first timestep
-            continue
-        end
-        i = i + 1;
-        x = trajectory_predictions(tick, :);
-        trim1 = trajectory_predictions(tick, 4);
         if i == 1
-            assert(length(trims_stop)==1)
-            trim2 = trims_stop;
+            result.scenario.options.options_plot_online.plot_reachable_sets = true;
+            result.scenario.options.options_plot_online.vehicles_reachable_sets = [1,2];
         else
-            trim2 = trajectory_predictions(tick + n_ticks, 4);
+            result.scenario.options.options_plot_online.plot_predicted_occupancy_previous = true;
+            result.scenario.options.options_plot_online.vehicles_predicted_occupancy_previous = [1,2];
         end
-        area = scenario.mpa.maneuvers{trim1, trim2}.area;
-        [area_x, area_y] = translate_global(x(3), x(1), x(2), area(1, :), area(2, :));
-        area_poly = polyshape([area_x; area_y]');
-        plot(area_poly, 'FaceColor', color, 'FaceAlpha', (i/(scenario.options.Hp+2))*0.5)
+        
+        % videoExportSetup.framerate = 30;
+        exportVideo(result)
     end
 end

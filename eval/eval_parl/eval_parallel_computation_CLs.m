@@ -15,7 +15,7 @@ function eval_parallel_computation_CLs()
     options.dt = 0.2;
     
     options.isSaveResult = true;
-    options.visu = [false,false];
+    options.options_plot_online = OptionsPlotOnline();
     options.Hp = 7;
     options.T_end = 4;
     options.amount = 20;

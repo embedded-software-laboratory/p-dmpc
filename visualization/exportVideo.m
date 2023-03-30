@@ -9,7 +9,7 @@ if nargin>1
 else
     framerate = 30;
     frame_per_step = framerate*scenario.options.dt;
-    frame_ticks = round(linspace(2,scenario.options.tick_per_step+1,frame_per_step));
+    frame_ticks = round(linspace(1,scenario.options.tick_per_step+1,frame_per_step));
 end
 
 plotter = PlotterOnline(scenario);
@@ -21,7 +21,7 @@ if test_mode
     plotter.plotOnline(plotting_info);
     set_figure_properties(plotter.get_figure(),ExportFigConfig.video());
     frame = getframe(plotter.get_figure());
-    imwrite(frame.cdata,['output\video_', scenario.options.scenario_name, '.png']);
+    imwrite(frame.cdata,['results\video_', scenario.options.scenario_name, '.png']);
     return
 end
 

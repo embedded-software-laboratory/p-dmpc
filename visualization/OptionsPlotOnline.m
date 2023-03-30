@@ -13,7 +13,11 @@ classdef OptionsPlotOnline
         vehicles_reachable_sets = [];           % reachable sets of those vehicles will be shown
         plot_lanelet_crossing_areaas = false;   % whether to show lanelet crossing areas
         vehicles_lanelet_crossing_areas = [];   % lanelet corssing area of those vehicles will be shown
-        is_video_mode = false;                  % if in video mode, the lanelets need to be plotted for each time step 
+        plot_predicted_occupancy = false;       % whether to show predicted occupancy
+        vehicles_predicted_occupancy = [];      % predicted occupancy of those vehicles will be shown
+        plot_predicted_occupancy_previous = false;      % whether to show previously predicted occupancy
+        vehicles_predicted_occupancy_previous = [];     % previously predicted occupancy of those vehicles will be shown
+        is_video_mode = false;                          % if in video mode, the lanelets need to be plotted for each time step 
     end
 
     methods

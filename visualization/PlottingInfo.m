@@ -1,6 +1,7 @@
 classdef PlottingInfo
     properties
         trajectory_predictions
+        trajectory_previous % trajectory of last time step
         ref_trajectory
         priorities
         n_obstacles
@@ -25,6 +26,11 @@ classdef PlottingInfo
             obj.step = k;
             obj.tick_now = tick_now;
             obj.trajectory_predictions = result.trajectory_predictions(:,k);
+            if k > 1
+                obj.trajectory_previous = result.trajectory_predictions(:,k-1);
+            else
+                obj.trajectory_previous = []; % initial time step
+            end
             obj.ref_trajectory = result.iteration_structs{k}.referenceTrajectoryPoints;
             obj.priorities = result.priority_list(:,k);
             obj.n_obstacles = size(result.obstacles,2);
@@ -58,6 +64,7 @@ classdef PlottingInfo
             filter_self = false(1,overall_amount_of_veh);
             filter_self(obj.veh_indices(1)) = true;
             obj.trajectory_predictions = obj.trajectory_predictions{filter_self'};
+            obj.trajectory_previous = obj.trajectory_previous{filter_self'};
             obj.ref_trajectory = obj.ref_trajectory(filter_self,:,:);
             obj.priorities = obj.priorities(filter_self');
             if plot_options.plot_reachable_sets
@@ -65,6 +72,9 @@ classdef PlottingInfo
             end
             if plot_options.plot_lanelet_crossing_areaas
                 obj.lanelet_crossing_areas = obj.lanelet_crossing_areas{filter_self};
+            end
+            if plot_options.plot_predicted_occupancy_previous
+                obj.previous_trajectories = obj.previous_trajectories{filter_self};
             end
         end
     end
