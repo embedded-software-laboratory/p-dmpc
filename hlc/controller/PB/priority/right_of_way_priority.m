@@ -140,10 +140,10 @@ classdef right_of_way_priority < interface_priority
 
             groups = PB_predecessor_groups(Level);
 
-            % Assign prrority according to computation level
+            % Assign prrority
             % Vehicles with higher priorities plan trajectory before vehicles
             % with lower priorities            
-            priority_list = obj.get_priority(groups);
+            priority_list = obj.get_priority(directed_adjacency);
 
         end
 

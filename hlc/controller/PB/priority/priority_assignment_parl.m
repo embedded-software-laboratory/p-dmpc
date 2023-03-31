@@ -27,7 +27,7 @@ function [scenario,iter,CL_based_hierarchy,lanelet_crossing_areas] = priority_as
     end
     
     % get priority list
-    priority_list = STAC_priority().get_priority(CL_based_hierarchy);
+    priority_list = STAC_priority().get_priority(coupling_weights);
 
     iter.coupling_weights = coupling_weights;
     iter.coupling_weights_reduced = coupling_weights_reduced;
