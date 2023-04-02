@@ -20,21 +20,21 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
     && cd Python-$PYTHON_VERSION \
     && ./configure --enable-optimizations --with-ensurepip=install --enable-shared --prefix=/usr \
     && make \
-    && make altinstall
-RUN cd .. && rm Python-$PYTHON_VERSION.tgz && rm -rf Python-$PYTHON_VERSION
+    && make altinstall \
+    && cd .. && rm Python-$PYTHON_VERSION.tgz && rm -rf Python-$PYTHON_VERSION
 
 # Install specified cmake version, defaults to cmake 3.16.3.
-ARG CMAKE_VERSION=3.16.3
+ARG CMAKE_VERSION=3.23.1
 RUN wget -q https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz \
     && tar zxvf cmake-$CMAKE_VERSION.tar.gz \
     && cd cmake-$CMAKE_VERSION \
     && ./bootstrap --prefix=/usr \
     && make \
-    && make install
-RUN cd .. && rm cmake-$CMAKE_VERSION.tar.gz && rm -rf cmake-$CMAKE_VERSION
+    && make install \
+    && cd .. && rm cmake-$CMAKE_VERSION.tar.gz && rm -rf cmake-$CMAKE_VERSION
 
 # Install specified gcc version, defaults to gcc 6, and set installed version as default.
-ARG GCC_VERSION=6
+ARG GCC_VERSION=10
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test \
     && apt-get update \
     && apt-get install --no-install-recommends --yes gcc-$GCC_VERSION g++-$GCC_VERSION
@@ -48,6 +48,17 @@ RUN add-apt-repository ppa:ubuntu-toolchain-r/test \
 # Use installed new libstdc++ version instead of Matlab version as described in
 # https://de.mathworks.com/matlabcentral/answers/329796-issue-with-libstdc-so-6#answer_259460.
 ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
+
+ARG BOOST_VERSION=1_81_0
+ARG BOOST_VERSION2=1.81.0
+RUN apt-get update \
+    && apt-get install --yes build-essential python-dev autotools-dev libicu-dev libbz2-dev \
+    && wget -q https://boostorg.jfrog.io/artifactory/main/release/$BOOST_VERSION2/source/boost_$BOOST_VERSION.tar.bz2 \
+    && tar -xvjf boost_$BOOST_VERSION.tar.bz2 \
+    && cd boost_$BOOST_VERSION \
+    && ./bootstrap.sh --prefix=/usr \
+    && ./b2 install \
+    && cd .. && rm boost_$BOOST_VERSION.tar.bz2 && rm -rf boost_$BOOST_VERSION
 
 # Clean up.
 RUN apt-get clean \

@@ -3,7 +3,7 @@ stages:
 
 .matlab_defaults:
   image:
-    name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab:test
+    name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab:latest
     entrypoint: [""]
 
 .matlab_with_test_summary:
