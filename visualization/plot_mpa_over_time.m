@@ -1,7 +1,7 @@
 function plot_mpa_over_time(scenario,options)
     arguments
         scenario            (1,1) Scenario;
-        options.y_lim       (1,2) double = [-0.1, 1.6];
+        options.y_lim       (1,2) double = [-0.1, 1.1];
         options.do_export   (1,1) logical = false;
         options.export_fig_cfg (1,1) ExportFigConfig = ExportFigConfig.paper();
     end
@@ -21,7 +21,7 @@ function plot_mpa_over_time(scenario,options)
             'fig', fig,...
             'k', k,...
             'with_labels', false, ...
-            'x_lim', 0.25*[-1, 1] ...
+            'x_lim', rad2deg(pi/18*[-3, 3]) ...
         );
         title(sprintf("$t=k+%d$", k-1), 'Interpreter', 'latex');
     end

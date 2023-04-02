@@ -58,7 +58,8 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             for i_t = 1:time_steps_to_go
                 d_traveled_max = d_traveled_max...
                     + scenario.options.dt*iter.v_ref(iVeh,k_exp+i_t);
-                expH(iTrim) = expH(iTrim) + (norm( [expX(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,1); expY(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,2)] ) - d_traveled_max)^2;
+                expH(iTrim) = expH(iTrim) + (max(0,(norm( [expX(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,1); expY(iVeh,iTrim)-iter.referenceTrajectoryPoints(iVeh,k_exp+i_t,2)] ) - d_traveled_max))^2);
+
             end
             
 %             % vectorize the for-loop that calculates the cost-to-go (if
