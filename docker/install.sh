@@ -27,8 +27,10 @@ UBUNTU_VERSION=18.04
 # Default is Python 3.9.6, CMake 3.16.3 and GCC 6.3 which fulfill the requirements for MATLAB R2022a.
 # Check https://de.mathworks.com/help/ros/gs/ros-system-requirements.html for the requirements of the specified MATLAB version.
 PYTHON_VERSION=3.9.6
-CMAKE_VERSION=3.16.3
-GCC_VERSION=6
+CMAKE_VERSION=3.23.1
+GCC_VERSION=10
+BOOST_VERSION=1_81_0
+BOOST_VERSION2=1.81.0
 
 # To change the Matlab toolboxes to install, change the value of TOOLBOXES.
 # Make sure to replace spaces by underscores and seperate toolboxes by spaces.
@@ -40,8 +42,7 @@ LICENSE_SERVER=50022@license3.rz.rwth-aachen.de
 
 # To change the name or tag of the docker image pushed to the Gitlab container registry, change the value of IMAGE_NAME resp. IMAGE_TAG.
 IMAGE_NAME=matlab
-IMAGE_TAG=new
-
+IMAGE_TAG=latest
 
 # ---------------------------------------- SCRIPT - DO NOT CHANGE -------------------------------------------
 
@@ -52,6 +53,8 @@ sudo docker build -t $TAG \
   --build-arg UBUNTU_VERSION=$UBUNTU_VERSION \
   --build-arg PYTHON_VERSION=$PYTHON_VERSION \
   --build-arg CMAKE_VERSION=$CMAKE_VERSION \
+  --build-arg BOOST_VERSION=$BOOST_VERSION \
+  --build-arg BOOST_VERSION2=$BOOST_VERSION2 \
   --build-arg GCC_VERSION=$GCC_VERSION \
   --build-arg TOOLBOXES="$TOOLBOXES" \
   --build-arg LICENSE_SERVER=$LICENSE_SERVER .
