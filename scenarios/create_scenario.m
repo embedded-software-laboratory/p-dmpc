@@ -1,4 +1,4 @@
-function scenario = create_scenario(options, random_seed)
+function scenario = create_scenario(options, random_seed, interfaceExperiment)
 %create scenario from options
 
 %% options preprocessing
@@ -48,6 +48,10 @@ switch options.scenario_name
         scenario = circle_scenario(options);
     case 'Commonroad'
         scenario = commonroad(options, vehicle_ids);
+    case 'Lanelet2'
+        scenario = lanelet2_scenario(options, vehicle_ids, interfaceExperiment);
+    case 'Lab_default'
+        scenario = lanelet2_scenario(options, vehicle_ids, interfaceExperiment);
 end
 
 initial_state = find([scenario.mpa.trims.speed] == 0 & [scenario.mpa.trims.steering] == 0, 1);

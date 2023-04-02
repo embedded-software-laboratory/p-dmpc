@@ -37,7 +37,7 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
 
         % add several points of predecessor lanelet to ensure the whole
         % vehicle body is inside its lanelet boundary
-        num_added = 4;
+        % see num_added below
         find_first_predicted_lan = find(predicted_lanelets(1)==lanelets_index);
         if find_first_predicted_lan == 1
             if is_loop
@@ -52,6 +52,11 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
         if ~isempty(predecessor_index)
             predecessor_lanelet_left = lanelet_boundaries{predecessor_index}{1};
             predecessor_lanelet_right = lanelet_boundaries{predecessor_index}{2};
+
+            % Usually add for points of predecessor, but less if the
+            % predecessor lanelet only consists of less elements
+            num_added = min(min(4, height(predecessor_lanelet_right)-1), height(predecessor_lanelet_left)-1);
+
             % avoid add the last point since it is almost identical with the
             % first point of its successor
             left_bound = [predecessor_lanelet_left(end-num_added:end-1,:)',left_bound];

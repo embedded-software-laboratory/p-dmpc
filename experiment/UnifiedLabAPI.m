@@ -1,20 +1,23 @@
 classdef UnifiedLabAPI < InterfaceExperiment
-% CPMLAB    Instance of experiment interface for usage via the generalized lab api.
+% UNIFIEDLABPI    Instance of experiment interface for usage via the generalized lab api.
     
     properties (Access=private)
         comm_node %matlabParticipant
-        % matlabParticipantLab
         subscription_experimentState
         subscription_controllerInvocation % = vehicleStateList
         client_labProperties
         client_scaleRegistration
-        client_mapDefinition
+        client_mapDefinition % for defining the map
+        client_mapRequest    % for receiving the defined map
         publisher_readyState
         publisher_trajectoryCommand
         actionClient_vehiclesRequest
+        goal_msg                        % Contains the action client goal message
+        goal_handle                     % Handle for action client goal
 
-        experiment_state = "preparation"
         lab_properties
+        map_comm_done = false % true if either the default map was requested or an own one was successfully defined
+        is_ros2_prepared = false % ensures that ros2 subscribers/publisher/... are only created once
         got_start = false
         got_stop = false
         writer_visualization % WHY?
@@ -26,69 +29,35 @@ classdef UnifiedLabAPI < InterfaceExperiment
     end
     
     methods
-        function obj = UnifiedLabAPI(scenario, veh_ids)
-            obj = obj@InterfaceExperiment(scenario, veh_ids);
+        function obj = UnifiedLabAPI()
+            obj = obj@InterfaceExperiment();
             obj.pos_init = false;
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.amount,1), zeros(obj.amount,1));
             if ispc
                 error('You are using a Windows machine, please do not select lab mode!')
             end
         end
+
+
+        function map_as_string = receive_map(obj)
+            % ULA allows to receive a default map from the lab.
+            % The return value is the file content of an .osm file as
+            % string.
+            obj.prepare_ros2();
+            map_as_string = obj.set_map_in_lab();
+            obj.map_comm_done = true;
+        end
+
         
-        function setup(obj)
+        function setup(obj, scenario, veh_ids)
+            setup@InterfaceExperiment(obj, scenario, veh_ids);
+            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.amount,1), zeros(obj.amount,1));
+
             assert(issorted(obj.veh_ids));
 
             obj.got_start = false;
-            obj.got_start = false;
+            obj.got_stop = false;
 
-            % Initialize data readers/writers...
-            % % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
-            % common_cpm_functions_path = fullfile( ...
-            %     getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
-            % );
-            % assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
-            % addpath(common_cpm_functions_path);
-
-            disp('Setup. Phase 1: Generation of ROS2 messages...');
-
-            % generated message types if not already existing
-            ula_ros2gen();
-
-            disp('Setup. Phase 2: Creation of all reader and writes...');
-            matlabDomainId = 1; %TODO: If not working try str2double(getenv('DDS_DOMAIN'))
-            % create ros node for communication
-            obj.comm_node = ros2node("matlab_pdmpc_ros_node");
-
-            % listen for changes of experiment state (start and stop of experiment)
-            obj.subscription_experimentState = ros2subscriber(obj.comm_node, "/experiment_state", "std_msgs/String", @obj.on_experiment_state_change);
-
-            % create subscription for controller invocation without a callback since we want to activly wait
-            % only keep the last message in the queue, i.e., we throw away missed ones
-            obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "ula_interfaces/VehicleStateList","History","keeplast","Depth",1);
-
-            % create client such that we can ask for the lab properties in the preparation phase
-            obj.client_labProperties = ros2svcclient(obj.comm_node, '/lab_properties_request', 'ula_interfaces/LabProperties');
-
-            % create client such that we can register the scale we want to use within the scaling node
-            obj.client_scaleRegistration = ros2svcclient(obj.comm_node, '/scale_registration', 'ula_interfaces/ScaleRegistration');
-
-            % create client with which we can define the map we want to use
-            obj.client_mapDefinition = ros2svcclient(obj.comm_node, '/map_definition_request', 'ula_interfaces/MapDefinition');
-
-            % create publisher for ready state
-            obj.publisher_readyState = ros2publisher(obj.comm_node, '/ready_state', 'ula_interfaces/Ready');
-
-            % create publisher for trajectory commands
-            obj.publisher_trajectoryCommand = ros2publisher(obj.comm_node, '/trajectory_command', 'ula_interfaces/TrajectoryCommand');
-            
-            % create client with which we can ask the lab for specific vehicles
-            % Since matlab does not provide support for actions, we use a normal message via the action bridge node
-            obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'ula_interfaces/VehicleIDs');
-
-            % % NEEDED???
-            % % create writer for lab visualization
-            % matlabVisualizationTopicName = 'visualization';
-            % obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.matlabParticipantLab), 'Visualization', matlabVisualizationTopicName);
+            obj.prepare_ros2(); % Call this in case map_as_string was not used before
 
             % Middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(obj.scenario.options.dt*1e9);
@@ -96,34 +65,9 @@ classdef UnifiedLabAPI < InterfaceExperiment
 
             disp('Setup. Phase 3: Perform preparation phase...');
 
-            % Request scaling of 1:18
-            disp('Wait for lab nodes to become available...');
-            [connectionStatus,connectionStatustext] = waitForServer(obj.client_scaleRegistration);
-            if (~connectionStatus)
-                error(strcat('Scaling service could not be reached. Status text: ', connectionStatustext));
+            if (~obj.map_comm_done) % Map was not already defined in lab
+                obj.set_map_in_lab(fileread(scenario.road_data_file_path));
             end
-            disp('Scaling node available. Assume all other nodes to be available as well...');
-            scaling_request = ros2message(obj.client_scaleRegistration);
-            scaling_request.entity = 'user';
-            scaling_request.scale = uint16(18);
-            scaling_response = call(obj.client_scaleRegistration,scaling_request);
-            if (~scaling_response.ok)
-                error('Registration of scaling was not successful.');
-            end
-            disp(strcat('Successfully registered scaling of 1:', num2str(scaling_request.scale)));
-
-            % Request map to use
-            map_definition_request = ros2message(obj.client_mapDefinition);
-            map_definition_request.use_default = true; % TODO
-            map_definition_request.map = '';
-            map_definition_response = call(obj.client_mapDefinition,map_definition_request);
-            if (~map_definition_response.valid)
-                error('Map definition was not successful. Scaling service returned an error.');
-            end
-            if (~map_definition_response.ok)
-                error(strcat('The lab rejected the requested map. Error message: ', map_definition_response.msg));
-            end
-            disp('Successfully registered map.');
 
             % Request lab properties
             lab_properties_request = ros2message(obj.client_labProperties);
@@ -131,15 +75,19 @@ classdef UnifiedLabAPI < InterfaceExperiment
             if (~obj.lab_properties.valid)
                 error('Lab properties request was not successful. Scaling service returned an error.');
             end
-            disp('Successfully registered lab properties.');
+            disp('Successfully received lab properties.');
 
             % Request the vehicle ids which shall be used in this experiment (this should be an action, but we use only the initial message)
             % TODO: This assumes that the assigned vehicles are all vehicles needed in the experiment. Correct?
-            vehicles_msg = ros2message(obj.actionClient_vehiclesRequest);
-            assignin('base','vehicles',int32(obj.veh_ids));
-            vehicles_msg.vehicle_ids = int32(obj.veh_ids);
-            send(obj.actionClient_vehiclesRequest, vehicles_msg);
-            warning('Send message to define the vehicle ids. Since matlab does not support actions currently, we do not react on any response...');
+            obj.goal_msg.vehicle_ids = int32(obj.veh_ids);
+            callbackOpts = ros2ActionSendGoalOptions(FeedbackFcn=@obj.vehicleRequestActionFeedbackCallback,ResultFcn=@obj.vehicleRequestActionResultCallback); % Currently, we don't use it...
+            [connectionStatus,connectionStatustext] = waitForServer(obj.actionClient_vehiclesRequest);
+            if (~connectionStatus)
+                error(strcat('Action server could not be reached. Status text: ', connectionStatustext));
+            end
+            obj.goal_handle = sendGoal(obj.actionClient_vehiclesRequest, obj.goal_msg, callbackOpts);
+            disp('Sent message to define the vehicle ids. We assume that goal was accepted, so no further test...');
+
 
             % TODO: Set vehicle_controller_period
 
@@ -164,7 +112,29 @@ classdef UnifiedLabAPI < InterfaceExperiment
 
         function [ x0, trim_indices ] = measure(obj)
             disp('Measure');
-            new_sample = receive(obj.subscription_controllerInvocation);
+
+            % Receive new messages. In order to recognize stop signals, we
+            % have a timeout of 2 seconds and then check again, whether a
+            % stop signal was received...
+            new_sample_received = false;
+            while (~new_sample_received)
+                try
+                    new_sample = receive(obj.subscription_controllerInvocation, 1);
+                    new_sample_received = true;
+                catch % Timeout
+                    if (obj.got_stop)
+                        disp('Stop signal received. Stop waiting for new messages.');
+                        % Set new_sample to the one of the last timestep
+                        % such that we can leave this function
+                        % successfully. Afterwards the calling function
+                        % will detect that obj.got_stop=true.
+                        new_sample = obj.sample;
+                        new_sample_received = true;
+                    end
+                end
+            end
+
+
             % Don't do the check in the first step (see later in this function for setting of pos_init)
             if obj.pos_init && ...
                     uint64(obj.sample.current_time.sec) * 10^9 + uint64(obj.sample.current_time.nanosec) + uint64(obj.dt_period_nanos) * 1.5 ...
@@ -274,14 +244,17 @@ classdef UnifiedLabAPI < InterfaceExperiment
     methods (Access=private)   
         function on_experiment_state_change(obj, msg)
             % Message msg is of type std_msgs/String
-            if msg.data == 'start'
+            disp(strcat('Experiment state change: ',msg.data));
+            if strcmp(msg.data,'start')
                 obj.got_start = true;
-            elseif msg.data == 'stop'
-                obj.got_stop = true;
+            elseif strcmp(msg.data,'stop')
+                if (obj.got_start)
+                    % Only set got_stop=true if experiment has been started before
+                    obj.got_stop = true;
+                end
             else
                 warning(strcat('Received an unknown experiment state: ', msg.data));
             end
-            disp(strcat('Experiment state change: ',msg.data));
         end
 
         % helper function
@@ -312,6 +285,124 @@ classdef UnifiedLabAPI < InterfaceExperiment
             t_new_nanosec = uint32(mod(uint64(timepoint.nanosec) + uint64(dt_nanos), 1000000000));
             timepoint.sec = t_new_sec;
             timepoint.nanosec = t_new_nanosec;
+        end
+
+
+        function map_as_string = set_map_in_lab(obj, map_as_string)
+            % map_as_string: must be a lanelet2 map given as string of .osm
+            % file. If empty, the default map of the lab is requested.
+            % return: Either the given map or the received map.
+
+            % Request scaling of 1:18
+            disp('Wait for lab nodes to become available...');
+            [connectionStatus,connectionStatustext] = waitForServer(obj.client_scaleRegistration);
+            if (~connectionStatus)
+                error(strcat('Scaling service could not be reached. Status text: ', connectionStatustext));
+            end
+            disp('Scaling node available. Assume all other nodes to be available as well...');
+            scaling_request = ros2message(obj.client_scaleRegistration);
+            scaling_request.entity = 'user';
+            scaling_request.scale = uint16(18);
+            scaling_response = call(obj.client_scaleRegistration,scaling_request);
+            if (~scaling_response.ok)
+                error('Registration of scaling was not successful.');
+            end
+            disp(strcat('Successfully registered scaling of 1:', num2str(scaling_request.scale)));
+
+            % Request map to use
+            map_definition_request = ros2message(obj.client_mapDefinition);
+            if nargin==1 % no map given--> request lab's default map
+                map_definition_request.use_default = true;
+                map_definition_request.map = '';
+            else 
+                map_definition_request.use_default = false;
+                map_definition_request.map = map_as_string;
+            end
+            map_definition_response = call(obj.client_mapDefinition,map_definition_request);
+            if (~map_definition_response.valid)
+                error('Map definition was not successful. Scaling service returned an error.');
+            end
+            if (~map_definition_response.ok)
+                error(strcat('The lab rejected the requested map. Error message: ', map_definition_response.msg));
+            end
+            disp('Successfully registered map.');
+
+            if nargin==1 % no map given--> lab's default was successfully requested but now we still want to get it
+                map_request = ros2message(obj.client_mapRequest);
+                map_request_response = call(obj.client_mapRequest,map_request);
+                if (~map_request_response.defined)
+                    error('Map request was not successful. The lab returned that no map is currently defined.');
+                end
+                if (~map_request_response.valid)
+                    error('Map request was not successful. Scaling service returned an error.');
+                end
+                map_as_string = map_request_response.map;
+            end
+        end
+
+
+        function prepare_ros2(obj)
+            if (obj.is_ros2_prepared) % Only perform once.
+                return;
+            end
+
+
+            disp('Setup. Phase 1: Generation of ROS2 messages...');
+
+            % generated message types if not already existing
+            ula_ros2gen();
+
+            disp('Setup. Phase 2: Creation of all reader and writes...');
+            %matlabDomainId = 1; %TODO: If not working try str2double(getenv('DDS_DOMAIN'))
+            % create ros node for communication
+            obj.comm_node = ros2node("matlab_pdmpc_ros_node");
+
+            % listen for changes of experiment state (start and stop of experiment)
+            obj.subscription_experimentState = ros2subscriber(obj.comm_node, "/experiment_state", "std_msgs/String",...
+                                                    @obj.on_experiment_state_change, Durability="transientlocal", Reliability="reliable",...
+                                                    History="keeplast", Depth=2);
+
+            % create subscription for controller invocation without a callback since we want to activly wait
+            % only keep the last message in the queue, i.e., we throw away missed ones
+            obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "ula_interfaces/VehicleStateList","History","keeplast","Depth",1);
+
+            % create client such that we can ask for the lab properties in the preparation phase
+            obj.client_labProperties = ros2svcclient(obj.comm_node, '/lab_properties_request', 'ula_interfaces/LabProperties');
+
+            % create client such that we can register the scale we want to use within the scaling node
+            obj.client_scaleRegistration = ros2svcclient(obj.comm_node, '/scale_registration', 'ula_interfaces/ScaleRegistration');
+
+            % create client with which we can define the map we want to use
+            obj.client_mapDefinition = ros2svcclient(obj.comm_node, '/map_definition_request', 'ula_interfaces/MapDefinition');
+
+            % create client with which we can receive the defined map
+            obj.client_mapRequest =    ros2svcclient(obj.comm_node, '/map_request', 'ula_interfaces/MapRequest');
+
+            % create publisher for ready state
+            obj.publisher_readyState = ros2publisher(obj.comm_node, '/ready_state', 'ula_interfaces/Ready');
+
+            % create publisher for trajectory commands
+            obj.publisher_trajectoryCommand = ros2publisher(obj.comm_node, '/trajectory_command', 'ula_interfaces/TrajectoryCommand');
+            
+            % create client with which we can ask the lab for specific vehicles
+            [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'ula_interfaces/VehiclesRequest');
+            % Since matlab does not provide support for actions, we use a normal message via the action bridge node
+            % obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'ula_interfaces/VehicleIDs');
+
+            % % NEEDED???
+            % % create writer for lab visualization
+            % matlabVisualizationTopicName = 'visualization';
+            % obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.matlabParticipantLab), 'Visualization', matlabVisualizationTopicName);
+
+            obj.is_ros2_prepared = true;
+        end
+
+        function vehicleRequestActionFeedbackCallback(obj, goalHandle, feedbackMsg)
+            disp('Received feedback on the action goal, but nothing we do here with it...');
+        end
+
+        function vehicleRequestActionResultCallback(obj, goalHandle, wrappedResultMsg)
+            disp('Received result on the action goal, but nothing we do here with it...');
         end
     end
 end

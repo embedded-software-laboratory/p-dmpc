@@ -21,6 +21,7 @@ classdef Scenario
         intersection_lanelets;          % IDs of intersection lanelets
         boundary;
         road_raw_data;                  % raw road data
+        road_data_file_path;            % path to file of road data
         lanelet_boundary;               % boundaries of all lanelets
         lanelet_relationships;          % relationship between two adjacent lanelets
         adjacency_lanelets;             % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent 

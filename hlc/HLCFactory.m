@@ -3,9 +3,7 @@ classdef HLCFactory < handle
         % scenario variable
         scenario
 
-        % data queue for visualization. Used if running distributed HLCs
-        % locally with Parallel Computing Toolbox
-        visualization_data_queue
+        
     end
 
     methods
@@ -15,13 +13,13 @@ classdef HLCFactory < handle
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
             obj.scenario = [];
-            obj.visualization_data_queue = [];
+            
         end
 
         % Optional argument wether to do a dry run of the first timestep beforehand
         % dry_run can massively decrease the time needed for the first
         % timestep during the experiment.
-        function hlc = get_hlc( obj, vehicle_ids, dry_run )
+        function hlc = get_hlc( obj, vehicle_ids, dry_run, experimentInterface )
 
             if isempty(obj.scenario)
                 throw(MException('HlcFactory:InvalidState', 'HlcScenario not set'));
@@ -55,7 +53,7 @@ classdef HLCFactory < handle
 
             hlc.set_vehicle_ids(vehicle_ids);
 
-            hlc.set_hlc_adapter(obj.visualization_data_queue);
+            hlc.set_hlc_adapter(experimentInterface);
 
         end
 
@@ -63,9 +61,7 @@ classdef HLCFactory < handle
             obj.scenario = scenario;
         end
 
-        function set_visualization_data_queue( obj )
-            obj.visualization_data_queue = parallel.pool.DataQueue;
-        end
+        
     end
 
     methods (Static)
