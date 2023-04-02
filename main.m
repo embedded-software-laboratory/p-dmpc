@@ -17,13 +17,18 @@ function [result, scenario] = main(varargin)
             return
         end
     end
+
+    % Create environment aka ExperimentInterface
+    exp_factory = InterfaceExperimentFactory();
+    interfaceExperiment = exp_factory.get_experiment_interface(options.environment);
     
     % check if Scenario object is given as input
     scenario = read_object_from_input(varargin, 'Scenario');
     if isempty(scenario)
         random_seed = RandStream('mt19937ar');
-        scenario = create_scenario(options, random_seed);
+        scenario = create_scenario(options, random_seed, interfaceExperiment);
     end
+
     
     % write scenario to disk if distributed (for lab or local debugging with main_distributed())
     if scenario.options.isPB == true
@@ -46,21 +51,21 @@ function [result, scenario] = main(varargin)
             end
         end
     else
-        factory = HLCFactory();
-        factory.set_scenario(scenario);
+        hlc_factory = HLCFactory();
+        hlc_factory.set_scenario(scenario);
         dry_run = (scenario.options.environment == Environment.CPMLab); % TODO: dry run also for unified lab api?
         if scenario.options.isPB == true && scenario.options.isParl
             %% simulate distribution locally using the Parallel Computing Toolbox
             get_parallel_pool(scenario.options.amount);
             plot = scenario.options.options_plot_online.is_active;
             if plot
-                factory.set_visualization_data_queue;
+                exp_factory.set_visualization_data_queue;
                 % create central plotter - used by all workers via data queue
-                plotter = PlotterOnline(factory.scenario);
-                afterEach(factory.visualization_data_queue, @plotter.data_queue_callback);
+                plotter = PlotterOnline(hlc_factory.scenario);
+                afterEach(exp_factory.visualization_data_queue, @plotter.data_queue_callback);
             end
             spmd(scenario.options.amount)
-                hlc = factory.get_hlc(scenario.options.veh_ids(labindex), dry_run);
+                hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, interfaceExperiment);
                 [result,scenario] = hlc.run();
             end
             if plot
@@ -69,7 +74,7 @@ function [result, scenario] = main(varargin)
             result={result{:}};
             scenario={scenario{:}};
         else
-            hlc = factory.get_hlc(scenario.options.veh_ids, dry_run);
+            hlc = hlc_factory.get_hlc(scenario.options.veh_ids, dry_run, interfaceExperiment);
             [result,scenario] = hlc.run();
         end
     end

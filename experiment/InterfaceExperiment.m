@@ -14,7 +14,6 @@ classdef (Abstract) InterfaceExperiment < handle
     end
     
     methods (Abstract)
-        setup(obj)
         [ x0, trim_indices ] = measure(obj, ~)
         apply(obj, info)
         got_stop = is_stop(obj)
@@ -22,7 +21,13 @@ classdef (Abstract) InterfaceExperiment < handle
     end
     
     methods
-        function obj = InterfaceExperiment(scenario, veh_ids)
+        function obj = InterfaceExperiment()
+        end
+
+        function setup(obj, scenario, veh_ids)
+            % This function does everything in order to run the object
+            % later on. If further initialization needs to be done this
+            % method shall be overriden and called in a child class.
             obj.scenario = scenario;
             obj.veh_ids = veh_ids;
             obj.amount = length(veh_ids);
@@ -42,6 +47,13 @@ classdef (Abstract) InterfaceExperiment < handle
             end
             x0 = [obj.cur_node(:,NodeInfo.x), obj.cur_node(:,NodeInfo.y), obj.cur_node(:,NodeInfo.yaw), speeds];
             trim_indices = obj.cur_node(:,NodeInfo.trim);
+        end
+
+        function receive_map(~)
+            % InterfaceExperiments may allow to retrieve a lab specific
+            % map. If so, this function needs to be overriden. By default
+            % this function is not available.
+            error('This interface does not provide the possibility to retrieve a lab specific map.');
         end
     end
 

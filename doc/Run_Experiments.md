@@ -37,7 +37,12 @@
 
 # Unified Lab API
 
-If you run into problems with the standard c++ library libstdc++ try one of the ways described here: https://de.mathworks.com/matlabcentral/answers/329796-issue-with-libstdc-so-6
+In order to generalize the experiments for model-scale labs, the Unified Lab API (ULA) defines a standardized API on which basis High Level Controllers and scenarios can be programmed lab-independently. By selecting the ULA environment, communication is done with the currently available lab via this ROS2-based interface. In order to run an experiment, follow these steps:
+1. Launch all ROS2 nodes necessary for the used lab.
+2. Run matlab's `main` program and select `Unified Lab API` as environment. You can now switch between the following two scenario:
+    1. Lanelet2: This is a scenario working with the cloverleaf map typically used in the CPM Lab. This map is sent to the lab, has to pass the lab-conformity check, and can then be used for experiments. In this scenario, a path is generated randomly by using the lanelet2 library and mex.
+    2. Lab Default: In the first step, the default lanelet2 map of the currently accessed lab is retrieved. On this retrieved map, a path is generated randomly as for the Lanelet2 scenario.
+
 
 # Debug Parallel Computation
 
@@ -50,3 +55,8 @@ If there is an error with `ros2genmsg()` execute `ros2genmsg(commun/cust1)` manu
 -	 Parallel Computation / Distributed Execution is only relevant for Pb non-coop scenarios. If Distributed Execution is used, the program will create a HLC for each vehicle. Otherwise 1 HLC controls all vehicles.
 
 - You can set the desired vehicle ids in the respective Box in the UI. The number of entered vehicle ids must equal the selected vehicle amount. If you leave the Box empty, some default vehicle ids will be used.
+
+
+# Troubleshooting
+- If you encounter problems like `"MATLAB has experienced a low-level graphics error, and may not have drawn correctly."`, close Matlab and restart again by using `matlab -softwareopengl`.
+- If you run into problems with the standard c++ library libstdc++ try one of the ways described here: https://de.mathworks.com/matlabcentral/answers/329796-issue-with-libstdc-so-6 . "1. Renaming the libstdc++.so.6 library file so that MATLAB cannot find it and is forced to use the system's version of the library." worked for me.

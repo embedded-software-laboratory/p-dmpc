@@ -9,14 +9,17 @@ classdef SimLab < InterfaceExperiment
     end
     
     methods
-        function obj = SimLab(scenario, veh_ids, visualization_data_queue)
-            obj = obj@InterfaceExperiment(scenario, veh_ids);
-            obj.doOnlinePlot = obj.scenario.options.options_plot_online.is_active;
+        function obj = SimLab(visualization_data_queue)
+            obj = obj@InterfaceExperiment();
             obj.use_visualization_data_queue = false;    
             obj.visualization_data_queue = visualization_data_queue;
         end
+
         
-        function setup(obj)
+        function setup(obj, scenario, veh_ids)
+            setup@InterfaceExperiment(obj, scenario, veh_ids);
+            obj.doOnlinePlot = obj.scenario.options.options_plot_online.is_active;
+
             if ~isempty(obj.visualization_data_queue)
                 obj.use_visualization_data_queue = true;
             end

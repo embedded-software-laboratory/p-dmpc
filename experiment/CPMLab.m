@@ -18,15 +18,16 @@ classdef CPMLab < InterfaceExperiment
     end
     
     methods
-        function obj = CPMLab(scenario, veh_ids)
-            obj = obj@InterfaceExperiment(scenario, veh_ids);
+        function obj = CPMLab()
+            obj = obj@InterfaceExperiment();
             obj.pos_init = false;
             if ispc
                 error('You are using a Windows machine, please do not select lab mode!')
             end
         end
         
-        function setup(obj)
+        function setup(obj, scenario, veh_ids)
+            setup@InterfaceExperiment(obj, scenario, veh_ids);
             assert(issorted(obj.veh_ids));
 
             % Initialize data readers/writers...

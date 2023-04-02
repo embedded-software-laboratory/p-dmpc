@@ -3,7 +3,7 @@ nVeh = 40;
 vehs = {};
 vehicle_ids = 1:nVeh;
 
-road_data = RoadData().get_road_data;
+road_data = RoadDataCommonRoad().get_road_data();
 for iveh = 1:nVeh
     
     veh = Vehicle();

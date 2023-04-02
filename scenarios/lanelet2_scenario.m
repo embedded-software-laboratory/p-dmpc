@@ -1,42 +1,68 @@
-function scenario = commonroad(options,vehicle_ids)
+function scenario = lanelet2_scenario(options,vehicle_ids,interfaceExperiment)
 % Commonroad_Scenario   
 
     scenario = Scenario();
-
+    
     options.recursive_feasibility = true;
-    % read from optionos
+    % read from options
     scenario.options = options; 
 
     options.is_allow_non_convex = true;
 
-    scenario.options.scenario_name = 'Commonroad';
-
     % get road data
-    road_data = RoadDataCommonRoad().get_road_data();
-    assignin('base', 'road_data', road_data);
-%     if options.isParl
-        scenario.lanelets = road_data.lanelets;
-        scenario.intersection_lanelets = road_data.intersection_lanelets;
-        scenario.lanelet_boundary = road_data.lanelet_boundary;
-        scenario.road_raw_data = road_data.road_raw_data;
-%     else
-%         [scenario.lanelets, scenario.adjacency_lanelets, scenario.intersection_lanelets, scenario.road_raw_data, scenario.lanelet_boundary] =...
-%             commonroad_lanelets();
-%     end
+    if strcmp(options.scenario_name, 'Lab_default')
+        % ULA is required for that.
+        assert(isa(interfaceExperiment, "UnifiedLabAPI")); 
+
+        disp('Retrieve map from lab via unified lab API.')
+
+        % Receive map via ULA interface
+        map_as_string = interfaceExperiment.receive_map();
+
+        % Store string in temporary file
+        tmp_file_name = 'received_lanelet2_map_via_unifiedLabAPI.osm';
+        writelines(map_as_string, [tempdir,filesep,tmp_file_name]);
+
+        % Retrieve road data
+        road_data = RoadDataLanelet2(false).get_road_data(tmp_file_name,tempdir);
+    else
+        assert(strcmp(options.scenario_name,'Lanelet2'));
+
+        disp('Create Lanelet2 scenario.')
+
+        % Get road data from default location
+        road_data = RoadDataLanelet2(false).get_road_data();
+    end
+    
+    assignin('base', 'road_data_lab_default_scenario', road_data);
+    scenario.lanelets = road_data.lanelets;
+    scenario.intersection_lanelets = road_data.intersection_lanelets;
+    scenario.lanelet_boundary = road_data.lanelet_boundary;
+    scenario.road_raw_data = road_data.road_raw_data;
     scenario.lanelet_relationships  = road_data.lanelet_relationships;
+    scenario.road_data_file_path = [road_data.road_folder_path,filesep,road_data.road_name];
     
     nVeh = options.amount;
-
     for iveh = 1:nVeh
         
         veh = Vehicle();
+        veh.trim_config = 1;
+
+        % Generate a ref path using the Lanelet2 Interface and generate_ref_path_loop
+        ref_path_loops = {Lanelet2_Interface.generate_ref_path_indices(scenario.road_data_file_path)};
 
         if isempty(options.reference_path.lanelets_index)
-            lanelets_index = [];
+            ref_path_loop = ref_path_loops{1};
+            start_idx =  mod(vehicle_ids(iveh)*2-1, width(ref_path_loop));
+            if start_idx==1
+                lanelets_index = ref_path_loop;
+            else
+                lanelets_index = [ref_path_loop(start_idx:end),ref_path_loop(1:start_idx-1)];
+            end
         else
             lanelets_index = options.reference_path.lanelets_index{iveh};
         end
-        ref_path = generate_ref_path_loop(vehicle_ids(iveh), scenario.lanelets, lanelets_index);% function to generate refpath based on CPM Lab road geometry
+        ref_path = generate_ref_path_loop(vehicle_ids(iveh), scenario.lanelets, lanelets_index);
         veh.lanelets_index = ref_path.lanelets_index;
         lanelet_ij = [ref_path.lanelets_index(1),ref_path.lanelets_index(end)];
 
@@ -80,6 +106,7 @@ function scenario = commonroad(options,vehicle_ids)
 
     
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
+
     % initialize speed profile vector, currently 3 speed profiles are available
     scenario.speed_profile_mpas = [scenario.mpa, scenario.mpa, scenario.mpa];
  

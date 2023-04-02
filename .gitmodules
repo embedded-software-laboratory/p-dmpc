@@ -1,3 +1,6 @@
 [submodule "unified_lab_api/ula_interfaces"]
 	path = commun/unified_lab_api/ula_interfaces
-	url = git@git.rwth-aachen.de:CPM/Project/Lab/Students/rolf/s/ula_interfaces.git
+	url = ../../p-dmpc/ula_interfaces.git
+[submodule "lanelets/lanelet2/lanelet2_scaled_lab_projector"]
+	path = lanelets/lanelet2/lanelet2_scaled_lab_projector
+	url = ../../p-dmpc/lanelet2_scaled_lab_projector.git

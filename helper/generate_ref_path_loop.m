@@ -109,6 +109,8 @@ ref_path = struct;
 
         ref_path_loop = ref_path_loops{loop};
         find_start_idx = find(ref_path_loop==starting_lanelet);
+
+
         if find_start_idx==1
             ref_path.lanelets_index = ref_path_loop;
         else
@@ -137,7 +139,7 @@ ref_path = struct;
     ref_path.path = path_reduced;
 
     % the max points index of each lanelet
-    points_length = cellfun(@(c)length(c), lanelets_target);
+    points_length = cellfun(@(c)height(c), lanelets_target);
     
     n_cumsum_lanelets_length = cumsum(points_length);
 

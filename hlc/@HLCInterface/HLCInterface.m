@@ -98,15 +98,8 @@ classdef (Abstract) HLCInterface < handle
             obj.controller_name = name;
         end
 
-        function set_hlc_adapter( obj, visualization_data_queue )
-            switch(obj.scenario.options.environment)
-                case Environment.CPMLab
-                    obj.hlc_adapter = CPMLab(obj.scenario, obj.vehicle_ids);
-                case Environment.Simulation
-                    obj.hlc_adapter = SimLab(obj.scenario, obj.vehicle_ids, visualization_data_queue);
-                case Environment.UnifiedLabAPI
-                    obj.hlc_adapter = UnifiedLabAPI(obj.scenario, obj.vehicle_ids); %, visualization_data_queue);
-            end            
+        function set_hlc_adapter( obj, interfaceExperiment)
+            obj.hlc_adapter = interfaceExperiment;
         end
     end
 
@@ -147,7 +140,7 @@ classdef (Abstract) HLCInterface < handle
                 obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
             end
 
-            obj.hlc_adapter.setup();
+            obj.hlc_adapter.setup(obj.scenario, obj.vehicle_ids);
 
             if obj.scenario.options.isPB
                 % In priority-based computation, vehicles communicate via ROS 2

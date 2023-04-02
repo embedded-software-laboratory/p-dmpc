@@ -1,6 +1,6 @@
 %% visualize lanelet
 % get road data
-road_data = RoadData().get_road_data();
+road_data = RoadDataCommonRoad().get_road_data();
 
 %% plot lanelets
 figure()
