@@ -25,10 +25,11 @@ function scenario = commonroad(options,vehicle_ids)
     scenario.lanelet_relationships  = road_data.lanelet_relationships;
     
     nVeh = options.amount;
+
     for iveh = 1:nVeh
         
         veh = Vehicle();
-        veh.trim_config = 1;
+
         if isempty(options.reference_path.lanelets_index)
             lanelets_index = [];
         else
@@ -78,7 +79,6 @@ function scenario = commonroad(options,vehicle_ids)
 
     
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
-
     % initialize speed profile vector, currently 3 speed profiles are available
     scenario.speed_profile_mpas = [scenario.mpa, scenario.mpa, scenario.mpa];
  

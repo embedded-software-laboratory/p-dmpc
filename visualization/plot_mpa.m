@@ -1,13 +1,13 @@
 function plot_mpa(scenario,options)
 arguments
     scenario            (1,1) Scenario;
-    options.y_lim       (1,2) double;
-    options.x_lim       (1,2) double;
+    options.y_lim       (1,2) double = [-0.1, 1.0];
+    options.x_lim       (1,2) double = rad2deg(pi/18*[-3, 3]);
     options.k           (1,1) double = 1;
     options.do_export   (1,1) logical = false;
     options.fig         (1,1) matlab.ui.Figure = figure("Visible","off");
     options.with_labels (1,1) logical = true;
-    options.export_fig_cfg (1,1) ExportFigConfig = ExportFigConfig.paper();
+    options.export_fig_cfg (1,1) ExportFigConfig = ExportFigConfig.document();
 end
     mpa = scenario.mpa;
     

@@ -1,6 +1,12 @@
-function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
+function [trim_inputs, trim_adjacency] = choose_trims(trim_set, max_acceleration_per_dt, max_deceleration_per_dt)
 % CHOOSE_TRIMS  Choose trim set used.
 % NOTE: If new trim need to be added, please use successive number!
+arguments
+    trim_set (1,1) int8 = 14
+    % max acceleration in LE / dt
+    max_acceleration_per_dt double = 0.131
+    max_deceleration_per_dt double = max_acceleration_per_dt
+end
 
     switch trim_set
         case 0 % trim set for manual vehicles TODO: graph weight must be nonnegative
@@ -252,8 +258,144 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set)
             trim_adjacency(3,4) = 1;
             trim_adjacency = trim_adjacency + trim_adjacency';
 
+
+        case 14 % acceleration constraint + increased steering at low speeds + double d_steering
+            % resolution of MPA
+            d_speed = min(max_acceleration_per_dt, max_deceleration_per_dt);
+            % max d_speed between two adjacent nodes/trims depends on
+            acc_max = 1.05*max_acceleration_per_dt;
+            dec_max = 1.05*max_deceleration_per_dt;
+            % assert stricly smaller due to inaccurencies in float
+            assert(d_speed < acc_max);
+            assert(d_speed < dec_max);
+            speed_min = 0;
+            speed_max = 0.8;
+            % round speed_max
+            speed_max = d_speed * round(speed_max / d_speed);
+            speed_vec = (speed_min:d_speed:speed_max)';
+            n_speeds = numel(speed_vec);
+
+            d_steer = 0.5 * pi/18;
+            steer_max_lo_speed = d_steer * round((3 * pi/18) / d_steer);
+            steer_max_hi_speed = d_steer * round((2 * pi/18) / d_steer);
+            d_steer_max = 2.05*d_steer;
+            assert(d_steer < d_steer_max);
+            steer_cla = cell(n_speeds,1);
+           
+            steer_cla{1} = -steer_max_lo_speed:d_steer:steer_max_lo_speed;
+            x = [speed_min+d_speed, speed_vec(3)];
+            v = [steer_max_lo_speed, steer_max_hi_speed];
+            % interpolate between hi and low steering angle
+            for i_speed = 2:3                
+                xq = speed_vec(i_speed);
+                max_steer = interp1(x,v,xq);
+                max_steer = d_steer * round(max_steer / d_steer);
+                min_steer = -max_steer;
+                steer_cla{i_speed} = min_steer:d_steer:max_steer;
+            end
+            % apply low steering angle
+            for i_speed = 4:n_speeds
+                steer_cla{i_speed} = -steer_max_hi_speed:d_steer:steer_max_hi_speed;
+            end
+            [trim_inputs, trim_adjacency] = build_mpa( ...
+                speed_vec...
+                ,steer_cla...
+                ,acc_max ...
+                ,dec_max...
+                ,d_steer_max...
+                );
+
+        case 15 % acceleration constraint + increased steering at low speeds
+            % resolution of MPA
+            d_speed = min(max_acceleration_per_dt, max_deceleration_per_dt);
+            % max d_speed between two adjacent nodes/trims depends on
+            acc_max = 1.05*max_acceleration_per_dt;
+            dec_max = 1.05*max_deceleration_per_dt;
+            % assert stricly smaller due to inaccurencies in float
+            assert(d_speed < acc_max);
+            assert(d_speed < dec_max);
+            speed_min = 0;
+            speed_max = 0.8;
+            % round speed_max
+            speed_max = d_speed * round(speed_max / d_speed);
+            speed_vec = (speed_min:d_speed:speed_max)';
+            n_speeds = numel(speed_vec);
+
+            d_steer = 0.5 * pi/18;
+            steer_max_lo_speed = d_steer * round((3 * pi/18) / d_steer);
+            steer_max_hi_speed = d_steer * round((2 * pi/18) / d_steer);
+            d_steer_max = 1.05*d_steer;
+            assert(d_steer < d_steer_max);
+            steer_cla = cell(n_speeds,1);
+           
+            steer_cla{1} = -steer_max_lo_speed:d_steer:steer_max_lo_speed;
+            x = [speed_min+d_speed, speed_vec(3)];
+            v = [steer_max_lo_speed, steer_max_hi_speed];
+            % interpolate between hi and low steering angle
+            for i_speed = 2:3                
+                xq = speed_vec(i_speed);
+                max_steer = interp1(x,v,xq);
+                max_steer = d_steer * round(max_steer / d_steer);
+                min_steer = -max_steer;
+                steer_cla{i_speed} = min_steer:d_steer:max_steer;
+            end
+            % apply low steering angle
+            for i_speed = 4:n_speeds
+                steer_cla{i_speed} = -steer_max_hi_speed:d_steer:steer_max_hi_speed;
+            end
+            [trim_inputs, trim_adjacency] = build_mpa( ...
+                speed_vec...
+                ,steer_cla...
+                ,acc_max ...
+                ,dec_max...
+                ,d_steer_max...
+                );
+
+        case 16 % acceleration constraint
+            % resolution of MPA
+            d_speed = min(max_acceleration_per_dt, max_deceleration_per_dt);
+            % max d_speed between two adjacent nodes/trims depends on
+            acc_max = 1.05*max_acceleration_per_dt;
+            dec_max = 1.05*max_deceleration_per_dt;
+            % assert stricly smaller due to inaccurencies in float
+            assert(d_speed < acc_max);
+            assert(d_speed < dec_max);
+            speed_min = 0;
+            speed_max = 0.8;
+            % round speed_max
+            speed_max = d_speed * round(speed_max / d_speed);
+            speed_vec = (speed_min:d_speed:speed_max)';
+            n_speeds = numel(speed_vec);
+
+            d_steer = 0.5 * pi/18;
+            steer_max_lo_speed = d_steer * round((2 * pi/18) / d_steer);
+            steer_max_hi_speed = d_steer * round((2 * pi/18) / d_steer);
+            d_steer_max = 1.05*d_steer;
+            assert(d_steer < d_steer_max);
+            steer_cla = cell(n_speeds,1);
+           
+            steer_cla{1} = -steer_max_lo_speed:d_steer:steer_max_lo_speed;
+            x = [speed_min+d_speed, speed_vec(n_speeds)];
+            v = [steer_max_lo_speed, steer_max_hi_speed];
+            % interpolate between hi and low steering angle
+            for i_speed = 2:n_speeds                
+                xq = speed_vec(i_speed);
+                max_steer = interp1(x,v,xq);
+                max_steer = d_steer * round(max_steer / d_steer);
+                min_steer = -max_steer;
+                steer_cla{i_speed} = min_steer:d_steer:max_steer;
+            end
+            [trim_inputs, trim_adjacency] = build_mpa( ...
+                speed_vec...
+                ,steer_cla...
+                ,acc_max ...
+                ,dec_max...
+                ,d_steer_max...
+                );
+
+        otherwise
+            error('unknown mpa trim id');
     end
-%     visualize_trims(trim_inputs,trim_adjacency)
 end
 
 %% local function
@@ -263,14 +405,14 @@ function visualize_trims(trim_inputs,trim_adjacency)
     speed = trim_inputs(:,2);
     G = digraph(trim_adjacency,'omitSelfLoops');
     p = plot(G,'XData',angle,'YData',speed,'MarkerSize',10);
-
+    
     % workaround to change font size of node names
     p.NodeLabel = {};
     node_names = 1:length(angle);
     for i=1:length(node_names)
         text(p.XData(i)+0.8, p.YData(i), num2str(node_names(i)), 'FontSize', 20);
     end
-% 
+    %
     xlim([-40,40])
     ylim([-0.1,1.0])
     xlabel('Steering Angle $\delta\:[\circ]$','Interpreter','latex','FontName','Times New Roman');

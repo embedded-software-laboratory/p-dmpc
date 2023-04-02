@@ -221,7 +221,7 @@ labOptions.strategy_enter_lanelet_crossing_area = strategy_enter_crossing_areaSe
 labOptions.isSaveResult = ui.SaveresultCheckBox.Value;
 
 if labOptions.isSaveResult
-    disp('As required, simulation/Experiment Results will not be saved.')
+    disp('As required, simulation/Experiment Results will be saved.')
 end
 
 % Custom file name to save result

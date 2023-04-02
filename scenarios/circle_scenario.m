@@ -21,8 +21,6 @@ function scenario = circle_scenario(options)
         c = cos(yaw);
         veh = Vehicle();
 
-        veh.trim_config = 1;
-
         veh.x_start = -c*radius;
         veh.y_start = -s*radius;
         veh.yaw_start = yaw;

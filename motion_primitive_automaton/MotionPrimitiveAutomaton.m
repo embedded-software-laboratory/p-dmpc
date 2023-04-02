@@ -32,6 +32,11 @@ classdef MotionPrimitiveAutomaton
             % trim_adjacency is a matrix of size (nTrims x nTrims), 
             %   read as: rows are start trims and columns are end trims
             % N is the horizon length
+
+            max_acceleration_m_s2 = 0.64;
+            max_deceleration_m_s2 = 0.64;
+            max_acceleration_per_dt = max_acceleration_m_s2 * options.dt;
+            max_deceleration_per_dt = max_deceleration_m_s2 * options.dt;
             
             if options.isPB
                 nVeh_mpa = 1;
@@ -66,7 +71,7 @@ classdef MotionPrimitiveAutomaton
 
             obj.recursive_feasibility = options.recursive_feasibility;
                         
-            [trim_inputs, trim_adjacency] = choose_trims(options.trim_set);
+            [trim_inputs, trim_adjacency] = choose_trims(options.trim_set, max_acceleration_per_dt, max_deceleration_per_dt);
             n_trims = length(trim_inputs);
             
             obj.transition_matrix_single = zeros([size(trim_adjacency),options.Hp]);
@@ -126,7 +131,7 @@ classdef MotionPrimitiveAutomaton
             % compute distance to equilibrium state
             eq_states = find(trim_inputs(:,2)==0);            
             adj_trims = graph(obj.transition_matrix_single(:,:,1));
-            obj.distance_to_equilibrium = distances(adj_trims,eq_states);
+            obj.distance_to_equilibrium = min(distances(adj_trims,eq_states));
 
             % compute trim tuple (vertices)
             trim_index_list = cell(nVeh_mpa,1);
@@ -180,33 +185,29 @@ classdef MotionPrimitiveAutomaton
             max_speed(end) = max_speed(end)/2;
         end
 
-
         function max_speed = get_max_speed(obj, cur_trim_id)
             % returns maximum speed, averaged over the timestep (nSamples x 1)
             % is not general, but works for current MPAs
             % PROBLEM Sometimes vehicle stays in stop, as it is cheapest
             % for first action
-            N = size(obj.transition_matrix_single,3);
-            max_speed = zeros(N,1);
-            max_speed_last = obj.trims(cur_trim_id).speed;
-            for k = 1:N
+            hp = size(obj.transition_matrix_single,3);
+            max_speed = zeros(hp,1);
+            for k = 1:hp
                 successor_trim_ids = find(obj.transition_matrix_single(cur_trim_id, :, k));
                 [max_speed_next, i_successor_max_speed] = max( ...
-                    [obj.trims(successor_trim_ids).speed] ...
-                );
+                    [obj.trims(successor_trim_ids).speed]);
                 cur_trim_id = successor_trim_ids(i_successor_max_speed);
-                max_speed(k) = (max_speed_next + max_speed_last)/2; % assumes linear change
-                max_speed_last = max_speed_next;
+                max_speed(k) = max_speed_next;
             end
         end
 
-        
         function transition_matrix_single = compute_time_varying_transition_matrix(obj)
             N = size(obj.transition_matrix_single,3);
             transition_matrix_single = obj.transition_matrix_single;
             for k = 1:N
-                % Columns are end trims. Forbid trims whose distance 
+                % Columns are end trims. Forbid trims whose distance
                 % to an equilbrium state is too high
+                % (equilibrium state must be reachable within Hp-k steps)
                 k_to_go = N-k;
                 transition_matrix_single(:,obj.distance_to_equilibrium>k_to_go,k) = 0;
             end
@@ -605,10 +606,18 @@ classdef MotionPrimitiveAutomaton
 
         function shortest_path_to_equilibrium = get_shortest_path_to_equilibrium(obj, cur_trim_id)
             % compute the shortest path from the current trim to the equilibrium trim
-            equilibrium_trim = find([obj.trims.speed]==0);
-            assert(length(equilibrium_trim)==1) % if there are multiple equilibrium states, this function should be then adapted
-            graph_trims = graph(obj.transition_matrix_single(:,:,1));
-            shortest_path_to_equilibrium = shortestpath(graph_trims,cur_trim_id,equilibrium_trim); % shortest path between current trim and equilibrium trim
+            equilibrium_trims = find([obj.trims.speed]==0);
+            mpa = graph(obj.transition_matrix_single(:,:,1));
+            % find closest equilibrium trim, take first if multiple options
+            distance_min = inf;
+            for trim_target = equilibrium_trims
+                [path_trims,distance] = ...
+                    shortestpath(mpa,cur_trim_id,trim_target);
+                if (distance < distance_min)
+                    distance_min = distance;
+                    shortest_path_to_equilibrium = path_trims;
+                end
+            end
         end
         
         function shortest_time_to_arrive = get_the_shortest_time_to_arrive(obj, current_trim, distance_destination, time_step)
@@ -887,7 +896,9 @@ classdef MotionPrimitiveAutomaton
                     if length(go_straight_trims)>1
                         % if multiple trims, choose the one with the lowest
                         % speed
-                        [~,go_straight_trim] = min([obj.trims(go_straight_trims).speed]);
+                        [~,go_straight_trim_index] = min([obj.trims(go_straight_trims).speed]);
+                        go_straight_trim = go_straight_trims(go_straight_trim_index);
+
                     else
                         go_straight_trim = go_straight_trims;
                     end
