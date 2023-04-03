@@ -67,16 +67,14 @@ class ColMajorMatrixAccessor : public std::vector<T> {
 	ColMajorMatrixAccessor(std::vector<unsigned int> const &&sizes) : std::vector<T>(sizes[0] * sizes[1], 0U), _sizes({static_cast<unsigned int>(sizes[0]), static_cast<unsigned int>(sizes[1])}) {}
 
 	template <typename SIZE>
-	    requires std::is_convertible_v<SIZE, unsigned int>
-	ColMajorMatrixAccessor(std::vector<SIZE> const &&sizes) : std::vector<T>(sizes[0] * sizes[1], 0U), _sizes({static_cast<unsigned int>(sizes[0]), static_cast<unsigned int>(sizes[1])}) {}
+	requires std::is_convertible_v<SIZE, unsigned int> ColMajorMatrixAccessor(std::vector<SIZE> const &&sizes) : std::vector<T>(sizes[0] * sizes[1], 0U), _sizes({static_cast<unsigned int>(sizes[0]), static_cast<unsigned int>(sizes[1])}) {}
 
 	template <typename SIZE>
-	    requires std::is_convertible_v<SIZE, unsigned int>
-	ColMajorMatrixAccessor(std::vector<T> &&vec, std::vector<SIZE> const sizes) : std::vector<T>(vec), _sizes({static_cast<unsigned int>(sizes[0]), static_cast<unsigned int>(sizes[1])}) {}
+	requires std::is_convertible_v<SIZE, unsigned int> ColMajorMatrixAccessor(std::vector<T> &&vec, std::vector<SIZE> const sizes) : std::vector<T>(vec), _sizes({static_cast<unsigned int>(sizes[0]), static_cast<unsigned int>(sizes[1])}) {}
 
 	template <typename SIZE>
-	    requires std::is_convertible_v<SIZE, unsigned int>
-	ColMajorMatrixAccessor(std::vector<T> &&vec, std::initializer_list<SIZE> const &&sizes) : std::vector<T>(vec), _sizes({static_cast<unsigned int>(*sizes.begin()), static_cast<unsigned int>(*(sizes.begin() + 1))}) {}
+	requires std::is_convertible_v<SIZE, unsigned int> ColMajorMatrixAccessor(std::vector<T> &&vec, std::initializer_list<SIZE> const &&sizes)
+	    : std::vector<T>(vec), _sizes({static_cast<unsigned int>(*sizes.begin()), static_cast<unsigned int>(*(sizes.begin() + 1))}) {}
 
 	// data access
 	[[nodiscard]] constexpr T &operator()(unsigned int const index1, unsigned int const index2) { return std::vector<T>::operator[](index1 + _sizes[0] * index2); }
@@ -92,10 +90,8 @@ class ColMajorMatrixAccessor : public std::vector<T> {
 
 	// helper function to get dimension vector in a specific data type
 	template <typename SIZE>
-	    requires std::is_convertible_v<unsigned int, SIZE>
-	[[nodiscard]] std::vector<SIZE> get_dim() {
-		return std::vector<SIZE>(_sizes.cbegin(), _sizes.cend());
-	}
+	requires std::is_convertible_v<unsigned int, SIZE>
+	[[nodiscard]] std::vector<SIZE> get_dim() { return std::vector<SIZE>(_sizes.cbegin(), _sizes.cend()); }
 };
 
 /*
@@ -110,8 +106,8 @@ class ColMajorTensorAccessor : public std::vector<T> {
 	ColMajorTensorAccessor() : std::vector<T>() {}
 
 	template <typename SIZE>
-	    requires std::is_convertible_v<SIZE, unsigned int>
-	ColMajorTensorAccessor(std::vector<T> &&vec, std::vector<SIZE> const &sizes) : std::vector<T>(vec), _sizes({static_cast<unsigned int>(sizes[0]), static_cast<unsigned int>(sizes[1]), static_cast<unsigned int>(sizes[2])}) {}
+	requires std::is_convertible_v<SIZE, unsigned int> ColMajorTensorAccessor(std::vector<T> &&vec, std::vector<SIZE> const &sizes)
+	    : std::vector<T>(vec), _sizes({static_cast<unsigned int>(sizes[0]), static_cast<unsigned int>(sizes[1]), static_cast<unsigned int>(sizes[2])}) {}
 
 	// data access
 	[[nodiscard]] constexpr T &operator()(unsigned int const index1, unsigned int const index2, unsigned int const index3) { return std::vector<T>::operator[](index1 + _sizes[0] * index2 + _sizes[0] * _sizes[1] * index3); }

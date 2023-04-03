@@ -42,6 +42,12 @@ end
 
 assert(length(options.veh_ids) == options.amount);
 
+% more than 1 vehicle and use of pb-sequential controller
+% require out of process execution
+if options.amount > 1 && options.isPB  && ~options.isParl
+    options.mex_out_of_process_execution = true;
+end
+
 %% Setup Scenario
 switch options.scenario_name
     case 'Circle_scenario'

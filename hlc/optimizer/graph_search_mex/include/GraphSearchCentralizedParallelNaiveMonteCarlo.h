@@ -1,8 +1,5 @@
 #pragma once
 
-#include <oneapi/tbb/global_control.h>
-#include <oneapi/tbb/task_group.h>
-
 #include <boost/heap/priority_queue.hpp>
 
 #include "GraphSearchSpecialization.h"
@@ -15,15 +12,15 @@ namespace GraphBasedPlanning {
 
 		void thread_function(Node<FLOATING_POINT_TYPE> const **const result, Node<FLOATING_POINT_TYPE> *root) {
 			boost::heap::priority_queue<Node<FLOATING_POINT_TYPE> const *, boost::heap::compare<Node<FLOATING_POINT_TYPE>::priority_queue_comparison>> pq;
-
 			std::uint8_t *const next_trims = new std::uint8_t[n_vehicles()];
+
 			for (unsigned int i = 0; i < n_shots / n_threads; ++i) {
 				pq.push(random_expand(root, next_trims));
 			}
 
 			delete[] next_trims;
 
-			Node<FLOATING_POINT_TYPE> const *solution;
+			Node<FLOATING_POINT_TYPE> const *solution = nullptr;
 			while (!pq.empty()) {
 				solution = pq.top();
 				pq.pop();
@@ -66,6 +63,8 @@ namespace GraphBasedPlanning {
 			return sol;
 		}
 
+		uint64_t get_n_expanded() { return n_shots; }
+
 		void clean() final {
 			for (unsigned int i = 0; i < n_hp(); ++i) {
 				auto tmp = sol->parent();
@@ -77,29 +76,29 @@ namespace GraphBasedPlanning {
 		}
 
 	   private:
-		[[nodiscard]] Node<FLOATING_POINT_TYPE> *random_expand(Node<FLOATING_POINT_TYPE> const *node, std::uint8_t *const next_trims) {
+		[[nodiscard]] Node<FLOATING_POINT_TYPE> *random_expand(Node<FLOATING_POINT_TYPE> *node, std::uint8_t *const next_trims) {
 			static auto random = std::mt19937{std::random_device{}()};
 
 			for (unsigned int i = 1; i < n_hp(); ++i) {
 				for (unsigned int j = 0; j < n_vehicles(); ++j) {
-					std::vector<std::uint8_t> const &sampling_vector = _reachability_list[node->trim(j)];
+					std::vector<std::uint8_t> const &sampling_vector = _reachability_list[i-1][node->trim(j)];
 
 					std::sample(sampling_vector.begin(), sampling_vector.end(), next_trims + j, 1, random);
 				}
 
 				Node<FLOATING_POINT_TYPE> *const new_node = Node<FLOATING_POINT_TYPE>::create_node(node->g(), node, i);
-				init_new_node(node, next_trims, i, new_node);
+				init_new_node(node, next_trims, new_node);
 				node = new_node;
 			}
 
 			for (unsigned int j = 0; j < n_vehicles(); ++j) {
-				std::vector<std::uint8_t> const &sampling_vector = _reachability_list_last[node->trim(j)];
+				std::vector<std::uint8_t> const &sampling_vector = _reachability_list[n_hp() - 1][node->trim(j)];
 
 				std::sample(sampling_vector.begin(), sampling_vector.end(), next_trims + j, 1, random);
 			}
 
 			Node<FLOATING_POINT_TYPE> *const new_node = Node<FLOATING_POINT_TYPE>::create_node(node->g(), node, n_hp());
-			init_new_node(node, next_trims, n_hp(), new_node);
+			init_new_node(node, next_trims, new_node);
 			return new_node;
 		}
 
@@ -111,9 +110,9 @@ namespace GraphBasedPlanning {
 			}
 		};
 
-		bool check_path(Node<FLOATING_POINT_TYPE> const *solution) const {
+		bool check_path(Node<FLOATING_POINT_TYPE> const *solution) {
 			do {
-				if (!is_path_valid(solution)) return false;
+				if (!is_path_valid_centralized(solution)) return false;
 				solution = solution->parent();
 			} while (solution->k());
 

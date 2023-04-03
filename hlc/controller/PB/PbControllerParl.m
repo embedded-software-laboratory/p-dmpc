@@ -1,7 +1,7 @@
 classdef PbControllerParl < PbControllerInterface
     methods
-        function obj = PbControllerParl()
-            obj = obj@PbControllerInterface();
+        function obj = PbControllerParl(scenario, vehicle_ids)
+            obj = obj@PbControllerInterface(scenario, vehicle_ids);
         end
     end
     methods (Access = protected)

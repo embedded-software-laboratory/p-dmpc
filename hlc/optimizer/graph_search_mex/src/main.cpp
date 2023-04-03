@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <sstream>
 
 #include "mex.hpp"
@@ -116,11 +117,13 @@ std::ostream& operator<<(std::ostream& stream, matlab::data::ArrayType const& ar
 #include "GraphSearchCentralizedNaiveMonteCarlo.h"
 #include "GraphSearchCentralizedNaiveMonteCarloPolymorphic.h"
 #include "GraphSearchCentralizedOptimal.h"
+#include "GraphSearchPBOptimal.h"
 #include "GraphSearchCentralizedOptimalMemorySaving.h"
 #include "GraphSearchCentralizedOptimalPolymorphic.h"
 #include "GraphSearchCentralizedOptimalPolymorphicSpeedHeuristic.h"
 #include "GraphSearchCentralizedParallelNaiveMonteCarlo.h"
 #include "GraphSearchCentralizedParallelNaiveMonteCarloPolymorphic.h"
+#include "GraphSearchPBIncrementalOptimal.h"
 #include "GraphSearchMEX.h"
 #include "MexException.h"
 
@@ -151,11 +154,13 @@ class MexFunction : public matlab::mex::Function,
                     private GraphBasedPlanning::GraphSearchCentralizedOptimal,
                     private GraphBasedPlanning::GraphSearchCentralizedOptimalMemorySaving,
                     private GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphic,
-                    //private GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphicSpeedHeuristic,
+                    // private GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphicSpeedHeuristic,
                     private GraphBasedPlanning::GraphSearchCentralizedNaiveMonteCarlo,
                     private GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarlo,
                     private GraphBasedPlanning::GraphSearchCentralizedNaiveMonteCarloPolymorphic,
-                    private GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarloPolymorphic {
+                    private GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarloPolymorphic,
+                    private GraphBasedPlanning::GraphSearchPBOptimal,
+                    public GraphBasedPlanning::GraphSearchPBIncrementalOptimal {
 	std::shared_ptr<matlab::engine::MATLABEngine> _matlab = getEngine();
 	matlab::data::ArrayFactory _factory;
 
@@ -165,7 +170,9 @@ class MexFunction : public matlab::mex::Function,
 	unsigned int _n_hp = 0U;
 	unsigned int _n_vehicles = 0U;
 	unsigned int _tick_per_step = 0U;
+	bool _is_pb = false;
 	double _dt = 0.0;
+	bool _recursive_feasibility = true;
 	GraphBasedPlanning::SCENARIO_TYPE _scenario_type = GraphBasedPlanning::SCENARIO_TYPE::Error;
 	std::vector<std::vector<GraphBasedPlanning::CollisionDetection::vec2>> _reference_trajectory;
 
@@ -184,11 +191,17 @@ class MexFunction : public matlab::mex::Function,
 	[[nodiscard]] inline double& dt() final { return _dt; }
 	[[nodiscard]] inline double dt() const final { return _dt; }
 
+	[[nodiscard]] inline bool& is_pb() final { return _is_pb;}
+    [[nodiscard]] inline bool is_pb() const final { return _is_pb;}
+
 	[[nodiscard]] inline GraphBasedPlanning::SCENARIO_TYPE& scenario_type() final { return _scenario_type; }
 	[[nodiscard]] inline GraphBasedPlanning::SCENARIO_TYPE scenario_type() const final { return _scenario_type; }
 
 	[[nodiscard]] inline std::vector<std::vector<GraphBasedPlanning::CollisionDetection::vec2>>& reference_trajectory() final { return _reference_trajectory; }
 	[[nodiscard]] inline std::vector<std::vector<GraphBasedPlanning::CollisionDetection::vec2>> const& reference_trajectory() const final { return _reference_trajectory; }
+	
+	[[nodiscard]] inline bool& recursive_feasibility() final { return _recursive_feasibility; }
+	[[nodiscard]] inline bool recursive_feasibility() const final { return _recursive_feasibility; }
 
    public:
 	MexFunction() : GraphBasedPlanning::GraphSearchMEX(_factory, _matlab) { MatlabPrinter::init(_factory, _matlab); }
@@ -210,103 +223,167 @@ class MexFunction : public matlab::mex::Function,
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
 			scenario_callback(inputs[1]);
-			Printer::println("Initialized");
+			Printer::println("C++ Graph Search Initialized");
 		} else if (Function == "GraphSearchCentralizedOptimal") {
 			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			auto [next_nodes_array, predicted_trims_array, y_predicted_array] =
-			    graph_search_callback(inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedOptimal::find_solution(std::forward<T>(args)...); });
+			auto [next_nodes_array, predicted_trims_array, y_predicted_array, n_expanded_array, is_exhausted] = graph_search_callback_centralized(
+			    inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedOptimal::find_solution(std::forward<T>(args)...); },
+			    [this] { return GraphBasedPlanning::GraphSearchCentralizedOptimal::get_n_expanded(); });
 
 			GraphBasedPlanning::GraphSearchCentralizedOptimal::clean();
 
 			outputs[0] = std::move(next_nodes_array);
 			outputs[1] = std::move(predicted_trims_array);
 			outputs[2] = std::move(y_predicted_array);
+			outputs[3] = std::move(n_expanded_array);
+			outputs[4] = std::move(is_exhausted);
 		} else if (Function == "GraphSearchCentralizedOptimalMemorySaving") {
 			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			auto [next_nodes_array, predicted_trims_array, y_predicted_array] =
-			    graph_search_callback(inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedOptimalMemorySaving::find_solution(std::forward<T>(args)...); });
+			auto [next_nodes_array, predicted_trims_array, y_predicted_array, n_expanded_array, is_exhausted] = graph_search_callback_centralized(
+			    inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedOptimalMemorySaving::find_solution(std::forward<T>(args)...); },
+			    [this] { return GraphBasedPlanning::GraphSearchCentralizedOptimalMemorySaving::get_n_expanded(); });
 
 			GraphBasedPlanning::GraphSearchCentralizedOptimalMemorySaving::clean();
 
 			outputs[0] = std::move(next_nodes_array);
 			outputs[1] = std::move(predicted_trims_array);
 			outputs[2] = std::move(y_predicted_array);
+			outputs[3] = std::move(n_expanded_array);
+			outputs[4] = std::move(is_exhausted);
 		} else if (Function == "GraphSearchCentralizedOptimalPolymorphic") {
 			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			auto [next_nodes_array, predicted_trims_array, y_predicted_array] =
-			    graph_search_callback(inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphic::find_solution(std::forward<T>(args)...); });
+			auto [next_nodes_array, predicted_trims_array, y_predicted_array, n_expanded_array, is_exhausted] = graph_search_callback_centralized(
+			    inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphic::find_solution(std::forward<T>(args)...); },
+			    [this] { return GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphic::get_n_expanded(); });
 
 			GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphic::clean();
 
 			outputs[0] = std::move(next_nodes_array);
 			outputs[1] = std::move(predicted_trims_array);
 			outputs[2] = std::move(y_predicted_array);
-		/*} else if (Function == "GraphSearchCentralizedOptimalPolymorphicSpeedHeuristic") {
-			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
-			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
+			outputs[3] = std::move(n_expanded_array);
+			outputs[4] = std::move(is_exhausted);
+			/*} else if (Function == "GraphSearchCentralizedOptimalPolymorphicSpeedHeuristic") {
+			    if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
+			    if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			auto [next_nodes_array, predicted_trims_array, y_predicted_array] =
-			    graph_search_callback(inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphicSpeedHeuristic::find_solution(std::forward<T>(args)...); });
+			    auto [next_nodes_array, predicted_trims_array, y_predicted_array] =
+			        graph_search_callback(inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphicSpeedHeuristic::find_solution(std::forward<T>(args)...); });
 
-			GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphicSpeedHeuristic::clean();
+			    GraphBasedPlanning::GraphSearchCentralizedOptimalPolymorphicSpeedHeuristic::clean();
 
-			outputs[0] = std::move(next_nodes_array);
-			outputs[1] = std::move(predicted_trims_array);
-			outputs[2] = std::move(y_predicted_array);*/
+			    outputs[0] = std::move(next_nodes_array);
+			    outputs[1] = std::move(predicted_trims_array);
+			    outputs[2] = std::move(y_predicted_array);*/
 		} else if (Function == "GraphSearchCentralizedNaiveMonteCarlo") {
 			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			auto [next_nodes_array, predicted_trims_array, y_predicted_array] =
-			    graph_search_callback(inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedNaiveMonteCarlo::find_solution(std::forward<T>(args)...); });
+			auto [next_nodes_array, predicted_trims_array, y_predicted_array, n_expanded_array, is_exhausted] = graph_search_callback_centralized(
+			    inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedNaiveMonteCarlo::find_solution(std::forward<T>(args)...); },
+			    [this] { return GraphBasedPlanning::GraphSearchCentralizedNaiveMonteCarlo::get_n_expanded(); });
 
 			GraphBasedPlanning::GraphSearchCentralizedNaiveMonteCarlo::clean();
 
 			outputs[0] = std::move(next_nodes_array);
 			outputs[1] = std::move(predicted_trims_array);
 			outputs[2] = std::move(y_predicted_array);
+			outputs[3] = std::move(n_expanded_array);
+			outputs[4] = std::move(is_exhausted);
 		} else if (Function == "GraphSearchCentralizedParallelNaiveMonteCarlo") {
 			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			auto [next_nodes_array, predicted_trims_array, y_predicted_array] =
-			    graph_search_callback(inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarlo::find_solution(std::forward<T>(args)...); });
+			auto [next_nodes_array, predicted_trims_array, y_predicted_array, n_expanded_array, is_exhausted] = graph_search_callback_centralized(
+			    inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarlo::find_solution(std::forward<T>(args)...); },
+			    [this] { return GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarlo::get_n_expanded(); });
 
 			GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarlo::clean();
 
 			outputs[0] = std::move(next_nodes_array);
 			outputs[1] = std::move(predicted_trims_array);
 			outputs[2] = std::move(y_predicted_array);
+			outputs[3] = std::move(n_expanded_array);
+			outputs[4] = std::move(is_exhausted);
 		} else if (Function == "GraphSearchCentralizedNaiveMonteCarloPolymorphic") {
 			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			auto [next_nodes_array, predicted_trims_array, y_predicted_array] =
-			    graph_search_callback(inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedNaiveMonteCarloPolymorphic::find_solution(std::forward<T>(args)...); });
+			auto [next_nodes_array, predicted_trims_array, y_predicted_array, n_expanded_array, is_exhausted] = graph_search_callback_centralized(
+			    inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedNaiveMonteCarloPolymorphic::find_solution(std::forward<T>(args)...); },
+			    [this] { return GraphBasedPlanning::GraphSearchCentralizedNaiveMonteCarloPolymorphic::get_n_expanded(); });
 
 			GraphBasedPlanning::GraphSearchCentralizedNaiveMonteCarloPolymorphic::clean();
 
 			outputs[0] = std::move(next_nodes_array);
 			outputs[1] = std::move(predicted_trims_array);
 			outputs[2] = std::move(y_predicted_array);
+			outputs[3] = std::move(n_expanded_array);
+			outputs[4] = std::move(is_exhausted);
 		} else if (Function == "GraphSearchCentralizedParallelNaiveMonteCarloPolymorphic") {
 			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			auto [next_nodes_array, predicted_trims_array, y_predicted_array] =
-			    graph_search_callback(inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarloPolymorphic::find_solution(std::forward<T>(args)...); });
+			auto [next_nodes_array, predicted_trims_array, y_predicted_array, n_expanded_array, is_exhausted] = graph_search_callback_centralized(
+			    inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarloPolymorphic::find_solution(std::forward<T>(args)...); },
+			    [this] { return GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarloPolymorphic::get_n_expanded(); });
 
 			GraphBasedPlanning::GraphSearchCentralizedParallelNaiveMonteCarloPolymorphic::clean();
 
 			outputs[0] = std::move(next_nodes_array);
 			outputs[1] = std::move(predicted_trims_array);
 			outputs[2] = std::move(y_predicted_array);
+			outputs[3] = std::move(n_expanded_array);
+			outputs[4] = std::move(is_exhausted);
+		} else if (Function == "GraphSearchPBOptimal") {
+			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
+			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
+
+			auto [next_nodes_array, predicted_trims_array, y_predicted_array, shapes_array, n_expanded_array, is_exhausted] = graph_search_callback_pb(
+			    inputs[1], [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchPBOptimal::find_solution(std::forward<T>(args)...); },
+			    [this] { return GraphBasedPlanning::GraphSearchPBOptimal::get_n_expanded(); });
+
+			GraphBasedPlanning::GraphSearchPBOptimal::clean();
+
+			outputs[0] = std::move(next_nodes_array);
+			outputs[1] = std::move(predicted_trims_array);
+			outputs[2] = std::move(y_predicted_array);
+			outputs[3] = std::move(shapes_array);
+			outputs[4] = std::move(n_expanded_array);
+			outputs[5] = std::move(is_exhausted);
+		} 
+		else if (Function == "GraphSearchPBIncrementalOptimal") {
+			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
+			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
+
+			while (GraphBasedPlanning::GraphSearchPBIncrementalOptimal::preperation_done.load() == false)
+				;
+			while (GraphBasedPlanning::GraphSearchPBIncrementalOptimal::prep_thread_lock.test_and_set(std::memory_order_acquire))
+				;
+			GraphBasedPlanning::GraphSearchPBIncrementalOptimal::preperation_done.store(false);
+
+			auto [next_nodes_array, predicted_trims_array, y_predicted_array, shapes_array, n_expanded_array, is_exhausted] = graph_search_callback_pb(
+			    std::move(inputs[1]), [this]<typename... T>(T... args) { return GraphBasedPlanning::GraphSearchPBIncrementalOptimal::find_solution(std::forward<T>(args)...); },
+			    [this] { return GraphBasedPlanning::GraphSearchPBIncrementalOptimal::get_n_expanded(); });
+
+			outputs[0] = std::move(next_nodes_array);
+			outputs[1] = std::move(predicted_trims_array);
+			outputs[2] = std::move(y_predicted_array);
+			outputs[3] = std::move(shapes_array);
+			outputs[4] = std::move(n_expanded_array);
+			outputs[5] = std::move(is_exhausted);
+
+			// prepare for next step in extra thread
+
+			GraphBasedPlanning::GraphSearchPBIncrementalOptimal::prep_thread_lock.clear(std::memory_order_release);
+			std::thread prep_thread(&GraphBasedPlanning::GraphSearchPBIncrementalOptimal::prepare_next_iteration, this);
+			prep_thread.detach();
 		} else {
 			throw MexException("Function '", Function, "' not implemented/available!");
 		}

@@ -3,7 +3,6 @@ function scenario = commonroad(options,vehicle_ids)
 
     scenario = Scenario();
 
-    options.recursive_feasibility = true;
     % read from optionos
     scenario.options = options; 
 

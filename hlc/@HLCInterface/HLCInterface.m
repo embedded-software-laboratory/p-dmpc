@@ -23,7 +23,7 @@ classdef (Abstract) HLCInterface < handle
         % to simualate distributed communication in pb-sequential controller
         ros_subscribers;
 
-        sub_controller = @graph_search;
+        optimizer;
         controller_name;
         result;
         k;
@@ -31,7 +31,6 @@ classdef (Abstract) HLCInterface < handle
         info;
 
         manual_vehicles;
-
     end
     properties (Access=protected)
         belonging_vector_total;
@@ -51,7 +50,7 @@ classdef (Abstract) HLCInterface < handle
 
     methods
         % Set default settings
-        function obj = HLCInterface()
+        function obj = HLCInterface(scenario, vehicle_ids)
             % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
@@ -69,12 +68,17 @@ classdef (Abstract) HLCInterface < handle
             obj.cooldown_second_manual_vehicle_after_lane_change = 0;
             obj.info_old = [];
             obj.total_fallback_times = 0;
+            obj.scenario = scenario;
+            obj.set_vehicle_ids(vehicle_ids);
         end
 
         function [result,scenario] = run(obj)
             obj.init_hlc();
             obj.hlc_main_control_loop();
             obj.save_results();
+            if obj.scenario.options.use_cpp == true 
+                clear mex;
+            end
             result = obj.result;
             scenario = obj.scenario;
         end
@@ -88,10 +92,6 @@ classdef (Abstract) HLCInterface < handle
             else
                 obj.indices_in_vehicle_list = 1:obj.amount;
             end
-        end
-
-        function set_scenario( obj, scenario )
-            obj.scenario = scenario;
         end
 
         function set_controller_name( obj, name )
@@ -146,12 +146,6 @@ classdef (Abstract) HLCInterface < handle
                 % In priority-based computation, vehicles communicate via ROS 2
                 % Initialize the communication network of ROS 2
                 communication_init(obj);
-            end
-
-            if ~obj.scenario.options.isPB && obj.scenario.options.use_cpp
-                % When using C++, you don't want to send the scenario over
-                % and over again, so it is done in the init function
-                optimizer(Function.InitializeWithScenario, obj.scenario);
             end
         end
 
@@ -238,7 +232,7 @@ classdef (Abstract) HLCInterface < handle
 
                 % If using distributed hlcs, collect fallback info from
                 % other vehicles as required
-                if obj.amount == 1
+                if obj.scenario.options.isParl
                     irrelevant_vehicles = union(obj.indices_in_vehicle_list(1), obj.info.vehs_fallback);
                     if obj.scenario.options.fallback_type == "localFallback"
                         sub_graph_fallback = obj.belonging_vector_total(obj.indices_in_vehicle_list(1));
@@ -278,7 +272,7 @@ classdef (Abstract) HLCInterface < handle
                     % check whether at least one vehicle has fallen back Hp times successively
 
                     if ~isempty(obj.info.vehs_fallback)
-                        i_triggering_vehicles = find(obj.info.is_exhausted);
+                        i_triggering_vehicles = find(obj.info.needs_fallback);
 
                         str_veh = sprintf('%d ', i_triggering_vehicles);
                         str_fb_type = sprintf('triggering %s', obj.scenario.options.fallback_type);

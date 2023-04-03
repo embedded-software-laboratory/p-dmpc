@@ -7,8 +7,8 @@ classdef MotionPrimitiveAutomaton
         transition_matrix_single    % Matrix (nTrims x nTrims x horizon_length)
         trim_tuple                  % Matrix with trim indices ((nTrims1*nTrims2*...) x nVehicles)
         transition_matrix           % binary Matrix (if maneuverTuple exist according to trims) (nTrimTuples x nTrimTuples x horizon_length)
-        transition_matrix_mean_speed% nTrims-by-nTrims matrix, each entry is the mean speed of the two connected trims
-        distance_to_equilibrium     % Distance in graph from current state to equilibrium state (nTrims x 1)
+        transition_matrix_mean_speed    % nTrims-by-nTrims matrix, each entry is the mean speed of the two connected trims
+        distance_to_equilibrium uint16  % Distance in graph from current state to equilibrium state (nTrims x 1)
         recursive_feasibility
         local_reachable_sets        % local reachable sets of each trim (possibly non-convex)
         local_reachable_sets_conv;  % Convexified local reachable sets of each trim
