@@ -5,7 +5,7 @@ classdef systemtests < matlab.unittest.TestCase
         %priority = {'coloring', 'right_of_way', 'constant', 'random', 'FCA', 'STAC'};
         scenario_name = {'Circle_scenario', 'Commonroad'};
         parallel = {'sequential', 'parallel'};
-        use_cpp = {false}
+        use_cpp = {true, false}
     end
 
     methods (Test)
