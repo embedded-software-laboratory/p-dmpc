@@ -6,6 +6,10 @@ classdef InterfaceExperimentFactory < handle
         % data queue for visualization. Used if running distributed HLCs
         % locally with Parallel Computing Toolbox
         visualization_data_queue
+        % the created experimentInterface
+        experimentInterface
+        % store the used environment
+        environment
     end
 
     methods
@@ -22,6 +26,8 @@ classdef InterfaceExperimentFactory < handle
         function experimentInterface = get_experiment_interface(obj, environment)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            obj.environment = environment;
+
             switch (environment)
                 case Environment.CPMLab
                     experimentInterface = CPMLab();
@@ -31,10 +37,16 @@ classdef InterfaceExperimentFactory < handle
                     experimentInterface = UnifiedLabAPI();
             end
 
+            obj.experimentInterface = experimentInterface;
         end
 
         function set_visualization_data_queue(obj)
             obj.visualization_data_queue = parallel.pool.DataQueue;
+
+            if obj.environment == Environment.Simulation
+                obj.experimentInterface.set_visualization_data_queue(obj.visualization_data_queue);
+            end
+
         end
 
     end
