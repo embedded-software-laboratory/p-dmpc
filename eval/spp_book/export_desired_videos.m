@@ -20,7 +20,7 @@ function export_desired_videos(res)
             end
             r_full.scenario.options.options_plot_online.plot_priority = true;
             r_full.scenario.options.options_plot_online.plot_coupling = true;
-            exportVideo(r_full);
+            export_video(r_full);
     end
 end
 

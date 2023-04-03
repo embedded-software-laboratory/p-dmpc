@@ -1,5 +1,5 @@
 classdef G29ForceFeedback < handle
-% G29FORCEFEEDBACK      Class handling everything about force feedback for the Logitech G29 Gaming Wheel
+    % G29FORCEFEEDBACK      Class handling everything about force feedback for the Logitech G29 Gaming Wheel
 
     properties (Access = private)
         g29_pub; % publisher
@@ -44,7 +44,7 @@ classdef G29ForceFeedback < handle
         function result = compute_force_feedback_manual_mode(obj, vehicle_state, steering)
 
             arguments
-                obj (1,1) G29ForceFeedback
+                obj (1, 1) G29ForceFeedback
                 vehicle_state (1, 1) VehicleState
                 steering (1, 1) double
             end
@@ -57,12 +57,12 @@ classdef G29ForceFeedback < handle
 
             % more than linear increase with speed, degressive increase with steering
             torque = 0.15 ...
-                + 0.7 * (vehicle_state.speed ./speed_max) .* ...
-                (0.3 + 0.7*(sin(abs(steering)) * pi / 2));
+                + 0.7 * (vehicle_state.speed ./ speed_max) .* ...
+                (0.3 + 0.7 * (sin(abs(steering)) * pi / 2));
             result.position = 0;
 
             % for smooth torque increase at 0 degree
-            torque = min(1, (10 * steering) ^ 2) * torque;
+            torque = min(1, (10 * steering)^2) * torque;
             result.torque = torque;
         end
 

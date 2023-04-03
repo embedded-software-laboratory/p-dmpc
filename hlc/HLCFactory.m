@@ -1,9 +1,9 @@
 classdef HLCFactory < handle
-    properties (Access=public)
+
+    properties (Access = public)
         % scenario variable
         scenario
 
-        
     end
 
     methods
@@ -13,13 +13,13 @@ classdef HLCFactory < handle
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
             obj.scenario = [];
-            
+
         end
 
         % Optional argument wether to do a dry run of the first timestep beforehand
         % dry_run can massively decrease the time needed for the first
         % timestep during the experiment.
-        function hlc = get_hlc( obj, vehicle_ids, dry_run, experimentInterface )
+        function hlc = get_hlc(obj, vehicle_ids, dry_run, experiment_interface)
 
             if isempty(obj.scenario)
                 throw(MException('HlcFactory:InvalidState', 'HlcScenario not set'));
@@ -29,51 +29,59 @@ classdef HLCFactory < handle
             if nargin < 3
                 dry_run = true;
             end
+
             if dry_run
                 obj.dry_run_hlc(vehicle_ids);
             end
 
-            if obj.scenario.options.isPB
-                if length(vehicle_ids)==1
+            if obj.scenario.options.is_prioritized
+
+                if length(vehicle_ids) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    hlc = PbControllerParl(obj.scenario, vehicle_ids);
+                    hlc = PrioritizedParallelController(obj.scenario, vehicle_ids);
                 else
                     % PB Controller controlling all vehicles
-                    hlc = PbControllerSeq(obj.scenario, vehicle_ids);
+                    hlc = PrioritizedSequentialController(obj.scenario, vehicle_ids);
                 end
+
             else
                 hlc = CentralizedController(obj.scenario, vehicle_ids);
             end
 
             hlc.set_controller_name(obj.get_controller_name(obj.scenario.options));
 
-            hlc.set_hlc_adapter(experimentInterface);
+            hlc.set_hlc_adapter(experiment_interface);
 
         end
 
-        function set_scenario( obj, scenario )
+        function set_scenario(obj, scenario)
             obj.scenario = scenario;
         end
 
-        
     end
 
     methods (Static)
+
         function controller_name = get_controller_name(options)
-            if options.isPB
-                if options.isParl
-                    controller_name = strcat('par. PB-','RHGS-', char(options.priority));
+
+            if options.is_prioritized
+
+                if options.compute_in_parallel
+                    controller_name = strcat('par. PB-', 'RHGS-', char(options.priority));
                 else
-                    controller_name = strcat('seq. PB-','RHGS-', char(options.priority));
+                    controller_name = strcat('seq. PB-', 'RHGS-', char(options.priority));
                 end
+
             else
                 controller_name = strcat('centralized-', 'RHGS-', char(options.priority));
             end
+
         end
+
     end
 
-    methods (Access=private)
+    methods (Access = private)
 
         % This function runs the HLC once without outputting anything and
         % resets it afterwards.
@@ -93,22 +101,26 @@ classdef HLCFactory < handle
             plot_backup = obj.scenario.options.options_plot_online.is_active;
             environment_backup = obj.scenario.options.environment;
             T_end_backup = obj.scenario.options.T_end;
-            save_result_backup = obj.scenario.options.isSaveResult;
+            save_result_backup = obj.scenario.options.should_save_result;
             % avoid sending any data to Cpm Lab. Thus, use Sim Lab
             obj.scenario.options.environment = Environment.Simulation;
             obj.scenario.options.options_plot_online.is_active = false;
             obj.scenario.options.T_end = 2 * obj.scenario.options.dt;
-            obj.scenario.options.isSaveResult = false;
+            obj.scenario.options.should_save_result = false;
             hlc = obj.get_hlc(vehicle_ids, false);
             hlc.run();
             obj.scenario.options.environment = environment_backup;
             obj.scenario.options.options_plot_online.is_active = plot_backup;
             obj.scenario.options.T_end = T_end_backup;
-            obj.scenario.options.isSaveResult = save_result_backup;
+            obj.scenario.options.should_save_result = save_result_backup;
+
             if obj.scenario.options.use_cpp == true
                 clear mex;
             end
+
             disp("Dry Run Completed");
         end
+
     end
+
 end
