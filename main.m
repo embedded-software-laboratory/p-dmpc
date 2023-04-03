@@ -20,15 +20,15 @@ function [result, scenario] = main(varargin)
     end
 
     % Create environment aka ExperimentInterface
-    exp_factory = InterfaceExperimentFactory();
-    interfaceExperiment = exp_factory.get_experiment_interface(options.environment);
+    plant_factory = PlantFactory();
+    plant = plant_factory.get_experiment_interface(options.environment);
 
     % check if Scenario object is given as input
     scenario = read_object_from_input(varargin, 'Scenario');
 
     if isempty(scenario)
         random_seed = RandStream('mt19937ar');
-        scenario = create_scenario(options, random_seed, interfaceExperiment);
+        scenario = create_scenario(options, random_seed, plant);
     end
 
     % write scenario to disk if distributed (for lab or local debugging with main_distributed())
@@ -77,14 +77,14 @@ function [result, scenario] = main(varargin)
             do_plot = scenario.options.options_plot_online.is_active;
 
             if do_plot
-                exp_factory.set_visualization_data_queue;
+                plant_factory.set_visualization_data_queue;
                 % create central plotter - used by all workers via data queue
                 plotter = PlotterOnline(hlc_factory.scenario);
-                afterEach(exp_factory.visualization_data_queue, @plotter.data_queue_callback);
+                afterEach(plant_factory.visualization_data_queue, @plotter.data_queue_callback);
             end
 
             spmd (scenario.options.amount)
-                hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, interfaceExperiment);
+                hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, plant);
                 [result, scenario] = hlc.run();
             end
 
@@ -95,7 +95,7 @@ function [result, scenario] = main(varargin)
             result = {result{:}};
             scenario = {scenario{:}};
         else
-            hlc = hlc_factory.get_hlc(scenario.options.veh_ids, dry_run, interfaceExperiment);
+            hlc = hlc_factory.get_hlc(scenario.options.veh_ids, dry_run, plant);
             [result, scenario] = hlc.run();
         end
 
