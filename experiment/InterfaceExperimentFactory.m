@@ -1,14 +1,10 @@
 classdef InterfaceExperimentFactory < handle
-    %INTERFACEEXPERIMENTFACTORY Summary of this class goes here
-    %   Detailed explanation goes here
 
     properties
         % data queue for visualization. Used if running distributed HLCs
         % locally with Parallel Computing Toolbox
         visualization_data_queue
-        % the created experimentInterface
-        experimentInterface
-        % store the used environment
+        experiment_interface
         environment
     end
 
@@ -23,28 +19,28 @@ classdef InterfaceExperimentFactory < handle
             obj.visualization_data_queue = [];
         end
 
-        function experimentInterface = get_experiment_interface(obj, environment)
+        function experiment_interface = get_experiment_interface(obj, environment)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             obj.environment = environment;
 
             switch (environment)
                 case Environment.CpmLab
-                    experimentInterface = CpmLab();
+                    experiment_interface = CpmLab();
                 case Environment.Simulation
-                    experimentInterface = SimLab(obj.visualization_data_queue);
+                    experiment_interface = SimLab(obj.visualization_data_queue);
                 case Environment.UnifiedLabAPI
-                    experimentInterface = UnifiedLabAPI();
+                    experiment_interface = UnifiedLabAPI();
             end
 
-            obj.experimentInterface = experimentInterface;
+            obj.experiment_interface = experiment_interface;
         end
 
         function set_visualization_data_queue(obj)
             obj.visualization_data_queue = parallel.pool.DataQueue;
 
             if obj.environment == Environment.Simulation
-                obj.experimentInterface.set_visualization_data_queue(obj.visualization_data_queue);
+                obj.experiment_interface.set_visualization_data_queue(obj.visualization_data_queue);
             end
 
         end

@@ -5,7 +5,7 @@ classdef SimLab < InterfaceExperiment
         plotter % own plotter to visualize if no visualization_data_queue is given
         visualization_data_queue
         use_visualization_data_queue
-        doOnlinePlot
+        should_plot
     end
 
     methods
@@ -21,13 +21,13 @@ classdef SimLab < InterfaceExperiment
 
         function setup(obj, scenario, veh_ids)
             setup@InterfaceExperiment(obj, scenario, veh_ids);
-            obj.doOnlinePlot = obj.scenario.options.options_plot_online.is_active;
+            obj.should_plot = obj.scenario.options.options_plot_online.is_active;
 
             if ~isempty(obj.visualization_data_queue)
                 obj.use_visualization_data_queue = true;
             end
 
-            if obj.doOnlinePlot && ~obj.use_visualization_data_queue
+            if obj.should_plot && ~obj.use_visualization_data_queue
                 obj.plotter = PlotterOnline(obj.scenario, obj.indices_in_vehicle_list);
             end
 
@@ -50,7 +50,7 @@ classdef SimLab < InterfaceExperiment
 
             obj.k = k;
 
-            if obj.doOnlinePlot
+            if obj.should_plot
                 % visualize time step
                 % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
@@ -76,7 +76,7 @@ classdef SimLab < InterfaceExperiment
         function got_stop = is_stop(obj)
             got_stop = false;
             % idle while paused, and check if we should stop early
-            if obj.doOnlinePlot && ~obj.use_visualization_data_queue
+            if obj.should_plot && ~obj.use_visualization_data_queue
 
                 while obj.plotter.paused
 
@@ -106,7 +106,7 @@ classdef SimLab < InterfaceExperiment
         function end_run(obj)
             disp('End')
 
-            if obj.doOnlinePlot && ~obj.use_visualization_data_queue
+            if obj.should_plot && ~obj.use_visualization_data_queue
                 obj.plotter.close_figure();
             end
 
