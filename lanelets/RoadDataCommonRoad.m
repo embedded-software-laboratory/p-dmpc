@@ -13,7 +13,7 @@ classdef RoadDataCommonRoad < RoadData
     methods (Access = protected)
 
         function default_road_name = get_default_road_name(~)
-            default_road_name = 'LabMapCommonRoad_Update.xml';
+            default_road_name = 'LabMapCommonRoad.xml';
         end
 
         function road_data = compute_road_data(road_data)

@@ -30,7 +30,7 @@ function [lanelets, adjacency, intersection_lanelets, commonroad, lanelet_bounda
     if isfile(raw_data_path)
         load(raw_data_path, 'commonroad_data')
     else
-        commonroad_data = readstruct(fullfile(folder_target, 'LabMapCommonRoad_Update.xml'));
+        commonroad_data = readstruct(fullfile(folder_target, 'LabMapCommonRoad.xml'));
         save(raw_data_path, 'commonroad_data')
     end
 
