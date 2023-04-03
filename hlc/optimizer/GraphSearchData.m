@@ -4,8 +4,8 @@ classdef GraphSearchData
     properties
         % size of this class has an impact on the performace/overhead of mex calls. Keep this
         % class as small as possible
-        referenceTrajectoryPoints
-        referenceTrajectoryIndex
+        reference_trajectory_points
+        reference_trajectory_index
         x0 % state
         trim_indices % current trim
         v_ref % reference speed
@@ -20,8 +20,8 @@ classdef GraphSearchData
     methods
 
         function obj = GraphSearchData(iter, scenario, veh_idx)
-            obj.referenceTrajectoryPoints = iter.referenceTrajectoryPoints;
-            obj.referenceTrajectoryIndex = iter.referenceTrajectoryIndex;
+            obj.reference_trajectory_points = iter.reference_trajectory_points;
+            obj.reference_trajectory_index = iter.reference_trajectory_index;
             obj.x0 = iter.x0;
             obj.trim_indices = iter.trim_indices;
             obj.v_ref = iter.v_ref;

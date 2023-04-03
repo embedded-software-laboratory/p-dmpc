@@ -63,8 +63,8 @@ function rhc_init(obj, x_measured, trims_measured)
         obj.iter.v_ref(iVeh, :) = v_ref;
 
         % equidistant points on the reference trajectory.
-        obj.iter.referenceTrajectoryPoints(iVeh, :, :) = reference.ReferencePoints;
-        obj.iter.referenceTrajectoryIndex(iVeh, :, :) = reference.ReferenceIndex;
+        obj.iter.reference_trajectory_points(iVeh, :, :) = reference.ReferencePoints;
+        obj.iter.reference_trajectory_index(iVeh, :, :) = reference.ReferenceIndex;
 
         obj.iter.last_trajectory_index(iVeh) = reference.ReferenceIndex(end);
 
@@ -94,9 +94,9 @@ function rhc_init(obj, x_measured, trims_measured)
                 % visualize trajectory index
                 visualization_point = 0;
 
-                for i = 1:length(obj.iter.referenceTrajectoryPoints(iVeh, :, :))
-                    point.x = obj.iter.referenceTrajectoryPoints(iVeh, i, 1);
-                    point.y = obj.iter.referenceTrajectoryPoints(iVeh, i, 2);
+                for i = 1:length(obj.iter.reference_trajectory_points(iVeh, :, :))
+                    point.x = obj.iter.reference_trajectory_points(iVeh, i, 1);
+                    point.y = obj.iter.reference_trajectory_points(iVeh, i, 2);
                     visualization_point = point;
 
                     color = Color;

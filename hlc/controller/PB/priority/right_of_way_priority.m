@@ -16,10 +16,10 @@ classdef right_of_way_priority < interface_priority
         end
 
         %% priority
-        function [veh_at_intersection, groups, directed_adjacency, priority_list] = priority(obj, scenario, iter)
+        function [veh_at_intersection, level, directed_adjacency, priority_list] = priority(obj, scenario, iter)
             % assign priorities to vehicles
             nVeh = length(iter.vehicles);
-            Hp = size(iter.referenceTrajectoryPoints, 2);
+            Hp = size(iter.reference_trajectory_points, 2);
             intersection_center = [2.25, 2];
             lanelets_idx = zeros(nVeh, Hp);
             veh_at_intersection = [];
@@ -55,7 +55,7 @@ classdef right_of_way_priority < interface_priority
                 % assign priorities to new vehicles at intersection based on their distance to the intersection center
                 if ~isempty(new_veh_at_intersection)
 
-                    first_referenceTrajectoryPoints = [iter.referenceTrajectoryPoints(new_veh_at_intersection, 1, 1), iter.referenceTrajectoryPoints(new_veh_at_intersection, 1, 2)];
+                    first_referenceTrajectoryPoints = [iter.reference_trajectory_points(new_veh_at_intersection, 1, 1), iter.reference_trajectory_points(new_veh_at_intersection, 1, 2)];
                     diff = first_referenceTrajectoryPoints - intersection_center;
                     distance_to_center = sqrt(diff(:, 1).^2 + diff(:, 2).^2);
                     [~, index] = sort(distance_to_center, 'ascend');
@@ -141,13 +141,13 @@ classdef right_of_way_priority < interface_priority
             end
 
             % calculate computation levels using kahn algorithm(topological ordering)
-            [isDAG, Level] = kahn(directed_adjacency);
+            [isDAG, level_matrix] = kahn(directed_adjacency);
             %                 % visualize the directed graph
             %                 figure(); plot(Graph,'LineWidth',1)
 
             assert(isDAG, 'Coupling matrix is not a DAG');
 
-            groups = PB_predecessor_groups(Level);
+            level = computation_level_members(level_matrix);
 
             % Assign prrority
             % Vehicles with higher priorities plan trajectory before vehicles

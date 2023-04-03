@@ -113,23 +113,23 @@ function is_leading_vehicle = check_driving_order(scenario, iter, nveh, iveh)
         end
 
     else
-        first_refPoint_nveh_x = iter.referenceTrajectoryPoints(nveh, 1, 1);
-        first_refPoint_nveh_y = iter.referenceTrajectoryPoints(nveh, 1, 2);
+        first_refPoint_nveh_x = iter.reference_trajectory_points(nveh, 1, 1);
+        first_refPoint_nveh_y = iter.reference_trajectory_points(nveh, 1, 2);
         first_refPoint_nveh = [first_refPoint_nveh_x, first_refPoint_nveh_y];
 
-        end_refPoint_nveh_x = iter.referenceTrajectoryPoints(nveh, end, 1);
-        end_refPoint_nveh_y = iter.referenceTrajectoryPoints(nveh, end, 2);
+        end_refPoint_nveh_x = iter.reference_trajectory_points(nveh, end, 1);
+        end_refPoint_nveh_y = iter.reference_trajectory_points(nveh, end, 2);
         end_refPoint_nveh = [end_refPoint_nveh_x, end_refPoint_nveh_y];
 
         %         driving_direction = first_refPoint - current_point;
         driving_direction_nveh = end_refPoint_nveh - current_point_nveh;
 
-        first_refPoint_iveh_x = iter.referenceTrajectoryPoints(iveh, 1, 1);
-        first_refPoint_iveh_y = iter.referenceTrajectoryPoints(iveh, 1, 2);
+        first_refPoint_iveh_x = iter.reference_trajectory_points(iveh, 1, 1);
+        first_refPoint_iveh_y = iter.reference_trajectory_points(iveh, 1, 2);
         first_refPoint_iveh = [first_refPoint_iveh_x, first_refPoint_iveh_y];
 
-        end_refPoint_iveh_x = iter.referenceTrajectoryPoints(iveh, end, 1);
-        end_refPoint_iveh_y = iter.referenceTrajectoryPoints(iveh, end, 2);
+        end_refPoint_iveh_x = iter.reference_trajectory_points(iveh, end, 1);
+        end_refPoint_iveh_y = iter.reference_trajectory_points(iveh, end, 2);
         end_refPoint_iveh = [end_refPoint_iveh_x, end_refPoint_iveh_y];
 
         %         driving_direction_adj = first_refPoint_adj - current_point_adj;

@@ -12,10 +12,10 @@ classdef FCA_priority < interface_priority
         function obj = FCA_priority()
         end
 
-        function [veh_at_intersection, groups, directed_adjacency, priority_list] = priority(obj, scenario, iter)
+        function [veh_at_intersection, level, directed_adjacency, priority_list] = priority(obj, scenario, iter)
 
             nVeh = length(iter.vehicles);
-            Hp = size(iter.referenceTrajectoryPoints, 2);
+            Hp = size(iter.reference_trajectory_points, 2);
             veh_at_intersection = [];
 
             %% assign priorities to vehicles based on future collision assessment
@@ -30,8 +30,8 @@ classdef FCA_priority < interface_priority
 
             for nveh = 1:nVeh - 1
                 % position of nveh
-                nveh_x = iter.referenceTrajectoryPoints(nveh, :, 1);
-                nveh_y = iter.referenceTrajectoryPoints(nveh, :, 2);
+                nveh_x = iter.reference_trajectory_points(nveh, :, 1);
+                nveh_y = iter.reference_trajectory_points(nveh, :, 2);
                 refPath_n = [nveh_x; nveh_y]';
                 nveh_yaw = calculate_yaw(refPath_n);
                 % check adjacent vehicles
@@ -74,8 +74,8 @@ classdef FCA_priority < interface_priority
                     % check collistion between two vehicles
                     for iveh = veh_adjacent
                         % position of iveh
-                        iveh_x = iter.referenceTrajectoryPoints(iveh, :, 1);
-                        iveh_y = iter.referenceTrajectoryPoints(iveh, :, 2);
+                        iveh_x = iter.reference_trajectory_points(iveh, :, 1);
+                        iveh_y = iter.reference_trajectory_points(iveh, :, 2);
                         refPath_i = [iveh_x; iveh_y]';
                         iveh_yaw = calculate_yaw(refPath_i);
 
@@ -113,11 +113,11 @@ classdef FCA_priority < interface_priority
 
             end
 
-            [isDAG, Level] = kahn(directed_adjacency);
+            [isDAG, level_matrix] = kahn(directed_adjacency);
 
             assert(isDAG, 'Coupling matrix is not a DAG');
 
-            groups = PB_predecessor_groups(Level);
+            level = computation_level_members(level_matrix);
 
             % Assign prrority according to computation level
             % Vehicles with higher priorities plan trajectory before vehicles

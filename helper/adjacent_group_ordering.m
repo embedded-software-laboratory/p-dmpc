@@ -11,19 +11,19 @@ function ordering = adjacent_group_ordering(scenario, iter, veh_i, veh_at_inters
 
         for i = 1:length(adjacent_group) - 1
 
-            first_refPoint_x = iter.referenceTrajectoryPoints(adjacent_group(i), 1, 1);
-            first_refPoint_y = iter.referenceTrajectoryPoints(adjacent_group(i), 1, 2);
+            first_refPoint_x = iter.reference_trajectory_points(adjacent_group(i), 1, 1);
+            first_refPoint_y = iter.reference_trajectory_points(adjacent_group(i), 1, 2);
             first_refPoint = [first_refPoint_x, first_refPoint_y];
 
-            second_refPoint_x = iter.referenceTrajectoryPoints(adjacent_group(i), end, 1);
-            second_refPoint_y = iter.referenceTrajectoryPoints(adjacent_group(i), end, 2);
+            second_refPoint_x = iter.reference_trajectory_points(adjacent_group(i), end, 1);
+            second_refPoint_y = iter.reference_trajectory_points(adjacent_group(i), end, 2);
             second_refPoint = [second_refPoint_x, second_refPoint_y];
 
             driving_direction = second_refPoint - first_refPoint;
 
             % reference trajectory points of adjacent vehicles
-            first_refPoint_adj_x = iter.referenceTrajectoryPoints(adjacent_group(i + 1), 1, 1);
-            first_refPoint_adj_y = iter.referenceTrajectoryPoints(adjacent_group(i + 1), 1, 2);
+            first_refPoint_adj_x = iter.reference_trajectory_points(adjacent_group(i + 1), 1, 1);
+            first_refPoint_adj_y = iter.reference_trajectory_points(adjacent_group(i + 1), 1, 2);
             first_refPoint_adj = [first_refPoint_adj_x, first_refPoint_adj_y];
 
             vehicle_distance_direction = first_refPoint - first_refPoint_adj;

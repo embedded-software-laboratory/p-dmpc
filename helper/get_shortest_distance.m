@@ -1,4 +1,4 @@
-function [signed_distance_min, arclength_min, x_min, y_min, index_min] = getShortestDistance(curve_x, curve_y, x, y)
+function [signed_distance_min, arclength_min, x_min, y_min, index_min] = get_shortest_distance(curve_x, curve_y, x, y)
     % GETSHORTESTDISTANCE   Finds the point on a piecewise linear curve that is closest to a
     %                       given point.
     % Params:
@@ -30,7 +30,7 @@ function [signed_distance_min, arclength_min, x_min, y_min, index_min] = getShor
     index_min = 2;
 
     for j = 2:(length(curve_x))
-        [xp, yp, signed_distance, lambda, piecelength] = Projection2D(curve_x(j - 1), curve_y(j - 1), curve_x(j), curve_y(j), x, y);
+        [xp, yp, signed_distance, lambda, piecelength] = projection_2d(curve_x(j - 1), curve_y(j - 1), curve_x(j), curve_y(j), x, y);
 
         % Projected point is between the two ref points curve_x(j-1) and curve_x(j).
         if (0 < lambda) && (lambda < 1)

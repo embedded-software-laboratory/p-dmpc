@@ -28,8 +28,8 @@ function [optimal_coupling_weight] = get_optimal_coupling_weight(scenario, iter,
     iter_v = filter_iter(iter, filter_self);
 
     % Reduce the information by one step
-    iter_v.referenceTrajectoryIndex(1) = [];
-    iter_v.referenceTrajectoryPoints(:, 1, :) = [];
+    iter_v.reference_trajectory_index(1) = [];
+    iter_v.reference_trajectory_points(:, 1, :) = [];
     iter_v.vRef(1) = [];
 
     lanelet_boundary = [iter_v.lanelet_boundary{1}, [nan; nan], iter_v.lanelet_boundary{2}];

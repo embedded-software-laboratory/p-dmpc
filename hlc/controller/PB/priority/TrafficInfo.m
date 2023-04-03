@@ -668,15 +668,15 @@ classdef TrafficInfo
 
             % less compact, but computationally faster
             % projection of two points of one line onto another line
-            [~, ~, ~, lambda_f_i, ~] = Projection2D(point_f_j(1), point_f_j(2), point_r_j(1), point_r_j(2), point_f_i(1), point_f_i(2));
+            [~, ~, ~, lambda_f_i, ~] = projection_2d(point_f_j(1), point_f_j(2), point_r_j(1), point_r_j(2), point_f_i(1), point_f_i(2));
 
             if lambda_f_i >= 0 && lambda_f_i <= 1
-                [~, ~, ~, lambda_f_j, ~] = Projection2D(point_f_i(1), point_f_i(2), point_r_i(1), point_r_i(2), point_f_j(1), point_f_j(2));
+                [~, ~, ~, lambda_f_j, ~] = projection_2d(point_f_i(1), point_f_i(2), point_r_i(1), point_r_i(2), point_f_j(1), point_f_j(2));
 
                 if lambda_f_j >= 0 && lambda_f_j <= 1
                     is_move_side_by_side = true;
                 else
-                    [~, ~, ~, lambda_r_j, ~] = Projection2D(point_f_i(1), point_f_i(2), point_r_i(1), point_r_i(2), point_r_j(1), point_r_j(2));
+                    [~, ~, ~, lambda_r_j, ~] = projection_2d(point_f_i(1), point_f_i(2), point_r_i(1), point_r_i(2), point_r_j(1), point_r_j(2));
 
                     if lambda_r_j >= 0 && lambda_r_j <= 1
                         is_move_side_by_side = true;
@@ -685,15 +685,15 @@ classdef TrafficInfo
                 end
 
             else
-                [~, ~, ~, lambda_r_i, ~] = Projection2D(point_f_j(1), point_f_j(2), point_r_j(1), point_r_j(2), point_r_i(1), point_r_i(2));
+                [~, ~, ~, lambda_r_i, ~] = projection_2d(point_f_j(1), point_f_j(2), point_r_j(1), point_r_j(2), point_r_i(1), point_r_i(2));
 
                 if lambda_r_i >= 0 && lambda_r_i <= 1
-                    [~, ~, ~, lambda_f_j, ~] = Projection2D(point_f_i(1), point_f_i(2), point_r_i(1), point_r_i(2), point_f_j(1), point_f_j(2));
+                    [~, ~, ~, lambda_f_j, ~] = projection_2d(point_f_i(1), point_f_i(2), point_r_i(1), point_r_i(2), point_f_j(1), point_f_j(2));
 
                     if lambda_f_j >= 0 && lambda_f_j <= 1
                         is_move_side_by_side = true;
                     else
-                        [~, ~, ~, lambda_r_j, ~] = Projection2D(point_f_i(1), point_f_i(2), point_r_i(1), point_r_i(2), point_r_j(1), point_r_j(2));
+                        [~, ~, ~, lambda_r_j, ~] = projection_2d(point_f_i(1), point_f_i(2), point_r_i(1), point_r_i(2), point_r_j(1), point_r_j(2));
 
                         if lambda_r_j >= 0 && lambda_r_j <= 1
                             is_move_side_by_side = true;

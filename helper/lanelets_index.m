@@ -3,7 +3,7 @@ function lanelets_idx = lanelets_index(veh_idx, iter, scenario)
     % iteration reference trajectory points
 
     nlanelets_idx = [];
-    ref_points_index = iter.referenceTrajectoryIndex(veh_idx, :);
+    ref_points_index = iter.reference_trajectory_index(veh_idx, :);
 
     % the lanelet index within prediction horizon
     for n = ref_points_index
@@ -15,8 +15,8 @@ function lanelets_idx = lanelets_index(veh_idx, iter, scenario)
     %     nlanelets_i = [];
     %     stop_flag = false;
     %
-    %     ref_points_index_i = reshape(iter.referenceTrajectoryIndex(i,:,:),Hp,1);
-    %     ref_points_i = reshape(iter.referenceTrajectoryPoints(i,:,:),Hp,2);
+    %     ref_points_index_i = reshape(iter.reference_trajectory_index(i,:,:),Hp,1);
+    %     ref_points_i = reshape(iter.reference_trajectory_points(i,:,:),Hp,2);
     %
     %     for n = 1:length(ref_points_index_i)
     %         nlanelets_i = [ nlanelets_i, sum(ref_points_index_i(n) > scenario.vehicles(1,i).points_index)+1];

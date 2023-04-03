@@ -11,7 +11,7 @@ classdef random_priority < interface_priority
             obj.is_assign_unique_priority = false; % whether to asign unique priority
         end
 
-        function [groups, directed_adjacency, priority_list] = priority(obj, scenario, iter)
+        function [level, directed_adjacency, priority_list] = priority(obj, scenario, iter)
             priority_rand_stream = RandStream("mt19937ar", "Seed", iter.k);
             directed_adjacency = iter.adjacency(:, :, end);
             nVeh = scenario.options.amount;
@@ -29,11 +29,11 @@ classdef random_priority < interface_priority
 
             end
 
-            [isDAG, Level] = kahn(directed_adjacency);
+            [isDAG, level_matrix] = kahn(directed_adjacency);
 
             assert(isDAG, 'Coupling matrix is not a DAG');
 
-            groups = PB_predecessor_groups(Level);
+            level = computation_level_members(level_matrix);
 
             % Assign prrority according to computation level
             % Vehicles with higher priorities plan trajectory before vehicles

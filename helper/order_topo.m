@@ -2,7 +2,7 @@ function order = order_topo(L, C)
     % ORDER_TOPO  order topological levels in order to minimize their incoming edges
     %     ORDER = ORDER_TOPO(L,C) returns the order of the levels in L regarding the incoming edges in the adjacency C
 
-    lvls = PB_predecessor_groups(L);
+    level = computation_level_members(L);
     deg = sum(C);
 
     if sum(deg) == 0
@@ -27,9 +27,9 @@ function order = order_topo(L, C)
 
         lvl = 0;
 
-        for j = 1:length(lvls)
+        for j = 1:length(level)
 
-            if ismember(max_idx, lvls(j).members)
+            if ismember(max_idx, level(j).members)
                 lvl = j;
                 break;
             end
@@ -37,7 +37,7 @@ function order = order_topo(L, C)
         end
 
         order = [order, lvl];
-        deg(lvls(lvl).members) = 0;
+        deg(level(lvl).members) = 0;
     end
 
 end

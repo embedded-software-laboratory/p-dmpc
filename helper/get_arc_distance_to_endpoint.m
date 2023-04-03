@@ -87,7 +87,7 @@ function [arc_distance, arc_length, x_projected, y_projected, projection_distanc
     end
 
     % project the given point to the line segment determined by the colsest point in the given curve and its adjacent point
-    [x_projected, y_projected, projection_distance, lambda, ~] = Projection2D(line_x_first, line_y_first, line_x_second, line_y_second, point_x, point_y);
+    [x_projected, y_projected, projection_distance, lambda, ~] = projection_2d(line_x_first, line_y_first, line_x_second, line_y_second, point_x, point_y);
 
     point_projected = [x_projected, y_projected];
 

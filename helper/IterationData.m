@@ -2,8 +2,8 @@ classdef IterationData
     %ITERATIONDATA  Class as data structure for data that changes in every iteration during the experiment.
 
     properties
-        referenceTrajectoryPoints
-        referenceTrajectoryIndex
+        reference_trajectory_points
+        reference_trajectory_index
         k % current time/simulation step
         x0 % state
         trim_indices % current trim
@@ -54,8 +54,8 @@ classdef IterationData
             Hp = scenario.options.Hp;
             hdv_amount = scenario.options.manual_control_config.amount;
             obj.k = k;
-            obj.referenceTrajectoryPoints = zeros(nVeh, Hp, 2);
-            obj.referenceTrajectoryIndex = zeros(nVeh, Hp, 1);
+            obj.reference_trajectory_points = zeros(nVeh, Hp, 2);
+            obj.reference_trajectory_index = zeros(nVeh, Hp, 1);
             obj.x0 = zeros(nVeh, 4);
             obj.trim_indices = zeros(nVeh, 1);
             obj.v_ref = zeros(nVeh, Hp);

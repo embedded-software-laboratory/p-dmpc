@@ -10,7 +10,7 @@ classdef constant_priority < interface_priority
         function obj = constant_priority()
         end
 
-        function [groups, directed_adjacency, priority_list] = priority(obj, scenario, iter)
+        function [level, directed_adjacency, priority_list] = priority(obj, scenario, iter)
 
             directed_adjacency = iter.adjacency;
             nVeh = scenario.options.amount;
@@ -28,11 +28,11 @@ classdef constant_priority < interface_priority
 
             end
 
-            [isDAG, Level] = kahn(directed_adjacency);
+            [isDAG, level_matrix] = kahn(directed_adjacency);
 
             assert(isDAG, 'Coupling matrix is not a DAG');
 
-            groups = PB_predecessor_groups(Level);
+            level = computation_level_members(level_matrix);
 
             % Assign prrority
             % Vehicles with higher priorities plan trajectory before vehicles

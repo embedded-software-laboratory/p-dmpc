@@ -47,7 +47,7 @@ namespace GraphBasedPlanning {
 			matlab::data::Array options_array = _matlab->getProperty(scenario, u"options");
 			matlab::data::TypedArray<double> const tick_per_step_array = _matlab->getProperty(options_array, u"tick_per_step");
 			tick_per_step() = static_cast<unsigned int>(tick_per_step_array[0][0]);
-			matlab::data::TypedArray<double>  const dt_array = _matlab->getProperty(options_array, u"dt");
+			matlab::data::TypedArray<double> const dt_array = _matlab->getProperty(options_array, u"dt");
 			dt() = static_cast<double>(dt_array[0][0]);
 			matlab::data::TypedArray<bool> is_pb_array = _matlab->getProperty(options_array, u"is_prioritized");
 			is_pb() = static_cast<bool>(is_pb_array[0][0]);
@@ -87,7 +87,7 @@ namespace GraphBasedPlanning {
 
 		std::tuple<matlab::data::CellArray, matlab::data::TypedArray<double>, matlab::data::CellArray, matlab::data::TypedArray<uint32_t>, matlab::data::TypedArray<bool>> graph_search_callback_centralized(
 		    matlab::data::ObjectArray const &iter, const std::function<Node<FLOATING_POINT_TYPE> const *(ColMajorMatrixAccessor<FLOATING_POINT_TYPE> const &, std::vector<std::uint8_t> const &)> &find,
-			const std::function<uint64_t (void)> &get_n_expanded) {
+		    const std::function<uint64_t(void)> &get_n_expanded) {
 			matlab::data::TypedArray<double> trim_indices_array = std::move(iter[0][0]["trim_indices"]);
 			std::vector<std::uint8_t> trim_indices(trim_indices_array.begin(), trim_indices_array.end());
 
@@ -98,7 +98,7 @@ namespace GraphBasedPlanning {
 			matlab::data::TypedArray<double> x0_array = std::move(iter[0][0]["x0"]);
 			ColMajorMatrixAccessor<double> x0 = ColMajorMatrixAccessor<double>(std::vector<double>(x0_array.begin(), x0_array.end()), x0_array.getDimensions());
 
-			matlab::data::TypedArray<double> reference_trajectory_points_array = std::move(iter[0][0]["referenceTrajectoryPoints"]);
+			matlab::data::TypedArray<double> reference_trajectory_points_array = std::move(iter[0][0]["reference_trajectory_points"]);
 			_reference_trajectory_points = ColMajorTensorAccessor<double>(std::vector<double>(reference_trajectory_points_array.begin(), reference_trajectory_points_array.end()), reference_trajectory_points_array.getDimensions());
 
 			matlab::data::TypedArray<double> v_ref_array = std::move(iter[0][0]["v_ref"]);
@@ -173,7 +173,7 @@ namespace GraphBasedPlanning {
 			matlab::data::TypedArray<double> x0_array = std::move(iter[0][0]["x0"]);
 			ColMajorMatrixAccessor<double> x0 = ColMajorMatrixAccessor<double>(std::vector<double>(x0_array.begin(), x0_array.end()), x0_array.getDimensions());
 
-			matlab::data::TypedArray<double> reference_trajectory_points_array = std::move(iter[0][0]["referenceTrajectoryPoints"]);
+			matlab::data::TypedArray<double> reference_trajectory_points_array = std::move(iter[0][0]["reference_trajectory_points"]);
 			_reference_trajectory_points = ColMajorTensorAccessor<double>(std::vector<double>(reference_trajectory_points_array.begin(), reference_trajectory_points_array.end()), reference_trajectory_points_array.getDimensions());
 
 			matlab::data::TypedArray<double> v_ref_array = std::move(iter[0][0]["v_ref"]);
