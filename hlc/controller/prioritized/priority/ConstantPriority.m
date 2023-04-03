@@ -1,4 +1,4 @@
-classdef constant_priority < priority
+classdef ConstantPriority < Priority
     % constant_priority  Instance of interface_priority used for priority
     % assignment, fixed priority according to vehicle ids
 
@@ -7,7 +7,7 @@ classdef constant_priority < priority
 
     methods
 
-        function obj = constant_priority()
+        function obj = ConstantPriority()
         end
 
         function [level, directed_adjacency, priority_list] = priority(obj, scenario, iter)

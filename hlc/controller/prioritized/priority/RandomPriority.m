@@ -1,4 +1,4 @@
-classdef random_priority < priority
+classdef RandomPriority < Priority
     % random_priority  Instance of interface_priority used for dynamic priority
     % assignment, randomly assign priority to vehicles
 
@@ -7,7 +7,7 @@ classdef random_priority < priority
 
     methods
 
-        function obj = random_priority()
+        function obj = RandomPriority()
             obj.is_assign_unique_priority = false; % whether to asign unique priority
         end
 

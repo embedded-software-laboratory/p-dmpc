@@ -1,11 +1,11 @@
-classdef coloring_priority < priority
+classdef ColoringPriority < Priority
 
     properties (Access = private)
     end
 
     methods
 
-        function obj = coloring_priority()
+        function obj = ColoringPriority()
         end
 
         function [level, coupling_directed, priority_list] = priority(obj, iter)

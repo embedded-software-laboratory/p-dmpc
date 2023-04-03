@@ -1,4 +1,4 @@
-classdef (Abstract) priority < handle
+classdef (Abstract) Priority < handle
     % interface_priority    Abstract class used for defining properties and methods used by priority based distributed controller.
 
     properties

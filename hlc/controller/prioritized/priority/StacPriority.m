@@ -1,4 +1,4 @@
-classdef STAC_priority < priority
+classdef StacPriority < Priority
     % STAC_priority  Instance of interface_priority used for dynamic priority
     % assignment. For vehicles driving consectively, vehicles in the front are
     % aasigned higher priorities; For vehicles crossing the intersection, vehicles
@@ -11,7 +11,7 @@ classdef STAC_priority < priority
 
     methods
 
-        function obj = STAC_priority()
+        function obj = StacPriority()
             obj.is_assign_unique_priority = false; % whether to asign unique priority
         end
 

@@ -1,4 +1,4 @@
-classdef right_of_way_priority < priority
+classdef RightOfWayPriority < Priority
     % right_of_way  Instance of interface_priority used for dynamic priority
     % assignment. For vehicles driving consectively, vehicles in the front are
     % aasigned higher priorities; For vehicles crossing the intersection, vehicles
@@ -11,7 +11,7 @@ classdef right_of_way_priority < priority
 
     methods
 
-        function obj = right_of_way_priority()
+        function obj = RightOfWayPriority()
             obj.is_assign_unique_priority = false; % whether to asign unique priority
         end
 

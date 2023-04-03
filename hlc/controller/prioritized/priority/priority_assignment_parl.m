@@ -6,7 +6,7 @@ function [scenario, iter, CL_based_hierarchy, lanelet_crossing_areas] = priority
 
     % TODO: strategy here (use non-parallel assignment here)
     % adapt algorithms such that they return all needed data like here
-    [vehs_at_intersection, coupling_weights, iter.coupling_weights_optimal, coupling_info, time_enter_intersection] = STAC_priority().priority(scenario, iter);
+    [vehs_at_intersection, coupling_weights, iter.coupling_weights_optimal, coupling_info, time_enter_intersection] = StacPriority().priority(scenario, iter);
 
     if any(strcmp(scenario.options.priority, {'STAC_priority', 'FCA_priority', 'constant_priority', 'random_priority', 'coloring_priority'}))
         % Strategy to let vehicle without the right-of-way enter the crossing area
@@ -27,7 +27,7 @@ function [scenario, iter, CL_based_hierarchy, lanelet_crossing_areas] = priority
     end
 
     % get priority list
-    priority_list = STAC_priority().get_priority(coupling_weights);
+    priority_list = StacPriority().get_priority(coupling_weights);
 
     iter.coupling_weights = coupling_weights;
     iter.coupling_weights_reduced = coupling_weights_reduced;

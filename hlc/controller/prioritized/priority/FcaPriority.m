@@ -1,4 +1,4 @@
-classdef FCA_priority < priority
+classdef FcaPriority < Priority
     % FCA  Instance of interface_priority used for dynamic priority
     % assignment. Vehicles with more potential collisions on their future
     % reference trajectory are assigned higher priorities.
@@ -9,7 +9,7 @@ classdef FCA_priority < priority
 
     methods
 
-        function obj = FCA_priority()
+        function obj = FcaPriority()
         end
 
         function [veh_at_intersection, level, directed_adjacency, priority_list] = priority(obj, scenario, iter)

@@ -47,16 +47,6 @@ classdef PlotterOnline < Plotter
             obj.fig.Visible = option;
         end
 
-        function set_figure_visibility(obj, option)
-
-            arguments
-                obj PlotterOnline
-                option (1, 1) logical = true
-            end
-
-            obj.fig.Visible = option;
-        end
-
         function data_queue_callback(obj, plotting_info)
 
             arguments

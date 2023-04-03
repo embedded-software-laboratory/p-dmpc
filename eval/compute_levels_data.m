@@ -37,10 +37,10 @@ function [ data ] = compute_levels_data(res)
                         iter_tmp = result.iteration_structs{iStep};
                     
                         % assign priorities using different algorithms
-                        [~, ~, ~, fca_prios] = FCA_priority().priority(scenario_tmp,iter_tmp);
-                        [~, ~, random_prios] = random_priority().priority(scenario_tmp);
-                        [~, ~, constant_prios] = constant_priority().priority(scenario_tmp);
-                        [~, ~, coloring_prios] = coloring_priority().priority(scenario_tmp);
+                        [~, ~, ~, fca_prios] = FcaPriority().priority(scenario_tmp,iter_tmp);
+                        [~, ~, random_prios] = RandomPriority().priority(scenario_tmp);
+                        [~, ~, constant_prios] = ConstantPriority().priority(scenario_tmp);
+                        [~, ~, coloring_prios] = ColoringPriority().priority(scenario_tmp);
             
                         % get number of levels by max priority assigned
                         n_fca = max(fca_prios);

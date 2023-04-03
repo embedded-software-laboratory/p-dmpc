@@ -464,16 +464,16 @@ classdef TrafficInfo
                     end
 
                 case 'random_priority'
-                    [~, ~, priority_list] = random_priority().priority(scenario, iter);
+                    [~, ~, priority_list] = RandomPriority().priority(scenario, iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'constant_priority'
-                    [~, ~, priority_list] = constant_priority().priority(scenario, iter);
+                    [~, ~, priority_list] = ConstantPriority().priority(scenario, iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'FCA_priority'
-                    [~, ~, ~, priority_list] = FCA_priority().priority(scenario, iter);
+                    [~, ~, ~, priority_list] = FcaPriority().priority(scenario, iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 case 'coloring_priority'
-                    [~, ~, priority_list] = coloring_priority().priority(iter);
+                    [~, ~, priority_list] = ColoringPriority().priority(iter);
                     has_ROW = (priority_list(veh_i) <= priority_list(veh_j));
                 otherwise
                     warning("Priority must be one of the following: 'STAC_priority', 'random_priority', 'constant_priority', 'coloring_priority', 'FCA_priority'.")
