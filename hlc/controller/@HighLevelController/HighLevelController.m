@@ -17,7 +17,7 @@ classdef (Abstract) HighLevelController < handle
 
         % Adapter for the lab
         % or one for a local simulation
-        hlc_adapter;
+        plant;
 
         % Ros Subscribers for Inter HLC Communication (distributed HLCs) or
         % to simualate distributed communication in pb-sequential controller
@@ -98,8 +98,8 @@ classdef (Abstract) HighLevelController < handle
             obj.controller_name = name;
         end
 
-        function set_hlc_adapter(obj, interfaceExperiment)
-            obj.hlc_adapter = interfaceExperiment;
+        function set_hlc_adapter(obj, plant)
+            obj.plant = plant;
         end
 
     end
@@ -141,7 +141,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
             end
 
-            obj.hlc_adapter.setup(obj.scenario, obj.vehicle_ids);
+            obj.plant.setup(obj.scenario, obj.vehicle_ids);
 
             if obj.scenario.options.is_prioritized
                 % In priority-based computation, vehicles communicate via ROS 2
@@ -181,7 +181,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % Measurement
                 % -------------------------------------------------------------------------
-                [x0_measured, trims_measured] = obj.hlc_adapter.measure(); % trims_measured： which trim
+                [x0_measured, trims_measured] = obj.plant.measure(); % trims_measured： which trim
 
                 if mod(obj.k, 10) == 0
                     % only display 0, 10, 20, ...
@@ -373,11 +373,11 @@ classdef (Abstract) HighLevelController < handle
 
                 % Apply control action
                 % -------------------------------------------------------------------------
-                obj.hlc_adapter.apply(obj.info, obj.result, obj.k, obj.scenario);
+                obj.plant.apply(obj.info, obj.result, obj.k, obj.scenario);
 
                 % Check for stop signal
                 % -------------------------------------------------------------------------
-                obj.got_stop = obj.hlc_adapter.is_stop() || obj.got_stop;
+                obj.got_stop = obj.plant.is_stop() || obj.got_stop;
 
             end
 
@@ -434,7 +434,7 @@ classdef (Abstract) HighLevelController < handle
             empty_cells = cell(1, obj.scenario.options.amount);
             [obj.result.scenario.vehicles.communicate] = empty_cells{:};
             [obj.scenario.vehicles.communicate] = empty_cells{:};
-            obj.hlc_adapter.end_run()
+            obj.plant.end_run()
 
         end
 

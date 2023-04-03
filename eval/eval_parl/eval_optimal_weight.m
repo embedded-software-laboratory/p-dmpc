@@ -153,7 +153,7 @@ for i = 1:length(file_name)
     % form parallel CL_based_hierarchy
     [~, ~, belonging_vector] = form_parallel_groups(coupling_weights, options.max_num_CLs, result.coupling_info{step_index}, 'method', 's-t-cut');
 
-    % graphs_visualization(belonging_vector,coupling_weights,'ShowWeights',true)
+    % plot_partitioned_graph(belonging_vector,coupling_weights,'ShowWeights',true)
     G = digraph(coupling_weights);
     n_edges = size(G.Edges.EndNodes, 1);
     LineStyle = cell(1, n_edges);

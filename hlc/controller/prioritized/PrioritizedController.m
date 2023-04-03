@@ -198,7 +198,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             if obj.iter.k == inf
                 plot_obstacles(obj.scenario)
                 plot_obstacles(info_v.shapes)
-                graphs_visualization(obj.iter.belonging_vector, obj.scenario.coupling_weights, 'ShowWeights', true)
+                plot_partitioned_graph(obj.iter.belonging_vector, obj.scenario.coupling_weights, 'ShowWeights', true)
             end
 
             subcontroller_time = toc(subcontroller_timer);
