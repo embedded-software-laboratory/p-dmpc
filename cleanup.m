@@ -11,19 +11,22 @@ function cleanup()
     compile_priority_queue;
 end
 
-
 function rmdir_helper(dir)
+
     try
         rmdir(dir, 's');
     catch
-        warning(strcat("Unable to delete folder ",dir,". Please delete manually..."));
+        warning(strcat("Unable to delete folder ", dir, ". Please delete manually..."));
     end
+
 end
 
 function rmfile_helper(file)
+
     try
         delete(file);
     catch
-        warning(strcat("Unable to delete file ",file,". Please delete manually..."));
+        warning(strcat("Unable to delete file ", file, ". Please delete manually..."));
     end
+
 end

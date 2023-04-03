@@ -1,5 +1,5 @@
 classdef ManualMode < ManualControl
-% MANUAL_MODE       Specific Instance of manual controller (ManualControl) in manual control mode
+    % MANUAL_MODE       Specific Instance of manual controller (ManualControl) in manual control mode
 
     properties (Access = private)
         writer_vehicleCommandDirect
@@ -68,7 +68,7 @@ classdef ManualMode < ManualControl
         function [result, force_feedback] = MessageProcessing(obj, generic_data)
             % result should contain everything needed fot vehicleCommandDirect
             % force_feedback should contain position and torque
-            
+
             vehicle_state = obj.read_vehicle_state();
 
             if isempty(vehicle_state)
@@ -92,7 +92,7 @@ classdef ManualMode < ManualControl
 
             % Throttle
             throttle = ManualMode.motor_throttle( ...
-            generic_data.throttle, ...
+                generic_data.throttle, ...
                 generic_data.brake, ...
                 vehicle_state.speed ...
             );
@@ -117,7 +117,9 @@ classdef ManualMode < ManualControl
         end
 
     end
+
     methods (Static)
+
         function result = motor_throttle( ...
                 accelerator_pedal_position, brake_pedal_position, speed ...
             )
@@ -174,11 +176,11 @@ classdef ManualMode < ManualControl
                 x = (acceleration_desired - ManualMode.p5 * speed) / ManualMode.p6;
                 result = sign(x) * nthroot(abs(x), ManualMode.p7);
             end
+
             % TODO Different dynamics for braking
             result = min(1, max(-1, result));
 
         end
-
 
         function result = motor_throttle_from_pedal_and_max_acceleration( ...
                 pedal_position, max_acceleration ...

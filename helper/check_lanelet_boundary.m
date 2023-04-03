@@ -1,21 +1,22 @@
 function isValid = check_lanelet_boundary(scenario, boundary, shapes)
-% CHECK_LANELET_BOUNDARY   Determine whether vehicle is allowed to intersect boundary for lane change
+    % CHECK_LANELET_BOUNDARY   Determine whether vehicle is allowed to intersect boundary for lane change
 
     isValid = false;
     currentLane = 0;
     successorLane = 0;
-    boundary_points_left = boundary{1,1};
-    boundary_points_right = boundary{1,2};
+    boundary_points_left = boundary{1, 1};
+    boundary_points_right = boundary{1, 2};
     lanes = [];
 
     %currentLane = map_position_to_closest_lanelets(scenario.vehicles.x_position, scenario.vehicles.y_position);
 
     for i = 1:length(shapes)
-        shapeLane = map_position_to_closest_lanelets(scenario.road_raw_data.lanelet, shapes(1,i), shapes(2,i));
+        shapeLane = map_position_to_closest_lanelets(scenario.road_raw_data.lanelet, shapes(1, i), shapes(2, i));
 
         if ~ismember(shapeLane, lanes)
             lanes = [lanes; shapeLane];
         end
+
     end
 
     %{
@@ -65,7 +66,6 @@ function isValid = check_lanelet_boundary(scenario, boundary, shapes)
             if successorLane == 9
                 isValid = true;
             end
-        
 
     end
     %}

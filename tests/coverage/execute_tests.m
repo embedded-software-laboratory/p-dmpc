@@ -12,10 +12,12 @@ function [results, coverage] = execute_tests(test_folder, compute_coverage, cove
 
     % Create a test runner running the specified tests and creating a cobertura code coverage for the specified source
     % folders.
-    runner = TestRunner.withTextOutput('OutputDetail',Verbosity.Detailed);
+    runner = TestRunner.withTextOutput('OutputDetail', Verbosity.Detailed);
+
     if compute_coverage
         runner.addPlugin(CodeCoveragePlugin.forFolder(coverage_folder, "IncludingSubfolders", true, "Producing", CoberturaFormat(cobertura_output_file)));
     end
+
     runner.addPlugin(XMLPlugin.producingJUnitFormat(junit_output_file));
 
     % Run the tests generating code coverage information.
@@ -28,4 +30,5 @@ function [results, coverage] = execute_tests(test_folder, compute_coverage, cove
         coverage = regexp(coverageReport, '<coverage[^<]* line-rate="([^"])*" [^<]*>', 'tokens');
         coverage = num2str(str2double(coverage{1}) * 100);
     end
+
 end

@@ -1,10 +1,15 @@
 classdef PbControllerParl < PbControllerInterface
+
     methods
+
         function obj = PbControllerParl(scenario, vehicle_ids)
             obj = obj@PbControllerInterface(scenario, vehicle_ids);
         end
+
     end
+
     methods (Access = protected)
+
         function controller(obj)
             % PB_CONTROLLER_PARL Plan trajectory for one time step using a
             % priority-based controller. Vehicles inside one group plan in sequence and
@@ -29,5 +34,7 @@ classdef PbControllerParl < PbControllerInterface
             obj.info.computation_levels = length(obj.CL_based_hierarchy);
             obj.iter.lanelet_crossing_areas = obj.lanelet_crossing_areas;
         end
+
     end
+
 end

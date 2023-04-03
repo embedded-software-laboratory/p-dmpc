@@ -1,5 +1,9 @@
 classdef Environment
+
     enumeration
-        Simulation, CPMLab, UnifiedLabAPI
+        Simulation
+        CPMLab
+        UnifiedLabAPI
     end
+
 end

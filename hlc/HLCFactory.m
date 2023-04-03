@@ -1,9 +1,9 @@
 classdef HLCFactory < handle
-    properties (Access=public)
+
+    properties (Access = public)
         % scenario variable
         scenario
 
-        
     end
 
     methods
@@ -13,13 +13,13 @@ classdef HLCFactory < handle
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
             obj.scenario = [];
-            
+
         end
 
         % Optional argument wether to do a dry run of the first timestep beforehand
         % dry_run can massively decrease the time needed for the first
         % timestep during the experiment.
-        function hlc = get_hlc( obj, vehicle_ids, dry_run, experimentInterface )
+        function hlc = get_hlc(obj, vehicle_ids, dry_run, experimentInterface)
 
             if isempty(obj.scenario)
                 throw(MException('HlcFactory:InvalidState', 'HlcScenario not set'));
@@ -29,12 +29,14 @@ classdef HLCFactory < handle
             if nargin < 3
                 dry_run = true;
             end
+
             if dry_run
                 obj.dry_run_hlc(vehicle_ids);
             end
 
             if obj.scenario.options.isPB
-                if length(vehicle_ids)==1
+
+                if length(vehicle_ids) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
                     hlc = PbControllerParl(obj.scenario, vehicle_ids);
@@ -42,6 +44,7 @@ classdef HLCFactory < handle
                     % PB Controller controlling all vehicles
                     hlc = PbControllerSeq(obj.scenario, vehicle_ids);
                 end
+
             else
                 hlc = CentralizedController(obj.scenario, vehicle_ids);
             end
@@ -52,28 +55,33 @@ classdef HLCFactory < handle
 
         end
 
-        function set_scenario( obj, scenario )
+        function set_scenario(obj, scenario)
             obj.scenario = scenario;
         end
 
-        
     end
 
     methods (Static)
+
         function controller_name = get_controller_name(options)
+
             if options.isPB
+
                 if options.isParl
-                    controller_name = strcat('par. PB-','RHGS-', char(options.priority));
+                    controller_name = strcat('par. PB-', 'RHGS-', char(options.priority));
                 else
-                    controller_name = strcat('seq. PB-','RHGS-', char(options.priority));
+                    controller_name = strcat('seq. PB-', 'RHGS-', char(options.priority));
                 end
+
             else
                 controller_name = strcat('centralized-', 'RHGS-', char(options.priority));
             end
+
         end
+
     end
 
-    methods (Access=private)
+    methods (Access = private)
 
         % This function runs the HLC once without outputting anything and
         % resets it afterwards.
@@ -105,10 +113,14 @@ classdef HLCFactory < handle
             obj.scenario.options.options_plot_online.is_active = plot_backup;
             obj.scenario.options.T_end = T_end_backup;
             obj.scenario.options.isSaveResult = save_result_backup;
+
             if obj.scenario.options.use_cpp == true
                 clear mex;
             end
+
             disp("Dry Run Completed");
         end
+
     end
+
 end

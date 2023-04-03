@@ -9,6 +9,7 @@ classdef systemtests < matlab.unittest.TestCase
     end
 
     methods (Test)
+
         function centralized(testCase, scenario_name)
             lastwarn('');
             fprintf('\ncentralized systemtest for %s\n', scenario_name);
@@ -35,11 +36,13 @@ classdef systemtests < matlab.unittest.TestCase
             options.isPB = true;
             options.priority = Priority_strategies.([priority, '_priority']);
             options.use_cpp = use_cpp;
+
             if strcmp(parallel, 'parallel')
                 options.isParl = true;
             elseif strcmp(parallel, 'sequential')
                 options.isParl = false;
             end
+
             testCase.verifyEmpty(lastwarn);
 
             main(options);
@@ -58,6 +61,7 @@ classdef systemtests < matlab.unittest.TestCase
             main(options);
             testCase.verifyTrue(true);
         end
+
     end
 
 end

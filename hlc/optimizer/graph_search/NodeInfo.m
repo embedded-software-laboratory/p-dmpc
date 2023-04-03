@@ -1,6 +1,6 @@
 classdef NodeInfo
-% NODEINFO  Indices for values stored in node.
-    
+    % NODEINFO  Indices for values stored in node.
+
     properties (Constant)
         x = 1;
         y = 2;
@@ -12,4 +12,5 @@ classdef NodeInfo
         exactEval = 8;
         n_cols = 8;
     end
+
 end

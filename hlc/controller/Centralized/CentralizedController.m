@@ -1,15 +1,22 @@
 classdef CentralizedController < HLCInterface
+
     methods
+
         function obj = CentralizedController(scenario, vehicle_ids)
             obj = obj@HLCInterface(scenario, vehicle_ids);
+
             if obj.scenario.options.use_cpp
                 obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.indices_in_vehicle_list);
             else
                 obj.optimizer = GraphSearch(obj.scenario);
             end
+
         end
+
     end
+
     methods (Access = protected)
+
         function controller(obj)
             % initialize variable to store control results
             obj.info = ControllResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, [obj.scenario.vehicles.ID]);
@@ -17,10 +24,12 @@ classdef CentralizedController < HLCInterface
             % falsifies controller_runtime slightly
             subcontroller_timer = tic;
 
-            [info_v , ~] = obj.optimizer.run_optimizer(obj.iter, obj.indices_in_vehicle_list);
+            [info_v, ~] = obj.optimizer.run_optimizer(obj.iter, obj.indices_in_vehicle_list);
+
             if info_v.is_exhausted
                 info_v = handle_graph_search_exhaustion(info_v, obj.scenario, obj.iter);
             end
+
             if info_v.needs_fallback
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback
@@ -40,5 +49,7 @@ classdef CentralizedController < HLCInterface
             obj.info.runtime_subcontroller_max = obj.info.runtime_subcontroller_each_veh;
             obj.info.runtime_graph_search_max = obj.info.runtime_subcontroller_each_veh;
         end
+
     end
+
 end

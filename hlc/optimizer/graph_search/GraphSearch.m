@@ -1,5 +1,7 @@
 classdef GraphSearch < OptimizerInterface
+
     methods
+
         function obj = GraphSearch(scenario)
             obj = obj@OptimizerInterface(scenario);
         end
@@ -10,9 +12,11 @@ classdef GraphSearch < OptimizerInterface
             info_v = obj.do_graph_search(iter);
             graph_search_time = toc(graph_search_timer);
         end
+
     end
 
     methods (Access = private)
+
         function info = do_graph_search(obj, iter)
             % GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
             %
@@ -23,16 +27,16 @@ classdef GraphSearch < OptimizerInterface
             % initialize variable to store control results
             info = ControllResultsInfo(iter.amount, Hp, [iter.vehicles.ID]);
 
-            shapes_tmp = cell(iter.amount,0);
+            shapes_tmp = cell(iter.amount, 0);
             % Create tree with root node
-            x = iter.x0(:,1);
-            y = iter.x0(:,2);
-            yaw = iter.x0(:,3);
+            x = iter.x0(:, 1);
+            y = iter.x0(:, 2);
+            yaw = iter.x0(:, 3);
             trim = iter.trim_indices;
             k = 0;
             g = 0;
             h = 0;
-            info.tree = Tree(x,y,yaw,trim,k,g,h);
+            info.tree = Tree(x, y, yaw, trim, k, g, h);
 
             % Array storing ids of nodes that may be expanded
 
@@ -60,6 +64,7 @@ classdef GraphSearch < OptimizerInterface
             while true
                 % Select cheapest node for expansion and remove it
                 cur_node_id = pq.pop();
+
                 if (cur_node_id == -1)
                     info.n_expanded = info.tree.size();
                     info.is_exhausted = true;
@@ -79,33 +84,38 @@ classdef GraphSearch < OptimizerInterface
                     %             plot_obstacles(shapes,plot_options) % visualize the valid shape
                 end
 
-                shapes_tmp(:,cur_node_id) = shapes;
+                shapes_tmp(:, cur_node_id) = shapes;
+
                 if info.tree.k(cur_node_id) == Hp
                     y_pred = return_path_to(cur_node_id, info.tree, obj.scenario);
                     info.y_predicted = y_pred;
                     info.shapes = return_path_area(shapes_tmp, info.tree, cur_node_id);
                     info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
                     % Predicted trims in the future Hp time steps. The first entry is the current trims
-                    info.predicted_trims = info.tree.trim(:,info.tree_path);
+                    info.predicted_trims = info.tree.trim(:, info.tree_path);
                     info.is_exhausted = false;
                     info.needs_fallback = false;
                     info.n_expanded = info.tree.size();
                     break
                 else
                     % Expand chosen node
-                    new_open_nodes = expand_node(...
-                        obj.scenario...
-                        ,iter...
-                        ,cur_node_id...
-                        ,info...
-                        );
+                    new_open_nodes = expand_node( ...
+                        obj.scenario ...
+                        , iter ...
+                        , cur_node_id ...
+                        , info ...
+                    );
                     g_weight = 1;
                     h_weight = 1;
                     new_open_values = info.tree.g(new_open_nodes) * g_weight + info.tree.h(new_open_nodes) * h_weight;
                     % add child nodes
-                    pq.push(new_open_nodes,new_open_values);
+                    pq.push(new_open_nodes, new_open_values);
                 end
+
             end
+
         end
+
     end
+
 end

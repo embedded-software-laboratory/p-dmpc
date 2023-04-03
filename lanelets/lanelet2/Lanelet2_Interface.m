@@ -1,5 +1,7 @@
 classdef Lanelet2_Interface
-    methods(Static)
+
+    methods (Static)
+
         function [raw_data, intersection_lanelets, ids] = load_from_file(filename)
             % filename: path to .osm file containing a lanelet2 map
             % raw_data: a struct as needed for RoadDataCommonRoad
@@ -18,5 +20,7 @@ classdef Lanelet2_Interface
             %         on the given map
             indices = generate_lanelet2_ref_path_loop_indices_mex(convertCharsToStrings(filename));
         end
+
     end
+
 end
