@@ -1,9 +1,9 @@
-classdef CPMLab < InterfaceExperiment
+classdef CpmLab < InterfaceExperiment
     % CPMLAB    Instance of experiment interface for usage in the cpm lab.
 
     properties (Access = private)
-        matlabParticipant
-        matlabParticipantLab
+        dds_participant
+        dds_participant_lab
         reader_vehicleStateList
         writer_vehicleCommandTrajectory
         writer_vehicleCommandDirect
@@ -19,7 +19,7 @@ classdef CPMLab < InterfaceExperiment
 
     methods
 
-        function obj = CPMLab()
+        function obj = CpmLab()
             obj = obj@InterfaceExperiment();
             obj.pos_init = false;
 
@@ -42,14 +42,14 @@ classdef CPMLab < InterfaceExperiment
             addpath(common_cpm_functions_path);
 
             matlabDomainId = 1;
-            [obj.matlabParticipant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
+            [obj.dds_participant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
 
             % create Lab participant
-            obj.matlabParticipantLab = DDS.DomainParticipant('MatlabLibrary::LocalCommunicationProfile', str2double(getenv('DDS_DOMAIN')));
+            obj.dds_participant_lab = DDS.DomainParticipant('MatlabLibrary::LocalCommunicationProfile', str2double(getenv('DDS_DOMAIN')));
 
             % create writer for lab visualization
             matlabVisualizationTopicName = 'visualization';
-            obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.matlabParticipantLab), 'Visualization', matlabVisualizationTopicName);
+            obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.dds_participant_lab), 'Visualization', matlabVisualizationTopicName);
 
             % Set reader properties
             obj.reader_vehicleStateList.WaitSet = true;

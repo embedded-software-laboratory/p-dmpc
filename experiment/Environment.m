@@ -2,7 +2,7 @@ classdef Environment
 
     enumeration
         Simulation
-        CPMLab
+        CpmLab
         UnifiedLabAPI
     end
 

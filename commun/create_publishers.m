@@ -42,7 +42,7 @@ function create_publishers(hlc)
 
     if sum(cellfun(@(c)strcmp(c, 'ros_g29_force_feedback/ForceFeedback'), msgList)) == 0
 
-        if hlc.scenario.options.environment == Environment.CPMLab
+        if hlc.scenario.options.environment == Environment.CpmLab
             % This message type is only needed for lab mode but not
             % simulation mode
             path_custom_msg = [file_path, filesep, 'cust2'];

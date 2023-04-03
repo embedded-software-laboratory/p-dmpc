@@ -1,5 +1,5 @@
 classdef ManualVehicle
-    % MANUALVEHICLE   Class representing manual vehicles in CPMLab Experiment
+    % MANUALVEHICLE   Class representing manual vehicles in CpmLab Experiment
 
     properties
         Length = 0.22; % Vehicle length (bumper to bumper)[m]

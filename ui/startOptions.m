@@ -255,7 +255,7 @@ function out = get_environment_selection(ui, output_as_enum)
     if nargin > 1 && output_as_enum
 
         if isequal([1 0 0], out)
-            out = Environment.CPMLab;
+            out = Environment.CpmLab;
         elseif isequal([0 1 0], out)
             out = Environment.Simulation;
         else % isequal([0 0 1], out)
@@ -283,7 +283,7 @@ end
 
 function setEnvironmentElementsVisibility(ui)
     % if lab mode is selected
-    is_lab_selection = (get_environment_selection(ui, true) == Environment.CPMLab ...
+    is_lab_selection = (get_environment_selection(ui, true) == Environment.CpmLab ...
         || get_environment_selection(ui, true) == Environment.UnifiedLabAPI);
     ui.AddHDVsCheckBox.Enable = is_lab_selection;
     ui.AddHDVsCheckBox.Value = ui.AddHDVsCheckBox.Value && is_lab_selection;

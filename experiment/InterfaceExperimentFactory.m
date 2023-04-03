@@ -29,8 +29,8 @@ classdef InterfaceExperimentFactory < handle
             obj.environment = environment;
 
             switch (environment)
-                case Environment.CPMLab
-                    experimentInterface = CPMLab();
+                case Environment.CpmLab
+                    experimentInterface = CpmLab();
                 case Environment.Simulation
                     experimentInterface = SimLab(obj.visualization_data_queue);
                 case Environment.UnifiedLabAPI
