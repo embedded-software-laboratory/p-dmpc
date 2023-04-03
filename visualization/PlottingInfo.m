@@ -19,8 +19,11 @@ classdef PlottingInfo
         coupling_info        
     end
 
-    methods (Static)
-        function obj = PlottingInfo(veh_indices, result, k, tick_now, plot_options)
+    methods
+        function obj = PlottingInfo(veh_indices, result, k, tick_now)
+            if nargin == 0
+                return;
+            end
             obj.veh_indices = veh_indices;
             obj.step = k;
             obj.tick_now = tick_now;
@@ -36,10 +39,8 @@ classdef PlottingInfo
                 obj.dynamic_obstacles = result.iteration_structs{k}.dynamic_obstacle_fullres{:,k};
                 obj.dynamic_obstacles_shape = result.iteration_structs{k}.dynamic_obstacle_shape;
             end
-            if plot_options.plot_reachable_sets
-                obj.reachable_sets = result.iteration_structs{k}.reachable_sets;
-            end
-            if plot_options.plot_lanelet_crossing_areaas
+            obj.reachable_sets = result.iteration_structs{k}.reachable_sets;
+            if isfield(result, "lanelet_crossing_areas")
                 obj.lanelet_crossing_areas = result.lanelet_crossing_areas{k};
             end
             obj.directed_coupling = result.directed_coupling{k};
@@ -51,9 +52,7 @@ classdef PlottingInfo
                 end
             end
         end
-    end
 
-    methods
         function obj = filter(obj, overall_amount_of_veh, plot_options)
             filter_self = false(1,overall_amount_of_veh);
             filter_self(obj.veh_indices(1)) = true;
@@ -63,7 +62,7 @@ classdef PlottingInfo
             if plot_options.plot_reachable_sets
                 obj.reachable_sets = obj.reachable_sets{filter_self,:};
             end
-            if plot_options.plot_lanelet_crossing_areaas
+            if plot_options.plot_lanelet_crossing_areas
                 obj.lanelet_crossing_areas = obj.lanelet_crossing_areas{filter_self};
             end
         end

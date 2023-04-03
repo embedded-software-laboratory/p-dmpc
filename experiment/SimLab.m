@@ -47,7 +47,7 @@ classdef SimLab < InterfaceExperiment
                 % visualize time step
                 % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, obj.k, tick_now, obj.scenario.options.options_plot_online);
+                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, obj.k, tick_now);
                 if obj.use_visualization_data_queue
                     %filter plotting info for controlled vehicles before
                     %sending
@@ -56,7 +56,7 @@ classdef SimLab < InterfaceExperiment
                 else
                     % wait to simulate realtime plotting
                     pause(obj.scenario.options.dt-result.step_time(obj.k))
-                    obj.plotter.plotOnline(plotting_info);
+                    obj.plotter.plot(plotting_info);
                 end
                 % pause so that `keyPressCallback()` can be executed in time
                 pause(0.01);
