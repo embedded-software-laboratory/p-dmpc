@@ -12,6 +12,9 @@ classdef SimLab < InterfaceExperiment
         function obj = SimLab(visualization_data_queue)
             obj = obj@InterfaceExperiment();
             obj.use_visualization_data_queue = false;    
+        end
+
+        function set_visualization_data_queue(obj, visualization_data_queue)
             obj.visualization_data_queue = visualization_data_queue;
         end
 
