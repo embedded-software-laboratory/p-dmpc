@@ -1,4 +1,4 @@
-classdef Priority_strategies
+classdef PriorityStrategies
 
     enumeration
         coloring_priority
