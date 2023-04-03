@@ -29,11 +29,11 @@ namespace GraphBasedPlanning {
 		[[nodiscard]] inline virtual unsigned int n_vehicles() const = 0;
 
 	   protected:
-		std::vector<std::vector<std::uint8_t>> _reachability_list;
-		std::vector<std::vector<std::uint8_t>> _reachability_list_last;
+		std::vector<std::vector<std::vector<std::uint8_t>>> _reachability_list;
 
 		ColMajorTensorAccessor<std::uint8_t> _transition_matrix_single;
 		ColMajorMatrixAccessor<FLOATING_POINT_TYPE> _transition_matrix_mean_speed;
+		std::vector<uint16_t> _distance_to_equilibrium;
 
 		bool mpa_initialized = false;
 
@@ -45,24 +45,19 @@ namespace GraphBasedPlanning {
 			n_trims() = _transition_matrix_single.size_of_dimension(0);  // or 1
 			n_hp() = _transition_matrix_single.size_of_dimension(2);
 
-			_reachability_list = std::vector<std::vector<uint8_t>>(n_trims());
-			_reachability_list_last = std::vector<std::vector<uint8_t>>(n_trims());
+			_reachability_list = std::vector<std::vector<std::vector<uint8_t>>>(n_hp());
 
-			for (uint8_t i = 0; i < n_trims(); ++i) {
+			for (uint8_t i = 0; i < n_hp(); ++i) {
+				_reachability_list[i].resize(n_trims());
 				for (uint8_t j = 0; j < n_trims(); ++j) {
-					if (_transition_matrix_single(i, j, 0)) {
-						_reachability_list[i].push_back(j);
+					for (uint8_t k = 0; k < n_trims(); ++k) {
+						if (_transition_matrix_single(j, k, i)) {
+							_reachability_list[i][j].push_back(k);
+						}
 					}
 				}
 			}
 
-			for (uint8_t i = 0; i < n_trims(); ++i) {
-				for (uint8_t j = 0; j < n_trims(); ++j) {
-					if (_transition_matrix_single(i, j, n_hp() - 1)) {
-						_reachability_list_last[i].push_back(j);
-					}
-				}
-			}
 		}
 
 		[[nodiscard]] inline virtual std::vector<FLOATING_POINT_TYPE> const &xs(unsigned int from, unsigned int to) const = 0;
@@ -78,16 +73,9 @@ namespace GraphBasedPlanning {
 		[[nodiscard]] std::uint8_t *get_reachable_states_sizes(std::uint8_t const *const current_states, std::uint8_t const next_step) const {
 			// assert(mpa_initialized);
 			std::uint8_t *sizes = new std::uint8_t[n_vehicles()];
-			if (next_step < n_hp()) {
-				for (unsigned int i = 0; i < n_vehicles(); ++i) {
-					sizes[i] = _reachability_list[current_states[i]].size();
-				}
-			} else {
-				for (unsigned int i = 0; i < n_vehicles(); ++i) {
-					sizes[i] = _reachability_list_last[current_states[i]].size();
-				}
+			for (unsigned int i = 0; i < n_vehicles(); ++i) {
+				sizes[i] = _reachability_list[next_step - 1][current_states[i]].size();
 			}
-
 			return sizes;
 		}
 
@@ -102,44 +90,20 @@ namespace GraphBasedPlanning {
 			return multipliers;
 		}
 
-		void reachable_states(std::uint8_t const *const current_states, std::uint8_t const *const sizes, unsigned int const *const multipliers, std::uint8_t *const &next_trims, unsigned int const i) const {
+		void reachable_states(std::uint8_t const *const current_states, std::uint8_t const *const sizes, unsigned int const *const multipliers, std::uint8_t const next_step, std::uint8_t *const &next_trims, unsigned int const i) const {
 			// assert(mpa_initialized);
 			for (unsigned int j = 0; j < n_vehicles(); ++j) {
-				next_trims[j] = _reachability_list[current_states[j]][i / multipliers[j] % sizes[j]];
+				next_trims[j] = _reachability_list[next_step - 1][current_states[j]][i / multipliers[j] % sizes[j]];
 			}
 		}
 
-		void reachable_states_last(std::uint8_t const *const current_states, std::uint8_t const *const sizes, unsigned int const *const multipliers, std::uint8_t *const &next_trims, unsigned int const i) const {
-			// assert(mpa_initialized);
-			for (unsigned int j = 0; j < n_vehicles(); ++j) {
-				next_trims[j] = _reachability_list_last[current_states[j]][i / multipliers[j] % sizes[j]];
-			}
-		}
-
-		unique_generator<std::uint8_t *> reachable_states(std::uint8_t const *const current_states, std::uint8_t const *const sizes, unsigned int const *const multipliers) const {
+		unique_generator<std::uint8_t *> reachable_states(std::uint8_t const *const current_states, std::uint8_t const *const sizes, unsigned int const *const multipliers, std::uint8_t const next_step) const {
 			// assert(mpa_initialized);
 			std::uint8_t *next_trims = new std::uint8_t[n_vehicles()];
 
 			for (unsigned int i = 0; i < multipliers[n_vehicles()]; ++i) {
 				for (unsigned int j = 0; j < n_vehicles(); ++j) {
-					next_trims[j] = _reachability_list[current_states[j]][i / multipliers[j] % sizes[j]];
-				}
-
-				co_yield next_trims;
-			}
-
-			delete[] next_trims;
-			delete[] sizes;
-			delete[] multipliers;
-		}
-
-		unique_generator<std::uint8_t *> reachable_states_last(std::uint8_t const *const current_states, std::uint8_t const *const sizes, unsigned int const *const multipliers) const {
-			// assert(mpa_initialized);
-			std::uint8_t *next_trims = new std::uint8_t[n_vehicles()];
-
-			for (unsigned int i = 0; i < multipliers[n_vehicles()]; ++i) {
-				for (unsigned int j = 0; j < n_vehicles(); ++j) {
-					next_trims[j] = _reachability_list_last[current_states[j]][i / multipliers[j] % sizes[j]];
+					next_trims[j] = _reachability_list[next_step - 1][current_states[j]][i / multipliers[j] % sizes[j]];
 				}
 
 				co_yield next_trims;

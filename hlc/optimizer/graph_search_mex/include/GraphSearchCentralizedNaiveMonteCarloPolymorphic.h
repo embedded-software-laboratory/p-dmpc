@@ -20,14 +20,14 @@ namespace GraphBasedPlanning {
 			std::pmr::monotonic_buffer_resource mbr(buffer, size);
 			std::pmr::polymorphic_allocator pa{&mbr};
 
-			Node<FLOATING_POINT_TYPE> const *const root = Node<FLOATING_POINT_TYPE>::create_root_node_with_polymorphic_allocator(trim_indices.begin(), &x0(0, 0), &x0(0, 1), &x0(0, 2), pa);
+			Node<FLOATING_POINT_TYPE> *const root = Node<FLOATING_POINT_TYPE>::create_root_node_with_polymorphic_allocator(trim_indices.begin(), &x0(0, 0), &x0(0, 1), &x0(0, 2), pa);
 
 			std::uint8_t *const next_trims = pa.new_object<std::uint8_t>(n_vehicles());
 			for (unsigned int i = 0; i < n_shots; ++i) {
 				pq.push(random_expand(root, next_trims, pa));
 			}
 
-			Node<FLOATING_POINT_TYPE> const *solution;
+			Node<FLOATING_POINT_TYPE> const *solution = nullptr;
 			while (!pq.empty()) {
 				solution = pq.top();
 				pq.pop();
@@ -38,38 +38,40 @@ namespace GraphBasedPlanning {
 			return solution;
 		}
 
+		uint64_t get_n_expanded() { return n_shots; }
+
 		void clean() final { delete[] buffer; }
 
 	   private:
-		[[nodiscard]] Node<FLOATING_POINT_TYPE> *random_expand(Node<FLOATING_POINT_TYPE> const *node, std::uint8_t *const next_trims, std::pmr::polymorphic_allocator<> &pa) const {
+		[[nodiscard]] Node<FLOATING_POINT_TYPE> *random_expand(Node<FLOATING_POINT_TYPE> *node, std::uint8_t *const next_trims, std::pmr::polymorphic_allocator<> &pa) const {
 			static auto random = std::mt19937{std::random_device{}()};
 
 			for (unsigned int i = 1; i < n_hp(); ++i) {
 				for (unsigned int j = 0; j < n_vehicles(); ++j) {
-					std::vector<std::uint8_t> const &sampling_vector = _reachability_list[node->trim(j)];
+					std::vector<std::uint8_t> const &sampling_vector = _reachability_list[i-1][node->trim(j)];
 
 					std::sample(sampling_vector.begin(), sampling_vector.end(), next_trims + j, 1, random);
 				}
 
 				Node<FLOATING_POINT_TYPE> *const new_node = Node<FLOATING_POINT_TYPE>::create_node_with_polymorphic_allocator(node->g(), node, i, pa);
-				init_new_node(node, next_trims, i, new_node);
+				init_new_node(node, next_trims, new_node);
 				node = new_node;
 			}
 
 			for (unsigned int j = 0; j < n_vehicles(); ++j) {
-				std::vector<std::uint8_t> const &sampling_vector = _reachability_list_last[node->trim(j)];
+				std::vector<std::uint8_t> const &sampling_vector = _reachability_list[n_hp() - 1][node->trim(j)];
 
 				std::sample(sampling_vector.begin(), sampling_vector.end(), next_trims + j, 1, random);
 			}
 
 			Node<FLOATING_POINT_TYPE> *const new_node = Node<FLOATING_POINT_TYPE>::create_node_with_polymorphic_allocator(node->g(), node, n_hp(), pa);
-			init_new_node(node, next_trims, n_hp(), new_node);
+			init_new_node(node, next_trims, new_node);
 			return new_node;
 		}
 
 		bool check_path(Node<FLOATING_POINT_TYPE> const *solution) const {
 			do {
-				if (!is_path_valid(solution)) return false;
+				if (!is_path_valid_centralized(solution)) return false;
 				solution = solution->parent();
 			} while (solution->k());
 

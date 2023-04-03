@@ -59,8 +59,8 @@ namespace GraphBasedPlanning::CollisionDetection {
 	inline constexpr double dotProduct(vec2 a, vec2 b) { return a.x * b.x + a.y * b.y; }
 	inline constexpr double lengthSquared(vec2 v) { return v.x * v.x + v.y * v.y; }
 	inline constexpr double lengthSquared(vec2 v, vec2 w) { return (v.x - w.x) * (v.x - w.x) + (v.y - w.y) * (v.y - w.y); }
-	inline constexpr double distance(vec2 v, vec2 w) { return std::sqrt((v.x - w.x) * (v.x - w.x) + (v.y - w.y) * (v.y - w.y)); }
-	inline constexpr double minimum_distance(vec2 p, vec2 v, vec2 w) {
+	inline double distance(vec2 v, vec2 w) { return std::sqrt((v.x - w.x) * (v.x - w.x) + (v.y - w.y) * (v.y - w.y)); }
+	inline double minimum_distance(vec2 p, vec2 v, vec2 w) {
 		// Return minimum distance between line segment vw and point p
 		const double l2 = lengthSquared(v, w);  // i.e. |w-v|^2 -  avoid a sqrt
 		if (l2 == 0.0) return distance(p, v);   // v == w case
@@ -93,7 +93,7 @@ namespace GraphBasedPlanning::CollisionDetection {
 	}
 
 	/*inline constexpr vec2 get_point_along_linestrip_with_distance_from_point(vec2 const p, double distance, vec2 const l1, vec2 const l2) {
-		return vec2;
+	    return vec2;
 	}*/
 
 	inline double magnitude(vec2 const v, vec2 const w) { return std::sqrt((v.x * v.x + v.y * v.y) * (w.x * w.x + w.y * w.y)); }

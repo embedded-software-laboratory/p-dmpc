@@ -25,7 +25,7 @@ namespace GraphBasedPlanning {
 				Node<FLOATING_POINT_TYPE> *const current_node = pq.top();
 				pq.pop();
 
-				if (!is_path_valid(current_node)) {
+				if (!is_path_valid_centralized(current_node)) {
 					continue;
 				}
 

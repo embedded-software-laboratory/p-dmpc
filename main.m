@@ -4,8 +4,7 @@ function [result, scenario] = main(varargin)
     if verLessThan('matlab','9.12')
         warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
     end
-    
-    
+        
     % check if Config object is given as input
     options = read_object_from_input(varargin,'Config');
     % If options are not given, determine from UI
@@ -34,7 +33,8 @@ function [result, scenario] = main(varargin)
     if scenario.options.isPB == true
         save('scenario.mat','scenario');
     end
-    if scenario.options.isPB && scenario.options.environment == Environment.CPMLab && scenario.options.isParl
+    is_prioritized_parallel_in_lab = (scenario.options.isPB && scenario.options.environment == Environment.CPMLab && scenario.options.isParl);
+    if is_prioritized_parallel_in_lab
         disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
         if exist("commun/cust1/matlab_msg_gen", 'dir')
             try
@@ -54,11 +54,15 @@ function [result, scenario] = main(varargin)
         hlc_factory = HLCFactory();
         hlc_factory.set_scenario(scenario);
         dry_run = (scenario.options.environment == Environment.CPMLab); % TODO: dry run also for unified lab api?
+        if scenario.options.use_cpp
+            optimizer(Function.CheckMexFunction);
+        end
         if scenario.options.isPB == true && scenario.options.isParl
             %% simulate distribution locally using the Parallel Computing Toolbox
             get_parallel_pool(scenario.options.amount);
-            plot = scenario.options.options_plot_online.is_active;
-            if plot
+
+            do_plot = scenario.options.options_plot_online.is_active;
+            if do_plot
                 exp_factory.set_visualization_data_queue;
                 % create central plotter - used by all workers via data queue
                 plotter = PlotterOnline(hlc_factory.scenario);
@@ -68,7 +72,7 @@ function [result, scenario] = main(varargin)
                 hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, interfaceExperiment);
                 [result,scenario] = hlc.run();
             end
-            if plot
+            if do_plot
                 plotter.close_figure();
             end
             result={result{:}};

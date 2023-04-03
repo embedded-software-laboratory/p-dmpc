@@ -1,7 +1,7 @@
 classdef PbControllerSeq < PbControllerInterface
     methods
-        function obj = PbControllerSeq()
-            obj = obj@PbControllerInterface();
+        function obj = PbControllerSeq(scenario, vehicle_ids)
+            obj = obj@PbControllerInterface(scenario, vehicle_ids);
         end
     end
     methods (Access = protected)

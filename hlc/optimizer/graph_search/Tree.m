@@ -87,6 +87,32 @@ classdef Tree < handle
             obj.h(:,IDs) = h;
             obj.parent(IDs,1) = parent;
         end
+
+        function IDs = add_node(obj, parent, node)
+            %% ADD_NODES attach multiple new nodes to a parent node
+            % Tree = Tree.ADD_NODE(parent_index, data) create a new node
+            % with content 'data', and attach it as a child of the node
+            % with index 'parent_index'. Return the modified Tree.
+            % 
+            % [ Tree, ID ] = Tree.ADD_NODE(...) returns the modified Tree and
+            % the index of the newly created node.
+            
+            assert( ...
+                parent>0 && parent<=numel(obj.parent) ...
+                , 'Parent index %d out of bounds.\n' ...
+                , parent ...
+            );
+
+            IDs = size(obj)+1;
+            obj.x(:,IDs) = node(:,NodeInfo.x);
+            obj.y(:,IDs) = node(:,NodeInfo.y);
+            obj.yaw(:,IDs) = node(:,NodeInfo.yaw);
+            obj.trim(:,IDs) = node(:,NodeInfo.trim);
+            obj.k(:,IDs) = node(1,NodeInfo.k);
+            obj.g(:,IDs) = node(1,NodeInfo.g);
+            obj.h(:,IDs) = node(1,NodeInfo.h);
+            obj.parent(IDs,1) = parent;
+        end
         
         function flag = is_leaf(obj, ID)
             %% IS_LEAF  Return true if given ID matches a leaf node.

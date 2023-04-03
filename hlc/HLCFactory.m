@@ -37,21 +37,16 @@ classdef HLCFactory < handle
                 if length(vehicle_ids)==1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    hlc = PbControllerParl();
+                    hlc = PbControllerParl(obj.scenario, vehicle_ids);
                 else
                     % PB Controller controlling all vehicles
-                    hlc = PbControllerSeq();
+                    hlc = PbControllerSeq(obj.scenario, vehicle_ids);
                 end
             else
-                hlc = CentralizedController();
+                hlc = CentralizedController(obj.scenario, vehicle_ids);
             end
 
-            %TODO filter scenario for veh id
-            hlc.set_scenario(obj.scenario);
-
             hlc.set_controller_name(obj.get_controller_name(obj.scenario.options));
-
-            hlc.set_vehicle_ids(vehicle_ids);
 
             hlc.set_hlc_adapter(experimentInterface);
 
@@ -110,6 +105,9 @@ classdef HLCFactory < handle
             obj.scenario.options.options_plot_online.is_active = plot_backup;
             obj.scenario.options.T_end = T_end_backup;
             obj.scenario.options.isSaveResult = save_result_backup;
+            if obj.scenario.options.use_cpp == true
+                clear mex;
+            end
             disp("Dry Run Completed");
         end
     end

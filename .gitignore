@@ -1,6 +1,9 @@
 # Ignore output
 results/
 profile_results
+ui/Config.json
+Config.json
+
 
 # Ignore PDF file
 *.pdf
@@ -100,6 +103,11 @@ octave-workspace
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+*.vcxproj.filters
+.vs/
+*.vcxproj
+
+
 
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
@@ -135,6 +143,19 @@ $RECYCLE.BIN/
 *.mp4
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,windows,matlab,visualstudiocode
-ui/Config.json
 
-Config.json
+# CMake
+cmake_install.cmake
+CMakeFiles/
+CMakeSettings.json
+
+
+hlc/optimizer/graph_search_mex/CMakeFiles/
+hlc/optimizer/graph_search_mex/x64/
+hlc/optimizer/graph_search_mex/optimizer.dir/
+CMakeCache.txt
+
+*sln
+*.pdb
+*.exp
+*lib

@@ -5,6 +5,7 @@ classdef systemtests < matlab.unittest.TestCase
         %priority = {'coloring', 'right_of_way', 'constant', 'random', 'FCA', 'STAC'};
         scenario_name = {'Circle_scenario', 'Commonroad'};
         parallel = {'sequential', 'parallel'};
+        use_cpp = {true, false}
     end
 
     methods (Test)
@@ -23,7 +24,7 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        function priority_based(testCase, scenario_name, parallel, priority)
+        function priority_based(testCase, scenario_name, parallel, priority, use_cpp)
             lastwarn('');
             fprintf('\nprioritized %s systemtest for %s with %s priority\n', parallel, scenario_name, priority);
             %load Config from json
@@ -33,6 +34,7 @@ classdef systemtests < matlab.unittest.TestCase
             options.scenario_name = scenario_name;
             options.isPB = true;
             options.priority = Priority_strategies.([priority, '_priority']);
+            options.use_cpp = use_cpp;
             if strcmp(parallel, 'parallel')
                 options.isParl = true;
             elseif strcmp(parallel, 'sequential')

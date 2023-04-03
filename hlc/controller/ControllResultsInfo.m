@@ -21,7 +21,7 @@ classdef ControllResultsInfo
         computation_levels              % actual number of computation levels of the whole system
         vehs_fallback                   % vehicles that need to take fallback
         is_exhausted                    % whether graph search is exhausted
-        is_semi_exhausted               % vehicle at a stillstand but the graph search is still exhausted
+        needs_fallback                  % vehicle at a stillstand but the graph search is still exhausted
         u                               % control input
     end
 
@@ -31,8 +31,7 @@ classdef ControllResultsInfo
 
     properties (SetAccess=private)
         controller_ID                   % controller ID which should be the same as the corresponding vehicle ID
-    end
-    
+    end    
 
     methods
         function obj = ControllResultsInfo(nVeh, Hp, controller_ID)
@@ -52,13 +51,14 @@ classdef ControllResultsInfo
             obj.n_expanded = zeros(nVeh,1);
             obj.next_node = node(-1, zeros(nVeh,1), zeros(nVeh,1), zeros(nVeh,1), zeros(nVeh,1), -1, -1);
             obj.shapes = cell(nVeh,Hp);                   
-            obj.vehicle_fullres_path = cell(nVeh,1);
+            obj.vehicle_fullres_path = cell(nVeh,1); %TODO not used
             obj.predicted_trims = zeros(nVeh,Hp+1);
             obj.y_predicted = cell(nVeh,1);
             obj.computation_levels = inf;
             obj.vehs_fallback = int32.empty;
             obj.is_exhausted = false(nVeh,1);
-            obj.u = zeros(nVeh,1);
+            obj.needs_fallback = false(nVeh,1);
+            %obj.u = zeros(nVeh,1);
             %obj.runtime_graph_search_each_veh = zeros(nVeh);
             %obj.runtime_subcontroller_each_veh = zeros(nVeh);
         end
@@ -70,31 +70,27 @@ classdef ControllResultsInfo
                 vehicle_idx = find(obj.controller_ID==info_v.controller_ID);
                 obj.tree{vehicle_idx} = info_v.tree;
                 obj.tree_path(vehicle_idx,:) = info_v.tree_path;
-                obj.n_expanded(vehicle_idx,1) = info_v.tree.size();
-                obj.next_node = set_node(obj.next_node, vehicle_idx, info_v);
+                obj.n_expanded(vehicle_idx,1) = info_v.n_expanded;
+                obj.next_node = set_node(obj.next_node, vehicle_idx, info_v.tree.get_node(info_v.tree_path(2)));
                 obj.shapes(vehicle_idx,:) = info_v.shapes(:);
                 obj.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, scenario);
                 obj.predicted_trims(vehicle_idx,:) = info_v.predicted_trims; % store the planned trims in the future Hp time steps
-    %             obj.trim_indices(vehicle_idx) = info_v.trim_indices; % dependent variable
+                %             obj.trim_indices(vehicle_idx) = info_v.trim_indices; % dependent variable
                 obj.y_predicted(vehicle_idx) = info_v.y_predicted; % store the information of the predicted output
+                obj.is_exhausted(vehicle_idx) = info_v.is_exhausted;
+
             else
                 % for centralized control
-                if scenario.options.use_cpp % this is stupid and I don't like it, but it is a minimally invasive procedure
-                    obj.next_node = info_v.next_node;
-                    obj.predicted_trims = info_v.predicted_trims;
-                    obj.y_predicted = info_v.y_predicted(:);
-                else
-                    obj.tree = info_v.tree; % only for node explorationslee
-                    obj.n_expanded = info_v.tree.size();
-                    obj.next_node = set_node(obj.next_node,1:scenario.options.amount,info_v);
-                    obj.shapes = info_v.shapes;
-                    obj.vehicle_fullres_path = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, scenario)';
-                    obj.predicted_trims = info_v.predicted_trims; % store the planned trims in the future Hp time steps
-%                     obj.trim_indices = info_v.trim_indices; % dependent variable
-                    obj.y_predicted = info_v.y_predicted(:); % store the information of the predicted output
-                end
+                obj.tree = info_v.tree; % only for node explorationslee
+                obj.n_expanded = info_v.n_expanded;
+                obj.next_node = set_node(obj.next_node,1:scenario.options.amount, info_v.tree.get_node(info_v.tree_path(2)));
+                obj.shapes = info_v.shapes;
+                obj.vehicle_fullres_path = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, scenario)';
+                obj.predicted_trims = info_v.predicted_trims; % store the planned trims in the future Hp time steps
+                %                     obj.trim_indices = info_v.trim_indices; % dependent variable
+                obj.y_predicted = info_v.y_predicted(:); % store the information of the predicted output
+                obj.is_exhausted = info_v.is_exhausted;
             end
-
             % Predicted trim of the next time step
             obj.trim_indices = obj.predicted_trims(:,2);
         end
@@ -133,6 +129,37 @@ classdef ControllResultsInfo
             obj.runtime_subcontroller_max = max(obj.runtime_subcontroller_each_grp);
             obj.computation_levels = length(CL_based_hierarchy);
         
+        end
+
+        function obj = handle_graph_search_exhaustion(obj, scenario, iter)
+            trim = iter.trim_indices;
+            if scenario.mpa.trims(trim).speed==0 && ~strcmp(scenario.options.strategy_consider_veh_without_ROW,'1')
+                % if a vehicle at a standstill cannot find a feasible
+                % trajectory, it will keep at a standstill without
+                % triggering a fallback. This kind of graph search is
+                % considered as a semi-exhausted, and the corresponding
+                % infeasibility is called a semi-infeasibility. Note that
+                % this strategy can be used only if higher-priority
+                % vehicles consider at least the current occupied sets of
+                % lower-priority vehicles.
+                Hp = scenario.options.Hp;
+                x = iter.x0(:,1);
+                y = iter.x0(:,2);
+                yaw = iter.x0(:,3);
+                obj.tree_path = ones(Hp+1);
+                y_pred = {repmat([x,y,yaw,trim],(scenario.options.tick_per_step+1)*Hp,1)};
+                obj.y_predicted = y_pred;
+
+                vehiclePolygon = transformedRectangle(x,y,yaw, iter.vehicles.Length,iter.vehicles.Width);
+                shape_veh = {[vehiclePolygon,vehiclePolygon(:,1)]}; % close shape
+
+                obj.shapes = repmat(shape_veh,1,Hp);
+                % Predicted trims in the future Hp time steps. The first entry is the current trims
+                obj.predicted_trims = repmat(trim,1,Hp+1);
+                obj.needs_fallback = false;
+            else
+                obj.needs_fallback = true;
+            end
         end
     end
 end

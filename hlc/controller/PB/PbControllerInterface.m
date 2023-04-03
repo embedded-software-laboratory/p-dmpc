@@ -5,8 +5,13 @@ classdef (Abstract) PbControllerInterface < HLCInterface
     end
     
     methods
-        function obj = PbControllerInterface()
-            obj = obj@HLCInterface();
+        function obj = PbControllerInterface(scenario, vehicle_ids)
+            obj = obj@HLCInterface(scenario, vehicle_ids);
+            if obj.scenario.options.use_cpp
+                obj.optimizer = GraphSearchMexPB(obj.scenario, obj.indices_in_vehicle_list);
+            else
+                obj.optimizer = GraphSearch(obj.scenario);
+            end
         end
     end
     
@@ -136,11 +141,13 @@ classdef (Abstract) PbControllerInterface < HLCInterface
             iter_v = consider_vehs_with_LP(obj.scenario, iter_v, vehicle_idx, all_coupled_vehs_with_LP, obj.ros_subscribers);
 
             %% Plan for vehicle vehicle_idx
-            % execute sub controller for 1-veh scenario
-            graph_search_timer = tic;
-            info_v = obj.sub_controller(obj.scenario, iter_v);
-            obj.info.runtime_graph_search_each_veh(vehicle_idx) = toc(graph_search_timer);
+                % execute sub controller for 1-veh scenario
+            [info_v , graph_search_time] = obj.optimizer.run_optimizer(iter_v, vehicle_idx);
+            obj.info.runtime_graph_search_each_veh(vehicle_idx) = graph_search_time;
             if info_v.is_exhausted
+                info_v = handle_graph_search_exhaustion(info_v, obj.scenario, obj.iter);
+            end
+            if info_v.needs_fallback
                 % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
                 %                 disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
                 switch obj.scenario.options.fallback_type
@@ -157,10 +164,10 @@ classdef (Abstract) PbControllerInterface < HLCInterface
                     otherwise
                         warning("Please define one of the follows as fallback strategy: 'noFallback', 'localFallback', and 'globalFallback'.")
                 end
-                obj.info.is_exhausted(vehicle_idx) = true;
             else
                 obj.info = store_control_info(obj.info, info_v, obj.scenario);
             end
+            
             if obj.iter.k==inf
                 plot_obstacles(obj.scenario)
                 plot_obstacles(info_v.shapes)

@@ -223,4 +223,3 @@ function [coupling_weights_reduced,coupling_info] = check_and_break_circle(coupl
     end
 
 end 
-
