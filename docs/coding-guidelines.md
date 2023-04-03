@@ -1,12 +1,13 @@
 # General
 - Code Style
-    - never abbreviate (parallel, not: parl)
+    - don't abbreviate (parallel, not: parl)
     - don't put types in names (not: int_houses, i for Interface e.g. IHouse)
     - put units in variable names (delay_seconds)
-    - avoid nesting, e.g. with guard clauses
-- Variable naming conventions
+    - avoid nesting, e.g. with guard clauses (`if (~necessary) continue; end`)
+- Code naming conventions
     - Classnames are `CamelCase`
     - Everything else is `snake_case`
+    - Interfaces and implementations have a unique name (no `IClass`, no `InterfaceClass`, no `ClassImpl` ...)
 - Branch naming conventions
     - use slashes to separate folders
     - use hyphens to separate words, no underscores

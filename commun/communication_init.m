@@ -4,7 +4,7 @@ function communication_init(hlc)
     % running on other machines or in other processes on the same machine (synchronization)
     %
     % INPUT:
-    %   hlc: Controller implementing the HLCInterface
+    %   hlc: Controller implementing the HighLevelController
     %
 
     % measure vehicles' initial poses and trims

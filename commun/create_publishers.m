@@ -4,7 +4,7 @@ function create_publishers(hlc)
     % and sends its data only to its own topic.
     %
     % INPUT:
-    %   hlc: Controller implementing the HLCInterface
+    %   hlc: Controller implementing the HighLevelController
     %
 
     % generate custom message type (for vehicle communication) if not exist

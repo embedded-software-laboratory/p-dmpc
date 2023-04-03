@@ -4,7 +4,7 @@ function create_subscribers(hlc)
     % and sends its data only to its own topic.
     %
     % INPUT:
-    %   hlc: Controller implementing the HLCInterface
+    %   hlc: Controller implementing the HighLevelController
     %
 
     % init global message storage for callbacks
