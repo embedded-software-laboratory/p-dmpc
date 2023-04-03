@@ -54,7 +54,7 @@ classdef ManualVehicle
         end
 
         function plot(obj, color)
-            vehicle_polygon = transformedRectangle(obj.Length, obj.Width);
+            vehicle_polygon = transformed_rectangle(obj.Length, obj.Width);
             patch(vehicle_polygon(1, :), vehicle_polygon(2, :), color);
         end
 

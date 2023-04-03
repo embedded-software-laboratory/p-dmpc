@@ -157,7 +157,7 @@ classdef ControllResultsInfo
                 y_pred = {repmat([x, y, yaw, trim], (scenario.options.tick_per_step + 1) * Hp, 1)};
                 obj.y_predicted = y_pred;
 
-                vehiclePolygon = transformedRectangle(x, y, yaw, iter.vehicles.Length, iter.vehicles.Width);
+                vehiclePolygon = transformed_rectangle(x, y, yaw, iter.vehicles.Length, iter.vehicles.Width);
                 shape_veh = {[vehiclePolygon, vehiclePolygon(:, 1)]}; % close shape
 
                 obj.shapes = repmat(shape_veh, 1, Hp);

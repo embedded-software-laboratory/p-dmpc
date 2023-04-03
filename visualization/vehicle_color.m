@@ -1,4 +1,4 @@
-function color = vehColor(index, priority_list)
+function color = vehicle_color(index, priority_list)
     % VEHCOLOR  Return vehicle color specifier for vehicle with given index.
 
     if nargin == 2

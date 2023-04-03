@@ -187,4 +187,4 @@ result.scenario.options.options_plot_online.plot_coupling = false;
 result.scenario.options.options_plot_online.plot_priority = false;
 
 videoExportSetup.framerate = 5;
-exportVideo(result, videoExportSetup)
+export_video(result, videoExportSetup)

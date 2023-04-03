@@ -9,7 +9,7 @@ classdef Vehicle
         x_goal = 0; % [m]
         y_goal = 0; % [m]
         yaw_goal = 0; % [radians]
-        referenceTrajectory = [0 0; 1 0; 3 1]; % [x1 y1; x2 y2; ...]
+        reference_trajectory = [0 0; 1 0; 3 1]; % [x1 y1; x2 y2; ...]
         Length = 0.22; % Vehicle length (bumper to bumper)[m]
         Width = 0.1; % Vehicle width [m]
         Lf = 0.1; % Distance between vehicle center and front axle center [m]
@@ -18,7 +18,6 @@ classdef Vehicle
         lanelets_index;
         points_index;
         communicate; % instance of the class `Communication`, used for communication via ROS 2
-        paddle_counter = 2; % initial speed profile
         vehicle_mpa; % instance of the class `MotionPrimitiveAutomaton`
         ref_path_loop_idx % totally 7 loops of paths are designed
         is_loop = true; % whether the reference path is a loop
@@ -31,7 +30,7 @@ classdef Vehicle
         end
 
         function plot(obj, color)
-            vehicle_polygon = transformedRectangle(obj.x_start, obj.y_start, obj.yaw_start, obj.Length, obj.Width);
+            vehicle_polygon = transformed_rectangle(obj.x_start, obj.y_start, obj.yaw_start, obj.Length, obj.Width);
             patch(vehicle_polygon(1, :), vehicle_polygon(2, :), color);
         end
 

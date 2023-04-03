@@ -14,7 +14,7 @@ function scenario = horizon_obstacle_scenario(N, d_obstacle)
     veh.y_goal = 0 + center_y;
     veh.yaw_goal = 0;
     veh.trim_config = 1;
-    veh.referenceTrajectory = [veh.x_start veh.y_start; veh.x_goal veh.y_goal];
+    veh.reference_trajectory = [veh.x_start veh.y_start; veh.x_goal veh.y_goal];
     scenario.vehicles = veh;
     scenario.options.Hp = N;
 
@@ -32,7 +32,7 @@ function scenario = horizon_obstacle_scenario(N, d_obstacle)
     scenario.options.plot_limits = [-0.5, 5; 1.5, 2.5];
 
     x_obs_l = veh.x_start + d_obstacle;
-    scenario.obstacles{1} = transformedRectangle( ...
+    scenario.obstacles{1} = transformed_rectangle( ...
         x_obs_l ...
         , center_y ...
         , pi / 2 ...

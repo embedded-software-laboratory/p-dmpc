@@ -11,7 +11,7 @@ function [result, scenario] = main(varargin)
     if isempty(options)
 
         try
-            options = startOptions();
+            options = start_options();
         catch ME
             warning(ME.message);
             return

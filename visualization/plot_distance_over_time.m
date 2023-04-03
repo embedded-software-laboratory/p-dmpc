@@ -32,10 +32,10 @@ function plot_distance_over_time(result)
             % reference trajectory
             if ir ~= 3
                 linestyle = '-';
-                c = vehColor(ir);
+                c = vehicle_color(ir);
             else
                 linestyle = ':';
-                c = vehColor(2);
+                c = vehicle_color(2);
             end
 
             line(t, s, 'Color', c, 'LineStyle', linestyle);

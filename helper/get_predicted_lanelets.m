@@ -39,7 +39,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
     % Find equidistant points on the reference trajectory.
     reference = sample_reference_trajectory( ...
         Hp, ... % number of prediction steps
-        scenario.vehicles(iVeh).referenceTrajectory, ... % total reference path
+        scenario.vehicles(iVeh).reference_trajectory, ... % total reference path
         x0, ... % vehicle position x
         y0, ... % vehicle position y
         v_ref_intermediate * scenario.options.dt, ... % distance traveled in one timestep
@@ -51,7 +51,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
     %     ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle
 
     % predict several points more such that the predicted lanelets can cover all reachable set. Only in this way, the bounded reachable sets will not be cutoff at its front
-    n_points_total = size(scenario.vehicles(iVeh).referenceTrajectory, 1);
+    n_points_total = size(scenario.vehicles(iVeh).reference_trajectory, 1);
     index_add = ref_points_index(end) + 4;
 
     if index_add > n_points_total

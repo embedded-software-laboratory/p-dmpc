@@ -1,4 +1,4 @@
-function plotTrafficStatus(result, step_idx, tick_now, visu)
+function plot_traffic_status(result, step_idx, tick_now, visu)
     % PLOTONLINE    Plot function used for plotting the simulation state in a specified tick
     %               during a specified time step
     %
@@ -152,7 +152,7 @@ function plotTrafficStatus(result, step_idx, tick_now, visu)
         veh = scenario.vehicles(v);
         pos_step = result.trajectory_predictions{v, step_idx};
         x = pos_step(tick_now, :);
-        vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+        vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , vehColor(color_list(v), :) ...
@@ -213,7 +213,7 @@ function plotTrafficStatus(result, step_idx, tick_now, visu)
     for obs = 1:nDynObst
         pos_step = iter.dynamic_obstacle_fullres{obs, step_idx};
         x = pos_step(tick_now, :);
-        obstaclePolygon = transformedRectangle(x(1), x(2), pi / 2, iter.dynamic_obstacle_shape(1), iter.dynamic_obstacle_shape(2));
+        obstaclePolygon = transformed_rectangle(x(1), x(2), pi / 2, iter.dynamic_obstacle_shape(1), iter.dynamic_obstacle_shape(2));
         patch(obstaclePolygon(1, :) ...
             , obstaclePolygon(2, :) ...
             , [0.5 0.5 0.5] ...

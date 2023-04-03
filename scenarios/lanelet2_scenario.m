@@ -90,12 +90,12 @@ function scenario = lanelet2_scenario(options, vehicle_ids, interfaceExperiment)
         veh.x_goal = ref_path.path([start_point + 1:end, 1:start_point - 1], 1);
         veh.y_goal = ref_path.path([start_point + 1:end, 1:start_point - 1], 2);
 
-        veh.referenceTrajectory = [veh.x_start veh.y_start
-                                   veh.x_goal veh.y_goal];
+        veh.reference_trajectory = [veh.x_start veh.y_start
+                                    veh.x_goal veh.y_goal];
 
         veh.points_index = ref_path.points_index - start_point + 1;
 
-        yaw = calculate_yaw(veh.referenceTrajectory);
+        yaw = calculate_yaw(veh.reference_trajectory);
         veh.yaw_start = yaw(1);
         veh.yaw_goal = yaw(2:end);
         scenario.vehicles = [scenario.vehicles, veh];

@@ -20,7 +20,7 @@ function scenario = lanelet_scenario3(is_prioritized)
     veh.y_goal = c * -2.5;
     veh.yaw_goal = 0;
     veh_lanelets = vertcat(scenario.lanelets{scenario.vehicle_to_lanelet(1, :)});
-    veh.referenceTrajectory = unique([veh_lanelets(:, LaneletInfo.cx), veh_lanelets(:, LaneletInfo.cy)], 'rows', 'stable');
+    veh.reference_trajectory = unique([veh_lanelets(:, LaneletInfo.cx), veh_lanelets(:, LaneletInfo.cy)], 'rows', 'stable');
     scenario.vehicles = [scenario.vehicles, veh];
 
     veh = Vehicle();
@@ -32,7 +32,7 @@ function scenario = lanelet_scenario3(is_prioritized)
     veh.y_goal = c * -2.5;
     veh.yaw_goal = 0;
     veh_lanelets = vertcat(scenario.lanelets{scenario.vehicle_to_lanelet(2, :)});
-    veh.referenceTrajectory = unique([veh_lanelets(:, LaneletInfo.cx), veh_lanelets(:, LaneletInfo.cy)], 'rows', 'stable');
+    veh.reference_trajectory = unique([veh_lanelets(:, LaneletInfo.cx), veh_lanelets(:, LaneletInfo.cy)], 'rows', 'stable');
     scenario.vehicles = [scenario.vehicles, veh];
 
     scenario.options.plot_limits = c * [-20, 20; -20, 20];

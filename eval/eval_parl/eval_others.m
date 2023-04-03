@@ -27,8 +27,8 @@ for iveh = 1:nVeh
         veh.x_goal = [refPath(start_point_idx + 1:end, 1); refPath(2:start_point_idx - 1, 1); veh.x_start]; % add the starting point to the end to close the loop
         veh.y_goal = [refPath(start_point_idx + 1:end, 2); refPath(2:start_point_idx - 1, 2); veh.y_start]; % add the starting point to the end to close the loop
 
-        veh.referenceTrajectory = [veh.x_start veh.y_start
-                                   veh.x_goal veh.y_goal];
+        veh.reference_trajectory = [veh.x_start veh.y_start
+                                    veh.x_goal veh.y_goal];
         veh.lanelets_index = ref_path.lanelets_index;
         veh.points_index = ref_path.points_index;
         yaw = calculate_yaw(refPath);
@@ -40,8 +40,8 @@ for iveh = 1:nVeh
         veh.x_goal = refPath(2:end, 1);
         veh.y_goal = refPath(2:end, 2);
 
-        veh.referenceTrajectory = [veh.x_start veh.y_start
-                                   veh.x_goal veh.y_goal];
+        veh.reference_trajectory = [veh.x_start veh.y_start
+                                    veh.x_goal veh.y_goal];
         veh.lanelets_index = ref_path.lanelets_index;
         veh.points_index = ref_path.points_index;
 
@@ -109,14 +109,14 @@ ylabel('$y [m]$', 'Interpreter', 'latex');
 % Reference path
 for iLoop = 1:num_loops
     find_veh = find(cellfun(@(c) ismember(iLoop, c.ref_path_loop_idx), vehs));
-    plot(vehs{find_veh(1)}.referenceTrajectory(:, 1), vehs{find_veh(1)}.referenceTrajectory(:, 2), 'LineWidth', 0.3, 'Color', vehColor(iLoop, :), 'LineStyle', '--')
+    plot(vehs{find_veh(1)}.reference_trajectory(:, 1), vehs{find_veh(1)}.reference_trajectory(:, 2), 'LineWidth', 0.3, 'Color', vehColor(iLoop, :), 'LineStyle', '--')
 end
 
 % Vehicle rectangles
 for v = 1:nVeh
     veh = vehs{v};
     x = [veh.x_start, veh.y_start, veh.yaw_start];
-    vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+    vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
     patch(vehiclePolygon(1, :) ...
         , vehiclePolygon(2, :) ...
         , vehColor(veh.ref_path_loop_idx, :) ...
@@ -218,13 +218,13 @@ m = mpa.maneuvers{trim_initial, trim_next};
 
 offset = 0.01;
 
-area_initial_local = transformedRectangle(0, 0, 0, veh.Length, veh.Width);
+area_initial_local = transformed_rectangle(0, 0, 0, veh.Length, veh.Width);
 area_initial_local = [area_initial_local, area_initial_local(:, 1)]; % close shape
-area_initial_local_with_offset = transformedRectangle(0, 0, 0, veh.Length + 2 * offset, veh.Width + 2 * offset);
+area_initial_local_with_offset = transformed_rectangle(0, 0, 0, veh.Length + 2 * offset, veh.Width + 2 * offset);
 area_initial_local_with_offset = [area_initial_local_with_offset, area_initial_local_with_offset(:, 1)]; % close shape
-area_next_local = transformedRectangle(m.dx, m.dy, m.dyaw, veh.Length, veh.Width);
+area_next_local = transformed_rectangle(m.dx, m.dy, m.dyaw, veh.Length, veh.Width);
 area_next_local = [area_next_local, area_next_local(:, 1)]; % close shape
-area_next_local_with_offset = transformedRectangle(m.dx, m.dy, m.dyaw, veh.Length + 2 * offset, veh.Width + 2 * offset);
+area_next_local_with_offset = transformed_rectangle(m.dx, m.dy, m.dyaw, veh.Length + 2 * offset, veh.Width + 2 * offset);
 area_next_local_with_offset = [area_next_local_with_offset, area_next_local_with_offset(:, 1)]; % close shape
 
 hold on
@@ -243,7 +243,7 @@ p(4) = plot(m.area(1, :), m.area(2, :), options_transition_local);
 plot(m.area_without_offset(1, :), m.area_without_offset(2, :), options_transition_local);
 
 initial_states = [0.6, -0.2, pi / 4];
-area_initial_global = transformedRectangle(initial_states(1), initial_states(2), initial_states(3), veh.Length, veh.Width);
+area_initial_global = transformed_rectangle(initial_states(1), initial_states(2), initial_states(3), veh.Length, veh.Width);
 area_initial_global = [area_initial_global, area_initial_global(:, 1)]; % close shape
 [area_next_global_x, area_next_global_y] = translate_global(initial_states(3), initial_states(1), initial_states(2), area_next_local(1, :), area_next_local(2, :));
 [MP_global_x, MP_global_y] = translate_global(initial_states(3), initial_states(1), initial_states(2), m.xs, m.ys);
@@ -441,9 +441,9 @@ xlabel('$x\:[m]$', 'Interpreter', 'latex');
 ylabel('$y\:[m]$', 'Interpreter', 'latex');
 
 x0 = [1, -0.4, pi / 6];
-veh_area_initial_local = transformedRectangle(0, 0, 0, veh.Length, veh.Width);
+veh_area_initial_local = transformed_rectangle(0, 0, 0, veh.Length, veh.Width);
 veh_area_initial_local = [veh_area_initial_local, veh_area_initial_local(:, 1)]; % close shape
-veh_area_initial_global = transformedRectangle(x0(1), x0(2), x0(3), veh.Length, veh.Width);
+veh_area_initial_global = transformed_rectangle(x0(1), x0(2), x0(3), veh.Length, veh.Width);
 veh_area_initial_global = [veh_area_initial_global, veh_area_initial_global(:, 1)]; % close shape
 clear p
 p(1) = plot(veh_area_initial_local(1, :), veh_area_initial_local(2, :), options_veh_area_local);

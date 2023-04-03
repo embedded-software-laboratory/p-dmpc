@@ -16,16 +16,16 @@ function plot_scenario(result, filename)
     % reference trajectory
     for iVeh = 1:numel(scenario.vehicles)
         veh = scenario.vehicles(iVeh);
-        line(veh.referenceTrajectory(:, 1), ...
-            veh.referenceTrajectory(:, 2), ...
-            'Color', vehColor(iVeh), 'LineStyle', '--', 'LineWidth', 1 ...
+        line(veh.reference_trajectory(:, 1), ...
+            veh.reference_trajectory(:, 2), ...
+            'Color', vehicle_color(iVeh), 'LineStyle', '--', 'LineWidth', 1 ...
         );
     end
 
     % vehicle rectangle
     for iVeh = 1:numel(scenario.vehicles)
         veh = scenario.vehicles(iVeh);
-        veh.plot(vehColor(iVeh));
+        veh.plot(vehicle_color(iVeh));
     end
 
     % Obstacles

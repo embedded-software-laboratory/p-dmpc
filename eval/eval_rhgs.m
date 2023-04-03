@@ -28,8 +28,8 @@ function eval_rhgs(plot_online, is_video_exported)
     approaches = {'RHGS', 'SGS'};
 
     %% Overview
-    fig = overviewPlot(results(1), [11, 15, 19, 22]);
-    overviewPlot(results(2), [11, 15, 19, 22], fig, 1);
+    fig = overview_plot(results(1), [11, 15, 19, 22]);
+    overview_plot(results(2), [11, 15, 19, 22], fig, 1);
 
     %% Computation time
     runtimes = reshape([results.controller_runtime], [], nr);
@@ -45,7 +45,7 @@ function eval_rhgs(plot_online, is_video_exported)
     set(gca, 'XScale', 'log');
 
     for i = 1:nr
-        b(i).FaceColor = vehColor(i);
+        b(i).FaceColor = vehicle_color(i);
     end
 
     yticklabels({'t_{max}', 't_{median}'})
@@ -101,7 +101,7 @@ function eval_rhgs(plot_online, is_video_exported)
     b = barh(1, objective_value);
 
     for i = 1:nr
-        b(i).FaceColor = vehColor(i);
+        b(i).FaceColor = vehicle_color(i);
     end
 
     legend('RHGS', 'SGS', 'Location', 'best')
@@ -133,7 +133,7 @@ function eval_rhgs(plot_online, is_video_exported)
     for r = results
 
         if is_video_exported
-            exportVideo(r);
+            export_video(r);
         end
 
     end
@@ -184,7 +184,7 @@ function eval_rhgs(plot_online, is_video_exported)
         plot_scenario(results(nVeh));
 
         if is_video_exported
-            exportVideo(results(nVeh));
+            export_video(results(nVeh));
         end
 
     end
@@ -194,7 +194,7 @@ function eval_rhgs(plot_online, is_video_exported)
     % overviewPlot(results(1),[1,4,8,13]);
     % 3 vehicles
     % overviewPlot(results(2),[1,5,8,13]);
-    overviewPlot(results(2), [1, 5, 8]);
+    overview_plot(results(2), [1, 5, 8]);
 
     %% Computation time
     nr = numel(results);
@@ -213,7 +213,7 @@ function eval_rhgs(plot_online, is_video_exported)
     set(gca, 'XScale', 'log');
 
     for i = 1:nr
-        b(i).FaceColor = vehColor(i);
+        b(i).FaceColor = vehicle_color(i);
     end
 
     yticklabels({'t_{max}', 't_{median}'})

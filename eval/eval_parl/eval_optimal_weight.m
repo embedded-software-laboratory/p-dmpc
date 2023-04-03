@@ -88,7 +88,7 @@ for i = 1:2
     result.belonging_vector(:, step_index) = belonging_vector;
 
     nexttile
-    plotTrafficStatus(result, step_index, tick, [], visu)
+    plot_traffic_status(result, step_index, tick, [], visu)
     set(gca, 'xticklabel', [])
     set(gca, 'xtick', [])
     set(gca, 'yticklabel', [])

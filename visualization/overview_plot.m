@@ -1,4 +1,4 @@
-function fig = overviewPlot(result, step_indices, fig, colorOffset)
+function fig = overview_plot(result, step_indices, fig, colorOffset)
     % OVERVIEWPLOT  Export plot with multiple snapshots.
     arguments
         result (1, 1)
@@ -59,7 +59,7 @@ function fig = overviewPlot(result, step_indices, fig, colorOffset)
             for obs = 1:nDynObst
                 pos_step = scenario.dynamic_obstacle_fullres{obs, step_idx};
                 x = pos_step(1, :);
-                obstaclePolygon = transformedRectangle(x(1), x(2), pi / 2, scenario.dynamic_obstacle_shape(1), scenario.dynamic_obstacle_shape(2));
+                obstaclePolygon = transformed_rectangle(x(1), x(2), pi / 2, scenario.dynamic_obstacle_shape(1), scenario.dynamic_obstacle_shape(2));
                 patch(obstaclePolygon(1, :) ...
                     , obstaclePolygon(2, :) ...
                     , [0.5 0.5 0.5] ...
@@ -74,7 +74,7 @@ function fig = overviewPlot(result, step_indices, fig, colorOffset)
             for iStep = 1:step_idx
                 line(result.vehicle_path_fullres{v, iStep}(:, 1), ...
                     result.vehicle_path_fullres{v, iStep}(:, 2), ...
-                    'Color', vehColor(v + colorOffset) ...
+                    'Color', vehicle_color(v + colorOffset) ...
                 );
             end
 
@@ -84,10 +84,10 @@ function fig = overviewPlot(result, step_indices, fig, colorOffset)
         for v = 1:nVeh
             line(result.trajectory_predictions{v, step_idx}([1:scenario.options.tick_per_step + 1:end, end], 1), ...
                 result.trajectory_predictions{v, step_idx}([1:scenario.options.tick_per_step + 1:end, end], 2), ...
-                'Color', vehColor(v + colorOffset), 'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', vehColor(v + colorOffset), 'MarkerSize', 1);
+                'Color', vehicle_color(v + colorOffset), 'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', vehicle_color(v + colorOffset), 'MarkerSize', 1);
             line(result.trajectory_predictions{v, step_idx}(:, 1), ...
                 result.trajectory_predictions{v, step_idx}(:, 2), ...
-                'Color', vehColor(v + colorOffset));
+                'Color', vehicle_color(v + colorOffset));
         end
 
         % Vehicle rectangles
@@ -95,10 +95,10 @@ function fig = overviewPlot(result, step_indices, fig, colorOffset)
             veh = scenario.vehicles(v);
             pos_step = result.vehicle_path_fullres{v, step_idx};
             x = pos_step(1, :);
-            vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+            vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
             patch(vehiclePolygon(1, :) ...
                 , vehiclePolygon(2, :) ...
-                , vehColor(v + colorOffset) ...
+                , vehicle_color(v + colorOffset) ...
             );
         end
 

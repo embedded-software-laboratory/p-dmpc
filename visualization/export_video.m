@@ -1,4 +1,4 @@
-function exportVideo(result, videoExportSetup)
+function export_video(result, videoExportSetup)
     % EXPORTVIDEO   Export Video from results of simulation.
     scenario = result.scenario;
     nSteps = nnz(result.controller_runtime);

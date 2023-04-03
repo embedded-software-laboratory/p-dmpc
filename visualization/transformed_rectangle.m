@@ -1,4 +1,4 @@
-function [polygon_XY] = transformedRectangle(x, y, angle, Length, Width)
+function [polygon_XY] = transformed_rectangle(x, y, angle, Length, Width)
     % TRANSFORMED_RECTANGLE Creates a rectangle with the given position and orientation.
 
     unitSquare = [0 0 0 1; 1 0 0 1; 1 1 0 1; 0 1 0 1]';
