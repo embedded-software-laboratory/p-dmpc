@@ -39,7 +39,7 @@ classdef MotionPrimitiveAutomaton
             max_acceleration_per_dt = max_acceleration_m_s2 * options.dt;
             max_deceleration_per_dt = max_deceleration_m_s2 * options.dt;
 
-            if options.isPB
+            if options.is_prioritized
                 nVeh_mpa = 1;
             else
                 nVeh_mpa = options.amount;
@@ -155,7 +155,7 @@ classdef MotionPrimitiveAutomaton
 
             % compute maneuver matrix for trimProduct
 
-            if ~options.isPB && options.use_cpp
+            if ~options.is_prioritized && options.use_cpp
                 % way too big for Centralized Search
                 % obj.transition_matrix = compute_product_maneuver_matrix(obj,nVeh_mpa,options.Hp);
             else

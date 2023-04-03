@@ -4,11 +4,11 @@ classdef Config < handle
         environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
         is_manual_control = false; % true/false, are manually controlled vehicles involved
         manual_control_config ManualControlConfig; % manual control config
-        isPB = true; % true/false, is prioritize vehicles
+        is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
-        isParl = false; % true/false, is use parallel(distributed) computation
+        compute_in_parallel = false; % true/false, is use parallel(distributed) computation
         scenario_name = 'Commonroad' % one of the follows: {'Circle_scenario', 'Commonroad'}
-        priority Priority_strategies = Priority_strategies.constant_priority; % defines which priority assignmen strategy is used
+        priority PriorityStrategies = PriorityStrategies.constant_priority; % defines which priority assignmen strategy is used
         dt = 0.2; % scalar, sample time
         Hp = 6; % scalar, prediction horizon
         trim_set = 7; % scalar, ID of trim primitives
@@ -25,10 +25,10 @@ classdef Config < handle
         % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
         % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
         % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-        isSaveResult = false; % true/false, is save result
-        isSaveResultReduced = true; % true/false, if true, reduced result will be save to save disk space (useful for a long run of simulation)
-        customResultName = ''; % string or char, custom file name to save result
-        isAllowInheritROW = false; % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
+        should_save_result = false; % true/false, is save result
+        should_reduce_result = true; % true/false, if true, reduced result will be save to save disk space (useful for a long run of simulation)
+        result_name = ''; % string or char, custom file name to save result
+        allow_priority_inheritance = false; % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
 
         is_eval = false; % true/false,
         is_free_flow = false; % true/false, if true, vehicles do not need to consider other vehicles.

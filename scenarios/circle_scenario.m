@@ -47,7 +47,7 @@ function scenario = circle_scenario(options)
 
     scenario.model = BicycleModel(veh.Lf, veh.Lr);
 
-    if options.isPB
+    if options.is_prioritized
         scenario.assignPrios = true;
     end
 

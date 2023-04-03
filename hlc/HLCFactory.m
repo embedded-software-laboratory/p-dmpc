@@ -34,7 +34,7 @@ classdef HLCFactory < handle
                 obj.dry_run_hlc(vehicle_ids);
             end
 
-            if obj.scenario.options.isPB
+            if obj.scenario.options.is_prioritized
 
                 if length(vehicle_ids) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
@@ -65,9 +65,9 @@ classdef HLCFactory < handle
 
         function controller_name = get_controller_name(options)
 
-            if options.isPB
+            if options.is_prioritized
 
-                if options.isParl
+                if options.compute_in_parallel
                     controller_name = strcat('par. PB-', 'RHGS-', char(options.priority));
                 else
                     controller_name = strcat('seq. PB-', 'RHGS-', char(options.priority));
@@ -101,18 +101,18 @@ classdef HLCFactory < handle
             plot_backup = obj.scenario.options.options_plot_online.is_active;
             environment_backup = obj.scenario.options.environment;
             T_end_backup = obj.scenario.options.T_end;
-            save_result_backup = obj.scenario.options.isSaveResult;
+            save_result_backup = obj.scenario.options.should_save_result;
             % avoid sending any data to Cpm Lab. Thus, use Sim Lab
             obj.scenario.options.environment = Environment.Simulation;
             obj.scenario.options.options_plot_online.is_active = false;
             obj.scenario.options.T_end = 2 * obj.scenario.options.dt;
-            obj.scenario.options.isSaveResult = false;
+            obj.scenario.options.should_save_result = false;
             hlc = obj.get_hlc(vehicle_ids, false);
             hlc.run();
             obj.scenario.options.environment = environment_backup;
             obj.scenario.options.options_plot_online.is_active = plot_backup;
             obj.scenario.options.T_end = T_end_backup;
-            obj.scenario.options.isSaveResult = save_result_backup;
+            obj.scenario.options.should_save_result = save_result_backup;
 
             if obj.scenario.options.use_cpp == true
                 clear mex;

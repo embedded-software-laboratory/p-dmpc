@@ -21,9 +21,9 @@ function [labOptions] = startOptions()
     vehicleAmount = list_vehicle_amount();
     ui.AmountofVehiclesListBox.Items = vehicleAmount(:, 1);
 
-    % isParl
-    isParl = list_is_parl();
-    ui.ParallelComputationDistributedExecutionListBox.Items = isParl(:, 2);
+    % compute_in_parallel
+    compute_in_parallel = list_is_parl();
+    ui.ParallelComputationDistributedExecutionListBox.Items = compute_in_parallel(:, 2);
 
     % change visibility of vehicle ID selection depending on environment selection
     %ui.ControlStrategyListBox.ValueChangedFcn = @(~, ~) setVisualizationVisibility(ui);
@@ -68,13 +68,13 @@ function [labOptions] = startOptions()
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Value = previousSelection.strategy_enter_crossing_areaSelection;
 
         % Whether save result
-        ui.SaveresultCheckBox.Value = previousSelection.isSaveResult;
+        ui.SaveresultCheckBox.Value = previousSelection.should_save_result;
 
         % Custom file name
-        ui.CustomfilenameEditField.Value = previousSelection.customResultName;
+        ui.CustomfilenameEditField.Value = previousSelection.result_name;
 
         % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
-        ui.AllowInheritingtheRightofWayCheckBox.Value = previousSelection.isAllowInheritROW;
+        ui.AllowInheritingtheRightofWayCheckBox.Value = previousSelection.allow_priority_inheritance;
 
         ui.useCCheckBox.Value = previousSelection.use_cpp;
     end
@@ -129,15 +129,15 @@ function [labOptions] = startOptions()
     % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
     strategy_enter_crossing_areaSelection = ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Value;
     % Whether save result
-    isSaveResult = ui.SaveresultCheckBox.Value;
+    should_save_result = ui.SaveresultCheckBox.Value;
     % Custom file name
-    customResultName = ui.CustomfilenameEditField.Value;
+    result_name = ui.CustomfilenameEditField.Value;
     % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
-    isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
+    allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
     save([tempdir 'scenarioControllerSelection'], 'use_cpp', 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
         'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', ...
         'isParlSelection', 'dtSelection', 'HpSelection', 'trim_setSelection', 'T_endSelection', 'max_num_CLsSelection', 'veh_ids', 'strategy_consider_veh_without_ROWSelection', 'strategy_enter_crossing_areaSelection', ...
-        'isSaveResult', 'customResultName', 'isAllowInheritROW');
+        'should_save_result', 'result_name', 'allow_priority_inheritance');
 
     %% Convert to legacy/outputs
     % initialize
@@ -168,7 +168,7 @@ function [labOptions] = startOptions()
                                                 strcmp({controlStrategy{:, 2}}, controlStrategySelection), ...
                                                 2};
 
-    labOptions.isPB = (strcmp(controlStrategyHelper, 'pb non-coop'));
+    labOptions.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
 
     labOptions.amount = str2num(vehicleAmountSelection);
 
@@ -184,11 +184,11 @@ function [labOptions] = startOptions()
     labOptions.options_plot_online = OptionsPlotOnline();
     labOptions.options_plot_online.is_active = strcmp(visualizationSelection, 'yes');
 
-    isParlHelper = isParl{ ...
-                              strcmp({isParl{:, 2}}, isParlSelection), ...
-                              2};
+    isParlHelper = compute_in_parallel{ ...
+                                           strcmp({compute_in_parallel{:, 2}}, isParlSelection), ...
+                                           2};
 
-    labOptions.isParl = strcmp(isParlHelper, 'yes');
+    labOptions.compute_in_parallel = strcmp(isParlHelper, 'yes');
 
     scenario = list_scenario(ui); % Update scenario since the selected options may differ now
     labOptions.scenario_name = scenario{ ...
@@ -221,17 +221,17 @@ function [labOptions] = startOptions()
     labOptions.strategy_enter_lanelet_crossing_area = strategy_enter_crossing_areaSelection;
 
     % Whether save result
-    labOptions.isSaveResult = ui.SaveresultCheckBox.Value;
+    labOptions.should_save_result = ui.SaveresultCheckBox.Value;
 
-    if labOptions.isSaveResult
+    if labOptions.should_save_result
         disp('As required, simulation/Experiment Results will be saved.')
     end
 
     % Custom file name to save result
-    labOptions.customResultName = ui.CustomfilenameEditField.Value;
+    labOptions.result_name = ui.CustomfilenameEditField.Value;
 
     % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
-    labOptions.isAllowInheritROW = ui.AllowInheritingtheRightofWayCheckBox.Value;
+    labOptions.allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
 
     % if available, use C++ optimizer
     labOptions.use_cpp = use_cpp;

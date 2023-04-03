@@ -25,7 +25,7 @@ function info = pb_controller_fallback(iter, info, info_old, scenario, indices_i
             % data only need to be updated if isDealPredictionInconsistency
             % is off, because only old reachable sets but no old predicted areas
             % are used by controller
-            if scenario.options.isPB && scenario.options.isDealPredictionInconsistency == false
+            if scenario.options.is_prioritized && scenario.options.isDealPredictionInconsistency == false
                 % send message
                 scenario.vehicles(vehicle_idx).communicate.predictions.send_message(iter.k, info.shapes(vehicle_idx, :), info.vehs_fallback);
             end

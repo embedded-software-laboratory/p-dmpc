@@ -32,11 +32,11 @@ function [result, scenario] = main(varargin)
     end
 
     % write scenario to disk if distributed (for lab or local debugging with main_distributed())
-    if scenario.options.isPB == true
+    if scenario.options.is_prioritized == true
         save('scenario.mat', 'scenario');
     end
 
-    is_prioritized_parallel_in_lab = (scenario.options.isPB && scenario.options.environment == Environment.CPMLab && scenario.options.isParl);
+    is_prioritized_parallel_in_lab = (scenario.options.is_prioritized && scenario.options.environment == Environment.CPMLab && scenario.options.compute_in_parallel);
 
     if is_prioritized_parallel_in_lab
         disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
@@ -70,7 +70,7 @@ function [result, scenario] = main(varargin)
             optimizer(Function.CheckMexFunction);
         end
 
-        if scenario.options.isPB == true && scenario.options.isParl
+        if scenario.options.is_prioritized == true && scenario.options.compute_in_parallel
             %% simulate distribution locally using the Parallel Computing Toolbox
             get_parallel_pool(scenario.options.amount);
 

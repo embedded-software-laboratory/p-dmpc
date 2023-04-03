@@ -135,7 +135,7 @@ classdef (Abstract) HLCInterface < handle
 
             obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
 
-            if obj.scenario.options.isPB
+            if obj.scenario.options.is_prioritized
                 % In priority-based computation, vehicles communicate via ROS 2
                 % Create publishers and subscribers before experiment setup
                 create_publishers(obj);
@@ -149,7 +149,7 @@ classdef (Abstract) HLCInterface < handle
 
             obj.hlc_adapter.setup(obj.scenario, obj.vehicle_ids);
 
-            if obj.scenario.options.isPB
+            if obj.scenario.options.is_prioritized
                 % In priority-based computation, vehicles communicate via ROS 2
                 % Initialize the communication network of ROS 2
                 communication_init(obj);
@@ -164,7 +164,7 @@ classdef (Abstract) HLCInterface < handle
                 % Don't store the last time step with erroneous data.
                 obj.k = obj.k - 1;
                 % Save the unfinished results.
-                obj.scenario.options.isSaveResult = true;
+                obj.scenario.options.should_save_result = true;
                 obj.result.output_path = 'results/unfinished_result.mat';
                 obj.save_results();
             end
@@ -251,7 +251,7 @@ classdef (Abstract) HLCInterface < handle
 
                 % If using distributed hlcs, collect fallback info from
                 % other vehicles as required
-                if obj.scenario.options.isParl
+                if obj.scenario.options.compute_in_parallel
                     irrelevant_vehicles = union(obj.indices_in_vehicle_list(1), obj.info.vehs_fallback);
 
                     if obj.scenario.options.fallback_type == "localFallback"
@@ -336,7 +336,7 @@ classdef (Abstract) HLCInterface < handle
                 obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
                 obj.result.directed_coupling{obj.k} = obj.iter.directed_coupling;
 
-                if obj.scenario.options.isPB && strcmp(obj.scenario.options.scenario_name, 'Commonroad')
+                if obj.scenario.options.is_prioritized && strcmp(obj.scenario.options.scenario_name, 'Commonroad')
                     obj.result.determine_couplings_time(obj.k) = obj.iter.timer.determine_couplings;
                     obj.result.group_vehs_time(obj.k) = obj.iter.timer.group_vehs;
                     obj.result.assign_priority_time(obj.k) = obj.iter.timer.assign_priority;
@@ -400,7 +400,7 @@ classdef (Abstract) HLCInterface < handle
 
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
 
-            if obj.scenario.options.isSaveResult
+            if obj.scenario.options.should_save_result
                 empty_cells = cell(1, obj.scenario.options.amount);
                 % delete ros nodes, because they can't be written to a
                 % file.
@@ -408,7 +408,7 @@ classdef (Abstract) HLCInterface < handle
                 obj.result.mpa = obj.scenario.mpa;
 
                 % Delete unimportant data
-                if obj.scenario.options.isSaveResultReduced
+                if obj.scenario.options.should_reduce_result
 
                     for iIter = 1:length(obj.result.iteration_structs)
                         obj.result.iteration_structs{iIter}.predicted_lanelet_boundary = [];

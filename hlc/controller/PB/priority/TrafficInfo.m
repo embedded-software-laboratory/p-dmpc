@@ -91,7 +91,7 @@ classdef TrafficInfo
 
             % If two vehicles drive successively and are very close to each other,
             % the back vehicle will inherit the right-of-way of the front vehicle
-            if scenario.options.isAllowInheritROW
+            if scenario.options.allow_priority_inheritance
                 obj = obj.inherit_right_of_way(iter.predicted_lanelets);
             end
 

@@ -44,7 +44,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
         y0, ... % vehicle position y
         v_ref_intermediate * scenario.options.dt, ... % distance traveled in one timestep
         iter.auto_updated_path(iVeh), ... % if the path has been updated automatically
-        scenario.options.isPB, ... % parallel computation
+        scenario.options.is_prioritized, ... % parallel computation
         iter.last_trajectory_index(iVeh) ... % last trajectory index of vehicle
     );
 
@@ -70,7 +70,7 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
 
         predicted_lanelets_idx = unique(predicted_lanelets_idx, 'stable'); % use 'stable' to keep the order
 
-        if scenario.options.isPB
+        if scenario.options.is_prioritized
             % at least two lanelets needed to predicted if parallel computation is used
             if length(predicted_lanelets_idx) == 1
                 % at least predict two lanelets to avoid that the endpoint of the

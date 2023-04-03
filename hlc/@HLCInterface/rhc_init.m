@@ -68,7 +68,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
         obj.iter.last_trajectory_index(iVeh) = reference.ReferenceIndex(end);
 
-        if obj.scenario.options.scenario_name == Scenario_Type.Commonroad
+        if obj.scenario.options.scenario_name == ScenarioType.commonroad
 
             % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
             if obj.iter.lanes_before_update(iVeh, :, :) ~= zeros(1, 2)
@@ -186,14 +186,14 @@ function rhc_init(obj, x_measured, trims_measured)
         [turn_braking_area_x, turn_braking_area_y] = translate_global(yaw0, x0, y0, braking_area(1, :), braking_area(2, :));
         obj.iter.emergency_maneuvers{iVeh}.braking_area = [turn_braking_area_x; turn_braking_area_y];
 
-        if obj.scenario.options.isPB && obj.amount == 1
+        if obj.scenario.options.is_prioritized && obj.amount == 1
             %% Send data to sync obj.iter for all vehicles (especially needed for priority assignment)
             obj.scenario.vehicles(iVeh).communicate.traffic.send_message(obj.k, obj.iter.x0(iVeh, :), obj.iter.trim_indices(iVeh), obj.iter.predicted_lanelets{iVeh}, obj.iter.occupied_areas{iVeh}, obj.iter.reachable_sets(iVeh, :));
         end
 
     end
 
-    if obj.scenario.options.isPB && obj.amount == 1
+    if obj.scenario.options.is_prioritized && obj.amount == 1
         %% read messages from other vehicles (There shouldn't be any other vehicles if centralized)
         other_vehicles = setdiff(1:obj.scenario.options.amount, obj.indices_in_vehicle_list);
         latest_msgs = read_messages(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.traffic, obj.k, obj.scenario.options.amount - 1);
@@ -213,7 +213,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
             % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
             % TODO is lanelets_index of other vehicles up to date?
-            if obj.scenario.options.scenario_name == Scenario_Type.Commonroad
+            if obj.scenario.options.scenario_name == ScenarioType.commonroad
                 predicted_lanelet_boundary = get_lanelets_boundary(obj.iter.predicted_lanelets{iVeh}, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.options.environment, obj.scenario.vehicles(iVeh).is_loop);
                 obj.iter.predicted_lanelet_boundary(iVeh, :) = predicted_lanelet_boundary;
             end

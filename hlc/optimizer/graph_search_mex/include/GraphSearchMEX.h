@@ -49,7 +49,7 @@ namespace GraphBasedPlanning {
 			tick_per_step() = static_cast<unsigned int>(tick_per_step_array[0][0]);
 			matlab::data::TypedArray<double>  const dt_array = _matlab->getProperty(options_array, u"dt");
 			dt() = static_cast<double>(dt_array[0][0]);
-			matlab::data::TypedArray<bool> is_pb_array = _matlab->getProperty(options_array, u"isPB");
+			matlab::data::TypedArray<bool> is_pb_array = _matlab->getProperty(options_array, u"is_prioritized");
 			is_pb() = static_cast<bool>(is_pb_array[0][0]);
 
 			matlab::data::Array const vehicles_array = _matlab->getProperty(scenario, u"vehicles");
@@ -86,7 +86,7 @@ namespace GraphBasedPlanning {
 		}
 
 		std::tuple<matlab::data::CellArray, matlab::data::TypedArray<double>, matlab::data::CellArray, matlab::data::TypedArray<uint32_t>, matlab::data::TypedArray<bool>> graph_search_callback_centralized(
-		    matlab::data::ObjectArray const &iter, const std::function<Node<FLOATING_POINT_TYPE> const *(ColMajorMatrixAccessor<FLOATING_POINT_TYPE> const &, std::vector<std::uint8_t> const &)> &find, 
+		    matlab::data::ObjectArray const &iter, const std::function<Node<FLOATING_POINT_TYPE> const *(ColMajorMatrixAccessor<FLOATING_POINT_TYPE> const &, std::vector<std::uint8_t> const &)> &find,
 			const std::function<uint64_t (void)> &get_n_expanded) {
 			matlab::data::TypedArray<double> trim_indices_array = std::move(iter[0][0]["trim_indices"]);
 			std::vector<std::uint8_t> trim_indices(trim_indices_array.begin(), trim_indices_array.end());
@@ -152,7 +152,7 @@ namespace GraphBasedPlanning {
 			for (unsigned int i = 0; i < n_vehicles(); ++i) {
 				y_predicted_array[0][i] = _factory.createArray(y_predicted[i].get_dim<std::size_t>(), y_predicted[i].begin(), y_predicted[i].end());
 			}
-			
+
 			matlab::data::TypedArray<uint32_t> n_expanded_array = _factory.createScalar<uint32_t>(std::move(get_n_expanded()));
 
 			matlab::data::CellArray shapes_array = _factory.createCellArray({1, n_hp()});

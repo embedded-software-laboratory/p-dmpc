@@ -1,12 +1,13 @@
 classdef ManualControlConfig
-%MANUALCONTROLCONFIG Configuration specificed to Manual Control Scenarios
-    
+    %MANUALCONTROLCONFIG Configuration specificed to Manual Control Scenarios
+
     properties
-      amount = 0;
-      hdv_ids = [];                           % vehicle ID of manually controlled vehicle (MCV) TODO: assing manually
+        amount = 0;
+        hdv_ids = []; % vehicle ID of manually controlled vehicle (MCV) TODO: assing manually
     end
 
     methods
+
         function obj = ManualControlConfig()
         end
 
@@ -16,6 +17,7 @@ classdef ManualControlConfig
             obj.amount = struct.amount;
             obj.hdv_ids = struct.hdv_ids;
         end
-    end
-end
 
+    end
+
+end

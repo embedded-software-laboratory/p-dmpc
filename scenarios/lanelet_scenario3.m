@@ -1,4 +1,4 @@
-function scenario = lanelet_scenario3(isPB)
+function scenario = lanelet_scenario3(is_prioritized)
     % LANELET_SCENARIO3   Constructor for scenario with two vehicles at an intersection one driving right and one straight
     %                    ending in the same lane.
 
@@ -42,7 +42,7 @@ function scenario = lanelet_scenario3(isPB)
 
     nVeh_mpa = scenario.options.amount;
 
-    if isPB
+    if is_prioritized
         scenario.adjacency = coupling_adjacency_lanelets(scenario.vehicle_to_lanelet, collision);
         scenario.assignPrios = true;
         scenario.controller_name = strcat(scenario.controller_name, '-PB');

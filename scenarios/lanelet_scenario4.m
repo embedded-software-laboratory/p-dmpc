@@ -1,4 +1,4 @@
-function scenario = lanelet_scenario4(isPB, isROS)
+function scenario = lanelet_scenario4(is_prioritized, isROS)
     % LANELET_SCENARIO4   Constructor for scenario with four vehicles at an intersection driving straight
     c = 0.2;
 
@@ -70,7 +70,7 @@ function scenario = lanelet_scenario4(isPB, isROS)
 
     nVeh_mpa = scenario.options.amount;
 
-    if isPB
+    if is_prioritized
         scenario.adjacency = coupling_adjacency_lanelets(scenario.vehicle_to_lanelet, collision);
         scenario.assignPrios = true;
         nVeh_mpa = 1;

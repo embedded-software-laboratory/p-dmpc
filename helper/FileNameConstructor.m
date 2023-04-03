@@ -31,7 +31,7 @@ classdef FileNameConstructor
                 mpa_instance_name = [mpa_instance_name, '_non-convex'];
             end
 
-            if ~options.isPB
+            if ~options.is_prioritized
                 mpa_instance_name = [mpa_instance_name, '_centralized_nVeh' num2str(options.amount)];
             end
 
@@ -48,7 +48,7 @@ classdef FileNameConstructor
 
         function results_folder_path = gen_results_folder_path(options)
 
-            if options.isPB
+            if options.is_prioritized
                 controller_name = 'par-rhgs';
             else
                 controller_name = 'cen-rhgs';
@@ -86,9 +86,9 @@ classdef FileNameConstructor
         function scenario_name = gen_scenario_name(options, vehs)
             priority = char(options.priority);
 
-            if isempty(options.customResultName)
+            if isempty(options.result_name)
                 % use default name
-                if options.isParl
+                if options.compute_in_parallel
                     scenario_name = ['veh_', num2str(options.veh_ids(vehs)), '_trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
                 else
                     scenario_name = ['trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
@@ -97,12 +97,12 @@ classdef FileNameConstructor
                 veh_ids_str = sprintf('-%d', options.veh_ids);
                 scenario_name = [scenario_name, '_ids', veh_ids_str];
 
-                if options.isPB
+                if options.is_prioritized
                     scenario_name = [scenario_name, '_maxCLs', num2str(options.max_num_CLs), ...
                                          '_ConsiderVehWithoutROW', options.strategy_consider_veh_without_ROW, '_EnterLaneletCrossingArea', options.strategy_enter_lanelet_crossing_area];
                 end
 
-                if options.isAllowInheritROW
+                if options.allow_priority_inheritance
                     scenario_name = [scenario_name, '_inherit'];
                 end
 
@@ -115,7 +115,7 @@ classdef FileNameConstructor
                     scenario_name = [scenario_name, '_', options.fallback_type];
                 end
 
-                if ~options.isSaveResultReduced
+                if ~options.should_reduce_result
                     scenario_name = [scenario_name, '_fullResult'];
                 end
 
@@ -137,7 +137,7 @@ classdef FileNameConstructor
 
             else
                 % use custom name
-                scenario_name = options.customResultName;
+                scenario_name = options.result_name;
             end
 
         end

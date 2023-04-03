@@ -68,7 +68,7 @@ classdef ControllResultsInfo
         function obj = store_control_info(obj, info_v, scenario)
             % Store the control information, such as `tree`, `tree_path`,
             % `n_expanded`, `next_node`, `shapes`, `vehicle_fullres_path`, `predicted_trims`, `y_predicted`
-            if scenario.options.isPB
+            if scenario.options.is_prioritized
                 vehicle_idx = find(obj.controller_ID == info_v.controller_ID);
                 obj.tree{vehicle_idx} = info_v.tree;
                 obj.tree_path(vehicle_idx, :) = info_v.tree_path;

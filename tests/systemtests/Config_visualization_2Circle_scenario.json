@@ -1,16 +1,13 @@
 {
     "scenario_name": "Circle_scenario",
     "amount": 2,
-
     "T_end": 4,
     "max_num_CLs": 4,
     "trim_set": 6,
-
-    "isSaveResult": false,
-    "isSaveResultReduced": false,
+    "should_save_result": false,
+    "should_reduce_result": false,
     "is_save_mpa": false,
     "is_load_mpa": true,
-
     "options_plot_online": {
         "is_active": true,
         "plot_vehicle_id": true,
@@ -24,10 +21,9 @@
         "vehicles_lanelet_crossing_areas": [],
         "is_video_mode": false
     },
-
     "is_manual_control": false,
     "manual_control_config": {
-        "hdv_ids":  [],
+        "hdv_ids": [],
         "amount": 0
     }
 }

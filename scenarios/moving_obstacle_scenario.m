@@ -28,7 +28,7 @@ function scenario = moving_obstacle_scenario(options)
     scenario.options.trim_set = 9;
     scenario.options.amount = 1;
     scenario.options.dt = 0.2;
-    scenario.options.isSaveResult = true;
+    scenario.options.should_save_result = true;
     scenario.options.trim_set = 9;
     scenario.options.veh_ids = 1;
     scenario.options.T_end = 10;
@@ -47,7 +47,7 @@ function scenario = moving_obstacle_scenario(options)
     %scenario.adjacency = zeros(nVeh,nVeh);
     scenario.assignPrios = true;
     scenario.controller_name = strcat(scenario.controller_name, '-centralized');
-    scenario.options.isPB = false;
+    scenario.options.is_prioritized = false;
     scenario.controller = @centralized_controller;
 
     scenario.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);

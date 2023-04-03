@@ -41,7 +41,7 @@ function scenario = create_scenario(options, random_seed, interfaceExperiment)
     else
         disp('Running in CPM Lab or via Unified Lab API...')
         vehicle_ids = options.veh_ids;
-        options.isPB = true;
+        options.is_prioritized = true;
 
         options.veh_ids = sort(vehicle_ids);
     end
@@ -50,7 +50,7 @@ function scenario = create_scenario(options, random_seed, interfaceExperiment)
 
     % more than 1 vehicle and use of pb-sequential controller
     % require out of process execution
-    if options.amount > 1 && options.isPB && ~options.isParl
+    if options.amount > 1 && options.is_prioritized && ~options.compute_in_parallel
         options.mex_out_of_process_execution = true;
     end
 

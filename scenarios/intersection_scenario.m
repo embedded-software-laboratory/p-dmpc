@@ -70,7 +70,7 @@ function scenario = intersection_scenario(options)
 
     scenario.name = options.scenario_name;
 
-    if options.isPB
+    if options.is_prioritized
         scenario.adjacency = coupling_adjacency_lanelets(scenario.vehicle_to_lanelet, collision);
         scenario.assignPrios = true;
         scenario.controller_name = strcat(scenario.controller_name, '-PB');

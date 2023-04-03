@@ -18,7 +18,7 @@ classdef systemtests < matlab.unittest.TestCase
             options = Config();
             options = options.importFromJson(rawJson);
             options.scenario_name = scenario_name;
-            options.isPB = false;
+            options.is_prioritized = false;
             testCase.verifyEmpty(lastwarn);
 
             main(options);
@@ -33,14 +33,14 @@ classdef systemtests < matlab.unittest.TestCase
             options = Config();
             options = options.importFromJson(rawJson);
             options.scenario_name = scenario_name;
-            options.isPB = true;
-            options.priority = Priority_strategies.([priority, '_priority']);
+            options.is_prioritized = true;
+            options.priority = PriorityStrategies.([priority, '_priority']);
             options.use_cpp = use_cpp;
 
             if strcmp(parallel, 'parallel')
-                options.isParl = true;
+                options.compute_in_parallel = true;
             elseif strcmp(parallel, 'sequential')
-                options.isParl = false;
+                options.compute_in_parallel = false;
             end
 
             testCase.verifyEmpty(lastwarn);
