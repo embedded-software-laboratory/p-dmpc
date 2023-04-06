@@ -58,7 +58,7 @@ Unittests:
   extends: .matlab_with_test_coverage
   parallel:
     matrix:
-      - FOLDER: [helper, lanelets]
+      - FOLDER: [helper, scenarios]
   variables:
     TEST_FOLDER: "'tests/unittests/$FOLDER'"
     COVERAGE_FOLDER: "'$FOLDER'"
@@ -67,4 +67,4 @@ Systemtests:
   extends: .matlab_with_test_coverage
   variables:
     TEST_FOLDER: "'tests/systemtests/systemtests.m'"
-    COVERAGE_FOLDER: "{'commun', 'config', 'experiment', 'graph_and_tree', 'helper', 'hlc', 'lanelets', 'manual_control', 'mex', 'model', 'motion_primitive_automaton', 'scenarios', 'ui', 'visualization'}"
+    COVERAGE_FOLDER: "{'config', 'helper', 'hlc', 'manual_control', 'plant', 'scenarios', 'ui', 'visualization'}"
