@@ -29,8 +29,8 @@ classdef PlantFactory < handle
                     plant = CpmLab();
                 case Environment.Simulation
                     plant = SimLab(obj.visualization_data_queue);
-                case Environment.UnifiedLabAPI
-                    plant = UnifiedLabAPI();
+                case Environment.UnifiedLabApi
+                    plant = UnifiedLabApi();
             end
 
             obj.plant = plant;

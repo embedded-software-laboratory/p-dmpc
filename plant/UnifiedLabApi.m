@@ -1,4 +1,4 @@
-classdef UnifiedLabAPI < Plant
+classdef UnifiedLabApi < Plant
     % UNIFIEDLABPI    Instance of experiment interface for usage via the generalized lab api.
 
     properties (Access = private)
@@ -30,7 +30,7 @@ classdef UnifiedLabAPI < Plant
 
     methods
 
-        function obj = UnifiedLabAPI()
+        function obj = UnifiedLabApi()
             obj = obj@Plant();
             obj.pos_init = false;
 
