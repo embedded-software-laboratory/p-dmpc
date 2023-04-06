@@ -12,7 +12,7 @@ function scenario = lanelet2_scenario(options, vehicle_ids, plant)
     % get road data
     if strcmp(options.scenario_name, 'Lab_default')
         % ULA is required for that.
-        assert(isa(plant, "UnifiedLabAPI"));
+        assert(isa(plant, "UnifiedLabApi"));
 
         disp('Retrieve map from lab via unified lab API.')
 

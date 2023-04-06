@@ -259,7 +259,7 @@ function out = get_environment_selection(ui, output_as_enum)
         elseif isequal([0 1 0], out)
             out = Environment.Simulation;
         else % isequal([0 0 1], out)
-            out = Environment.UnifiedLabAPI;
+            out = Environment.UnifiedLabApi;
         end
 
     end
@@ -284,7 +284,7 @@ end
 function setEnvironmentElementsVisibility(ui)
     % if lab mode is selected
     is_lab_selection = (get_environment_selection(ui, true) == Environment.CpmLab ...
-        || get_environment_selection(ui, true) == Environment.UnifiedLabAPI);
+        || get_environment_selection(ui, true) == Environment.UnifiedLabApi);
     ui.AddHDVsCheckBox.Enable = is_lab_selection;
     ui.AddHDVsCheckBox.Value = ui.AddHDVsCheckBox.Value && is_lab_selection;
     ui.AmountHDVsListBox.Enable = ui.AmountHDVsListBox.Enable && is_lab_selection;
@@ -331,7 +331,7 @@ function [list] = list_is_parl
 end
 
 function [list] = list_scenario(ui)
-    is_unified_lab_interface_selected = get_environment_selection(ui, true) == Environment.UnifiedLabAPI;
+    is_unified_lab_interface_selected = get_environment_selection(ui, true) == Environment.UnifiedLabApi;
 
     if is_unified_lab_interface_selected % Only allow lanelet2 maps here
         list = { ...

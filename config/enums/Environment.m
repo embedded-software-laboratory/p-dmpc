@@ -3,7 +3,7 @@ classdef Environment
     enumeration
         Simulation
         CpmLab
-        UnifiedLabAPI
+        UnifiedLabApi
     end
 
 end
