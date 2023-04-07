@@ -7,28 +7,32 @@ function [result, scenario] = main(varargin)
 
     % check if Config object is given as input
     options = read_object_from_input(varargin, 'Config');
-    % If options are not given, determine from UI
-    if isempty(options)
-
-        try
-            options = start_options();
-        catch ME
-            warning(ME.message);
-            return
-        end
-
-    end
-
-    % Create environment aka ExperimentInterface
-    plant_factory = PlantFactory();
-    plant = plant_factory.get_experiment_interface(options.environment);
-
     % check if Scenario object is given as input
     scenario = read_object_from_input(varargin, 'Scenario');
 
+    % Create Factory for Plant construction
+    plant_factory = PlantFactory();
+
+    % If scenario/options are not given, determine from UI
     if isempty(scenario)
+
+        if isempty(options)
+
+            try
+                options = start_options();
+            catch ME
+                warning(ME.message);
+                return
+            end
+
+        end
+
+        plant = plant_factory.get_experiment_interface(options.environment);
+        % create scenario
         random_seed = RandStream('mt19937ar');
         scenario = create_scenario(options, random_seed, plant);
+    else
+        plant = plant_factory.get_experiment_interface(scenario.options.environment);
     end
 
     % write scenario to disk if distributed (for lab or local debugging with main_distributed())

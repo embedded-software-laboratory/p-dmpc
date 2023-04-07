@@ -79,8 +79,10 @@ To learn how to create a Cobertura code coverage report in Matlab, read the [Mat
 - Since docker is quite memgry (=memory-hungry) it makes sense to outsource its main folders to this second disk. The following steps were partly taken from [here](https://www.howtogeek.com/devops/how-to-store-docker-images-and-containers-on-an-external-drive/):
   1. Stop docker to avoid inconsistencies: `sudo snap stop docker`
   2. Copy the main folder to the second disk: `sudo rsync -aSv /var/snap/docker/common/var-lib-docker/ /mnt/docker_disk/var-snap-docker-common`
-  3. Open `/etc/fstab` to add a bind mount as described [here](https://stackoverflow.com/questions/64088801/change-docker-snap-data-root-folder), i.e., to the file `/etc/fstab` add the following line: `/mnt/docker_disk/var-snap-docker-common /var/snap/docker/common/var-lib-docker none bind`
-  4. Restart docker: `sudo snap start docker`
+  3. Rename your current docker folder as backup in case something goes wrong, e.g.: `sudo mv /var/snap/docker/common/var-lib-docker/ /var/snap/docker/common/var-lib-docker.old/`
+  4. Open `/etc/fstab` to add a bind mount as described [here](https://stackoverflow.com/questions/64088801/change-docker-snap-data-root-folder), i.e., to the file `/etc/fstab` add the following line: `/mnt/docker_disk/var-snap-docker-common /var/snap/docker/common/var-lib-docker none bind`
+  5. Restart docker: `sudo snap start docker`
+  6. If everything works fine, remove the backup folder.
 
 ## Create Matlab Docker image
 ### Manually create image
