@@ -1,4 +1,4 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <Info Type="StartUp" Visible="0" Icon="" File="hlc/optimizer/graph_search_mex/compile.m" Name="compile">
-    <Extension Value="1fd92845-91c4-4a72-91b0-0df69c5bd85f" Name="StartUpPrev"/>
+    <Extension Value="db229cc0-8cf9-4671-bdbb-65d180638e89" Name="StartUpPrev"/>
 </Info>
