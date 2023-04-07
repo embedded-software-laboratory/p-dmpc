@@ -6,11 +6,21 @@ ARG UBUNTU_VERSION=18.04
 FROM ubuntu:$UBUNTU_VERSION
 
 
-### Install MATLAB and ROS2 Toolbox dependencies as listed in https://de.mathworks.com/help/ros/gs/ros-system-requirements.html.
-# Install basic dependencies.
+### Install basic dependencies.
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
-    && apt-get install --no-install-recommends --yes wget unzip build-essential software-properties-common ca-certificates libxt6 libxext6
+    && apt-get install --no-install-recommends --yes \
+        build-essential \
+        ca-certificates \
+        git \
+        libxt6 \
+        libxext6 \
+        software-properties-common \
+        unzip \
+        wget
+
+
+### Install MATLAB and ROS2 Toolbox dependencies as listed in https://de.mathworks.com/help/ros/gs/ros-system-requirements.html.
 
 # Install specified Python version, defaults to python 3.9.6.
 ARG PYTHON_VERSION=3.9.6
@@ -49,17 +59,6 @@ RUN add-apt-repository ppa:ubuntu-toolchain-r/test \
 # https://de.mathworks.com/matlabcentral/answers/329796-issue-with-libstdc-so-6#answer_259460.
 ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
 
-ARG BOOST_VERSION=1_81_0
-ARG BOOST_VERSION2=1.81.0
-RUN apt-get update \
-    && apt-get install --yes build-essential python-dev autotools-dev libicu-dev libbz2-dev \
-    && wget -q https://boostorg.jfrog.io/artifactory/main/release/$BOOST_VERSION2/source/boost_$BOOST_VERSION.tar.bz2 \
-    && tar -xvjf boost_$BOOST_VERSION.tar.bz2 \
-    && cd boost_$BOOST_VERSION \
-    && ./bootstrap.sh --prefix=/usr \
-    && ./b2 install \
-    && cd .. && rm boost_$BOOST_VERSION.tar.bz2 && rm -rf boost_$BOOST_VERSION
-
 # Clean up.
 RUN apt-get clean \
     && apt-get autoremove --yes \
@@ -76,7 +75,7 @@ ARG MATLAB_RELEASE=r2022a
 ARG TOOLBOXES="Parallel_Computing_Toolbox ROS_Toolbox Statistics_and_Machine_Learning_Toolbox"
 RUN ./mpm install --release=$MATLAB_RELEASE --destination=/opt/matlab --products MATLAB $TOOLBOXES
 
-# Make matlab available everywhere available with an symbolic link.
+# Make matlab available everywhere with a symbolic link.
 RUN ln -s /opt/matlab/bin/matlab /usr/local/bin/matlab
 
 # Set path to libGL.so.1.
@@ -85,17 +84,45 @@ ENV LD_PRELOAD="$LD_PRELOAD /opt/matlab/sys/opengl/lib/glnxa64/libGL.so.1"
 # Remove mpm installation again.
 RUN rm -f mpm /tmp/mathworks_root.log
 
-
-### Specify the host and port of the machine that serves the network licenses as an environment variable.
+# Specify the host and port of the machine that serves the network licenses as an environment variable.
 ARG LICENSE_SERVER=50022@license3.rz.rwth-aachen.de
 ENV MLM_LICENSE_FILE=$LICENSE_SERVER
 
-
-### Set specified python version as default python in Matlab.
+# Set specified python version as default python in Matlab.
 RUN matlab -nodisplay -nosplash -nodesktop -r "pyenv('Version', '/usr/bin/python${PYTHON_VERSION%.*}'); disp(pyenv); exit;"
+
+
+### Install Boost
+ARG BOOST_VERSION=1_74_0
+ARG BOOST_VERSION2=1.74.0
+RUN apt-get update \
+    && apt-get install --yes build-essential python-dev autotools-dev libicu-dev libbz2-dev \
+    && wget -q https://boostorg.jfrog.io/artifactory/main/release/$BOOST_VERSION2/source/boost_$BOOST_VERSION.tar.bz2 \
+    && tar -xvjf boost_$BOOST_VERSION.tar.bz2 \
+    && cd boost_$BOOST_VERSION \
+    && ./bootstrap.sh --prefix=/usr \
+    && ./b2 install \
+    && cd .. && rm boost_$BOOST_VERSION.tar.bz2 && rm -rf boost_$BOOST_VERSION
+
+
+### Install Rosless-Lanelet2 and its dependencies (cf. https://github.com/embedded-software-laboratory/Rosless-Lanelet2)
+# Install Lanelet2 Dependencies
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y libeigen3-dev libgeographic-dev libpugixml-dev
+
+# Download and Build Lanelet2 (version without dependence on ROS)
+WORKDIR /home
+ARG LANELET2_COMMIT=0f190ed17d5060bc30eb03d7ac0d10bf06702096
+RUN git clone https://github.com/embedded-software-laboratory/Rosless-Lanelet2.git --single-branch && \
+    cd Rosless-Lanelet2 && \
+    git checkout $LANELET2_COMMIT && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    cmake --build . --target install && \
+    cd ../.. && \
+    rm -rf Rosless-Lanelet2
 
 
 ### Set working directory.
 WORKDIR /home/matlab
 CMD [""]
-

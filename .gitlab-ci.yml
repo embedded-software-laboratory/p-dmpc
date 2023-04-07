@@ -1,4 +1,5 @@
 stages:
+  - Build
   - Test
 
 .matlab_defaults:
@@ -48,9 +49,19 @@ stages:
 
 Startup Unittest:
   extends: .matlab_defaults
-  stage: Test
+  stage: Build
   script:
-    - matlab -batch "mex -setup C; mex -setup C++; openProject('graph_based_planning.prj')"
+    - matlab -batch
+       "mex -setup C;
+        mex -setup C++;
+        lastwarn('', '');
+        openProject('graph_based_planning.prj');
+        [warnMsg, warnId] = lastwarn();
+        if(~isempty(warnId))
+            error(warnMsg, warnId);
+        end"
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   tags:
     - docker
 
