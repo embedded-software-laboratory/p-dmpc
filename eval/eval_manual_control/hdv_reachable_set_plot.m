@@ -156,7 +156,7 @@ function hdv_reachable_set_plot(result, step_idx, tick_now, visu)
     x = pos_step(tick_now, :);
     lanelet_struct = scenario.road_raw_data.lanelet;
 
-    current_lanelet_id = match_pose_to_lane(scenario, x(1), x(2), 1);
+    current_lanelet_id = map_position_to_closest_lanelets(scenario.lanelets, x(1), x(2));
     successor_lanelet_id = lanelet_struct(current_lanelet_id).successor.refAttribute;
     predecessor_lanelet_id = lanelet_struct(current_lanelet_id).predecessor.refAttribute;
     current_lanelet_poly = polyshape([lanelet_struct(current_lanelet_id).leftBound.point(:).x, lanelet_struct(current_lanelet_id).rightBound.point(end:-1:1).x
