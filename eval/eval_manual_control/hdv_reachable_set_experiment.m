@@ -7,7 +7,6 @@ function result = hdv_reachable_set_experiment()
     options.is_prioritized = true;
     options.compute_in_parallel = false;
     options.environment = Environment.Simulation;
-    options.is_plot_online = true;
     options.should_save_result = 1;
     options.should_reduce_result = 0;
     options.bound_reachable_sets = false;
