@@ -49,14 +49,14 @@ function hdv_reachable_set_plot(result, step_idx, tick_now, visu)
         veh = scenario.vehicles(v);
         pos_step = result.trajectory_predictions{v, step_idx};
         x = pos_step(tick_now, :);
-        vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+        vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , rwth_color(v, :) ...
             , 'LineWidth', 1 ...
         );
 
-        if visu.isShowVehID
+        if visu.plot_vehicle_id
             radius = veh.Width * 0.95/2;
             rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
                 'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
@@ -107,14 +107,14 @@ function hdv_reachable_set_plot(result, step_idx, tick_now, visu)
         veh = scenario.vehicles(v);
         pos_step = result.trajectory_predictions{v, step_idx};
         x = pos_step(tick_now, :);
-        vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+        vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , rwth_color(v, :) ...
             , 'LineWidth', 1 ...
         );
 
-        if visu.isShowVehID
+        if visu.plot_vehicle_id
             radius = veh.Width * 0.95/2;
             rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
                 'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
@@ -177,14 +177,14 @@ function hdv_reachable_set_plot(result, step_idx, tick_now, visu)
         veh = scenario.vehicles(v);
         pos_step = result.trajectory_predictions{v, step_idx};
         x = pos_step(tick_now, :);
-        vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+        vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , rwth_color(v, :) ...
             , 'LineWidth', 1 ...
         );
 
-        if visu.isShowVehID
+        if visu.plot_vehicle_id
             radius = veh.Width * 0.95/2;
             rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
                 'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
