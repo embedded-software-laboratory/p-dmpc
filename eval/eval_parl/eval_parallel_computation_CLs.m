@@ -21,10 +21,10 @@ function eval_parallel_computation_CLs()
     options.amount = 20;
     options.isParl = false; % avoid to use distributed computation
         
-    random_times = 5;
+    random_times = 10;
     CLs_s = [1,2,4,6,options.amount];
     e_CLs = cell(random_times,length(CLs_s));
-    results = cell(length(CLs_s),random_times);
+    results = cell(random_times,length(CLs_s));
     n_simulations = numel(e_CLs);
     count = 0;
     
@@ -80,14 +80,14 @@ function eval_parallel_computation_CLs()
     disp('--------Plotted--------')
 
     % export video
-%     answer = questdlg('Would you like to export videos (may take several minutes)?', ...
-% 	    'Export videos?', ...
-% 	    'Yes','No','No');
-%     if strcmp(answer,'Yes')
-%         disp('--------Exporting videos--------')
-%         export_videos(results)
-%         disp('--------Videos exported--------')
-%     end
+    answer = questdlg('Would you like to export some frames of simulations?', ...
+	    'Export frames?', ...
+	    'Yes','No','No');
+    if strcmp(answer,'Yes')
+        disp('--------Exporting frames--------')
+        export_fig_for_video(results,results_folder_path)
+        disp('--------Frames exported--------')
+    end
 end
 
 %% plot average speed and the actual number of computation levels
@@ -105,9 +105,9 @@ function plot_different_num_CLs(e_CLs,free_flow_speed,CLs_s,results_folder_path)
     CLs_num_max = cellfun(@(c) c.CLs_num_max, e_CLs);
     
     X_string = string(CLs_s);
-    X_string(1) = 'Parl.';
-    X_string(2) = ['$N_{l,a}=$' num2str(CLs_s(2))];
-    X_string(end) = 'Alr.';
+%     X_string(1) = 'Parl.';
+%     X_string(2) = ['$N_{l,a}=$' num2str(CLs_s(2))];
+    X_string(end) = '$\infty$';
     
     % plot average speed
     average_speed_s = cellfun(@(c) c.average_speed, e_CLs);
@@ -115,16 +115,16 @@ function plot_different_num_CLs(e_CLs,free_flow_speed,CLs_s,results_folder_path)
 
     boxplot(average_speed_normalized*100,'Colors','k','OutlierSize',4,'Labels',X_string);
     
-    y_FFS = yline(free_flow_speed/free_flow_speed*100,'--b','LineWidth',0.6);
+    y_FFS = yline(free_flow_speed/free_flow_speed*100,'--k','LineWidth',0.6);
     
-    legend(y_FFS,{'Free-flow'},'Location','south')
-    ylabel('$\overline{v}_n\:[\%]$','Interpreter','latex')
-    % xlabel('(a) Average speed (normalized).')
+    legend(y_FFS,{'Free-flow speed'},'Location','south')
+    ylabel('$\overline{v}\:[\%]$','Interpreter','latex')
+    xlabel('Computation level limit')
     xaxis = get(gca, 'XAxis');
     xaxis.TickLabelInterpreter = 'latex'; % latex for x-axis
     
-    ylim([0 105])
-    yticks(0:20:105)
+    ylim([58 102])
+    yticks(60:10:100)
     
     % export fig 1
     export_config = ExportFigConfig.paper;
@@ -145,7 +145,7 @@ function plot_different_num_CLs(e_CLs,free_flow_speed,CLs_s,results_folder_path)
 
     boxplot(CLs_num_max,'Colors','k','OutlierSize',4,'Labels',X_string);
 
-    level_max = 12;
+    level_max = 13;
     ylim([0 level_max])
     yticks(0:2:level_max)
     % xlabel('(b) Actual number of computation levels.')
@@ -164,15 +164,52 @@ function plot_different_num_CLs(e_CLs,free_flow_speed,CLs_s,results_folder_path)
 end
 
 %% export videos
-function export_videos(results)
-    for i = 1:numel(results)
-        result = results{i};
+function export_fig_for_video(results,results_folder_path)
+    i_CLs = 3; % number of computation levels: 4
+    i_random = 1;
+    result = results{i_random,i_CLs};
+
+    result.scenario.options.options_plot_online.is_video_mode = true;
+    result.scenario.options.options_plot_online.plot_coupling = true;
+    result.scenario.options.options_plot_online.plot_weight = true;
+    result.scenario.options.options_plot_online.plot_priority = true;
     
-        result.scenario.options.optionsPlotOnline.isVideoMode = true;
-        result.scenario.options.optionsPlotOnline.isShowCoupling = true;
-        result.scenario.options.optionsPlotOnline.isShowPriority = true;
-        
-        % videoExportSetup.framerate = 30;
-        exportVideo(result)
+    % videoExportSetup.framerate = 30;
+    timesteps = [14];
+    for iStep = timesteps
+        result.scenario.options.options_plot_online.plot_scenario_name = false;
+        result.scenario.options.options_plot_online.plot_timesteps = true;
+        result.scenario.options.options_plot_online.plot_xy_labels = false;
+        result.scenario.options.options_plot_online.plot_xy_ticks = false;
+        result.scenario.options.options_plot_online.plot_priority = false;
+
+        % after applying our approach
+        result.scenario.options.options_plot_online.plot_weight = true;
+        exportFrame(result,iStep=iStep,frame_name='coupling_after_our_approach.png')
+        % before applying our approach
+        result.scenario.options.options_plot_online.plot_weight = false;
+        belonging_vector = result.belonging_vector(:,iStep);
+        result.belonging_vector(:,iStep) = 1;
+        exportFrame(result,iStep=iStep,frame_name='coupling_before_our_approach.png')
+
+        fig1 = figure();
+        hold on
+        graphs_visualization(belonging_vector', result.iteration_structs{iStep}.coupling_weights_reduced, 'ShowWeights', true, 'ShowCutEdges', false)
+        % title('Before applying our method')
+        box on
+        file_path_1 = fullfile(results_folder_path,'graph_before_our_approach.png');
+        exportgraphics(fig1,file_path_1,'Resolution',300)
+        disp(['A figure was saved under ' file_path_1 '.'])
+
+        fig2 = figure();
+        hold on
+        graphs_visualization(belonging_vector', result.iteration_structs{iStep}.coupling_weights, 'ShowWeights', true, 'ShowCutEdges', true)
+        % title('After applying our method')
+        box on
+        file_path_2 = fullfile(results_folder_path,'graph_after_our_approach.png');
+        exportgraphics(fig2,file_path_2,'Resolution',300)   
+        disp(['A figure was saved under ' file_path_2 '.'])
+
+        close all
     end
 end

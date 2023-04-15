@@ -1,16 +1,18 @@
 function exportVideo(result,videoExportSetup)
 % EXPORTVIDEO   Export Video from results of simulation.
+arguments
+    result struct;
+    videoExportSetup.frame {mustBeNumeric} = 30;
+    videoExportSetup.name string = '';
+end
+
+close all % if not, sometimes color bar will not be shown properly
 scenario = result.scenario;
 nSteps = nnz(result.controller_runtime);
 
-if nargin>1
-    framerate = videoExportSetup.framerate;
-    frame_ticks = 1;
-else
-    framerate = 30;
-    frame_per_step = framerate*scenario.options.dt;
-    frame_ticks = round(linspace(1,scenario.options.tick_per_step+1,frame_per_step));
-end
+framerate = 30;
+frame_per_step = framerate*scenario.options.dt;
+frame_ticks = round(linspace(1,scenario.options.tick_per_step+1,frame_per_step));
 
 plotter = PlotterOnline(scenario);
 plotter.set_figure_visibility(false);
@@ -21,14 +23,22 @@ if test_mode
     plotter.plotOnline(plotting_info);
     set_figure_properties(plotter.get_figure(),ExportFigConfig.video());
     frame = getframe(plotter.get_figure());
-    imwrite(frame.cdata,['results\video_', scenario.options.scenario_name, '.png']);
+    imwrite(frame.cdata,['results\video_test_', scenario.options.scenario_name, '.png']);
     return
 end
 
-v = VideoWriter(...
-    FileNameConstructor.gen_video_file_path(scenario.options), ...
-    'Motion JPEG AVI' ...
-);
+% v = VideoWriter(...
+%     FileNameConstructor.gen_video_file_path(scenario.options), ...
+%     'Motion JPEG AVI' ...
+% );
+if isempty(videoExportSetup.name)
+    video_name = FileNameConstructor.gen_video_file_path(scenario.options);
+else
+    video_name = videoExportSetup.name;
+end
+
+v = VideoWriter(video_name, 'MPEG-4');
+
 v.FrameRate = framerate; 
 v.Quality = 97;
 open(v);
@@ -55,8 +65,10 @@ for step_idx = 1:nSteps
         );
     end
 end
+
 plotter.close_figure();
 close(wb);
 close(v);
+disp(append('A video was saved under ',video_name))
 
 end

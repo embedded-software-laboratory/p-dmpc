@@ -64,9 +64,13 @@ function eval_parallel_computation_prediction_inconsistency()
         mkdir(results_folder_path)
     end
 
+    rwth_colors = rwth_color_order();
+    veh_colors = rwth_colors(1:options.amount,:); 
+    x_lim = [1.6 3.4];
+    y_lim = [1.0 2.5];
     disp('--------Plot--------')
-    % plot_prediction_inconsistency_addressed(results,results_folder_path)
-    % plot_prediction_inconsistency_not_addressed(results,results_folder_path)
+    plot_prediction_inconsistency_addressed(results,results_folder_path,veh_colors,x_lim,y_lim)
+    plot_prediction_inconsistency_not_addressed(results,results_folder_path,veh_colors,x_lim,y_lim)
     disp('--------Plotted--------')
 
     % export video
@@ -78,13 +82,13 @@ function eval_parallel_computation_prediction_inconsistency()
         % combine distuibuted simulation data
         results_combined = combine_distributed_results(results);
         disp('--------Exporting videos--------')
-        export_videos(results_combined)
+        export_videos(results_combined,veh_colors,x_lim,y_lim,results_folder_path)
         disp('--------Videos exported--------')
     end
 end
 
 %% subfunction 1
-function plot_prediction_inconsistency_addressed(results,results_folder_path)
+function plot_prediction_inconsistency_addressed(results,results_folder_path,veh_colors,x_lim,y_lim)
     close all
     %%% fig 1: footprints
     fig1 = figure();
@@ -96,9 +100,8 @@ function plot_prediction_inconsistency_addressed(results,results_folder_path)
     xlabel('$x$ [m]', 'Interpreter', 'LaTex');
     ylabel('$y$ [m]', 'Interpreter', 'LaTex');
 
-    rwth_color = rwth_color_order();
-    xlim([1.6 4]);
-    ylim([1.05 2.75]);
+    xlim(x_lim);
+    ylim(y_lim);
     daspect([1 1 1])
 
     tick_now = 1;
@@ -120,7 +123,7 @@ function plot_prediction_inconsistency_addressed(results,results_folder_path)
             if k == 9
                 patch(   vehiclePolygon(1,:)...
                         ,vehiclePolygon(2,:)...
-                        ,rwth_color(v,:)...
+                        ,veh_colors(v,:)...
                         ,'LineWidth',0.2 ...
                         ,'FaceAlpha',1-k/(visualized_steps_num+2) ...
                         ,'EdgeColor','r'...
@@ -128,7 +131,7 @@ function plot_prediction_inconsistency_addressed(results,results_folder_path)
             else
                 patch(   vehiclePolygon(1,:)...
                         ,vehiclePolygon(2,:)...
-                        ,rwth_color(v,:)...
+                        ,veh_colors(v,:)...
                         ,'LineWidth',0.2 ...
                         ,'FaceAlpha',1-k/(visualized_steps_num+2) ...
                         ,'EdgeColor','k'...
@@ -182,13 +185,13 @@ function plot_prediction_inconsistency_addressed(results,results_folder_path)
     for v=other_vehs
         reachable_sets = results{i,v}.iteration_structs{step_idx}.reachable_sets(v,:);
         reachable_sets_array = cellfun(@(c) {[c.Vertices(:,1)',c.Vertices(1,1)';c.Vertices(:,2)',c.Vertices(1,2)']}, reachable_sets); 
-        color = rwth_color(v,:);
+        color = veh_colors(v,:);
         plot_cell_arrays(reachable_sets_array,color,true)
     end
     % plot predicted occupied areas of the ego vehicle
     trajectory_predictions = results{i,ego_vehs}.trajectory_predictions{ego_vehs, step_idx};
     is_one_step_shifted = false;
-    plot_predicted_occupancy(trajectory_predictions,scenario,rwth_color(ego_vehs,:),scenario.mpa.trims_stop,is_one_step_shifted)
+    plot_predicted_occupancy(trajectory_predictions,scenario,veh_colors(ego_vehs,:),scenario.mpa.trims_stop,is_one_step_shifted)
 
     % plot vehicle positions
     for v=1:nVehs
@@ -198,7 +201,7 @@ function plot_prediction_inconsistency_addressed(results,results_folder_path)
         vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
         patch(   vehiclePolygon(1,:)...
                 ,vehiclePolygon(2,:)...
-                ,rwth_color(v,:)...
+                ,veh_colors(v,:)...
                 ,'LineWidth',0.2 ...
                 ,'FaceAlpha',0.90 ...
         );
@@ -240,7 +243,7 @@ function plot_prediction_inconsistency_addressed(results,results_folder_path)
     for v = 1:nVehs    
         trajectory_predictions = results{i,v}.trajectory_predictions{v, step_idx};
         is_one_step_shifted = false;
-        plot_predicted_occupancy(trajectory_predictions,scenario,rwth_color(v,:),scenario.mpa.trims_stop,is_one_step_shifted)
+        plot_predicted_occupancy(trajectory_predictions,scenario,veh_colors(v,:),scenario.mpa.trims_stop,is_one_step_shifted)
     end
 
     % plot vehicle positions
@@ -251,7 +254,7 @@ function plot_prediction_inconsistency_addressed(results,results_folder_path)
         vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
         patch(   vehiclePolygon(1,:)...
                 ,vehiclePolygon(2,:)...
-                ,rwth_color(v,:)...
+                ,veh_colors(v,:)...
                 ,'LineWidth',0.2 ...
                 ,'FaceAlpha',0.90 ...
         );
@@ -274,7 +277,7 @@ function plot_prediction_inconsistency_addressed(results,results_folder_path)
 end
 
 %% subfunction 2
-function plot_prediction_inconsistency_not_addressed(results,results_folder_path)
+function plot_prediction_inconsistency_not_addressed(results,results_folder_path,veh_colors,x_lim,y_lim)
     close all
     %%% fig 1: footprints
     fig1 = figure();
@@ -286,9 +289,8 @@ function plot_prediction_inconsistency_not_addressed(results,results_folder_path
     xlabel('$x$ [m]', 'Interpreter', 'LaTex');
     ylabel('$y$ [m]', 'Interpreter', 'LaTex');
 
-    rwth_color = rwth_color_order();
-    xlim([1.6 4]);
-    ylim([1.05 2.75]);
+    xlim(x_lim);
+    ylim(y_lim);
     daspect([1 1 1])
 
     tick_now = 1;
@@ -311,7 +313,7 @@ function plot_prediction_inconsistency_not_addressed(results,results_folder_path
                 % highlight the timestep when collision occurs
                 patch(   vehiclePolygon(1,:)...
                         ,vehiclePolygon(2,:)...
-                        ,rwth_color(v,:)...
+                        ,veh_colors(v,:)...
                         ,'LineWidth',0.2 ...
                         ,'FaceAlpha',1-k/(visualized_steps_num+2) ...
                         ,'EdgeColor','r'...
@@ -319,7 +321,7 @@ function plot_prediction_inconsistency_not_addressed(results,results_folder_path
             else
                 patch(   vehiclePolygon(1,:)...
                         ,vehiclePolygon(2,:)...
-                        ,rwth_color(v,:)...
+                        ,veh_colors(v,:)...
                         ,'LineWidth',0.2 ...
                         ,'FaceAlpha',1-k/(visualized_steps_num+2) ...
                         ,'EdgeColor','k'...
@@ -373,13 +375,13 @@ function plot_prediction_inconsistency_not_addressed(results,results_folder_path
     for v = other_vehs
         trajectory_predictions = results{i,v}.trajectory_predictions{v, step_idx-1};
         is_one_step_shifted = true;
-        plot_predicted_occupancy(trajectory_predictions,scenario,rwth_color(v,:),scenario.mpa.trims_stop,is_one_step_shifted)
+        plot_predicted_occupancy(trajectory_predictions,scenario,veh_colors(v,:),scenario.mpa.trims_stop,is_one_step_shifted)
     end
 
     % plot predicted occupied areas of the ego vehicle
     trajectory_predictions = results{i,ego_vehs}.trajectory_predictions{ego_vehs, step_idx};
     is_one_step_shifted = false;
-    plot_predicted_occupancy(trajectory_predictions,scenario,rwth_color(ego_vehs,:),scenario.mpa.trims_stop,is_one_step_shifted)
+    plot_predicted_occupancy(trajectory_predictions,scenario,veh_colors(ego_vehs,:),scenario.mpa.trims_stop,is_one_step_shifted)
 
     % plot vehicle positions
     for v=1:nVehs
@@ -389,7 +391,7 @@ function plot_prediction_inconsistency_not_addressed(results,results_folder_path
         vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
         patch(   vehiclePolygon(1,:)...
                 ,vehiclePolygon(2,:)...
-                ,rwth_color(v,:)...
+                ,veh_colors(v,:)...
                 ,'LineWidth',0.2 ...
                 ,'FaceAlpha',0.90 ...
         );
@@ -430,7 +432,7 @@ function plot_prediction_inconsistency_not_addressed(results,results_folder_path
     for v = 1:nVehs    
         trajectory_predictions = results{i,v}.trajectory_predictions{v, step_idx};
         is_one_step_shifted = false;
-        plot_predicted_occupancy(trajectory_predictions,scenario,rwth_color(v,:),scenario.mpa.trims_stop,is_one_step_shifted)
+        plot_predicted_occupancy(trajectory_predictions,scenario,veh_colors(v,:),scenario.mpa.trims_stop,is_one_step_shifted)
     end
 
     % plot vehicle positions
@@ -441,7 +443,7 @@ function plot_prediction_inconsistency_not_addressed(results,results_folder_path
         vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
         patch(   vehiclePolygon(1,:)...
                 ,vehiclePolygon(2,:)...
-                ,rwth_color(v,:)...
+                ,veh_colors(v,:)...
                 ,'LineWidth',0.2 ...
         );
 
@@ -479,23 +481,52 @@ function results_combined = combine_distributed_results(results)
 end
 
 % export videos
-function export_videos(results)
+function export_videos(results,veh_colors,x_lim,y_lim,results_folder_path)
     for i = 1:numel(results)
         result = results{i};
     
+        result.scenario.options.options_plot_online.is_custom_colors = true;
+        result.scenario.options.options_plot_online.custom_colors = veh_colors;
+        result.scenario.options.plot_limits(1,:) = x_lim;
+        result.scenario.options.plot_limits(2,:) = y_lim;
+        result.scenario.options.options_plot_online.plot_xy_labels = false;
+        result.scenario.options.options_plot_online.plot_xy_ticks = false;
+        result.scenario.options.options_plot_online.is_dynamic_colors = false;
+
+
+        result.scenario.options.options_plot_online.plot_scenario_name = false;
+        result.scenario.options.options_plot_online.plot_timesteps = true;
+
+
         result.scenario.options.options_plot_online.is_video_mode = true;
         result.scenario.options.options_plot_online.plot_coupling = true;
-        result.scenario.options.options_plot_online.plot_priority = true;
+        result.scenario.options.options_plot_online.plot_weight = false;
+        result.scenario.options.options_plot_online.plot_priority = false;
 
         if i == 1
+            % plot the reachable sets of vehicles 1 and 2
             result.scenario.options.options_plot_online.plot_reachable_sets = true;
             result.scenario.options.options_plot_online.vehicles_reachable_sets = [1,2];
+            result.scenario.options.options_plot_online.plot_predicted_occupancy = true;
+            result.scenario.options.options_plot_online.vehicles_predicted_occupancy = [3];
+            exportVideo(result,frame=30,name=fullfile(results_folder_path,'(a) consider reachable sets.mp4'))
+            % plot the actual plans of vehicles 1 and 2
+            result.scenario.options.options_plot_online.plot_reachable_sets = false;
+            result.scenario.options.options_plot_online.plot_predicted_occupancy = true;
+            result.scenario.options.options_plot_online.vehicles_predicted_occupancy = [1,2,3];
+            exportVideo(result,frame=30,name=fullfile(results_folder_path,'(b) consider reachable sets.mp4'))
         else
+            % plot the previously predicted occupancies of vehicles 1 and 2
             result.scenario.options.options_plot_online.plot_predicted_occupancy_previous = true;
             result.scenario.options.options_plot_online.vehicles_predicted_occupancy_previous = [1,2];
+            result.scenario.options.options_plot_online.plot_predicted_occupancy = true;
+            result.scenario.options.options_plot_online.vehicles_predicted_occupancy = [3];
+            exportVideo(result,frame=30,name=fullfile(results_folder_path,'(a) consider previous plans'))
+            % plot the actual plans of vehicles 1 and 2
+            result.scenario.options.options_plot_online.plot_predicted_occupancy_previous = false;
+            result.scenario.options.options_plot_online.plot_predicted_occupancy = true;
+            result.scenario.options.options_plot_online.vehicles_predicted_occupancy = [1,2,3];
+            exportVideo(result,frame=30,name=fullfile(results_folder_path,'(b) consider previous plans'))
         end
-        
-        % videoExportSetup.framerate = 30;
-        exportVideo(result)
     end
 end

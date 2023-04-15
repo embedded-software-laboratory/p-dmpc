@@ -81,13 +81,23 @@ classdef PlotterOnline < handle
             %   visu: struct with fields: 'plot_vehicle_id', 'plot_priority', 'plot_coupling' and 'plot_weight'
             %
 
-            priority_list = plotting_info.priorities;
+            if obj.plot_options.is_dynamic_colors
+                % the colors of vehicles change dynamically according to
+                % their priorities
+                priority_list = plotting_info.priorities;
+                color_list = priority_list;
+            else
+                % use fixed colors for each vehicle
+                color_list = 1:obj.scenario.options.amount;
+            end
 
             nObst = plotting_info.n_obstacles;
             nDynObst = plotting_info.n_dynamic_obstacles;
 
-            if nargin < 3
+            if nargin < 2
                 tick_now = 1;
+            else
+                tick_now = plotting_info.tick_now;
             end
 
             %% Simulation state / scenario plot
@@ -98,13 +108,23 @@ classdef PlotterOnline < handle
             delete(h);
 
             if obj.plot_options.is_video_mode
-                % in video mode, lanelets should be plotted at each time step
+                % in video mode or frame mode, lanelets should be plotted at each time step
                 hold on
                 box on
                 axis equal
 
-                xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
-                ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
+                if ~obj.plot_options.plot_xy_ticks
+                    % hide x- and y-axis ticks
+                    xticks('')
+                    yticks('')
+                end
+                if obj.plot_options.plot_xy_labels
+                    xlabel('\fontsize{14}{0}$x$ [m]','Interpreter','LaTex');
+                    ylabel('\fontsize{14}{0}$y$ [m]','Interpreter','LaTex');
+                else
+                    xlabel('')
+                    ylabel('')
+                end
 
                 xlim(obj.scenario.options.plot_limits(1,:));
                 ylim(obj.scenario.options.plot_limits(2,:));
@@ -112,13 +132,23 @@ classdef PlotterOnline < handle
                 plot_lanelets(obj.scenario.road_raw_data.lanelet,obj.scenario.options.scenario_name);
             end
 
-            % Define a new colormap in the first timestep, else get the colormap already associated with the plot.
-            if plotting_info.step == 1
-                [priority_colormap, n_colors_max] = discrete_colormap();
-                colormap(priority_colormap);
-            else
-                priority_colormap = get(gcf, 'Colormap');
+            % set vehicle colors
+            % define a new colormap in the first timestep, else get the colormap already associated with the plot.
+            priority_colormap = get(gcf, 'Colormap');
+            if ~isempty(priority_colormap) && size(priority_colormap,1) ~= 256 % sometimes even no colormap is defined, get(gcf, 'Colormap') still returns a 256x3 matrix
+                % get the color map associated with the plot
                 n_colors_max = size(priority_colormap, 1);
+            else
+                % define initial colormap
+                if obj.plot_options.is_custom_colors
+                    % use custom colors
+                    priority_colormap = obj.plot_options.custom_colors;
+                    n_colors_max = size(priority_colormap, 1);
+                    colormap(priority_colormap);
+                else
+                    [priority_colormap, n_colors_max] = discrete_colormap();
+                    colormap(priority_colormap);
+                end
             end
 
             find_text_hotkey = findobj('Tag','hotkey');
@@ -176,23 +206,23 @@ classdef PlotterOnline < handle
             for v=obj.veh_indices
                 line(   plotting_info.ref_trajectory(v,:,1), ...
                     plotting_info.ref_trajectory(v,:,2), ...
-                    'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','o', ...
-                    'MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize',3,'LineWidth',1 );
+                    'Color',priority_colormap(color_list(v),:),'LineStyle','none','Marker','o', ...
+                    'MarkerFaceColor',priority_colormap(color_list(v),:),'MarkerSize',3,'LineWidth',1 );
             end
 
             % predicted trajectory
             for v=obj.veh_indices
                 line(   plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step+1:end,end],1), ...
                     plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step+1:end,end],2), ...
-                    'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','+', ...
-                    'MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
+                    'Color',priority_colormap(color_list(v),:),'LineStyle','none','Marker','+', ...
+                    'MarkerFaceColor',priority_colormap(color_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
                 % Matlab R2021a:
-                %'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
+                %'Color',priority_colormap(color_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',priority_colormap(color_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
                 % Matlab R2020a:
-                %'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
+                %'Color',priority_colormap(color_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',priority_colormap(color_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
                 line(   plotting_info.trajectory_predictions{v}(:,1), ...
                     plotting_info.trajectory_predictions{v}(:,2), ...
-                    'Color',priority_colormap(priority_list(v),:),'LineWidth',1 );
+                    'Color',priority_colormap(color_list(v),:),'LineWidth',1 );
             end
 
             % Vehicle rectangles
@@ -200,63 +230,32 @@ classdef PlotterOnline < handle
                 veh = obj.vehicles(v);
                 pos_step = plotting_info.trajectory_predictions{v};
                 x = pos_step(tick_now,:);
-                vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
-                patch(   vehiclePolygon(1,:)...
-                    ,vehiclePolygon(2,:)...
-                    ,priority_colormap(priority_list(v),:)...
-                    ,'LineWidth', 1 ...
-                    );
-
-                % plot the priority
-                %         if obj.plot_options.plot_priority
-                %             text(x(1),x(2),num2str(result.priority(v,plotting_info.step)),'FontSize', 12, 'LineWidth',1,'Color','m');
-                %         end
-
-                % plot the vehicle index in the middle of each vehicle on a lighter background
-                if obj.plot_options.plot_vehicle_id
-                    radius = veh.Width * 0.95 / 2;
-                    rectangle('Position', [x(1)-radius, x(2)-radius, 2*radius, 2*radius], 'Curvature', [1,1], ...
-                        'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
-                    text(x(1), x(2), num2str(v),'FontSize', 10, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
-                end
-
-                % plot the vehicle ID
-                %         if obj.plot_options.plot_vehicle_id
-                %             text(x(1)+0.1,x(2)+0.1,num2str(veh.ID),'FontSize', 12, 'LineWidth',1,'Color','b');
-                %         end
 
                 if obj.plot_options.plot_reachable_sets
-                    if obj.scenario.options.bound_reachable_sets
-                        text_RS = 'Reachable set';
-                    else
-                        text_RS = 'Unbounded reachable set';
-                    end
-
                     if isempty(obj.plot_options.vehicles_reachable_sets)
-                        for i_RS = 1:length(plotting_info.reachable_sets{v,:})
-                            [RS_x,RS_y] = boundary(plotting_info.reachable_sets{v,i_RS});
-                            line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
-                        end
-                        text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
+                        plot_cell_arrays(plotting_info.reachable_sets(v,:),priority_colormap(color_list(v),:),true)
                     elseif ismember(v,obj.plot_options.vehicles_reachable_sets)
                         % specify vehicles whose reachable sets should be shown
-                        for i_RS = 1:length(plotting_info.reachable_sets{v,:})
-                            [RS_x,RS_y] = boundary(plotting_info.reachable_sets{v,i_RS});
-                            line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
-                        end
-                        text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
+                        plot_cell_arrays(plotting_info.reachable_sets(v,:),priority_colormap(color_list(v),:),true)
                     end
                 end
 
+                % plot predicted areas
                 if obj.plot_options.plot_predicted_occupancy
                     if isempty(obj.plot_options.vehicles_predicted_occupancy)
-                        plot_predicted_occupancy(obj.plot_options.trajectory_predictions,obj.scenario,color,trims_stop,is_one_step_shifted)
-
-                    else
-
+                        plot_predicted_occupancy(   plotting_info.trajectory_predictions{v}, ...
+                                                    obj.scenario,priority_colormap(color_list(v),:), ...
+                                                    obj.scenario.mpa.trims_stop, ...
+                                                    false)
+                    elseif ismember(v,obj.plot_options.vehicles_predicted_occupancy)
+                        plot_predicted_occupancy(   plotting_info.trajectory_predictions{v}, ...
+                                                    obj.scenario,priority_colormap(color_list(v),:), ...
+                                                    obj.scenario.mpa.trims_stop, ...
+                                                    false)
                     end
                 end
 
+                % plot lanelet crossing areas
                 if obj.plot_options.plot_lanelet_crossing_areaas && ~isempty(plotting_info.lanelet_crossing_areas)
                     LCA = plotting_info.lanelet_crossing_areas{v};
                     if ~isempty(LCA)
@@ -272,20 +271,41 @@ classdef PlotterOnline < handle
                     end
                 end
 
+                % plot previously predicted areas
                 if obj.plot_options.plot_predicted_occupancy_previous && ~isempty(plotting_info.trajectory_previous)
                     if isempty(obj.plot_options.vehicles_predicted_occupancy_previous)
-                        [RS_x,RS_y] = boundary(plotting_info.previous_trajectories{v,obj.scenario.options.Hp});
-                        line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
-                        text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
+                        plot_predicted_occupancy(   plotting_info.trajectory_previous{v}, ...
+                                                    obj.scenario,priority_colormap(color_list(v),:), ...
+                                                    obj.scenario.mpa.trims_stop, ...
+                                                    true)
                     elseif ismember(v,obj.plot_options.vehicles_predicted_occupancy_previous)
                         % specify vehicles whose reachable sets should be shown
-                        [RS_x,RS_y] = boundary(plotting_info.previous_trajectories{v,obj.scenario.options.Hp});
-                        line(RS_x,RS_y,'LineWidth',1.0,'Color','k');
-                        text(mean(RS_x),mean(RS_y),text_RS,'LineWidth',1,'FontSize',16)
+                        plot_predicted_occupancy(   plotting_info.trajectory_previous{v}, ...
+                                                    obj.scenario,priority_colormap(color_list(v),:), ...
+                                                    obj.scenario.mpa.trims_stop, ...
+                                                    true)
                     end
                 end
 
+                vehiclePolygon = transformedRectangle(x(1),x(2),x(3), veh.Length,veh.Width);
+                patch(   vehiclePolygon(1,:)...
+                    ,vehiclePolygon(2,:)...
+                    ,priority_colormap(color_list(v),:)...
+                    ,'LineWidth', 1 ...
+                    );
 
+                % plot the priority
+                %         if obj.plot_options.plot_priority
+                %             text(x(1),x(2),num2str(result.priority(v,plotting_info.step)),'FontSize', 12, 'LineWidth',1,'Color','m');
+                %         end
+
+                % plot the vehicle index in the middle of each vehicle on a lighter background
+                if obj.plot_options.plot_vehicle_id
+                    radius = veh.Width * 0.95 / 2;
+                    rectangle('Position', [x(1)-radius, x(2)-radius, 2*radius, 2*radius], 'Curvature', [1,1], ...
+                        'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
+                    text(x(1), x(2), num2str(v),'FontSize', 10, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
+                end
             end
 
             % plot scenario adjacency
@@ -325,12 +345,31 @@ classdef PlotterOnline < handle
                     );
             end
 
-            t=title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs',...
-                obj.scenario.options.scenario_name,...
-                'Graph Search',...
-                obj.strategy,...
-                plotting_info.step,...
-                (plotting_info.step-1)*obj.scenario.options.dt + (tick_now-1) * obj.scenario.options.time_per_tick),'Interpreter','latex','FontSize',12);
+            % plot title
+            if obj.plot_options.plot_scenario_name
+                if obj.plot_options.plot_timesteps
+                    % plot scenario name and timesteps
+                    t=title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs',...
+                        obj.scenario.options.scenario_name,...
+                        'Graph Search',...
+                        obj.strategy,...
+                        plotting_info.step,...
+                        (plotting_info.step-1)*obj.scenario.options.dt + (tick_now-1) * obj.scenario.options.time_per_tick),'Interpreter','latex','FontSize',12);
+                else
+                    % plot only scenario name
+                    t=title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!',...
+                        obj.scenario.options.scenario_name,...
+                        'Graph Search',...
+                        obj.strategy),'Interpreter','latex','FontSize',12);                    
+                end
+            else
+                if obj.plot_options.plot_timesteps
+                    % plot only timesteps
+                    t=title(sprintf('Step: %i, Time: %3.1fs',...
+                        plotting_info.step,...
+                        (plotting_info.step-1)*obj.scenario.options.dt + (tick_now-1) * obj.scenario.options.time_per_tick),'Interpreter','latex','FontSize',12);
+                end
+            end
 
             set(t,'HorizontalAlignment', 'center');
 

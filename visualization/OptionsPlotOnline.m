@@ -17,7 +17,14 @@ classdef OptionsPlotOnline
         vehicles_predicted_occupancy = [];      % predicted occupancy of those vehicles will be shown
         plot_predicted_occupancy_previous = false;      % whether to show previously predicted occupancy
         vehicles_predicted_occupancy_previous = [];     % previously predicted occupancy of those vehicles will be shown
-        is_video_mode = false;                          % if in video mode, the lanelets need to be plotted for each time step 
+        is_video_mode = false;                          % if in video mode, the lanelets need to be plotted for each time step
+        plot_scenario_name = true;  % whether to show scenario name in the figure title
+        plot_timesteps = true;      % whether to show timesteps in the figure title
+        is_custom_colors = false;   % whether to use custom colors to visualize vehicles
+        custom_colors = [];         % custom colors (nVeh-by-3 matrix)
+        is_dynamic_colors = true;   % whether to use dynamic colors to visualize vehicles (i.e, the colors of vehicles change dynamically with their priorities)
+        plot_xy_labels = true;      % whether plot x- and y-axis labels
+        plot_xy_ticks = true;       % whether plot x- and y-axis ticks
     end
 
     methods

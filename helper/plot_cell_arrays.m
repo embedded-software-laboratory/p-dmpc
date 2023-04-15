@@ -9,18 +9,21 @@ function p = plot_cell_arrays(cells,color,isFill)
     if nargin==1
         isFill = false;
     end
-    if isFill
-        for j = size(cells,2):-1:1
-            shape = cells{j};
-            patch(shape(1,:),shape(2,:),color,'FaceAlpha',(1-j/(size(cells,2)+2))*0.5);
-        end
-    else
-        CM = rwth_color_order(size(cells,2)+3);
-        CM = CM(4:end,:);
     
-        for j = 1:size(cells,2)
-            shape = cells{j};
-            p(j) = plot(shape(1,:),shape(2,:),'LineWidth',1,'Color',CM(j,:),'LineStyle','-.');
+    for j = size(cells,2):-1:1
+        if isFill
+            faceAlpha = (1-j/(size(cells,2)+2))*0.5;
+            edgeColor = 'k';
+        else
+            faceAlpha = 0;
+            edgeColor = color;
+        end
+        shape = cells{j};
+        if isa(shape, 'polyshape')
+            plot(shape,'FaceColor',color,'EdgeColor',edgeColor,'FaceAlpha',faceAlpha);
+        else
+            patch(shape(1,:),shape(2,:),color,'EdgeColor',edgeColor,'FaceAlpha',faceAlpha);
         end
     end
+
 end
