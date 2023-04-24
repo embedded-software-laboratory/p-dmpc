@@ -3,7 +3,7 @@ classdef Config < matlab.mixin.Copyable
     properties
         environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
         is_manual_control = false; % true/false, are manually controlled vehicles involved
-        manual_control_config ManualControlConfig = ManualControlConfig; % manual control config
+        manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
         is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
         compute_in_parallel = false; % true/false, is use parallel(distributed) computation
@@ -58,7 +58,6 @@ classdef Config < matlab.mixin.Copyable
         is_force_parallel_vehs_in_same_grp = true; % true/false, if true, vehicles move in parallel will be forced in the same group
         reference_path = struct('lanelets_index', [], 'start_point', []); % custom reference path
         use_cpp = false;
-        is_allow_collisions = false; % true/false, if true, simulation will not be stopped if collisions occur
         mex_out_of_process_execution = false; % execute mex graph search functions in own process
 
     end
@@ -72,11 +71,6 @@ classdef Config < matlab.mixin.Copyable
     methods
 
         function obj = Config()
-            % initialize 'manual_control_config'
-            manual_control_config = ManualControlConfig;
-            manual_control_config.amount = 0;
-            manual_control_config.hdv_ids = [];
-            obj.manual_control_config = manual_control_config;
         end
 
         function obj = assign_data(obj, struct)
