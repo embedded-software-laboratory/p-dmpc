@@ -144,7 +144,16 @@ classdef (Abstract) Plotter < handle
                 xlim(obj.scenario.options.plot_limits(1, :));
                 ylim(obj.scenario.options.plot_limits(2, :));
                 daspect([1 1 1])
-                plot_lanelets(obj.scenario.road_raw_data.lanelet, obj.scenario.options.scenario_name);
+
+                if contains(obj.scenario.options.scenario_name, 'circle')
+                    % in circle scenarios, there are no lanelets. plot an
+                    % invisible lab border instead to prevent distortion
+                    % in the video
+                    plot_lab_border('#ffffff', '--');
+                else
+                    plot_lanelets(obj.scenario.road_raw_data.lanelet, obj.scenario.options.scenario_name);
+                end
+
             end
 
             % Define a new colormap in the first timestep, else get the colormap already associated with the plot.
@@ -500,4 +509,18 @@ classdef (Abstract) Plotter < handle
 
     end
 
+end
+
+function plot_lab_border(color, line_style)
+    %PLOT_LAB_BORDER
+    % Plot lab border (4.5 x 4) in specified color and line style
+    arguments
+        color (1, 1) string = '#848484'
+        line_style (1, 1) string = '-'
+    end
+
+    line([0 0 0 0 0], [0 1 2 3 4], 'Color', color, 'LineWidth', 0.15, 'LineStyle', line_style);
+    line([4.5 4.5 4.5 4.5 4.5], [0 1 2 3 4], 'Color', color, 'LineWidth', 0.15, 'LineStyle', line_style);
+    line([0 1 2 3 4 4.5], [0 0 0 0 0 0], 'Color', color, 'LineWidth', 0.15, 'LineStyle', line_style);
+    line([0 1 2 3 4 4.5], [4 4 4 4 4 4], 'Color', color, 'LineWidth', 0.15, 'LineStyle', line_style);
 end
