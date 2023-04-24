@@ -4,7 +4,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
-
+#include <optional>
+#include <boost/heap/binomial_heap.hpp>
 #if __has_include(<memory_resource>)
 #include <memory_resource>
 #else
@@ -22,15 +23,19 @@ class PointerPostfix {
 };
 
 namespace GraphBasedPlanning {
+
+
 	template <typename T = double>
 	class Node {
 		T _g;
 		T _h;
-		Node const *const _parent;
-		std::uint8_t const _k;
+		Node *const _parent;
+		std::uint16_t const _k;
 		unsigned int _children_size;
 		Node **_children;
+		std::vector<T> *_shapes;
 
+		static uint16_t _k_offset;
 		static unsigned int _n_vehicles;
 		static std::ptrdiff_t _trim_offset;
 		static std::ptrdiff_t _x_offset;
@@ -57,42 +62,42 @@ namespace GraphBasedPlanning {
 		}
 
 		template <typename TrimInputIterator, typename XInputIterator, typename YInputIterator, typename YawInputIterator>
-		    requires std::input_iterator<TrimInputIterator> && std::is_same_v<typename std::iterator_traits<TrimInputIterator>::value_type, std::uint8_t> && std::input_iterator<XInputIterator> &&
-		             std::is_same_v<typename std::iterator_traits<XInputIterator>::value_type, T> && std::input_iterator<YInputIterator> && std::is_same_v<typename std::iterator_traits<YInputIterator>::value_type, T> &&
-		             std::input_iterator<YawInputIterator> && std::is_same_v<typename std::iterator_traits<YawInputIterator>::value_type, T>
+		requires std::input_iterator<TrimInputIterator> && std::is_same_v<typename std::iterator_traits<TrimInputIterator>::value_type, std::uint8_t> && std::input_iterator<XInputIterator> &&
+		    std::is_same_v<typename std::iterator_traits<XInputIterator>::value_type, T> && std::input_iterator<YInputIterator> && std::is_same_v<typename std::iterator_traits<YInputIterator>::value_type, T> &&
+		    std::input_iterator<YawInputIterator> && std::is_same_v<typename std::iterator_traits<YawInputIterator>::value_type, T>
 		[[nodiscard]] static Node *create_root_node(TrimInputIterator trim_begin, XInputIterator x_begin, YInputIterator y_begin, YawInputIterator yaw_begin) {
 			return new Node(std::forward<TrimInputIterator>(trim_begin), std::forward<XInputIterator>(x_begin), std::forward<YInputIterator>(y_begin), std::forward<YawInputIterator>(yaw_begin));
 		}
 
-		[[nodiscard]] static Node const *create_copy(Node const *const node, Node const *const parent) { return new Node(node->g(), node->h(), parent, node->k(), node->trim_ptr(), node->x_ptr(), node->y_ptr(), node->yaw_ptr()); }
+		[[nodiscard]] static Node *create_copy(Node const *const node, Node *const parent) { return new Node(node->g(), node->h(), parent, node->k(), node->trim_ptr(), node->x_ptr(), node->y_ptr(), node->yaw_ptr(), node->shapes()); }
 
 		template <typename TrimInputIterator, typename XInputIterator, typename YInputIterator, typename YawInputIterator>
-		    requires std::input_iterator<TrimInputIterator> && std::is_same_v<typename std::iterator_traits<TrimInputIterator>::value_type, std::uint8_t> && std::input_iterator<XInputIterator> &&
-		             std::is_same_v<typename std::iterator_traits<XInputIterator>::value_type, T> && std::input_iterator<YInputIterator> && std::is_same_v<typename std::iterator_traits<YInputIterator>::value_type, T> &&
-		             std::input_iterator<YawInputIterator> && std::is_same_v<typename std::iterator_traits<YawInputIterator>::value_type, T>
+		requires std::input_iterator<TrimInputIterator> && std::is_same_v<typename std::iterator_traits<TrimInputIterator>::value_type, std::uint8_t> && std::input_iterator<XInputIterator> &&
+		    std::is_same_v<typename std::iterator_traits<XInputIterator>::value_type, T> && std::input_iterator<YInputIterator> && std::is_same_v<typename std::iterator_traits<YInputIterator>::value_type, T> &&
+		    std::input_iterator<YawInputIterator> && std::is_same_v<typename std::iterator_traits<YawInputIterator>::value_type, T>
 		[[nodiscard]] static Node *create_root_node_with_tracking_ptr(TrimInputIterator trim_begin, XInputIterator x_begin, YInputIterator y_begin, YawInputIterator yaw_begin, std::uint8_t *&tracking_ptr) {
 			return new (PointerPostfix(tracking_ptr, _max)) Node(std::forward<TrimInputIterator>(trim_begin), std::forward<XInputIterator>(x_begin), std::forward<YInputIterator>(y_begin), std::forward<YawInputIterator>(yaw_begin));
 		}
 
 		template <typename TrimInputIterator, typename XInputIterator, typename YInputIterator, typename YawInputIterator>
-		    requires std::input_iterator<TrimInputIterator> && std::is_same_v<typename std::iterator_traits<TrimInputIterator>::value_type, std::uint8_t> && std::input_iterator<XInputIterator> &&
-		             std::is_same_v<typename std::iterator_traits<XInputIterator>::value_type, T> && std::input_iterator<YInputIterator> && std::is_same_v<typename std::iterator_traits<YInputIterator>::value_type, T> &&
-		             std::input_iterator<YawInputIterator> && std::is_same_v<typename std::iterator_traits<YawInputIterator>::value_type, T>
+		requires std::input_iterator<TrimInputIterator> && std::is_same_v<typename std::iterator_traits<TrimInputIterator>::value_type, std::uint8_t> && std::input_iterator<XInputIterator> &&
+		    std::is_same_v<typename std::iterator_traits<XInputIterator>::value_type, T> && std::input_iterator<YInputIterator> && std::is_same_v<typename std::iterator_traits<YInputIterator>::value_type, T> &&
+		    std::input_iterator<YawInputIterator> && std::is_same_v<typename std::iterator_traits<YawInputIterator>::value_type, T>
 		[[nodiscard]] static Node *create_root_node_with_polymorphic_allocator(TrimInputIterator trim_begin, XInputIterator x_begin, YInputIterator y_begin, YawInputIterator yaw_begin, std::pmr::polymorphic_allocator<> &allocator) {
 			auto ptr = allocator.allocate_bytes(_max, alignof(Node));
 
 			return new (ptr) Node(std::forward<TrimInputIterator>(trim_begin), std::forward<XInputIterator>(x_begin), std::forward<YInputIterator>(y_begin), std::forward<YawInputIterator>(yaw_begin));
 		}
 
-		[[nodiscard]] static Node *create_node(T const g_, /*T const h_,*/ Node const *const parent_, std::uint8_t const k_) {
+		[[nodiscard]] static Node *create_node(T const g_, /*T const h_,*/ Node *const parent_, std::uint8_t const k_) {
 			return new Node(std::forward<T const>(g_), /*std::forward<T const>(h_),*/ std::forward<decltype(parent_)>(parent_), std::forward<decltype(k_)>(k_));
 		}
 
-		[[nodiscard]] static Node *create_node_with_tracking_ptr(T const g_, /*T const h_,*/ Node const *const parent_, std::uint8_t const k_, std::uint8_t *&tracking_ptr) {
+		[[nodiscard]] static Node *create_node_with_tracking_ptr(T const g_, /*T const h_,*/ Node *const parent_, std::uint8_t const k_, std::uint8_t *&tracking_ptr) {
 			return new (PointerPostfix(tracking_ptr, _max)) Node(std::forward<T const>(g_), /*std::forward<T const>(h_),*/ std::forward<decltype(parent_)>(parent_), std::forward<decltype(k_)>(k_));
 		}
 
-		[[nodiscard]] static Node *create_node_with_polymorphic_allocator(T const g_, /*T const h_,*/ Node const *const parent_, std::uint8_t const k_, std::pmr::polymorphic_allocator<> &allocator) {
+		[[nodiscard]] static Node *create_node_with_polymorphic_allocator(T const g_, /*T const h_,*/ Node *const parent_, std::uint8_t const k_, std::pmr::polymorphic_allocator<> &allocator) {
 			auto *ptr = allocator.allocate_bytes(_max, alignof(Node));
 			return new (ptr) Node(std::forward<T const>(g_), /*std::forward<T const>(h_),*/ std::forward<decltype(parent_)>(parent_), std::forward<decltype(k_)>(k_));
 		}
@@ -105,14 +110,18 @@ namespace GraphBasedPlanning {
 		[[nodiscard]] T &h() { return _h; }
 		[[nodiscard]] T h() const { return _h; }
 
-		[[nodiscard]] Node const *parent() const { return _parent; }
+		[[nodiscard]] Node* const parent() const { return _parent; }
 
-		[[nodiscard]] std::uint8_t k() const { return _k; }
+		[[nodiscard]] std::uint16_t k() const { return _k - _k_offset; }
+		static uint16_t &k_offset() { return _k_offset; }
+		static void increase_k_offset() { _k_offset++; }
+		static void reset_k_offset() { _k_offset = 0; }
 
 		[[nodiscard]] unsigned int children_size() const { return _children_size; }
 
 		[[nodiscard]] Node *&children(std::size_t const index) { return _children[index]; }
 		[[nodiscard]] Node *&children(std::size_t const index) const { return _children[index]; }
+		void set_children(std::size_t const index, Node<T> *node) { _children[index] = node; }
 
 		[[nodiscard]] std::uint8_t &trim(unsigned int const vehicle) { return *(std::uint8_t *)((std::byte *)this + _trim_offset + sizeof(std::uint8_t) * vehicle); }
 		[[nodiscard]] std::uint8_t trim(unsigned int const vehicle) const { return *(std::uint8_t *)((std::byte *)this + _trim_offset + sizeof(std::uint8_t) * vehicle); }
@@ -133,6 +142,9 @@ namespace GraphBasedPlanning {
 		[[nodiscard]] T yaw(unsigned int const vehicle) const { return *(T *)((std::byte *)this + _yaw_offset + sizeof(T) * vehicle); }
 		[[nodiscard]] T const *yaw_ptr() const { return (T *)((std::byte *)this + _yaw_offset); }
 		[[nodiscard]] T *yaw_ptr() { return (T *)((std::byte *)this + _yaw_offset); }
+
+		[[nodiscard]] std::vector<T>* &shapes() { return _shapes; }
+		[[nodiscard]] std::vector<T>* shapes() const { return _shapes; }
 
 		void create_children(std::size_t const size) {
 			_children_size = size;
@@ -156,9 +168,12 @@ namespace GraphBasedPlanning {
 
 		~Node() {
 			for (std::size_t i = 0; i < _children_size; ++i) {
-				delete _children[i];
+				delete children(i);
 			}
-
+			delete shapes();
+			if (heap_handle().has_value()) {
+				heap()->erase(heap_handle().value());
+			}
 			delete[] _children;
 		}
 
@@ -168,23 +183,30 @@ namespace GraphBasedPlanning {
 		void *operator new([[maybe_unused]] std::size_t size, void *ptr) { return ptr; }
 
 		template <typename TrimInputIterator, typename XInputIterator, typename YInputIterator, typename YawInputIterator>
-		Node(TrimInputIterator trim_begin, XInputIterator x_begin, YInputIterator y_begin, YawInputIterator yaw_begin) : _g(0U), _h(0U), _parent(nullptr), _k(0U), _children_size(0U), _children(nullptr) {
+		Node(TrimInputIterator trim_begin, XInputIterator x_begin, YInputIterator y_begin, YawInputIterator yaw_begin) : _g(0U), _h(0U), _parent(nullptr), _k(0U), _children_size(0U), _children(nullptr), _shapes(nullptr) {
 			std::copy(trim_begin, trim_begin + _n_vehicles, trim_ptr());
 			std::copy(x_begin, x_begin + _n_vehicles, x_ptr());
 			std::copy(y_begin, y_begin + _n_vehicles, y_ptr());
 			std::copy(yaw_begin, yaw_begin + _n_vehicles, yaw_ptr());
 		}
 
-		Node(T const g_, /*T const h_,*/ Node const *const parent_, std::uint8_t const k_) : _g(g_), _h(0.0/*h_*/), _parent(parent_), _k(k_), _children_size(0U), _children(nullptr) {}
+		Node(T const g_, /*T const h_,*/ Node *const parent_, std::uint8_t const k_) : _g(g_), _h(0.0 /*h_*/), _parent(parent_), _k(k_), _children_size(0U), _children(nullptr), _shapes(nullptr) {}
 
 		// only for copying
 		template <typename TrimInputIterator, typename XInputIterator, typename YInputIterator, typename YawInputIterator>
-		Node(T const g_, T const h_, Node const *const parent_, std::uint8_t const k_, TrimInputIterator trim_begin, XInputIterator x_begin, YInputIterator y_begin, YawInputIterator yaw_begin)
+		Node(T const g_, T const h_, Node *const parent_, std::uint8_t const k_, TrimInputIterator trim_begin, XInputIterator x_begin, YInputIterator y_begin, YawInputIterator yaw_begin, std::vector<T> *const shapes_vector)
 		    : _g(g_), _h(h_), _parent(parent_), _k(k_), _children_size(0U), _children(nullptr) {
 			std::copy(trim_begin, trim_begin + _n_vehicles, trim_ptr());
 			std::copy(x_begin, x_begin + _n_vehicles, x_ptr());
 			std::copy(y_begin, y_begin + _n_vehicles, y_ptr());
 			std::copy(yaw_begin, yaw_begin + _n_vehicles, yaw_ptr());
+			if (shapes_vector == nullptr) {
+				shapes() = nullptr; 
+			} else {
+				std::vector<T> *new_shapes = new std::vector<T>();
+				std::copy(shapes_vector->begin(), shapes_vector->end(), std::back_inserter(*new_shapes));
+				shapes() = new_shapes;
+			}
 		}
 
 		static constexpr std::ptrdiff_t aligned_offset(std::ptrdiff_t const size_vector) {
@@ -216,6 +238,18 @@ namespace GraphBasedPlanning {
 		struct priority_queue_comparison_less {
 			bool operator()(Node const *const lhs, Node const *const rhs) const { return *lhs < *rhs; }
 		};
+
+		typedef typename boost::heap::binomial_heap<Node<T> *, boost::heap::mutable_<true>, boost::heap::compare<Node<T>::priority_queue_comparison>> heap_t;
+		static heap_t *_heap;
+
+		typedef typename heap_t::handle_type heap_handle_t;
+		std::optional<heap_handle_t> _heap_handle;
+
+		[[nodiscard]] std::optional<heap_handle_t> &heap_handle() { return _heap_handle; }
+		void set_heap_handle(heap_handle_t heap_handle) { _heap_handle = heap_handle; }
+		void reset_heap_handle() { _heap_handle.reset(); }
+		[[nodiscard]] static heap_t* &heap() { return _heap; }
+
 	};
 
 	template <typename T>
@@ -230,6 +264,10 @@ namespace GraphBasedPlanning {
 	std::ptrdiff_t Node<T>::_yaw_offset = 0;
 	template <typename T>
 	std::ptrdiff_t Node<T>::_max = sizeof(Node<T>);
+	template <typename T>
+	Node<T>::heap_t *Node<T>::_heap = nullptr;
+	template <typename T>
+	uint16_t Node<T>::_k_offset = 0;
 
 	/*template <typename T>
 	class Node {

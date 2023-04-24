@@ -4,12 +4,11 @@ function result = hdv_reachable_set_experiment()
     options.trim_set = 4;
     options.T_end = 1;
     options.Hp = 6;
-    options.isPB = true;
-    options.isParl = false;
+    options.is_prioritized = true;
+    options.compute_in_parallel = false;
     options.environment = Environment.Simulation;
-    options.is_plot_online = true;
-    options.isSaveResult = 1;
-    options.isSaveResultReduced = 0;
+    options.should_save_result = 1;
+    options.should_reduce_result = 0;
     options.bound_reachable_sets = false;
 
     % visualization for video

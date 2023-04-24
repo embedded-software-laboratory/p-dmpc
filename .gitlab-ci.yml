@@ -1,9 +1,10 @@
 stages:
+  - Build
   - Test
 
 .matlab_defaults:
   image:
-    name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab:test
+    name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab:latest
     entrypoint: [""]
 
 .matlab_with_test_summary:
@@ -48,9 +49,19 @@ stages:
 
 Startup Unittest:
   extends: .matlab_defaults
-  stage: Test
+  stage: Build
   script:
-    - matlab -batch "mex -setup C; mex -setup C++; openProject('graph_based_planning.prj')"
+    - matlab -batch
+       "mex -setup C;
+        mex -setup C++;
+        lastwarn('', '');
+        openProject('graph_based_planning.prj');
+        [warnMsg, warnId] = lastwarn();
+        if(~isempty(warnId))
+            error(warnMsg, warnId);
+        end"
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   tags:
     - docker
 
@@ -58,7 +69,7 @@ Unittests:
   extends: .matlab_with_test_coverage
   parallel:
     matrix:
-      - FOLDER: [helper, lanelets]
+      - FOLDER: [helper, scenarios]
   variables:
     TEST_FOLDER: "'tests/unittests/$FOLDER'"
     COVERAGE_FOLDER: "'$FOLDER'"
@@ -67,4 +78,4 @@ Systemtests:
   extends: .matlab_with_test_coverage
   variables:
     TEST_FOLDER: "'tests/systemtests/systemtests.m'"
-    COVERAGE_FOLDER: "{'commun', 'config', 'experiment', 'graph_and_tree', 'helper', 'hlc', 'lanelets', 'manual_control', 'mex', 'model', 'motion_primitive_automaton', 'scenarios', 'ui', 'visualization'}"
+    COVERAGE_FOLDER: "{'config', 'helper', 'hlc', 'manual_control', 'plant', 'scenarios', 'ui', 'visualization'}"

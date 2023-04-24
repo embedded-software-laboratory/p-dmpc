@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Info Type="StartUp" Visible="0" Icon="" File="scenarios/road_network/lanelets/lanelet2/compile_lanelet2_interface.m" Name="compile_lanelet2_interface">
+    <Extension Value="f15b97ae-44e7-4eb5-bb2e-2c68b145d0c9" Name="StartUpPrev"/>
+</Info>

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <utility>
 #include <vector>
 
 #include "ColMajorAccessor.h"
 #include "MPA.h"
 #include "Maneuver.h"
 #include "MatlabDataArray.hpp"
+#include <utility>
 
 namespace GraphBasedPlanning {
 	class MPA_MEX : protected virtual MPA {
@@ -27,12 +27,15 @@ namespace GraphBasedPlanning {
 		explicit MPA_MEX(std::shared_ptr<matlab::engine::MATLABEngine> &_matlab) : _matlab(_matlab) {}
 
 		void mpa_callback(matlab::data::Array const &mpa_array) {
-			matlab::data::TypedArray<double> const transition_matrix_single_array = _matlab->getProperty(mpa_array, u"transition_matrix_single");
+			matlab::data::TypedArray<double> transition_matrix_single_array = _matlab->getProperty(mpa_array, u"transition_matrix_single");
 			_transition_matrix_single = ColMajorTensorAccessor(std::vector<std::uint8_t>(transition_matrix_single_array.begin(), transition_matrix_single_array.end()), transition_matrix_single_array.getDimensions());
 
 			matlab::data::TypedArray<double> const transition_matrix_mean_speed_array = _matlab->getProperty(mpa_array, u"transition_matrix_mean_speed");
 			_transition_matrix_mean_speed = ColMajorMatrixAccessor(std::vector<double>(transition_matrix_mean_speed_array.begin(), transition_matrix_mean_speed_array.end()), transition_matrix_mean_speed_array.getDimensions());
 
+			matlab::data::TypedArray<uint16_t> distance_to_equilibrium_array = _matlab->getProperty(mpa_array, u"distance_to_equilibrium");
+			_distance_to_equilibrium.assign(distance_to_equilibrium_array.begin(), distance_to_equilibrium_array.end());
+			
 			MPA::mpa_callback();
 
 			matlab::data::CellArray const maneuvers_array = _matlab->getProperty(mpa_array, u"maneuvers");
