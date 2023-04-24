@@ -82,7 +82,7 @@ function eval_coloring_paper()
     set(gca, 'yscale', 'log');
     xlabel('\# Agents', 'Interpreter', 'LaTex')
     ylabel('Computation Time [s]', 'Interpreter', 'LaTex')
-    set(gca, 'YTick', 10 .^ (-5:2:1));
+    set(gca, 'YTick', 10.^(-5:2:1));
     set_figure_properties(fig, ExportFigConfig.paper());
     export_fig(fig, fullfile('./results/coloring_time.pdf'));
     close(fig);
@@ -106,31 +106,28 @@ function eval_coloring_paper()
 
     %% Comparison to other prioritizing algorithms
     fprintf( ...
-    "\nCompare computation levels from different prioritizing algorithms\n" ...
+        "\nCompare computation levels from different prioritizing algorithms\n" ...
     )
     priority_assignment_algorithms = {
-        'FCA_priority'
-        'random_priority'
-        'constant_priority'
-        'coloring_priority'
-        };
+                                      'FCA_priority'
+                                      'random_priority'
+                                      'constant_priority'
+                                      'coloring_priority'
+                                      };
 
     options = Config;
     options.trim_set = 9;
     options.T_end = 180;
     options.Hp = 8;
-    options.isPB = true;
+    options.is_prioritized = true;
     options.environment = Environment.Simulation;
-    options.visu = [false, false];
+    options.options_plot_online.is_active = false;
     options.strategy_consider_veh_without_ROW = '2'; % '2': consider currently occupied area as static obstacle
-    options.isAllowInheritROW = true;
-    options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area 
-    options.isSaveResult = 1;
-    options.isSaveResultReduced = 1;
+    options.allow_priority_inheritance = true;
+    options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area
+    options.should_save_result = 1;
+    options.should_reduce_result = 1;
     options.scenario_name = 'Commonroad';
-
-    % visualization for video
-    options.optionsPlotOnline.isShowCoupling = true;
 
     nsVeh = 1:20;
     % number of different random scenarios per priority assignment and #vehicles
@@ -150,8 +147,8 @@ function eval_coloring_paper()
 
     plot_lanelets(scenarios(1).road_raw_data.lanelet, scenarios(1).options.scenario_name);
     axis equal;
-    xlabel('$x$ [m]', 'Interpreter','latex');
-    ylabel('$y$ [m]', 'Interpreter','latex');
+    xlabel('$x$ [m]', 'Interpreter', 'latex');
+    ylabel('$y$ [m]', 'Interpreter', 'latex');
     set_figure_properties(figure_handle, ExportFigConfig.paper('paperheight', 6));
     export_fig(figure_handle, './results/lab_map.pdf');
     close(figure_handle);
