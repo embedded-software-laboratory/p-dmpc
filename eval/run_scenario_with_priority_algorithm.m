@@ -13,9 +13,7 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
     for iVeh = 1:nVeh
         disp(['# Vehicles: ', num2str(scenarios(iVeh, 1).options.amount)])
 
-        %for i_priority = 1:length(algorithm)
-        spmd(length(algorithm))
-            i_priority = labindex;
+        for i_priority = 1:length(algorithm)
             disp(['Priority Assignment Algorithm: ', ...
                       algorithm{i_priority}] ...
             )
