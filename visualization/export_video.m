@@ -18,8 +18,8 @@ function export_video(result, videoExportSetup)
     test_mode = false;
 
     if test_mode
-        plotting_info = PlottingInfo(scenario.options.veh_ids, result, 1, 1, scenario.options.options_plot_online);
-        plotter.plotOnline(plotting_info);
+        plotting_info = PlottingInfo(scenario.options.veh_ids, result, 1, 1);
+        plotter.plot(plotting_info);
         set_figure_properties(plotter.get_figure(), ExportFigConfig.video());
         frame = getframe(plotter.get_figure());
         imwrite(frame.cdata, ['output\video_', scenario.options.scenario_name, '.png']);
@@ -44,8 +44,8 @@ function export_video(result, videoExportSetup)
     for step_idx = 1:nSteps
 
         for frame_idx = frame_ticks
-            plotting_info = PlottingInfo(scenario.options.veh_ids, result, step_idx, frame_idx, scenario.options.options_plot_online);
-            plotter.plotOnline(plotting_info);
+            plotting_info = PlottingInfo(scenario.options.veh_ids, result, step_idx, frame_idx);
+            plotter.plot(plotting_info);
             set_figure_properties(plotter.get_figure(), ExportFigConfig().video);
             frame = getframe(plotter.get_figure());
             writeVideo(v, frame);
