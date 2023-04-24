@@ -1,6 +1,6 @@
 function manual_control(vehicle_id, input_device_id, control_mode)
-%   MANUAL_CONTROL      Main function for handling the manual input from multiple devices with/without force feedback
-%                       implements functionality for differenct control modes
+    %   MANUAL_CONTROL      Main function for handling the manual input from multiple devices with/without force feedback
+    %                       implements functionality for differenct control modes
 
     n_manual_vehicle = length(vehicle_id);
 
@@ -28,15 +28,17 @@ function manual_control(vehicle_id, input_device_id, control_mode)
         t_start = tic;
 
         for i = 1:n_manual_vehicle
+
             try
                 input_device_data = manual_controller{i}.decode_input_data();
-                
+
                 [result, force_feedback] = manual_controller{i}.MessageProcessing(input_device_data);
 
                 manual_controller{i}.apply(result, force_feedback);
             catch e
                 warning(e.message)
             end
+
         end
 
         t_loop = toc(t_start);

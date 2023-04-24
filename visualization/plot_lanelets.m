@@ -1,4 +1,4 @@
-function plot_lanelets(lanelets,~)
+function plot_lanelets(lanelets, ~)
     % PLOT_LANELETS     Plots the lanelet structure.
     % TODO Refactor: remove second argument.
     color = '#848484';

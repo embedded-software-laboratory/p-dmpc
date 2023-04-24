@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.19)
 
 project(optimizer)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS "-fcoroutines")
 
 if (APPLE)
     set(CMAKE_OSX_ARCHITECTURES "x86_64")
@@ -32,6 +33,16 @@ elseif (WIN32)
     # Add linker search directories
     link_directories(${Matlab_ROOT_DIR}/extern/bin/win64)
 
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+    # Set mex Function Output to current optimizer Directory
+    foreach (OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+        string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR})
+        #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR})
+        #set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR})
+    endforeach (OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+
 else ()
     # Set LD_LIBRARY_PATH for execution
     set(LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:${Matlab_ROOT_DIR}/runtime/glnxa64)
@@ -46,16 +57,16 @@ else ()
     link_directories(${Matlab_ROOT_DIR}/extern/bin/glnxa64)
 
     # Set mex Function Output to current optimizer Directory
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/mex)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 endif ()
 
 if (APPLE)
     find_package(Boost REQUIRED PATHS "/usr/local/homebrew/" NO_DEFAULT_PATH)
-    find_package(TBB REQUIRED PATHS "/usr/local/homebrew/" NO_DEFAULT_PATH)
+    #find_package(TBB REQUIRED PATHS "/usr/local/homebrew/" NO_DEFAULT_PATH)
 else ()
     MESSAGE(HI)
     find_package(Boost REQUIRED)
-    find_package(TBB REQUIRED)
+    #find_package(TBB REQUIRED)
 endif ()
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -64,11 +75,5 @@ find_package(Matlab) # on M1 Mac use x64 version of cmake to find Matlab ... wit
 include_directories(include)
 
 matlab_add_mex(NAME ${PROJECT_NAME} SRC src/main.cpp)
-target_link_libraries(${PROJECT_NAME} TBB::tbb ${Boost_LIBRARIES})
-
-if (WIN32)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY_DEBUG ..
-            RUNTIME_OUTPUT_DIRECTORY_RELEASE ..
-            )
-endif ()
+#target_link_libraries(${PROJECT_NAME} TBB::tbb ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
