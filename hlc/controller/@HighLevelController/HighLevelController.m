@@ -170,8 +170,6 @@ classdef (Abstract) HighLevelController < handle
 
             %% Main control loop
             while (~obj.got_stop)
-                % TODO separate static scenario from dynamic
-                % entries such as adjacency
                 obj.result.step_timer = tic;
 
                 % increment interation counter
@@ -194,27 +192,6 @@ classdef (Abstract) HighLevelController < handle
                 % Update the iteration data and sample reference trajectory
                 obj.rhc_init(x0_measured, trims_measured);
                 obj.initialized_reference_path = true;
-
-                % collision checking
-                is_collision_occur = false;
-
-                for iiVeh = 1:obj.scenario.options.amount - 1
-
-                    for jjVeh = iiVeh + 1:obj.scenario.options.amount
-
-                        if InterX(obj.iter.occupied_areas{iiVeh}.without_offset, obj.iter.occupied_areas{jjVeh}.without_offset)
-                            warning(['Collision between vehicle ' num2str(iiVeh) ' and vehicle ' num2str(jjVeh) ' occur! Simulation ends.'])
-                            is_collision_occur = true;
-                            break
-                        end
-
-                    end
-
-                    if is_collision_occur
-                        break
-                    end
-
-                end
 
                 % calculate the distance
                 distance = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
