@@ -63,11 +63,11 @@ function plot_coupling_lines(M, x0, varargin)
             % plot adjacency
             MaxHeadSize = 0.7 * norm([adj_x(1) - x(1), adj_x(2) - x(2)]); % to keep the arrow size
 
-            if ~isempty(belonging_vector) && belonging_vector(v) ~= belonging_vector(adj_v)
-                % couplings between groups will be shown in black dashed lines.
-                plot_arrow(x', (adj_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_main, '--', MaxHeadSize);
+            is_coupling_parallel = (~isempty(belonging_vector) && belonging_vector(v) ~= belonging_vector(adj_v));
+
+            if is_coupling_parallel
+                plot_arrow(x', (adj_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_main, ':', MaxHeadSize);
             else
-                % couplings inside a group will be shown in black solid lines
                 plot_arrow(x', (adj_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_main, '-', MaxHeadSize);
             end
 

@@ -214,6 +214,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 % send message
                 obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, predicted_areas_k, obj.info.vehs_fallback);
                 msg_send_time = toc(msg_send_tic);
+
             else
                 msg_send_tic = tic;
                 obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, {}, obj.info.vehs_fallback);

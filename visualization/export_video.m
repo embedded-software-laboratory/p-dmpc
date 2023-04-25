@@ -1,15 +1,15 @@
-function export_video(result, options)
+function export_video(result, video_export_setup)
     % EXPORTVIDEO   Export Video from results of simulation.
     arguments
         result struct;
-        options.framerate {mustBeNumeric} = 30;
+        video_export_setup.framerate {mustBeNumeric} = 30;
     end
 
     scenario = result.scenario;
     nSteps = nnz(result.controller_runtime);
 
     if nargin > 1
-        framerate = options.framerate;
+        framerate = video_export_setup.framerate;
         frame_ticks = 1;
     else
         framerate = 30;
@@ -23,7 +23,7 @@ function export_video(result, options)
     test_mode = false;
 
     if test_mode
-        plotting_info = PlottingInfo(scenario.options.veh_ids, result, 1, 1, scenario.options.options_plot_online);
+        plotting_info = PlottingInfo(scenario.options.veh_ids, result, 1, 1);
         plotter.plotOnline(plotting_info);
         set_figure_properties(plotter.get_figure(), ExportFigConfig.video());
         frame = getframe(plotter.get_figure());
@@ -49,8 +49,8 @@ function export_video(result, options)
     for step_idx = 1:nSteps
 
         for frame_idx = frame_ticks
-            plotting_info = PlottingInfo(scenario.options.veh_ids, result, step_idx, frame_idx, scenario.options.options_plot_online);
-            plotter.plotOnline(plotting_info);
+            plotting_info = PlottingInfo(scenario.options.veh_ids, result, step_idx, frame_idx);
+            plotter.plot(plotting_info);
             set_figure_properties(plotter.get_figure(), ExportFigConfig().video);
             frame = getframe(plotter.get_figure());
             writeVideo(v, frame);

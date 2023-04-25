@@ -27,11 +27,11 @@ function [scenario, iter, CL_based_hierarchy, lanelet_crossing_areas] = priority
     end
 
     % get priority list
-    priority_list = STAC_priority().get_priority(coupling_weights);
+    priority_list = StacPriority().get_priority(coupling_weights);
 
     if isempty(priority_list)
         % coupling cycle exist
-        priority_list = STAC_priority().get_priority(coupling_weights_reduced);
+        priority_list = StacPriority().get_priority(coupling_weights_reduced);
     end
 
     iter.coupling_weights = coupling_weights;

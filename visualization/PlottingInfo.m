@@ -2,7 +2,6 @@ classdef PlottingInfo
 
     properties
         trajectory_predictions
-        trajectory_previous % trajectory of last time step
         ref_trajectory
         priorities
         n_obstacles
