@@ -43,6 +43,29 @@ Please refer to the respective publication if you are using it for your work. Th
 
 <details>
 <summary>
+P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees", ResearchGate, Preprint, 2023, doi: 10.13140/RG.2.2.32731.03368
+<br>
+
+<!-- icons from https://simpleicons.org/ -->
+[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](http://dx.doi.org/10.13140/RG.2.2.32731.03368)
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
+[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/alGHLwQQpHI)
+</summary>
+<p>
+
+The results of the publication can be reproduced by running
+```matlab
+open graph_based_planning.prj
+eval_parallel_computation_prediction_inconsistency()
+eval_parallel_computation_CLs()
+```
+The results are saved in the folder "results".
+
+</p>
+</details>
+
+<details>
+<summary>
 P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority Assignment in Distributed MPC," TechRxiv, Preprint, 2023, doi: 10.36227/techrxiv.20304015.v2
 <br>
 
@@ -107,29 +130,6 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, J. Xu and B. Alrifaee, "A Prediction Consistent Framework to Limit Computation Time in Priority-Based Trajectory Planning", ResearchGate, Preprint, 2023, doi: todo
-<br>
-
-<!-- icons from https://simpleicons.org/ -->
-[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://dx.doi.org/todo) 
-[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
-[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/todo) 
-</summary>
-<p>
-
-The results of the publication can be reproduced by running
-```matlab
-open graph_based_planning.prj
-eval_parallel_computation_prediction_inconsistency()
-eval_parallel_computation_CLs()
-```
-The results are saved in the folder "results".
-
-</p>
-</details>
-
-<details>
-<summary>
 References in Bibtex format
 </summary>
 <p>
@@ -164,7 +164,7 @@ References in Bibtex format
 
 @article{scheffe2023prediction,
     author  = {Patrick Scheffe and Jianye Xu and Bassam Alrifaee},
-    journal = {todo}, 
+    journal = {todo},
     title   = {A Prediction Consistent Framework to Limit Computation Time in Priority-Based Trajectory Planning},
     year    = {2023},
     volume  = {},
