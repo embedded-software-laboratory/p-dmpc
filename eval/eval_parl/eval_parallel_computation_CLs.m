@@ -194,12 +194,12 @@ function export_fig_for_video(results, results_folder_path)
 
         % after applying our approach
         result.scenario.options.options_plot_online.plot_weight = true;
-        exportFrame(result, iStep = iStep, frame_name = 'coupling_after_our_approach.png')
+        export_frame(result, iStep = iStep, frame_name = 'coupling_after_our_approach.png')
         % before applying our approach
         result.scenario.options.options_plot_online.plot_weight = false;
         belonging_vector = result.belonging_vector(:, iStep);
         result.belonging_vector(:, iStep) = 1;
-        exportFrame(result, iStep = iStep, frame_name = 'coupling_before_our_approach.png')
+        export_frame(result, iStep = iStep, frame_name = 'coupling_before_our_approach.png')
 
         fig1 = figure();
         hold on
