@@ -3,10 +3,10 @@ function eval_parallel_computation_prediction_inconsistency()
     %computation paper
     disp('--------Prepare simulation data--------')
     isDealPredictionInconsistency = [true, false];
+    fallback_type = ["localFallback", "noFallback"];
     % prepare simulation options
     options = Config();
     options.environment = Environment.Simulation;
-    options.customResultName = '';
     options.scenario_name = 'Commonroad';
     options.trim_set = 9;
     options.Hp = 5;
@@ -14,13 +14,12 @@ function eval_parallel_computation_prediction_inconsistency()
     options.T_end = 4;
     options.dt = 0.2;
     options.max_num_CLs = 1;
-    options.priority = 'STAC_priority';
-    options.isPB = true;
-    options.isParl = true;
-    options.isAllowInheritROW = false;
-    options.isSaveResult = true;
-    options.isSaveResultReduced = false;
-    options.options_plot_online = OptionsPlotOnline();
+    options.priority = 'constant_priority';
+    options.is_prioritized = true;
+    options.compute_in_parallel = false;
+    options.allow_priority_inheritance = false;
+    options.should_save_result = true;
+    options.should_reduce_result = false;
     options.is_eval = false;
     options.strategy_consider_veh_without_ROW = '1';
     options.strategy_enter_lanelet_crossing_area = '1';
@@ -34,13 +33,7 @@ function eval_parallel_computation_prediction_inconsistency()
 
     for i = 1:length(isDealPredictionInconsistency)
         options.isDealPredictionInconsistency = isDealPredictionInconsistency(i);
-
-        if options.isDealPredictionInconsistency
-            options.is_allow_collisions = false;
-        else
-            % if the prediction inconsistency problem is not addressed, collisions will be allowed, meaning that simulation will continue even if collisions occur
-            options.is_allow_collisions = true;
-        end
+        options.fallback_type = fallback_type(i);
 
         for veh_id = 1:options.amount
             full_path = FileNameConstructor.get_results_full_path(options, veh_id);

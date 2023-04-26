@@ -3,23 +3,22 @@ function eval_parallel_computation_CLs()
     disp('--------Prepare simulation data--------')
     options = Config();
     options.environment = Environment.Simulation;
-    options.customResultName = '';
     options.scenario_name = 'Commonroad';
     options.trim_set = 9;
     options.priority = 'STAC_priority';
-    options.isPB = true;
-    options.isParl = true;
-    options.isAllowInheritROW = false;
+    options.is_prioritized = true;
+    options.compute_in_parallel = true;
+    options.allow_priority_inheritance = false;
     options.strategy_consider_veh_without_ROW = '3';
     options.strategy_enter_lanelet_crossing_area = '1';
     options.dt = 0.2;
 
-    options.isSaveResult = true;
+    options.should_save_result = true;
     options.options_plot_online = OptionsPlotOnline();
     options.Hp = 7;
     options.T_end = 4;
     options.amount = 20;
-    options.isParl = false; % avoid to use distributed computation
+    options.compute_in_parallel = false; % avoid to use distributed computation
 
     random_times = 10;
     CLs_s = [1, 2, 4, 6, options.amount];
@@ -36,9 +35,9 @@ function eval_parallel_computation_CLs()
         for j = 1:length(CLs_s)
 
             if i == 1 && j == 1
-                options.isSaveResultReduced = false;
+                options.should_reduce_result = false;
             else
-                options.isSaveResultReduced = true;
+                options.should_reduce_result = true;
             end
 
             options.max_num_CLs = CLs_s(j);
