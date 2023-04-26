@@ -1,9 +1,9 @@
-function eval_parallel_computation_prediction_inconsistency()
+function results = eval_parallel_computation_prediction_inconsistency()
     %EVAL_PARALLEL_COMPUTATION_PREDICTION_INCONSISTENCY Evaluate of the strategy dealing with the prediction inconsistency problem in parallel
     %computation paper
     disp('--------Prepare simulation data--------')
     isDealPredictionInconsistency = [true, false];
-    fallback_type = ["localFallback", "noFallback"];
+    fallback_type = {'localFallback', 'noFallback'};
     % prepare simulation options
     options = Config();
     options.environment = Environment.Simulation;
@@ -14,7 +14,7 @@ function eval_parallel_computation_prediction_inconsistency()
     options.T_end = 4;
     options.dt = 0.2;
     options.max_num_CLs = 1;
-    options.priority = 'constant_priority';
+    options.priority = 'STAC_priority';
     options.is_prioritized = true;
     options.compute_in_parallel = false;
     options.allow_priority_inheritance = false;
@@ -33,7 +33,7 @@ function eval_parallel_computation_prediction_inconsistency()
 
     for i = 1:length(isDealPredictionInconsistency)
         options.isDealPredictionInconsistency = isDealPredictionInconsistency(i);
-        options.fallback_type = fallback_type(i);
+        options.fallback_type = fallback_type{i};
 
         for veh_id = 1:options.amount
             full_path = FileNameConstructor.get_results_full_path(options, veh_id);
@@ -122,7 +122,7 @@ function plot_prediction_inconsistency_addressed(results, results_folder_path, v
             veh = scenario.vehicles(v);
             pos_step = results{i, v}.trajectory_predictions{v, k};
             x = pos_step(tick_now, :);
-            vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+            vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
 
             if k == 9
                 patch(vehiclePolygon(1, :) ...
@@ -204,7 +204,7 @@ function plot_prediction_inconsistency_addressed(results, results_folder_path, v
         veh = scenario.vehicles(v);
         pos_step = results{i, v}.trajectory_predictions{v, step_idx};
         x = pos_step(tick_now, :);
-        vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+        vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , veh_colors(v, :) ...
@@ -257,7 +257,7 @@ function plot_prediction_inconsistency_addressed(results, results_folder_path, v
         veh = scenario.vehicles(v);
         pos_step = results{i, v}.trajectory_predictions{v, step_idx};
         x = pos_step(tick_now, :);
-        vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+        vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , veh_colors(v, :) ...
@@ -315,7 +315,7 @@ function plot_prediction_inconsistency_not_addressed(results, results_folder_pat
             veh = scenario.vehicles(v);
             pos_step = results{i, v}.trajectory_predictions{v, k};
             x = pos_step(tick_now, :);
-            vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+            vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
 
             if k == 9
                 % highlight the timestep when collision occurs
@@ -398,7 +398,7 @@ function plot_prediction_inconsistency_not_addressed(results, results_folder_pat
         veh = scenario.vehicles(v);
         pos_step = results{i, v}.trajectory_predictions{v, step_idx};
         x = pos_step(tick_now, :);
-        vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+        vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , veh_colors(v, :) ...
@@ -451,7 +451,7 @@ function plot_prediction_inconsistency_not_addressed(results, results_folder_pat
         veh = scenario.vehicles(v);
         pos_step = results{i, v}.trajectory_predictions{v, step_idx};
         x = pos_step(tick_now, :);
-        vehiclePolygon = transformedRectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+        vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , veh_colors(v, :) ...
