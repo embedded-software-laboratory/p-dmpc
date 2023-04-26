@@ -1,0 +1,81 @@
+stages:
+  - Build
+  - Test
+
+.matlab_defaults:
+  image:
+    name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab:latest
+    entrypoint: [""]
+
+.matlab_with_test_summary:
+  extends: .matlab_defaults
+  variables:
+    TEST_FOLDER:
+      description: "Folder to execute all tests for."
+  stage: Test
+  script:
+    - matlab -batch
+       "openProject('graph_based_planning.prj');
+        results = execute_tests($TEST_FOLDER, false);
+        assertSuccess(results);"
+  artifacts:
+    when: always
+    reports:
+      junit: tests/coverage/junitReport.xml
+  tags:
+    - docker
+
+.matlab_with_test_coverage:
+  extends: .matlab_with_test_summary
+  variables:
+    TEST_FOLDER:
+      description: "Folder to execute all unittests for."
+    COVERAGE_FOLDER:
+      description: "Folder to compute code coverage for."
+  script:
+    - matlab -batch
+       "openProject('graph_based_planning.prj');
+        [results, coverage] = execute_tests($TEST_FOLDER, true, $COVERAGE_FOLDER);
+        fprintf('Code coverage %s%%\n', coverage);
+        assertSuccess(results);"
+  coverage: /Code coverage ([\.\d]*)%/
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: tests/coverage/coverageReport.xml
+
+
+Startup Unittest:
+  extends: .matlab_defaults
+  stage: Build
+  script:
+    - matlab -batch
+       "mex -setup C;
+        mex -setup C++;
+        lastwarn('', '');
+        openProject('graph_based_planning.prj');
+        [warnMsg, warnId] = lastwarn();
+        if(~isempty(warnId))
+            error(warnMsg, warnId);
+        end"
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - docker
+
+Unittests:
+  extends: .matlab_with_test_coverage
+  parallel:
+    matrix:
+      - FOLDER: [helper, scenarios]
+  variables:
+    TEST_FOLDER: "'tests/unittests/$FOLDER'"
+    COVERAGE_FOLDER: "'$FOLDER'"
+
+Systemtests:
+  extends: .matlab_with_test_coverage
+  variables:
+    TEST_FOLDER: "'tests/systemtests/systemtests.m'"
+    COVERAGE_FOLDER: "{'config', 'helper', 'hlc', 'manual_control', 'plant', 'scenarios', 'ui', 'visualization'}"

@@ -1,65 +1,44 @@
 classdef Scenario
-% SCENARIO  Scenario class    
+    % SCENARIO  Scenario class
 
     properties
-        vehicles = [];  % array of Vehicle objects
-        obstacles = {}; % obstacles = {[xs;ys],...}
-        nVeh = 0;
-        name = 'UnnamedScenario';
-        controller_name = 'RHC';
-        controller = @centralized_controller;
-        sub_controller = @graph_search;
-        dt = 0.4;     % RHC sample time [s]
-        T_end = 20;   % Duration of simulation. [s]
-        Hp = 5;
+        vehicles = []; % array of Vehicle objects
+        obstacles = {}; % static obstacles = {[xs;ys],...}
+        lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
         mpa;
-        trim_set = 3;
-        offset = 0.03;  % offset for collision checks
+        options;
+        speed_profile_mpas = [];
+
         model = [];
-        time_per_tick = 0.01;
-        r_goal = 0.1;   % goal circle
-        dynamic_obstacle_area;
-        dynamic_obstacle_shape;
-        dynamic_obstacle_fullres;
-        plot_limits = [-10,10;-10,10]; % default fallback if not defined
-        adjacency;
-        directed_coupling;
+        r_goal = 0.1; % goal circle
+        dynamic_obstacle_area = {};
+        dynamic_obstacle_shape = {};
+        dynamic_obstacle_fullres = {};
+        dynamic_obstacle_reachableSets = {}; % reachable sets of the coupled vehicles with higher priorities in other groups
+
         assignPrios = false;
+        lanelets; % coordinates of all lanelets
+        intersection_lanelets; % IDs of intersection lanelets
+        boundary;
+        road_raw_data; % raw road data
+        road_data_file_path; % path to file of road data
+        lanelet_boundary; % boundaries of all lanelets
+        lanelet_relationships; % relationship between two adjacent lanelets
+        adjacency_lanelets; % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent
+        priority_list = 1; % priority list of vehicles; a smaller value for a higher priority
+        time_enter_intersection = []; % time step when vehicle enters the intersection
+        intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
+        random_stream = RandStream('mt19937ar'); % for reproducibility
     end
-    
+
     properties (Dependent)
-        tick_per_step;
-        Hu;
-        k_end;
     end
-    
+
     methods
+
         function obj = Scenario()
         end
-        
-        function result = get.k_end(obj)
-            result = floor(obj.T_end/obj.dt);
-        end
-        function result = get.tick_per_step(obj)
-            result = obj.dt/obj.time_per_tick;
-        end
-        function result = get.Hu(obj)
-            result = obj.Hp;
-        end
-        
-        function plot(obj)
-            for iVeh = 1:numel(obj.vehicles)
-                % vehicle rectangle
-                veh = obj.vehicles(iVeh);
-                veh.plot(vehColor(iVeh));
-                % reference trajectory
-                line(   veh.referenceTrajectory(:,1), ...
-                        veh.referenceTrajectory(:,2), ...
-                        'Color',vehColor(iVeh),'LineStyle', '--', 'LineWidth',1 ...
-                );
-            end
-        end
+
     end
-    
-    
+
 end

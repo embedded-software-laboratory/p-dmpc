@@ -1,0 +1,18 @@
+{
+    "amount": 2,
+    "T_end": 10,
+    "max_num_CLs": 4,
+    "trim_set": 6,
+    "should_save_result": false,
+    "should_reduce_result": false,
+    "is_save_mpa": false,
+    "is_load_mpa": true,
+    "options_plot_online": {
+        "is_active": false
+    },
+    "is_manual_control": false,
+    "manual_control_config": {
+        "hdv_ids": [],
+        "amount": 0
+    }
+}

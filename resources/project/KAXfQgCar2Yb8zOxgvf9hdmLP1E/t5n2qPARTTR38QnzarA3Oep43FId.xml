@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Info Type="StartUp" Visible="0" Icon="" File="lanelets/lanelet2/compile_lanelet2_interface.m" Name="compile_lanelet2_interface">
+    <Extension Value="1fd92845-91c4-4a72-91b0-0df69c5bd85f" Name="StartUpPrev"/>
+</Info>

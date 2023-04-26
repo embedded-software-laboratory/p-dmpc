@@ -1,5 +1,15 @@
 # Ignore output
 results/
+profile_results
+ui/Config.json
+Config.json
+
+
+# Ignore PDF file
+*.pdf
+
+# Ignore SVG file
+*.svg
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,linux,windows,matlab,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,linux,windows,matlab,visualstudiocode
@@ -48,6 +58,9 @@ Temporary Items
 .apdisk
 
 ### MATLAB ###
+# MATLAB matfile
+*.mat
+
 # Windows default autosave extension
 *.asv
 
@@ -71,6 +84,9 @@ sccprj/
 # Matlab code generation folders
 codegen/
 
+# Matlab ROS message generation folders
+matlab_msg_gen/
+
 # Simulink autosave extension
 *.autosave
 
@@ -87,6 +103,11 @@ octave-workspace
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+*.vcxproj.filters
+.vs/
+*.vcxproj
+
+
 
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
@@ -122,3 +143,19 @@ $RECYCLE.BIN/
 *.mp4
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,windows,matlab,visualstudiocode
+
+# CMake
+cmake_install.cmake
+CMakeFiles/
+CMakeSettings.json
+
+
+hlc/optimizer/graph_search_mex/CMakeFiles/
+hlc/optimizer/graph_search_mex/x64/
+hlc/optimizer/graph_search_mex/optimizer.dir/
+CMakeCache.txt
+
+*sln
+*.pdb
+*.exp
+*lib
