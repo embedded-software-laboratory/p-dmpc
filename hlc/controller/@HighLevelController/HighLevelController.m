@@ -55,17 +55,28 @@ classdef (Abstract) HighLevelController < handle
             % Or should we make valid and useful default values?
             obj.vehicle_ids = [];
             obj.amount = 0;
-            obj.indices_in_vehicle_list = [];
             obj.ros_subscribers = {};
             obj.k = 0;
             obj.controller_name = '';
             obj.initialized_reference_path = false;
             obj.got_stop = false;
             obj.success = false;
-            obj.info_old = [];
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
             obj.set_vehicle_ids(vehicle_ids);
+
+            % create fallback for first time step
+            obj.info_old = ControllResultsInfo(scenario.options.amount, scenario.options.Hp, [scenario.vehicles.ID]);
+            for vehicle_idx = obj.indices_in_vehicle_list
+                k = 1;
+                x0 = [[scenario.vehicles.x_start]', [scenario.vehicles.y_start]', [scenario.vehicles.yaw_start]'];
+                trim_indices = [scenario.vehicles.trim_config];
+                obj.info_old.tree{vehicle_idx} = Tree(x0(vehicle_idx, 1), x0(vehicle_idx, 2), x0(vehicle_idx, 3), trim_indices(vehicle_idx), k, inf, inf);
+                obj.info_old.tree_path(vehicle_idx, :) = ones(1, scenario.options.Hp + 1);
+                obj.info_old.y_predicted(vehicle_idx) = {repmat([x0(vehicle_idx, 1), x0(vehicle_idx, 2), x0(vehicle_idx, 3), trim_indices(vehicle_idx)], ...
+                                                             (scenario.options.tick_per_step + 1) * scenario.options.Hp, 1)};
+            end
+
         end
 
         function [result, scenario] = run(obj)
