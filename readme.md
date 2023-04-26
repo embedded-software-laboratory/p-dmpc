@@ -93,7 +93,7 @@ P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://dx.doi.org/10.13140/RG.2.2.24697.13923)
 [![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
-[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/G93nqfdmD48)
+[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/kDIVu0tv9Ro)
 </summary>
 <p>
 
