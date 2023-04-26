@@ -10,22 +10,20 @@ classdef SimLab < Plant
 
     methods
 
-        function obj = SimLab(visualization_data_queue)
+        function obj = SimLab()
             obj = obj@Plant();
             obj.use_visualization_data_queue = false;
         end
 
-        function set_visualization_data_queue(obj, visualization_data_queue)
-            obj.visualization_data_queue = visualization_data_queue;
+        function visualization_data_queue = set_visualization_data_queue(obj)
+            obj.visualization_data_queue = parallel.pool.DataQueue;
+            visualization_data_queue = obj.visualization_data_queue
+            obj.use_visualization_data_queue = true;
         end
 
         function setup(obj, scenario, veh_ids)
             setup@Plant(obj, scenario, veh_ids);
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
-
-            if ~isempty(obj.visualization_data_queue)
-                obj.use_visualization_data_queue = true;
-            end
 
             if obj.should_plot && ~obj.use_visualization_data_queue
                 obj.plotter = PlotterOnline(obj.scenario, obj.indices_in_vehicle_list);
