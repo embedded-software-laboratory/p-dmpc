@@ -10,9 +10,6 @@ function [result, scenario] = main(varargin)
     % check if Scenario object is given as input
     scenario = read_object_from_input(varargin, 'Scenario');
 
-    % Create Factory for Plant construction
-    plant_factory = PlantFactory();
-
     % If scenario/options are not given, determine from UI
     if isempty(scenario)
 
@@ -27,12 +24,12 @@ function [result, scenario] = main(varargin)
 
         end
 
-        plant = plant_factory.get_experiment_interface(options.environment);
+        plant = PlantFactory.get_experiment_interface(options.environment);
         % create scenario
         random_seed = RandStream('mt19937ar');
         scenario = create_scenario(options, random_seed, plant);
     else
-        plant = plant_factory.get_experiment_interface(scenario.options.environment);
+        plant = PlantFactory.get_experiment_interface(scenario.options.environment);
     end
 
     % write scenario to disk if distributed (for lab or local debugging with main_distributed())
@@ -79,12 +76,17 @@ function [result, scenario] = main(varargin)
             get_parallel_pool(scenario.options.amount);
 
             do_plot = scenario.options.options_plot_online.is_active;
+            can_handle_parallel_plot = isa(plant, 'SimLab');
 
             if do_plot
-                plant_factory.set_visualization_data_queue;
-                % create central plotter - used by all workers via data queue
-                plotter = PlotterOnline(hlc_factory.scenario);
-                afterEach(plant_factory.visualization_data_queue, @plotter.data_queue_callback);
+                if can_handle_parallel_plot
+                    visualization_data_queue = plant.set_visualization_data_queue;
+                    % create central plotter - used by all workers via data queue
+                    plotter = PlotterOnline(hlc_factory.scenario);
+                    afterEach(visualization_data_queue, @plotter.data_queue_callback);
+                else
+                    warning('The currently selected environment cannot handle plotting of a parallel execution!');
+                end
             end
 
             spmd (scenario.options.amount)
