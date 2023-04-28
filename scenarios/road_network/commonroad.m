@@ -8,7 +8,8 @@ function scenario = commonroad(options, vehicle_ids)
 
     options.is_allow_non_convex = true;
 
-    scenario.options.scenario_name = 'Commonroad';
+    % convert to char for cpp
+    scenario.options.scenario_name = char(ScenarioType.commonroad);
 
     % get road data
     road_data = RoadDataCommonRoad().get_road_data();

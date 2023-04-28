@@ -271,11 +271,6 @@ function out = get_add_hdv_selection(ui)
     out = ui.AddHDVsCheckBox.Value;
 end
 
-function out = get_circle_selection(ui)
-    %% true if circle scenario is selected
-    out = strcmp(ui.ScenarioListBox.Value, 'Circle_scenario');
-end
-
 function out = get_pb_non_coop_selection(ui)
     % true if pb_non-coop lab selected
     out = strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop');
@@ -340,8 +335,8 @@ function [list] = list_scenario(ui)
                 };
     else
         list = { ...
-                    'Circle_scenario', 'Circle Scenario'; ...
-                    'Commonroad', 'Commonroad'; ...
+                    ScenarioType.circle, 'Circle Scenario'; ...
+                    ScenarioType.commonroad, 'Commonroad'; ...
                     'Lanelet2', 'Lanelet2' ...
                 };
     end
