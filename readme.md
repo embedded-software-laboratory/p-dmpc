@@ -168,17 +168,6 @@ References in Bibtex format
     pages   = {1-14},
     doi     = {10.1109/TCST.2022.3214718}
 }
-
-@article{scheffe2023prediction,
-    author  = {Patrick Scheffe and Jianye Xu and Bassam Alrifaee},
-    journal = {todo},
-    title   = {A Prediction Consistent Framework to Limit Computation Time in Priority-Based Trajectory Planning},
-    year    = {2023},
-    volume  = {},
-    number  = {},
-    pages   = {},
-    doi     = {todo}}
-}
 ```
 
 </p>
