@@ -3,6 +3,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
     properties (Access = protected)
         CL_based_hierarchy;
         lanelet_crossing_areas;
+
+        consider_parallel_coupling (1, 1) function_handle = @()[];
     end
 
     methods
@@ -14,6 +16,12 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.optimizer = GraphSearchMexPB(obj.scenario, obj.indices_in_vehicle_list);
             else
                 obj.optimizer = GraphSearch(obj.scenario);
+            end
+
+            if obj.scenario.options.isDealPredictionInconsistency
+                obj.consider_parallel_coupling = @obj.parallel_coupling_reachability;
+            else
+                obj.consider_parallel_coupling = @obj.parallel_coupling_previous_trajectory;
             end
 
         end
@@ -101,49 +109,12 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
                 else
                     % if they are in different groups
-                    if obj.scenario.options.isDealPredictionInconsistency
-                        % Collisions with coupled vehicles with higher priorities in different groups will be avoided by two ways depending on the time step at which
-                        % their latest messages are sent:
-                        % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step.
-                        % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step.
-                        latest_msg = obj.ros_subscribers.predictions{veh_with_HP_i}.LatestMessage;
+                    [iter_v, should_fallback] = obj.consider_parallel_coupling(iter_v, vehicle_idx, veh_with_HP_i);
 
-                        if latest_msg.time_step == obj.k
-                            obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
-
-                            if ismember(vehicle_idx, obj.info.vehs_fallback)
-                                % if the selected vehicle should take fallback
-                                subcontroller_time = toc(subcontroller_timer);
-                                obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
-                                return;
-                            end
-
-                            predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                            iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
-                        else
-                            % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
-                            reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i, :);
-                            % turn polyshape to plain array (repeat the first row to enclosed the shape)
-                            reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
-                            iter_v.dynamic_obstacle_reachableSets(end + 1, :) = reachable_sets_i_array;
-                        end
-
-                    else
-                        % otherwise add one-step delayed trajectories as dynamic obstacles
-                        if obj.k > 1
-                            % the old trajectories are available from the second time step onwards
-                            old_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k - 1);
-                            predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, old_msg.predicted_areas);
-                            oldness_msg = obj.k - old_msg.time_step;
-
-                            if oldness_msg ~= 0
-                                % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
-                                predicted_areas_i = del_first_rpt_last(predicted_areas_i', oldness_msg);
-                            end
-
-                            iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
-                        end
-
+                    if should_fallback
+                        subcontroller_time = toc(subcontroller_timer);
+                        obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
+                        return;
                     end
 
                 end
@@ -170,7 +141,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.info.runtime_graph_search_each_veh(vehicle_idx) = graph_search_time;
 
             if info_v.is_exhausted
-                info_v = handle_graph_search_exhaustion(info_v, obj.scenario, obj.iter);
+                info_v = handle_graph_search_exhaustion(info_v, obj.scenario, iter_v);
             end
 
             if info_v.needs_fallback
@@ -219,6 +190,54 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 msg_send_tic = tic;
                 obj.scenario.vehicles(vehicle_idx).communicate.predictions.send_message(obj.k, {}, obj.info.vehs_fallback);
                 msg_send_time = toc(msg_send_tic);
+            end
+
+        end
+
+        function [iter_v, should_fallback] = parallel_coupling_reachability(obj, iter_v, vehicle_idx, veh_with_HP_i)
+            % Collisions with coupled vehicles with higher priorities in different groups will be avoided by two ways depending on the time step at which
+            % their latest messages are sent:
+            % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step.
+            % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step.
+            should_fallback = false;
+            latest_msg = obj.ros_subscribers.predictions{veh_with_HP_i}.LatestMessage;
+
+            if latest_msg.time_step == obj.k
+                obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
+
+                if ismember(vehicle_idx, obj.info.vehs_fallback)
+                    should_fallback = true;
+                    return
+                end
+
+                predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
+                iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
+
+            else
+                % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
+                reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i, :);
+                % turn polyshape to plain array (repeat the first row to enclosed the shape)
+                reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
+                iter_v.dynamic_obstacle_reachableSets(end + 1, :) = reachable_sets_i_array;
+            end
+
+        end
+
+        function [iter_v, should_fallback] = parallel_coupling_previous_trajectory(obj, iter_v, vehicle_idx, veh_with_HP_i)
+            should_fallback = false; % no fallback since no recursive feasibility guarantee
+            % otherwise add one-step delayed trajectories as dynamic obstacles
+            if obj.k > 1
+                % the old trajectories are available from the second time step onwards
+                old_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k - 1);
+                predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, old_msg.predicted_areas);
+                oldness_msg = obj.k - old_msg.time_step;
+
+                if oldness_msg ~= 0
+                    % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
+                    predicted_areas_i = del_first_rpt_last(predicted_areas_i', oldness_msg);
+                end
+
+                iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
             end
 
         end

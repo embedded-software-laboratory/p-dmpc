@@ -57,7 +57,7 @@ classdef PlottingInfo
             if ~isempty(result.iteration_structs{k}.coupling_weights_reduced)
                 obj.coupling_weights_reduced = result.iteration_structs{k}.coupling_weights_reduced;
 
-                if result.scenario.options.is_prioritized && result.scenario.options.scenario_name == ScenarioType.commonroad
+                if result.scenario.options.is_prioritized && strcmp(result.scenario.options.scenario_name, 'Commonroad')
                     obj.belonging_vector = result.belonging_vector(:, k);
                     obj.coupling_info = result.coupling_info{k};
                 end
