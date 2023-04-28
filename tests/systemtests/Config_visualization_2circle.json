@@ -1,5 +1,5 @@
 {
-    "scenario_name": "Circle_scenario",
+    "scenario_name": "circle",
     "amount": 2,
     "T_end": 4,
     "max_num_CLs": 4,

@@ -118,7 +118,11 @@ function plot_runtime_data(data)
     for iPri = 1:nPri
         n_deadlock_free_scenarios(iPri) = sum(is_deadlock_free(:,:,iPri),'all');
         n_vehicles_deadlocked = vehicles_sce_pri(~is_deadlock_free(:,:,iPri));
-        min_deadlocked_vehicles(iPri) = min(n_vehicles_deadlocked);
+        if isempty(n_vehicles_deadlocked)
+            min_deadlocked_vehicles(iPri) = inf;
+        else
+            min_deadlocked_vehicles(iPri) = min(n_vehicles_deadlocked);
+        end
     end
 
     min_nVeh_standstill = min_deadlocked_vehicles(data_permutation,:)';

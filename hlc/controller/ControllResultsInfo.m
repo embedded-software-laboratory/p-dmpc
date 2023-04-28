@@ -3,26 +3,26 @@ classdef ControllResultsInfo
     %   Detailed explanation goes here
 
     properties
-        tree % object of the class `Tree`
-        tree_path % tree path
-        runtime_subcontroller_max % subcontroller runtime, equals to the maximum one among all groups
-        runtime_subcontroller_each_veh % subcontroller runtime of each vehicle
-        runtime_subcontroller_each_grp % subcontroller runtime of each group
-        runtime_graph_search_each_veh % graph search time of each vehicle
-        runtime_graph_search_each_grp % graph search time of each group
-        runtime_graph_search_max % graph search time, equals to the maximum one among all groups
-        n_expanded % number of times that nodes are expended during graph search
+        tree (:, 1) % object of the class `Tree`
+        tree_path (:, :) double % tree path
+        runtime_subcontroller_max (:, 1) double % subcontroller runtime, equals to the maximum one among all groups
+        runtime_subcontroller_each_veh (:, 1) double % subcontroller runtime of each vehicle
+        runtime_subcontroller_each_grp (:, 1) double % subcontroller runtime of each group
+        runtime_graph_search_each_veh (:, 1) double % graph search time of each vehicle
+        runtime_graph_search_each_grp (:, 1) double % graph search time of each group
+        runtime_graph_search_max (1, 1) double % graph search time, equals to the maximum one among all groups
+        n_expanded (:, 1) double % number of times that nodes are expended during graph search
         next_node % next node information
-        shapes % predicted occupied areas of all prediction horizons
-        vehicle_fullres_path % predicted trajectory of the next time step
-        predicted_trims % predicted trims of all prediction horizon (including the current trim)
-        trim_indices % predicted trim of the next time step
-        y_predicted % predicted trajectory
-        computation_levels % actual number of computation levels of the whole system
-        vehs_fallback % vehicles that need to take fallback
-        is_exhausted % whether graph search is exhausted
+        shapes (:, :) cell % predicted occupied areas of all prediction horizons
+        vehicle_fullres_path (:, 1) cell % predicted trajectory of the next time step
+        predicted_trims (:, :) double % predicted trims of all prediction horizon (including the current trim)
+        trim_indices (:, 1) double % predicted trim of the next time step
+        y_predicted (:, 1) cell % predicted trajectory
+        computation_levels (1, 1) double % actual number of computation levels of the whole system
+        vehs_fallback (:, 1) int32 % vehicles that need to take fallback
+        is_exhausted (:, 1) logical % whether graph search is exhausted
         needs_fallback % vehicle at a stillstand but the graph search is still exhausted
-        u % control input
+        u (:, 1) double % control input
     end
 
     properties (Dependent)
