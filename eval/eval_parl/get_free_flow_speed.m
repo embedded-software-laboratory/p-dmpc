@@ -1,4 +1,7 @@
-function free_flow_speed = get_free_flow_speed(dt)
+function free_flow_speed = get_free_flow_speed(options)
+    arguments
+        options (1,1) Config;
+    end
     %GET_FREE_FLOW_SPEED Free flow speed is the speed that vehicles could travel if they are not hindered by others
     % Inputs
     %   dt: sample time [s]
@@ -6,26 +9,9 @@ function free_flow_speed = get_free_flow_speed(dt)
     %   free_flow_speed: free flow speed [m/s]
 
     % prepare simulation options
-    options = Config();
     options.environment = Environment.Simulation;
-    options.scenario_name = 'Commonroad';
-    options.trim_set = 9;
-    options.Hp = 5;
-    options.priority = 'STAC_priority';
-    options.T_end = 20;
-    options.is_prioritized = true;
-    options.allow_priority_inheritance = false;
-    options.strategy_consider_veh_without_ROW = '3';
-    options.strategy_enter_lanelet_crossing_area = '1';
     options.should_save_result = true;
-    options.options_plot_online = OptionsPlotOnline();
-    options.is_eval = false;
-    options.amount = 20; % could also be other numbers
-    options.max_num_CLs = options.amount;
     options.is_free_flow = true; % TODO: Remove all couplings instead of using this flag
-    options.dt = dt;
-    options.compute_in_parallel = false; % avoid using distributed computation
-    options.veh_ids = 1:options.amount;
 
     results_full_path = FileNameConstructor.get_results_full_path(options, options.amount);
 
@@ -40,6 +26,6 @@ function free_flow_speed = get_free_flow_speed(dt)
     evaluation = EvaluationParl(results_full_path);
 
     free_flow_speed = evaluation.average_speed;
-    disp(['Free-flow speed for sample time ' num2str(dt) ' s: ' num2str(free_flow_speed) ' m/s.'])
+    disp(['Free-flow speed for sample time ' num2str(options.dt) ' s: ' num2str(free_flow_speed) ' m/s.'])
 
 end

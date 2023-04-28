@@ -7,7 +7,7 @@ function eval_parallel_computation_CLs()
     options.trim_set = 9;
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
-    options.compute_in_parallel = true;
+    options.compute_in_parallel = false;
     options.allow_priority_inheritance = false;
     options.strategy_consider_veh_without_ROW = '3';
     options.strategy_enter_lanelet_crossing_area = '1';
@@ -66,7 +66,7 @@ function eval_parallel_computation_CLs()
 
     % get free flow speed, i.e., the speed that vehicles could travel if they are not influenced by others
     % vehicles
-    free_flow_speed = get_free_flow_speed(options.dt);
+    free_flow_speed = get_free_flow_speed(options);
     disp('--------Free flow speed calculated--------')
     disp('--------Simulation data prepared--------')
 
@@ -86,15 +86,9 @@ function eval_parallel_computation_CLs()
     disp('--------Plotted--------')
 
     % export video
-    answer = questdlg('Would you like to export some frames of simulations?', ...
-        'Export frames?', ...
-        'Yes', 'No', 'No');
-
-    if strcmp(answer, 'Yes')
-        disp('--------Exporting frames--------')
-        export_fig_for_video(results, results_folder_path)
-        disp('--------Frames exported--------')
-    end
+    disp('--------Exporting frames--------')
+    export_fig_for_video(results, results_folder_path)
+    disp('--------Frames exported--------')
 
 end
 
@@ -182,14 +176,9 @@ function export_fig_for_video(results, results_folder_path)
     result.scenario.options.options_plot_online.plot_priority = true;
 
     % videoExportSetup.framerate = 30;
-    timesteps = [14];
+    timesteps = 14;
 
     for iStep = timesteps
-        result.scenario.options.options_plot_online.plot_scenario_name = false;
-        result.scenario.options.options_plot_online.plot_timesteps = true;
-        result.scenario.options.options_plot_online.plot_xy_labels = false;
-        result.scenario.options.options_plot_online.plot_xy_ticks = false;
-        result.scenario.options.options_plot_online.plot_priority = false;
 
         % after applying our approach
         result.scenario.options.options_plot_online.plot_weight = true;
