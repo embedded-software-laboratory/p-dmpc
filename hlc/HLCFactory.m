@@ -104,10 +104,11 @@ classdef HLCFactory < handle
             save_result_backup = obj.scenario.options.should_save_result;
             % avoid sending any data to Cpm Lab. Thus, use Sim Lab
             obj.scenario.options.environment = Environment.Simulation;
+            plant = PlantFactory.get_experiment_interface(obj.scenario.options.environment);
             obj.scenario.options.options_plot_online.is_active = false;
             obj.scenario.options.T_end = 2 * obj.scenario.options.dt;
             obj.scenario.options.should_save_result = false;
-            hlc = obj.get_hlc(vehicle_ids, false);
+            hlc = obj.get_hlc(vehicle_ids, false, plant);
             hlc.run();
             obj.scenario.options.environment = environment_backup;
             obj.scenario.options.options_plot_online.is_active = plot_backup;
