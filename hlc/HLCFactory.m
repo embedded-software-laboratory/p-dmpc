@@ -19,7 +19,7 @@ classdef HLCFactory < handle
         % Optional argument wether to do a dry run of the first timestep beforehand
         % dry_run can massively decrease the time needed for the first
         % timestep during the experiment.
-        function hlc = get_hlc(obj, vehicle_ids, dry_run, experiment_interface)
+        function hlc = get_hlc(obj, vehicle_ids, dry_run, plant)
 
             if isempty(obj.scenario)
                 throw(MException('HlcFactory:InvalidState', 'HlcScenario not set'));
@@ -51,7 +51,7 @@ classdef HLCFactory < handle
 
             hlc.set_controller_name(obj.get_controller_name(obj.scenario.options));
 
-            hlc.set_hlc_adapter(experiment_interface);
+            hlc.set_hlc_adapter(plant);
 
         end
 
