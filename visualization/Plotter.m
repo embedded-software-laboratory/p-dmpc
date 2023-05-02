@@ -43,7 +43,7 @@ classdef (Abstract) Plotter < handle
 
         function result = get.hotkey_position(obj)
 
-            if strcmp(obj.scenario.options.scenario_name, 'Commonroad')
+            if obj.scenario.options.scenario_name == ScenarioType.commonroad
                 result = diag(obj.scenario.options.plot_limits) + [-1.6; 0];
             elseif contains(obj.scenario.options.scenario_name, 'circle') && obj.scenario.options.amount <= 2
                 result = obj.scenario.options.plot_limits(:, 1) + [0; -0.25];

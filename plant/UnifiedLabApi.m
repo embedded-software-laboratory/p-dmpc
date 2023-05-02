@@ -11,6 +11,7 @@ classdef UnifiedLabApi < Plant
         client_mapRequest % for receiving the defined map
         publisher_readyState
         publisher_trajectoryCommand
+        publisher_vehicleControllerPeriod
         actionClient_vehiclesRequest
         goal_msg % Contains the action client goal message
         goal_handle % Handle for action client goal
@@ -79,6 +80,13 @@ classdef UnifiedLabApi < Plant
 
             disp('Successfully received lab properties.');
 
+            % Set vehicle controller period
+            vehicle_controller_period_request = ros2message(obj.publisher_vehicleControllerPeriod);
+            vehicle_controller_period_request.nanosec = uint32(obj.dt_period_nanos);
+            send(obj.publisher_vehicleControllerPeriod, vehicle_controller_period_request);
+
+            disp('Sent request for vehicle controller period.');
+
             % Request the vehicle ids which shall be used in this experiment (this should be an action, but we use only the initial message)
             % TODO: This assumes that the assigned vehicles are all vehicles needed in the experiment. Correct?
             obj.goal_msg.vehicle_ids = int32(obj.veh_ids);
@@ -91,8 +99,6 @@ classdef UnifiedLabApi < Plant
 
             obj.goal_handle = sendGoal(obj.actionClient_vehiclesRequest, obj.goal_msg, callbackOpts);
             disp('Sent message to define the vehicle ids. We assume that goal was accepted, so no further test...');
-
-            % TODO: Set vehicle_controller_period
 
             % Send ready signal for all assigned vehicle ids and the scenario
             ready_msg = ros2message(obj.publisher_readyState);
@@ -420,6 +426,9 @@ classdef UnifiedLabApi < Plant
 
             % create publisher for trajectory commands
             obj.publisher_trajectoryCommand = ros2publisher(obj.comm_node, '/trajectory_command', 'ula_interfaces/TrajectoryCommand');
+
+            % create publisher for vehicle controller period
+            obj.publisher_vehicleControllerPeriod = ros2publisher(obj.comm_node, '/vehicle_controller_period', 'builtin_interfaces/Duration');
 
             % create client with which we can ask the lab for specific vehicles
             [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'ula_interfaces/VehiclesRequest');

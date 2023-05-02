@@ -65,7 +65,7 @@ namespace GraphBasedPlanning {
 
 			reference_trajectory().resize(n_vehicles());
 			for (unsigned int i = 0; i < n_vehicles(); ++i) {
-				matlab::data::TypedArray<double> const reference_trajectory_array = _matlab->getProperty(vehicles_array, i, u"referenceTrajectory");
+				matlab::data::TypedArray<double> const reference_trajectory_array = _matlab->getProperty(vehicles_array, i, u"reference_trajectory");
 				reference_trajectory()[i].resize(reference_trajectory_array.getDimensions()[0]);
 
 				// bl�d, dass das Format in Matlab schlecht gew�hlt ist, sodass das folgende n�tig wird:
@@ -76,7 +76,7 @@ namespace GraphBasedPlanning {
 			}
 
 			matlab::data::CharArray const scenario_name_array = _matlab->getProperty(options_array, u"scenario_name");
-			if (scenario_name_array.toAscii() == "Commonroad") {
+			if (scenario_name_array.toAscii() == "commonroad") {
 				scenario_type() = SCENARIO_TYPE::CommonRoad;
 			} else if (scenario_name_array.toAscii().find("circle") != std::string::npos) {
 				scenario_type() = SCENARIO_TYPE::Circle;

@@ -175,7 +175,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             subcontroller_time = toc(subcontroller_timer);
         end
 
-        function msg_send_time = publish_predicitons(obj, vehicle_idx)
+        function msg_send_time = publish_predictions(obj, vehicle_idx)
 
             if ~ismember(vehicle_idx, obj.info.vehs_fallback)
                 % if the selected vehicle should take fallback
