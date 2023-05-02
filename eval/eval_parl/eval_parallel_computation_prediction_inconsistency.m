@@ -7,7 +7,7 @@ function results = eval_parallel_computation_prediction_inconsistency()
     % prepare simulation options
     options = Config();
     options.environment = Environment.Simulation;
-    options.scenario_name = 'Commonroad';
+    options.scenario_name = ScenarioType.commonroad;
     options.trim_set = 9;
     options.Hp = 5;
 

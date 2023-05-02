@@ -3,7 +3,7 @@
 % prepare simulation options
 options = OptionsMain;
 options.environment = Environment.Simulation;
-options.scenario_name = 'Commonroad';
+options.scenario_name = ScenarioType.commonroad;
 options.trim_set = 9;
 options.Hp = 6;
 

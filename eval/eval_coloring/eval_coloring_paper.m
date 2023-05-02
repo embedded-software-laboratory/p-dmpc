@@ -127,7 +127,7 @@ function eval_coloring_paper()
     options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area
     options.should_save_result = 1;
     options.should_reduce_result = 1;
-    options.scenario_name = 'Commonroad';
+    options.scenario_name = ScenarioType.commonroad;
 
     nsVeh = 1:20;
     % number of different random scenarios per priority assignment and #vehicles
