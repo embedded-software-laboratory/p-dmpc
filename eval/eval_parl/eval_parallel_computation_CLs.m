@@ -17,10 +17,10 @@ function eval_parallel_computation_CLs()
     options.should_save_result = true;
     options.Hp = 7;
     options.T_end = 4;
-    options.amount = 6;
+    options.amount = 20;
     options.compute_in_parallel = false; % avoid to use distributed computation
 
-    random_times = 2;
+    random_times = 10;
     CLs_s = [1, 2, 4, 6, options.amount];
     e_CLs = cell(random_times, length(CLs_s));
     results = cell(random_times, length(CLs_s));
