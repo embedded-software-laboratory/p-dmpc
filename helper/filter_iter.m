@@ -11,7 +11,6 @@ function iter = filter_iter(iter, vehicle_filter) % TODO: Add new fields
     iter.reachable_sets = iter.reachable_sets(vehicle_filter, :);
     iter.emergency_maneuvers = iter.emergency_maneuvers(vehicle_filter);
     iter.last_trajectory_index = iter.last_trajectory_index(vehicle_filter);
-    iter.lane_change_lanes = iter.lane_change_indices(vehicle_filter, :, :);
     iter.lane_change_indices = iter.lane_change_indices(vehicle_filter, :, :);
     iter.lanes_before_update = iter.lanes_before_update(vehicle_filter, :, :);
     iter.auto_updated_path = iter.auto_updated_path(vehicle_filter);
