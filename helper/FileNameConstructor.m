@@ -83,13 +83,19 @@ classdef FileNameConstructor
             );
         end
 
-        function scenario_name = gen_scenario_name(options, vehs)
+        function scenario_name = gen_scenario_name(options, i_vehicles)
+
+            arguments
+                options (1, 1) Config;
+                i_vehicles (1, :) {mustBeInteger, mustBePositive} = options.amount;
+            end
+
             priority = char(options.priority);
 
             if isempty(options.result_name)
                 % use default name
                 if options.compute_in_parallel
-                    scenario_name = ['veh_', num2str(options.veh_ids(vehs)), '_trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
+                    scenario_name = ['veh_', num2str(options.veh_ids(i_vehicles)), '_trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
                 else
                     scenario_name = ['trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
                 end
@@ -142,11 +148,11 @@ classdef FileNameConstructor
 
         end
 
-        function results_full_path = get_results_full_path(options, vehs)
+        function results_full_path = get_results_full_path(options, i_vehicles)
             % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
             % results are saved.
-            % INPUT: options, vehs(vehicles for which this HLC is responsible.)
-            results_name = [FileNameConstructor.gen_scenario_name(options, vehs), '.mat'];
+            % INPUT: options, i_vehicles(vehicles for which this HLC is responsible.)
+            results_name = [FileNameConstructor.gen_scenario_name(options, i_vehicles), '.mat'];
 
             results_full_path = fullfile( ...
                 FileNameConstructor.gen_results_folder_path(options) ...

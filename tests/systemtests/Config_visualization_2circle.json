@@ -1,7 +1,7 @@
 {
     "scenario_name": "circle",
     "amount": 2,
-    "T_end": 4,
+    "T_end": 5,
     "max_num_CLs": 4,
     "trim_set": 6,
     "should_save_result": false,

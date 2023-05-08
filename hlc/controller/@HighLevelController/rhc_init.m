@@ -68,7 +68,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
         obj.iter.last_trajectory_index(iVeh) = reference.ReferenceIndex(end);
 
-        if obj.scenario.options.scenario_name == ScenarioType.commonroad
+        if (obj.scenario.options.scenario_name == ScenarioType.commonroad)
 
             % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
             if obj.iter.lanes_before_update(iVeh, :, :) ~= zeros(1, 2)
@@ -213,7 +213,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
             % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
             % TODO is lanelets_index of other vehicles up to date?
-            if obj.scenario.options.scenario_name == ScenarioType.commonroad
+            if (obj.scenario.options.scenario_name == ScenarioType.commonroad)
                 predicted_lanelet_boundary = get_lanelets_boundary(obj.iter.predicted_lanelets{iVeh}, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.options.environment, obj.scenario.vehicles(iVeh).is_loop);
                 obj.iter.predicted_lanelet_boundary(iVeh, :) = predicted_lanelet_boundary;
             end
