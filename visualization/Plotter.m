@@ -9,6 +9,7 @@ classdef (Abstract) Plotter < handle
         fig (1, 1) matlab.ui.Figure % figure used for plotting
         plot_options (1, 1) OptionsPlotOnline % options for plotting
         resolution (1, 2) int32 % pixels to plot in horizontal and vertical direction
+        priority_colormap (:, 3) double % Colors for computation levels
 
         scenario (1, 1) Scenario % scenario object
         veh_indices (1, :) int32 % indices of vehicles for which this plotter instance is responsible
@@ -42,7 +43,7 @@ classdef (Abstract) Plotter < handle
 
         function result = get.hotkey_position(obj)
 
-            if strcmp(obj.scenario.options.scenario_name, 'Commonroad')
+            if obj.scenario.options.scenario_name == ScenarioType.commonroad
                 result = diag(obj.scenario.options.plot_limits) + [-1.6; 0];
             elseif contains(obj.scenario.options.scenario_name, 'circle') && obj.scenario.options.amount <= 2
                 result = obj.scenario.options.plot_limits(:, 1) + [0; -0.25];
@@ -98,6 +99,10 @@ classdef (Abstract) Plotter < handle
                 plot_lanelets(scenario.road_raw_data.lanelet, obj.scenario.options.scenario_name);
             end
 
+            % Define a colormap
+            [obj.priority_colormap, ~] = discrete_colormap();
+            colormap(obj.priority_colormap);
+
             hold on
             box on
             axis equal
@@ -147,15 +152,6 @@ classdef (Abstract) Plotter < handle
                 plot_lanelets(obj.scenario.road_raw_data.lanelet, obj.scenario.options.scenario_name);
             end
 
-            % Define a new colormap in the first timestep, else get the colormap already associated with the plot.
-            if plotting_info.step == 1
-                [priority_colormap, n_colors_max] = discrete_colormap();
-                colormap(priority_colormap);
-            else
-                priority_colormap = get(gcf, 'Colormap');
-                n_colors_max = size(priority_colormap, 1);
-            end
-
             find_text_hotkey = findobj('Tag', 'hotkey');
 
             if obj.plot_options.plot_hotkey_description
@@ -170,6 +166,8 @@ classdef (Abstract) Plotter < handle
             if obj.plot_options.plot_priority
                 % Get plot's priority colorbar and set it to visible or define a new priority colorbar.
                 priority_colorbar = findobj('Tag', 'priority_colorbar');
+
+                n_colors_max = size(obj.priority_colormap, 1);
 
                 if isempty(priority_colorbar)
                     priority_colorbar = colorbar('Tag', 'priority_colorbar', 'FontName', 'Verdana', 'FontSize', 9);
@@ -192,23 +190,23 @@ classdef (Abstract) Plotter < handle
             for v = obj.veh_indices
                 line(plotting_info.ref_trajectory(v, :, 1), ...
                     plotting_info.ref_trajectory(v, :, 2), ...
-                    'Color', priority_colormap(priority_list(v), :), 'LineStyle', 'none', 'Marker', 'o', ...
-                    'MarkerFaceColor', priority_colormap(priority_list(v), :), 'MarkerSize', 3, 'LineWidth', 1);
+                    'Color', obj.priority_colormap(priority_list(v), :), 'LineStyle', 'none', 'Marker', 'o', ...
+                    'MarkerFaceColor', obj.priority_colormap(priority_list(v), :), 'MarkerSize', 3, 'LineWidth', 1);
             end
 
             % predicted trajectory
             for v = obj.veh_indices
                 line(plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step + 1:end, end], 1), ...
                     plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step + 1:end, end], 2), ...
-                    'Color', priority_colormap(priority_list(v), :), 'LineStyle', 'none', 'Marker', '+', ...
-                    'MarkerFaceColor', priority_colormap(priority_list(v), :), 'MarkerSize', 3, 'LineWidth', 1);
+                    'Color', obj.priority_colormap(priority_list(v), :), 'LineStyle', 'none', 'Marker', '+', ...
+                    'MarkerFaceColor', obj.priority_colormap(priority_list(v), :), 'MarkerSize', 3, 'LineWidth', 1);
                 % Matlab R2021a:
                 %'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
                 % Matlab R2020a:
                 %'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
                 line(plotting_info.trajectory_predictions{v}(:, 1), ...
                     plotting_info.trajectory_predictions{v}(:, 2), ...
-                    'Color', priority_colormap(priority_list(v), :), 'LineWidth', 1);
+                    'Color', obj.priority_colormap(priority_list(v), :), 'LineWidth', 1);
             end
 
             % Vehicle rectangles
@@ -219,7 +217,7 @@ classdef (Abstract) Plotter < handle
                 vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
                 patch(vehiclePolygon(1, :) ...
                     , vehiclePolygon(2, :) ...
-                    , priority_colormap(priority_list(v), :) ...
+                    , obj.priority_colormap(priority_list(v), :) ...
                     , 'LineWidth', 1 ...
                 );
 

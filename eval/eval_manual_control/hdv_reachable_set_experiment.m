@@ -17,7 +17,7 @@ function result = hdv_reachable_set_experiment()
     vehicle_ids = [8, 9];
 
     options.amount = length(vehicle_ids);
-    options.scenario_name = 'Commonroad';
+    options.scenario_name = ScenarioType.commonroad;
     options.veh_ids = vehicle_ids;
 
     scenario = create_scenario(options);

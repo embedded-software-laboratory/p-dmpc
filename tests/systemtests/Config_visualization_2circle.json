@@ -1,11 +1,7 @@
 {
-    "scenario_name": "Commonroad",
+    "scenario_name": "circle",
     "amount": 2,
-    "veh_ids": [
-        26,
-        37
-    ],
-    "T_end": 10,
+    "T_end": 5,
     "max_num_CLs": 4,
     "trim_set": 6,
     "should_save_result": false,
@@ -21,12 +17,10 @@
         "plot_hotkey_description": true,
         "plot_reachable_sets": true,
         "vehicles_reachable_sets": [],
-        "plot_lanelet_crossing_areas": true,
+        "plot_lanelet_crossing_areas": false,
         "vehicles_lanelet_crossing_areas": [],
-        "is_video_mode": true
+        "is_video_mode": false
     },
-    "is_prioritized": true,
-    "strategy_enter_lanelet_crossing_area": "2",
     "is_manual_control": false,
     "manual_control_config": {
         "hdv_ids": [],

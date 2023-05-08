@@ -3,11 +3,11 @@ classdef Config < matlab.mixin.Copyable
     properties
         environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
         is_manual_control = false; % true/false, are manually controlled vehicles involved
-        manual_control_config ManualControlConfig = ManualControlConfig; % manual control config
+        manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
         is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
         compute_in_parallel = false; % true/false, is use parallel(distributed) computation
-        scenario_name = 'Commonroad' % one of the follows: {'Circle_scenario', 'Commonroad'}
+        scenario_name = ScenarioType.commonroad; % one of the follows: {'circle', 'commonroad'}
         priority PriorityStrategies = PriorityStrategies.constant_priority; % defines which priority assignmen strategy is used
         dt = 0.2; % scalar, sample time
         Hp = 6; % scalar, prediction horizon

@@ -38,7 +38,7 @@ classdef PrioritizedSequentialController < PrioritizedController
 
                 % Communicate data to other vehicles
                 for vehicle_k = vehs_level_i
-                    msg_send_time(vehicle_k) = obj.publish_predicitons(vehicle_k);
+                    msg_send_time(vehicle_k) = obj.publish_predictions(vehicle_k);
                 end
 
             end

@@ -3,9 +3,9 @@ classdef systemtests < matlab.unittest.TestCase
     properties (TestParameter)
         priority = {'coloring', 'constant', 'random', 'FCA', 'STAC'};
         %priority = {'coloring', 'right_of_way', 'constant', 'random', 'FCA', 'STAC'};
-        scenario_name = {'Circle_scenario', 'Commonroad'};
+        scenario_name = {ScenarioType.circle, ScenarioType.commonroad};
         parallel = {'sequential', 'parallel'};
-        use_cpp = {false}
+        use_cpp = {true, false}
     end
 
     methods (Test)
@@ -53,7 +53,7 @@ classdef systemtests < matlab.unittest.TestCase
             lastwarn('');
             fprintf('\nvisualization systemtest for %s\n', scenario_name)
             %load Config from json
-            rawJson = fileread(['tests/systemtests/Config_visualization_2', scenario_name, '.json']);
+            rawJson = fileread(['tests/systemtests/Config_visualization_2', char(scenario_name), '.json']);
             options = Config();
             options = options.importFromJson(rawJson);
             testCase.verifyEmpty(lastwarn);
