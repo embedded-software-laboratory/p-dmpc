@@ -59,11 +59,12 @@ P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized T
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](http://dx.doi.org/10.13140/RG.2.2.32731.03368)
-[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v5.0)
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/alGHLwQQpHI)
 </summary>
 <p>
 
+Checkout the [the software version 1.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v5.0).
 The results of the publication can be reproduced by running
 ```matlab
 open graph_based_planning.prj
@@ -75,6 +76,8 @@ The results are saved in the folder "results".
 </p>
 </details>
 
+
+
 <details>
 <summary>
 P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority Assignment in Distributed MPC," TechRxiv, Preprint, 2023, doi: 10.36227/techrxiv.20304015.v2
@@ -82,10 +85,11 @@ P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority A
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://doi.org/10.36227/techrxiv.20304015.v2)
-[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v4.0)
 </summary>
 <p>
 
+Checkout the [the software version 1.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v4.0).
 The results of the publication can be reproduced by running
 ```matlab
 eval_coloring_paper()
@@ -96,6 +100,8 @@ The results are saved in the folder "results".
 </p>
 </details>
 
+
+
 <details>
 <summary>
 P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs", ResearchGate, Preprint, 2023, doi: 10.13140/RG.2.2.24697.13923
@@ -103,22 +109,23 @@ P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions 
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://dx.doi.org/10.13140/RG.2.2.24697.13923)
-[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v2.0)
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/kDIVu0tv9Ro)
 </summary>
 <p>
-
+Checkout the [the software version 1.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v2.0).
 The results of the publication can be reproduced by running
 
 ```matlab
 hdv_reachable_set_experiment()
 ```
 
-in [pub/manual-control](https://github.com/embedded-software-laboratory/p-dmpc/tree/pub/manual-control).
 The results are saved in the folder "results".
 
 </p>
 </details>
+
+
 
 <details>
 <summary>
@@ -126,24 +133,25 @@ P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Co
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/TCST.2022.3214718)
-[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc)
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v1.0)
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://www.youtube.com/watch?v=7LB7I5SOpQE)
 [![Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/7778016)
 </summary>
 <p>
 <img src="./docs/media/3-circle_rhgs.gif" width=640/>
-
+Checkout the [the software version 1.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v1.0).
 The results of the publication can be reproduced by running
 
 ```matlab
 eval_rhgs()
 ```
 
-in [pub/rhgs](https://github.com/embedded-software-laboratory/p-dmpc/tree/pub/rhgs).
 The results are saved in the folder "results".
 
 </p>
 </details>
+
+
 
 <details>
 <summary>
