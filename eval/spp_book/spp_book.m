@@ -66,96 +66,27 @@ function results = spp_book(visu_options)
     options.collisionAvoidanceMode = 1;
     options.should_save_result = 1;
     options.should_reduce_result = 1;
+    options.scenario_name = ScenarioType.commonroad;
 
     % visualization for video
     options.options_plot_online.plot_coupling = true;
 
     nsVeh = 1:20;
     % number of different random scenarios per priority assignment and #vehicles
-    nSce = 9;
+    seeds = 1:9;
 
-    scenarios = cell(length(nsVeh), nSce);
-    results = cell(length(nsVeh), length(priority_assignment_algorithms), nSce);
+    scenarios = commonroad_random(options, nsVeh, seeds);
 
-    disp('Creating scenarios...')
-
-    for inVeh = 1:length(nsVeh)
-
-        for iSce = 1:nSce
-            random_stream = RandStream('mt19937ar', 'Seed', iSce);
-            options.amount = nsVeh(inVeh);
-            % options.scenario_name = ['Clover-' num2str(options.amount) 'Vehicles']; % TODO get rid of dependencies on scenario name
-            options.scenario_name = 'Commonroad';
-            veh_ids = sort(randsample(random_stream, 1:40, options.amount), 'ascend');
-            options.veh_ids = veh_ids;
-            scenario = commonroad(options, options.veh_ids);
-            scenario.random_stream = random_stream;
-            scenario.name = options.scenario_name;
-            scenario.options.veh_ids = options.veh_ids;
-
-            for iVeh = 1:options.amount
-                % initialize vehicle ids of all vehicles
-                scenario.vehicles(iVeh).ID = scenario.options.veh_ids(iVeh);
-            end
-
-            scenarios{inVeh, iSce} = scenario;
-        end
-
-    end
-
-    plot_mpa(scenarios{1, 1}, ...
+    plot_mpa(scenarios(1, 1), ...
         "y_lim", [-0.05, 0.85], ...
         "x_lim", [-37, 37], ...
         'export_fig_cfg', export_fig_config, ...
         "do_export", true ...
     );
 
-    n_simulations = length(nsVeh) * nSce * length(priority_assignment_algorithms);
-    count = 0;
-    disp('Starting simulations...')
-
-    for inVeh = 1:length(nsVeh)
-        disp(['# Vehicles: ', num2str(nsVeh(inVeh))])
-
-        for i_priority = 1:length(priority_assignment_algorithms)
-            disp(['Priority Assignment Algorithm: ', ...
-                      priority_assignment_algorithms{i_priority}] ...
-            )
-
-            for iSce = 1:nSce
-                scenarios{inVeh, iSce}.options.priority = ...
-                    priority_assignment_algorithms{i_priority};
-                scenarios{inVeh, iSce}.controller_name = strcat( ...
-                    "seq. PB-RHGS ", ...
-                    priority_assignment_algorithms{i_priority} ...
-                );
-                % run simulation
-                results_full_path = FileNameConstructor.get_results_full_path( ...
-                    scenarios{inVeh, iSce}.options ...
-                );
-
-                if isfile(results_full_path)
-                    disp('File already exists.')
-                    r = load(results_full_path);
-                    result = r.result;
-                else
-                    % run simulation
-                    [result, ~, ~] = main(scenarios{inVeh, iSce});
-                end
-
-                results{inVeh, i_priority, iSce} = clean_result(result);
-
-                % evaluate
-                %e_differentNumVehs{i_priority} = EvaluationParl(results_full_path,[0,options.T_end]);
-
-                % display progress
-                count = count + 1;
-                disp(['--------Progress ' num2str(count) '/' num2str(n_simulations) ': done--------'])
-            end
-
-        end
-
-    end
+    results = run_scenario_with_priority_algorithm( ...
+        scenarios, priority_assignment_algorithms ...
+    );
 
     % plot Computation levels histogram excluding deadlock
     plot_levels(results);
@@ -164,16 +95,4 @@ function results = spp_book(visu_options)
 
     % Export videos
     export_desired_videos(results);
-end
-
-function result = clean_result(result_in)
-    result.scenario = result_in.scenario;
-    result.is_deadlock = result_in.is_deadlock;
-    result.priority = result_in.priority;
-    result.t_total = result_in.t_total;
-    result.nSteps = result_in.nSteps;
-    result.controller_runtime = result_in.controller_runtime;
-    result.output_path = result_in.output_path;
-    result.iteration_structs = result_in.iteration_structs;
-    result.directed_coupling = result_in.directed_coupling;
 end

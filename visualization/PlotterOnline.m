@@ -3,8 +3,8 @@ classdef PlotterOnline < Plotter
     %   Along with the simulation, the different time steps can be plotted when finished by all threads.
 
     properties (Access = private)
-        timer (1, 1) uint64 % used to simulate real time plotting while receiving data from visualiuation queue
-        simulation_time_offset (1, 1) uint64 % used to backup timer when visualization is paused
+        timer % used to simulate real time plotting while receiving data from visualiuation queue
+        simulation_time_offset (1, 1) double % used to backup timer when visualization is paused
         plotting_info_collection (1, 1) struct % collect plotting info from each vehicle via data queue
         current_plotting_info (1, 1) PlottingInfo % last plotted complete plotting info
     end

@@ -1,0 +1,29 @@
+{
+    "scenario_name": "circle",
+    "amount": 2,
+    "T_end": 5,
+    "max_num_CLs": 4,
+    "trim_set": 6,
+    "should_save_result": false,
+    "should_reduce_result": false,
+    "is_save_mpa": false,
+    "is_load_mpa": true,
+    "options_plot_online": {
+        "is_active": true,
+        "plot_vehicle_id": true,
+        "plot_priority": true,
+        "plot_coupling": true,
+        "plot_weight": true,
+        "plot_hotkey_description": true,
+        "plot_reachable_sets": true,
+        "vehicles_reachable_sets": [],
+        "plot_lanelet_crossing_areas": false,
+        "vehicles_lanelet_crossing_areas": [],
+        "is_video_mode": false
+    },
+    "is_manual_control": false,
+    "manual_control_config": {
+        "hdv_ids": [],
+        "amount": 0
+    }
+}
