@@ -130,6 +130,7 @@ The results are saved in the folder "results".
 <details>
 <summary>
 P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning", in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
+<br>
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/TCST.2022.3214718)
@@ -156,6 +157,7 @@ The results are saved in the folder "results".
 <details>
 <summary>
 P. Scheffe, G. Dorndorf, and B. Alrifaee, “Increasing Feasibility with Dynamic Priority Assignment in Distributed Trajectory Planning for Road Vehicles,” in IEEE International Conference on Intelligent Transportation Systems (ITSC), 2022, pp. 3873–3879. doi: 10.1109/ITSC55140.2022.9922028.
+<br>
 
 <!-- icons from https://simpleicons.org/ -->
 [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/ITSC55140.2022.9922028)
