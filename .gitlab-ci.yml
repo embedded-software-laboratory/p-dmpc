@@ -69,7 +69,7 @@ Unittests:
   extends: .matlab_with_test_coverage
   parallel:
     matrix:
-      - FOLDER: [helper, scenarios]
+      - FOLDER: [helper, hlc]
   variables:
     TEST_FOLDER: "'tests/unittests/$FOLDER'"
     COVERAGE_FOLDER: "'$FOLDER'"
