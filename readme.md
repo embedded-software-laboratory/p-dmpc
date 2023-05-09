@@ -155,6 +155,22 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
+P. Scheffe, G. Dorndorf, and B. Alrifaee, “Increasing Feasibility with Dynamic Priority Assignment in Distributed Trajectory Planning for Road Vehicles,” in IEEE International Conference on Intelligent Transportation Systems (ITSC), 2022, pp. 3873–3879. doi: 10.1109/ITSC55140.2022.9922028.
+
+<!-- icons from https://simpleicons.org/ -->
+[![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/ITSC55140.2022.9922028)
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/cpm_lab)
+[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/RqwbHUwip10)
+</summary>
+<p>
+The code is implemented in [the CPM Lab software repository](https://github.com/embedded-software-laboratory/cpm_lab). The High Level Controller is implemented in C++ and is named "dynamic_priorities".
+</p>
+</details>
+
+
+
+<details>
+<summary>
 References in Bibtex format
 </summary>
 <p>
@@ -193,6 +209,16 @@ References in Bibtex format
     pages   = {1-14},
     doi     = {10.1109/TCST.2022.3214718}
 }
+
+@inproceedings{scheffe2022increasing,
+  title = {Increasing {{Feasibility}} with {{Dynamic Priority Assignment}} in {{Distributed Trajectory Planning}} for {{Road Vehicles}}},
+  booktitle = {{{IEEE International Conference}} on {{Intelligent Transportation Systems}} ({{ITSC}})},
+  author = {Scheffe, Patrick and Dorndorf, Georg and Alrifaee, Bassam},
+  year = {2022},
+  pages = {3873--3879},
+  doi = {10.1109/ITSC55140.2022.9922028}
+}
+
 ```
 
 </p>
