@@ -3,6 +3,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
     properties (Access = protected)
         CL_based_hierarchy;
         lanelet_crossing_areas;
+        prioritizer
+        weighter
+        coupler
 
         consider_parallel_coupling (1, 1) function_handle = @()[];
     end
@@ -17,6 +20,10 @@ classdef (Abstract) PrioritizedController < HighLevelController
             else
                 obj.optimizer = GraphSearch(obj.scenario);
             end
+
+            obj.coupler = Coupler();
+            obj.prioritizer = Prioritizer.get_prioritizer(obj.scenario.options.priority);
+            obj.weighter = Weighter.get_weighter(obj.scenario.options.weight);
 
             if obj.scenario.options.isDealPredictionInconsistency
                 obj.consider_parallel_coupling = @obj.parallel_coupling_reachability;
@@ -33,15 +40,27 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function runtime_others = init_step(obj)
             runtime_others_tic = tic;
 
+            determine_couplings_timer = tic;
+            obj.couple();
+            obj.iter.timer.determine_couplings = toc(determine_couplings_timer);
+
             assign_priority_timer = tic;
-            [obj.scenario, obj.iter, obj.CL_based_hierarchy, obj.lanelet_crossing_areas] = priority_assignment_parl(obj.scenario, obj.iter);
+            obj.prioritize();
             obj.iter.timer.assign_priority = toc(assign_priority_timer);
+
+            obj.weigh();
+
+            obj.reduce();
+
+            group_vehicles_timer = tic;
+            obj.group();
+            obj.iter.timer.group_vehs = toc(group_vehicles_timer);
 
             nVeh = obj.scenario.options.amount;
             Hp = obj.scenario.options.Hp;
 
             % initialize variable to store control results
-            obj.info = ControllResultsInfo(nVeh, Hp, [obj.scenario.vehicles.ID]);
+            obj.info = ControlResultsInfo(nVeh, Hp, [obj.scenario.vehicles.ID]);
 
             directed_graph = digraph(obj.iter.directed_coupling);
             [obj.belonging_vector_total, ~] = conncomp(directed_graph, 'Type', 'weak'); % graph decomposition
@@ -49,14 +68,19 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.iter.num_couplings_between_grps = 0; % number of couplings between groups
             obj.iter.num_couplings_between_grps_ignored = 0; % ignored number of couplings between groups by using lanelet crossing lanelets
 
-            for iCoupling = 1:length([obj.iter.coupling_info.veh_with_ROW])
-                veh_ij = [obj.iter.coupling_info(iCoupling).veh_with_ROW, obj.iter.coupling_info(iCoupling).veh_without_ROW];
+            [row_coupling, col_coupling] = find(obj.iter.directed_coupling);
+            n_couplings = length(row_coupling);
+
+            for i_coupling = 1:n_couplings
+                veh_i = row_coupling(i_coupling);
+                veh_j = col_coupling(i_coupling);
+                veh_ij = [veh_i, veh_j];
                 is_same_grp = any(cellfun(@(c) all(ismember(veh_ij, c)), {obj.iter.parl_groups_info.vertices}));
 
                 if ~is_same_grp
                     obj.iter.num_couplings_between_grps = obj.iter.num_couplings_between_grps + 1;
 
-                    if obj.iter.coupling_info(iCoupling).is_ignored
+                    if ~isempty(obj.iter.coupling_info{veh_i, veh_j}) && obj.iter.coupling_info{veh_i, veh_j}.is_ignored
                         obj.iter.num_couplings_between_grps_ignored = obj.iter.num_couplings_between_grps_ignored + 1;
                     end
 
@@ -123,7 +147,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             if ~strcmp(obj.scenario.options.strategy_enter_lanelet_crossing_area, '1')
                 % Set lanelet intersecting areas as static obstacles if vehicle with lower priorities is not allowed to enter those area
-                iter_v.lanelet_crossing_areas = obj.lanelet_crossing_areas{vehicle_idx};
+                iter_v.lanelet_crossing_areas = obj.iter.lanelet_crossing_areas{vehicle_idx};
 
                 if isempty(iter_v.lanelet_crossing_areas)
                     iter_v.lanelet_crossing_areas = {}; % convert from 'double' to 'cell'
@@ -148,18 +172,18 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
                 %                 disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
                 switch obj.scenario.options.fallback_type
-                    case 'localFallback'
+                    case FallbackType.local_fallback
                         sub_graph_fallback = obj.belonging_vector_total(vehicle_idx);
                         obj.info.vehs_fallback = [obj.info.vehs_fallback, find(obj.belonging_vector_total == sub_graph_fallback)];
                         obj.info.vehs_fallback = unique(obj.info.vehs_fallback, 'stable');
-                    case 'globalFallback'
+                    case FallbackType.global_fallback
                         % global fallback: all vehicles take fallback
                         obj.info.vehs_fallback = int32(1):int32(obj.scenario.options.amount);
-                    case 'noFallback'
+                    case FallbackType.no_fallback
                         % Fallback is disabled. Simulation will end.
                         obj.info.vehs_fallback = int32(1):int32(obj.scenario.options.amount);
                     otherwise
-                        warning("Please define one of the follows as fallback strategy: 'noFallback', 'localFallback', and 'globalFallback'.")
+                        warning("Please define one of the follows as fallback strategy: 'no_fallback', 'local_fallback', and 'global_fallback'.")
                 end
 
             else
@@ -169,7 +193,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             if obj.iter.k == inf
                 plot_obstacles(obj.scenario)
                 plot_obstacles(info_v.shapes)
-                plot_partitioned_graph(obj.iter.belonging_vector, obj.scenario.coupling_weights, 'ShowWeights', true)
+                plot_partitioned_graph(obj.iter.belonging_vector, obj.iter.weighted_coupling, 'ShowWeights', true)
             end
 
             subcontroller_time = toc(subcontroller_timer);
@@ -192,6 +216,31 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 msg_send_time = toc(msg_send_tic);
             end
 
+        end
+
+        function couple(obj)
+            obj.iter.adjacency = obj.coupler.couple(obj.iter);
+            obj.iter.coupling_info = obj.coupler.calculate_coupling_info(obj.scenario, obj.iter);
+        end
+
+        function prioritize(obj)
+            obj.iter.directed_coupling = obj.prioritizer.prioritize(obj.scenario, obj.iter);
+            obj.iter.priority_list = obj.prioritizer.get_priority_list(obj.iter.directed_coupling);
+        end
+
+        function weigh(obj)
+            obj.iter.weighted_coupling = obj.weighter.weigh(obj.scenario, obj.iter);
+        end
+
+        function reduce(obj)
+            [obj.iter.weighted_coupling_reduced, obj.iter.coupling_info, obj.iter.lanelet_crossing_areas] = ...
+                reduce_coupling_lanelet_crossing_area(obj.iter, obj.scenario.options.strategy_enter_lanelet_crossing_area);
+            obj.iter.directed_coupling_reduced = (obj.iter.weighted_coupling_reduced ~= 0);
+        end
+
+        function group(obj)
+            method = 's-t-cut'; % 's-t-cut' or 'MILP'
+            [obj.CL_based_hierarchy, obj.iter.parl_groups_info, obj.iter.belonging_vector] = form_parallel_groups(obj.iter.weighted_coupling_reduced, obj.scenario.options.max_num_CLs, obj.iter.coupling_info, method, obj.scenario.options);
         end
 
         function [iter_v, should_fallback] = parallel_coupling_reachability(obj, iter_v, vehicle_idx, veh_with_HP_i)

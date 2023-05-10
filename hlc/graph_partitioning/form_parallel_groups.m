@@ -1,5 +1,5 @@
 function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(M, max_num_CLs, coupling_info, method, options)
-    % FORM_PARALLEL_GROUPS Form parallel graoups of vehicles based on the given
+    % FORM_PARALLEL_GROUPS Form parallel groups of vehicles based on the given
     % matrix M, which can either be a directed adjacency matrix or a weighting
     % matrix, while ensuring that the number of computation levels of each
     % group do not exceed a value `max_num_CLs`.
@@ -57,7 +57,7 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
     %     plot_partitioned_graph(belonging_vector, M, 'ShowWeights', true)
 
     n_grps = length(subgraphs_info); % one subgraph corresponds to one parallel group
-    directed_adjacency = (M ~= 0);
+    directed_coupling = (M ~= 0);
 
     CLs_max_grps = max([subgraphs_info.num_CLs]); % max number of computation levels among all parallel groups
     parl_groups(CLs_max_grps) = struct('members', [], 'predecessors', []); % gather vehicles that are in the same computation level
@@ -66,8 +66,8 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
     for grp_i = 1:n_grps
 
         vertices_in_i = subgraphs_info(grp_i).vertices; % vertices in the group_i
-        directed_adjacency_i = directed_adjacency(vertices_in_i, vertices_in_i);
-        [valid, L] = kahn(directed_adjacency_i);
+        directed_coupling_i = directed_coupling(vertices_in_i, vertices_in_i);
+        [valid, L] = kahn(directed_coupling_i);
         assert(valid == true)
         subgraphs_info(grp_i).L_topology = L;
 
