@@ -28,11 +28,10 @@ function iter = consider_vehs_with_LP(scenario, iter, vehicle_idx, all_coupling_
                 % included to avoid that vehicles behind push vehicles in
                 % front to move forward.
                 switch scenario.options.priority
-                    case 'STAC_priority'
-                        find_coupling = [iter.coupling_info.veh_with_ROW] == vehicle_idx & [iter.coupling_info.veh_without_ROW] == veh_without_ROW;
+                    case PriorityStrategies.STAC_priority
 
-                        if ~iter.coupling_info(find_coupling).is_ignored && strcmp(iter.coupling_info(find_coupling).collision_type, CollisionType.type_2) ...
-                                && strcmp(iter.coupling_info(find_coupling).lanelet_relationship, LaneletRelationshipType.type_5)
+                        if ~iter.coupling_info{vehicle_idx, veh_without_ROW}.is_ignored && iter.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side ...
+                                && iter.coupling_info{vehicle_idx, veh_without_ROW}.lanelet_relationship == LaneletRelationshipType.crossing
                             % the emergency braking maneuver is only considered if
                             % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
                             iter.obstacles{end + 1} = iter.emergency_maneuvers{veh_without_ROW}.braking_area;

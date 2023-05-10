@@ -19,7 +19,7 @@ classdef CentralizedController < HighLevelController
 
         function controller(obj)
             % initialize variable to store control results
-            obj.info = ControllResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, [obj.scenario.vehicles.ID]);
+            obj.info = ControlResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, [obj.scenario.vehicles.ID]);
 
             % falsifies controller_runtime slightly
             subcontroller_timer = tic;

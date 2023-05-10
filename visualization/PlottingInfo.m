@@ -14,7 +14,7 @@ classdef PlottingInfo
         veh_indices % vehicles to which the plot info belong
         tick_now
         lanelet_crossing_areas
-        coupling_weights_reduced
+        weighted_coupling_reduced
         directed_coupling
         belonging_vector = []
         coupling_info
@@ -54,12 +54,12 @@ classdef PlottingInfo
 
             obj.directed_coupling = result.directed_coupling{k};
 
-            if ~isempty(result.iteration_structs{k}.coupling_weights_reduced)
-                obj.coupling_weights_reduced = result.iteration_structs{k}.coupling_weights_reduced;
+            if ~isempty(result.iteration_structs{k}.weighted_coupling_reduced)
+                obj.weighted_coupling_reduced = result.iteration_structs{k}.weighted_coupling_reduced;
 
                 if ( ...
                         result.scenario.options.is_prioritized && ...
-                        result.scenario.options.scenario_name == ScenarioType.commonroad ...
+                        result.scenario.options.scenario_type == ScenarioType.commonroad ...
                     )
                     obj.belonging_vector = result.belonging_vector(:, k);
                     obj.coupling_info = result.coupling_info{k};

@@ -127,7 +127,7 @@ function eval_coloring_paper()
     options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area
     options.should_save_result = 1;
     options.should_reduce_result = 1;
-    options.scenario_name = ScenarioType.commonroad;
+    options.scenario_type = ScenarioType.commonroad;
 
     nsVeh = 1:20;
     % number of different random scenarios per priority assignment and #vehicles
@@ -145,7 +145,7 @@ function eval_coloring_paper()
     % plot lanelets map
     figure_handle = figure();
 
-    plot_lanelets(scenarios(1).road_raw_data.lanelet, scenarios(1).options.scenario_name);
+    plot_lanelets(scenarios(1).road_raw_data.lanelet, scenarios(1).options.scenario_type);
     axis equal;
     xlabel('$x$ [m]', 'Interpreter', 'latex');
     ylabel('$y$ [m]', 'Interpreter', 'latex');
