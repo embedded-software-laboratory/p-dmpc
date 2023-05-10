@@ -1,5 +1,5 @@
 function collision = intersect_lanelets(shape, lanelet)
-    % INTERSECT_LANLETS     Wrapper for INTERSECT_SAT calls for a lanlet segment, devided into left and right bound.
+    % INTERSECT_LANLETS     Wrapper for INTERSECT_SAT calls for a lanelet segment, devided into left and right bound.
 
     collision = false;
     nSeg = size(lanelet, 1) - 1;
