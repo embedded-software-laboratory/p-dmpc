@@ -113,6 +113,7 @@ P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions 
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/kDIVu0tv9Ro)
 </summary>
 <p>
+
 Checkout the [the software version 1.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v2.0).
 The results of the publication can be reproduced by running
 
@@ -139,7 +140,9 @@ P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Co
 [![Code Ocean](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/7778016)
 </summary>
 <p>
+
 <img src="./docs/media/3-circle_rhgs.gif" width=640/>
+
 Checkout the [the software version 1.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v1.0).
 The results of the publication can be reproduced by running
 
@@ -165,6 +168,7 @@ P. Scheffe, G. Dorndorf, and B. Alrifaee, “Increasing Feasibility with Dynamic
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/RqwbHUwip10)
 </summary>
 <p>
+
 The code is implemented in [the CPM Lab software repository](https://github.com/embedded-software-laboratory/cpm_lab). The High Level Controller is implemented in C++ and is named "dynamic_priorities".
 </p>
 </details>
