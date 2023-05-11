@@ -64,7 +64,7 @@ P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized T
 </summary>
 <p>
 
-Checkout the [the software version 1.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v5.0).
+Checkout the [the software version 5.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v5.0).
 The results of the publication can be reproduced by running
 ```matlab
 open graph_based_planning.prj
@@ -89,7 +89,7 @@ P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority A
 </summary>
 <p>
 
-Checkout the [the software version 1.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v4.0).
+Checkout the [the software version 4.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v4.0).
 The results of the publication can be reproduced by running
 ```matlab
 eval_coloring_paper()
@@ -114,7 +114,7 @@ P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions 
 </summary>
 <p>
 
-Checkout the [the software version 1.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v2.0).
+Checkout the [the software version 2.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v2.0).
 The results of the publication can be reproduced by running
 
 ```matlab
