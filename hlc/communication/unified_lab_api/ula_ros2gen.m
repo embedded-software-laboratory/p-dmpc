@@ -2,7 +2,7 @@ function ula_ros2gen
     % generate custom message type (for communication with unified lab api) if not exist
     msgList = ros2("msg", "list"); % get all ROS 2 message types
 
-    if ((sum(cellfun(@(c)strcmp(c, 'ula_interfaces/Ready'), msgList)) == 0))
+    if ((sum(cellfun(@(c)strcmp(c, 'ula_msgs/Ready'), msgList)) == 0))
         % if the message type 'veh_msgs/Traffic' does not exist
         [file_path, ~, ~] = fileparts(mfilename('fullpath'));
 
@@ -30,7 +30,7 @@ function ula_ros2gen
         end
 
     else
-        disp(['No generation of ROS 2 custom message type for unified lab interface, since at least "ula_interfaces/Ready" ' ...
+        disp(['No generation of ROS 2 custom message type for unified lab interface, since at least "ula_msgs/Ready" ' ...
               'message exists. If message types are missing regenerate all by removing the folder matlab_msg_gen...'])
     end
 

@@ -220,7 +220,7 @@ classdef UnifiedLabApi < Plant
                 n_traj_pts = obj.scenario.options.Hp;
                 n_predicted_points = size(y_pred{iVeh}, 1);
                 idx_predicted_points = 1:n_predicted_points / n_traj_pts:n_predicted_points;
-                trajectory_points(1:n_traj_pts) = ros2message('ula_interfaces/TrajectoryPoint');
+                trajectory_points(1:n_traj_pts) = ros2message('ula_msgs/TrajectoryPoint');
 
                 for i_traj_pt = 1:n_traj_pts
                     i_predicted_points = idx_predicted_points(i_traj_pt);
@@ -407,33 +407,33 @@ classdef UnifiedLabApi < Plant
 
             % create subscription for controller invocation without a callback since we want to activly wait
             % only keep the last message in the queue, i.e., we throw away missed ones
-            obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "ula_interfaces/VehicleStateList", "History", "keeplast", "Depth", 1);
+            obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "ula_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
 
             % create client such that we can ask for the lab properties in the preparation phase
-            obj.client_labProperties = ros2svcclient(obj.comm_node, '/lab_properties_request', 'ula_interfaces/LabProperties');
+            obj.client_labProperties = ros2svcclient(obj.comm_node, '/lab_properties_request', 'ula_msgs/LabProperties');
 
             % create client such that we can register the scale we want to use within the scaling node
-            obj.client_scaleRegistration = ros2svcclient(obj.comm_node, '/scale_registration', 'ula_interfaces/ScaleRegistration');
+            obj.client_scaleRegistration = ros2svcclient(obj.comm_node, '/scale_registration', 'ula_msgs/ScaleRegistration');
 
             % create client with which we can define the map we want to use
-            obj.client_mapDefinition = ros2svcclient(obj.comm_node, '/map_definition_request', 'ula_interfaces/MapDefinition');
+            obj.client_mapDefinition = ros2svcclient(obj.comm_node, '/map_definition_request', 'ula_msgs/MapDefinition');
 
             % create client with which we can receive the defined map
-            obj.client_mapRequest = ros2svcclient(obj.comm_node, '/map_request', 'ula_interfaces/MapRequest');
+            obj.client_mapRequest = ros2svcclient(obj.comm_node, '/map_request', 'ula_msgs/MapRequest');
 
             % create publisher for ready state
-            obj.publisher_readyState = ros2publisher(obj.comm_node, '/ready_state', 'ula_interfaces/Ready');
+            obj.publisher_readyState = ros2publisher(obj.comm_node, '/ready_state', 'ula_msgs/Ready');
 
             % create publisher for trajectory commands
-            obj.publisher_trajectoryCommand = ros2publisher(obj.comm_node, '/trajectory_command', 'ula_interfaces/TrajectoryCommand');
+            obj.publisher_trajectoryCommand = ros2publisher(obj.comm_node, '/trajectory_command', 'ula_msgs/TrajectoryCommand');
 
             % create publisher for vehicle controller period
             obj.publisher_vehicleControllerPeriod = ros2publisher(obj.comm_node, '/vehicle_controller_period', 'builtin_interfaces/Duration');
 
             % create client with which we can ask the lab for specific vehicles
-            [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'ula_interfaces/VehiclesRequest');
+            [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'ula_msgs/VehiclesRequest');
             % Since matlab does not provide support for actions, we use a normal message via the action bridge node
-            % obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'ula_interfaces/VehicleIDs');
+            % obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'ula_msgs/VehicleIDs');
 
             % % NEEDED???
             % % create writer for lab visualization
