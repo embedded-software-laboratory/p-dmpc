@@ -268,9 +268,11 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set, max_acceleration
             assert(d_speed < acc_max);
             assert(d_speed < dec_max);
             speed_min = 0;
-            speed_max = 0.8;
+            speed_max = 0.5;
             % round speed_max
             speed_max = d_speed * round(speed_max / d_speed);
+            disp('Speed Max');
+            disp(speed_max);
             speed_vec = (speed_min:d_speed:speed_max)';
             n_speeds = numel(speed_vec);
 
