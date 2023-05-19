@@ -8,9 +8,6 @@ function scenario = commonroad(options, vehicle_ids)
 
     options.is_allow_non_convex = true;
 
-    % convert to char for cpp
-    scenario.options.scenario_name = char(ScenarioType.commonroad);
-
     % get road data
     road_data = RoadDataCommonRoad().get_road_data();
     assignin('base', 'road_data', road_data);
@@ -39,7 +36,7 @@ function scenario = commonroad(options, vehicle_ids)
         % check if the reference path is a loop
         lanelet_relationship = scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)};
 
-        if ~isempty(lanelet_relationship) && strcmp(scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)}.type, LaneletRelationshipType.type_1)
+        if ~isempty(lanelet_relationship) && scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)}.type == LaneletRelationshipType.longitudinal
             veh.is_loop = true;
         else
             veh.is_loop = false;

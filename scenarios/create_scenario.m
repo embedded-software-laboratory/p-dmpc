@@ -55,14 +55,14 @@ function scenario = create_scenario(options, random_seed, plant)
     end
 
     %% Setup Scenario
-    switch options.scenario_name
+    switch options.scenario_type
         case ScenarioType.circle
             scenario = circle_scenario(options);
         case ScenarioType.commonroad
             scenario = commonroad(options, vehicle_ids);
-        case 'Lanelet2'
+        case ScenarioType.lanelet2
             scenario = lanelet2_scenario(options, vehicle_ids, plant);
-        case 'Lab_default'
+        case ScenarioType.lab_default
             scenario = lanelet2_scenario(options, vehicle_ids, plant);
         case 'Lanelet2_IDS3C_circle'
             scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant);

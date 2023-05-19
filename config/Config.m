@@ -7,8 +7,9 @@ classdef Config < matlab.mixin.Copyable
         is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
         compute_in_parallel = false; % true/false, is use parallel(distributed) computation
-        scenario_name = ScenarioType.commonroad; % one of the follows: {'circle', 'commonroad'}
+        scenario_type ScenarioType = ScenarioType.commonroad; % one of the follows: {'Circle_scenario', 'Commonroad'}
         priority PriorityStrategies = PriorityStrategies.constant_priority; % defines which priority assignmen strategy is used
+        weight WeightStrategies = WeightStrategies.constant_weight; % defines which weighting method is used
         dt = 0.2; % scalar, sample time
         Hp = 6; % scalar, prediction horizon
         trim_set = 7; % scalar, ID of trim primitives
@@ -32,7 +33,7 @@ classdef Config < matlab.mixin.Copyable
 
         is_eval = false; % true/false,
         is_free_flow = false; % true/false, if true, vehicles do not need to consider other vehicles.
-        fallback_type = 'localFallback'; % one of the following {'no', 'local', 'global'},
+        fallback_type FallbackType = FallbackType.local_fallback; % one of the following {'no', 'local', 'global'},
         % 'no' for disable fallback;
         % 'global' means once a vehicle triggers fallback, all other vehicles must also take fallback.
         % 'local' means once a vehicle triggers fallback, only vehicles that have direct or undirected couplings with it will take fallabck.
@@ -50,7 +51,6 @@ classdef Config < matlab.mixin.Copyable
         % MPA
         is_save_mpa = true; % true/false, the offline computed MPA will be saved if true
         is_load_mpa = true; % true/false, the offline computed MPA  will be load if exists
-        coupling_weight_mode = 'STAC'; % one of the following {'STAC', 'random', 'constant', 'optimal'}
 
         options_plot_online = OptionsPlotOnline(); % setup for online plotting
         bound_reachable_sets = true; % true/false, if true, reachable sets are bounded by lanelet boundaries

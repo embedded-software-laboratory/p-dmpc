@@ -66,7 +66,8 @@ classdef (Abstract) HighLevelController < handle
             obj.set_vehicle_ids(vehicle_ids);
 
             % create fallback for first time step
-            obj.info_old = ControllResultsInfo(scenario.options.amount, scenario.options.Hp, [scenario.vehicles.ID]);
+            obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, [scenario.vehicles.ID]);
+
             for vehicle_idx = obj.indices_in_vehicle_list
                 k = 1;
                 x0 = [[scenario.vehicles.x_start]', [scenario.vehicles.y_start]', [scenario.vehicles.yaw_start]'];
@@ -232,7 +233,7 @@ classdef (Abstract) HighLevelController < handle
                 if obj.scenario.options.compute_in_parallel
                     irrelevant_vehicles = union(obj.indices_in_vehicle_list(1), obj.info.vehs_fallback);
 
-                    if obj.scenario.options.fallback_type == "localFallback"
+                    if obj.scenario.options.fallback_type == FallbackType.local_fallback
                         sub_graph_fallback = obj.belonging_vector_total(obj.indices_in_vehicle_list(1));
                         other_vehicles = find(obj.belonging_vector_total == sub_graph_fallback);
                         % remove own vehicle. No need to read from own
@@ -259,7 +260,7 @@ classdef (Abstract) HighLevelController < handle
                 end
 
                 %% fallback
-                if strcmp(obj.scenario.options.fallback_type, 'noFallback')
+                if obj.scenario.options.fallback_type == FallbackType.local_fallback
                     % disabled fallback
                     if ~isempty(obj.info.vehs_fallback)
                         disp('Fallback is disabled. Simulation ends.')
@@ -279,7 +280,7 @@ classdef (Abstract) HighLevelController < handle
                         i_triggering_vehicles = find(obj.info.needs_fallback);
 
                         str_veh = sprintf('%d ', i_triggering_vehicles);
-                        str_fb_type = sprintf('triggering %s', obj.scenario.options.fallback_type);
+                        str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
                         disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
                         obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.indices_in_vehicle_list);
@@ -314,7 +315,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
                 obj.result.directed_coupling{obj.k} = obj.iter.directed_coupling;
 
-                if obj.scenario.options.is_prioritized && obj.scenario.options.scenario_name == ScenarioType.commonroad
+                if obj.scenario.options.is_prioritized && obj.scenario.options.scenario_type == ScenarioType.commonroad
                     obj.result.determine_couplings_time(obj.k) = obj.iter.timer.determine_couplings;
                     obj.result.group_vehs_time(obj.k) = obj.iter.timer.group_vehs;
                     obj.result.assign_priority_time(obj.k) = obj.iter.timer.assign_priority;
@@ -323,9 +324,8 @@ classdef (Abstract) HighLevelController < handle
                     obj.result.num_couplings_between_grps(obj.k) = obj.iter.num_couplings_between_grps;
                     obj.result.num_couplings_between_grps_ignored(obj.k) = obj.iter.num_couplings_between_grps_ignored;
                     obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
-                    obj.result.coupling_weights_reduced{obj.k} = obj.iter.coupling_weights_reduced;
+                    obj.result.weighted_coupling_reduced{obj.k} = obj.iter.weighted_coupling_reduced;
                     obj.result.coupling_info{obj.k} = obj.iter.coupling_info;
-                    obj.result.coupling_weights_optimal{obj.k} = obj.iter.coupling_weights_optimal;
                     obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
                     obj.result.lanelet_crossing_areas{obj.k} = obj.iter.lanelet_crossing_areas;
                     % important: reset lanelet crossing areas

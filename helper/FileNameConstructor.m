@@ -56,7 +56,7 @@ classdef FileNameConstructor
 
             priority = char(options.priority);
 
-            results_folder_name = strrep(strcat(char(options.scenario_name), '_', controller_name), ' ', '_');
+            results_folder_name = strrep(strcat(char(options.scenario_type), '_', controller_name), ' ', '_');
 
             [file_path, ~, ~] = fileparts(mfilename('fullpath')); % get the path of the current file
             idcs = strfind(file_path, filesep); % find all positions of '/'
@@ -91,6 +91,7 @@ classdef FileNameConstructor
             end
 
             priority = char(options.priority);
+            weight = char(options.weight);
 
             if isempty(options.result_name)
                 % use default name
@@ -116,9 +117,9 @@ classdef FileNameConstructor
                     scenario_name = [scenario_name, '_freeFlow'];
                 end
 
-                if ~strcmp(options.fallback_type, 'localFallback')
+                if options.fallback_type ~= FallbackType.local_fallback
                     % local fallback is the default fallback strategy
-                    scenario_name = [scenario_name, '_', options.fallback_type];
+                    scenario_name = [scenario_name, '_', char(options.fallback_type)];
                 end
 
                 if ~options.should_reduce_result
@@ -133,8 +134,8 @@ classdef FileNameConstructor
                     scenario_name = [scenario_name, '_notDealWithPredictionInconsistency'];
                 end
 
-                if ~strcmp(options.coupling_weight_mode, 'STAC')
-                    scenario_name = [scenario_name, '_W', options.coupling_weight_mode];
+                if ~(options.weight == WeightStrategies.STAC_weight)
+                    scenario_name = [scenario_name, '_W', weight];
                 end
 
                 if ~options.bound_reachable_sets
