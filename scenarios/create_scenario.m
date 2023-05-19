@@ -64,6 +64,8 @@ function scenario = create_scenario(options, random_seed, plant)
             scenario = lanelet2_scenario(options, vehicle_ids, plant);
         case 'Lab_default'
             scenario = lanelet2_scenario(options, vehicle_ids, plant);
+        case 'Lanelet2_IDS3C_circle'
+            scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant);
     end
 
     initial_state = find([scenario.mpa.trims.speed] == 0 & [scenario.mpa.trims.steering] == 0, 1);
