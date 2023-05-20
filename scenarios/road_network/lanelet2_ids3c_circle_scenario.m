@@ -33,10 +33,16 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
     %     % Get road data from default location
     %     road_data = RoadDataLanelet2(false).get_road_data();
     % else
-    assert(options.scenario_type == ScenarioType.lanelet2_ids3c_circle);
 
     disp('Create Lanelet2_IDS3C_circle scenario.')
-    file_name = 'IDS3C_Map_circle.osm';
+    if options.scenario_type == ScenarioType.lanelet2_ids3c_circle
+        file_name = 'IDS3C_Map_Circle_18.osm';
+        scenario.options.plot_limits = [-0.5, 4.2; -2, 2];
+    else
+        assert(options.scenario_type == ScenarioType.lanelet2_ids3c_circle_in_cpm);
+        file_name = 'IDS3C_Map_Circle_18_Translated_To_CPM.osm';
+        scenario.options.plot_limits = [0, 4.5; 0, 4];
+    end
 
     % Get road data from default location
     road_data = RoadDataLanelet2(false).get_road_data(file_name);
@@ -114,7 +120,6 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
-    scenario.options.plot_limits = [-2, 3; -2, 3];
     scenario.model = BicycleModel(veh.Lf, veh.Lr);
 
     if options.is_prioritized

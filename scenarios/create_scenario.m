@@ -64,7 +64,9 @@ function scenario = create_scenario(options, random_seed, plant)
             scenario = lanelet2_scenario(options, vehicle_ids, plant);
         case ScenarioType.lab_default
             scenario = lanelet2_scenario(options, vehicle_ids, plant);
-        case ScenarioType.lanelet2_ids3c_circle'
+        case ScenarioType.lanelet2_ids3c_circle
+            scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant);
+        case ScenarioType.lanelet2_ids3c_circle_in_cpm
             scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant);
     end
 
