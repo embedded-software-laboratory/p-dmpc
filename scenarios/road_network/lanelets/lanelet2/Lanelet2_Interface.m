@@ -27,7 +27,7 @@ classdef Lanelet2_Interface
             %              the corresponding order
             % return: an array of (matlab) indices defining a path covering
             %         all the given points
-            indices = generate_lanelet2_ref_path_separate_segments_indices_mex(convertCharsToStrings(filename), segment_ids);
+            indices = generate_lanelet2_ref_path_separate_segments_indices_mex(convertCharsToStrings(filename), int64(segment_ids));
         end
 
     end

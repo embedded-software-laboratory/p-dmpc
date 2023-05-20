@@ -114,6 +114,8 @@ function ref_path = generate_ref_path(vehid, lanelets, lanelets_index)
             case 35
                 ref_path.lanelets_index = [66, 71, 19, 14, 16, 22, 5, 7, 59, 57, 74, 68];
         end
+    else
+        ref_path.lanelets_index = lanelets_index;
     end
 
     lanelets_target = lanelets(ref_path.lanelets_index);

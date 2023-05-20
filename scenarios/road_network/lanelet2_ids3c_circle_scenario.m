@@ -13,27 +13,27 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
     % if strcmp(options.scenario_name, 'Lab_default')
     %     % ULA is required for that.
     %     assert(isa(plant, "UnifiedLabApi"));
-    % 
+    %
     %     disp('Retrieve map from lab via unified lab API.')
-    % 
+    %
     %     % Receive map via ULA interface
     %     map_as_string = plant.receive_map();
-    % 
+    %
     %     % Store string in temporary file
     %     tmp_file_name = 'received_lanelet2_map_via_unifiedLabAPI.osm';
     %     writelines(map_as_string, [tempdir, filesep, tmp_file_name]);
-    % 
+    %
     %     % Retrieve road data
     %     road_data = RoadDataLanelet2(false).get_road_data(tmp_file_name, tempdir);
     % elseif strcmp(options.scenario_name, 'Lanelet2')
     %     assert(strcmp(options.scenario_name, 'Lanelet2'));
-    % 
+    %
     %     disp('Create Lanelet2 scenario.')
-    % 
+    %
     %     % Get road data from default location
     %     road_data = RoadDataLanelet2(false).get_road_data();
     % else
-    assert(strcmp(options.scenario_name, 'Lanelet2_IDS3C_circle'));
+    assert(options.scenario_type == ScenarioType.lanelet2_ids3c_circle);
 
     disp('Create Lanelet2_IDS3C_circle scenario.')
     file_name = 'IDS3C_Map_circle.osm';
@@ -52,7 +52,7 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
 
     nVeh = options.amount;
 
-    paths = [5332,2488,2396; 2419,2488,2396; 5311,2488,2396];
+    paths = [5332,2488,2396; 2396,2488,2396; 5311,2488,2396];
 
     for iveh = 1:nVeh
 
@@ -60,21 +60,24 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
         veh.trim_config = 1;
 
         % Generate a ref path using the Lanelet2 Interface and generate_ref_path_loop
-        ref_path_loops = {Lanelet2_Interface.generate_lanelet2_ref_path_separate_segments_indices(scenario.road_data_file_path, paths(iVeh,:))};
+        % ref_path_loops = {Lanelet2_Interface.generate_lanelet2_ref_path_separate_segments_indices(scenario.road_data_file_path, paths(iveh,:))};
+        lanelets_index = Lanelet2_Interface.generate_lanelet2_ref_path_separate_segments_indices(scenario.road_data_file_path, paths(iveh,:));
+        % ref_path_loop = ref_path_loops{1};
+        % lanelets_index = ref_path_loop;
 
-        if isempty(options.reference_path.lanelets_index)
-            ref_path_loop = ref_path_loops{1};
-            start_idx = mod(vehicle_ids(iveh) * 2 - 1, width(ref_path_loop));
-
-            if start_idx == 1
-                lanelets_index = ref_path_loop;
-            else
-                lanelets_index = [ref_path_loop(start_idx:end), ref_path_loop(1:start_idx - 1)];
-            end
-
-        else
-            lanelets_index = options.reference_path.lanelets_index{iveh};
-        end
+        % if isempty(options.reference_path.lanelets_index)
+        %     ref_path_loop = ref_path_loops{1};
+        %     start_idx = mod(vehicle_ids(iveh) * 2 - 1, width(ref_path_loop));
+        % 
+        %     if start_idx == 1
+        %         lanelets_index = ref_path_loop;
+        %     else
+        %         lanelets_index = [ref_path_loop(start_idx:end), ref_path_loop(1:start_idx - 1)];
+        %     end
+        % 
+        % else
+        %     lanelets_index = options.reference_path.lanelets_index{iveh};
+        % end
 
         ref_path = generate_ref_path(vehicle_ids(iveh), scenario.lanelets, lanelets_index);
         veh.lanelets_index = ref_path.lanelets_index;
@@ -83,17 +86,17 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
         % check if the reference path is a loop
         lanelet_relationship = scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)};
 
-        if ~isempty(lanelet_relationship) && strcmp(scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)}.type, LaneletRelationshipType.type_1)
+        if ~isempty(lanelet_relationship) && scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)}.type == LaneletRelationshipType.longitudinal
             veh.is_loop = true;
         else
             veh.is_loop = false;
         end
 
-        if isempty(options.reference_path.start_point)
-            start_point = 1;
-        else
-            start_point = options.reference_path.start_point(iveh);
-        end
+        % if isempty(options.reference_path.start_point)
+        start_point = 1;
+        % else
+        %     start_point = options.reference_path.start_point(iveh);
+        % end
 
         veh.x_start = ref_path.path(start_point, 1);
         veh.y_start = ref_path.path(start_point, 2);
@@ -111,7 +114,7 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
-    scenario.options.plot_limits = [0, 4.5; 0, 4];
+    scenario.options.plot_limits = [-2, 3; -2, 3];
     scenario.model = BicycleModel(veh.Lf, veh.Lr);
 
     if options.is_prioritized
