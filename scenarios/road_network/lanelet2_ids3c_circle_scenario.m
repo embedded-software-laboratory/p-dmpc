@@ -9,31 +9,6 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
 
     options.is_allow_non_convex = true;
 
-    % get road data
-    % if strcmp(options.scenario_name, 'Lab_default')
-    %     % ULA is required for that.
-    %     assert(isa(plant, "UnifiedLabApi"));
-    %
-    %     disp('Retrieve map from lab via unified lab API.')
-    %
-    %     % Receive map via ULA interface
-    %     map_as_string = plant.receive_map();
-    %
-    %     % Store string in temporary file
-    %     tmp_file_name = 'received_lanelet2_map_via_unifiedLabAPI.osm';
-    %     writelines(map_as_string, [tempdir, filesep, tmp_file_name]);
-    %
-    %     % Retrieve road data
-    %     road_data = RoadDataLanelet2(false).get_road_data(tmp_file_name, tempdir);
-    % elseif strcmp(options.scenario_name, 'Lanelet2')
-    %     assert(strcmp(options.scenario_name, 'Lanelet2'));
-    %
-    %     disp('Create Lanelet2 scenario.')
-    %
-    %     % Get road data from default location
-    %     road_data = RoadDataLanelet2(false).get_road_data();
-    % else
-
     disp('Create Lanelet2_IDS3C_circle scenario.')
     if options.scenario_type == ScenarioType.lanelet2_ids3c_circle
         file_name = 'IDS3C_Map_Circle_18.osm';
@@ -66,24 +41,7 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
         veh.trim_config = 1;
 
         % Generate a ref path using the Lanelet2 Interface and generate_ref_path_loop
-        % ref_path_loops = {Lanelet2_Interface.generate_lanelet2_ref_path_separate_segments_indices(scenario.road_data_file_path, paths(iveh,:))};
         lanelets_index = Lanelet2_Interface.generate_lanelet2_ref_path_separate_segments_indices(scenario.road_data_file_path, paths(iveh,:));
-        % ref_path_loop = ref_path_loops{1};
-        % lanelets_index = ref_path_loop;
-
-        % if isempty(options.reference_path.lanelets_index)
-        %     ref_path_loop = ref_path_loops{1};
-        %     start_idx = mod(vehicle_ids(iveh) * 2 - 1, width(ref_path_loop));
-        % 
-        %     if start_idx == 1
-        %         lanelets_index = ref_path_loop;
-        %     else
-        %         lanelets_index = [ref_path_loop(start_idx:end), ref_path_loop(1:start_idx - 1)];
-        %     end
-        % 
-        % else
-        %     lanelets_index = options.reference_path.lanelets_index{iveh};
-        % end
 
         ref_path = generate_ref_path(vehicle_ids(iveh), scenario.lanelets, lanelets_index);
         veh.lanelets_index = ref_path.lanelets_index;
@@ -98,11 +56,7 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
             veh.is_loop = false;
         end
 
-        % if isempty(options.reference_path.start_point)
         start_point = 1;
-        % else
-        %     start_point = options.reference_path.start_point(iveh);
-        % end
 
         veh.x_start = ref_path.path(start_point, 1);
         veh.y_start = ref_path.path(start_point, 2);
