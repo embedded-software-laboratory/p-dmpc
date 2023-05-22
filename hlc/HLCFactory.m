@@ -106,7 +106,7 @@ classdef HLCFactory < handle
             obj.scenario.options.environment = Environment.Simulation;
             plant = PlantFactory.get_experiment_interface(obj.scenario.options.environment);
             obj.scenario.options.options_plot_online.is_active = false;
-            obj.scenario.options.T_end = 2 * obj.scenario.options.dt_seconds
+            obj.scenario.options.T_end = 2 * obj.scenario.options.dt_seconds;
             obj.scenario.options.should_save_result = false;
             hlc = obj.get_hlc(vehicle_ids, false, plant);
             hlc.run();

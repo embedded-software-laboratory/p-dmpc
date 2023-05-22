@@ -147,7 +147,7 @@ function [stac, distance_to_collision_i, distance_to_collision_j, collision_type
                         stac = distance_two_vehs / 2 / max([scenario.mpa.trims.speed]) * 2;
                         waiting_time = 0;
                     else
-                        time_to_collision_point_i = get_the_shortest_time_to_arrive(scenario.mpa, info_i.trim, distance_to_collision_i, scenario.options.dt_seconds;
+                        time_to_collision_point_i = get_the_shortest_time_to_arrive(scenario.mpa, info_i.trim, distance_to_collision_i, scenario.options.dt_seconds);
                         time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa, info_j.trim, distance_to_collision_j, scenario.options.dt_seconds);
                         % determine which vehicle has the ROW
                         % trick: a shorter time to collision point corresponds to a shorter distance to collision point, thus no code adaption is need

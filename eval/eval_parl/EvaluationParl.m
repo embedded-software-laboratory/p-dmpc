@@ -84,8 +84,8 @@ classdef EvaluationParl
             obj.dt_seconds = result.scenario.options.dt_seconds;
 
             if nargin == 2
-                obj.steps_ignored = max(1, floor(T_interval(1) / obj.dt_seconds);
-                obj.nSteps = min(floor(T_interval(2) / obj.dt_seconds, length(result.iteration_structs));
+                obj.steps_ignored = max(1, floor(T_interval(1) / obj.dt_seconds));
+                obj.nSteps = min(floor(T_interval(2) / obj.dt_seconds, length(result.iteration_structs)));
             else
                 obj.nSteps = length(result.iteration_structs);
             end
@@ -207,7 +207,7 @@ classdef EvaluationParl
             %             % get sampleTime_FFS
             %             [~,obj.free_flow_speed] = FreeFlowSpeed;
             %             if ~obj.options.is_free_flow
-            %                 obj.travel_time_index = obj.average_speed/obj.free_flow_speed(num2str(obj.dt_seconds);
+            %                 obj.travel_time_index = obj.average_speed/obj.free_flow_speed(num2str(obj.dt_seconds));
             %             else
             %                 obj.travel_time_index = 1;
             %             end

@@ -200,7 +200,7 @@ function [labOptions] = start_options()
                                                        1};
 
     % sample time [s]
-    labOptions.dt_seconds= dtSelection;
+    labOptions.dt_seconds = dtSelection;
 
     % predicion horizon
     labOptions.Hp = HpSelection;
