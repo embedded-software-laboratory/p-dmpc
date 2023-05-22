@@ -260,7 +260,7 @@ classdef (Abstract) HighLevelController < handle
                 end
 
                 %% fallback
-                if obj.scenario.options.fallback_type == FallbackType.local_fallback
+                if obj.scenario.options.fallback_type == FallbackType.no_fallback
                     % disabled fallback
                     if ~isempty(obj.info.vehs_fallback)
                         disp('Fallback is disabled. Simulation ends.')
