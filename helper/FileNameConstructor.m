@@ -56,7 +56,7 @@ classdef FileNameConstructor
 
             priority = char(options.priority);
 
-            results_folder_name = strrep(strcat(char(options.scenario_name), '_', controller_name), ' ', '_');
+            results_folder_name = strrep(strcat(char(options.scenario_type), '_', controller_name), ' ', '_');
 
             [file_path, ~, ~] = fileparts(mfilename('fullpath')); % get the path of the current file
             idcs = strfind(file_path, filesep); % find all positions of '/'
@@ -83,13 +83,20 @@ classdef FileNameConstructor
             );
         end
 
-        function scenario_name = gen_scenario_name(options, vehs)
+        function scenario_name = gen_scenario_name(options, i_vehicles)
+
+            arguments
+                options (1, 1) Config;
+                i_vehicles (1, :) {mustBeInteger, mustBePositive} = options.amount;
+            end
+
             priority = char(options.priority);
+            weight = char(options.weight);
 
             if isempty(options.result_name)
                 % use default name
                 if options.compute_in_parallel
-                    scenario_name = ['veh_', num2str(options.veh_ids(vehs)), '_trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
+                    scenario_name = ['veh_', num2str(options.veh_ids(i_vehicles)), '_trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
                 else
                     scenario_name = ['trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
                 end
@@ -110,9 +117,9 @@ classdef FileNameConstructor
                     scenario_name = [scenario_name, '_freeFlow'];
                 end
 
-                if ~strcmp(options.fallback_type, 'localFallback')
+                if options.fallback_type ~= FallbackType.local_fallback
                     % local fallback is the default fallback strategy
-                    scenario_name = [scenario_name, '_', options.fallback_type];
+                    scenario_name = [scenario_name, '_', char(options.fallback_type)];
                 end
 
                 if ~options.should_reduce_result
@@ -127,8 +134,8 @@ classdef FileNameConstructor
                     scenario_name = [scenario_name, '_notDealWithPredictionInconsistency'];
                 end
 
-                if ~strcmp(options.coupling_weight_mode, 'STAC')
-                    scenario_name = [scenario_name, '_W', options.coupling_weight_mode];
+                if ~(options.weight == WeightStrategies.STAC_weight)
+                    scenario_name = [scenario_name, '_W', weight];
                 end
 
                 if ~options.bound_reachable_sets
@@ -142,11 +149,11 @@ classdef FileNameConstructor
 
         end
 
-        function results_full_path = get_results_full_path(options, vehs)
+        function results_full_path = get_results_full_path(options, i_vehicles)
             % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
             % results are saved.
-            % INPUT: options, vehs(vehicles for which this HLC is responsible.)
-            results_name = [FileNameConstructor.gen_scenario_name(options, vehs), '.mat'];
+            % INPUT: options, i_vehicles(vehicles for which this HLC is responsible.)
+            results_name = [FileNameConstructor.gen_scenario_name(options, i_vehicles), '.mat'];
 
             results_full_path = fullfile( ...
                 FileNameConstructor.gen_results_folder_path(options) ...

@@ -26,7 +26,6 @@ classdef Scenario
         lanelet_relationships; % relationship between two adjacent lanelets
         adjacency_lanelets; % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent
         priority_list = 1; % priority list of vehicles; a smaller value for a higher priority
-        time_enter_intersection = []; % time step when vehicle enters the intersection
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
         random_stream = RandStream('mt19937ar'); % for reproducibility
     end

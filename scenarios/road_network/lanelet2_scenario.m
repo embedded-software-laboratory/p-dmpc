@@ -10,7 +10,7 @@ function scenario = lanelet2_scenario(options, vehicle_ids, plant)
     options.is_allow_non_convex = true;
 
     % get road data
-    if strcmp(options.scenario_name, 'Lab_default')
+    if options.scenario_type == ScenarioType.lab_default
         % ULA is required for that.
         assert(isa(plant, "UnifiedLabApi"));
 
@@ -26,7 +26,7 @@ function scenario = lanelet2_scenario(options, vehicle_ids, plant)
         % Retrieve road data
         road_data = RoadDataLanelet2(false).get_road_data(tmp_file_name, tempdir);
     else
-        assert(strcmp(options.scenario_name, 'Lanelet2'));
+        assert(options.scenario_type == ScenarioType.lanelet2);
 
         disp('Create Lanelet2 scenario.')
 
@@ -73,7 +73,7 @@ function scenario = lanelet2_scenario(options, vehicle_ids, plant)
         % check if the reference path is a loop
         lanelet_relationship = scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)};
 
-        if ~isempty(lanelet_relationship) && strcmp(scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)}.type, LaneletRelationshipType.type_1)
+        if ~isempty(lanelet_relationship) && scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)}.type == LaneletRelationshipType.longitudinal
             veh.is_loop = true;
         else
             veh.is_loop = false;

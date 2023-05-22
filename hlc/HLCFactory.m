@@ -19,7 +19,7 @@ classdef HLCFactory < handle
         % Optional argument wether to do a dry run of the first timestep beforehand
         % dry_run can massively decrease the time needed for the first
         % timestep during the experiment.
-        function hlc = get_hlc(obj, vehicle_ids, dry_run, experiment_interface)
+        function hlc = get_hlc(obj, vehicle_ids, dry_run, plant)
 
             if isempty(obj.scenario)
                 throw(MException('HlcFactory:InvalidState', 'HlcScenario not set'));
@@ -51,7 +51,7 @@ classdef HLCFactory < handle
 
             hlc.set_controller_name(obj.get_controller_name(obj.scenario.options));
 
-            hlc.set_hlc_adapter(experiment_interface);
+            hlc.set_hlc_adapter(plant);
 
         end
 
@@ -104,10 +104,11 @@ classdef HLCFactory < handle
             save_result_backup = obj.scenario.options.should_save_result;
             % avoid sending any data to Cpm Lab. Thus, use Sim Lab
             obj.scenario.options.environment = Environment.Simulation;
+            plant = PlantFactory.get_experiment_interface(obj.scenario.options.environment);
             obj.scenario.options.options_plot_online.is_active = false;
             obj.scenario.options.T_end = 2 * obj.scenario.options.dt;
             obj.scenario.options.should_save_result = false;
-            hlc = obj.get_hlc(vehicle_ids, false);
+            hlc = obj.get_hlc(vehicle_ids, false, plant);
             hlc.run();
             obj.scenario.options.environment = environment_backup;
             obj.scenario.options.options_plot_online.is_active = plot_backup;

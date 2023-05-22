@@ -66,7 +66,7 @@ function results = spp_book(visu_options)
     options.collisionAvoidanceMode = 1;
     options.should_save_result = 1;
     options.should_reduce_result = 1;
-    options.scenario_name = 'Commonroad';
+    options.scenario_name = ScenarioType.commonroad;
 
     % visualization for video
     options.options_plot_online.plot_coupling = true;

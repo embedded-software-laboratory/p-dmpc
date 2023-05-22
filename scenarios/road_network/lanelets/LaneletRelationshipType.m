@@ -1,13 +1,13 @@
 classdef LaneletRelationshipType
     % LANELETRELATIONSHIPTYPE  Different types of relationship of adjacent lanelets.
 
-    properties (Constant)
-        type_1 = 'longitudinal'; % longitudinal-adjacent
-        type_2 = 'left/right'; % left- or right-adjacent
-        type_3 = 'merging'; % merging-adjacent
-        type_4 = 'forking'; % forking-adjacent
-        type_5 = 'crossing'; % crossing-adjacent
-        type_6 = 'same'; % the same lanelet
+    enumeration
+        longitudinal % longitudinal-adjacent 1
+        side % left- or right-adjacent 2
+        merging % merging-adjacent 3
+        forking % forking-adjacent 4
+        crossing % crossing-adjacent 5
+        same % the same lanelet 6
     end
 
 end

@@ -109,7 +109,7 @@ classdef PlotterOffline < Plotter
             %   Plot the hotkey descriptions next to the scenario plot, specific for 1- or 2-circle scenario, else
             %   general plotting routine.
 
-            if contains(obj.scenario.options.scenario_name, 'circle') && obj.scenario.options.amount <= 2
+            if obj.scenario.options.scenario_type == ScenarioType.circle && obj.scenario.options.amount <= 2
                 position = obj.hotkey_position;
                 text(position(1), position(2), obj.hotkey_description(1:obj.number_base_hotkeys - 2), ...
                     'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'Tag', 'hotkey');

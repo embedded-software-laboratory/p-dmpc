@@ -1,10 +1,15 @@
-function export_video(result, videoExportSetup)
+function export_video(result, video_export_setup)
     % EXPORTVIDEO   Export Video from results of simulation.
+    arguments
+        result struct;
+        video_export_setup.framerate {mustBeNumeric} = 30;
+    end
+
     scenario = result.scenario;
     nSteps = nnz(result.controller_runtime);
 
     if nargin > 1
-        framerate = videoExportSetup.framerate;
+        framerate = video_export_setup.framerate;
         frame_ticks = 1;
     else
         framerate = 30;
@@ -22,7 +27,7 @@ function export_video(result, videoExportSetup)
         plotter.plot(plotting_info);
         set_figure_properties(plotter.get_figure(), ExportFigConfig.video());
         frame = getframe(plotter.get_figure());
-        imwrite(frame.cdata, ['output\video_', scenario.options.scenario_name, '.png']);
+        imwrite(frame.cdata, ['output\video_', char(scenario.options.scenario_type), '.png']);
         return
     end
 

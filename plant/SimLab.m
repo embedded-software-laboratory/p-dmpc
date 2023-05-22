@@ -17,7 +17,7 @@ classdef SimLab < Plant
 
         function visualization_data_queue = set_visualization_data_queue(obj)
             obj.visualization_data_queue = parallel.pool.DataQueue;
-            visualization_data_queue = obj.visualization_data_queue
+            visualization_data_queue = obj.visualization_data_queue;
             obj.use_visualization_data_queue = true;
         end
 

@@ -25,7 +25,7 @@ classdef PrioritizedParallelController < PrioritizedController
 
             %% Send own data to other vehicles
 
-            msg_send_time = obj.publish_predicitons(vehicle_idx);
+            msg_send_time = obj.publish_predictions(vehicle_idx);
 
             obj.info.runtime_graph_search_max = obj.info.runtime_graph_search_each_veh(vehicle_idx);
             obj.info.runtime_subcontroller_each_veh(vehicle_idx) = msg_send_time + runtime_planning;
