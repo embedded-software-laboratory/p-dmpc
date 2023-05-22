@@ -140,15 +140,15 @@ function [stac, distance_to_collision_i, distance_to_collision_j, collision_type
             switch collision_type
                 case CollisionType.from_rear
                     % If two vehicles have a rear collision possibility, they STAC (shortest time to achieve a collision) is the TTC (time to catch)
-                    [stac, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, info_i.trim, info_j.trim, distance_two_vehs, scenario.options.dt);
+                    [stac, waiting_time, ~, ~] = get_the_shortest_time_to_catch(scenario.mpa, info_i.trim, info_j.trim, distance_two_vehs, scenario.options.dt_seconds);
                 case CollisionType.from_side
                     % If two vehicles has a side-impact collision possibility, check if they move in parallel
                     if is_move_side_by_side
                         stac = distance_two_vehs / 2 / max([scenario.mpa.trims.speed]) * 2;
                         waiting_time = 0;
                     else
-                        time_to_collision_point_i = get_the_shortest_time_to_arrive(scenario.mpa, info_i.trim, distance_to_collision_i, scenario.options.dt);
-                        time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa, info_j.trim, distance_to_collision_j, scenario.options.dt);
+                        time_to_collision_point_i = get_the_shortest_time_to_arrive(scenario.mpa, info_i.trim, distance_to_collision_i, scenario.options.dt_seconds;
+                        time_to_collision_point_j = get_the_shortest_time_to_arrive(scenario.mpa, info_j.trim, distance_to_collision_j, scenario.options.dt_seconds);
                         % determine which vehicle has the ROW
                         % trick: a shorter time to collision point corresponds to a shorter distance to collision point, thus no code adaption is need
 

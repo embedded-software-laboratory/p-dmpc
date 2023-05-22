@@ -36,8 +36,8 @@ classdef MotionPrimitiveAutomaton
 
             max_acceleration_m_s2 = 0.64;
             max_deceleration_m_s2 = 0.64;
-            max_acceleration_per_dt = max_acceleration_m_s2 * options.dt;
-            max_deceleration_per_dt = max_deceleration_m_s2 * options.dt;
+            max_acceleration_per_dt = max_acceleration_m_s2 * options.dt_seconds;
+            max_deceleration_per_dt = max_deceleration_m_s2 * options.dt_seconds;
 
             if options.is_prioritized
                 nVeh_mpa = 1;

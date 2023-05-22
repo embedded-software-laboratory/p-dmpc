@@ -77,7 +77,7 @@ classdef PlotterOnline < Plotter
                 if complete
                     complete_plotting_info = obj.merge_plotting_infos(obj.plotting_info_collection.(field_name));
                     start_simulation_timer(obj);
-                    simulated_time = obj.scenario.options.dt * (complete_plotting_info.step);
+                    simulated_time = obj.scenario.options.dt_seconds * (complete_plotting_info.step);
                     simulation_time = toc(obj.timer) + obj.simulation_time_offset;
                     time_diff = simulated_time - simulation_time;
                     % avoid plotter trying catching up when simulation is

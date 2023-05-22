@@ -373,7 +373,7 @@ classdef (Abstract) HighLevelController < handle
             obj.result.total_fallback_times = obj.total_fallback_times;
             disp(['Total times of fallback: ' num2str(obj.total_fallback_times) '.'])
 
-            obj.result.t_total = obj.k * obj.scenario.options.dt;
+            obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
             obj.result.nSteps = obj.k;
 
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])

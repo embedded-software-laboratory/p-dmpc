@@ -6,7 +6,7 @@ classdef EvaluationParl
         options % simulation options
         nVeh % number of vehicles
         nSteps % number of time steps
-        dt % sample time
+        dt_seconds % sample time
         t_total % total running time
         results_full_path % path where the results are stored
 
@@ -81,11 +81,11 @@ classdef EvaluationParl
             load(obj.results_full_path, 'result');
 
             obj.nVeh = result.scenario.options.amount;
-            obj.dt = result.scenario.options.dt;
+            obj.dt_seconds = result.scenario.options.dt_seconds;
 
             if nargin == 2
-                obj.steps_ignored = max(1, floor(T_interval(1) / obj.dt));
-                obj.nSteps = min(floor(T_interval(2) / obj.dt), length(result.iteration_structs));
+                obj.steps_ignored = max(1, floor(T_interval(1) / obj.dt_seconds);
+                obj.nSteps = min(floor(T_interval(2) / obj.dt_seconds, length(result.iteration_structs));
             else
                 obj.nSteps = length(result.iteration_structs);
             end
@@ -100,8 +100,8 @@ classdef EvaluationParl
 
             obj.nSteps = length(result.vehs_fallback);
 
-            obj.t_total = obj.dt * (obj.nSteps - obj.steps_ignored + 1);
-            %             if abs(obj.t_total-result.scenario.options.T_end)>obj.dt
+            obj.t_total = obj.dt_seconds * (obj.nSteps - obj.steps_ignored + 1);
+            %             if abs(obj.t_total-result.scenario.options.T_end)>obj.dt_seconds
             %                 warning('Simulation stops before reaching the specific time.')
             %             end
 
@@ -207,7 +207,7 @@ classdef EvaluationParl
             %             % get sampleTime_FFS
             %             [~,obj.free_flow_speed] = FreeFlowSpeed;
             %             if ~obj.options.is_free_flow
-            %                 obj.travel_time_index = obj.average_speed/obj.free_flow_speed(num2str(obj.dt));
+            %                 obj.travel_time_index = obj.average_speed/obj.free_flow_speed(num2str(obj.dt_seconds);
             %             else
             %                 obj.travel_time_index = 1;
             %             end

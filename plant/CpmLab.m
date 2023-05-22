@@ -63,10 +63,10 @@ classdef CpmLab < Plant
             end
 
             state_list = sample(end);
-            obj.scenario.options.dt = cast(state_list.period_ms, "double") / 1e3;
+            obj.scenario.options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
 
             % Middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(obj.scenario.options.dt * 1e9);
+            obj.dt_period_nanos = uint64(obj.scenario.options.dt_seconds * 1e9);
 
             % Sync start with infrastructure
             % Send ready signal for all assigned vehicle ids

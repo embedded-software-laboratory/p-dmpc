@@ -17,7 +17,7 @@ classdef PlotterOffline < Plotter
             %   Specify the results to view and optionally the time step for playback and the vehicle indices to plot.
             arguments
                 result (1, 1) struct
-                delta_t_s (1, 1) double = result.scenario.options.dt
+                delta_t_s (1, 1) double = result.scenario.options.dt_seconds
                 veh_indices (1, :) int32 = 1:result.scenario.options.amount
             end
 

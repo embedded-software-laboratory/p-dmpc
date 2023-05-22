@@ -61,7 +61,7 @@ classdef SimLab < Plant
                     send(obj.visualization_data_queue, plotting_info);
                 else
                     % wait to simulate realtime plotting
-                    pause(obj.scenario.options.dt - result.step_time(obj.k))
+                    pause(obj.scenario.options.dt_seconds - result.step_time(obj.k))
                     obj.plotter.plot(plotting_info);
                 end
 

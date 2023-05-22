@@ -11,7 +11,7 @@ function eval_parallel_computation_CLs()
     options.allow_priority_inheritance = false;
     options.strategy_consider_veh_without_ROW = '3';
     options.strategy_enter_lanelet_crossing_area = '1';
-    options.dt = 0.2;
+    options.dt_seconds = 0.2;
     options.options_plot_online.is_active = false;
 
     options.should_save_result = true;
