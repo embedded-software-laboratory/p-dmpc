@@ -47,7 +47,7 @@ namespace GraphBasedPlanning {
 			matlab::data::Array options_array = _matlab->getProperty(scenario, u"options");
 			matlab::data::TypedArray<double> const tick_per_step_array = _matlab->getProperty(options_array, u"tick_per_step");
 			tick_per_step() = static_cast<unsigned int>(tick_per_step_array[0][0]);
-			matlab::data::TypedArray<double> const dt_array = _matlab->getProperty(options_array, u"dt");
+			matlab::data::TypedArray<double> const dt_array = _matlab->getProperty(options_array, u"dt_seconds");
 			dt() = static_cast<double>(dt_array[0][0]);
 			matlab::data::TypedArray<bool> is_pb_array = _matlab->getProperty(options_array, u"is_prioritized");
 			is_pb() = static_cast<bool>(is_pb_array[0][0]);
