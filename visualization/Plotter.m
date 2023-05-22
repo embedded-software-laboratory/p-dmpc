@@ -150,8 +150,8 @@ classdef (Abstract) Plotter < handle
                 ylim(obj.scenario.options.plot_limits(2, :));
                 daspect([1 1 1])
 
-                if contains(obj.scenario.options.scenario_name, ["Lanelet", "Commonroad"])
-                    plot_lanelets(obj.scenario.road_raw_data.lanelet, obj.scenario.options.scenario_name);
+                if (obj.scenario.options.scenario_type == ScenarioType.lanelet2) | (obj.scenario.options.scenario_type == ScenarioType.commonroad)
+                    plot_lanelets(obj.scenario.road_raw_data.lanelet, obj.scenario.options.scenario_type);
                 end
 
             end
