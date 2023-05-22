@@ -149,7 +149,11 @@ classdef (Abstract) Plotter < handle
                 xlim(obj.scenario.options.plot_limits(1, :));
                 ylim(obj.scenario.options.plot_limits(2, :));
                 daspect([1 1 1])
-                plot_lanelets(obj.scenario.road_raw_data.lanelet, obj.scenario.options.scenario_type);
+
+                if (obj.scenario.options.scenario_type == ScenarioType.lanelet2) | (obj.scenario.options.scenario_type == ScenarioType.commonroad)
+                    plot_lanelets(obj.scenario.road_raw_data.lanelet, obj.scenario.options.scenario_type);
+                end
+
             end
 
             find_text_hotkey = findobj('Tag', 'hotkey');
