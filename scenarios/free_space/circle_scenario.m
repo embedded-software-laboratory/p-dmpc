@@ -43,7 +43,7 @@ function scenario = circle_scenario(options)
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
-    scenario.options.scenario_name = sprintf('%i-circle', scenario.options.amount);
+    scenario.options.scenario_type = sprintf('circle', scenario.options.amount);
 
     scenario.model = BicycleModel(veh.Lf, veh.Lr);
 

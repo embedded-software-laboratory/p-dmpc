@@ -62,7 +62,7 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
                           '{\itreturn}: disable/enable plotting';
                           '{\itesc}: end simulation'};
 
-            if strcmp(scenario.name, 'Commonroad')
+            if (scenario.name == ScenarioType.commonroad)
                 x_text_hotkey = scenario.options.plot_limits(1, 1) - 1.5;
                 y_text_hotkey = scenario.options.plot_limits(2, 2) - 0.5;
             elseif strcmp(scenario.name, 'Circle_scenario')

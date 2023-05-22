@@ -9,7 +9,7 @@ function plot_partitioned_graph(belonging_vector, edge_weights, varargin)
     %   edge_weights: edge-weights of the graph.
     %
 
-    [belonging_vector, edge_weights, ShowWeights] = parse_inputs(belonging_vector, edge_weights, varargin{:});
+    [belonging_vector, edge_weights, ShowWeights, ShowCutEdges] = parse_inputs(belonging_vector, edge_weights, varargin{:});
 
     % create MATLAB graph object
     if issymmetric(edge_weights)
@@ -46,33 +46,36 @@ function plot_partitioned_graph(belonging_vector, edge_weights, varargin)
     end
 
     LineStyle = cell(1, size(G.Edges.EndNodes, 1));
+    EdgeColor = repmat([0 0 0], size(G.Edges.EndNodes, 1), 1); % default edge color
 
     for iE = 1:size(G.Edges.EndNodes, 1)
+        is_sequential_coupling = (belonging_vector(G.Edges.EndNodes(iE, 1)) == belonging_vector(G.Edges.EndNodes(iE, 2)));
+        is_solid_line = is_sequential_coupling || ~ShowCutEdges;
 
-        if belonging_vector(G.Edges.EndNodes(iE, 1)) == belonging_vector(G.Edges.EndNodes(iE, 2))
+        if is_solid_line
             % coupling inside group in solid line
             LineStyle{iE} = '-';
         else
             % coupling corss group in dashed line
             LineStyle{iE} = '--';
+            EdgeColor(iE, :) = [1 0 0]; % red for cut edges
         end
 
     end
 
     % plot
-    %     figure()
     if ShowWeights
-        plot(G, 'LineStyle', LineStyle, 'Layout', 'layered', 'MarkerSize', 14, 'NodeColor', 'k', 'EdgeLabel', round(G.Edges.Weight, 2), 'EdgeColor', 'k', 'NodeFontSize', 16, 'EdgeFontSize', 14, 'LineWidth', 2, 'ArrowSize', 15)
+        plot(G, 'LineStyle', LineStyle, 'Layout', 'layered', 'MarkerSize', 8, 'NodeColor', 'k', 'EdgeLabel', round(G.Edges.Weight, 2), 'EdgeColor', EdgeColor, 'NodeFontSize', 12, 'EdgeFontSize', 10, 'LineWidth', 1, 'ArrowSize', 10)
     else
-        plot(G, 'LineStyle', LineStyle, 'Layout', 'layered', 'MarkerSize', 14, 'NodeColor', 'k', 'EdgeColor', 'k', 'NodeFontSize', 16, 'EdgeFontSize', 14)
+        plot(G, 'LineStyle', LineStyle, 'Layout', 'layered', 'MarkerSize', 8, 'NodeColor', 'k', 'EdgeColor', EdgeColor, 'NodeFontSize', 14, 'EdgeFontSize', 10)
     end
 
-    %     title('Results of graph partitioning/merging algorithm')
-
+    xticks('')
+    yticks('')
 end
 
 %% local function
-function [belonging_vector, edge_weights, ShowWeights] = parse_inputs(belonging_vector, edge_weights, varargin)
+function [belonging_vector, edge_weights, ShowWeights, ShowCutEdges] = parse_inputs(belonging_vector, edge_weights, varargin)
     % Process optional input and Name-Value pair options
 
     default_value = false; % default not show weights in the graph
@@ -81,11 +84,13 @@ function [belonging_vector, edge_weights, ShowWeights] = parse_inputs(belonging_
     addRequired(p, 'belonging_vector', @(x) isnumeric(x) && isvector(x)); % must be numerical matrix
     addRequired(p, 'edge_weights', @(x) isnumeric(x) && ismatrix(x)); % must be numerical matrix
     addParameter(p, 'ShowWeights', default_value, @(x) islogical(x));
+    addParameter(p, 'ShowCutEdges', default_value, @(x) islogical(x));
     parse(p, belonging_vector, edge_weights, varargin{:}); % start parsing
 
     % get parsed inputs
     belonging_vector = p.Results.belonging_vector;
     edge_weights = p.Results.edge_weights;
     ShowWeights = p.Results.ShowWeights;
+    ShowCutEdges = p.Results.ShowCutEdges;
 
 end

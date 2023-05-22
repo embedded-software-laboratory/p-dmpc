@@ -1,11 +1,11 @@
 {
-    "scenario_name": "commonroad",
+    "scenario_type": "commonroad",
     "amount": 2,
     "veh_ids": [
         26,
         37
     ],
-    "T_end": 10,
+    "T_end": 5,
     "max_num_CLs": 4,
     "trim_set": 6,
     "should_save_result": false,

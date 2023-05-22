@@ -142,7 +142,7 @@ classdef MotionPrimitiveAutomaton
             % compute distance to equilibrium state
             eq_states = find(trim_inputs(:, 2) == 0);
             adj_trims = graph(obj.transition_matrix_single(:, :, 1));
-            obj.distance_to_equilibrium = min(distances(adj_trims, eq_states));
+            obj.distance_to_equilibrium = min(distances(adj_trims, eq_states), [], 1);
 
             % compute trim tuple (vertices)
             trim_index_list = cell(nVeh_mpa, 1);
@@ -209,7 +209,8 @@ classdef MotionPrimitiveAutomaton
             for k = 1:hp
                 successor_trim_ids = find(obj.transition_matrix_single(cur_trim_id, :, k));
                 [max_speed_next, i_successor_max_speed] = max( ...
-                    [obj.trims(successor_trim_ids).speed]);
+                    [obj.trims(successor_trim_ids).speed] ...
+                );
                 cur_trim_id = successor_trim_ids(i_successor_max_speed);
                 max_speed(k) = max_speed_next;
             end

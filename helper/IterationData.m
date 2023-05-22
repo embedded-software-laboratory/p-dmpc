@@ -25,10 +25,8 @@ classdef IterationData
         dynamic_obstacle_fullres
         dynamic_obstacle_reachableSets
         vehicle_to_lanelet
-        coupling_weights % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
-        coupling_weights_optimal % "optimal" coupling weights
-        coupling_weights_reduced % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas
-        coupling_weights_random % random coupling weights
+        weighted_coupling % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
+        weighted_coupling_reduced % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas
         coupling_info % couling information of each coupling pair
         num_couplings_between_grps % number of couplings between parallel groups
         num_couplings_between_grps_ignored % reduced number of couplings between groups by using lanelet crossing lanelets
@@ -36,8 +34,6 @@ classdef IterationData
         parl_groups_info % struct, store information of parallel groups
         directed_coupling % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
         directed_coupling_reduced % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
-        last_vehs_at_intersection % store information about which vehicles were at the intersection in the last time step
-        time_enter_intersection % time step when vehicle enters the intersection
         priority_list
         lanelet_crossing_areas
         timer % struct, used to store computation time of different parts
@@ -73,20 +69,17 @@ classdef IterationData
             obj.dynamic_obstacle_fullres = scenario.dynamic_obstacle_fullres;
             obj.dynamic_obstacle_reachableSets = scenario.dynamic_obstacle_reachableSets;
             obj.vehicle_to_lanelet = zeros(nVeh, 1);
-            obj.coupling_weights = zeros(nVeh, nVeh);
-            obj.coupling_weights_optimal = zeros(nVeh, nVeh);
-            obj.coupling_weights_reduced = zeros(nVeh, nVeh);
-            obj.coupling_weights_random = zeros(nVeh, nVeh);
             obj.directed_coupling = zeros(nVeh, nVeh);
             obj.directed_coupling_reduced = zeros(nVeh, nVeh);
-            obj.last_vehs_at_intersection = [];
-            obj.time_enter_intersection = [];
+            obj.weighted_coupling = zeros(nVeh, nVeh);
+            obj.weighted_coupling_reduced = zeros(nVeh, nVeh);
             obj.priority_list = ones(nVeh, 1);
             obj.belonging_vector = zeros(nVeh, 1);
             obj.obstacles = scenario.obstacles;
             obj.lanelet_crossing_areas = {};
             obj.amount = nVeh;
             obj.vehicles = scenario.vehicles;
+            obj.coupling_info = cell(nVeh, nVeh);
         end
 
     end
