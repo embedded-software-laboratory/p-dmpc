@@ -134,7 +134,7 @@ classdef UnifiedLabApi < Plant
 
                 try
                     new_sample = receive(obj.subscription_controllerInvocation, 1);
-                    disp(new_sample.eval-ros2time(obj.comm_node,"now"));
+                    %disp(new_sample.eval-ros2time(obj.comm_node,"now"));
                     new_sample_received = true;
                 catch % Timeout
 
@@ -245,7 +245,8 @@ classdef UnifiedLabApi < Plant
                 vehicle_command_trajectory.t_creation = obj.enhance_timepoint(obj.sample.current_time, 0); % Just use as conversion function
                 vehicle_command_trajectory.t_valid_after = obj.enhance_timepoint(obj.sample.current_time, obj.dt_period_nanos + 1);
 
-                vehicle_command_trajectory.eval = ros2time(obj.comm_node,"now");
+                vehicle_command_trajectory.eval = obj.sample.eval; % Just forward time. Subtraject computation time of P-DMPC here later on
+                %ros2time(obj.comm_node,"now");
 
                 send(obj.publisher_trajectoryCommand, vehicle_command_trajectory);
             end

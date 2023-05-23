@@ -15,7 +15,7 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
         scenario.options.plot_limits = [-0.5, 4.2; -2, 2];
     else
         assert(options.scenario_type == ScenarioType.lanelet2_ids3c_circle_in_cpm);
-        file_name = 'IDS3C_Map_Circle_18_Translated_To_CPM.osm';
+        file_name = 'IDS3C_Map_Circle_18_Translated_To_CPM_Mirrored.osm';
         scenario.options.plot_limits = [0, 4.5; 0, 4];
     end
 
