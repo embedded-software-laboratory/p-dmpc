@@ -18,7 +18,7 @@ classdef G29ForceFeedback < handle
             if sum(cellfun(@(c)strcmp(c, 'ros_g29_force_feedback/ForceFeedback'), msgList)) == 0
 
                 [file_path, ~, ~] = fileparts(mfilename('fullpath'));
-                path_custom_msg = [file_path, filesep, '../commun/cust2'];
+                path_custom_msg = file_path;
 
                 % Generate custom messages. Requirements:
                 % https://de.mathworks.com/help/ros/gs/ros-system-requirements.html
@@ -41,23 +41,19 @@ classdef G29ForceFeedback < handle
             send(obj.g29_pub, obj.force_feedback_message);
         end
 
-        function result = compute_force_feedback_manual_mode(obj, vehicle_state, steering)
+        function result = compute_force_feedback_manual_mode(obj, speed, steering)
 
             arguments
                 obj (1, 1) G29ForceFeedback
-                vehicle_state (1, 1) VehicleState
+                speed (1, 1) double
                 steering (1, 1) double
             end
 
             speed_max = 2.22;
-            % TODO choose a variant
-            % torque = 0.1 ...
-            % + 0.4 * abs(steering) * sin(vehicle_state.speed / speed_max * pi / 2) ...
-            %     + 0.5 * sin(vehicle_state.speed / speed_max * pi / 2);
 
             % more than linear increase with speed, degressive increase with steering
             torque = 0.15 ...
-                + 0.7 * (vehicle_state.speed ./ speed_max) .* ...
+                + 0.7 * (speed ./ speed_max) .* ...
                 (0.3 + 0.7 * (sin(abs(steering)) * pi / 2));
             result.position = 0;
 
@@ -71,6 +67,38 @@ classdef G29ForceFeedback < handle
                 'position', vehicle_state.steering_servo, ...
                 'torque', 0.22 ...
             );
+        end
+
+        function plot_force_feedback(obj)
+            % plot force feedback for different steering angles and speeds
+            steering = linspace(-1, 1, 100);
+            speed = linspace(0, 2.22, 100);
+
+            torque = zeros(length(steering), length(speed));
+
+            for i_steering = 1:length(steering)
+
+                for i_speed = 1:length(speed)
+                    data = obj.compute_force_feedback_manual_mode(speed(i_speed), steering(i_steering));
+                    torque(i_steering, i_speed) = data.torque;
+                end
+
+            end
+
+            f = figure(100);
+            [speed_mesh, steering_mesh] = meshgrid(speed, steering);
+            surf(speed_mesh, steering_mesh, torque ...
+                , 'EdgeColor', 'none' ...
+            );
+            xlabel("Speed [m/s]");
+            ylabel("Steering [-]");
+            zlabel("Torque [-]");
+            [rwth_colormap, ~] = discrete_colormap();
+            rwth_colormap = flip(rwth_colormap, 1);
+            colormap(rwth_colormap);
+            set_figure_properties(f, ExportFigConfig.paper("paperheight", 6));
+            export_fig(f, "results/force_feedback.pdf");
+            export_fig(f, "results/force_feedback.emf");
         end
 
     end

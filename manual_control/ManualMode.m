@@ -108,7 +108,7 @@ classdef ManualMode < ManualControl
             result = vehicle_command_direct;
 
             % Force feedback
-            force_feedback = obj.g29_force_feedback.compute_force_feedback_manual_mode(vehicle_state, steering);
+            force_feedback = obj.g29_force_feedback.compute_force_feedback_manual_mode(vehicle_state.speed, steering);
         end
 
         function apply(obj, result, force_feedback)
