@@ -58,6 +58,16 @@ function set_figure_properties(figHandle, export_fig_config)
             % continue
         end
 
+        try % redefine z-label
+            h_zlabel = get(allchildren(a), 'zlabel');
+            set(h_zlabel, ...
+                'FontSize', export_fig_config.fontsize, ...
+                'FontName', export_fig_config.fontname, ...
+                'Interpreter', 'latex')
+        catch
+            % continue
+        end
+
         % set axes
         try
             h_axes = get(allchildren(a), 'Axes');
