@@ -285,6 +285,14 @@ function setEnvironmentElementsVisibility(ui)
     ui.AmountHDVsListBox.Enable = ui.AmountHDVsListBox.Enable && is_lab_selection;
     ui.HDVIDsEditField.Enable = ui.HDVIDsEditField.Enable && is_lab_selection;
 
+    % do not allow custom IDs in lab mode
+    ui.CustomVehicleIdsEditField.Enable = ~is_lab_selection;
+    if ~ui.CustomVehicleIdsEditField.Enable
+        ui.CustomVehicleIdsEditField.Placeholder = "Lab Vehicle Ids are automatically detected";
+    else
+        ui.CustomVehicleIdsEditField.Placeholder = "Enter Vehicle Ids e.g. 1,2,3";
+    end
+
     scenario = list_scenario(ui);
     ui.ScenarioListBox.Items = scenario(:, 2);
 end
