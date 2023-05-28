@@ -1,4 +1,4 @@
-function scenario = lanelet2_scenario(options, vehicle_ids, plant)
+function scenario = lanelet2_scenario(options, plant)
     % Commonroad_Scenario
 
     scenario = Scenario();
@@ -54,7 +54,7 @@ function scenario = lanelet2_scenario(options, vehicle_ids, plant)
 
         if isempty(options.reference_path.lanelets_index)
             ref_path_loop = ref_path_loops{1};
-            start_idx = mod(vehicle_ids(iveh) * 2 - 1, width(ref_path_loop));
+            start_idx = mod(iveh * 2 - 1, width(ref_path_loop));
 
             if start_idx == 1
                 lanelets_index = ref_path_loop;
@@ -66,7 +66,7 @@ function scenario = lanelet2_scenario(options, vehicle_ids, plant)
             lanelets_index = options.reference_path.lanelets_index{iveh};
         end
 
-        ref_path = generate_ref_path_loop(vehicle_ids(iveh), scenario.lanelets, lanelets_index);
+        ref_path = generate_ref_path_loop(iveh, scenario.lanelets, lanelets_index);
         veh.lanelets_index = ref_path.lanelets_index;
         lanelet_ij = [ref_path.lanelets_index(1), ref_path.lanelets_index(end)];
 

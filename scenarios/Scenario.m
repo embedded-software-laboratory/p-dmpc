@@ -38,6 +38,13 @@ classdef Scenario
         function obj = Scenario()
         end
 
-    end
+        function set_vehicle_ids(vehicle_ids)
 
-end
+            for iVeh = 1:obj.options.amount
+                % initialize vehicle ids of all vehicles
+                obj.vehicles(iVeh).ID = vehicle_ids(iVeh);
+            end
+
+        end
+
+    end
