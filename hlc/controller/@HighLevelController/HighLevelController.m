@@ -153,7 +153,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
             end
 
-            obj.plant.setup(obj.scenario, obj.vehicle_ids);
+            obj.plant.send_ready_msg();
 
             if obj.scenario.options.is_prioritized
                 % In priority-based computation, vehicles communicate via ROS 2

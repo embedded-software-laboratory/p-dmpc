@@ -21,8 +21,8 @@ classdef SimLab < Plant
             obj.use_visualization_data_queue = true;
         end
 
-        function setup(obj, scenario, veh_ids)
-            setup@Plant(obj, scenario, veh_ids);
+        function setup(obj, scenario)
+            setup@Plant(obj, scenario);
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue

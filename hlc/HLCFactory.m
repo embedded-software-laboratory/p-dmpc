@@ -108,6 +108,7 @@ classdef HLCFactory < handle
             obj.scenario.options.options_plot_online.is_active = false;
             obj.scenario.options.T_end = 2 * obj.scenario.options.dt;
             obj.scenario.options.should_save_result = false;
+            plant.setup(obj.scenario);
             hlc = obj.get_hlc(vehicle_ids, false, plant);
             hlc.run();
             obj.scenario.options.environment = environment_backup;

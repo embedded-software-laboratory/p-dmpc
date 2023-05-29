@@ -29,9 +29,8 @@ classdef CpmLab < Plant
 
         end
 
-        function setup(obj, scenario, veh_ids)
-            setup@Plant(obj, scenario, veh_ids);
-            assert(issorted(obj.veh_ids));
+        function setup(obj, scenario)
+            setup@Plant(obj, scenario);
 
             % Initialize data readers/writers...
             % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
@@ -55,32 +54,34 @@ classdef CpmLab < Plant
             obj.reader_vehicleStateList.WaitSet = true;
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
+            % get middleware period from vehicle state list message
+            [sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
+
+            if (sample_count > 1) | (sample_count == 0)
+                warning('Received %d samples, expected 1. Missed deadline?', sample_count);
+            end
+
+            state_list = sample(end);
+
+            if isempty(obj.scenario.options.veh_ids)
+                obj.scenario.set_vehicle_ids(state_list.active_vehicle_ids);
+
+                % initialize nodes and indices. could not be done in setup@Plant
+                % due to missing vehicle ids
+                obj.veh_ids = cast(obj.scenario.options.veh_ids, "uint8");
+                obj.amount = length(obj.veh_ids);
+
+                if obj.amount == 1
+                    obj.indices_in_vehicle_list = [find(obj.scenario.options.veh_ids == obj.veh_ids(1), 1)];
+                else
+                    obj.indices_in_vehicle_list = 1:obj.amount;
+                end
+
+                obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
+            end
+
             % Middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(obj.scenario.options.dt * 1e9);
-
-            % Sync start with infrastructure
-            % Send ready signal for all assigned vehicle ids
-            disp('Sending ready signal');
-
-            for iVehicle = sort([obj.veh_ids, obj.scenario.options.manual_control_config.hdv_ids])
-                ready_msg = ReadyStatus;
-                ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
-                ready_stamp = TimeStamp;
-                ready_stamp.nanoseconds = uint64(0);
-                ready_msg.next_start_stamp = ready_stamp;
-                obj.writer_readyStatus.write(ready_msg);
-            end
-
-            % Wait for start or stop signal
-            disp('Waiting for start or stop signal');
-
-            got_start = false;
-            got_stop = false;
-
-            while (~got_stop && ~got_start)
-                [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
-            end
-
         end
 
         function [x0, trim_indices] = measure(obj)
@@ -197,6 +198,32 @@ classdef CpmLab < Plant
 
         function end_run(obj)
             disp('End')
+        end
+
+        function send_ready_msg(obj)
+            % Sync start with infrastructure
+            % Send ready signal for all assigned vehicle ids
+            disp('Sending ready signal');
+
+            for iVehicle = sort([obj.veh_ids, obj.scenario.options.manual_control_config.hdv_ids])
+                ready_msg = ReadyStatus;
+                ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
+                ready_stamp = TimeStamp;
+                ready_stamp.nanoseconds = uint64(0);
+                ready_msg.next_start_stamp = ready_stamp;
+                obj.writer_readyStatus.write(ready_msg);
+            end
+
+            % Wait for start or stop signal
+            disp('Waiting for start or stop signal');
+
+            got_start = false;
+            got_stop = false;
+
+            while (~got_stop && ~got_start)
+                [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
+            end
+
         end
 
     end
