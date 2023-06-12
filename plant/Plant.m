@@ -31,20 +31,19 @@ classdef (Abstract) Plant < handle
             % method shall be overriden and called in a child class.
             obj.scenario = scenario;
 
-            % if the ids were already set, initialize node and indices.
-            % otherwise the child class method needs to handle this
-            if ~isempty(obj.scenario.options.veh_ids)
-                obj.veh_ids = obj.scenario.options.veh_ids;
-                obj.amount = length(obj.veh_ids);
+            assert(~isempty(obj.scenario.options.veh_ids));
 
-                if obj.amount == 1
-                    obj.indices_in_vehicle_list = [find(obj.scenario.options.veh_ids == obj.veh_ids(1), 1)];
-                else
-                    obj.indices_in_vehicle_list = 1:obj.amount;
-                end
+            obj.veh_ids = obj.scenario.options.veh_ids;
+            obj.amount = length(obj.veh_ids);
+            assert(obj.amount == obj.scenario.options.amount);
 
-                obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
+            if obj.amount == 1
+                obj.indices_in_vehicle_list = [find(obj.scenario.options.veh_ids == obj.veh_ids(1), 1)];
+            else
+                obj.indices_in_vehicle_list = 1:obj.amount;
             end
+
+            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
 
         end
 

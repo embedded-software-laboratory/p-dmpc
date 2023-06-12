@@ -24,6 +24,11 @@ function [result, scenario] = main(varargin)
 
         end
 
+        % if no (or insufficient) path ids were specified, use default values
+        if isempty(options.path_ids) || (length(options.path_ids) ~= options.amount)
+            options.path_ids = 1:options.amount;
+        end
+
         plant = PlantFactory.get_experiment_interface(options.environment);
         % create scenario
         random_seed = RandStream('mt19937ar');

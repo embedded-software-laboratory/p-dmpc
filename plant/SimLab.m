@@ -22,6 +22,8 @@ classdef SimLab < Plant
         end
 
         function setup(obj, scenario)
+            % use vehicle IDs corresponding to path IDs
+            scenario.set_vehicle_ids(scenario.options.path_ids);
             setup@Plant(obj, scenario);
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
 

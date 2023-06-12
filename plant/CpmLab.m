@@ -30,8 +30,6 @@ classdef CpmLab < Plant
         end
 
         function setup(obj, scenario)
-            setup@Plant(obj, scenario);
-
             % Initialize data readers/writers...
             % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
             common_cpm_functions_path = fullfile( ...
@@ -63,25 +61,12 @@ classdef CpmLab < Plant
 
             state_list = sample(end);
 
-            if isempty(obj.scenario.options.veh_ids)
-                obj.scenario.set_vehicle_ids(state_list.active_vehicle_ids);
-
-                % initialize nodes and indices. could not be done in setup@Plant
-                % due to missing vehicle ids
-                obj.veh_ids = cast(obj.scenario.options.veh_ids, "uint8");
-                obj.amount = length(obj.veh_ids);
-
-                if obj.amount == 1
-                    obj.indices_in_vehicle_list = [find(obj.scenario.options.veh_ids == obj.veh_ids(1), 1)];
-                else
-                    obj.indices_in_vehicle_list = 1:obj.amount;
-                end
-
-                obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
-            end
-
             % Middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(obj.scenario.options.dt * 1e9);
+            obj.dt_period_nanos = uint64(scenario.options.dt * 1e9);
+
+            assert(isempty(scenario.options.veh_ids));
+            scenario.set_vehicle_ids(state_list.active_vehicle_ids);
+            setup@Plant(obj, scenario);
         end
 
         function [x0, trim_indices] = measure(obj)
