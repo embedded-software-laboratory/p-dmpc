@@ -117,6 +117,77 @@ classdef PlotterOnline < Plotter
 
         end
 
+        function ros2_callback(obj, msg)
+
+            arguments
+                obj (1, 1) PlotterOnline
+            end
+
+            plotting_info = obj.compute_plotting_info(msg);
+
+            % TODO What to do if message is lost? timeout per plotting timestep?
+            % save info
+            field_name = strcat('step', num2str(plotting_info.step));
+            obj.plotting_info_collection.(field_name){plotting_info.veh_indices(1)} = plotting_info;
+
+            % check if time step is complete (all vehicles received)
+            field_name = strcat('step', num2str(obj.time_step));
+
+            if length(obj.plotting_info_collection.(field_name)) == obj.nVeh
+                complete = true;
+
+                for i = 1:length(obj.plotting_info_collection.(field_name))
+
+                    if isempty(obj.plotting_info_collection.(field_name){i})
+                        complete = false;
+                        break;
+                    end
+
+                end
+
+                if complete
+                    complete_plotting_info = obj.merge_plotting_infos(obj.plotting_info_collection.(field_name));
+                    start_simulation_timer(obj);
+                    simulated_time = obj.scenario.options.dt * (complete_plotting_info.step);
+                    simulation_time = toc(obj.timer) + obj.simulation_time_offset;
+                    time_diff = simulated_time - simulation_time;
+                    % avoid plotter trying catching up when simulation is
+                    % slow
+                    if time_diff < 0
+                        obj.simulation_time_offset = obj.simulation_time_offset + time_diff;
+                    else
+                        pause(time_diff);
+                    end
+
+                    obj.plot(complete_plotting_info);
+
+                    %delete field
+                    obj.plotting_info_collection = rmfield(obj.plotting_info_collection, field_name);
+                    obj.time_step = obj.time_step + 1;
+                end
+
+            end
+
+            if obj.abort
+                disp('Aborting experiment not yet implemented');
+                obj.abort = ~obj.abort;
+            end
+
+            if obj.paused
+                % reset timer
+                obj.timer = [];
+                % save simulation
+                obj.simulation_time_offset = simulation_time;
+
+                while (obj.paused)
+                    %pause to allow key callback to be executed
+                    pause(0.1);
+                end
+
+            end
+
+        end
+
     end
 
     methods (Access = protected)
@@ -128,6 +199,21 @@ classdef PlotterOnline < Plotter
                 obj.timer = tic;
             end
 
+        end
+
+        function plotting_info = compute_plotting_info(msg)
+            plotting_info = PlottingInfo();
+            plotting_info.trajectory_predictions = reshape(msg.trajectory_predictions', 4, numel(msg.trajectory_predictions) / 4);
+            plotting_info.ref_trajectory = reshape(msg.ref_trajectory', 2, numel(msg.ref_trajectory) / 2);
+            plotting_info.n_obstacles = msg.n_obstacles;
+            plotting_info.n_dynamic_obstacles = msg.n_dynamic_obstacles;
+            plotting_info.step = msg.step;
+            plotting_info.vehicle_indices = msg.vehicle_indices;
+            plotting_info.tick_now = msg.tick_now;
+            plotting_info.weighted_coupling_reduced = reshape(msg.weighted_coupling_reduced', obj.scenario.options.amount, obj.options.scenario.amount);
+            plotting_info.directed_coupling = reshape(msg.directed_coupling', obj.scenario.options.amount, obj.scenario.options.amount);
+            plotting_info.belonging_vector = msg.belonging_vector;
+            plotting_info.coupling_info = reshape(msg.coupling_info', obj.scenario.options.amount, obj.scenario.options.amount);
         end
 
         function complete_plotting_info = merge_plotting_infos(obj, plotting_info_collection)
