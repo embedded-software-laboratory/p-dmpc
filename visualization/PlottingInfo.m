@@ -73,7 +73,7 @@ classdef PlottingInfo
             filter_self = false(1, overall_amount_of_veh);
             filter_self(obj.veh_indices(1)) = true;
             obj.trajectory_predictions = obj.trajectory_predictions{filter_self'};
-            obj.ref_trajectory = obj.ref_trajectory(filter_self, :, :);
+            obj.ref_trajectory = squeeze(obj.ref_trajectory(filter_self, :, :));
             obj.priorities = obj.priorities(filter_self');
 
             if plot_options.plot_reachable_sets
@@ -83,8 +83,11 @@ classdef PlottingInfo
             if plot_options.plot_lanelet_crossing_areas
                 obj.lanelet_crossing_areas = obj.lanelet_crossing_areas{filter_self};
             end
-
+            
+            try
             obj.coupling_info = rmfield(obj.coupling_info, {'stac', 'distance', 'collision_type', 'lanelet_realtionship_type', 'is_intersection', 'is_move_side_by_side'});
+            catch
+            end
 
         end
 

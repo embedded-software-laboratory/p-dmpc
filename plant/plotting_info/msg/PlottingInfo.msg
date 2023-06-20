@@ -7,10 +7,11 @@ int32                           n_dynamic_obstacles         # 1 (= 0)
 # dyamic_obstacles_shape                                    (left out)
 # reachable_sets                                            (left out/polyshape)
 int32                           step                        # 1
-int32                           vehicle_indices             # 1
+int32                           veh_indices                 # 1
 int32                           tick_now                    # 1 (= 1)
 # lanelet_crossing_areas                                    (left out)
 float64[]                       weighted_coupling_reduced   # N x N
 int32[]                         directed_coupling           # N x N
 int32                           belonging_vector            # 1
 CouplingInfo[]                  coupling_info               # N x N
+int32[]                         populated_coupling_infos

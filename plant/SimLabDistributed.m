@@ -12,18 +12,20 @@ classdef SimLabDistributed < Plant
     methods
 
         function obj = SimLabDistributed()
+            disp('using distributed simulation')
             obj = obj@Plant();
-            obj.generate_plotting_info_msgs();
-            obj.ros2_node = ros2node(['/plant_', num2str(obj.veh_ids(1))]);
-            options = struct("History", "keeplast", "Depth", 40, "Reliability", "reliable", "Durability", "transientlocal");
-            topice_name_publish = ['/plant_', num2str(obj.veh_ids(1)), '_plotting'];
-            obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "plotting_info/PlottingInfo", options);
-            publisher = obj.publisher;
         end
 
         function setup(obj, scenario, veh_ids)
             setup@Plant(obj, scenario, veh_ids);
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
+            obj.generate_plotting_info_msgs();
+            obj.ros2_node = ros2node(['/plant_', num2str(obj.veh_ids(1))]);
+            options = struct("History", "keeplast", "Depth", 40, "Reliability", "reliable", "Durability", "transientlocal");
+            topic_name_subscribe = ['/plant_', num2str(obj.veh_ids(1)), '_plotting'];
+            obj.publisher = ros2publisher(obj.ros2_node, topic_name_subscribe, "plotting_info/PlottingInfo", options);
+            obj.msg_to_be_sent = ros2message("plotting_info/PlottingInfo");
+            publisher = obj.publisher;
         end
 
         function [x0, trim_indices] = measure(obj)
@@ -59,16 +61,22 @@ classdef SimLabDistributed < Plant
 
         function compute_msg_to_be_sent(obj, plotting_info)
             obj.msg_to_be_sent.trajectory_predictions = reshape(plotting_info.trajectory_predictions', 1, numel(plotting_info.trajectory_predictions));
-            obj.msg_to_be_sent.ref_trajectory = reshape(plotting_info.ref_trajectory', 1, numel(plotting_info.ref_trajectory));
-            obj.msg_to_be_sent.n_obstacles = 0;
-            obj.msg_to_be_sent.n_dynamic_obstacles = 0;
-            obj.msg_to_be_sent.step = plotting_info.step;
-            obj.msg_to_be_sent.vehicle_indices = plotting_info.vehicle_indices;
-            obj.msg_to_be_sent.tick_now = plotting_info.tick_now;
+            obj.msg_to_be_sent.ref_trajectory = reshape(squeeze(plotting_info.ref_trajectory)', 1, numel(plotting_info.ref_trajectory));
+            obj.msg_to_be_sent.priorities = int32(plotting_info.priorities);
+            obj.msg_to_be_sent.n_obstacles = int32(0);
+            obj.msg_to_be_sent.n_dynamic_obstacles = int32(0);
+            obj.msg_to_be_sent.step = int32(plotting_info.step);
+            obj.msg_to_be_sent.veh_indices = int32(plotting_info.veh_indices);
+            obj.msg_to_be_sent.tick_now = int32(plotting_info.tick_now);
             obj.msg_to_be_sent.weighted_coupling_reduced = reshape(plotting_info.weighted_coupling_reduced', 1, numel(plotting_info.weighted_coupling_reduced));
-            obj.msg_to_be_sent.directed_coupling = reshape(plotting_info.directed_coupling', 1, numel(plotting_info.directed_coupling));
-            obj.msg_to_be_sent.belonging_vector = plotting_info.belonging_vector;
-            obj.msg_to_be_sent.coupling_info = reshape(plotting_info.coupling_info', 1, numel(plotting_info.coupling_info));
+            obj.msg_to_be_sent.directed_coupling = int32(reshape(plotting_info.directed_coupling', 1, numel(plotting_info.directed_coupling)));
+            obj.msg_to_be_sent.belonging_vector = int32(plotting_info.belonging_vector);
+            populated_coupling_infos = find(~isempty(reshape(plotting_info.coupling_info', 1, numel(plotting_info.coupling_info))));
+            obj.msg_to_be_sent.populated_coupling_infos = int32(populated_coupling_infos);
+            obj.msg_to_be_sent.coupling_info = reshape([plotting_info.coupling_info{:}]', 1, numel([plotting_info.coupling_info{:}]));
+            if isempty(obj.msg_to_be_sent.coupling_info)
+                obj.msg_to_be_sent.coupling_info = struct('is_ignored',false);
+            end
         end
 
         function generate_plotting_info_msgs(obj)
@@ -79,7 +87,7 @@ classdef SimLabDistributed < Plant
                 disp('Generating ROS 2 custom message type for distributed plotting...')
 
                 try
-                    ros2genmsg([file_path, filesep, 'plotting_info']);
+                    ros2genmsg(file_path);
                 catch ME
                     disp(['If all environments for ros2genmsg() are prepared but still failed, try to move the whole folder to a ' ...
                           'shallower path and run again if you use Windows machine, which sadly has a max path limit constraint.'])
