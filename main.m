@@ -69,7 +69,7 @@ function [result, scenario] = main(varargin)
         end
 
     else
-        % set active vehicle IDs and possibly initializes communication
+        % set active vehicle IDs and possibly initialize communication
         plant.setup(scenario);
 
         hlc_factory = HLCFactory();

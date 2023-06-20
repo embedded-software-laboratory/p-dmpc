@@ -9,11 +9,14 @@ function [result, scenario] = main_distributed(vehicle_id)
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
+    dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: Use dry run also for unified lab api?
+    plant = PlantFactory.get_experiment_interface(scenario.options.environment);
+    % set active vehicle IDs and initialize communication
+    plant.setup(scenario);
+
     % get HLC
     factory = HLCFactory();
     factory.set_scenario(scenario);
-    dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: Use dry run also for unified lab api?
-    plant = PlantFactory.get_experiment_interface(scenario.options.environment);
 
     if scenario.options.is_prioritized == true
         hlc = factory.get_hlc(vehicle_id, dry_run, plant);
