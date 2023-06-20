@@ -21,9 +21,15 @@ classdef SimLab < Plant
             obj.use_visualization_data_queue = true;
         end
 
-        function setup(obj, scenario)
-            % use vehicle IDs corresponding to path IDs
-            scenario.set_vehicle_ids(scenario.options.path_ids);
+        function setup(obj, scenario, custom_vehicle_ids)
+            % during dry run custom ids might be passed in,
+            % otherwise use vehicle IDs corresponging to path IDs
+            if exist('custom_vehicle_ids','var')
+                scenario.set_vehicle_ids(custom_vehicle_ids);
+            else
+                scenario.set_vehicle_ids(scenario.options.path_ids);
+            end
+
             setup@Plant(obj, scenario);
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
 

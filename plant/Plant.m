@@ -31,6 +31,8 @@ classdef (Abstract) Plant < handle
             % method shall be overriden and called in a child class.
             obj.scenario = scenario;
 
+            % The child class method should have set the vehicle ids
+            % via scenario.set_vehicle_ids
             assert(~isempty(obj.scenario.options.veh_ids));
 
             obj.veh_ids = obj.scenario.options.veh_ids;

@@ -26,6 +26,7 @@ function [result, scenario] = main(varargin)
 
         % if no (or insufficient) path ids were specified, use default values
         if isempty(options.path_ids) || (length(options.path_ids) ~= options.amount)
+            warning('amount of reference path ids does not conform to amount of vehicles, resorting to default paths');
             options.path_ids = 1:options.amount;
         end
 
@@ -68,7 +69,9 @@ function [result, scenario] = main(varargin)
         end
 
     else
+        % set active vehicle IDs and possibly initializes communication
         plant.setup(scenario);
+
         hlc_factory = HLCFactory();
         hlc_factory.set_scenario(scenario);
         dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?

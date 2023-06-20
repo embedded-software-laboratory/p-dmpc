@@ -37,10 +37,6 @@ function scenario = create_scenario(options, random_seed, plant)
         scenario.vehicles(iVeh).trim_config = initial_state;
     end
 
-    if ~isempty(options.veh_ids)
-        scenario.set_vehicle_ids(options.veh_ids);
-    end
-
     %plot_mpa_over_time(scenario);
     %plot_mpa(scenario,'do_export', true);
 end

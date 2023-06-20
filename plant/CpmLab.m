@@ -52,11 +52,11 @@ classdef CpmLab < Plant
             obj.reader_vehicleStateList.WaitSet = true;
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
-            % get middleware period from vehicle state list message
+            % get middleware period and vehicle ids from vehicle state list message
             [sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
-            if (sample_count > 1) | (sample_count == 0)
-                warning('Received %d samples, expected 1. Missed deadline?', sample_count);
+            if (sample_count == 0)
+                error('No vehicle state list received during CpmLab.setup!');
             end
 
             state_list = sample(end);
@@ -64,6 +64,7 @@ classdef CpmLab < Plant
             % Middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(scenario.options.dt * 1e9);
 
+            % vehicle ids should not be set yet, set them now
             assert(isempty(scenario.options.veh_ids));
             scenario.set_vehicle_ids(state_list.active_vehicle_ids);
             setup@Plant(obj, scenario);
