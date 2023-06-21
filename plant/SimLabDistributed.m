@@ -7,6 +7,7 @@ classdef SimLabDistributed < Plant
         ros2_node
         publisher
         msg_to_be_sent
+        step_timer
     end
 
     methods
@@ -22,10 +23,11 @@ classdef SimLabDistributed < Plant
             obj.generate_plotting_info_msgs();
             obj.ros2_node = ros2node(['/plant_', num2str(obj.veh_ids(1))]);
             options = struct("History", "keeplast", "Depth", 40, "Reliability", "reliable", "Durability", "transientlocal");
-            topic_name_subscribe = ['/plant_', num2str(obj.veh_ids(1)), '_plotting'];
-            obj.publisher = ros2publisher(obj.ros2_node, topic_name_subscribe, "plotting_info/PlottingInfo", options);
+            topic_name_publish = ['/plant_plotting'];
+            obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "plotting_info/PlottingInfo", options);
             obj.msg_to_be_sent = ros2message("plotting_info/PlottingInfo");
             publisher = obj.publisher;
+            obj.step_timer = tic;
         end
 
         function [x0, trim_indices] = measure(obj)
@@ -55,13 +57,19 @@ classdef SimLabDistributed < Plant
                 send(obj.publisher, obj.msg_to_be_sent); % send rosmessage
                 % pause so that `keyPressCallback()` can be executed in time
                 pause(0.01);
+
+                while toc(obj.step_timer) < obj.scenario.options.dt
+                end
+
+                obj.step_timer = tic;
+
             end
 
         end
 
         function compute_msg_to_be_sent(obj, plotting_info)
             obj.msg_to_be_sent.trajectory_predictions = reshape(plotting_info.trajectory_predictions', 1, numel(plotting_info.trajectory_predictions));
-            obj.msg_to_be_sent.ref_trajectory = reshape(squeeze(plotting_info.ref_trajectory)', 1, numel(plotting_info.ref_trajectory));
+            obj.msg_to_be_sent.ref_trajectory = reshape(squeeze(plotting_info.ref_trajectory), 1, numel(plotting_info.ref_trajectory));
             obj.msg_to_be_sent.priorities = int32(plotting_info.priorities);
             obj.msg_to_be_sent.n_obstacles = int32(0);
             obj.msg_to_be_sent.n_dynamic_obstacles = int32(0);
@@ -74,9 +82,11 @@ classdef SimLabDistributed < Plant
             populated_coupling_infos = find(~isempty(reshape(plotting_info.coupling_info', 1, numel(plotting_info.coupling_info))));
             obj.msg_to_be_sent.populated_coupling_infos = int32(populated_coupling_infos);
             obj.msg_to_be_sent.coupling_info = reshape([plotting_info.coupling_info{:}]', 1, numel([plotting_info.coupling_info{:}]));
+
             if isempty(obj.msg_to_be_sent.coupling_info)
-                obj.msg_to_be_sent.coupling_info = struct('is_ignored',false);
+                obj.msg_to_be_sent.coupling_info = struct('is_ignored', false);
             end
+
         end
 
         function generate_plotting_info_msgs(obj)
