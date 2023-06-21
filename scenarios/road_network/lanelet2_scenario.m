@@ -66,7 +66,7 @@ function scenario = lanelet2_scenario(options, plant)
             lanelets_index = options.reference_path.lanelets_index{iveh};
         end
 
-        ref_path = generate_ref_path_loop(iveh, scenario.lanelets, lanelets_index);
+        ref_path = generate_ref_path_loop(options.path_ids(iveh), scenario.lanelets, lanelets_index);
         veh.lanelets_index = ref_path.lanelets_index;
         lanelet_ij = [ref_path.lanelets_index(1), ref_path.lanelets_index(end)];
 
