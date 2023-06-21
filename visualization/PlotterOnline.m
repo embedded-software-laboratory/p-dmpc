@@ -121,14 +121,10 @@ classdef PlotterOnline < Plotter
 
             arguments
                 obj (1, 1) PlotterOnline
-                msg (1, 1) 
+                msg (1, 1)
             end
 
-            disp(msg)
-
             plotting_info = obj.compute_plotting_info(msg);
-
-            disp(['got plotting info from vehicle ', num2str(plotting_info.veh_indices)]);
 
             % TODO What to do if message is lost? timeout per plotting timestep?
             % save info
@@ -209,7 +205,9 @@ classdef PlotterOnline < Plotter
         function plotting_info = compute_plotting_info(obj, msg)
             plotting_info = PlottingInfo();
             plotting_info.trajectory_predictions = reshape(msg.trajectory_predictions, 4, numel(msg.trajectory_predictions) / 4)';
-            plotting_info.ref_trajectory = reshape(msg.ref_trajectory, 2, numel(msg.ref_trajectory) / 2)';
+            plotting_info.ref_trajectory = zeros(1, obj.scenario.options.Hp, 2);
+            plotting_info.ref_trajectory(1, :, :) = reshape(msg.ref_trajectory, numel(msg.ref_trajectory) / 2, 2);
+            plotting_info.priorities = msg.priorities;
             plotting_info.n_obstacles = msg.n_obstacles;
             plotting_info.n_dynamic_obstacles = msg.n_dynamic_obstacles;
             plotting_info.step = msg.step;
@@ -218,10 +216,12 @@ classdef PlotterOnline < Plotter
             plotting_info.weighted_coupling_reduced = reshape(msg.weighted_coupling_reduced, obj.scenario.options.amount, obj.scenario.options.amount)';
             plotting_info.directed_coupling = reshape(msg.directed_coupling, obj.scenario.options.amount, obj.scenario.options.amount)';
             plotting_info.belonging_vector = msg.belonging_vector;
-            plotting_info.coupling_info = cell(1,obj.scenario.options.amount*obj.scenario.options.amount);
+            plotting_info.coupling_info = cell(1, obj.scenario.options.amount * obj.scenario.options.amount);
+
             for entry = msg.populated_coupling_infos
                 plotting_info.coupling_info{entry} = msg.coupling_info(msg.populated_coupling_infos == entry);
-            end   
+            end
+
             plotting_info.coupling_info = reshape(plotting_info.coupling_info, obj.scenario.options.amount, obj.scenario.options.amount)';
         end
 
@@ -238,6 +238,7 @@ classdef PlotterOnline < Plotter
             complete_plotting_info.trajectory_predictions = trajectory_predictions;
             complete_plotting_info.ref_trajectory = ref_trajectory;
             complete_plotting_info.priorities = cellfun(@(x) x.priorities, plotting_info_collection)';
+            complete_plotting_info.belonging_vector = cellfun(@(x) x.belonging_vector, plotting_info_collection)';
             n_obstacles = 0;
 
             for x = plotting_info_collection
