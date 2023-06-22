@@ -238,7 +238,12 @@ classdef PlotterOnline < Plotter
             complete_plotting_info.trajectory_predictions = trajectory_predictions;
             complete_plotting_info.ref_trajectory = ref_trajectory;
             complete_plotting_info.priorities = cellfun(@(x) x.priorities, plotting_info_collection)';
-            complete_plotting_info.belonging_vector = cellfun(@(x) x.belonging_vector, plotting_info_collection)';
+
+            try
+                complete_plotting_info.belonging_vector = cellfun(@(x) x.belonging_vector, plotting_info_collection)';
+            catch
+            end
+
             n_obstacles = 0;
 
             for x = plotting_info_collection
