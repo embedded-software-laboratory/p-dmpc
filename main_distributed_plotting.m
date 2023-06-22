@@ -1,12 +1,26 @@
 function main_distributed_plotting()
     close all
     scenario = load('scenario.mat', 'scenario').scenario;
+    veh_ids = scenario.options.veh_ids;
+
+    fprintf('Starting remote HLCs...');
+    script_path = fullfile(pwd, 'main_distributed_plotting.sh'); % assumes script is in curent directory
+
+    system(['chmod +x ', script_path])
+
+    command = [script_path];
+
+    for i_veh = veh_ids
+        command = [command, ' ', num2str(i_veh)];
+    end
+
+    system(command);
+    fprintf(' done.\n')
 
     plotter = PlotterOnline(scenario);
     generate_plotting_info_msgs();
     ros2_node = ros2node('/plant_plotting');
     options = struct("History", "keepall", "Reliability", "reliable", "Durability", "transientlocal");
-    veh_ids = scenario.options.veh_ids;
     amount = scenario.options.amount;
     global plotting_info_queue;
     plotting_info_queue = empty_plotting_info_queue();
