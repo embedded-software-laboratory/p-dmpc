@@ -37,7 +37,7 @@ function [result, scenario] = main(varargin)
         save('scenario.mat', 'scenario');
     end
 
-    is_prioritized_parallel_in_lab = (scenario.options.is_prioritized && scenario.options.environment == Environment.CpmLab && scenario.options.compute_in_parallel);
+    is_prioritized_parallel_in_lab = (scenario.options.is_prioritized && (scenario.options.environment == Environment.CpmLab || scenario.options.environment == Environment.SimulationDistributed) && scenario.options.compute_in_parallel);
 
     if is_prioritized_parallel_in_lab
         disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
@@ -79,6 +79,7 @@ function [result, scenario] = main(varargin)
             can_handle_parallel_plot = isa(plant, 'SimLab');
 
             if do_plot
+
                 if can_handle_parallel_plot
                     visualization_data_queue = plant.set_visualization_data_queue;
                     % create central plotter - used by all workers via data queue
@@ -87,6 +88,7 @@ function [result, scenario] = main(varargin)
                 else
                     warning('The currently selected environment cannot handle plotting of a parallel execution!');
                 end
+
             end
 
             spmd (scenario.options.amount)

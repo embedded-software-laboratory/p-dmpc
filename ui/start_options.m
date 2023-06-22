@@ -262,6 +262,10 @@ function out = get_environment_selection(ui, output_as_enum)
             out = Environment.UnifiedLabApi;
         end
 
+        if (out == Environment.Simulation && strcmp(ui.ParallelComputationDistributedExecutionListBox.Value, 'yes'))
+            out = Environment.SimulationDistributed;
+        end
+
     end
 
 end
