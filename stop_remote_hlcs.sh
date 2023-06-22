@@ -1,6 +1,6 @@
 #!/bin/bash
 # guest password (DO NOT PUSH TO GIT)
-export SSHPASS=cpm
+export SSHPASS=
 
 #Get command line arguments
 VEHICLE_IDS=("$@")

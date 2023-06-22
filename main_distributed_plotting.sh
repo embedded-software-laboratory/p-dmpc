@@ -1,6 +1,6 @@
 #!/bin/bash
 # guest password (DO NOT PUSH TO GIT)
-export SSHPASS=cpm
+export SSHPASS=
 
 # Get directory of the script (use before first use of cd)
 SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/"
