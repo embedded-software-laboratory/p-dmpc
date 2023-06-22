@@ -24,8 +24,8 @@ Install MATLAB R2023a with the following toolboxes:
 In our priority-based trajectory planning, vehicles communicate using the MATLAB ROS 2 toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python software, CMake software, and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).
 For MATLAB R2023a
 
-1. Python 3.9
-    1. Install Python 3.9 and add it to your system path variable.
+1. Python
+    1. Install Python 3.8 or 3.9 and add it to your system path variable.
     2. Go to the MATLAB command window and execute `pyenv('Version','version')` to set up Python with MATLAB. For example, `pyenv('Version','3.9')` will let MATLAB use Python 3.9. If MATLAB cannot find the version, provide its path with `pyenv('Version','fullPathOfYourPythonInstallFolder\YourPythonExecutable')`.
 2. CMake 3.16.3+
     1. Install from <https://cmake.org/download/>
