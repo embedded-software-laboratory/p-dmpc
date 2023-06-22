@@ -7,7 +7,6 @@ classdef SimLabDistributed < Plant
         ros2_node
         publisher
         msg_to_be_sent
-        step_timer
     end
 
     methods
@@ -27,7 +26,6 @@ classdef SimLabDistributed < Plant
             obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "plotting_info/PlottingInfo", options);
             obj.msg_to_be_sent = ros2message("plotting_info/PlottingInfo");
             publisher = obj.publisher;
-            obj.step_timer = tic;
         end
 
         function [x0, trim_indices] = measure(obj)
@@ -57,12 +55,6 @@ classdef SimLabDistributed < Plant
                 send(obj.publisher, obj.msg_to_be_sent); % send rosmessage
                 % pause so that `keyPressCallback()` can be executed in time
                 pause(0.01);
-
-                while toc(obj.step_timer) < obj.scenario.options.dt
-                end
-
-                obj.step_timer = tic;
-
             end
 
         end
