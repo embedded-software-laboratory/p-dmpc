@@ -6,15 +6,13 @@ function main_distributed_plotting()
     fprintf('Starting remote HLCs...');
     script_path = fullfile(pwd, 'main_distributed_plotting.sh'); % assumes script is in curent directory
 
-    system(['chmod +x ', script_path])
-
-    command = [script_path];
+    command = ['bash ', script_path];
 
     for i_veh = veh_ids
         command = [command, ' ', num2str(i_veh)];
     end
 
-    system(command);
+    [~, ~] = system(command);
     fprintf(' done.\n')
 
     plotter = PlotterOnline(scenario);
@@ -27,6 +25,8 @@ function main_distributed_plotting()
     disp(['init subscriber for vehicles ', num2str(veh_ids)]);
     topic_name_subscribe = ['/plant_plotting'];
     subscriber = ros2subscriber(ros2_node, topic_name_subscribe, "plotting_info/PlottingInfo", @enqueue_plotting_info, options);
+    n_steps = scenario.options.T_end / scenario.options.dt;
+    n_finished = 0;
 
     while true
 
@@ -34,11 +34,31 @@ function main_distributed_plotting()
 
         if ~isempty(msg)
             plotter.ros2_callback(msg);
+
+            if msg.step >= n_steps %* scenario.options.dt >= scenario.options.T_end
+                n_finished = n_finished + 1;
+            end
+
+            if n_finished == amount
+                disp('Reached end of simulation. Stop.')
+                break
+            end
+
         end
 
-        pause(0.001);
+        pause(0.001)
 
     end
+
+    script_path = fullfile(pwd, 'stop_remote_hlcs.sh');
+
+    command = ['bash ', script_path];
+
+    for i_veh = veh_ids
+        command = [command, ' ', num2str(i_veh)];
+    end
+
+    [~, ~] = system(command);
 
 end
 

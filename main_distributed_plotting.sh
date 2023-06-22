@@ -1,6 +1,6 @@
 #!/bin/bash
 # guest password (DO NOT PUSH TO GIT)
-export SSHPASS=
+export SSHPASS=cpm
 
 # Get directory of the script (use before first use of cd)
 SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/"
@@ -20,9 +20,8 @@ N_VEH=${#VEHICLE_IDS[@]}
 
 # copy scripts to nucs
 for (( i=0; i<$N_VEH; i++ )); do
-    echo ${WORKING_NUCS[$i]}
-    #sshpass -e scp -r ./graph_based_planning guest@192.168.1.2${WORKING_NUCS[$i]}:/home/guest/dev/software/high_level_controller/
     sshpass -e rsync -r ./graph_based_planning guest@192.168.1.2${WORKING_NUCS[$i]}:/home/guest/dev/software/high_level_controller/
+    sshpass -e ssh -t guest@192.168.1.2${WORKING_NUCS[$i]} 'rm -rf ~/dev/lcc_script_logs; mkdir -p ~/dev/lcc_script_logs; tmux kill-session -t "matlab-hlc"'
 done
 
 cd ${SCRIPT_PATH}
@@ -30,5 +29,5 @@ cd ${SCRIPT_PATH}
 # start script non blocking
 for (( i=0; i<$N_VEH; i++ )); do
     VEH_ID=${VEHICLE_IDS[$i]}
-    sshpass -e ssh -t guest@192.168.1.2${WORKING_NUCS[$i]} 'nohup /usr/local/MATLAB/R2023a/bin/matlab' "-logfile matlab.log -sd '/home/guest/dev/software/high_level_controller/graph_based_planning' -batch 'main_distributed($VEH_ID); quit();'" "> /dev/null 2>&1 < /dev/null &"
+    sshpass -e ssh -t guest@192.168.1.2${WORKING_NUCS[$i]} 'tmux new-session -d -s "matlab-hlc"' "/usr/local/MATLAB/R2023a/bin/matlab -logfile matlab.log -sd '/home/guest/dev/software/high_level_controller/graph_based_planning' -batch 'main_distributed($VEH_ID)'"
 done
