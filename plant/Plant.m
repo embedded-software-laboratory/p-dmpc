@@ -69,7 +69,7 @@ classdef (Abstract) Plant < handle
         end
 
         function send_ready_msg(obj)
-            disp('Plant.send_ready_msg called');
+            disp('Plant ready!');
         end
 
     end

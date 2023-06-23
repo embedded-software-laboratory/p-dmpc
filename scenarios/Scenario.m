@@ -46,7 +46,6 @@ classdef Scenario
             for iVeh = 1:obj.options.amount
                 % initialize vehicle ids of all vehicles
                 obj.vehicles(iVeh).ID = vehicle_ids(iVeh);
-                fprintf("set veh number %d s ID to %d\n", iVeh, vehicle_ids(iVeh));
             end
 
         end

@@ -285,6 +285,15 @@ function setEnvironmentElementsVisibility(ui)
     ui.AmountHDVsListBox.Enable = ui.AmountHDVsListBox.Enable && is_lab_selection;
     ui.HDVIDsEditField.Enable = ui.HDVIDsEditField.Enable && is_lab_selection;
 
+    % notify user that ULA reference path ids have to correspond to vehicle ids
+    is_ula_selection = (get_environment_selection(ui, true) == Environment.UnifiedLabApi);
+    if is_ula_selection
+        ui.Vehicle_Ids_label.Text = sprintf("Note: With Unified Lab API, Reference Path Ids have to match vehicle Ids!");
+        ui.Vehicle_Ids_label.Visible = 'On';
+    else
+        ui.Vehicle_Ids_label.Visible = 'Off';
+    end
+
     scenario = list_scenario(ui);
     ui.ScenarioListBox.Items = scenario(:, 2);
 end
