@@ -19,7 +19,7 @@
         "vehicles_reachable_sets": [],
         "plot_lanelet_crossing_areas": false,
         "vehicles_lanelet_crossing_areas": [],
-        "is_video_mode": false
+        "is_video_mode": true
     },
     "is_manual_control": false,
     "manual_control_config": {

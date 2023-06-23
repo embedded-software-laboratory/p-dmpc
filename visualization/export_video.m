@@ -24,7 +24,7 @@ function export_video(result, video_export_setup)
 
     if test_mode
         plotting_info = PlottingInfo(scenario.options.veh_ids, result, 1, 1);
-        plotter.plotOnline(plotting_info);
+        plotter.plot(plotting_info);
         set_figure_properties(plotter.get_figure(), ExportFigConfig.video());
         frame = getframe(plotter.get_figure());
         imwrite(frame.cdata, ['output\video_', char(scenario.options.scenario_type), '.png']);
