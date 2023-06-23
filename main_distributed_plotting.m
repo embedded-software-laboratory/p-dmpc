@@ -1,5 +1,6 @@
 function main_distributed_plotting()
     close all
+    clear all
     scenario = load('scenario.mat', 'scenario').scenario;
     veh_ids = scenario.options.veh_ids;
 
