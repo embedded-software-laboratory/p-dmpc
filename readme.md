@@ -30,19 +30,20 @@ For MATLAB R2023a
     2. Windows: Add it to your system path variable
     3. Setup python in the MATLAB command window: `pyenv('Version','version')` <br> For example `pyenv('Version','3.9')` will MATLAB use Python 3.9
     4. If MATLAB cannot find the version, provide its path with `pyenv('Version','fullPathOfYourPythonInstallFolder\YourPythonExecutable')`.
-- CMake
-    1. Install CMake 3.19+ ([Windows Download](<https://cmake.org/download/>))
-    2. Windows: Add it to your system path variable
 - C++ compiler
     1. Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) Community Edition is sufficient. Select "Desktop development with C++" during the installation.
     2. Ubuntu: Install gcc and g++ version 7.x+ and make it default
     3. Setup the compiler in the MATLAB command windows: `mex -setup`
 
 ## System Requirements for C++ Functionalities
-Some functionalities such as the graph search can optionally done in C++. The written code uses the C++ Boost libraries.
+Some functionalities such as the graph search can optionally done in C++. The written code uses CMake and the C++ Boost libraries.
+
+- CMake
+    1. Install CMake 3.19+ ([Windows Download](<https://cmake.org/download/>))
+    2. Windows: Add it to your system path variable
 - C++ Boost
-    1. Install [Boost 1.76](https://www.boost.org/users/history/)
-    2. Windows: Create the following environment variables that CMake can find Boost <br>
+    1. Install Boost 1.76 ([Download](https://www.boost.org/users/history/))
+    2. Windows: Create the following environment variables so that CMake can find Boost <br>
     `BOOST_ROOT = "C:\Program Files\boost\boost_1_76_0"` <br>
     `BOOST_INCLUDEDIR = "C:\Program Files\boost\boost_1_76_0"` <br>
     `BOOST_LIBRARYDIR = "C:\Program Files\boost\boost_1_76_0\stage\lib"`
