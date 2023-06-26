@@ -25,39 +25,39 @@ Install MATLAB R2023a with the following toolboxes:
 In our priority-based trajectory planning, vehicles communicate using the MATLAB ROS 2 toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python software, CMake software, and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).
 For MATLAB R2023a
 
-1. Python
+- Python
     1. Install Python 3.8 or 3.9 ([Windows Download](https://www.python.org/downloads/))
     2. Windows: Add it to your system path variable
     3. Setup python in the MATLAB command window: `pyenv('Version','version')` <br> For example `pyenv('Version','3.9')` will MATLAB use Python 3.9
     4. If MATLAB cannot find the version, provide its path with `pyenv('Version','fullPathOfYourPythonInstallFolder\YourPythonExecutable')`.
-2. CMake
+- CMake
     1. Install CMake 3.19+ ([Windows Download](<https://cmake.org/download/>))
     2. Windows: Add it to your system path variable
-3. C++ compiler
+- C++ compiler
     1. Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) Community Edition is sufficient. Select "Desktop development with C++" during the installation.
     2. Ubuntu: Install gcc and g++ version 7.x+ and make it default
     3. Setup the compiler in the MATLAB command windows: `mex -setup`
 
 ## System Requirements for C++ Functionalities
 Some functionalities such as the graph search can optionally done in C++. The written code uses the C++ Boost libraries.
-1. C++ Boost
+- C++ Boost
     1. Install [Boost 1.76](https://www.boost.org/users/history/)
     2. Windows: Create the following environment variables that CMake can find Boost <br>
     `BOOST_ROOT = "C:\Program Files\boost\boost_1_76_0"` <br>
     `BOOST_INCLUDEDIR = "C:\Program Files\boost\boost_1_76_0"` <br>
     `BOOST_LIBRARYDIR = "C:\Program Files\boost\boost_1_76_0\stage\lib"`
-2. Basics
+- Basics
     1. Ubuntu: Install the package build-essential for compiling basic C++ software: <br> `sudo apt install build-essential`
 
 ## System Requirements for using Lanelet2
 
 As one map representation we use lanelet2, because it offers libraries with lots of useful functionality. Since the libraries only exist in Python and C++, mex functions are used to benefit from that. In order to compile these mex functions the following dependencies need to be met.
 
-1. Lanelet2
+- Lanelet2
     1. Install according to <https://github.com/fzi-forschungszentrum-informatik/Lanelet2#installation> . Under Ubuntu22 you probably want to use it as part of the ROS2 humble version, i.e., `sudo apt install ros-humble-lanelet2`
-2. Eigen3
+- Eigen3
     1. Install Eigen3 as dependency of Lanelet2. In Ubuntu, the following command should be sufficient: `sudo apt install libeigen3-dev`
-3. Git Submodules
+- Git Submodules
     1. Since some of our functionality is added by using git submodules, use `git submodule init` after cloning to retrieve the content of these repos.
 
 # Run Experiments
