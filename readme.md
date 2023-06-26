@@ -60,6 +60,9 @@ As one map representation we use lanelet2, because it offers libraries with lots
 - Git Submodules
     1. Since some of our functionality is added by using git submodules, use `git submodule init` after cloning to retrieve the content of these repos.
 
+## Setup Details
+More detailed information including troubleshooting can be found [here](./docs/Setup_Details.md)
+
 # Run Experiments
 
 See [here](/docs/Run_Experiments.md)
