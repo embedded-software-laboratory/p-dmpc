@@ -37,6 +37,17 @@ For MATLAB R2023a
     2. Ubuntu: Install gcc and g++ version 7.x+ and make it default
     3. Setup the compiler in the MATLAB command windows: `mex -setup`
 
+## System Requirements for C++ Functionalities
+Some functionalities such as the graph search can optionally done in C++. The written code uses the C++ Boost libraries.
+1. C++ Boost
+    1. Install [Boost 1.76](https://www.boost.org/users/history/)
+    2. Windows: Create the following environment variables that CMake can find Boost <br>
+    `BOOST_ROOT = "C:\Program Files\boost\boost_1_76_0"` <br>
+    `BOOST_INCLUDEDIR = "C:\Program Files\boost\boost_1_76_0"` <br>
+    `BOOST_LIBRARYDIR = "C:\Program Files\boost\boost_1_76_0\stage\lib"`
+2. Basics
+    1. Ubuntu: Install the package build-essential for compiling basic C++ software: <br> `sudo apt install build-essential`
+
 ## System Requirements for using Lanelet2
 
 As one map representation we use lanelet2, because it offers libraries with lots of useful functionality. Since the libraries only exist in Python and C++, mex functions are used to benefit from that. In order to compile these mex functions the following dependencies need to be met.
