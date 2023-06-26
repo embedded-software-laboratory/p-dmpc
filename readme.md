@@ -4,6 +4,7 @@
 - [Setup](#setup)
     - [MATLAB R2023a](#matlab-r2023a)
     - [System Requirements for MATLAB ROS 2 Toolbox](#system-requirements-for-matlab-ros-2-toolbox)
+    - [System Requirements for C++ Functionalities](#system-requirements-for-c-functionalities)
     - [System Requirements for using Lanelet2](#system-requirements-for-using-lanelet2)
 - [Run Experiments](#run-experiments)
 - [References](#references)
