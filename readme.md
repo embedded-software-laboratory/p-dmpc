@@ -25,8 +25,10 @@ In our priority-based trajectory planning, vehicles communicate using the MATLAB
 For MATLAB R2023a
 
 1. Python
-    1. Install Python 3.8 or 3.9 and add it to your system path variable. ([Windows Download](https://www.python.org/downloads/))
-    2. Go to the MATLAB command window and execute `pyenv('Version','version')` to set up Python with MATLAB. For example, `pyenv('Version','3.9')` will let MATLAB use Python 3.9. If MATLAB cannot find the version, provide its path with `pyenv('Version','fullPathOfYourPythonInstallFolder\YourPythonExecutable')`.
+    1. Install Python 3.8 or 3.9 ([Windows Download](https://www.python.org/downloads/))
+    2. Windows: Add it to your system path variable
+    3. Setup python in the MATLAB command window: `pyenv('Version','version')` <br> For example `pyenv('Version','3.9')` will MATLAB use Python 3.9
+    4. If MATLAB cannot find the version, provide its path with `pyenv('Version','fullPathOfYourPythonInstallFolder\YourPythonExecutable')`.
 2. CMake 3.16.3+
     1. Install from <https://cmake.org/download/>
 3. C++ compiler
