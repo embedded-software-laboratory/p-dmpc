@@ -33,9 +33,9 @@ For MATLAB R2023a
     1. Install CMake 3.19+ ([Windows Download](<https://cmake.org/download/>))
     2. Windows: Add it to your system path variable
 3. C++ compiler
-    1. Installation
-        - Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) community version is sufficient. Select "Desktop development with C++" during the installation.
-    2. Configure your C++ compiler using `mex -setup` in the MATLAB command window.
+    1. Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) Community Edition is sufficient. Select "Desktop development with C++" during the installation.
+    2. Ubuntu: Install gcc and g++ version 7.x+ and make it default
+    3. Setup the compiler in the MATLAB command windows: `mex -setup`
 
 ## System Requirements for using Lanelet2
 
