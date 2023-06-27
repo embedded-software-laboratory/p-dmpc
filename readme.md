@@ -5,7 +5,7 @@
     - [MATLAB R2023a](#matlab-r2023a)
     - [System Requirements for MATLAB ROS 2 Toolbox](#system-requirements-for-matlab-ros-2-toolbox)
     - [System Requirements for using Lanelet2](#system-requirements-for-using-lanelet2)
-- [Run Exeriments](#run-exeriments)
+- [Run Experiments](#run-experiments)
 - [References](#references)
 - [Acknowledgements](#acknowledgements)
 
@@ -44,9 +44,9 @@ As one map representation we use lanelet2, because it offers libraries with lots
 3. Git Submodules
     1. Since some of our functionality is added by using git submodules, use `git submodule init` after cloning to retrieve the content of these repos.
 
-# Run Exeriments
+# Run Experiments
 
-See [here](/doc/Run_Experiments.md)
+See [here](/docs/Run_Experiments.md)
 
 # References
 
