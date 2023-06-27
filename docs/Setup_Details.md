@@ -30,7 +30,7 @@ If the link already exist,
 
 ## Python
 - Install Python under Ubuntu via package manager and deadsnakes ppa for newer versions
-    - Add an additional package repository: <br> 
+    - Add an additional package repository: <br>
     `sudo add-apt-repository ppa:deadsnakes/ppa`
     - Update the apt cache: `sudo apt update`
     - Install python: `sudo apt install python3.9 python3.9-venv python3.9-dev`
@@ -55,7 +55,7 @@ If the link already exist,
         `sudo rm -f /usr/local/lib/libpython3.9.a` <br>
         `sudo rm -rf /usr/local/lib/python3.9`
 - Add Python to system path environment variable ([Guide](https://realpython.com/add-python-to-path/))
-    - Windows: 
+    - Windows:
         1. Search for *Environment Variables*
         2. Select option *Environment Variables*
         3. *Edit* the variable *Path*
@@ -75,11 +75,11 @@ If the link already exist,
     3. Install the kitware-archive-keyring package to ensure that your keyring stays up to date as we rotate our keys <br>
         `sudo apt install kitware-archive-keyring` <br> `sudo rm /etc/apt/trusted.gpg.d/kitware.gpg`
     4. Note: If running sudo apt update gets the following error
-        ```
-        Err:7 https://apt.kitware.com/ubuntu bionic InRelease
-        The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 6AF7F09730B3F0A4
+
+        > Err:7 https://apt.kitware.com/ubuntu bionic InRelease <br>
+        The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 6AF7F09730B3F0A4 <br>
         Fetched 11.0 kB in 1s (7552 B/s)
-        ```
+
         Copy the public key *6AF7F09730B3F0A4* and run the command <br>
         `sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6AF7F09730B3F0A4`
     5. Finally we can update and install the cmake package <br>
@@ -97,7 +97,7 @@ If the link already exist,
 
 ## C++ Boost
 - Boost contains mostly header-only libraries (no build required) but also some libraries that must be built. These libraries are built with Boost.Build (B2)
-- Windows: [Installation Guide](https://www.boost.org/doc/libs/1_76_0/more/getting_started/windows.html) 
+- Windows: [Installation Guide](https://www.boost.org/doc/libs/1_76_0/more/getting_started/windows.html)
     1. Download [boost_1_76_0.7z](https://www.boost.org/users/history/version_1_76_0.html)
     2. Extract the zipped file into `"C:\Program Files\boost\boost_1_76_0"` <br>
     (This directory is sometimes referred to as $BOOST_ROOT)
@@ -129,8 +129,8 @@ ROS Toolbox cannot find CMake (if you want to use an external CMake)
 - > Error using ros.internal.utilities.getCMakeBinaryPath
 Unable to find CMake in your system. Please install CMake version 3.15.5 or higher and rerun the command.
 - Explanation: Starting with Matlab R2022b, manual installation of CMake is not required since it is part of Matlab installation. If this is not the case and CMake is not contained, this leads to an error. The reason for this is that ROS Toolbox searches for the CMake executable in <br> `"C:\Program Files\MATLAB\<VERSION>\bin\win64\cmake\bin\cmake"`. <br> Although, there is a fallback solution, that does not work on Windows OS. <br> `[status, result] = system('which cmake');`
-- Possible Solutions: 
-    1. Installation of the Matlab Toolbox "Matlab Coder" will install CMake in the Matlab installation folder as [suggested by the Matlab Staff](https://de.mathworks.com/matlabcentral/answers/1973764-matlab-r2022b-and-r2023a-installation-did-not-contain-cmake) 
+- Possible Solutions:
+    1. Installation of the Matlab Toolbox "Matlab Coder" will install CMake in the Matlab installation folder as [suggested by the Matlab Staff](https://de.mathworks.com/matlabcentral/answers/1973764-matlab-r2022b-and-r2023a-installation-did-not-contain-cmake)
     2. Creating a symbolic link for the missing folder *cmake* with the [mklink](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/mklink?source=recommendations) command in Windows command prompt `mklink /D "C:\Program Files\MATLAB\R2023a\bin\win64\cmake" "C:\Program Files\CMake"`
     3. Adjusting the internal ROS Toolbox script that searches for the CMake executable by substituting `which` with the Windows equivalent `where` in `"C:\Program Files\MATLAB\<VERSION>\toolbox\ros\utilities\+ros\+internal\+utilities\getCMakeBinaryPath.m"`
     4. Create an alias that calls the Windows equivalent `where` instead of `which`. <br>
@@ -148,13 +148,13 @@ On startup Matlab command windows shows a warning
 Installing Matlab Updates or Toolboxes afterwards causes permission problems
 - > Permission denied
 - Since Matlab was installed with sudo, sudo rights are required to install a toolbox. But since Matlab is always started without sudo, the toolbox installer is started without sudo as well.
-- Changing the owner of the Matlab installation directory solves this problem: 
+- Changing the owner of the Matlab installation directory solves this problem:
 <br> `sudo chown -R $LOGNAME: /usr/opt/MATLAB/R2023a`
 <br> (https://de.mathworks.com/matlabcentral/answers/334889-can-t-install-any-toolboxes-because-can-t-write-to-usr-local-matlab-r2017, https://de.mathworks.com/matlabcentral/answers/315712-why-do-i-receive-access-denied-or-folder-error-when-installing-matlab-on-linux)
 
 ## Ubuntu 22.04
-Searching for cmake via Matlab command windows 
-- > `!cmake --version` or `system('cmake --version')`
+Searching for cmake via Matlab command windows
+- `!cmake --version` or `system('cmake --version')`
 - ... results in error:
 - > cmake: /usr/local/MATLAB/R2023a/bin/glnxa64/libcurl.so.4: no version information available (required by cmake) <br>
 cmake: /usr/local/MATLAB/R2023a/sys/os/glnxa64/libstdc++.so.6: version 'GLIBCXX_3.4.30' not found (required by cmake) <br>
@@ -173,7 +173,7 @@ cmake: /usr/local/MATLAB/R2023a/sys/os/glnxa64/libstdc++.so.6: version 'GLIBCXX_
 `sudo apt install libstdc++6` <br>
 (https://askubuntu.com/questions/726539/sudo-apt-get-install-libstdc)
 - If necessary, upgrade libstdc++6 via package repository ppa:ubuntu-toolchain-r/test <br>
-`sudo add-apt-repository ppa:ubuntu-toolchain-r/test` <br> 
+`sudo add-apt-repository ppa:ubuntu-toolchain-r/test` <br>
 `sudo apt-get update` <br>
 `sudo apt upgrade libstdc++6` <br>
 (https://github.com/LedgerHQ/ledger-live-desktop/issues/4016#issuecomment-889455692)
