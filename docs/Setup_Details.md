@@ -29,6 +29,8 @@ If the link already exist,
     - or [replace it](https://de.mathworks.com/matlabcentral/answers/99535-how-do-i-create-symbolic-links-automatically-using-the-silent-installer): `ln -s --force /opt/matlab/bin/matlab /usr/local/bin/matlab`
 
 ## Python
+- Install Python under Ubuntu via package manager and official ppa
+    - `sudo apt install python3.9 python3.9-venv python3.9-dev`
 - Install Python under Ubuntu via package manager and deadsnakes ppa for newer versions
     - Add an additional package repository: <br>
     `sudo add-apt-repository ppa:deadsnakes/ppa`
