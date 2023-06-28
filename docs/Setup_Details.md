@@ -29,14 +29,15 @@ If the link already exist,
     - or [replace it](https://de.mathworks.com/matlabcentral/answers/99535-how-do-i-create-symbolic-links-automatically-using-the-silent-installer): `ln -s --force /opt/matlab/bin/matlab /usr/local/bin/matlab`
 
 ## Python
-- Install Python under Ubuntu via package manager and official ppa
+- Reminder: For Matlab R2023a, it is possible to use Python 3.8 or 3.9
+- Install Python 3.9 under Ubuntu via package manager and official ppa
     - `sudo apt install python3.9 python3.9-venv python3.9-dev`
-- Install Python under Ubuntu via package manager and deadsnakes ppa for newer versions
+- Install Python 3.9 under Ubuntu via package manager and deadsnakes ppa for newer versions
     - Add an additional package repository: <br>
     `sudo add-apt-repository ppa:deadsnakes/ppa`
     - Update the apt cache: `sudo apt update`
     - Install python: `sudo apt install python3.9 python3.9-venv python3.9-dev`
-- Install Python under Ubuntu via build
+- Install Python 3.9.6 under Ubuntu via build
     1. Install prerequisites for building Python <br>
        `sudo apt install libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev`
     2. Download python zip-file <br>
