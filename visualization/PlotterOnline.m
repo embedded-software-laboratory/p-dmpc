@@ -124,9 +124,9 @@ classdef PlotterOnline < Plotter
                 msg (1, 1)
             end
 
+            % get plotting info from ros message
             plotting_info = obj.compute_plotting_info(msg);
 
-            % TODO What to do if message is lost? timeout per plotting timestep?
             % save info
             field_name = strcat('step', num2str(plotting_info.step));
             obj.plotting_info_collection.(field_name){plotting_info.veh_indices(1)} = plotting_info;
@@ -203,6 +203,9 @@ classdef PlotterOnline < Plotter
         end
 
         function plotting_info = compute_plotting_info(obj, msg)
+            % compute a working plotting info object that is needed for plotting
+            % input is a ros2 message
+            % reconstruct matrices from list sent via ros2
             plotting_info = PlottingInfo();
             plotting_info.trajectory_predictions = reshape(msg.trajectory_predictions, 4, numel(msg.trajectory_predictions) / 4)';
             plotting_info.ref_trajectory = zeros(1, obj.scenario.options.Hp, 2);
@@ -218,6 +221,7 @@ classdef PlotterOnline < Plotter
             plotting_info.belonging_vector = msg.belonging_vector;
             plotting_info.coupling_info = cell(1, obj.scenario.options.amount * obj.scenario.options.amount);
 
+            % reconstruct coupling info cell-array-with-structs
             for entry = msg.populated_coupling_infos
                 plotting_info.coupling_info{entry} = msg.coupling_info(msg.populated_coupling_infos == entry);
             end

@@ -10,10 +10,11 @@ function main_distributed_plotting()
     command = ['bash ', script_path];
 
     for i_veh = veh_ids
+        % hand over vehicle ids as arguments
         command = [command, ' ', num2str(i_veh)];
     end
 
-    [~, ~] = system(command);
+    system(command);
     fprintf(' done.\n')
 
     plotter = PlotterOnline(scenario);
@@ -21,6 +22,7 @@ function main_distributed_plotting()
     ros2_node = ros2node('/plant_plotting');
     options = struct("History", "keepall", "Reliability", "reliable", "Durability", "transientlocal");
     amount = scenario.options.amount;
+    % initialize empty message queue
     global plotting_info_queue;
     plotting_info_queue = empty_plotting_info_queue();
     disp(['init subscriber for vehicles ', num2str(veh_ids)]);
@@ -36,11 +38,11 @@ function main_distributed_plotting()
         if ~isempty(msg)
             plotter.ros2_callback(msg);
 
-            if msg.step >= n_steps %* scenario.options.dt >= scenario.options.T_end
+            if msg.step >= n_steps % check if last time step is sent for a vehicle
                 n_finished = n_finished + 1;
             end
 
-            if n_finished == amount
+            if n_finished == amount % check if all vehicles have sent last time step
                 disp('Reached end of simulation. Stop.')
                 break
             end
@@ -51,11 +53,13 @@ function main_distributed_plotting()
 
     end
 
+    % stop session on all remote hlcs
     script_path = fullfile(pwd, 'stop_remote_hlcs.sh');
 
     command = ['bash ', script_path];
 
     for i_veh = veh_ids
+        % hand over vehicle ids as arguments
         command = [command, ' ', num2str(i_veh)];
     end
 
@@ -64,8 +68,9 @@ function main_distributed_plotting()
 end
 
 function generate_plotting_info_msgs()
+    % generate message needed for plotting via ros
     msgList = ros2("msg", "list"); % get all ROS 2 message types
-
+    % check if message type is present
     if ((sum(cellfun(@(c)strcmp(c, 'plotting_info/PlottingInfo'), msgList)) == 0))
         [file_path, ~, ~] = fileparts(mfilename('fullpath'));
         disp('Generating ROS 2 custom message type for distributed plotting...')
@@ -86,6 +91,7 @@ function generate_plotting_info_msgs()
 end
 
 function enqueue_plotting_info(msg)
+    % add new message to end of queue
     global plotting_info_queue;
     plotting_info_queue(end + 1) = msg;
 end
@@ -94,6 +100,7 @@ function msg = dequeue_plotting_info()
     global plotting_info_queue;
 
     if ~isempty(plotting_info_queue)
+        % get and remove first message from queue
         msg = plotting_info_queue(1);
         plotting_info_queue(1) = [];
     else
@@ -110,5 +117,7 @@ function plotting_info_queue = empty_plotting_info_queue()
         'weighted_coupling_reduced', [], 'directed_coupling', [], ...
         'belonging_vector', [], 'coupling_info', [], ...
         'populated_coupling_infos', [], 'MessageType', []);
+    % at this point plotting_info_queue is not an empty struct but one with empty entries
+    % remove this entry for queue consistency reason
     plotting_info_queue(1) = [];
 end

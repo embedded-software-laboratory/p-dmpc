@@ -11,7 +11,7 @@ WORKING_NUCS=(01 02 03 05 07 08 10 11 12 13 14 16 19)
 # get numbers of vehicles
 N_VEH=${#VEHICLE_IDS[@]}
 
-# start script non blocking
+# step tmux sessions on all used hlcs
 for (( i=0; i<$N_VEH; i++ )); do
     VEH_ID=${VEHICLE_IDS[$i]}
     sshpass -e ssh -t guest@192.168.1.2${WORKING_NUCS[$i]} 'tmux kill-session -t "matlab-hlc"'

@@ -84,6 +84,7 @@ classdef PlottingInfo
                 obj.lanelet_crossing_areas = obj.lanelet_crossing_areas{filter_self};
             end
 
+            % remove unnecessary field from coupling_info
             try
                 obj.coupling_info = rmfield(obj.coupling_info, {'stac', 'distance', 'collision_type', 'lanelet_realtionship_type', 'is_intersection', 'is_move_side_by_side'});
             catch

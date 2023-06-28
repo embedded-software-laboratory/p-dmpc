@@ -25,7 +25,6 @@ classdef SimLabDistributed < Plant
             topic_name_publish = ['/plant_plotting'];
             obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "plotting_info/PlottingInfo", options);
             obj.msg_to_be_sent = ros2message("plotting_info/PlottingInfo");
-            publisher = obj.publisher;
         end
 
         function [x0, trim_indices] = measure(obj)
@@ -60,6 +59,8 @@ classdef SimLabDistributed < Plant
         end
 
         function compute_msg_to_be_sent(obj, plotting_info)
+            % fill msg to be sent to plotting device with plotting_info
+            % all matrices must be converted into list to comply with ros 2 message format
             obj.msg_to_be_sent.trajectory_predictions = reshape(plotting_info.trajectory_predictions', 1, numel(plotting_info.trajectory_predictions));
             obj.msg_to_be_sent.ref_trajectory = reshape(squeeze(plotting_info.ref_trajectory), 1, numel(plotting_info.ref_trajectory));
             obj.msg_to_be_sent.priorities = int32(plotting_info.priorities);
@@ -75,6 +76,7 @@ classdef SimLabDistributed < Plant
             obj.msg_to_be_sent.populated_coupling_infos = int32(populated_coupling_infos);
             obj.msg_to_be_sent.coupling_info = reshape([plotting_info.coupling_info{:}]', 1, numel([plotting_info.coupling_info{:}]));
 
+            % add one field coupling_info such that ros is fine with the message
             if isempty(obj.msg_to_be_sent.coupling_info)
                 obj.msg_to_be_sent.coupling_info = struct('is_ignored', false);
             end
@@ -82,8 +84,9 @@ classdef SimLabDistributed < Plant
         end
 
         function generate_plotting_info_msgs(obj)
+            % generate message needed for plotting via ros
             msgList = ros2("msg", "list"); % get all ROS 2 message types
-
+            % check if message type is present
             if ((sum(cellfun(@(c)strcmp(c, 'plotting_info/PlottingInfo'), msgList)) == 0))
                 [file_path, ~, ~] = fileparts(mfilename('fullpath'));
                 disp('Generating ROS 2 custom message type for distributed plotting...')
