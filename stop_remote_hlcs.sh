@@ -6,7 +6,7 @@ export SSHPASS=
 VEHICLE_IDS=("$@")
 
 # list of working nucs to be used for execution
-WORKING_NUCS=(01 02 03 05 07 08 10 11 12 13 14 16 19)
+WORKING_NUCS=(01 02 03 05 07 08 10 11 12 13 14 17 16 19)
 
 # get numbers of vehicles
 N_VEH=${#VEHICLE_IDS[@]}
