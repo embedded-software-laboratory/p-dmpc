@@ -20,7 +20,7 @@ N_VEH=${#VEHICLE_IDS[@]}
 
 # copy scripts to nucs
 for (( i=0; i<$N_VEH; i++ )); do
-    sshpass -e rsync -r ./graph_based_planning guest@192.168.1.2${WORKING_NUCS[$i]}:/home/guest/dev/software/high_level_controller/
+    sshpass -e rsync -r --exclude '*/matlab_msg_gen' ./graph_based_planning guest@192.168.1.2${WORKING_NUCS[$i]}:/home/guest/dev/software/high_level_controller/
     sshpass -e ssh -t guest@192.168.1.2${WORKING_NUCS[$i]} 'rm -rf ~/dev/lcc_script_logs; mkdir -p ~/dev/lcc_script_logs; tmux kill-session -t "matlab-hlc"'
 done
 
