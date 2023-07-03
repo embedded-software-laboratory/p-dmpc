@@ -34,6 +34,7 @@ function plot_coupling_lines(M, x0, varargin)
         x = x0(v, :);
         % plot directed coupling
         adjacent_vehicles = find(M(v, :) ~= 0);
+
         if ~isempty(coupling_info) % in case it isnt a commonroad scenario
             all_adjacent_vehicles = find(~cellfun(@isempty, coupling_info(v, :)));
         else
@@ -48,7 +49,7 @@ function plot_coupling_lines(M, x0, varargin)
             redundant_coupling_infos = [coupling_info{v, redundant_entries}];
 
             if ~isempty(redundant_coupling_infos)
-                coupling_ignored = redundant_entries(redundant_coupling_infos.is_ignored);
+                coupling_ignored = redundant_entries([redundant_coupling_infos.is_ignored]);
             else
                 coupling_ignored = [];
             end
