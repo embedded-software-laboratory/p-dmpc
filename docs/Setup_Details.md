@@ -64,13 +64,13 @@ If the link already exist,
         3. *Edit* the variable *Path*
         4. Choose *New* for adding the python path (Standard installation path would look like <br> `"C:\Users\USER\AppData\Local\Programs\Python\Python39\"`)
     - Ubuntu: Not necessary
-- Setup Python in Matlab command windows as described in the [ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)
+- Setup Python in Matlab command window as described in the [ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)
     - Check the Python version of Matlab: `pyenv`
     - Configure a specific Python version: `pyenv(Version="3.9")`
     - If Matlab cannot find Python, try: `pyenv(Version=FullPath/Executable)`
 
 ## CMake
-- Install [lastest CMake](https://askubuntu.com/questions/355565/how-do-i-install-the-latest-version-of-cmake-from-the-command-line) under Ubuntu via [Kitware's PPA](https://apt.kitware.com/)
+- Ubuntu: [Install CMake](https://askubuntu.com/questions/355565/how-do-i-install-the-latest-version-of-cmake-from-the-command-line) latest version under Ubuntu via [Kitware's PPA](https://apt.kitware.com/)
     1. Obtain a copy of kitware's signing key <br>
         `wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null`
     2. Add kitware's repository to your sources list and update <br>
@@ -144,7 +144,7 @@ Starting Matlab from terminal a message appears
 - > Gtk-Message: <timestamp>: Failed to load module "canberra-gtk-module"
 - Message is informal and has no effects on Matlab (https://de.mathworks.com/support/bugreports/1995075, https://de.mathworks.com/matlabcentral/answers/543536-matlab-on-linux-failed-to-load-module-canberra-gtk-module)
 
-On startup Matlab command windows shows a warning
+On startup Matlab command window shows a warning
 - > Warning: X does not support locale en_US.UTF-8
 - The warning message that can be disregarded and it has no impact on the functionality of MATLAB (https://www.mathworks.com/matlabcentral/answers/1929870-why-do-i-get-warning-on-startup-x-does-not-support-locale-en_us-utf-8-when-startup-matlab-with-r2?s_tid=answers_rc1-2_p2_MLT)
 
@@ -156,7 +156,7 @@ Installing Matlab Updates or Toolboxes afterwards causes permission problems
 <br> (https://de.mathworks.com/matlabcentral/answers/334889-can-t-install-any-toolboxes-because-can-t-write-to-usr-local-matlab-r2017, https://de.mathworks.com/matlabcentral/answers/315712-why-do-i-receive-access-denied-or-folder-error-when-installing-matlab-on-linux)
 
 ## Ubuntu 22.04
-Searching for cmake via Matlab command windows
+Searching for cmake via Matlab command window
 - `!cmake --version` or `system('cmake --version')`
 - ... results in error:
 - > cmake: /usr/local/MATLAB/R2023a/bin/glnxa64/libcurl.so.4: no version information available (required by cmake) <br>
