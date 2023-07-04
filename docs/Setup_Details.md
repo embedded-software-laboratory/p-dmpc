@@ -92,7 +92,7 @@ If the link already exist,
     - Ubuntu: Not necessary
 
 ## C++ Compiler
-- Ubuntu: [Install gcc and g++](https://linuxize.com/post/how-to-install-gcc-compiler-on-ubuntu-18-04/)
+- Ubuntu: [Install gcc and g++](https://linuxize.com/post/how-to-install-gcc-compiler-on-ubuntu-18-04/) newer versions
     - Add an additional package repository `sudo add-apt-repository ppa:ubuntu-toolchain-r/test`
     - Update the apt cache: `sudo apt update`
     - Install gcc/g++: `sudo apt install gcc-10 g++-10`
@@ -198,3 +198,4 @@ CMake Minimum Version:
 GCC Minimum Version:
 - Version 6.3+ (see [ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html))
 - Version 7.x+ (see [Supported Compilers](https://de.mathworks.com/support/requirements/supported-compilers-linux.html))
+- Version 10.x+ (see [C++20 Feature "Coroutines" Requirements](https://gcc.gnu.org/projects/cxx-status.html#cxx20))
