@@ -71,7 +71,7 @@ classdef SimLabDistributed < Plant
             obj.msg_to_be_sent.tick_now = int32(plotting_info.tick_now);
             obj.msg_to_be_sent.weighted_coupling_reduced = reshape(plotting_info.weighted_coupling_reduced', 1, numel(plotting_info.weighted_coupling_reduced));
             obj.msg_to_be_sent.directed_coupling = int32(reshape(plotting_info.directed_coupling', 1, numel(plotting_info.directed_coupling)));
-            obj.msg_to_be_sent.belonging_vector = int32(plotting_info.belonging_vector);
+            obj.msg_to_be_sent.belonging_vector = int32(plotting_info.belonging_vector(obj.indices_in_vehicle_list));
             populated_coupling_infos = find(~isempty(reshape(plotting_info.coupling_info', 1, numel(plotting_info.coupling_info))));
             obj.msg_to_be_sent.populated_coupling_infos = int32(populated_coupling_infos);
             obj.msg_to_be_sent.coupling_info = reshape([plotting_info.coupling_info{:}]', 1, numel([plotting_info.coupling_info{:}]));
