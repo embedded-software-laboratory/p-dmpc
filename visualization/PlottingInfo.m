@@ -75,6 +75,7 @@ classdef PlottingInfo
             obj.trajectory_predictions = obj.trajectory_predictions{filter_self'};
             obj.ref_trajectory = obj.ref_trajectory(filter_self, :, :);
             obj.priorities = obj.priorities(filter_self');
+            obj.belonging_vector = obj.belonging_vector(filter_self);
 
             if plot_options.plot_reachable_sets
                 obj.reachable_sets = obj.reachable_sets{filter_self, :};
