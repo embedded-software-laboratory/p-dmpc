@@ -25,6 +25,18 @@ classdef (Abstract) Plant < handle
         function obj = Plant()
         end
 
+        function set_vehicle_ids(obj, vehicle_ids)
+            obj.veh_ids = vehicle_ids;
+            obj.amount = length(obj.veh_ids);
+
+            if obj.amount == 1
+                obj.indices_in_vehicle_list = [find(obj.scenario.options.veh_ids == obj.veh_ids(1), 1)];
+            else
+                obj.indices_in_vehicle_list = 1:obj.amount;
+            end
+
+        end
+
         function setup(obj, scenario)
             % This function does everything in order to run the object
             % later on. If further initialization needs to be done this
@@ -35,15 +47,7 @@ classdef (Abstract) Plant < handle
             % via scenario.set_vehicle_ids
             assert(~isempty(obj.scenario.options.veh_ids));
 
-            obj.veh_ids = obj.scenario.options.veh_ids;
-            obj.amount = length(obj.veh_ids);
-            assert(obj.amount == obj.scenario.options.amount);
-
-            if obj.amount == 1
-                obj.indices_in_vehicle_list = [find(obj.scenario.options.veh_ids == obj.veh_ids(1), 1)];
-            else
-                obj.indices_in_vehicle_list = 1:obj.amount;
-            end
+            obj.set_vehicle_ids(obj.scenario.options.veh_ids);
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
 

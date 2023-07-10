@@ -24,7 +24,7 @@ classdef SimLab < Plant
         function setup(obj, scenario, custom_vehicle_ids)
             % during dry run custom ids might be passed in,
             % otherwise use vehicle IDs corresponging to path IDs
-            if exist('custom_vehicle_ids','var')
+            if exist('custom_vehicle_ids', 'var')
                 scenario.set_vehicle_ids(custom_vehicle_ids);
             else
                 scenario.set_vehicle_ids(scenario.options.path_ids);

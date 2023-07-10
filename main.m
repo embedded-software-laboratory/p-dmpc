@@ -101,6 +101,8 @@ function [result, scenario] = main(varargin)
             end
 
             spmd (scenario.options.amount)
+                % have the plant only control its own vehicle
+                plant.set_vehicle_ids(scenario.options.veh_ids(labindex));
                 hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, plant);
                 [result, scenario] = hlc.run();
             end
