@@ -102,6 +102,7 @@ classdef HLCFactory < handle
             environment_backup = obj.scenario.options.environment;
             T_end_backup = obj.scenario.options.T_end;
             save_result_backup = obj.scenario.options.should_save_result;
+            scenario_vehicle_ids_backup = obj.scenario.options.veh_ids;
             % avoid sending any data to Cpm Lab. Thus, use Sim Lab
             obj.scenario.options.environment = Environment.Simulation;
             plant = PlantFactory.get_experiment_interface(obj.scenario.options.environment);
@@ -115,6 +116,7 @@ classdef HLCFactory < handle
             obj.scenario.options.options_plot_online.is_active = plot_backup;
             obj.scenario.options.T_end = T_end_backup;
             obj.scenario.options.should_save_result = save_result_backup;
+            obj.scenario.set_vehicle_ids(scenario_vehicle_ids_backup);
 
             if obj.scenario.options.use_cpp == true
                 clear mex;

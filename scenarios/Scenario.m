@@ -1,4 +1,4 @@
-classdef Scenario
+classdef Scenario < handle
     % SCENARIO  Scenario class
 
     properties
@@ -40,10 +40,10 @@ classdef Scenario
 
         function set_vehicle_ids(obj, vehicle_ids)
             % ensure vehicle ids have the same type as those received from the lab
-            vehicle_ids = cast(vehicle_ids,"uint8");
+            vehicle_ids = cast(vehicle_ids, "uint8");
             obj.options.veh_ids = vehicle_ids;
 
-            for iVeh = 1:obj.options.amount
+            for iVeh = 1:min(size(obj.vehicles, 2), size(vehicle_ids, 2))
                 % initialize vehicle ids of all vehicles
                 obj.vehicles(iVeh).ID = vehicle_ids(iVeh);
             end

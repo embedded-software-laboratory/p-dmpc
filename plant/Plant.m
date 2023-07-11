@@ -73,7 +73,7 @@ classdef (Abstract) Plant < handle
         end
 
         function send_ready_msg(obj)
-            disp('Plant ready!');
+            % can be overriden in child class if needed
         end
 
     end
