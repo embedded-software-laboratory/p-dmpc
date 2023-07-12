@@ -21,7 +21,7 @@ function create_subscribers(hlc)
     disp('Creating ROS 2 subscribers...')
     start = tic;
 
-    if length(hlc.indices_in_vehicle_list) ~= 1
+    if length(hlc.plant.indices_in_vehicle_list) ~= 1
         % HLC responsible for all vehicle
         % subscribeto all vehicles. HLC will read from its own publishers to
         % simulate distributed behaviour
@@ -29,17 +29,17 @@ function create_subscribers(hlc)
     else
         % HLC responsible for 1 vehicle
         % subscribeto only to other vehicles. Given HLC will read from other HLCs
-        veh_indices_to_be_subscribed = setdiff(1:hlc.scenario.options.amount, hlc.indices_in_vehicle_list);
+        veh_indices_to_be_subscribed = setdiff(1:hlc.scenario.options.amount, hlc.plant.indices_in_vehicle_list);
     end
 
     veh_ids_to_be_subscribed = [hlc.scenario.options.veh_ids(veh_indices_to_be_subscribed)];
     amount = hlc.scenario.options.amount;
     % subscribe to all other vehicles
-    hlc.ros_subscribers.traffic = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount);
+    hlc.ros_subscribers.traffic = create_subscriber(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.traffic, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount);
     % subscribe to all vehicles
-    hlc.ros_subscribers.predictions = create_subscriber(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.predictions, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount);
+    hlc.ros_subscribers.predictions = create_subscriber(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.predictions, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount);
 
-    if length(hlc.indices_in_vehicle_list) == 1
+    if length(hlc.plant.indices_in_vehicle_list) == 1
         pause(5.0) % wait for all subscribers to be created in distributed case, because otherwise early sent messages will be lost.
     end
 

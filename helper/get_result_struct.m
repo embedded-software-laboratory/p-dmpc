@@ -18,7 +18,7 @@ function result = get_result_struct(hlc)
 
     % create output directory and get the full path where the results will
     % be saved
-    results_full_path = FileNameConstructor.get_results_full_path(scenario.options, hlc.indices_in_vehicle_list);
+    results_full_path = FileNameConstructor.get_results_full_path(scenario.options, hlc.plant.indices_in_vehicle_list);
 
     result.output_path = results_full_path;
 

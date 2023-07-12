@@ -92,7 +92,8 @@ function [result, scenario] = main(varargin)
                 if can_handle_parallel_plot
                     visualization_data_queue = plant.set_visualization_data_queue;
                     % create central plotter - used by all workers via data queue
-                    plotter = PlotterOnline(hlc_factory.scenario);
+                    warning("main.m is handling the plotter");
+                    plotter = PlotterOnline(hlc_factory.scenario, plant.indices_in_vehicle_list);
                     afterEach(visualization_data_queue, @plotter.data_queue_callback);
                 else
                     warning('The currently selected environment cannot handle plotting of a parallel execution!');
@@ -102,7 +103,7 @@ function [result, scenario] = main(varargin)
 
             spmd (scenario.options.amount)
                 % have the plant only control its own vehicle
-                plant.set_vehicle_ids(scenario.options.veh_ids(labindex));
+                plant.setup(scenario, scenario.options.veh_ids(labindex));
                 hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, plant);
                 [result, scenario] = hlc.run();
             end

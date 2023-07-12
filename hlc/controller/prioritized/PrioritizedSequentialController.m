@@ -2,8 +2,8 @@ classdef PrioritizedSequentialController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedSequentialController(scenario, vehicle_ids)
-            obj = obj@PrioritizedController(scenario, vehicle_ids);
+        function obj = PrioritizedSequentialController(scenario, plant)
+            obj = obj@PrioritizedController(scenario, plant);
         end
 
     end

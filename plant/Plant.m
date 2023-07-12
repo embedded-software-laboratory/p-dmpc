@@ -8,9 +8,13 @@ classdef (Abstract) Plant < handle
         cur_node
         scenario
         k
-        veh_ids % which vehicles will controlled by this experiment instance
         amount
+    end
+
+    properties (Access = public)
+        % public so that the HLC can access them
         indices_in_vehicle_list
+        veh_ids % which vehicles will controlled by this experiment instance
     end
 
     methods (Abstract)
@@ -37,7 +41,7 @@ classdef (Abstract) Plant < handle
 
         end
 
-        function setup(obj, scenario)
+        function setup(obj, scenario, ~)
             % This function does everything in order to run the object
             % later on. If further initialization needs to be done this
             % method shall be overriden and called in a child class.

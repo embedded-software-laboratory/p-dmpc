@@ -39,19 +39,17 @@ classdef HLCFactory < handle
                 if length(vehicle_ids) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    hlc = PrioritizedParallelController(obj.scenario, vehicle_ids);
+                    hlc = PrioritizedParallelController(obj.scenario, plant);
                 else
                     % PB Controller controlling all vehicles
-                    hlc = PrioritizedSequentialController(obj.scenario, vehicle_ids);
+                    hlc = PrioritizedSequentialController(obj.scenario, plant);
                 end
 
             else
-                hlc = CentralizedController(obj.scenario, vehicle_ids);
+                hlc = CentralizedController(obj.scenario, plant);
             end
 
             hlc.set_controller_name(obj.get_controller_name(obj.scenario.options));
-
-            hlc.set_hlc_adapter(plant);
 
         end
 
@@ -96,7 +94,7 @@ classdef HLCFactory < handle
         %
         % Important note: This might take some time depending on how hard to
         % solve the first timestep of this scenario is.
-        function dry_run_hlc(obj, vehicle_ids)
+        function dry_run_hlc(obj)
             disp("Starting dry run of HLC");
             plot_backup = obj.scenario.options.options_plot_online.is_active;
             environment_backup = obj.scenario.options.environment;

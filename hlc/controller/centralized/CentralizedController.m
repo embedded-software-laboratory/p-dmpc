@@ -2,11 +2,11 @@ classdef CentralizedController < HighLevelController
 
     methods
 
-        function obj = CentralizedController(scenario, vehicle_ids)
-            obj = obj@HighLevelController(scenario, vehicle_ids);
+        function obj = CentralizedController(scenario, plant)
+            obj = obj@HighLevelController(scenario, plant);
 
             if obj.scenario.options.use_cpp
-                obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.indices_in_vehicle_list);
+                obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.plant.indices_in_vehicle_list);
             else
                 obj.optimizer = GraphSearch(obj.scenario);
             end
@@ -24,7 +24,7 @@ classdef CentralizedController < HighLevelController
             % falsifies controller_runtime slightly
             subcontroller_timer = tic;
 
-            [info_v, ~] = obj.optimizer.run_optimizer(obj.iter, obj.indices_in_vehicle_list);
+            [info_v, ~] = obj.optimizer.run_optimizer(obj.iter, obj.plant.indices_in_vehicle_list);
 
             if info_v.is_exhausted
                 info_v = handle_graph_search_exhaustion(info_v, obj.scenario, obj.iter);

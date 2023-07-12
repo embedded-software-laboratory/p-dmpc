@@ -34,6 +34,8 @@ classdef SimLab < Plant
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue
+                warning("SimLab is using its own plotter with indices:");
+                disp(obj.indices_in_vehicle_list);
                 obj.plotter = PlotterOnline(obj.scenario, obj.indices_in_vehicle_list);
             end
 

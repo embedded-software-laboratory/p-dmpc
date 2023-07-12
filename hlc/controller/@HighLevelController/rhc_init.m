@@ -27,7 +27,7 @@ function rhc_init(obj, x_measured, trims_measured)
         obj.iter.hdv_reachable_sets(iHdv, ~empty_sets) = reachable_sets_array;
 
         % update reduced coupling adjacency for cav/hdv-pairs
-        for iVeh = obj.indices_in_vehicle_list
+        for iVeh = obj.plant.indices_in_vehicle_list
             x_cav = x_measured(iVeh, :);
             lanelet_id_cav = map_position_to_closest_lanelets(obj.scenario.lanelets, x_cav(idx.x), x_cav(idx.y));
             obj.iter.hdv_adjacency(iVeh, iHdv) = ~is_hdv_behind( ...
@@ -44,7 +44,7 @@ function rhc_init(obj, x_measured, trims_measured)
     % remove manual vehicle states for further calculations
     x_measured = x_measured(1:obj.scenario.options.amount, :);
 
-    for iVeh = obj.indices_in_vehicle_list
+    for iVeh = obj.plant.indices_in_vehicle_list
         % states of controlled vehicles can be measured directly
         obj.iter.x0(iVeh, :) = x_measured(iVeh, :);
         % get own trim
@@ -195,11 +195,11 @@ function rhc_init(obj, x_measured, trims_measured)
 
     if obj.scenario.options.is_prioritized && obj.amount == 1
         %% read messages from other vehicles (There shouldn't be any other vehicles if centralized)
-        other_vehicles = setdiff(1:obj.scenario.options.amount, obj.indices_in_vehicle_list);
-        latest_msgs = read_messages(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.traffic, obj.k, obj.scenario.options.amount - 1);
+        other_vehicles = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
+        latest_msgs = read_messages(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.traffic, obj.k, obj.scenario.options.amount - 1);
 
         for iVeh = other_vehicles
-            %latest_msg_i = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.traffic, obj.ros_subscribers.traffic{iVeh}, obj.k);
+            %latest_msg_i = read_message(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.traffic, obj.ros_subscribers.traffic{iVeh}, obj.k);
             latest_msg_i = latest_msgs(find([latest_msgs.vehicle_id] == obj.scenario.options.veh_ids(iVeh), 1));
             obj.iter.x0(iVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
             obj.iter.trim_indices(iVeh) = latest_msg_i.current_trim_index;
