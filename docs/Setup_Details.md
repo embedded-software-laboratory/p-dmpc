@@ -43,7 +43,7 @@ If the link already exist,
     2. Download python zip-file <br>
        `wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz`
     3. Extract the zipped file and move in the directory <br>
-       `tar -xzf Python-3.9.6.tgz cd Python-3.9.6`
+       `tar -xzf Python-3.9.6.tgz && cd Python-3.9.6`
     4. Execute configure script. It will carry out some tests to ensure that the necessary dependencies are available. (options: python binary is optimized, shared libraries are build, pip is installed, installation directory will be “/usr/local”) <br>
        `./configure --enable-optimizations --enable-shared --with-ensurepip=install --prefix=/usr/local`
     5. Initiate the build process of the python binaries. <br> `make`
