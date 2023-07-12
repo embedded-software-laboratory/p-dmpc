@@ -65,7 +65,6 @@ classdef CpmLab < Plant
             obj.dt_period_nanos = uint64(scenario.options.dt * 1e9);
 
             % vehicle ids should not be set yet, set them now
-            assert(isempty(scenario.options.veh_ids));
             scenario.set_vehicle_ids(state_list.active_vehicle_ids);
             setup@Plant(obj, scenario);
         end
@@ -157,7 +156,7 @@ classdef CpmLab < Plant
                 obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
 
                 vehicle_command_trajectory = VehicleCommandTrajectory;
-                vehicle_command_trajectory.vehicle_id = uint8(obj.scenario.options.veh_ids(iVeh));
+                vehicle_command_trajectory.vehicle_id = uint8(obj.scenario.vehicles(iVeh).ID);
                 vehicle_command_trajectory.trajectory_points = trajectory_points;
                 vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
                     uint64(obj.sample(end).t_now);

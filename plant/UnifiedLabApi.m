@@ -242,7 +242,7 @@ classdef UnifiedLabApi < Plant
                 obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
 
                 vehicle_command_trajectory = ros2message(obj.publisher_trajectoryCommand);
-                vehicle_command_trajectory.vehicle_id = int32(obj.scenario.options.veh_ids(iVeh));
+                vehicle_command_trajectory.vehicle_id = int32(obj.scenario.vehicles(iVeh).ID);
                 vehicle_command_trajectory.trajectory = trajectory_points;
                 vehicle_command_trajectory.t_creation = obj.enhance_timepoint(obj.sample.current_time, 0); % Just use as conversion function
                 vehicle_command_trajectory.t_valid_after = obj.enhance_timepoint(obj.sample.current_time, obj.dt_period_nanos + 1);

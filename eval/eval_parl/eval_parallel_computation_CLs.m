@@ -41,7 +41,7 @@ function eval_parallel_computation_CLs()
             end
 
             options.max_num_CLs = CLs_s(j);
-            options.veh_ids = sort(randsample(random_seed, 1:40, options.amount), 'ascend');
+            options.path_ids = sort(randsample(random_seed, 1:40, options.amount), 'ascend');
 
             full_path = FileNameConstructor.get_results_full_path(options, options.amount);
 

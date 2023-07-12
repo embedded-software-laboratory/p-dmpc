@@ -31,7 +31,7 @@ classdef HLCFactory < handle
             end
 
             if dry_run
-                obj.dry_run_hlc(vehicle_ids);
+                obj.dry_run_hlc(plant.veh_ids);
             end
 
             if obj.scenario.options.is_prioritized
@@ -94,29 +94,26 @@ classdef HLCFactory < handle
         %
         % Important note: This might take some time depending on how hard to
         % solve the first timestep of this scenario is.
-        function dry_run_hlc(obj)
+        function dry_run_hlc(obj, dry_run_vehicle_ids)
             disp("Starting dry run of HLC");
             plot_backup = obj.scenario.options.options_plot_online.is_active;
             environment_backup = obj.scenario.options.environment;
             T_end_backup = obj.scenario.options.T_end;
             save_result_backup = obj.scenario.options.should_save_result;
-            scenario_vehicle_ids_backup = obj.scenario.options.veh_ids;
             % avoid sending any data to Cpm Lab. Thus, use Sim Lab
             obj.scenario.options.environment = Environment.Simulation;
             plant = PlantFactory.get_experiment_interface(obj.scenario.options.environment);
             obj.scenario.options.options_plot_online.is_active = false;
             obj.scenario.options.T_end = 2 * obj.scenario.options.dt;
             obj.scenario.options.should_save_result = false;
-            % have dry run use the same IDs as the experiment later
-            plant.setup(obj.scenario, obj.scenario.options.veh_ids);
+            plant.setup(obj.scenario, dry_run_vehicle_ids);
 
-            hlc = obj.get_hlc(obj.scenario.options.veh_ids, false, plant);
+            hlc = obj.get_hlc(dry_run_vehicle_ids, false, plant);
             hlc.run();
             obj.scenario.options.environment = environment_backup;
             obj.scenario.options.options_plot_online.is_active = plot_backup;
             obj.scenario.options.T_end = T_end_backup;
             obj.scenario.options.should_save_result = save_result_backup;
-            obj.scenario.set_vehicle_ids(scenario_vehicle_ids_backup);
 
             if obj.scenario.options.use_cpp == true
                 clear mex;
