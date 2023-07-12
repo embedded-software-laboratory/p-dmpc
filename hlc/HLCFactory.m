@@ -109,8 +109,10 @@ classdef HLCFactory < handle
             obj.scenario.options.options_plot_online.is_active = false;
             obj.scenario.options.T_end = 2 * obj.scenario.options.dt;
             obj.scenario.options.should_save_result = false;
-            plant.setup(obj.scenario, vehicle_ids);
-            hlc = obj.get_hlc(vehicle_ids, false, plant);
+            % have dry run use the same IDs as the experiment later
+            plant.setup(obj.scenario, obj.scenario.options.veh_ids);
+
+            hlc = obj.get_hlc(obj.scenario.options.veh_ids, false, plant);
             hlc.run();
             obj.scenario.options.environment = environment_backup;
             obj.scenario.options.options_plot_online.is_active = plot_backup;

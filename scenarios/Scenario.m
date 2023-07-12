@@ -43,7 +43,7 @@ classdef Scenario < handle
             vehicle_ids = cast(vehicle_ids, "uint8");
             obj.options.veh_ids = vehicle_ids;
 
-            for iVeh = 1:min(size(obj.vehicles, 2), size(vehicle_ids, 2))
+            for iVeh = 1:size(obj.vehicles, 2)
                 % initialize vehicle ids of all vehicles
                 obj.vehicles(iVeh).ID = vehicle_ids(iVeh);
             end
