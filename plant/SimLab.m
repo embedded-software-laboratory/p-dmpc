@@ -26,7 +26,7 @@ classdef SimLab < Plant
             arguments
                 obj (1, 1) SimLab
                 scenario (1, 1) Scenario
-                vehicle_ids (1, :) int32 = scenario.path_ids
+                vehicle_ids (1, :) = scenario.options.path_ids
             end
 
             setup@Plant(obj, scenario, vehicle_ids);

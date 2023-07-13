@@ -34,13 +34,18 @@ classdef (Abstract) Plant < handle
 
             if obj.amount == 1
                 % Plant should control a single vehicle only in MATLAB Parallel Pool
-                assert(obj.scenario.options.environment == Environment.SimLab);
-                obj.indices_in_vehicle_list = [find(obj.veh_ids == vehicle_ids(1), 1)];
+                assert(obj.scenario.options.environment == Environment.Simulation);
+                obj.indices_in_vehicle_list = find(obj.veh_ids == vehicle_ids(1), 1);
             else
                 obj.indices_in_vehicle_list = 1:obj.amount;
             end
 
             obj.veh_ids = vehicle_ids;
+            disp('after Plant.set_vehicle_ids, have veh_ids, amount');
+            disp(obj.veh_ids);
+            disp(obj.amount);
+            disp('and indices:');
+            disp(obj.indices_in_vehicle_list);
         end
 
         function setup(obj, scenario, vehicle_ids)
