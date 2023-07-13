@@ -30,28 +30,33 @@ classdef (Abstract) Plant < handle
         end
 
         function set_vehicle_ids(obj, vehicle_ids)
-            obj.veh_ids = vehicle_ids;
-            obj.amount = length(obj.veh_ids);
+            obj.amount = length(vehicle_ids);
 
             if obj.amount == 1
-                obj.indices_in_vehicle_list = [find(obj.scenario.options.veh_ids == obj.veh_ids(1), 1)];
+                % Plant should control a single vehicle only in MATLAB Parallel Pool
+                assert(obj.scenario.options.environment == Environment.SimLab);
+                obj.indices_in_vehicle_list = [find(obj.veh_ids == vehicle_ids(1), 1)];
             else
                 obj.indices_in_vehicle_list = 1:obj.amount;
             end
 
+            obj.veh_ids = vehicle_ids;
         end
 
-        function setup(obj, scenario, ~)
+        function setup(obj, scenario, vehicle_ids)
+
+            arguments
+                obj (1, 1) Plant
+                scenario (1, 1) Scenario
+                vehicle_ids (1, :)
+            end
+
             % This function does everything in order to run the object
             % later on. If further initialization needs to be done this
             % method shall be overriden and called in a child class.
             obj.scenario = scenario;
 
-            % The child class method should have set the vehicle ids
-            % via scenario.set_vehicle_ids
-            assert(~isempty(obj.scenario.options.veh_ids));
-
-            obj.set_vehicle_ids(obj.scenario.options.veh_ids);
+            obj.set_vehicle_ids(vehicle_ids);
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
 
