@@ -42,7 +42,7 @@ Some functionalities such as the graph search can optionally done in C++. The wr
     1. Install CMake 3.19+ ([Windows Download](<https://cmake.org/download/>))
     2. Windows: Add it to your system path variable
 - C++ compiler
-    - Ubuntu: Install gcc and g++ version 10.x+ and make it default
+    1. Ubuntu: Install gcc and g++ version 10.x+ and make it default
 - C++ Boost
     1. Install Boost 1.76 ([Download](https://www.boost.org/users/history/))
     2. Windows: Create the following environment variables so that CMake can find Boost <br>
