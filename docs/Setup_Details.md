@@ -7,6 +7,14 @@
 
 # Installation
 
+- [Ubuntu Basics](#ubuntu-basics)
+- [Matlab](#matlab)
+- [Python](#python)
+- [CMake](#cmake)
+- [C++ Compiler](#c-compiler)
+- [C++ Boost](#c-boost)
+- [Rosless Lanelet2](#rosless-lanelet2)
+
 ## Ubuntu basics
 - Package build-essential to compile basic C/C++ software: <br> `sudo apt install build-essential`
 
@@ -152,6 +160,11 @@ If the link already exist,
     4. Restart the computer that the environment variables can be updated
 
 # Troubleshooting Matlab
+
+- [Windows](#windows)
+- [Ubuntu 18.04 and 22.04](#ubuntu-1804-and-2204)
+- [Ubuntu 22.04](#ubuntu-2204)
+
 ## Windows
 ROS Toolbox cannot find CMake (if you want to use an external CMake)
 - > Error using ros.internal.utilities.getCMakeBinaryPath
