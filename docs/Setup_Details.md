@@ -1,7 +1,7 @@
 # Setup Details
 
 - [Installation](#installation)
-- [Troubleshooting](#troubleshooting)
+- [Troubleshooting Matlab](#troubleshooting-matlab)
 - [Troubleshooting Rosless Lanelet2](#troubleshooting-rosless-lanelet2)
 - [Requirements Remarks](#requirements-remarks)
 
@@ -151,7 +151,7 @@ If the link already exist,
     `sudo cmake --build . --target install`
     4. Restart the computer that the environment variables can be updated
 
-# Troubleshooting
+# Troubleshooting Matlab
 ## Windows
 ROS Toolbox cannot find CMake (if you want to use an external CMake)
 - > Error using ros.internal.utilities.getCMakeBinaryPath
