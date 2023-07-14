@@ -165,6 +165,13 @@ Unable to find CMake in your system. Please install CMake version 3.15.5 or high
 This can be done with the [doskey](https://blog.doubleslash.de/effizienter-arbeiten-in-der-windows-command-prompt-mit-doskey) command `doskey which = where $*` in Windows command prompt (cmd). Since the alias would be temporary for the active cmd, it must be made permanent which requires adjusting the Windows registry as described [here](https://superuser.com/questions/1134368/create-permanent-doskey-in-windows-cmd) or [here](https://blog.doubleslash.de/effizienter-arbeiten-in-der-windows-command-prompt-mit-doskey).
 
 ## Ubuntu 18.04 and 22.04
+Installing Matlab Updates or Toolboxes afterwards causes permission problems
+- > Permission denied
+- Since Matlab was installed with sudo, sudo rights are required to install a toolbox. But since Matlab is always started without sudo, the toolbox installer is started without sudo as well.
+- Changing the owner of the Matlab installation directory solves this problem:
+<br> `sudo chown -R $LOGNAME: /usr/opt/MATLAB/R2023a`
+<br> (https://de.mathworks.com/matlabcentral/answers/334889-can-t-install-any-toolboxes-because-can-t-write-to-usr-local-matlab-r2017, https://de.mathworks.com/matlabcentral/answers/315712-why-do-i-receive-access-denied-or-folder-error-when-installing-matlab-on-linux)
+
 Starting Matlab from terminal a message appears
 - > Gtk-Message: <timestamp>: Failed to load module "canberra-gtk-module"
 - Message is informal and has no effects on Matlab (https://de.mathworks.com/support/bugreports/1995075, https://de.mathworks.com/matlabcentral/answers/543536-matlab-on-linux-failed-to-load-module-canberra-gtk-module)
@@ -172,13 +179,6 @@ Starting Matlab from terminal a message appears
 On startup Matlab command window shows a warning
 - > Warning: X does not support locale en_US.UTF-8
 - The warning message that can be disregarded and it has no impact on the functionality of MATLAB (https://www.mathworks.com/matlabcentral/answers/1929870-why-do-i-get-warning-on-startup-x-does-not-support-locale-en_us-utf-8-when-startup-matlab-with-r2?s_tid=answers_rc1-2_p2_MLT)
-
-Installing Matlab Updates or Toolboxes afterwards causes permission problems
-- > Permission denied
-- Since Matlab was installed with sudo, sudo rights are required to install a toolbox. But since Matlab is always started without sudo, the toolbox installer is started without sudo as well.
-- Changing the owner of the Matlab installation directory solves this problem:
-<br> `sudo chown -R $LOGNAME: /usr/opt/MATLAB/R2023a`
-<br> (https://de.mathworks.com/matlabcentral/answers/334889-can-t-install-any-toolboxes-because-can-t-write-to-usr-local-matlab-r2017, https://de.mathworks.com/matlabcentral/answers/315712-why-do-i-receive-access-denied-or-folder-error-when-installing-matlab-on-linux)
 
 ## Ubuntu 22.04
 Searching for cmake via Matlab command window
