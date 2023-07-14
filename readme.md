@@ -53,15 +53,15 @@ Some functionalities such as the graph search can optionally done in C++. The wr
     1. Ubuntu: Install the package build-essential for compiling basic C++ software: <br> `sudo apt install build-essential`
 
 ## System Requirements for using Lanelet2
+Under Ubuntu we use lanelet2 as one further map representation, because it offers libraries with lots of useful functionality. Since the libraries only exist in Python and C++, mex functions are used to benefit from that. In order to compile these mex functions the following requirements need to be met.
 
-As one map representation we use lanelet2, because it offers libraries with lots of useful functionality. Since the libraries only exist in Python and C++, mex functions are used to benefit from that. In order to compile these mex functions the following dependencies need to be met.
-
+- Dependencies for Lanelet2
+    1. Install Boost 1.76 ([Download](https://www.boost.org/users/history/))
+    2. Install further dependencies Eigen3, Geographic, PugiXml </br> `sudo apt install libeigen3-dev libgeographic-dev libpugixml-dev`
 - Lanelet2
-    1. Install according to <https://github.com/fzi-forschungszentrum-informatik/Lanelet2#installation> . Under Ubuntu22 you probably want to use it as part of the ROS2 humble version, i.e., `sudo apt install ros-humble-lanelet2`
-- Eigen3
-    1. Install Eigen3 as dependency of Lanelet2. In Ubuntu, the following command should be sufficient: `sudo apt install libeigen3-dev`
+    1. Install [Rosless-Lanelet2 from Github](https://github.com/embedded-software-laboratory/Rosless-Lanelet2)
 - Git Submodules
-    1. Since some of our functionality is added by using git submodules, use `git submodule init` after cloning to retrieve the content of these repos.
+    1. Update the submodules after cloning to retrieve the content of these repos
 
 ## Setup Details
 More detailed information including troubleshooting can be found [here](./docs/Setup_Details.md)
