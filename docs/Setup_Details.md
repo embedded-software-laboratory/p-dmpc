@@ -126,6 +126,30 @@ If the link already exist,
     `sudo rm -f /usr/lib/libboost_*` <br>
     `sudo rm -r /usr/include/boost`
 
+## Rosless Lanelet2
+- Dependencies:
+    - boost
+    - eigen3
+    - pugixml (for lanelet2_io)
+    - geographic (for lanelet2_projection)
+- Preparation:
+    1. [Install C++ boost version 1.76](#c-boost)
+    2. Install further dependencies of Lanelet2 </br>
+    `sudo apt install libboost-dev libeigen3-dev libgeographic-dev libpugixml-dev`
+    3. Clone the repository [Rosless-Lanelet2 from Github](https://github.com/embedded-software-laboratory/Rosless-Lanelet2) </br>
+    `git clone https://github.com/embedded-software-laboratory/Rosless-Lanelet2.git`
+    4. Change directory to the cloned repository </br> `cd Rosless-Lanelet2`
+    5. Checkout specific commit to ensure the desired behavior </br>
+    `git checkout 0f190ed17d5060bc30eb03d7ac0d10bf06702096`
+- Installation:
+    1. Make build directory and change to it </br> `mkdir build` </br> `cd build`
+    2. Configure the project and specify the installation directory </br> (default installation destinations are in '/usr/local') </br>
+    `cmake .. -DCMAKE_INSTALL_PREFIX=<install-dir>`
+    3. Build the target install to install the libraries </br>
+    (sudo rights are required for write access at the destinations) </br>
+    `sudo cmake --build . --target install`
+    4. Restart the computer that the environment variables can be updated
+
 # Troubleshooting
 ## Windows
 ROS Toolbox cannot find CMake (if you want to use an external CMake)
