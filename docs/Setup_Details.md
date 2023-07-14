@@ -2,6 +2,7 @@
 
 - [Installation](#installation)
 - [Troubleshooting](#troubleshooting)
+- [Troubleshooting Rosless Lanelet2](#troubleshooting-rosless-lanelet2)
 - [Requirements Remarks](#requirements-remarks)
 
 # Installation
@@ -206,6 +207,12 @@ cmake: /usr/local/MATLAB/R2023a/sys/os/glnxa64/libstdc++.so.6: version 'GLIBCXX_
 (https://github.com/LedgerHQ/ledger-live-desktop/issues/4016#issuecomment-889455692)
 - Force Matlab to load the external libstdc++.so.6 with environment variable $LD_PRELOAD <br>
 (https://de.mathworks.com/matlabcentral/answers/329796-issue-with-libstdc-so-6)
+
+## Troubleshooting Rosless Lanelet2
+
+Boost warning massage during the build process
+- > #pragma message: This header is deprecated. Use \<iterator> instead.
+- The message occurs for boost versions 1.74, 1.75, and 1.76 since the graph library uses the headers (https://github.com/boostorg/graph/issues/228)
 
 # Requirements Remarks
 Mathworks [Platform Road Map](https://de.mathworks.com/support/requirements/platform-road-map.html) shows an overview of supported OS for Matlab and Simulink.
