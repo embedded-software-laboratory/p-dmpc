@@ -243,3 +243,6 @@ GCC Minimum Version:
 - Version 6.3+ (see [ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html))
 - Version 7.x+ (see [Supported Compilers](https://de.mathworks.com/support/requirements/supported-compilers-linux.html))
 - Version 10.x+ (see [C++20 Feature "Coroutines" Requirements](https://gcc.gnu.org/projects/cxx-status.html#cxx20))
+
+Boost Version:
+- Version 1.76 (latest version which we managed running with Lanelet2)
