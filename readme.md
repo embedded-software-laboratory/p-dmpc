@@ -61,7 +61,7 @@ Under Ubuntu we use lanelet2 as one further map representation, because it offer
 - Lanelet2
     1. Install [Rosless-Lanelet2 from Github](https://github.com/embedded-software-laboratory/Rosless-Lanelet2)
 - Git Submodules
-    1. Update the submodules after cloning to retrieve the content of these repos
+    1. Update the submodules after cloning to retrieve the content of these repos </br> `git submodule update --init`
 
 ## Setup Details
 More detailed information including troubleshooting can be found [here](./docs/Setup_Details.md)
