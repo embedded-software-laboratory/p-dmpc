@@ -3,7 +3,7 @@ results/
 profile_results
 ui/Config.json
 Config.json
-
+derived/*
 
 # Ignore PDF file
 *.pdf
