@@ -32,7 +32,15 @@ classdef (Abstract) Plant < handle
         function set_vehicle_ids(obj, vehicle_ids)
             obj.amount = length(vehicle_ids);
 
+            if isempty(obj.veh_ids)
+                obj.veh_ids = vehicle_ids;
+            end
+
             if obj.amount == 1
+                fprintf("called Plant.set_vehicle_ids with amount=1 and obj.veh_ids: ");
+                disp(obj.veh_ids);
+                disp('and vehicle_ids as parameter: ');
+                disp(vehicle_ids);
                 % Plant should control a single vehicle only in MATLAB Parallel Pool
                 assert(obj.scenario.options.environment == Environment.Simulation);
                 obj.indices_in_vehicle_list = find(obj.veh_ids == vehicle_ids(1), 1);
@@ -48,7 +56,7 @@ classdef (Abstract) Plant < handle
             disp(obj.indices_in_vehicle_list);
         end
 
-        function setup(obj, scenario, vehicle_ids)
+        function setup(obj, scenario, vehiresult.vehicle_idscle_ids)
 
             arguments
                 obj (1, 1) Plant

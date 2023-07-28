@@ -25,11 +25,6 @@ function scenarios = commonroad_random(options, nVeh, seed)
             scenario = commonroad(options, options.path_ids);
             scenario.random_stream = random_stream;
 
-            for idVeh = 1:options.amount
-                % initialize vehicle ids of all vehicles
-                scenario.vehicles(idVeh).ID = path_ids(idVeh);
-            end
-
             scenarios(iVeh, iSeed) = scenario;
         end
 

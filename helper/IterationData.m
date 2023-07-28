@@ -38,12 +38,13 @@ classdef IterationData
         lanelet_crossing_areas
         timer % struct, used to store computation time of different parts
         vehicles % copy of vehicle list (useful for filtered)
+        vehicle_ids
         amount % number of involved vehicles (useful for filtered)
     end
 
     methods
 
-        function obj = IterationData(scenario, k)
+        function obj = IterationData(scenario, k, vehicle_ids)
             nVeh = scenario.options.amount;
             Hp = scenario.options.Hp;
             hdv_amount = scenario.options.manual_control_config.amount;
@@ -79,6 +80,7 @@ classdef IterationData
             obj.lanelet_crossing_areas = {};
             obj.amount = nVeh;
             obj.vehicles = scenario.vehicles;
+            obj.vehicle_ids = vehicle_ids;
             obj.coupling_info = cell(nVeh, nVeh);
         end
 
