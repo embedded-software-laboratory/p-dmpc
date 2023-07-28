@@ -56,7 +56,9 @@ function main_distributed_plotting()
     % stop session on all remote hlcs
     script_path = fullfile(pwd, 'stop_remote_hlcs.sh');
 
-    command = ['bash ', script_path];
+    command = ['bash ', script_path, ' ', num2str(numel(veh_ids))];
+    [~, ~] = system(command);
+
 
     for i_veh = veh_ids
         % hand over vehicle ids as arguments
