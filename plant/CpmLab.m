@@ -56,10 +56,15 @@ classdef CpmLab < Plant
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
             % get middleware period from vehicle state list message
-            [sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
+            sample_count = 0;
 
-            if (sample_count > 1) | (sample_count == 0)
-                warning('Received %d samples, expected 1. Missed deadline?', sample_count);
+            while ~sample_count
+                [sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
+
+                if ~sample_count
+                    warning('Did not receive vehicle state list from middleware. Trying again...');
+                end
+
             end
 
             state_list = sample(end);
