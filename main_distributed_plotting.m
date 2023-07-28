@@ -5,7 +5,7 @@ function main_distributed_plotting()
     veh_ids = scenario.options.veh_ids;
 
     fprintf('Starting remote HLCs...');
-    script_path = fullfile(pwd, 'main_distributed_plotting.sh'); % assumes script is in curent directory
+    script_path = fullfile(pwd, 'deploy_remote_hlcs.sh'); % assumes script is in curent directory
 
     command = ['bash ', script_path];
 
