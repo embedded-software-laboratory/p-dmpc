@@ -1,4 +1,4 @@
-function results = main_distributed_plotting()
+function results = main_nuc_simulation()
     close all
     clear all
     scenario = load('scenario.mat', 'scenario').scenario;
