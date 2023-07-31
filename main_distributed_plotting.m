@@ -36,10 +36,13 @@ function results = main_distributed_plotting()
         msg = dequeue_plotting_info();
 
         if ~isempty(msg)
-            plotter.ros2_callback(msg);
 
-            if msg.step >= n_steps % check if last time step is sent for a vehicle
+            if msg.step == -1 % check whether end-message was send
                 n_finished = n_finished + 1;
+            elseif scenario.options.options_plot_online.is_active
+                plotter.ros2_callback(msg);
+            end
+
             end
 
             if n_finished == amount % check if all vehicles have sent last time step

@@ -118,6 +118,8 @@ classdef SimLabDistributed < Plant
 
         function end_run(obj)
             disp('End')
+            obj.msg_to_be_sent.step = int32(-1);
+            send(obj.publisher, obj.msg_to_be_sent); % send end message
         end
 
     end
