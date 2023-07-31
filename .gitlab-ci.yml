@@ -57,9 +57,7 @@ Startup:
         lastwarn('', '');
         openProject('graph_based_planning.prj');
         [warnMsg, warnId] = lastwarn();
-        if(~isempty(warnId))
-            error(warnMsg, warnId);
-        end"
+        assert(isempty(warnId));"
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   tags:
