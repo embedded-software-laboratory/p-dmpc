@@ -29,7 +29,7 @@ stages:
   extends: .matlab_with_test_summary
   variables:
     TEST_FOLDER:
-      description: "Folder to execute all unittests for."
+      description: "Folder in which tests are located."
     COVERAGE_FOLDER:
       description: "Folder to compute code coverage for."
   script:
@@ -47,7 +47,7 @@ stages:
         path: tests/coverage/coverageReport.xml
 
 
-Startup Unittest:
+Startup:
   extends: .matlab_defaults
   stage: Build
   script:
@@ -65,17 +65,8 @@ Startup Unittest:
   tags:
     - docker
 
-Unittests:
-  extends: .matlab_with_test_coverage
-  parallel:
-    matrix:
-      - FOLDER: [helper, hlc]
-  variables:
-    TEST_FOLDER: "'tests/unittests/$FOLDER'"
-    COVERAGE_FOLDER: "'$FOLDER'"
-
 Systemtests:
   extends: .matlab_with_test_coverage
   variables:
-    TEST_FOLDER: "'tests/systemtests/systemtests.m'"
+    TEST_FOLDER: "'tests'"
     COVERAGE_FOLDER: "{'config', 'helper', 'hlc', 'manual_control', 'plant', 'scenarios', 'ui', 'visualization'}"
