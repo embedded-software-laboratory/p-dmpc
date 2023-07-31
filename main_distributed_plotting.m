@@ -17,19 +17,21 @@ function results = main_distributed_plotting()
     system(command);
     fprintf(' done.\n')
 
-    plotter = PlotterOnline(scenario);
+    if scenario.options.options_plot_online.is_active
+        plotter = PlotterOnline(scenario);
+    end
+
     generate_plotting_info_msgs();
     ros2_node = ros2node('/plant_plotting');
     options = struct("History", "keepall", "Reliability", "reliable", "Durability", "transientlocal");
-    amount = scenario.options.amount;
-    % initialize empty message queue
-    global plotting_info_queue;
-    plotting_info_queue = empty_plotting_info_queue();
     disp(['init subscriber for vehicles ', num2str(veh_ids)]);
     topic_name_subscribe = ['/plant_plotting'];
     subscriber = ros2subscriber(ros2_node, topic_name_subscribe, "plotting_info/PlottingInfo", @enqueue_plotting_info, options);
-    n_steps = scenario.options.T_end / scenario.options.dt;
+    % initialize empty message queue
+    global plotting_info_queue;
+    plotting_info_queue = empty_plotting_info_queue();
     n_finished = 0;
+    amount = scenario.options.amount;
 
     while true
 
@@ -43,13 +45,11 @@ function results = main_distributed_plotting()
                 plotter.ros2_callback(msg);
             end
 
-            end
+        end
 
-            if n_finished == amount % check if all vehicles have sent last time step
-                disp('Reached end of simulation. Stop.')
-                break
-            end
-
+        if n_finished == amount % check if all vehicles have sent last time step
+            disp('Reached end of simulation. Stop.')
+            break
         end
 
         pause(0.001)
@@ -60,7 +60,10 @@ function results = main_distributed_plotting()
     script_path = fullfile(pwd, 'stop_remote_hlcs.sh');
 
     command = ['bash ', script_path, ' ', num2str(numel(veh_ids))];
+
     [~, ~] = system(command);
+
+    fprintf('Collecting results from remote HLCs...');
 
     % collect all result structs from nucs
     script_path = fullfile(pwd, 'collect_results.sh');
@@ -69,7 +72,11 @@ function results = main_distributed_plotting()
 
     [~, ~] = system(command);
 
-    % load results
+    fprintf(' done.\n')
+
+    % load & merge results
+    fprintf('Merging results into one...');
+
     results = [];
 
     eval_files_folder = dir('/tmp/eval_files_*');
@@ -82,6 +89,8 @@ function results = main_distributed_plotting()
         load([entry.folder, filesep, entry.name]);
         results = merge_results(results, result);
     end
+
+    fprintf('done.\n');
 
 end
 
@@ -99,9 +108,9 @@ function results = merge_results(results, res)
     results.iteration_structs = merge_iteration_structs(results.iteration_structs, res.iteration_structs);
     results.vehicle_path_fullres(i_veh, :) = res.vehicle_path_fullres(i_veh, :);
     results.trajectory_predictions(i_veh, :) = res.trajectory_predictions(i_veh, :);
-    % TODO: over all runtimes
+    % TODO: all runtimes
     for i_step = 1:results.nSteps
-        results.vehs_fallback{i_step} = union(results.vehs_fallback{i_step}, res.vehs_fallback{i_step})
+        results.vehs_fallback{i_step} = union(results.vehs_fallback{i_step}, res.vehs_fallback{i_step});
     end
 
     results.is_deadlock = results.is_deadlock | res.is_deadlock;
