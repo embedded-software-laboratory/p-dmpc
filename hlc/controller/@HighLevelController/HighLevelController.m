@@ -57,7 +57,7 @@ classdef (Abstract) HighLevelController < handle
             obj.plant = plant;
 
             % create fallback for first time step
-            obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, plant.veh_ids);
+            obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, plant.all_veh_ids);
 
             for vehicle_idx = obj.plant.indices_in_vehicle_list
                 k = 1;
@@ -111,7 +111,7 @@ classdef (Abstract) HighLevelController < handle
             % overlapping points are removed when using MATLAB function `polyshape`
             warning('off', 'MATLAB:polyshape:repairedBySimplify')
 
-            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.veh_ids);
+            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_veh_ids);
 
             obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
 

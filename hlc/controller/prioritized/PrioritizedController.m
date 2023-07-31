@@ -60,7 +60,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             Hp = obj.scenario.options.Hp;
 
             % initialize variable to store control results
-            obj.info = ControlResultsInfo(nVeh, Hp, obj.plant.veh_ids);
+            obj.info = ControlResultsInfo(nVeh, Hp, obj.plant.all_veh_ids);
 
             directed_graph = digraph(obj.iter.directed_coupling);
             [obj.belonging_vector_total, ~] = conncomp(directed_graph, 'Type', 'weak'); % graph decomposition

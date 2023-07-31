@@ -104,7 +104,7 @@ function [result, scenario] = main(varargin)
             spmd (scenario.options.amount)
                 % have the plant only control its own vehicle by calling setup a second time
                 controlled_vehicle_id = plant.veh_ids(labindex);
-                plant.setup(scenario, controlled_vehicle_id);
+                plant.set_to_control_single_vehicle(controlled_vehicle_id);
                 hlc = hlc_factory.get_hlc(controlled_vehicle_id, dry_run, plant);
                 [result, scenario] = hlc.run();
             end

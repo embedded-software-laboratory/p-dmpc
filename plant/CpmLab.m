@@ -29,12 +29,11 @@ classdef CpmLab < Plant
 
         end
 
-        function setup(obj, scenario, vehicle_id)
+        function setup(obj, scenario, ~)
 
             arguments
                 obj (1, 1) CpmLab
                 scenario (1, 1) Scenario
-                vehicle_id (1, 1) = -1
             end
 
             % Initialize data readers/writers...
@@ -72,17 +71,6 @@ classdef CpmLab < Plant
             obj.dt_period_nanos = uint64(scenario.options.dt * 1e9);
 
             setup@Plant(obj, scenario, state_list.active_vehicle_ids);
-
-            % in the distributed case, set Plant to only control one vehicle
-            if vehicle_id ~= -1
-                obj.amount = 1;
-                obj.indices_in_vehicle_list = find(obj.veh_ids == vehicle_id);
-                obj.veh_ids = vehicle_id;
-
-                fprintf("distributed case with id=%d, indices = ", vehicle_id);
-                disp(indices_in_vehicle_list);
-            end
-
         end
 
         function [x0, trim_indices] = measure(obj)

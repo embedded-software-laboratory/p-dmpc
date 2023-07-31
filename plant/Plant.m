@@ -15,6 +15,7 @@ classdef (Abstract) Plant < handle
         % public so that the HLC can access them
         indices_in_vehicle_list
         veh_ids % which vehicles will controlled by this experiment instance
+        all_veh_ids % all active vehicle ids. when running distributedly, these can differ from veh_ids
     end
 
     methods (Abstract)
@@ -29,34 +30,26 @@ classdef (Abstract) Plant < handle
         function obj = Plant()
         end
 
-        function set_vehicle_ids(obj, vehicle_ids)
-            obj.amount = length(vehicle_ids);
+        function set_to_control_single_vehicle(obj, vehicle_id)
 
-            if isempty(obj.veh_ids)
-                obj.veh_ids = vehicle_ids;
+            arguments
+                obj (1, 1) Plant
+                vehicle_id (1, 1)
             end
 
-            if obj.amount == 1
-                fprintf("called Plant.set_vehicle_ids with amount=1 and obj.veh_ids: ");
-                disp(obj.veh_ids);
-                disp('and vehicle_ids as parameter: ');
-                disp(vehicle_ids);
-                % Plant should control a single vehicle only in MATLAB Parallel Pool
-                assert(obj.scenario.options.environment == Environment.Simulation);
-                obj.indices_in_vehicle_list = find(obj.veh_ids == vehicle_ids(1), 1);
-            else
-                obj.indices_in_vehicle_list = 1:obj.amount;
-            end
+            obj.amount = 1;
+            obj.veh_ids = vehicle_id;
+            obj.indices_in_vehicle_list = find(obj.all_veh_ids == vehicle_id, 1);
 
-            obj.veh_ids = vehicle_ids;
-            disp('after Plant.set_vehicle_ids, have veh_ids, amount');
+            disp('during set_to_control_single_vehicle, have veh_ids:');
             disp(obj.veh_ids);
-            disp(obj.amount);
+            disp('all_veh_ids:');
+            disp(obj.all_veh_ids);
             disp('and indices:');
             disp(obj.indices_in_vehicle_list);
         end
 
-        function setup(obj, scenario, vehiresult.vehicle_idscle_ids)
+        function setup(obj, scenario, vehicle_ids)
 
             arguments
                 obj (1, 1) Plant
@@ -69,7 +62,17 @@ classdef (Abstract) Plant < handle
             % method shall be overriden and called in a child class.
             obj.scenario = scenario;
 
-            obj.set_vehicle_ids(vehicle_ids);
+            obj.amount = length(vehicle_ids);
+            obj.veh_ids = vehicle_ids;
+            obj.all_veh_ids = vehicle_ids;
+            obj.indices_in_vehicle_list = 1:obj.amount;
+
+            disp('after Plant.setup, have veh_ids, amount');
+            disp(obj.veh_ids);
+            disp(obj.amount);
+            disp('and indices:');
+            disp(obj.indices_in_vehicle_list);
+            disp('as well as all_veh_ids:');
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
 
