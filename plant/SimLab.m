@@ -21,6 +21,24 @@ classdef SimLab < Plant
             obj.use_visualization_data_queue = true;
         end
 
+        function set_to_control_single_vehicle(obj, vehicle_id)
+
+            arguments
+                obj (1, 1) Plant
+                vehicle_id (1, 1)
+            end
+
+            set_to_control_single_vehicle@Plant(obj, vehicle_id);
+
+            % update plotter to also only control single vehicle
+            if obj.should_plot && ~obj.use_visualization_data_queue
+                warning("SimLab is updating its plotter to only plot the following vehicle:");
+                disp(obj.indices_in_vehicle_list);
+                obj.plotter = PlotterOnline(obj.scenario, obj.indices_in_vehicle_list);
+            end
+
+        end
+
         function setup(obj, scenario, vehicle_ids)
 
             arguments

@@ -60,11 +60,11 @@ function create_publishers(hlc)
 
         for index = hlc.plant.indices_in_vehicle_list
             hlc.scenario.vehicles(index).communicate.traffic = TrafficCommunication(); % create instance of the Comunication class
-            hlc.scenario.vehicles(index).communicate.traffic = initialize_communication(hlc.scenario.vehicles(index).communicate.traffic, hlc.plant.veh_ids(index)); % initialize
+            hlc.scenario.vehicles(index).communicate.traffic = initialize_communication(hlc.scenario.vehicles(index).communicate.traffic, hlc.plant.all_veh_ids(index)); % initialize
             hlc.scenario.vehicles(index).communicate.traffic = create_publisher(hlc.scenario.vehicles(index).communicate.traffic); % create publisher
 
             hlc.scenario.vehicles(index).communicate.predictions = PredictionsCommunication(); % create instance of the Comunication class
-            hlc.scenario.vehicles(index).communicate.predictions = initialize_communication(hlc.scenario.vehicles(index).communicate.predictions, hlc.plant.veh_ids(index)); % initialize
+            hlc.scenario.vehicles(index).communicate.predictions = initialize_communication(hlc.scenario.vehicles(index).communicate.predictions, hlc.plant.all_veh_ids(index)); % initialize
             hlc.scenario.vehicles(index).communicate.predictions = create_publisher(hlc.scenario.vehicles(index).communicate.predictions); % create publisher
         end
 

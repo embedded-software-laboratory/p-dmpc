@@ -8,13 +8,13 @@ classdef (Abstract) Plant < handle
         cur_node
         scenario
         k
-        amount
     end
 
     properties (Access = public)
         % public so that the HLC can access them
         indices_in_vehicle_list
         veh_ids % which vehicles will controlled by this experiment instance
+        amount % amount of vehicles controlled by this experiment instance
         all_veh_ids % all active vehicle ids. when running distributedly, these can differ from veh_ids
     end
 

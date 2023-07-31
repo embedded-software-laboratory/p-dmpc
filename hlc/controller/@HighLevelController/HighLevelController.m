@@ -45,7 +45,6 @@ classdef (Abstract) HighLevelController < handle
             % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
-            obj.amount = 0;
             obj.ros_subscribers = {};
             obj.k = 0;
             obj.controller_name = '';
