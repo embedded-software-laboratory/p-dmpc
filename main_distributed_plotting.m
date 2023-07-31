@@ -79,11 +79,13 @@ function results = main_distributed_plotting()
 
     results = [];
 
+    % get list of all current results
     eval_files_folder = dir('/tmp/eval_files_*');
     current_eval_folder = eval_files_folder(end);
     current_eval_folder_dir = [current_eval_folder.folder, filesep, current_eval_folder.name];
     results_list = dir([current_eval_folder_dir, filesep, 'veh_*']);
 
+    % load and merge iteratively
     for i_entry = 1:numel(results_list)
         entry = results_list(i_entry);
         load([entry.folder, filesep, entry.name]);
@@ -98,6 +100,7 @@ function results = merge_results(results, res)
 
     i_veh = find(res.n_expanded(:, 1) ~= 0);
 
+    % if this is the first result just copy
     if isempty(results)
         results = res;
         results.total_fallback_times = zeros(res.scenario.options.amount, 1);
@@ -108,21 +111,26 @@ function results = merge_results(results, res)
     results.iteration_structs = merge_iteration_structs(results.iteration_structs, res.iteration_structs);
     results.vehicle_path_fullres(i_veh, :) = res.vehicle_path_fullres(i_veh, :);
     results.trajectory_predictions(i_veh, :) = res.trajectory_predictions(i_veh, :);
-    % TODO: all runtimes
+
+    % fallback ids are just locally available
+    % therefore merge them as sets
     for i_step = 1:results.nSteps
         results.vehs_fallback{i_step} = union(results.vehs_fallback{i_step}, res.vehs_fallback{i_step});
     end
 
+    % deadlock as boolean
+    % maybe store that beforehand for every vehicle-timestep-combination
     results.is_deadlock = results.is_deadlock | res.is_deadlock;
     results.subcontroller_runtime_each_veh(i_veh, :) = res.subcontroller_runtime_each_veh(i_veh, :);
     results.graph_search_runtime_each_veh(i_veh, :) = res.graph_search_runtime_each_veh(i_veh, :);
     results.n_expanded(i_veh, :) = res.n_expanded(i_veh, :);
+    % INFO: ignore all coupling info, they are the same on each nuc (dont know why they are safed in result AND in IterationData)
+
+    % if someone needs one of these:
     % TODO: obstacles
     % TODO: lanelet_crossing_areas
-    % TODO: max runtimes
-    % TODO: all times need to be checked on how to compute (are they even used anymore)
-    % ignore all coupling stuff, they are the same on each nuc (dont know why they are safed in result and in IterationData)
-    % num couplings on every nuc the same, ignore them (unused either)
+    % TODO: runtimes
+    % TODO: all times need to be checked on how to compute when merged (are they even used anymore)
     results.total_fallback_times(i_veh) = res.total_fallback_times;
 
 end
@@ -131,6 +139,7 @@ function iter = merge_iteration_structs(iter, iter_in)
     n_steps = numel(iter);
     i_veh = find(iter_in{1}.reference_trajectory_index(:, 1) ~= 0);
 
+    % merge iteration struct for every timestep
     for i_step = 1:n_steps
         iter{i_step}.reference_trajectory_points(i_veh, :, :) = iter_in{i_step}.reference_trajectory_points(i_veh, :, :);
         iter{i_step}.reference_trajectory_index(i_veh, :, :) = iter_in{i_step}.reference_trajectory_index(i_veh, :, :);
