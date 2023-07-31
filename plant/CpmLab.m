@@ -34,6 +34,7 @@ classdef CpmLab < Plant
             arguments
                 obj (1, 1) CpmLab
                 scenario (1, 1) Scenario
+                ~
             end
 
             % Initialize data readers/writers...
