@@ -89,7 +89,7 @@ classdef TrafficCommunication
         function latest_msg = read_message(~, sub, time_step, timeout)
             % Read message from the given time step
             if nargin <= 3
-                timeout = 1.0;
+                timeout = 100.0;
             end
 
             is_timeout = true;
@@ -127,7 +127,7 @@ classdef TrafficCommunication
             % Read message from the given time step
             % amount of vehicles to read form. Typically all vehicles - 1
             if nargin <= 3
-                timeout = 1.0;
+                timeout = 100.0;
             end
 
             global stored_traffic_msgs;

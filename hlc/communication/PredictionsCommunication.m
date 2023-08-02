@@ -73,7 +73,7 @@ classdef PredictionsCommunication
         function latest_msg = read_message(~, sub, time_step, timeout)
             % Read message from the given time step
             if nargin <= 3
-                timeout = 0.5;
+                timeout = 100.0;
             end
 
             latest_msg = [];
