@@ -121,8 +121,6 @@ classdef TrafficCommunication
                     error('Unable to receive the current message of step %i from vehicle %s within %d seconds', time_step, sub.TopicName, timeout)
                 end
 
-                return
-
             end
 
             % return the latest message
@@ -158,8 +156,6 @@ classdef TrafficCommunication
                 if throw_error
                     error('Unable to receive the current %i messages of step %i within %d seconds', amount, time_step, timeout)
                 end
-
-                return
 
             end
 

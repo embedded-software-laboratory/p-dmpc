@@ -76,8 +76,6 @@ classdef PredictionsCommunication
                 timeout = 100.0;
             end
 
-            latest_msg = [];
-
             is_timeout = true;
             read_start = tic; read_time = toc(read_start);
 
@@ -101,8 +99,6 @@ classdef PredictionsCommunication
                 if throw_error
                     error('Unable to receive the current message of step %i from vehicle %s within %d seconds', time_step, sub.TopicName, timeout)
                 end
-
-                return
 
             end
 
