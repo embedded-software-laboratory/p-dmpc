@@ -76,6 +76,8 @@ classdef PredictionsCommunication
                 timeout = 0.5;
             end
 
+            latest_msg = [];
+
             is_timeout = true;
             read_start = tic; read_time = toc(read_start);
 
@@ -84,7 +86,6 @@ classdef PredictionsCommunication
                 if ~isempty(sub.LatestMessage)
 
                     if sub.LatestMessage.time_step == time_step
-                        %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
                         is_timeout = false;
                         break
                     end
@@ -96,8 +97,8 @@ classdef PredictionsCommunication
             end
 
             if is_timeout
-                warning(['Unable to receive the current message of step %i from vehicle %s. The pevious message from step ' ...
-                         '%i will be used.'], time_step, sub.TopicName, sub.LatestMessage.time_step)
+                warning('Unable to receive the current message of step %i from vehicle %s within %d seconds', time_step, sub.TopicName, timeout)
+                return
             end
 
             % return the latest message
