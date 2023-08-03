@@ -2,7 +2,7 @@
 
 - [Priority-Based Trajectory Planning for Networked Vehicles Using Motion Primitives](#priority-based-trajectory-planning-for-networked-vehicles-using-motion-primitives)
 - [Setup](#setup)
-- [Run Experiments](#run-experiments)
+- [Experiments](#experiments)
 - [References](#references)
 - [Acknowledgements](#acknowledgements)
 
@@ -40,9 +40,21 @@ For MATLAB R2023a
 
 More detailed information including troubleshooting can be found [here](./docs/Setup_Details.md)
 
-# Run Experiments
+# Experiments
 
-See [here](./docs/Run_Experiments.md)
+1. Execute startup.m to open the project
+    - Compilation of graph_search_mex should fail
+    - Compilation of lanelet2_interface should fail
+    - Compilation of priority_queue should succeed
+2. Execute main.m to run an experiment
+    - Select the environment Simulation
+    - Push the Start button to start the experiment
+    - Options that does not work in this setup are:
+        - Environments: CPM Lab, Unified Lab API
+        - Checkbox: use C++
+        - Scenario: Lanelet2, Lab Default
+
+More detailed information including lab experiments can be found [here](./docs/Run_Experiments.md)
 
 # References
 
