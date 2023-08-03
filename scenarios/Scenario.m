@@ -1,4 +1,4 @@
-classdef Scenario < handle
+classdef Scenario
     % SCENARIO  Scenario class
 
     properties (Access = public)
