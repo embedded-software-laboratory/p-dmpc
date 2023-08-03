@@ -51,13 +51,16 @@ If the link already exist,
     2. Download python zip-file <br>
        `wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz`
     3. Extract the zipped file and move in the directory <br>
-       `tar -xzf Python-3.9.6.tgz && cd Python-3.9.6`
+       `tar -xzf Python-3.9.6.tgz` <br>
+       `cd Python-3.9.6`
     4. Execute configure script. It will carry out some tests to ensure that the necessary dependencies are available. (options: python binary is optimized, shared libraries are build, pip is installed, installation directory will be “/usr/local”) <br>
        `./configure --enable-optimizations --enable-shared --with-ensurepip=install --prefix=/usr/local`
     5. Initiate the build process of the python binaries. <br> `make`
     6. Install python at the system. Use “altinstall” to not overwrite the default python version. <br> `sudo make altinstall`
     7. Remove files no longer needed <br>
-       `sudo cd .. && rm Python-3.9.6.tgz && rm -rf Python-3.9.6`
+       `sudo cd ..` <br>
+       `rm Python-3.9.6.tgz` <br>
+       `rm -rf Python-3.9.6`
     8. EOL: Uninstall python with (https://unix.stackexchange.com/questions/190794/uninstall-python-installed-by-compiling-source) <br>
         `sudo rm -f /usr/local/bin/python3.9` <br>
         `sudo rm -f /usr/local/bin/pip3.9` <br>
@@ -124,7 +127,10 @@ If the link already exist,
     3. Extract it: `tar -xvjf boost_1_76_0.tar.bz2` and change directory: `cd boost_1_76_0`
     4. Prepare installation: `./bootstrap.sh --prefix=/usr/local`
     5. Install libraries (header only and build required): `sudo ./b2 install`
-    6. Remove files no longer needed: <br> `sudo cd .. && rm boost_1_76_0.tar.bz2 && rm -rf boost_1_76_0`
+    6. Remove files no longer needed: <br>
+    `sudo cd ..` <br>
+    `rm boost_1_76_0.tar.bz2` <br>
+    `rm -rf boost_1_76_0`
     7. EOL: Uninstall boost with: (https://stackoverflow.com/questions/8430332/uninstall-boost-and-install-another-version) <br>
     `sudo apt-get -y --purge remove libboost-all-dev libboost-doc libboost-dev` <br>
     `echo "clear boost dir"` <br>
