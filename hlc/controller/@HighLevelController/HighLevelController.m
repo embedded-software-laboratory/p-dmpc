@@ -241,7 +241,7 @@ classdef (Abstract) HighLevelController < handle
                         other_vehicles = setdiff(other_vehicles, irrelevant_vehicles, 'stable');
 
                         for veh_id = other_vehicles
-                            latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k);
+                            latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k, true);
                             fallback_info_veh_id = latest_msg.vehs_fallback';
                             obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
                         end
@@ -250,7 +250,7 @@ classdef (Abstract) HighLevelController < handle
                         other_vehicles = setdiff(1:obj.scenario.options.amount, irrelevant_vehicles);
 
                         for veh_id = other_vehicles
-                            latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k);
+                            latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k, true);
                             fallback_info_veh_id = latest_msg.vehs_fallback';
                             obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
                         end

@@ -112,7 +112,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                 if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
-                    latest_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k);
+                    latest_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k, true);
                     obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
 
                     if ismember(vehicle_idx, obj.info.vehs_fallback)
@@ -123,12 +123,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     end
 
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                    oldness_msg = obj.k - latest_msg.time_step;
-
-                    if oldness_msg ~= 0
-                        % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
-                        predicted_areas_i = del_first_rpt_last(predicted_areas_i, oldness_msg);
-                    end
 
                     iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
                 else
@@ -277,7 +271,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % otherwise add one-step delayed trajectories as dynamic obstacles
             if obj.k > 1
                 % the old trajectories are available from the second time step onwards
-                old_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k - 1);
+                old_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k - 1, false);
                 predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, old_msg.predicted_areas);
                 oldness_msg = obj.k - old_msg.time_step;
 

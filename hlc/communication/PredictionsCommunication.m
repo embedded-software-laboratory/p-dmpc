@@ -70,10 +70,10 @@ classdef PredictionsCommunication
             send(obj.publisher, obj.msg_to_be_sent);
         end
 
-        function latest_msg = read_message(~, sub, time_step, timeout)
+        function latest_msg = read_message(~, sub, time_step, throw_error, timeout)
             % Read message from the given time step
-            if nargin <= 3
-                timeout = 0.5;
+            if nargin <= 4
+                timeout = 100.0;
             end
 
             is_timeout = true;
@@ -84,7 +84,6 @@ classdef PredictionsCommunication
                 if ~isempty(sub.LatestMessage)
 
                     if sub.LatestMessage.time_step == time_step
-                        %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
                         is_timeout = false;
                         break
                     end
@@ -96,8 +95,11 @@ classdef PredictionsCommunication
             end
 
             if is_timeout
-                warning(['Unable to receive the current message of step %i from vehicle %s. The pevious message from step ' ...
-                         '%i will be used.'], time_step, sub.TopicName, sub.LatestMessage.time_step)
+
+                if throw_error
+                    error('Unable to receive the current message of step %i from vehicle %s within %d seconds', time_step, sub.TopicName, timeout)
+                end
+
             end
 
             % return the latest message
