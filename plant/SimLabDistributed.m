@@ -50,10 +50,7 @@ classdef SimLabDistributed < Plant
                 plotting_info = plotting_info.filter(obj.scenario.options.amount, obj.scenario.options.options_plot_online);
                 obj.compute_msg_to_be_sent(plotting_info)
 
-                %todo to message
                 send(obj.publisher, obj.msg_to_be_sent); % send rosmessage
-                % pause so that `keyPressCallback()` can be executed in time
-                pause(0.01);
             end
 
         end
