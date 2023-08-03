@@ -14,31 +14,19 @@
 
 Some functionalities such as the graph search can optionally done in C++. The written code uses CMake and the C++ Boost libraries. In order to use them the following requirements must be met.
 
-- CMake
-    1. Install CMake 3.19+ ([Windows Download](<https://cmake.org/download/>))
-    2. Windows: Add it to your system path variable
-- C++ compiler
-    1. Ubuntu: Install gcc and g++ version 10.x+ and make it default
-- C++ Boost
-    1. Install Boost 1.76 ([Download](https://www.boost.org/users/history/))
-    2. Windows: Create the following environment variables so that CMake can find Boost <br>
-    `BOOST_ROOT = "C:\Program Files\boost\boost_1_76_0"` <br>
-    `BOOST_INCLUDEDIR = "C:\Program Files\boost\boost_1_76_0"` <br>
-    `BOOST_LIBRARYDIR = "C:\Program Files\boost\boost_1_76_0\stage\lib"`
-- Basics
-    1. Ubuntu: Install the package build-essential for compiling basic C++ software: <br> `sudo apt install build-essential`
+- [Install CMake 3.19+](#cmake)
+- [Install C++ Compiler](#c-compiler)
+    - Windows: Microsoft Visual Studio Compiler 2019
+    - Ubuntu: GCC and G++ Version 10.x+
+- [Install Boost 1.76](#c-boost)
+- [Install build-essential](#ubuntu-basics) for Ubuntu
 
 ## Lanelet2 Map
 
 Under Ubuntu we use lanelet2 as one further map representation, because it offers libraries with lots of useful functionality. Since the libraries only exist in Python and C++, mex functions are used to benefit from that. In order to compile these mex functions the following requirements need to be met.
 
-- Dependencies for Lanelet2
-    1. Install Boost 1.76 ([Download](https://www.boost.org/users/history/))
-    2. Install further dependencies Eigen3, Geographic, PugiXml </br> `sudo apt install libeigen3-dev libgeographic-dev libpugixml-dev`
-- Lanelet2
-    1. Install [Rosless-Lanelet2 from Github](https://github.com/embedded-software-laboratory/Rosless-Lanelet2)
-- Git Submodules
-    1. Update the submodules after cloning to retrieve the content of these repos </br> `git submodule update --init`
+- [Install Rosless Lanelet2](#rosless-lanelet2)
+- Get Git Submodules: `git submodule update --init`
 
 # Installation
 
