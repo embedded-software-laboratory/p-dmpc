@@ -48,6 +48,7 @@ More detailed information including troubleshooting can be found [here](./docs/S
     - Compilation of priority_queue should succeed
 2. Execute main.m to run an experiment
     - Select the environment Simulation
+    - Select the control strategy pb non-coop
     - Push the Start button to start the experiment
     - Options that does not work in this setup are:
         - Environments: CPM Lab, Unified Lab API
