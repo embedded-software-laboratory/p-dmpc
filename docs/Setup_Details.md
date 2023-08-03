@@ -7,6 +7,9 @@
 
 # Features
 
+- [C++ Functionalities](#c-functionalities)
+- [Lanelet2 Map](#lanelet2-map)
+
 ## C++ Functionalities
 
 Some functionalities such as the graph search can optionally done in C++. The written code uses CMake and the C++ Boost libraries. In order to use them the following requirements must be met.
@@ -36,7 +39,6 @@ Under Ubuntu we use lanelet2 as one further map representation, because it offer
     1. Install [Rosless-Lanelet2 from Github](https://github.com/embedded-software-laboratory/Rosless-Lanelet2)
 - Git Submodules
     1. Update the submodules after cloning to retrieve the content of these repos </br> `git submodule update --init`
-
 
 # Installation
 
