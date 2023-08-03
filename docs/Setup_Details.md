@@ -40,6 +40,7 @@ Under Ubuntu we use lanelet2 as one further map representation, because it offer
 
 # Installation
 
+- [Windows Path Environment Variable](#windows-path-environment-variable)
 - [Ubuntu Basics](#ubuntu-basics)
 - [Matlab](#matlab)
 - [Python](#python)
@@ -47,6 +48,13 @@ Under Ubuntu we use lanelet2 as one further map representation, because it offer
 - [C++ Compiler](#c-compiler)
 - [C++ Boost](#c-boost)
 - [Rosless Lanelet2](#rosless-lanelet2)
+
+## Windows Path Environment Variable
+Add a path to Path Environment Variable:
+1. Search for *Environment Variables*
+2. Select option *Environment Variables*
+3. *Edit* the variable *Path*
+4. Choose *New* for adding the path
 
 ## Ubuntu basics
 - Package build-essential to compile basic C/C++ software: <br> `sudo apt install build-essential`
@@ -103,11 +111,9 @@ If the link already exist,
         `sudo rm -f /usr/local/lib/libpython3.9.a` <br>
         `sudo rm -rf /usr/local/lib/python3.9`
 - Add Python to system path environment variable ([Guide](https://realpython.com/add-python-to-path/))
-    - Windows:
-        1. Search for *Environment Variables*
-        2. Select option *Environment Variables*
-        3. *Edit* the variable *Path*
-        4. Choose *New* for adding the python path (Standard installation path would look like <br> `"C:\Users\USER\AppData\Local\Programs\Python\Python39\"`)
+    - See [Path Environment Variable](#windows-path-environment-variable)
+    - Windows: Standard installation path would look like <br>
+    `"C:\Users\USER\AppData\Local\Programs\Python\Python39\"`
     - Ubuntu: Not necessary
 - Setup Python in Matlab command window as described in the [ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)
     - Check the Python version of Matlab: `pyenv`
@@ -132,8 +138,10 @@ If the link already exist,
         `sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6AF7F09730B3F0A4`
     5. Finally we can update and install the cmake package <br>
         `sudo apt update` <br> `sudo apt install cmake`
-- Add CMake to system path environment variable. Similar to [Python](#python)
-    - Windows: Standard installation folder look like `"C:\Program Files\CMake\bin\"`
+- Add CMake to system path environment variable
+    - See [Path Environment Variable](#windows-path-environment-variable)
+    - Windows: Standard installation path would look like <br>
+    `"C:\Program Files\CMake\bin\"`
     - Ubuntu: Not necessary
 
 ## C++ Compiler
