@@ -62,8 +62,11 @@ Add a path to Path Environment Variable:
 - Package build-essential to compile basic C/C++ software: <br> `sudo apt install build-essential`
 
 ## Matlab
+- Windows: Installation via GUI
+    1. Download [Matlab](https://de.mathworks.com/downloads/)
+    2. Run the installer
 - Ubuntu: Installation via GUI <br>
-Since Matlab installation does not follow the unix-style, I install it in the directory “/opt/matlab/R2023a”.
+    (Since Matlab installation does not follow the unix-style, you could install it in the directory `“/opt/matlab/R2023a”`)
     1. Download [Matlab](https://de.mathworks.com/downloads/)
     2. Extract the zip-file and change to the unzipped directory <br>
     `unzip matlab_R2023a_glnxa64.zip -d matlab` <br>
@@ -81,15 +84,15 @@ If the link already exist,
     - or [replace it](https://de.mathworks.com/matlabcentral/answers/99535-how-do-i-create-symbolic-links-automatically-using-the-silent-installer): `ln -s --force /opt/matlab/bin/matlab /usr/local/bin/matlab`
 
 ## Python
-- Reminder: For Matlab R2023a, it is possible to use Python 3.8 or 3.9
-- Install Python 3.9 under Ubuntu via package manager and official ppa
+- Windows: Install Python 3.9 via the provided binary ([Windows Download](https://www.python.org/downloads/windows/))
+- Ubuntu: Install Python 3.9 via package manager and official ppa
     - `sudo apt install python3.9 python3.9-venv python3.9-dev`
-- Install Python 3.9 under Ubuntu via package manager and deadsnakes ppa for newer versions
+- Ubuntu: Install Python 3.9 via package manager and deadsnakes ppa for newer versions
     - Add an additional package repository: <br>
     `sudo add-apt-repository ppa:deadsnakes/ppa`
     - Update the apt cache: `sudo apt update`
     - Install python: `sudo apt install python3.9 python3.9-venv python3.9-dev`
-- Install Python 3.9.6 under Ubuntu via build
+- Ubuntu: Install Python 3.9.6 via build
     1. Install prerequisites for building Python <br>
        `sudo apt install libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev`
     2. Download python zip-file <br>
@@ -123,6 +126,7 @@ If the link already exist,
     - If Matlab cannot find Python, try: `pyenv(Version=FullPath/Executable)`
 
 ## CMake
+- Windows: Install CMake via the provided binary ([Windows Download](<https://cmake.org/download/>))
 - Ubuntu: [Install CMake](https://askubuntu.com/questions/355565/how-do-i-install-the-latest-version-of-cmake-from-the-command-line) latest version under Ubuntu via [Kitware's PPA](https://apt.kitware.com/)
     1. Obtain a copy of kitware's signing key <br>
         `wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null`
@@ -147,11 +151,16 @@ If the link already exist,
     - Ubuntu: Not necessary
 
 ## C++ Compiler
+- Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) Community Edition is sufficient. Select "Desktop development with C++" during the installation.
+- Ubuntu: Install gcc and g++ officially supported versions
+    - Install gcc/g++: `sudo apt install gcc-7 g++-7`
+    - Set new gcc/g++ versions as default: <br> `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 --slave /usr/bin/g++ g++ /usr/bin/g++-7`
 - Ubuntu: [Install gcc and g++](https://linuxize.com/post/how-to-install-gcc-compiler-on-ubuntu-18-04/) newer versions
     - Add an additional package repository `sudo add-apt-repository ppa:ubuntu-toolchain-r/test`
     - Update the apt cache: `sudo apt update`
     - Install gcc/g++: `sudo apt install gcc-10 g++-10`
     - Set new gcc/g++ versions as default: <br> `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10`
+- Setup the compiler in the Matlab command windows: `mex -setup`
 
 ## C++ Boost
 - Boost contains mostly header-only libraries (no build required) but also some libraries that must be built. These libraries are built with Boost.Build (B2)
