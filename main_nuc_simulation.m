@@ -39,7 +39,7 @@ function results = main_nuc_simulation()
 
         if ~isempty(msg)
 
-            if msg.step == -1 % check whether end-message was send
+            if msg.step == -1 % check whether end-message was sent
                 n_finished = n_finished + 1;
             elseif scenario.options.options_plot_online.is_active
                 plotter.ros2_callback(msg);
