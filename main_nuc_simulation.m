@@ -5,7 +5,7 @@ function results = main_nuc_simulation()
     veh_ids = scenario.options.veh_ids;
 
     fprintf('Starting remote HLCs...');
-    script_path = fullfile(pwd, 'nuc_simualtion', 'deploy_remote_hlcs.sh'); % assumes script is in curent directory
+    script_path = fullfile(pwd, 'nuc_simulation', 'deploy_remote_hlcs.sh'); % assumes script is in curent directory
 
     command = ['bash ', script_path];
 
@@ -57,7 +57,7 @@ function results = main_nuc_simulation()
     end
 
     % stop session on all remote hlcs
-    script_path = fullfile(pwd, 'nuc_simualtion', 'stop_remote_hlcs.sh');
+    script_path = fullfile(pwd, 'nuc_simulation', 'stop_remote_hlcs.sh');
 
     command = ['bash ', script_path, ' ', num2str(numel(veh_ids))];
 
@@ -66,7 +66,7 @@ function results = main_nuc_simulation()
     fprintf('Collecting results from remote HLCs...');
 
     % collect all result structs from nucs
-    script_path = fullfile(pwd, 'nuc_simualtion', 'collect_results.sh');
+    script_path = fullfile(pwd, 'nuc_simulation', 'collect_results.sh');
 
     command = ['bash ', script_path, ' ', num2str(numel(veh_ids))];
 
