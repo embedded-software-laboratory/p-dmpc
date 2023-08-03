@@ -1,8 +1,7 @@
 # Setup Details
 
 - [Installation](#installation)
-- [Troubleshooting Matlab](#troubleshooting-matlab)
-- [Troubleshooting Rosless Lanelet2](#troubleshooting-rosless-lanelet2)
+- [Troubleshooting](#troubleshooting)
 - [Requirements Remarks](#requirements-remarks)
 
 # Installation
@@ -159,25 +158,13 @@ If the link already exist,
     `sudo cmake --build . --target install`
     4. Restart the computer that the environment variables can be updated
 
-# Troubleshooting Matlab
+# Troubleshooting
 
-- [Windows](#windows)
-- [Ubuntu 18.04 and 22.04](#ubuntu-1804-and-2204)
-- [Ubuntu 22.04](#ubuntu-2204)
+- [Matlab](#matlab-1)
+- [Rosless Lanelet2](#rosless-lanelet2-1)
 
-## Windows
-ROS Toolbox cannot find CMake (if you want to use an external CMake)
-- > Error using ros.internal.utilities.getCMakeBinaryPath
-Unable to find CMake in your system. Please install CMake version 3.15.5 or higher and rerun the command.
-- Explanation: Starting with Matlab R2022b, manual installation of CMake is not required since it is part of Matlab installation. If this is not the case and CMake is not contained, this leads to an error. The reason for this is that ROS Toolbox searches for the CMake executable in <br> `"C:\Program Files\MATLAB\<VERSION>\bin\win64\cmake\bin\cmake"`. <br> Although, there is a fallback solution, that does not work on Windows OS. <br> `[status, result] = system('which cmake');`
-- Possible Solutions:
-    1. Installation of the Matlab Toolbox "Matlab Coder" will install CMake in the Matlab installation folder as [suggested by the Matlab Staff](https://de.mathworks.com/matlabcentral/answers/1973764-matlab-r2022b-and-r2023a-installation-did-not-contain-cmake)
-    2. Creating a symbolic link for the missing folder *cmake* with the [mklink](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/mklink?source=recommendations) command in Windows command prompt `mklink /D "C:\Program Files\MATLAB\R2023a\bin\win64\cmake" "C:\Program Files\CMake"`
-    3. Adjusting the internal ROS Toolbox script that searches for the CMake executable by substituting `which` with the Windows equivalent `where` in `"C:\Program Files\MATLAB\<VERSION>\toolbox\ros\utilities\+ros\+internal\+utilities\getCMakeBinaryPath.m"`
-    4. Create an alias that calls the Windows equivalent `where` instead of `which`. <br>
-This can be done with the [doskey](https://blog.doubleslash.de/effizienter-arbeiten-in-der-windows-command-prompt-mit-doskey) command `doskey which = where $*` in Windows command prompt (cmd). Since the alias would be temporary for the active cmd, it must be made permanent which requires adjusting the Windows registry as described [here](https://superuser.com/questions/1134368/create-permanent-doskey-in-windows-cmd) or [here](https://blog.doubleslash.de/effizienter-arbeiten-in-der-windows-command-prompt-mit-doskey).
+## Matlab
 
-## Ubuntu 18.04 and 22.04
 Installing Matlab Updates or Toolboxes afterwards causes permission problems
 - > Permission denied
 - Since Matlab was installed with sudo, sudo rights are required to install a toolbox. But since Matlab is always started without sudo, the toolbox installer is started without sudo as well.
@@ -193,8 +180,7 @@ On startup Matlab command window shows a warning
 - > Warning: X does not support locale en_US.UTF-8
 - The warning message that can be disregarded and it has no impact on the functionality of MATLAB (https://www.mathworks.com/matlabcentral/answers/1929870-why-do-i-get-warning-on-startup-x-does-not-support-locale-en_us-utf-8-when-startup-matlab-with-r2?s_tid=answers_rc1-2_p2_MLT)
 
-## Ubuntu 22.04
-Searching for cmake via Matlab command window
+Searching for cmake via Matlab command window returns an error
 - `!cmake --version` or `system('cmake --version')`
 - ... results in error:
 - > cmake: /usr/local/MATLAB/R2023a/bin/glnxa64/libcurl.so.4: no version information available (required by cmake) <br>
@@ -221,7 +207,18 @@ cmake: /usr/local/MATLAB/R2023a/sys/os/glnxa64/libstdc++.so.6: version 'GLIBCXX_
 - Force Matlab to load the external libstdc++.so.6 with environment variable $LD_PRELOAD <br>
 (https://de.mathworks.com/matlabcentral/answers/329796-issue-with-libstdc-so-6)
 
-# Troubleshooting Rosless Lanelet2
+Windows: ROS Toolbox cannot find CMake (if you want to use an external CMake)
+- > Error using ros.internal.utilities.getCMakeBinaryPath
+Unable to find CMake in your system. Please install CMake version 3.15.5 or higher and rerun the command.
+- Explanation: Starting with Matlab R2022b, manual installation of CMake is not required since it is part of Matlab installation. If this is not the case and CMake is not contained, this leads to an error. The reason for this is that ROS Toolbox searches for the CMake executable in <br> `"C:\Program Files\MATLAB\<VERSION>\bin\win64\cmake\bin\cmake"`. <br> Although, there is a fallback solution, that does not work on Windows OS. <br> `[status, result] = system('which cmake');`
+- Possible Solutions:
+    1. Installation of the Matlab Toolbox "Matlab Coder" will install CMake in the Matlab installation folder as [suggested by the Matlab Staff](https://de.mathworks.com/matlabcentral/answers/1973764-matlab-r2022b-and-r2023a-installation-did-not-contain-cmake)
+    2. Creating a symbolic link for the missing folder *cmake* with the [mklink](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/mklink?source=recommendations) command in Windows command prompt `mklink /D "C:\Program Files\MATLAB\R2023a\bin\win64\cmake" "C:\Program Files\CMake"`
+    3. Adjusting the internal ROS Toolbox script that searches for the CMake executable by substituting `which` with the Windows equivalent `where` in `"C:\Program Files\MATLAB\<VERSION>\toolbox\ros\utilities\+ros\+internal\+utilities\getCMakeBinaryPath.m"`
+    4. Create an alias that calls the Windows equivalent `where` instead of `which`. <br>
+This can be done with the [doskey](https://blog.doubleslash.de/effizienter-arbeiten-in-der-windows-command-prompt-mit-doskey) command `doskey which = where $*` in Windows command prompt (cmd). Since the alias would be temporary for the active cmd, it must be made permanent which requires adjusting the Windows registry as described [here](https://superuser.com/questions/1134368/create-permanent-doskey-in-windows-cmd) or [here](https://blog.doubleslash.de/effizienter-arbeiten-in-der-windows-command-prompt-mit-doskey).
+
+## Rosless Lanelet2
 
 Boost warning massage during the build process
 - > #pragma message: This header is deprecated. Use \<iterator> instead.
