@@ -73,6 +73,7 @@ classdef (Abstract) Plant < handle
             disp('and indices:');
             disp(obj.indices_in_vehicle_list);
             disp('as well as all_veh_ids:');
+            disp(obj.all_veh_ids);
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
 

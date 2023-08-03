@@ -31,7 +31,7 @@ classdef HLCFactory < handle
             end
 
             if dry_run
-                obj.dry_run_hlc(plant.veh_ids);
+                obj.dry_run_hlc(plant.all_veh_ids);
             end
 
             if obj.scenario.options.is_prioritized

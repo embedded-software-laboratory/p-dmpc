@@ -161,7 +161,7 @@ classdef CpmLab < Plant
                 obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
 
                 vehicle_command_trajectory = VehicleCommandTrajectory;
-                vehicle_command_trajectory.vehicle_id = uint8(obj.veh_ids(iVeh));
+                vehicle_command_trajectory.vehicle_id = uint8(obj.all_veh_ids(iVeh));
                 vehicle_command_trajectory.trajectory_points = trajectory_points;
                 vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
                     uint64(obj.sample(end).t_now);
