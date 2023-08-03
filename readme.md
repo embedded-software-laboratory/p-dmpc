@@ -2,8 +2,6 @@
 
 - [Priority-Based Trajectory Planning for Networked Vehicles Using Motion Primitives](#priority-based-trajectory-planning-for-networked-vehicles-using-motion-primitives)
 - [Setup](#setup)
-    - [MATLAB R2023a](#matlab-r2023a)
-    - [System Requirements for MATLAB ROS 2 Toolbox](#system-requirements-for-matlab-ros-2-toolbox)
 - [Run Experiments](#run-experiments)
 - [References](#references)
 - [Acknowledgements](#acknowledgements)
@@ -19,21 +17,27 @@ Install MATLAB R2023a with the following toolboxes:
 - Statistics and Machine Learning Toolbox
 - ROS Toolbox
 
-## System Requirements for MATLAB ROS 2 Toolbox
-In our priority-based trajectory planning, vehicles communicate using the MATLAB ROS 2 toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python software, CMake software, and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).
+## System Requirements for MATLAB ROS Toolbox
+In our priority-based trajectory planning, vehicles communicate using the MATLAB ROS toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python software, CMake software, and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).
 For MATLAB R2023a
 
 - Python
-    1. Install Python 3.8 or 3.9 ([Windows Download](https://www.python.org/downloads/))
-    2. Windows: Add it to your system path variable
-    3. Setup python in the MATLAB command window: `pyenv('Version','version')` <br> For example `pyenv('Version','3.9')` will MATLAB use Python 3.9
-    4. If MATLAB cannot find the version, provide its path with `pyenv('Version','fullPathOfYourPythonInstallFolder\YourPythonExecutable')`.
+    1. Install Python 3.8 <br>
+    `sudo apt install python3.8 python3.8-venv python3.8-dev`
+    2. Setup Python in the MATLAB command window: <br>
+    `pyenv(Version="3.8")`
+    3. If Matlab cannot find Python, try: <br>
+    `pyenv(Version=/usr/bin/python3.8)`
 - C++ compiler
-    1. Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) Community Edition is sufficient. Select "Desktop development with C++" during the installation.
-    2. Ubuntu: Install gcc and g++ version 7.x+ and make it default
-    3. Setup the compiler in the MATLAB command windows: `mex -setup`
+    1. Install GCC and G++ Version 7.x+ <br>
+    `sudo apt install gcc-7 g++-7`
+    2. Set them as the default compiler <br>
+    `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 --slave /usr/bin/g++ g++ /usr/bin/g++-7`
+    3. Setup the compiler in the MATLAB command window: <br>
+    `mex -setup`
 
 ## Setup Details
+
 More detailed information including troubleshooting can be found [here](./docs/Setup_Details.md)
 
 # Run Experiments
