@@ -57,8 +57,8 @@ function communication_init(hlc)
 
         for veh_index = other_vehicles
             disp(['reading initial msg from vehicle ', num2str(veh_index)]);
-            read_message(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.k, 10.0);
-            read_message(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.predictions, hlc.ros_subscribers.predictions{veh_index}, hlc.k, 10.0);
+            read_message(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.k, true, 40.0);
+            read_message(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.predictions, hlc.ros_subscribers.predictions{veh_index}, hlc.k, true, 40.0);
         end
 
         disp('communication initialized');
