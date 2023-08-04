@@ -397,7 +397,6 @@ classdef (Abstract) HighLevelController < handle
                     end
 
                     obj.result.scenario.mpa = [];
-                    obj.result.scenario.speed_profile_mpas = [];
                 end
 
                 % check if file with the same name exists

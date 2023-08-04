@@ -7,7 +7,6 @@ classdef Scenario
         lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
         mpa;
         options;
-        speed_profile_mpas = [];
 
         model = [];
         r_goal = 0.1; % goal circle
