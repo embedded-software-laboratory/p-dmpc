@@ -40,7 +40,7 @@ For MATLAB R2023a
 
 ## Setup Details
 
-More detailed information including troubleshooting can be found [here](./docs/Setup_Details.md)
+More detailed information including troubleshooting can be found [here](./docs/Setup_Details.md).
 
 # Experiments
 
@@ -57,7 +57,7 @@ More detailed information including troubleshooting can be found [here](./docs/S
         - Checkbox: use C++
         - Scenario: Lanelet2, Lab Default
 
-More detailed information including lab experiments can be found [here](./docs/Run_Experiments.md)
+More detailed information including lab experiments can be found [here](./docs/Run_Experiments.md).
 
 # References
 
