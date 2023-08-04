@@ -86,10 +86,10 @@ classdef TrafficCommunication
             send(obj.publisher, obj.msg_to_be_sent);
         end
 
-        function latest_msg = read_message(~, sub, time_step, timeout)
+        function latest_msg = read_message(~, sub, time_step, throw_error, timeout)
             % Read message from the given time step
-            if nargin <= 3
-                timeout = 1.0;
+            if nargin <= 4
+                timeout = 100.0;
             end
 
             is_timeout = true;
@@ -116,19 +116,22 @@ classdef TrafficCommunication
             end
 
             if is_timeout
-                warning(['Unable to receive the current message of step %i from vehicle %s. The pevious message from step ' ...
-                         '%i will be used.'], time_step, sub.TopicName, sub.LatestMessage.time_step)
+
+                if throw_error
+                    error('Unable to receive the current message of step %i from vehicle %s within %d seconds', time_step, sub.TopicName, timeout)
+                end
+
             end
 
             % return the latest message
             latest_msg = sub.LatestMessage;
         end
 
-        function latest_msg = read_messages(~, time_step, amount, timeout)
+        function latest_msg = read_messages(~, time_step, amount, throw_error, timeout)
             % Read message from the given time step
             % amount of vehicles to read form. Typically all vehicles - 1
-            if nargin <= 3
-                timeout = 1.0;
+            if nargin <= 4
+                timeout = 100.0;
             end
 
             global stored_traffic_msgs;
@@ -149,7 +152,11 @@ classdef TrafficCommunication
             end
 
             if is_timeout
-                error(['Unable to receive the current message of step %i.'], time_step)
+
+                if throw_error
+                    error('Unable to receive the current %i messages of step %i within %d seconds', amount, time_step, timeout)
+                end
+
             end
 
         end

@@ -6,10 +6,10 @@
 # CPM Lab
 
 * See also [CPM documentation](https://cpm.embedded.rwth-aachen.de/doc/)
-* Make sure that the main computer in the CPM Lab is configured to use MATLAB R2022a
+* Make sure that the main computer in the CPM Lab is configured to use MATLAB R2023a
   * you can change version by:
   * `cd ~/.local/bin`
-  * `ln -sf /usr/local/MATLAB/R2022a/bin/matlab matlab `
+  * `ln -sf /usr/local/MATLAB/R2023a/bin/matlab matlab `
 
 ### No Parallel Computation / Distributed Execution
 
@@ -25,7 +25,7 @@
 
 
  * main.m will delete all generated ros2 msgs if Lab mode + parallel execution is selected, because the generated msg must not be copied to the NUCS
- * Select MATLAB R2022a as version (See [Specifying the matlab version for HLCs on the NUCs](https://cpm.embedded.rwth-aachen.de/doc/pages/viewpage.action?pageId=25395201))
+ * Select MATLAB R2023a as version (See [Specifying the matlab version for HLCs on the NUCs](https://cpm.embedded.rwth-aachen.de/doc/pages/viewpage.action?pageId=25395201))
 
 
  * start the NUCS

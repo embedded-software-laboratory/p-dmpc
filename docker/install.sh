@@ -53,7 +53,9 @@ IMAGE_TAG=latest
 
 TAG=registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/$IMAGE_NAME:$IMAGE_TAG \
 
-sudo docker build -t $TAG \
+sudo docker buildx create --use --name larger_log --driver-opt env.BUILDKIT_STEP_LOG_MAX_SIZE=50000000
+sudo docker buildx build -t $TAG \
+  --progress plain \
   --build-arg MATLAB_RELEASE=$MATLAB_RELEASE \
   --build-arg UBUNTU_VERSION=$UBUNTU_VERSION \
   --build-arg PYTHON_VERSION=$PYTHON_VERSION \
