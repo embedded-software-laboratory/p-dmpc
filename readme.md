@@ -8,6 +8,8 @@
 
 # Setup
 
+The following setup instructions are intended for Ubuntu 18.04. You can find more detailed information on the setup in Ubuntu 18.04 and other OSs with the link at the end of this section.
+
 ## MATLAB R2023a
 
 Install MATLAB R2023a with the following toolboxes:
