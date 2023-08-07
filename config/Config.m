@@ -26,7 +26,7 @@ classdef Config < matlab.mixin.Copyable
         % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
         % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
         % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-        should_save_result = false; % true/false, is save result
+        should_save_result = true; % true/false, is save result
         should_reduce_result = true; % true/false, if true, reduced result will be save to save disk space (useful for a long run of simulation)
         result_name = ''; % string or char, custom file name to save result
         allow_priority_inheritance = false; % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
