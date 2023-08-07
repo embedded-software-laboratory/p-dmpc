@@ -37,6 +37,15 @@ classdef Scenario
         function obj = Scenario()
         end
 
+        function iter = get_next_dynamic_obstacles(obj, iter, iStep)
+            % GET_NEXT_DYNAMIC_OBSTACLES   Filter dynamic obstacles in scenario by current time step and prediction horizon length.
+
+            if ~isempty(obj.dynamic_obstacle_area)
+                iter.dynamic_obstacle_area = obj.dynamic_obstacle_area(:, iStep:iStep + obj.options.Hp - 1);
+            end
+
+        end
+
     end
 
 end

@@ -16,10 +16,6 @@ function reference = sample_reference_trajectory(n_samples, reference_trajectory
     reference.ReferencePoints = zeros(n_samples, 2);
     reference.ReferenceIndex = zeros(n_samples, 1);
 
-    % change another computationally fast way to calculate the closest
-    % point, the results may differ marginally but not influence the
-    % performance.
-    %     [~, ~, xp, yp, TrajectoryIndex ] = getShortestDistance(reference_trajectory(:,1),reference_trajectory(:,2),vehicle_x,vehicle_y);
     [~, ~, xp, yp, ~, ~, TrajectoryIndex] = get_arc_distance_to_endpoint(vehicle_x, vehicle_y, reference_trajectory(:, 1), reference_trajectory(:, 2));
     current_trajectory_index = TrajectoryIndex; % store the trajectory index of the current position of the vehicle
 
