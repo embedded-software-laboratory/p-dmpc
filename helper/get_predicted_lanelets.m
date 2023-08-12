@@ -1,9 +1,11 @@
-function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanelets(scenario, iter, iVeh, x0, y0)
+function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanelets(scenario, mpa, iter, iVeh, x0, y0)
     % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
     % based on vehile's current states and reference path.
     %
     % INPUT:
     %   scenario: object of the class `Scenario`
+    %
+    %   mpa: object of the class `MotionPrimitiveAutomaton`
     %
     %   iVeh: index of vehicle
     %
@@ -20,8 +22,6 @@ function [predicted_lanelets, reference, v_ref, scenario] = get_predicted_lanele
     %   ReferenceIndex (point index)
     %
     %   v_ref: reference speed
-
-    mpa = scenario.mpa;
 
     Hp = size(mpa.transition_matrix_single, 3);
 

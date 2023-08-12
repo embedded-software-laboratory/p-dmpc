@@ -56,7 +56,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
         % Compute the predicted lanelets of iVeh vehicle
         % Byproducts: reference path and reference speed profile
-        [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(obj.scenario, obj.iter, iVeh, x0, y0);
+        [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(obj.scenario, obj.mpa, obj.iter, iVeh, x0, y0);
 
         % For non manual vehicles: Update ref speed and ref trajectory
         % reference speed and path points
