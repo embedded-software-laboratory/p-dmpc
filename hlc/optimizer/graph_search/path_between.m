@@ -1,4 +1,4 @@
-function search_path = path_between(iCur, iNext, tree, scenario, mpa)
+function search_path = path_between(iCur, iNext, tree, mpa)
     %PATH_BETWEEN Return path as a cell array between two nodes
 
     n_veh = size(tree.x, 1);

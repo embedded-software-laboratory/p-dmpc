@@ -223,7 +223,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         end
 
         function weigh(obj)
-            obj.iter.weighted_coupling = obj.weighter.weigh(obj.scenario, obj.iter);
+            obj.iter.weighted_coupling = obj.weighter.weigh(obj.scenario, obj.mpa, obj.iter);
         end
 
         function reduce(obj)

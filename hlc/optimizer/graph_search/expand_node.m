@@ -1,7 +1,7 @@
-function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
+function [new_open_nodes] = expand_node(scenario, mpa, iter, iNode, info)
     % EXPAND_NODE   Expand node in search tree and return succeeding nodes.
-    trim_tuple = scenario.mpa.trim_tuple;
-    trim_length = length(scenario.mpa.trims) * ones(1, iter.amount);
+    trim_tuple = mpa.trim_tuple;
+    trim_length = length(mpa.trims) * ones(1, iter.amount);
 
     curX = info.tree.x(:, iNode);
     curY = info.tree.y(:, iNode);
@@ -12,7 +12,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
 
     k_exp = curK + 1;
     cur_trim_id = tuple2index(curTrim(:), trim_length);
-    successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
+    successor_trim_ids = find(mpa.transition_matrix(cur_trim_id, :, k_exp));
 
     nTrims = numel(successor_trim_ids);
 
@@ -35,7 +35,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             itrim2 = expTrim(iVeh, iTrim);
 
             % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-            maneuver = scenario.mpa.maneuvers{itrim1, itrim2};
+            maneuver = mpa.maneuvers{itrim1, itrim2};
 
             c = cos(curYaw(iVeh));
             s = sin(curYaw(iVeh));
