@@ -147,7 +147,7 @@ function rhc_init(obj, x_measured, trims_measured)
         end
 
         % Compute reachable sets for vehicle iVeh
-        local_reachable_sets = obj.scenario.mpa.local_reachable_sets_conv;
+        local_reachable_sets = obj.mpa.local_reachable_sets_conv;
 
         obj.iter.reachable_sets(iVeh, :) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current, :), predicted_lanelet_boundary, obj.scenario.options);
 
@@ -166,7 +166,7 @@ function rhc_init(obj, x_measured, trims_measured)
         % Get vehicle's occupied area of emergency braking maneuver
         % with normal offset
 
-        mpa = obj.scenario.mpa;
+        mpa = obj.mpa;
 
         %% emergency maneuver for vehicle iVeh
         % emergency left maneuver (without offset)

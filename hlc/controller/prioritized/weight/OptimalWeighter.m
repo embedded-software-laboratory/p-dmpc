@@ -106,7 +106,7 @@ classdef OptimalWeighter < Weighter
                     speed0_next = scenario.mpa.trims(trim_next).speed;
                     iter_v.x0 = [x0_next, y0_next, yaw0_next, speed0_next];
 
-                    [info_v, ~] = GraphSearch(scenario).run_optimizer(iter_v, []);
+                    [info_v, ~] = GraphSearch(scenario, scenario.mpa).run_optimizer(iter_v, []);
 
                     if info_v.is_exhausted
                         are_valid(iTrim) = false;

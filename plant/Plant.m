@@ -42,12 +42,12 @@ classdef (Abstract) Plant < handle
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
         end
 
-        function [x0, trim_indices] = measure_node(obj)
+        function [x0, trim_indices] = measure_node(obj, mpa)
             % take last planned state as new actual state
             speeds = zeros(obj.scenario.options.amount, 1);
 
             for iVeh = 1:obj.indices_in_vehicle_list
-                speeds(iVeh) = obj.scenario.mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;
+                speeds(iVeh) = mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;
             end
 
             x0 = [obj.cur_node(:, NodeInfo.x), obj.cur_node(:, NodeInfo.y), obj.cur_node(:, NodeInfo.yaw), speeds];

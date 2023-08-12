@@ -6,9 +6,9 @@ classdef CentralizedController < HighLevelController
             obj = obj@HighLevelController(scenario, vehicle_ids);
 
             if obj.scenario.options.use_cpp
-                obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.indices_in_vehicle_list);
+                obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.mpa, obj.indices_in_vehicle_list);
             else
-                obj.optimizer = GraphSearch(obj.scenario);
+                obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
             end
 
         end
@@ -27,7 +27,7 @@ classdef CentralizedController < HighLevelController
             [info_v, ~] = obj.optimizer.run_optimizer(obj.iter, obj.indices_in_vehicle_list);
 
             if info_v.is_exhausted
-                info_v = handle_graph_search_exhaustion(info_v, obj.scenario, obj.iter);
+                info_v = handle_graph_search_exhaustion(info_v, obj.scenario, obj.iter, obj.mpa);
             end
 
             if info_v.needs_fallback
@@ -39,7 +39,7 @@ classdef CentralizedController < HighLevelController
                 obj.info.needs_fallback(obj.info.vehs_fallback) = true;
             else
                 % prepare output data
-                obj.info = store_control_info(obj.info, info_v, obj.scenario);
+                obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
             end
 
             obj.info.runtime_subcontroller_each_veh = toc(subcontroller_timer);

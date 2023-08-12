@@ -205,7 +205,7 @@ classdef UnifiedLabApi < Plant
 
         end
 
-        function apply(obj, info, ~, k, scenario)
+        function apply(obj, info, ~, k, mpa)
             y_pred = info.y_predicted;
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
@@ -230,7 +230,7 @@ classdef UnifiedLabApi < Plant
 
                     yaw = y_pred{iVeh}(i_predicted_points, 3);
 
-                    speed = scenario.mpa.trims(y_pred{iVeh}(i_predicted_points, 4)).speed;
+                    speed = mpa.trims(y_pred{iVeh}(i_predicted_points, 4)).speed;
 
                     trajectory_points(i_traj_pt).vx = cos(yaw) * speed;
                     trajectory_points(i_traj_pt).vy = sin(yaw) * speed;

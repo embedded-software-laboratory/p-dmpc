@@ -8,7 +8,7 @@ function communication_init(hlc)
     %
 
     % measure vehicles' initial poses and trims
-    [x0_measured, trims_measured] = hlc.plant.measure();
+    [x0_measured, trims_measured] = hlc.plant.measure(hlc.mpa);
 
     Hp = hlc.scenario.options.Hp;
 

@@ -108,7 +108,4 @@ function scenario = lanelet2_scenario(options, vehicle_ids, plant)
         scenario.assignPrios = true;
     end
 
-    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
-
-    %     plot_local_reachable_sets(scenario.mpa, scenario.options.is_allow_non_convex)
 end

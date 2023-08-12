@@ -1,4 +1,4 @@
-function info = pb_controller_fallback(iter, info, info_old, scenario, indices_in_vehicle_list)
+function info = pb_controller_fallback(iter, info, info_old, scenario, mpa, indices_in_vehicle_list)
     % pb_controller_fallback    planning by using last priority and trajectories directly
 
     tick_per_step = scenario.options.tick_per_step + 1;
@@ -20,7 +20,7 @@ function info = pb_controller_fallback(iter, info, info_old, scenario, indices_i
             info_v.y_predicted = {y_pred_v};
 
             % prepare output data
-            info = store_control_info(info, info_v, scenario);
+            info = store_control_info(info, info_v, scenario, mpa);
 
             % data only need to be updated if isDealPredictionInconsistency
             % is off, because only old reachable sets but no old predicted areas

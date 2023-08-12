@@ -71,7 +71,4 @@ function scenario = commonroad(options, vehicle_ids)
         scenario.assignPrios = true;
     end
 
-    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
-
-    %     plot_local_reachable_sets(scenario.mpa, scenario.options.is_allow_non_convex)
 end

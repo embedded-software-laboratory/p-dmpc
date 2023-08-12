@@ -2,8 +2,8 @@ classdef GraphSearch < OptimizerInterface
 
     methods
 
-        function obj = GraphSearch(scenario)
-            obj = obj@OptimizerInterface(scenario);
+        function obj = GraphSearch(scenario, mpa)
+            obj = obj@OptimizerInterface(scenario, mpa);
         end
 
         function [info_v, graph_search_time] = run_optimizer(obj, iter, ~)
@@ -72,7 +72,7 @@ classdef GraphSearch < OptimizerInterface
                 end
 
                 % Eval edge
-                [is_valid, shapes] = eval_edge_exact(iter, obj.scenario, info.tree, cur_node_id, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
+                [is_valid, shapes] = eval_edge_exact(iter, obj.scenario, obj.mpa, info.tree, cur_node_id, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
 
                 if ~is_valid
                     % could remove node from tree here
