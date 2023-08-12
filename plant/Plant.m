@@ -39,6 +39,16 @@ classdef (Abstract) Plant < handle
                 obj.indices_in_vehicle_list = 1:obj.amount;
             end
 
+            % temporarily create an MPA to get vehicles` trim config
+            tmp_mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
+            initial_state = find([tmp_mpa.trims.speed] == 0 & [tmp_mpa.trims.steering] == 0, 1);
+
+            for iVeh = 1:scenario.options.amount
+                % initialize vehicle ids of all vehicles
+                obj.scenario.vehicles(iVeh).trim_config = initial_state;
+
+            end
+
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
         end
 

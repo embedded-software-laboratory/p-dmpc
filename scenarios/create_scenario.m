@@ -66,12 +66,9 @@ function scenario = create_scenario(options, random_seed, plant)
             scenario = lanelet2_scenario(options, vehicle_ids, plant);
     end
 
-    initial_state = find([scenario.mpa.trims.speed] == 0 & [scenario.mpa.trims.steering] == 0, 1);
-
     for iVeh = 1:options.amount
         % initialize vehicle ids of all vehicles
         scenario.vehicles(iVeh).ID = scenario.options.veh_ids(iVeh);
-        scenario.vehicles(iVeh).trim_config = initial_state;
 
     end
 

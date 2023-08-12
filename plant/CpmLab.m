@@ -98,7 +98,7 @@ classdef CpmLab < Plant
 
         end
 
-        function [x0, trim_indices] = measure(obj)
+        function [x0, trim_indices] = measure(obj, mpa)
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
             if (sample_count > 1)

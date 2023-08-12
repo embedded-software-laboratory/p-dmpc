@@ -68,6 +68,14 @@ classdef (Abstract) HighLevelController < handle
 
             obj.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
 
+            initial_state = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
+
+            for iVeh = 1:scenario.options.amount
+                % initialize vehicle ids of all vehicles
+                scenario.vehicles(iVeh).trim_config = initial_state;
+
+            end
+
             % create fallback for first time step
             obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, [scenario.vehicles.ID]);
 
