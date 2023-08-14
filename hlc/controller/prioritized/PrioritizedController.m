@@ -112,7 +112,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                 if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
-                    latest_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k);
+                    latest_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k, true);
                     obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
 
                     if ismember(vehicle_idx, obj.info.vehs_fallback)
@@ -123,12 +123,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     end
 
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                    oldness_msg = obj.k - latest_msg.time_step;
-
-                    if oldness_msg ~= 0
-                        % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
-                        predicted_areas_i = del_first_rpt_last(predicted_areas_i, oldness_msg);
-                    end
 
                     iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
                 else
@@ -157,7 +151,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             end
 
             % consider coupled vehicles with lower priorities
-            iter_v = consider_vehs_with_LP(obj.scenario, iter_v, vehicle_idx, all_coupled_vehs_with_LP, obj.ros_subscribers);
+            iter_v = obj.consider_vehs_with_LP(iter_v, vehicle_idx, all_coupled_vehs_with_LP);
 
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
@@ -277,7 +271,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % otherwise add one-step delayed trajectories as dynamic obstacles
             if obj.k > 1
                 % the old trajectories are available from the second time step onwards
-                old_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k - 1);
+                old_msg = read_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i}, obj.k - 1, false);
                 predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, old_msg.predicted_areas);
                 oldness_msg = obj.k - old_msg.time_step;
 
@@ -287,6 +281,82 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 end
 
                 iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
+            end
+
+        end
+
+        function iter_v = consider_vehs_with_LP(obj, iter_v, vehicle_idx, all_coupling_vehs_without_ROW)
+            % CONSIDER_VEHS_WITH_LP Stategies to let vehicle with the right-of-way
+            % consider vehicle without the right-of-way
+            % '1': do not consider
+            % '2': consider currently occupied area as static obstacle
+            % '3': consider the occupied area of emergency braking maneuver as static obstacle
+            % '4': consider one-step reachable sets as static obstacle
+            % '5': consider old trajectory as dynamic obstacle
+
+            for i_LP = 1:length(all_coupling_vehs_without_ROW)
+                veh_without_ROW = all_coupling_vehs_without_ROW(i_LP);
+
+                % stategies to let vehicle with the right-of-way consider vehicle without the right-of-way
+                switch obj.scenario.options.strategy_consider_veh_without_ROW
+                    case '1'
+                        % do not consider
+
+                    case '2'
+                        % consider currently occupied area as static obstacle
+                        iter_v.obstacles{end + 1} = iter_v.occupied_areas{veh_without_ROW}.normal_offset; % add as static obstacles
+
+                    case '3'
+                        % consider the occupied area of emergency braking maneuver
+                        % as static obstacle (only if their couplings are not
+                        % ignored by forbidding one vehicle entering their lanelet
+                        % crossing area, and they have side-impact collision
+                        % possibility). Cases that vehicles drive successively are not
+                        % included to avoid that vehicles behind push vehicles in
+                        % front to move forward.
+                        switch obj.scenario.options.priority
+                            case PriorityStrategies.STAC_priority
+
+                                if ~iter_v.coupling_info{vehicle_idx, veh_without_ROW}.is_ignored && iter_v.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side ...
+                                        && iter_v.coupling_info{vehicle_idx, veh_without_ROW}.lanelet_relationship == LaneletRelationshipType.crossing
+                                    % the emergency braking maneuver is only considered if
+                                    % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
+                                    iter_v.obstacles{end + 1} = iter_v.emergency_maneuvers{veh_without_ROW}.braking_area;
+                                else
+                                    iter_v.obstacles{end + 1} = iter_v.occupied_areas{veh_without_ROW}.normal_offset;
+                                end
+
+                            otherwise
+                                iter_v.obstacles{end + 1} = iter_v.occupied_areas{veh_without_ROW}.normal_offset;
+                        end
+
+                    case '4'
+                        % consider one-step reachable sets as static obstacle
+                        reachable_sets = iter_v.reachable_sets{veh_without_ROW, 1};
+                        % get boundary of the polygon
+                        [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
+                        iter_v.obstacles(end + 1) = {[x_reachable_sets'; y_reachable_sets']};
+                    case '5'
+                        % consider old trajectory as dynamic obstacle
+                        latest_msg = obj.ros_subscribers.predictions{veh_without_ROW}.LatestMessage;
+
+                        if latest_msg.time_step > 0
+                            % the message does not come from the initial time step
+                            predicted_areas = arrayfun(@(array) {[array.x'; array.y']}, latest_msg.predicted_areas);
+                            shift_step = iter_v.k - latest_msg.time_step; % times that the prediction should be shifted and the last prediction should be repeated
+
+                            if shift_step > 1
+                                disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_i) ', considered vehicle: ' num2str(veh_without_ROW)])
+                            end
+
+                            predicted_areas = del_first_rpt_last(predicted_areas(:)', shift_step);
+                            iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas;
+                        end
+
+                    otherwise
+                        warning("Please specify one of the following strategies to let vehicle with a higher priority also consider vehicle with a lower priority: '1', '2', '3', '4', '5'.")
+                end
+
             end
 
         end

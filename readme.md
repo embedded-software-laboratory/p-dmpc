@@ -2,51 +2,62 @@
 
 - [Priority-Based Trajectory Planning for Networked Vehicles Using Motion Primitives](#priority-based-trajectory-planning-for-networked-vehicles-using-motion-primitives)
 - [Setup](#setup)
-    - [MATLAB R2023a](#matlab-r2023a)
-    - [System Requirements for MATLAB ROS 2 Toolbox](#system-requirements-for-matlab-ros-2-toolbox)
-    - [System Requirements for using Lanelet2](#system-requirements-for-using-lanelet2)
-- [Run Experiments](#run-experiments)
+- [Experiments](#experiments)
 - [References](#references)
 - [Acknowledgements](#acknowledgements)
 
 # Setup
 
+The following setup instructions are intended for Ubuntu 18.04. You can find more detailed information on the setup in Ubuntu 18.04 and other OSs with the link at the end of this section.
+
 ## MATLAB R2023a
 
 Install MATLAB R2023a with the following toolboxes:
 
+- Matlab Coder
+- Parallel Computing Toolbox
 - Statistics and Machine Learning Toolbox
 - ROS Toolbox
-- Parallel Computing Toolbox
 
-## System Requirements for MATLAB ROS 2 Toolbox
-In our priority-based trajectory planning, vehicles communicate using the MATLAB ROS 2 toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python software, CMake software, and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).
+## System Requirements for MATLAB ROS Toolbox
+In our priority-based trajectory planning, vehicles communicate using the MATLAB ROS toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python software, CMake software, and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).
 For MATLAB R2023a
 
-1. Python 3.9
-    1. Install Python 3.9 and add it to your system path variable.
-    2. Go to the MATLAB command window and execute `pyenv('Version','version')` to set up Python with MATLAB. For example, `pyenv('Version','3.9')` will let MATLAB use Python 3.9. If MATLAB cannot find the version, provide its path with `pyenv('Version','fullPathOfYourPythonInstallFolder\YourPythonExecutable')`.
-2. CMake 3.16.3+
-    1. Install from <https://cmake.org/download/>
-3. C++ compiler
-    1. Installation
-        - Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) community version is sufficient. Select "Desktop development with C++" during the installation.
-    2. Configure your C++ compiler using `mex -setup` in the MATLAB command window.
+- Python
+    1. Install Python 3.8 <br>
+    `sudo apt install python3.8 python3.8-venv python3.8-dev`
+    2. Setup Python in the MATLAB command window: <br>
+    `pyenv(Version="3.8")`
+    3. If Matlab cannot find Python, try: <br>
+    `pyenv(Version=/usr/bin/python3.8)`
+- C++ compiler
+    1. Install GCC and G++ Version 7.x+ <br>
+    `sudo apt install gcc-7 g++-7`
+    2. Set them as the default compiler <br>
+    `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 --slave /usr/bin/g++ g++ /usr/bin/g++-7`
+    3. Setup the compiler in the MATLAB command window: <br>
+    `mex -setup`
 
-## System Requirements for using Lanelet2
+## Setup Details
 
-As one map representation we use lanelet2, because it offers libraries with lots of useful functionality. Since the libraries only exist in Python and C++, mex functions are used to benefit from that. In order to compile these mex functions the following dependencies need to be met.
+More detailed information including troubleshooting can be found [here](./docs/Setup_Details.md).
 
-1. Lanelet2
-    1. Install according to <https://github.com/fzi-forschungszentrum-informatik/Lanelet2#installation> . Under Ubuntu22 you probably want to use it as part of the ROS2 humble version, i.e., `sudo apt install ros-humble-lanelet2`
-2. Eigen3
-    1. Install Eigen3 as dependency of Lanelet2. In Ubuntu, the following command should be sufficient: `sudo apt install libeigen3-dev`
-3. Git Submodules
-    1. Since some of our functionality is added by using git submodules, use `git submodule init` after cloning to retrieve the content of these repos.
+# Experiments
 
-# Run Experiments
+1. Execute startup.m to open the project
+    - Compilation of graph_search_mex should fail
+    - Compilation of lanelet2_interface should fail
+    - Compilation of priority_queue should succeed
+2. Execute main.m to run an experiment
+    - Select the environment Simulation
+    - Select the control strategy pb non-coop
+    - Push the Start button to start the experiment
+    - Options that does not work in this setup are:
+        - Environments: CPM Lab, Unified Lab API
+        - Checkbox: use C++
+        - Scenario: Lanelet2, Lab Default
 
-See [here](/docs/Run_Experiments.md)
+More detailed information including lab experiments can be found [here](./docs/Run_Experiments.md).
 
 # References
 
@@ -104,11 +115,11 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs", ResearchGate, Preprint, 2023, doi: 10.13140/RG.2.2.24697.13923
+P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs," 2023 IEEE Intelligent Vehicles Symposium (IV), Anchorage, AK, USA, 2023, doi: 10.1109/IV55152.2023.10186623.
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
-[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://dx.doi.org/10.13140/RG.2.2.24697.13923)
+[![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/IV55152.2023.10186623)
 [![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v2.0)
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/kDIVu0tv9Ro)
 </summary>
