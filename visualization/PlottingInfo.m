@@ -54,6 +54,8 @@ classdef PlottingInfo
 
             obj.directed_coupling = result.directed_coupling{k};
 
+            obj.is_virtual_obstacle = false(result.scenario.options.amount, result.scenario.options.amount);
+
             if ~isempty(result.iteration_structs{k}.weighted_coupling_reduced)
                 obj.weighted_coupling_reduced = result.iteration_structs{k}.weighted_coupling_reduced;
 
@@ -62,7 +64,7 @@ classdef PlottingInfo
                         result.scenario.options.scenario_type == ScenarioType.commonroad ...
                     )
                     obj.belonging_vector = result.belonging_vector(:, k);
-                    obj.is_virtual_obstacle = false(result.scenario.options.amount, result.scenario.options.amount);
+
                     coupling_info_k = result.coupling_info{k};
                     populated_coupling_info_entries = find(~cellfun(@isempty, coupling_info_k));
                     populated_coupling_infos = [coupling_info_k{populated_coupling_info_entries}];

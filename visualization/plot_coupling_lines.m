@@ -83,14 +83,14 @@ function [M, x0, belonging_vector, is_virtual_obstacle, coupling_visu] = parse_i
     % Process optional input and Name-Value pair options
 
     default_belonging_vector = ones(1, length(M)); % default all vehicles are in the same group
-    default_is_virtual_obstacle = zeros(size(M));
+    default_is_virtual_obstacle = false(size(M));
     default_coupling_visu = struct('FontSize', 12, 'LineWidth', 1, 'isShowLine', false, 'isShowValue', false);
 
     p = inputParser;
     addRequired(p, 'M', @(x) ismatrix(x) && (isnumeric(x) || islogical(x))); % must be numerical matrix
     addRequired(p, 'x0', @(x) isstruct(x) || ismatrix(x) && (isnumeric(x))); % must be numerical matrix
     addOptional(p, 'belonging_vector', default_belonging_vector, @(x) (isnumeric(x) && isvector(x)) || isempty(x)); % must be numerical vector or empty
-    addOptional(p, 'is_virtual_obstacle', default_is_virtual_obstacle, @(x) (ismatrix(x) || isempty(x)) && (isnumeric(x) || islogical(x))); % must be cell array or empty
+    addOptional(p, 'is_virtual_obstacle', default_is_virtual_obstacle, @(x) ismatrix(x) && (isnumeric(x) || islogical(x))); % must be numeric or logical matrix
     addOptional(p, 'coupling_visu', default_coupling_visu, @(x) isstruct(x) || isempty(x)); % must be struct or empty
 
     parse(p, M, x0, varargin{:}); % start parsing
