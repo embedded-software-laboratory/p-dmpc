@@ -18,7 +18,7 @@ function plot_coupling_lines(M, x0, varargin)
     %
 
     % Process optional input and Name-Value pair options
-    [M, x0, belonging_vector, coupling_info, coupling_visu] = parse_inputs(M, x0, varargin{:});
+    [M, x0, belonging_vector, is_virtual_obstacle, coupling_visu] = parse_inputs(M, x0, varargin{:});
 
     % if the given matrix is adjacency matrix but not edge-weights matrix
     if all(M == 1 | M == 0, "all")
@@ -34,30 +34,20 @@ function plot_coupling_lines(M, x0, varargin)
         x = x0(v, :);
         % plot directed coupling
         adjacent_vehicles = find(M(v, :) ~= 0);
-        if ~isempty(coupling_info) % in case it isnt a commonroad scenario
-            all_adjacent_vehicles = find(~cellfun(@isempty, coupling_info(v, :)));
-        else
-            all_adjacent_vehicles = [];
-        end
+
+        % find_couplings that are handly by virtual obstacles
+        coupling_is_virtual_obstacle = find(is_virtual_obstacle(v, :));
 
         % plot couplings that are ignored by letting vehicles without
-        % right-of-way not enter the lanelet crossing area
+        % right-of-way not enter the lanelet crossing area (virtual_obstacle)
 
-        if any(all_adjacent_vehicles)
-            redundant_entries = setdiff(all_adjacent_vehicles, adjacent_vehicles);
-            redundant_coupling_infos = [coupling_info{v, redundant_entries}];
+        if ~isempty(coupling_is_virtual_obstacle)
 
-            if ~isempty(redundant_coupling_infos)
-                coupling_ignored = redundant_entries(redundant_coupling_infos.is_ignored);
-            else
-                coupling_ignored = [];
-            end
-
-            for i_ignored = coupling_ignored
-                ignored_x = x0(i_ignored, :);
-                MaxHeadSize = 0.7 * norm([ignored_x(1) - x(1), ignored_x(2) - x(2)]); % to keep the arrow size
+            for coupled_i = coupling_is_virtual_obstacle
+                coupled_x = x0(coupled_i, :);
+                MaxHeadSize = 0.7 * norm([coupled_x(1) - x(1), coupled_x(2) - x(2)]); % to keep the arrow size
                 % couplings that are ignored will be shown in grey solid lines
-                plot_arrow(x', (ignored_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_minor, '-', MaxHeadSize);
+                plot_arrow(x', (coupled_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_minor, '-', MaxHeadSize);
             end
 
         end
@@ -89,18 +79,18 @@ function plot_coupling_lines(M, x0, varargin)
 end
 
 %% local function
-function [M, x0, belonging_vector, coupling_info, coupling_visu] = parse_inputs(M, x0, varargin)
+function [M, x0, belonging_vector, is_virtual_obstacle, coupling_visu] = parse_inputs(M, x0, varargin)
     % Process optional input and Name-Value pair options
 
     default_belonging_vector = ones(1, length(M)); % default all vehicles are in the same group
-    default_coupling_info = [];
+    default_is_virtual_obstacle = false(size(M));
     default_coupling_visu = struct('FontSize', 12, 'LineWidth', 1, 'isShowLine', false, 'isShowValue', false);
 
     p = inputParser;
     addRequired(p, 'M', @(x) ismatrix(x) && (isnumeric(x) || islogical(x))); % must be numerical matrix
     addRequired(p, 'x0', @(x) isstruct(x) || ismatrix(x) && (isnumeric(x))); % must be numerical matrix
     addOptional(p, 'belonging_vector', default_belonging_vector, @(x) (isnumeric(x) && isvector(x)) || isempty(x)); % must be numerical vector or empty
-    addOptional(p, 'coupling_info', default_coupling_info, @(x) iscell(x) || isempty(x)); % must be cell array or empty
+    addOptional(p, 'is_virtual_obstacle', default_is_virtual_obstacle, @(x) ismatrix(x) && (isnumeric(x) || islogical(x))); % must be numeric or logical matrix
     addOptional(p, 'coupling_visu', default_coupling_visu, @(x) isstruct(x) || isempty(x)); % must be struct or empty
 
     parse(p, M, x0, varargin{:}); % start parsing
@@ -109,7 +99,7 @@ function [M, x0, belonging_vector, coupling_info, coupling_visu] = parse_inputs(
     M = p.Results.M;
     x0 = p.Results.x0;
     belonging_vector = p.Results.belonging_vector;
-    coupling_info = p.Results.coupling_info;
+    is_virtual_obstacle = p.Results.is_virtual_obstacle;
     coupling_visu = p.Results.coupling_visu;
 end
 
