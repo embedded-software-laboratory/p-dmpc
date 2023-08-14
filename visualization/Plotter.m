@@ -284,7 +284,7 @@ classdef (Abstract) Plotter < handle
                 x0 = cell2mat(x0);
 
                 if ~isempty(plotting_info.weighted_coupling_reduced)
-                    plot_coupling_lines(plotting_info.weighted_coupling_reduced, x0, plotting_info.belonging_vector, plotting_info.coupling_info, coupling_visu)
+                    plot_coupling_lines(plotting_info.weighted_coupling_reduced, x0, plotting_info.belonging_vector, plotting_info.is_virtual_obstacle, coupling_visu)
                 else
                     plot_coupling_lines(plotting_info.directed_coupling, x0, [], [], coupling_visu)
                 end

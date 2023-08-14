@@ -69,15 +69,7 @@ classdef SimLabDistributed < Plant
             obj.msg_to_be_sent.weighted_coupling_reduced = reshape(plotting_info.weighted_coupling_reduced', 1, numel(plotting_info.weighted_coupling_reduced));
             obj.msg_to_be_sent.directed_coupling = int32(reshape(plotting_info.directed_coupling', 1, numel(plotting_info.directed_coupling)));
             obj.msg_to_be_sent.belonging_vector = int32(plotting_info.belonging_vector);
-            populated_coupling_infos = find(~isempty(reshape(plotting_info.coupling_info', 1, numel(plotting_info.coupling_info))));
-            obj.msg_to_be_sent.populated_coupling_infos = int32(populated_coupling_infos);
-            obj.msg_to_be_sent.coupling_info = reshape([plotting_info.coupling_info{:}]', 1, numel([plotting_info.coupling_info{:}]));
-
-            % add one field coupling_info such that ros is fine with the message
-            if isempty(obj.msg_to_be_sent.coupling_info)
-                obj.msg_to_be_sent.coupling_info = struct('is_ignored', false);
-            end
-
+            obj.msg_to_be_sent.is_virtual_obstacle = reshape([plotting_info.is_virtual_obstacle{:}]', 1, numel([plotting_info.is_virtual_obstacle{:}]));
         end
 
         function generate_plotting_info_msgs(obj)

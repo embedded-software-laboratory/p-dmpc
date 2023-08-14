@@ -22,7 +22,7 @@ function iter = consider_vehs_with_LP(scenario, iter, vehicle_idx, all_coupling_
             case '3'
                 % consider the occupied area of emergency braking maneuver
                 % as static obstacle (only if their couplings are not
-                % ignored by forbidding one vehicle entering their lanelet
+                % handled by forbidding one vehicle entering their lanelet
                 % crossing area, and they have side-impact collision
                 % possibility). Cases that vehicles drive successively are not
                 % included to avoid that vehicles behind push vehicles in
@@ -30,7 +30,7 @@ function iter = consider_vehs_with_LP(scenario, iter, vehicle_idx, all_coupling_
                 switch scenario.options.priority
                     case PriorityStrategies.STAC_priority
 
-                        if ~iter.coupling_info{vehicle_idx, veh_without_ROW}.is_ignored && iter.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side ...
+                        if ~iter.coupling_info{vehicle_idx, veh_without_ROW}.is_virtual_obstacle && iter.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side ...
                                 && iter.coupling_info{vehicle_idx, veh_without_ROW}.lanelet_relationship == LaneletRelationshipType.crossing
                             % the emergency braking maneuver is only considered if
                             % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored

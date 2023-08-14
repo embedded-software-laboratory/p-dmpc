@@ -17,7 +17,7 @@ classdef PlottingInfo
         weighted_coupling_reduced
         directed_coupling
         belonging_vector = []
-        coupling_info
+        is_virtual_obstacle
     end
 
     methods
@@ -62,7 +62,16 @@ classdef PlottingInfo
                         result.scenario.options.scenario_type == ScenarioType.commonroad ...
                     )
                     obj.belonging_vector = result.belonging_vector(:, k);
-                    obj.coupling_info = result.coupling_info{k};
+                    obj.is_virtual_obstacle = false(result.scenario.options.amount, result.scenario.options.amount);
+                    coupling_info_k = result.coupling_info{k};
+                    populated_coupling_info_entries = find(~cellfun(@isempty, coupling_info_k));
+                    populated_coupling_infos = [coupling_info_k{populated_coupling_info_entries}];
+
+                    if ~isempty(populated_coupling_infos)
+                        is_virtual_obstacle_filter = [populated_coupling_infos.is_virtual_obstacle];
+                        obj.is_virtual_obstacle(populated_coupling_info_entries(is_virtual_obstacle_filter)) = true;
+                    end
+
                 end
 
             end
@@ -83,12 +92,6 @@ classdef PlottingInfo
 
             if plot_options.plot_lanelet_crossing_areas
                 obj.lanelet_crossing_areas = obj.lanelet_crossing_areas{filter_self};
-            end
-
-            % remove unnecessary field from coupling_info
-            try
-                obj.coupling_info = rmfield(obj.coupling_info, {'stac', 'distance', 'collision_type', 'lanelet_realtionship_type', 'is_intersection', 'is_move_side_by_side'});
-            catch
             end
 
         end

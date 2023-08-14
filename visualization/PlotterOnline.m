@@ -219,14 +219,7 @@ classdef PlotterOnline < Plotter
             plotting_info.weighted_coupling_reduced = reshape(msg.weighted_coupling_reduced, obj.scenario.options.amount, obj.scenario.options.amount)';
             plotting_info.directed_coupling = reshape(msg.directed_coupling, obj.scenario.options.amount, obj.scenario.options.amount)';
             plotting_info.belonging_vector = msg.belonging_vector;
-            plotting_info.coupling_info = cell(1, obj.scenario.options.amount * obj.scenario.options.amount);
-
-            % reconstruct coupling info cell-array-with-structs
-            for entry = msg.populated_coupling_infos
-                plotting_info.coupling_info{entry} = msg.coupling_info(msg.populated_coupling_infos == entry);
-            end
-
-            plotting_info.coupling_info = reshape(plotting_info.coupling_info, obj.scenario.options.amount, obj.scenario.options.amount)';
+            plotting_info.is_virtual_obstacle = reshape(msg.is_virtual_obstacle, obj.scenario.options.amount, obj.scenario.options.amount)';
         end
 
         function complete_plotting_info = merge_plotting_infos(obj, plotting_info_collection)

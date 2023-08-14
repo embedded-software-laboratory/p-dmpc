@@ -13,5 +13,4 @@ int32                           tick_now                    # 1 (= 1)
 float64[]                       weighted_coupling_reduced   # N x N
 int32[]                         directed_coupling           # N x N
 int32                           belonging_vector            # 1
-CouplingInfo[]                  coupling_info               # N x N
-int32[]                         populated_coupling_infos
+bool[]                          is_virtual_obstacle         # N x N (boolean matrix extracted from coupling_info)
