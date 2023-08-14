@@ -69,7 +69,7 @@ classdef SimLabDistributed < Plant
             obj.msg_to_be_sent.weighted_coupling_reduced = reshape(plotting_info.weighted_coupling_reduced', 1, numel(plotting_info.weighted_coupling_reduced));
             obj.msg_to_be_sent.directed_coupling = int32(reshape(plotting_info.directed_coupling', 1, numel(plotting_info.directed_coupling)));
             obj.msg_to_be_sent.belonging_vector = int32(plotting_info.belonging_vector);
-            obj.msg_to_be_sent.is_virtual_obstacle = reshape(plotting_info.is_virtual_obstacle', 1, numel(plotting_info.is_virtual_obstacle));
+            obj.msg_to_be_sent.is_virtual_obstacle = int32(reshape(plotting_info.is_virtual_obstacle', 1, numel(plotting_info.is_virtual_obstacle)));
         end
 
         function generate_plotting_info_msgs(obj)
