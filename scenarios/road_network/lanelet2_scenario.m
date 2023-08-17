@@ -54,7 +54,7 @@ function scenario = lanelet2_scenario(options, vehicle_ids, plant)
 
         if isempty(options.reference_path.lanelets_index)
             ref_path_loop = ref_path_loops{1};
-            start_idx = mod(vehicle_ids(iveh) * 2 - 1, width(ref_path_loop));
+            start_idx = mod(vehicle_ids(iveh) * 2 - 1 +8, width(ref_path_loop));
 
             if start_idx == 1
                 lanelets_index = ref_path_loop;

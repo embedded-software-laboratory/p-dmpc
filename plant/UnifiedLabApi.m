@@ -337,6 +337,8 @@ classdef UnifiedLabApi < Plant
                 error(strcat('Scaling service could not be reached. Status text: ', connectionStatustext));
             end
 
+            pause(0.5);
+
             disp('Scaling node available. Assume all other nodes to be available as well...');
             scaling_request = ros2message(obj.client_scaleRegistration);
             scaling_request.entity = 'user';

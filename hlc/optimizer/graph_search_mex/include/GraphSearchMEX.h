@@ -78,7 +78,7 @@ namespace GraphBasedPlanning {
 			matlab::data::EnumArray const scenario_type_array = _matlab->getProperty(options_array, u"scenario_type");
 			std::string scenario_type_string = std::string(scenario_type_array[0]);
 
-			if (scenario_type_string == "commonroad") {
+			if (scenario_type_string == "commonroad" || scenario_type_string == "lanelet2_ids3c_circle") {
 				scenario_type() = SCENARIO_TYPE::CommonRoad;
 			} else if (scenario_type_string == "circle") {
 				scenario_type() = SCENARIO_TYPE::Circle;
