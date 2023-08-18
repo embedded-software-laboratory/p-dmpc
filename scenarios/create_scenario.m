@@ -5,7 +5,7 @@ function scenario = create_scenario(options, random_seed, plant)
     % Use options to setup scenario
     options.max_num_CLs = min(options.max_num_CLs, options.amount);
 
-    if options.environment == Environment.Simulation
+    if options.environment == Environment.Simulation || options.environment == Environment.SimulationDistributed
         disp('Running in MATLAB simulation...')
         options.is_manual_control = 0;
     else

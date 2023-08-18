@@ -80,7 +80,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 if ~is_same_grp
                     obj.iter.num_couplings_between_grps = obj.iter.num_couplings_between_grps + 1;
 
-                    if ~isempty(obj.iter.coupling_info{veh_i, veh_j}) && obj.iter.coupling_info{veh_i, veh_j}.is_ignored
+                    if ~isempty(obj.iter.coupling_info{veh_i, veh_j}) && obj.iter.coupling_info{veh_i, veh_j}.is_virtual_obstacle
                         obj.iter.num_couplings_between_grps_ignored = obj.iter.num_couplings_between_grps_ignored + 1;
                     end
 

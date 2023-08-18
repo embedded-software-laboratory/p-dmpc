@@ -254,12 +254,14 @@ function out = get_environment_selection(ui, output_as_enum)
     % is CPM lab selected
     if nargin > 1 && output_as_enum
 
-        if isequal([1 0 0], out)
+        if isequal([1 0 0 0], out)
             out = Environment.CpmLab;
-        elseif isequal([0 1 0], out)
+        elseif isequal([0 1 0 0], out)
             out = Environment.Simulation;
-        else % isequal([0 0 1], out)
+        elseif isequal([0 0 1 0], out)
             out = Environment.UnifiedLabApi;
+        else %isequal([0 0 0 1], out)
+            out = Environment.SimulationDistributed;
         end
 
     end

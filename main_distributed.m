@@ -9,7 +9,7 @@ function [result, scenario] = main_distributed(vehicle_id)
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
-    dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: Use dry run also for unified lab api?
+    dry_run = (scenario.options.environment == Environment.CpmLab || scenario.options.environment == Environment.SimulationDistributed); % TODO: Use dry run also for unified lab api?
     plant = PlantFactory.get_experiment_interface(scenario.options.environment);
     % set active vehicle IDs and initialize communication
     plant.setup(scenario);

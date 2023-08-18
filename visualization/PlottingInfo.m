@@ -17,7 +17,7 @@ classdef PlottingInfo
         weighted_coupling_reduced
         directed_coupling
         belonging_vector = []
-        coupling_info
+        is_virtual_obstacle
     end
 
     methods
@@ -54,6 +54,8 @@ classdef PlottingInfo
 
             obj.directed_coupling = result.directed_coupling{k};
 
+            obj.is_virtual_obstacle = false(result.scenario.options.amount, result.scenario.options.amount);
+
             if ~isempty(result.iteration_structs{k}.weighted_coupling_reduced)
                 obj.weighted_coupling_reduced = result.iteration_structs{k}.weighted_coupling_reduced;
 
@@ -62,7 +64,16 @@ classdef PlottingInfo
                         result.scenario.options.scenario_type == ScenarioType.commonroad ...
                     )
                     obj.belonging_vector = result.belonging_vector(:, k);
-                    obj.coupling_info = result.coupling_info{k};
+
+                    coupling_info_k = result.coupling_info{k};
+                    populated_coupling_info_entries = find(~cellfun(@isempty, coupling_info_k));
+                    populated_coupling_infos = [coupling_info_k{populated_coupling_info_entries}];
+
+                    if ~isempty(populated_coupling_infos)
+                        is_virtual_obstacle_filter = [populated_coupling_infos.is_virtual_obstacle];
+                        obj.is_virtual_obstacle(populated_coupling_info_entries(is_virtual_obstacle_filter)) = true;
+                    end
+
                 end
 
             end
@@ -75,6 +86,7 @@ classdef PlottingInfo
             obj.trajectory_predictions = obj.trajectory_predictions{filter_self'};
             obj.ref_trajectory = obj.ref_trajectory(filter_self, :, :);
             obj.priorities = obj.priorities(filter_self');
+            obj.belonging_vector = obj.belonging_vector(filter_self);
 
             if plot_options.plot_reachable_sets
                 obj.reachable_sets = obj.reachable_sets{filter_self, :};
