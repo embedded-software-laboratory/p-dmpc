@@ -189,7 +189,7 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
         x0 = cell2mat(x0);
 
         if ~isempty(iter.coupling_weights_reduced)
-            plot_coupling_lines(result.coupling_weights_reduced{step_idx}, x0, result.belonging_vector(:, step_idx), result.coupling_info{step_idx}, coupling_visu)
+            plot_coupling_lines(result.coupling_weights_reduced{step_idx}, x0, result.belonging_vector(:, step_idx), result.coupling_info{step_idx}.is_virtual_obstacle, coupling_visu)
         else
             plot_coupling_lines(result.directed_coupling{step_idx}, x0, [], [], coupling_visu)
         end

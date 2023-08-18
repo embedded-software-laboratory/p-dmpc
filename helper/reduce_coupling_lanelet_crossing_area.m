@@ -89,7 +89,7 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
             end
 
             % disp(['Ignore the coupling from vehicle ' num2str(veh_free) ' to ' num2str(veh_forbid) ' by forbidding the latter to enter the crossing area of their lanelets.'])
-            coupling_info{veh_free, veh_forbid}.is_ignored = true; % ignore coupling since no collision is possible anymore
+            coupling_info{veh_free, veh_forbid}.is_virtual_obstacle = true; % ignore coupling since no collision is possible anymore
             coupling_info{veh_forbid, veh_free} = {}; % remove coupling info
 
             weighted_coupling_reduced(veh_i, veh_j) = 0;
