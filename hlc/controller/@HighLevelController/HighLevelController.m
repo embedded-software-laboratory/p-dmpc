@@ -256,7 +256,7 @@ classdef (Abstract) HighLevelController < handle
                         str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
                         disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
-                        obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.plant.veh_ids, obj.plant.indices_in_vehicle_list);
+                        obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.plant.all_veh_ids, obj.plant.indices_in_vehicle_list);
                         obj.total_fallback_times = obj.total_fallback_times + 1;
                     end
 
