@@ -2,8 +2,8 @@ classdef GraphSearchMexCentralized < GraphSearchMex
 
     methods
 
-        function obj = GraphSearchMexCentralized(scenario, veh_indices)
-            obj = obj@GraphSearchMex(scenario, veh_indices);
+        function obj = GraphSearchMexCentralized(scenario, mpa, veh_indices)
+            obj = obj@GraphSearchMex(scenario, mpa, veh_indices);
         end
 
     end

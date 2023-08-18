@@ -40,8 +40,7 @@ namespace GraphBasedPlanning {
 	   protected:
 		GraphSearchMEX(matlab::data::ArrayFactory &factory, std::shared_ptr<matlab::engine::MATLABEngine> &_matlab) : MPA_MEX(_matlab), _factory(factory), _matlab(_matlab) {}
 
-		void scenario_callback(matlab::data::Array const &scenario) {
-			matlab::data::Array const mpa_array = _matlab->getProperty(scenario, u"mpa");
+		void scenario_callback(matlab::data::Array const &scenario, matlab::data::Array const &mpa_array) {
 			mpa_callback(mpa_array);
 
 			matlab::data::Array options_array = _matlab->getProperty(scenario, u"options");

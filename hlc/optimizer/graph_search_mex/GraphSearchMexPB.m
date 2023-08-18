@@ -2,8 +2,8 @@ classdef GraphSearchMexPB < GraphSearchMex
 
     methods
 
-        function obj = GraphSearchMexPB(scenario, veh_indices)
-            obj = obj@GraphSearchMex(scenario, veh_indices);
+        function obj = GraphSearchMexPB(scenario, mpa, veh_indices)
+            obj = obj@GraphSearchMex(scenario, mpa, veh_indices);
         end
 
     end

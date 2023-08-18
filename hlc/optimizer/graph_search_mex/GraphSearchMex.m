@@ -14,12 +14,12 @@ classdef (Abstract) GraphSearchMex < OptimizerInterface
                 % create mexhost for each vehicle (only if incremental search is used - no option in config yet)
                 for i_veh = 1:length(veh_indices)
                     obj.mexhosts(veh_indices(i_veh)) = mexhost;
-                    feval(obj.mexhosts(veh_indices(i_veh)), 'optimizer', Function.InitializeWithScenario, obj.scenario);
+                    feval(obj.mexhosts(veh_indices(i_veh)), 'optimizer', Function.InitializeWithScenario, obj.scenario, obj.mpa);
                 end
 
                 % if centralized only 1 mexhost is neccessary
             else
-                optimizer(Function.InitializeWithScenario, obj.scenario);
+                optimizer(Function.InitializeWithScenario, obj.scenario, obj.mpa);
             end
 
         end
