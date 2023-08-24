@@ -45,7 +45,7 @@ function create_publishers(hlc)
         if hlc.scenario.options.environment == Environment.CpmLab
             % This message type is only needed for lab mode but not
             % simulation mode
-            path_custom_msg = [file_path, filesep, 'cust2'];
+            path_custom_msg = [file_path, filesep, '../../manual_control'];
             disp('Generating ROS 2 custom message type...')
             ros2genmsg(path_custom_msg)
         end

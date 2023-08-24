@@ -38,7 +38,7 @@ classdef (Abstract) Plant < handle
             end
 
             obj.amount = 1;
-            obj.veh_ids = cast(vehicle_id, "uint8");
+            obj.veh_ids = vehicle_id;
             obj.indices_in_vehicle_list = find(obj.all_veh_ids == vehicle_id, 1);
 
             disp('during set_to_control_single_vehicle, have veh_ids:');
@@ -63,8 +63,8 @@ classdef (Abstract) Plant < handle
             obj.scenario = scenario;
 
             obj.amount = length(vehicle_ids);
-            obj.veh_ids = cast(vehicle_ids, "uint8");
-            obj.all_veh_ids = cast(vehicle_ids, "uint8");
+            obj.veh_ids = vehicle_ids;
+            obj.all_veh_ids = vehicle_ids;
             obj.indices_in_vehicle_list = 1:obj.amount;
 
             disp('after Plant.setup, have veh_ids, amount');
