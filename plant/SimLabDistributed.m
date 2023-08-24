@@ -19,7 +19,7 @@ classdef SimLabDistributed < Plant
         function setup(obj, scenario, vehicle_ids)
 
             arguments
-                obj (1, 1) SimLab
+                obj (1, 1) SimLabDistributed
                 scenario (1, 1) Scenario
                 vehicle_ids (1, :) = scenario.options.path_ids
             end
