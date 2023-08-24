@@ -91,7 +91,7 @@ classdef CpmLab < Plant
 
                 for index = 1:length(state_list)
 
-                    if ismember(state_list(index).vehicle_id, obj.veh_ids) % measure cav states
+                    if ismember(state_list(index).vehicle_id, obj.controlled_vehicle_ids) % measure cav states
                         list_index = obj.indices_in_vehicle_list(cav_index); % use list to prevent breaking distributed control
                         cav_index = cav_index + 1;
                         x0(list_index, 1) = state_list(index).pose.x;
@@ -195,7 +195,7 @@ classdef CpmLab < Plant
             % Send ready signal for all assigned vehicle ids
             disp('Sending ready signal');
 
-            for iVehicle = sort([obj.veh_ids, obj.scenario.options.manual_control_config.hdv_ids])
+            for iVehicle = sort([obj.controlled_vehicle_ids, obj.scenario.options.manual_control_config.hdv_ids])
                 ready_msg = ReadyStatus;
                 ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
                 ready_stamp = TimeStamp;

@@ -55,7 +55,7 @@ classdef UnifiedLabApi < Plant
             setup@Plant(obj, scenario);
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.amount, 1), zeros(obj.amount, 1));
 
-            assert(issorted(obj.veh_ids));
+            assert(issorted(obj.controlled_vehicle_ids));
 
             obj.got_start = false;
             obj.got_stop = false;
@@ -90,7 +90,7 @@ classdef UnifiedLabApi < Plant
 
             % Request the vehicle ids which shall be used in this experiment (this should be an action, but we use only the initial message)
             % TODO: This assumes that the assigned vehicles are all vehicles needed in the experiment. Correct?
-            obj.goal_msg.vehicle_ids = int32(obj.veh_ids);
+            obj.goal_msg.vehicle_ids = int32(obj.controlled_vehicle_ids);
             callbackOpts = ros2ActionSendGoalOptions(FeedbackFcn = @obj.vehicleRequestActionFeedbackCallback, ResultFcn = @obj.vehicleRequestActionResultCallback); % Currently, we don't use it...
             [connectionStatus, connectionStatustext] = waitForServer(obj.actionClient_vehiclesRequest);
 
@@ -108,14 +108,14 @@ classdef UnifiedLabApi < Plant
             ready_msg.entity = 'scenario';
             send(obj.publisher_readyState, ready_msg);
 
-            for veh_id = obj.veh_ids
+            for veh_id = obj.controlled_vehicle_ids
                 ready_msg = ros2message(obj.publisher_readyState);
                 ready_msg.entity = 'vehicle_controller';
                 ready_msg.id = int32(veh_id);
                 send(obj.publisher_readyState, ready_msg);
             end
 
-            disp(strcat('Successfully sent ready messages for the scenario and the following vehicle ids: ', num2str(obj.veh_ids)));
+            disp(strcat('Successfully sent ready messages for the scenario and the following vehicle ids: ', num2str(obj.controlled_vehicle_ids)));
 
             % Wait until the callback function on_experiment_state_change registered a start/stop signal
             while (~obj.got_stop && ~obj.got_start)
@@ -174,7 +174,7 @@ classdef UnifiedLabApi < Plant
 
                 for index = 1:length(state_list)
 
-                    if ismember(double(state_list(index).vehicle_id), obj.veh_ids) % measure cav states
+                    if ismember(double(state_list(index).vehicle_id), obj.controlled_vehicle_ids) % measure cav states
                         list_index = obj.indices_in_vehicle_list(index); % use list to prevent breaking distributed control
                         x0(list_index, 1) = state_list(index).pose.x;
                         x0(list_index, 2) = state_list(index).pose.y;

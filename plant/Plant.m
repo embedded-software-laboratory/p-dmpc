@@ -13,9 +13,9 @@ classdef (Abstract) Plant < handle
     properties (Access = public)
         % public so that the HLC can access them
         indices_in_vehicle_list
-        veh_ids % which vehicles will controlled by this experiment instance
+        controlled_vehicle_ids % which vehicles will controlled by this experiment instance
         amount % amount of vehicles controlled by this experiment instance
-        all_veh_ids % all active vehicle ids. when running distributedly, these can differ from veh_ids
+        all_veh_ids % all active vehicle ids. when running distributedly, these can differ from controlled ids
     end
 
     methods (Abstract)
@@ -38,15 +38,8 @@ classdef (Abstract) Plant < handle
             end
 
             obj.amount = 1;
-            obj.veh_ids = vehicle_id;
+            obj.controlled_vehicle_ids = vehicle_id;
             obj.indices_in_vehicle_list = find(obj.all_veh_ids == vehicle_id, 1);
-
-            disp('during set_to_control_single_vehicle, have veh_ids:');
-            disp(obj.veh_ids);
-            disp('all_veh_ids:');
-            disp(obj.all_veh_ids);
-            disp('and indices:');
-            disp(obj.indices_in_vehicle_list);
         end
 
         function setup(obj, scenario, vehicle_ids)
@@ -63,24 +56,15 @@ classdef (Abstract) Plant < handle
             obj.scenario = scenario;
 
             obj.amount = length(vehicle_ids);
-            obj.veh_ids = vehicle_ids;
+            obj.controlled_vehicle_ids = vehicle_ids;
             obj.all_veh_ids = vehicle_ids;
             obj.indices_in_vehicle_list = 1:obj.amount;
-
-            disp('after Plant.setup, have veh_ids, amount');
-            disp(obj.veh_ids);
-            disp(obj.amount);
-            disp('and indices:');
-            disp(obj.indices_in_vehicle_list);
-            disp('as well as all_veh_ids:');
-            disp(obj.all_veh_ids);
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
 
         end
 
         function [x0, trim_indices] = measure_node(obj)
-            % take last planned state as new actual state
             speeds = zeros(obj.scenario.options.amount, 1);
 
             for iVeh = 1:obj.indices_in_vehicle_list
