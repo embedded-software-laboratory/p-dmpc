@@ -50,7 +50,7 @@ classdef (Abstract) HighLevelController < handle
 
     methods
         % Set default settings
-        function obj = HighLevelController(scenario, vehicle_ids)
+        function obj = HighLevelController(scenario, vehicle_ids, plant)
             % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
@@ -65,6 +65,9 @@ classdef (Abstract) HighLevelController < handle
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
             obj.set_vehicle_ids(vehicle_ids);
+            obj.plant = plant;
+
+            obj.plant.setup(obj.scenario, obj.vehicle_ids);
 
             obj.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
 
@@ -121,10 +124,6 @@ classdef (Abstract) HighLevelController < handle
             obj.controller_name = name;
         end
 
-        function set_hlc_adapter(obj, plant)
-            obj.plant = plant;
-        end
-
     end
 
     methods (Abstract = true, Access = protected)
@@ -164,7 +163,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
             end
 
-            obj.plant.setup(obj.scenario, obj.vehicle_ids);
+            obj.plant.send_ready_msg();
 
             if obj.scenario.options.is_prioritized
                 % In priority-based computation, vehicles communicate via ROS 2
@@ -368,7 +367,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % Apply control action
                 % -------------------------------------------------------------------------
-                obj.plant.apply(obj.info, obj.result, obj.k, obj.scenario);
+                obj.plant.apply(obj.info, obj.result, obj.k, obj.mpa);
 
                 % Check for stop signal
                 % -------------------------------------------------------------------------

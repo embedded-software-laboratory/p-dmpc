@@ -30,9 +30,6 @@ classdef CpmLab < Plant
         end
 
         function setup(obj, scenario, veh_ids)
-            setup@Plant(obj, scenario, veh_ids);
-            assert(issorted(obj.veh_ids));
-
             % Initialize data readers/writers...
             % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
             common_cpm_functions_path = fullfile( ...
@@ -68,11 +65,17 @@ classdef CpmLab < Plant
             end
 
             state_list = sample(end);
-            obj.scenario.options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
+            scenario.options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
 
             % Middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(obj.scenario.options.dt_seconds * 1e9);
+            obj.dt_period_nanos = uint64(scenario.options.dt_seconds * 1e9);
 
+            setup@Plant(obj, scenario, veh_ids);
+            assert(issorted(obj.veh_ids));
+
+        end
+
+        function send_ready_msg(obj)
             % Sync start with infrastructure
             % Send ready signal for all assigned vehicle ids
             disp('Sending ready signal');

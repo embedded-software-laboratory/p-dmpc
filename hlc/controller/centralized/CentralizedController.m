@@ -2,8 +2,8 @@ classdef CentralizedController < HighLevelController
 
     methods
 
-        function obj = CentralizedController(scenario, vehicle_ids)
-            obj = obj@HighLevelController(scenario, vehicle_ids);
+        function obj = CentralizedController(scenario, vehicle_ids, plant)
+            obj = obj@HighLevelController(scenario, vehicle_ids, plant);
 
             if obj.scenario.options.use_cpp
                 obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.mpa, obj.indices_in_vehicle_list);
