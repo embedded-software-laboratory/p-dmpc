@@ -20,6 +20,11 @@ classdef FileNameConstructor
     methods (Static)
 
         function mpa_instance_name = get_mpa_name(options)
+
+            arguments
+                options (1, 1) Config
+            end
+
             % GET_MPA_NAME Construct name for the file to which a object of the
             % class MPA is saved.
             % Example:  MPA_trims12_Hp6

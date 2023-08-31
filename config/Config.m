@@ -10,7 +10,7 @@ classdef Config < matlab.mixin.Copyable
         scenario_type ScenarioType = ScenarioType.commonroad; % one of the follows: {'Circle_scenario', 'Commonroad'}
         priority PriorityStrategies = PriorityStrategies.constant_priority; % defines which priority assignmen strategy is used
         weight WeightStrategies = WeightStrategies.constant_weight; % defines which weighting method is used
-        dt_seconds; % scalar, sample time
+        dt_seconds = 0.2; % scalar, default sample time
         Hp = 6; % scalar, prediction horizon
         trim_set = 7; % scalar, ID of trim primitives
         T_end = 20; % scalar, simulation duration
