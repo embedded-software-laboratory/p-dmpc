@@ -200,7 +200,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
         for iVeh = other_vehicles
             %latest_msg_i = read_message(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.traffic, obj.ros_subscribers.traffic{iVeh}, obj.k);
-            latest_msg_i = latest_msgs(find([latest_msgs.vehicle_id] == obj.plant.all_veh_ids(iVeh), 1));
+            latest_msg_i = latest_msgs(find([latest_msgs.vehicle_id] == obj.plant.all_vehicle_ids(iVeh), 1));
             obj.iter.x0(iVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
             obj.iter.trim_indices(iVeh) = latest_msg_i.current_trim_index;
             obj.iter.predicted_lanelets{iVeh} = latest_msg_i.predicted_lanelets';

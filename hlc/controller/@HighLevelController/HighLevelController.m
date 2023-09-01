@@ -1,9 +1,6 @@
 classdef (Abstract) HighLevelController < handle
     %TODO check for private/protected vars
     properties (Access = public)
-        % amount of vehicle controlled by this HLC
-        amount;
-
         % scenario
         scenario;
 
@@ -56,7 +53,7 @@ classdef (Abstract) HighLevelController < handle
             obj.plant = plant;
 
             % create fallback for first time step
-            obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, plant.all_veh_ids);
+            obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, plant.all_vehicle_ids);
 
             for vehicle_idx = obj.plant.indices_in_vehicle_list
                 k = 1;
@@ -110,7 +107,7 @@ classdef (Abstract) HighLevelController < handle
             % overlapping points are removed when using MATLAB function `polyshape`
             warning('off', 'MATLAB:polyshape:repairedBySimplify')
 
-            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_veh_ids);
+            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_vehicle_ids);
 
             obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
 
@@ -256,7 +253,7 @@ classdef (Abstract) HighLevelController < handle
                         str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
                         disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
-                        obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.plant.all_veh_ids, obj.plant.indices_in_vehicle_list);
+                        obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.plant.all_vehicle_ids, obj.plant.indices_in_vehicle_list);
                         obj.total_fallback_times = obj.total_fallback_times + 1;
                     end
 

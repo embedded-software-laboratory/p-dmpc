@@ -15,7 +15,7 @@ classdef (Abstract) Plant < handle
         indices_in_vehicle_list
         controlled_vehicle_ids % which vehicles will controlled by this experiment instance
         amount % amount of vehicles controlled by this experiment instance
-        all_veh_ids % all active vehicle ids. when running distributedly, these can differ from controlled ids
+        all_vehicle_ids % all active vehicle ids. when running distributedly, these can differ from controlled ids
     end
 
     methods (Abstract)
@@ -39,7 +39,7 @@ classdef (Abstract) Plant < handle
 
             obj.amount = 1;
             obj.controlled_vehicle_ids = vehicle_id;
-            obj.indices_in_vehicle_list = find(obj.all_veh_ids == vehicle_id, 1);
+            obj.indices_in_vehicle_list = find(obj.all_vehicle_ids == vehicle_id, 1);
         end
 
         function setup(obj, scenario, vehicle_ids)
@@ -57,7 +57,7 @@ classdef (Abstract) Plant < handle
 
             obj.amount = length(vehicle_ids);
             obj.controlled_vehicle_ids = vehicle_ids;
-            obj.all_veh_ids = vehicle_ids;
+            obj.all_vehicle_ids = vehicle_ids;
             obj.indices_in_vehicle_list = 1:obj.amount;
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
