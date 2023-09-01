@@ -62,8 +62,6 @@ classdef MotionPrimitiveAutomaton
 
             % for example: MPA_trims12_Hp6, MPA_trims12_Hp6_parl_non-convex
             mpa_instance_name = FileNameConstructor.get_mpa_name(options);
-            disp('have mpa_instance_name');
-            disp(mpa_instance_name);
 
             mpa_full_path = fullfile(folder_target, mpa_instance_name);
 
@@ -73,8 +71,6 @@ classdef MotionPrimitiveAutomaton
             if isfile(mpa_full_path) && options.is_load_mpa && nargout == 1
                 % if number of function output arguments is not one, do not load offline MPA as the second output is not available offline
                 disp("Loading mpa...");
-                disp("with full path ");
-                disp(mpa_full_path);
                 load(mpa_full_path, "mpa");
                 obj = mpa;
                 disp('Offline MPA was found and loaded.')

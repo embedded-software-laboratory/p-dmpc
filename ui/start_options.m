@@ -287,6 +287,9 @@ function setEnvironmentElementsVisibility(ui)
     ui.AmountHDVsListBox.Enable = ui.AmountHDVsListBox.Enable && is_lab_selection;
     ui.HDVIDsEditField.Enable = ui.HDVIDsEditField.Enable && is_lab_selection;
 
+    % sample time is automatically set in the lab
+    ui.SampleTimesSpinner.Enable = ~is_lab_selection;
+
     scenario = list_scenario(ui);
     ui.ScenarioListBox.Items = scenario(:, 2);
 end
