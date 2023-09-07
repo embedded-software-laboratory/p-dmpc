@@ -1,4 +1,4 @@
-function info = pb_controller_fallback(iter, info, info_old, scenario, vehicle_ids, indices_in_vehicle_list)
+function info = pb_controller_fallback(iter, info, info_old, scenario, all_vehicle_ids, indices_in_vehicle_list)
     % pb_controller_fallback    planning by using last priority and trajectories directly
 
     tick_per_step = scenario.options.tick_per_step + 1;
@@ -7,7 +7,7 @@ function info = pb_controller_fallback(iter, info, info_old, scenario, vehicle_i
 
         if ismember(vehicle_idx, info.vehs_fallback)
             % initialize
-            info_v = ControlResultsInfo(1, scenario.options.Hp, vehicle_ids(vehicle_idx));
+            info_v = ControlResultsInfo(1, scenario.options.Hp, all_vehicle_ids(vehicle_idx));
 
             info_v.tree = info_old.tree{vehicle_idx};
             info_v.tree_path = del_first_rpt_last(info_old.tree_path(vehicle_idx, :));

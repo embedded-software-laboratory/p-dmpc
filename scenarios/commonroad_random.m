@@ -22,7 +22,7 @@ function scenarios = commonroad_random(options, nVeh, seed)
             random_stream = RandStream('mt19937ar', 'Seed', seed(iSeed));
             path_ids = sort(randsample(random_stream, 1:40, options.amount), 'ascend');
             options.path_ids = path_ids;
-            scenario = commonroad(options, options.path_ids);
+            scenario = commonroad(options);
             scenario.random_stream = random_stream;
 
             scenarios(iVeh, iSeed) = scenario;
