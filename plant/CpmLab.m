@@ -190,7 +190,7 @@ classdef CpmLab < Plant
             disp('End')
         end
 
-        function send_ready_msg(obj)
+        function sychronize_start_with_plant(obj)
             % Sync start with infrastructure
             % Send ready signal for all assigned vehicle ids
             disp('Sending ready signal');

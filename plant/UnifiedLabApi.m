@@ -102,7 +102,7 @@ classdef UnifiedLabApi < Plant
             disp('Sent message to define the vehicle ids. We assume that goal was accepted, so no further test...');
         end
 
-        function send_ready_msg(obj)
+        function sychronize_start_with_plant(obj)
             % Send ready signal for all assigned vehicle ids and the scenario
             ready_msg = ros2message(obj.publisher_readyState);
             ready_msg.entity = 'scenario';

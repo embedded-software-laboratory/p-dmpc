@@ -71,7 +71,7 @@ classdef (Abstract) Plant < handle
             error('This interface does not provide the possibility to retrieve a lab specific map.');
         end
 
-        function send_ready_msg(obj)
+        function sychronize_start_with_plant(obj)
             % can be overriden in child class if needed
         end
 
