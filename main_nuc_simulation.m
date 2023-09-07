@@ -2,14 +2,14 @@ function results = main_nuc_simulation()
     close all
     clear all
     scenario = load('scenario.mat', 'scenario').scenario;
-    path_ids = scenario.options.path_ids;
+    vehicle_ids = scenario.options.path_ids;
 
     fprintf('Starting remote HLCs...');
     script_path = fullfile(pwd, 'nuc_simulation', 'deploy_remote_hlcs.sh'); % assumes script is in curent directory
 
     command = ['bash ', script_path];
 
-    for i_veh = path_ids
+    for i_veh = vehicle_ids
         % hand over vehicle ids as arguments
         command = [command, ' ', num2str(i_veh)];
     end
@@ -24,7 +24,7 @@ function results = main_nuc_simulation()
     generate_plotting_info_msgs();
     ros2_node = ros2node('/plant_plotting');
     options = struct("History", "keepall", "Reliability", "reliable", "Durability", "transientlocal");
-    disp(['init subscriber for vehicles ', num2str(path_ids)]);
+    disp(['init subscriber for vehicles ', num2str(vehicle_ids)]);
     topic_name_subscribe = ['/plant_plotting'];
     subscriber = ros2subscriber(ros2_node, topic_name_subscribe, "plotting_info/PlottingInfo", @enqueue_plotting_info, options);
     % initialize empty message queue
@@ -59,7 +59,7 @@ function results = main_nuc_simulation()
     % stop session on all remote hlcs
     script_path = fullfile(pwd, 'nuc_simulation', 'stop_remote_hlcs.sh');
 
-    command = ['bash ', script_path, ' ', num2str(numel(path_ids))];
+    command = ['bash ', script_path, ' ', num2str(numel(vehicle_ids))];
 
     [~, ~] = system(command);
 
@@ -68,7 +68,7 @@ function results = main_nuc_simulation()
     % collect all result structs from nucs
     script_path = fullfile(pwd, 'nuc_simulation', 'collect_results.sh');
 
-    command = ['bash ', script_path, ' ', num2str(numel(path_ids))];
+    command = ['bash ', script_path, ' ', num2str(numel(vehicle_ids))];
 
     [~, ~] = system(command);
 
