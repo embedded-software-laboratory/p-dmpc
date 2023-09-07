@@ -12,10 +12,13 @@ classdef (Abstract) Plant < handle
 
     properties (GetAccess = public, SetAccess = private)
         % public so that the HLC can access them
-        indices_in_vehicle_list
-        controlled_vehicle_ids % which vehicles will controlled by this experiment instance
-        amount % amount of vehicles controlled by this experiment instance
         all_vehicle_ids % all active vehicle ids. when running distributedly, these can differ from controlled ids
+        controlled_vehicle_ids % which vehicles will controlled by this experiment instance
+    end
+
+    properties (Dependent, GetAccess = public)
+        amount % amount of vehicles controlled by this experiment instance
+        indices_in_vehicle_list
     end
 
     methods (Abstract)
@@ -23,6 +26,21 @@ classdef (Abstract) Plant < handle
         apply(obj, info)
         got_stop = is_stop(obj)
         end_run(obj)
+    end
+
+    methods
+        % get methods for dependent properties
+        function indices = get.indices_in_vehicle_list(obj)
+            if (length(obj.controlled_vehicle_ids) == 1)
+                indices = find(obj.all_vehicle_ids == obj.controlled_vehicle_ids, 1);
+            else
+                indices = 1:obj.amount;
+            end
+        end
+
+        function amount = get.amount(obj)
+            amount = length(obj.controlled_vehicle_ids);
+        end
     end
 
     methods (Access = public)
@@ -36,10 +54,7 @@ classdef (Abstract) Plant < handle
                 obj (1, 1) Plant
                 vehicle_id (1, 1)
             end
-
-            obj.amount = 1;
             obj.controlled_vehicle_ids = vehicle_id;
-            obj.indices_in_vehicle_list = find(obj.all_vehicle_ids == vehicle_id, 1);
         end
 
         function setup(obj, scenario, vehicle_ids)
@@ -55,10 +70,8 @@ classdef (Abstract) Plant < handle
             % method shall be overriden and called in a child class.
             obj.scenario = scenario;
 
-            obj.amount = length(vehicle_ids);
             obj.controlled_vehicle_ids = vehicle_ids;
             obj.all_vehicle_ids = vehicle_ids;
-            obj.indices_in_vehicle_list = 1:obj.amount;
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
 
