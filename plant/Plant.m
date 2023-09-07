@@ -10,7 +10,7 @@ classdef (Abstract) Plant < handle
         k
     end
 
-    properties (Access = public)
+    properties (GetAccess = public, SetAccess = private)
         % public so that the HLC can access them
         indices_in_vehicle_list
         controlled_vehicle_ids % which vehicles will controlled by this experiment instance
@@ -25,7 +25,7 @@ classdef (Abstract) Plant < handle
         end_run(obj)
     end
 
-    methods
+    methods (Access = public)
 
         function obj = Plant()
         end
@@ -64,17 +64,6 @@ classdef (Abstract) Plant < handle
 
         end
 
-        function [x0, trim_indices] = measure_node(obj)
-            speeds = zeros(obj.scenario.options.amount, 1);
-
-            for iVeh = 1:obj.indices_in_vehicle_list
-                speeds(iVeh) = obj.scenario.mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;
-            end
-
-            x0 = [obj.cur_node(:, NodeInfo.x), obj.cur_node(:, NodeInfo.y), obj.cur_node(:, NodeInfo.yaw), speeds];
-            trim_indices = obj.cur_node(:, NodeInfo.trim);
-        end
-
         function receive_map(~)
             % InterfaceExperiments may allow to retrieve a lab specific
             % map. If so, this function needs to be overriden. By default
@@ -84,6 +73,21 @@ classdef (Abstract) Plant < handle
 
         function send_ready_msg(obj)
             % can be overriden in child class if needed
+        end
+
+    end
+
+    methods (Access = protected)
+
+        function [x0, trim_indices] = measure_node(obj)
+            speeds = zeros(obj.scenario.options.amount, 1);
+
+            for iVeh = 1:obj.indices_in_vehicle_list
+                speeds(iVeh) = obj.scenario.mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;
+            end
+
+            x0 = [obj.cur_node(:, NodeInfo.x), obj.cur_node(:, NodeInfo.y), obj.cur_node(:, NodeInfo.yaw), speeds];
+            trim_indices = obj.cur_node(:, NodeInfo.trim);
         end
 
     end
