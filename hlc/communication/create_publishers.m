@@ -58,8 +58,8 @@ function create_publishers(hlc)
         start = tic;
         disp('Creating ROS 2 publishers...')
 
-        for index = hlc.plant.indices_in_vehicle_list
-            vehicle_id = hlc.plant.all_vehicle_ids(index);
+        for vehicle_id = hlc.plant.controlled_vehicle_ids
+            index = find(vehicle_id == hlc.plant.all_vehicle_ids);
             hlc.scenario.vehicles(index).communicate.traffic = TrafficCommunication(); % create instance of the Comunication class
             hlc.scenario.vehicles(index).communicate.traffic = initialize_communication(hlc.scenario.vehicles(index).communicate.traffic, vehicle_id); % initialize
             hlc.scenario.vehicles(index).communicate.traffic = create_publisher(hlc.scenario.vehicles(index).communicate.traffic); % create publisher
