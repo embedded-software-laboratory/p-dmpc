@@ -4,18 +4,16 @@ classdef Timing < Singleton
     %   Copyright 2009, The MathWorks, Inc.
 
     properties % Public Access
-        timers %TODO restrict type
-        myData (1, 1)
-        name (1, 1)
+        timers (1, 1) dictionary
     end
 
     methods (Access = private)
         % Guard the constructor against external invocation.  We only want
         % to allow a single instance of this class.  See description in
         % Singleton superclass.
-        function newObj = Timing()
-            % Initialise your custom properties.
-            newObj.myData = 1;
+        function new_obj = Timing()
+            % Initialise timers to map from timer names to return type of tic function
+            new_obj.timers = dictionary(string([]), uint64([]));
         end
 
     end
@@ -23,38 +21,32 @@ classdef Timing < Singleton
     methods (Static)
 
         function obj = instance()
-            persistent uniqueInstance
+            persistent unique_instance
 
-            if isempty(uniqueInstance)
+            if isempty(unique_instance)
                 obj = Timing();
-                obj.myData = 42;
-                uniqueInstance = obj;
+                unique_instance = obj;
             else
-                obj = uniqueInstance;
+                obj = unique_instance;
             end
 
         end
 
-        function create_timer(name)
-            % Just assign the input value to singletonData.  See Singleton
-            % superclass.
+        function start_timer(name)
+            fprintf("start_timer called with name %s \n", name);
             obj = Timing.instance();
-            obj.name = name;
-            obj.myData = 13;
-            obj.set_singleton_data(obj);
-            fprintf("create_timer called with name %s \n", name);
-        end
 
-        function create_and_start_timer(name)
-            % create and start timer
-            fprintf("create_and_start_timer called with name %s \n", name);
+            % start timer
+            obj.timers(name) = tic;
+
+            obj.set_singleton_data(obj);
         end
 
         function time = stop_timer(name)
             obj = Timing.instance().get_singleton_data();
-            fprintf("stop_timer called with name %s \n", name);
-            fprintf("have obj.name=%s, obj.myData=%d \n", obj.name, obj.myData);
-            time = 0;
+            time = toc(obj.timers(name));
+            fprintf("stop_timer called with name %s, have obj.timers:\n", name);
+            disp(obj.timers);
         end
 
     end
