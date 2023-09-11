@@ -47,13 +47,18 @@ classdef Timing < Singleton
 
         function elapsed_time = stop_timer(name)
             obj = Timing.instance().get_singleton_data();
+
+            if ~isempty(obj.timers(name).elapsed_time)
+                warning("overwriting existing elapsed time");
+            end
+
             elapsed_time = toc(obj.timers(name).start_time);
 
             % save elapsed time to dictionary
             obj.timers(name).elapsed_time = elapsed_time;
             obj.set_singleton_data(obj);
 
-            fprintf("stop_timer called with name %s, have obj.timers:\n", name);
+            fprintf("stop_timer called for %s, time %f, have obj.timers:\n", name, elapsed_time);
             disp(obj.timers);
         end
 
@@ -72,6 +77,25 @@ classdef Timing < Singleton
 
             % return elapsed time
             elapsed_time = obj.timers(name).elapsed_time;
+        end
+
+        function elapsed_times = get_all_elapsed_times()
+            obj = Timing.instance().get_singleton_data();
+            elapsed_times = dictionary(string([]), double([]));
+
+            timer_names = keys(obj.timers);
+
+            for i = 1:length(timer_names)
+                name = timer_names{i};
+
+                % if not stopped yet, stop the timer now
+                if isempty(obj.timers(name).elapsed_time)
+                    Timing.stop_timer(name);
+                end
+
+                elapsed_times(name) = obj.timers(name).elapsed_time;
+            end
+
         end
 
     end

@@ -5,6 +5,8 @@ function [result, scenario] = main(varargin)
         warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
     end
 
+    Timing.start_timer("main_runtime_total");
+
     % check if Config object is given as input
     options = read_object_from_input(varargin, 'Config');
     % check if Scenario object is given as input
@@ -31,9 +33,6 @@ function [result, scenario] = main(varargin)
     else
         plant = PlantFactory.get_experiment_interface(scenario.options.environment);
     end
-
-    Timing.start_timer("ex1");
-    fprintf("ex1 timed %f seconds \n", Timing.stop_timer("ex1"));
 
     % write scenario to disk if distributed (for lab or local debugging with main_distributed())
     if scenario.options.is_prioritized == true
@@ -95,11 +94,12 @@ function [result, scenario] = main(varargin)
             end
 
             spmd (scenario.options.amount)
-                Timing.start_timer("ex2");
-                fprintf("ex2 timed %f seconds \n", Timing.stop_timer("ex2"));
-                fprintf("ex2 saved elapsed time: %f seconds \n", Timing.get_elapsed_time("ex2"));
                 hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, plant);
+                Timing.start_timer("worker_hlc_runtime");
                 [result, scenario] = hlc.run();
+                Timing.stop_timer("worker_hlc_runtime")
+
+                result.timing_results = Timing.get_all_elapsed_times();
             end
 
             if do_plot
@@ -111,6 +111,7 @@ function [result, scenario] = main(varargin)
         else
             hlc = hlc_factory.get_hlc(scenario.options.veh_ids, dry_run, plant);
             [result, scenario] = hlc.run();
+            result.timing_results = Timing.get_all_elapsed_times();
         end
 
     end
