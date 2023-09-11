@@ -95,6 +95,9 @@ function [result, scenario] = main(varargin)
             end
 
             spmd (scenario.options.amount)
+                Timing.start_timer("ex2");
+                fprintf("ex2 timed %f seconds \n", Timing.stop_timer("ex2"));
+                fprintf("ex2 saved elapsed time: %f seconds \n", Timing.get_elapsed_time("ex2"));
                 hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, plant);
                 [result, scenario] = hlc.run();
             end
