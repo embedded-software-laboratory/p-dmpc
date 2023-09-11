@@ -32,6 +32,8 @@ function [result, scenario] = main(varargin)
         plant = PlantFactory.get_experiment_interface(scenario.options.environment);
     end
 
+    Timing.create_timer("example_name");
+    Timing.stop_timer("example_name");
     % write scenario to disk if distributed (for lab or local debugging with main_distributed())
     if scenario.options.is_prioritized == true
         save('scenario.mat', 'scenario');
