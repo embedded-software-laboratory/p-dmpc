@@ -29,12 +29,13 @@ classdef CpmLab < Plant
 
         end
 
-        function setup(obj, scenario, ~)
+        function setup(obj, scenario, ~, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) CpmLab
                 scenario (1, 1) Scenario
                 ~
+                controlled_vehicle_ids = []
             end
 
             % Initialize data readers/writers...
@@ -71,7 +72,11 @@ classdef CpmLab < Plant
             % Middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(scenario.options.dt * 1e9);
 
-            setup@Plant(obj, scenario, state_list.active_vehicle_ids);
+            if isempty(controlled_vehicle_ids)
+                controlled_vehicle_ids = state_list.active_vehicle_ids;
+            end
+
+            setup@Plant(obj, scenario, state_list.active_vehicle_ids, controlled_vehicle_ids);
         end
 
         function [x0, trim_indices] = measure(obj)

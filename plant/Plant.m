@@ -51,22 +51,13 @@ classdef (Abstract) Plant < handle
         function obj = Plant()
         end
 
-        function set_to_control_single_vehicle(obj, vehicle_id)
-
-            arguments
-                obj (1, 1) Plant
-                vehicle_id (1, 1)
-            end
-
-            obj.controlled_vehicle_ids = vehicle_id;
-        end
-
-        function setup(obj, scenario, all_vehicle_ids)
+        function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) Plant
                 scenario (1, 1) Scenario
                 all_vehicle_ids (1, :)
+                controlled_vehicle_ids (1, :) uint8
             end
 
             % This function does everything in order to run the object
@@ -74,7 +65,7 @@ classdef (Abstract) Plant < handle
             % method shall be overriden and called in a child class.
             obj.scenario = scenario;
 
-            obj.controlled_vehicle_ids = all_vehicle_ids;
+            obj.controlled_vehicle_ids = controlled_vehicle_ids;
             obj.all_vehicle_ids = all_vehicle_ids;
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));

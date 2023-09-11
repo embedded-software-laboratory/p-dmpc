@@ -37,15 +37,26 @@ classdef SimLab < Plant
 
         end
 
-        function setup(obj, scenario, all_vehicle_ids)
+        function setup(obj, scenario, all_vehicle_ids, labindex)
 
             arguments
                 obj (1, 1) SimLab
                 scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) = scenario.options.path_ids
+                labindex = []
             end
 
-            setup@Plant(obj, scenario, all_vehicle_ids);
+            if isempty(all_vehicle_ids)
+                all_vehicle_ids = scenario.options.path_ids;
+            end
+
+            if ~isempty(labindex)
+                controlled_vehicle_ids = all_vehicle_ids(labindex);
+            else
+                controlled_vehicle_ids = all_vehicle_ids;
+            end
+
+            setup@Plant(obj, scenario, all_vehicle_ids, controlled_vehicle_ids);
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue

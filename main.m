@@ -69,12 +69,6 @@ function [result, scenario] = main(varargin)
         end
 
     else
-        % set active vehicle IDs and possibly initialize communication
-        plant.setup(scenario);
-
-        hlc_factory = HLCFactory();
-        hlc_factory.set_scenario(scenario);
-        dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
 
         if scenario.options.use_cpp
             optimizer(Function.CheckMexFunction);
@@ -92,7 +86,7 @@ function [result, scenario] = main(varargin)
                 if can_handle_parallel_plot
                     visualization_data_queue = plant.set_visualization_data_queue;
                     % create central plotter - used by all workers via data queue
-                    plotter = PlotterOnline(hlc_factory.scenario, plant.indices_in_vehicle_list);
+                    plotter = PlotterOnline(scenario, plant.indices_in_vehicle_list);
                     afterEach(visualization_data_queue, @plotter.data_queue_callback);
                 else
                     warning('The currently selected environment cannot handle plotting of a parallel execution!');
@@ -101,10 +95,17 @@ function [result, scenario] = main(varargin)
             end
 
             spmd (scenario.options.amount)
+                % set active vehicle IDs and possibly initialize communication
+                plant.setup(scenario, [], labindex);
+                disp('have plant properties all then contr');
+                disp(plant.all_vehicle_ids);
+                disp(plant.controlled_vehicle_ids);
+
+                hlc_factory = HLCFactory();
+                hlc_factory.set_scenario(scenario);
+                dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
                 % have the plant only control its own vehicle by calling setup a second time
-                controlled_vehicle_id = plant.controlled_vehicle_ids(labindex);
-                plant.set_to_control_single_vehicle(controlled_vehicle_id);
-                hlc = hlc_factory.get_hlc(controlled_vehicle_id, dry_run, plant);
+                hlc = hlc_factory.get_hlc(plant.controlled_vehicle_ids, dry_run, plant);
                 [result, scenario] = hlc.run();
             end
 
@@ -115,6 +116,12 @@ function [result, scenario] = main(varargin)
             result = {result{:}};
             scenario = {scenario{:}};
         else
+            % set active vehicle IDs and possibly initialize communication
+            plant.setup(scenario);
+
+            hlc_factory = HLCFactory();
+            hlc_factory.set_scenario(scenario);
+            dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
             hlc = hlc_factory.get_hlc(plant.controlled_vehicle_ids, dry_run, plant);
             [result, scenario] = hlc.run();
         end
