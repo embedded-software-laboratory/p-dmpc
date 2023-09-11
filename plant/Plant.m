@@ -31,16 +31,19 @@ classdef (Abstract) Plant < handle
     methods
         % get methods for dependent properties
         function indices = get.indices_in_vehicle_list(obj)
+
             if (length(obj.controlled_vehicle_ids) == 1)
                 indices = find(obj.all_vehicle_ids == obj.controlled_vehicle_ids, 1);
             else
                 indices = 1:obj.amount;
             end
+
         end
 
         function amount = get.amount(obj)
             amount = length(obj.controlled_vehicle_ids);
         end
+
     end
 
     methods (Access = public)
@@ -54,15 +57,16 @@ classdef (Abstract) Plant < handle
                 obj (1, 1) Plant
                 vehicle_id (1, 1)
             end
+
             obj.controlled_vehicle_ids = vehicle_id;
         end
 
-        function setup(obj, scenario, vehicle_ids)
+        function setup(obj, scenario, all_vehicle_ids)
 
             arguments
                 obj (1, 1) Plant
                 scenario (1, 1) Scenario
-                vehicle_ids (1, :)
+                all_vehicle_ids (1, :)
             end
 
             % This function does everything in order to run the object
@@ -70,8 +74,8 @@ classdef (Abstract) Plant < handle
             % method shall be overriden and called in a child class.
             obj.scenario = scenario;
 
-            obj.controlled_vehicle_ids = vehicle_ids;
-            obj.all_vehicle_ids = vehicle_ids;
+            obj.controlled_vehicle_ids = all_vehicle_ids;
+            obj.all_vehicle_ids = all_vehicle_ids;
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
 
