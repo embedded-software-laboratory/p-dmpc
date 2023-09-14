@@ -12,8 +12,10 @@ classdef (Abstract) Plant < handle
 
     properties (GetAccess = public, SetAccess = private)
         % public so that the HLC can access them
-        all_vehicle_ids % all active vehicle ids. when running distributedly, these can differ from controlled ids
-        controlled_vehicle_ids % which vehicles will controlled by this experiment instance
+        % all active vehicle ids. when running distributedly, these can differ from controlled ids
+        all_vehicle_ids (1, :) uint8 % uint8 to conform to ids sent by the middleware
+        % which vehicles will controlled by this experiment instance
+        controlled_vehicle_ids (1, :) uint8
     end
 
     properties (Dependent, GetAccess = public)
@@ -56,7 +58,7 @@ classdef (Abstract) Plant < handle
             arguments
                 obj (1, 1) Plant
                 scenario (1, 1) Scenario
-                all_vehicle_ids (1, :)
+                all_vehicle_ids (1, :) uint8
                 controlled_vehicle_ids (1, :) uint8
             end
 

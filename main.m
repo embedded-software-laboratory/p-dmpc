@@ -96,10 +96,7 @@ function [result, scenario] = main(varargin)
 
             spmd (scenario.options.amount)
                 % set active vehicle IDs and possibly initialize communication
-                plant.setup(scenario, [], labindex);
-                disp('have plant properties all then contr');
-                disp(plant.all_vehicle_ids);
-                disp(plant.controlled_vehicle_ids);
+                plant.setup(scenario, scenario.options.path_ids, scenario.options.path_ids(spmdIndex));
 
                 hlc_factory = HLCFactory();
                 hlc_factory.set_scenario(scenario);

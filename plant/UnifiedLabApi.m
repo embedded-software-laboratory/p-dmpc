@@ -50,9 +50,8 @@ classdef UnifiedLabApi < Plant
             obj.map_comm_done = true;
         end
 
-        function setup(obj, scenario)
-            scenario.set_vehicle_ids(scenario.options.path_ids);
-            setup@Plant(obj, scenario);
+        function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
+            setup@Plant(obj, scenario, all_vehicle_ids, controlled_vehicle_ids);
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.amount, 1), zeros(obj.amount, 1));
 
             assert(issorted(obj.controlled_vehicle_ids));

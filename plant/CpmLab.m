@@ -34,8 +34,8 @@ classdef CpmLab < Plant
             arguments
                 obj (1, 1) CpmLab
                 scenario (1, 1) Scenario
-                ~
-                controlled_vehicle_ids = []
+                ~% all_vehicle_ids are automatically received from the LCC
+                controlled_vehicle_ids (1, :) uint8 = []
             end
 
             % Initialize data readers/writers...

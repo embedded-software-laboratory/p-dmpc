@@ -21,38 +21,22 @@ classdef SimLab < Plant
             obj.use_visualization_data_queue = true;
         end
 
-        function set_to_control_single_vehicle(obj, vehicle_id)
-
-            arguments
-                obj (1, 1) Plant
-                vehicle_id (1, 1)
-            end
-
-            set_to_control_single_vehicle@Plant(obj, vehicle_id);
-
-            % update plotter to also only control single vehicle
-            if obj.should_plot && ~obj.use_visualization_data_queue
-                obj.plotter = PlotterOnline(obj.scenario, obj.indices_in_vehicle_list);
-            end
-
-        end
-
-        function setup(obj, scenario, all_vehicle_ids, labindex)
+        function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) SimLab
                 scenario (1, 1) Scenario
-                all_vehicle_ids (1, :) = scenario.options.path_ids
-                labindex = []
+                all_vehicle_ids (1, :) uint8 = scenario.options.path_ids
+                controlled_vehicle_ids (1, :) uint8 = []
             end
 
+            % if [] is passed in, matlab does not choose the default
             if isempty(all_vehicle_ids)
                 all_vehicle_ids = scenario.options.path_ids;
             end
 
-            if ~isempty(labindex)
-                controlled_vehicle_ids = all_vehicle_ids(labindex);
-            else
+            % only set controlled ids to all ids after all ids have been set
+            if isempty(controlled_vehicle_ids)
                 controlled_vehicle_ids = all_vehicle_ids;
             end
 
