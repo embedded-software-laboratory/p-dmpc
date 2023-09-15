@@ -70,6 +70,9 @@ function [result, scenario] = main(varargin)
 
     else
 
+        % set active vehicle IDs and possibly initialize communication
+        plant.setup(scenario);
+
         if scenario.options.use_cpp
             optimizer(Function.CheckMexFunction);
         end
@@ -95,7 +98,7 @@ function [result, scenario] = main(varargin)
             end
 
             spmd (scenario.options.amount)
-                % set active vehicle IDs and possibly initialize communication
+                % setup plant again, only control one vehicle
                 plant.setup(scenario, scenario.options.path_ids, scenario.options.path_ids(labindex));
 
                 hlc_factory = HLCFactory();
@@ -113,8 +116,6 @@ function [result, scenario] = main(varargin)
             result = {result{:}};
             scenario = {scenario{:}};
         else
-            % set active vehicle IDs and possibly initialize communication
-            plant.setup(scenario);
 
             hlc_factory = HLCFactory();
             hlc_factory.set_scenario(scenario);
