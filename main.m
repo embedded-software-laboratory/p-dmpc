@@ -99,7 +99,7 @@ function [result, scenario] = main(varargin)
                 [result, scenario] = hlc.run();
                 Timing.stop_timer("worker_hlc_runtime")
 
-                result.timing_results = Timing.get_all_elapsed_times();
+                result.global_timing_results = Timing.get_all_elapsed_times();
             end
 
             if do_plot
@@ -111,7 +111,7 @@ function [result, scenario] = main(varargin)
         else
             hlc = hlc_factory.get_hlc(scenario.options.veh_ids, dry_run, plant);
             [result, scenario] = hlc.run();
-            result.timing_results = Timing.get_all_elapsed_times();
+            result.global_timing_results = Timing.get_all_elapsed_times();
         end
 
     end

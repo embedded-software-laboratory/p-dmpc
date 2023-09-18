@@ -45,6 +45,7 @@ classdef (Abstract) HighLevelController < handle
         info_old; % old information for fallback
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
+        timing (1,1) ControllerTiming;
     end
 
     methods
@@ -63,6 +64,7 @@ classdef (Abstract) HighLevelController < handle
             obj.success = false;
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
+            obj.timing = ControllerTiming();
             obj.set_vehicle_ids(vehicle_ids);
 
             % create fallback for first time step
@@ -123,6 +125,7 @@ classdef (Abstract) HighLevelController < handle
     methods (Access = private)
 
         function init_hlc(obj)
+            obj.timing.start_timer("init_hlc_time");
 
             % init result struct
             obj.result = get_result_struct(obj);
@@ -161,6 +164,7 @@ classdef (Abstract) HighLevelController < handle
                 communication_init(obj);
             end
 
+            obj.timing.stop_timer("init_hlc_time");
         end
 
         function clean_up(obj)
@@ -188,6 +192,8 @@ classdef (Abstract) HighLevelController < handle
                 obj.k = obj.k + 1;
 
                 obj.iter.k = obj.k;
+
+                obj.timing.start_timer(strcat('hlc_step_',int2str(obj.k)));
 
                 % Measurement
                 % -------------------------------------------------------------------------
@@ -363,6 +369,7 @@ classdef (Abstract) HighLevelController < handle
                 % -------------------------------------------------------------------------
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
 
+                obj.timing.stop_timer(strcat('hlc_step_',int2str(obj.k)));
             end
 
             obj.success = true;
@@ -375,6 +382,7 @@ classdef (Abstract) HighLevelController < handle
 
             obj.result.t_total = obj.k * obj.scenario.options.dt;
             obj.result.nSteps = obj.k;
+            obj.result.controller_timing_results = obj.timing.get_all_elapsed_times();
 
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
 
