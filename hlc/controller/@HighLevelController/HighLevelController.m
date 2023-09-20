@@ -193,7 +193,11 @@ classdef (Abstract) HighLevelController < handle
 
                 obj.iter.k = obj.k;
 
+                % no timer series
                 obj.timing.start_timer(strcat('hlc_step_',int2str(obj.k)));
+                % with timer series
+                obj.timing.start_timer("hlc step time", obj.k);
+
 
                 % Measurement
                 % -------------------------------------------------------------------------
@@ -370,6 +374,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
 
                 obj.timing.stop_timer(strcat('hlc_step_',int2str(obj.k)));
+                obj.timing.stop_timer("hlc step time", obj.k);
             end
 
             obj.success = true;
