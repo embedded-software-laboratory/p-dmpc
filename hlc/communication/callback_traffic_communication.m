@@ -9,9 +9,9 @@ function callback_traffic_communication(msg)
 
     global stored_traffic_msgs
 
-    if isempty([stored_traffic_msgs.time_step])
+    if isempty(stored_traffic_msgs)
         % if empty (no messages received so far)
-        stored_traffic_msgs(1) = msg;
+        stored_traffic_msgs = msg;
     else
         veh_id_msg = find([stored_traffic_msgs.vehicle_id] == msg.vehicle_id);
         time_step_msg = find([stored_traffic_msgs.time_step] == msg.time_step);

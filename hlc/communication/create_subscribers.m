@@ -10,7 +10,7 @@ function create_subscribers(hlc)
     % init global message storage for callbacks
     % initialize the global variable
     global stored_traffic_msgs;
-    stored_traffic_msgs = struct('time_step', [], 'vehicle_id', [], 'is_fallback', [], 'current_pose', [], 'current_trim_index', [], 'predicted_lanelets', [], 'occupied_areas', [], 'reachable_sets', [], 'MessageType', []);
+    stored_traffic_msgs = [];
 
     % Create subscribers.
     % Each vehicle subscribes all other vehicles.
