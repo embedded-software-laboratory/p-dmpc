@@ -142,11 +142,9 @@ function rhc_init(obj, x_measured, trims_measured)
     if obj.scenario.options.is_prioritized && obj.plant.amount == 1
         %% read messages from other vehicles (There shouldn't be any other vehicles if centralized)
         other_vehicles = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
-        latest_msgs = read_messages(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.traffic, obj.k, obj.scenario.options.amount - 1, true);
 
         for iVeh = other_vehicles
-            %latest_msg_i = read_message(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.traffic, obj.ros_subscribers.traffic{iVeh}, obj.k);
-            latest_msg_i = latest_msgs(find([latest_msgs.vehicle_id] == obj.plant.all_vehicle_ids(iVeh), 1));
+            latest_msg_i = read_message(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.traffic, obj.ros_subscribers.traffic{iVeh}, obj.k, true);
             obj.iter.x0(iVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
             obj.iter.trim_indices(iVeh) = latest_msg_i.current_trim_index;
             obj.iter.predicted_lanelets{iVeh} = latest_msg_i.predicted_lanelets';
