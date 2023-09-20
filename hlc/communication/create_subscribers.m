@@ -7,11 +7,6 @@ function create_subscribers(hlc)
     %   hlc: Controller implementing the HighLevelController
     %
 
-    % init global message storage for callbacks
-    % initialize the global variable
-    global stored_traffic_msgs;
-    stored_traffic_msgs = [];
-
     % Create subscribers.
     % Each vehicle subscribes all other vehicles.
     % NOTE that subscribers are create only once but not loopover all

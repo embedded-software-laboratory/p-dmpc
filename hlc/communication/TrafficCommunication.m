@@ -26,6 +26,9 @@ classdef TrafficCommunication
         end
 
         function obj = initialize_communication(obj, vehicle_id)
+            % initialize empty message list, relevant if parallel pool is reused
+            global stored_traffic_msgs
+            stored_traffic_msgs = [];
             obj.vehicle_id = vehicle_id;
             node_name = ['/node_', num2str(obj.vehicle_id)];
             obj.ros2_node = ros2node(node_name);
