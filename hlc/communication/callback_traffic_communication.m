@@ -4,20 +4,11 @@ function callback_traffic_communication(msg)
     %
     % A global variable is defined to store message. Everytime a message is
     % received, the publisher and the time step of the message will be checked.
-    % It will only be stored if no message with the same publisher and time
-    % step exists.
     % A threshold of time step is defined for old messages. Too old messages
     % are deleted.
 
     global stored_traffic_msgs
 
-    %     if msg.time_step==1 && sum([stored_msgs_global.time_step]>1)>0
-    %         % initialize again if there exist messages with time step greater than
-    %         % 1 when the simulation starting (most probably the messages from previous simulation)
-    %         stored_msgs_global = struct('time_step',[],'vehicle_id',[],'state_current',[],'trim_current',[],'predicted_areas',[],'reachable_sets',[],'predicted_lanelets',[],'MessageType',[]);
-    %     end
-
-    % no message with the same publisher and time step exists -> store the new message
     if isempty([stored_traffic_msgs.time_step])
         % if empty (no messages received so far)
         stored_traffic_msgs(1) = msg;
