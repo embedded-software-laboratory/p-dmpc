@@ -13,16 +13,18 @@ function callback_traffic_communication(msg)
         % if empty (no messages received so far)
         stored_traffic_msgs = msg;
     else
-        veh_id_msg = find([stored_traffic_msgs.vehicle_id] == msg.vehicle_id);
-        time_step_msg = find([stored_traffic_msgs.time_step] == msg.time_step);
-        outdated_msg = intersect(veh_id_msg, time_step_msg);
-        stored_traffic_msgs(outdated_msg) = [];
-        % else append a new row
+        % else check if message with same vehicle id and time step exists
+        % and delete this message then
+        is_msg_outdated = ...
+            ([stored_traffic_msgs.vehicle_id] == msg.vehicle_id) & ...
+            ([stored_traffic_msgs.time_step] == msg.time_step);
+        stored_traffic_msgs(is_msg_outdated) = [];
+        % append message to list
         stored_traffic_msgs(end + 1) = msg;
     end
 
     % delete messages older than a certain time steps compared to the time step of newly received message
-    threshold_older = 2;
-    find_old_msgs = [stored_traffic_msgs.time_step] <= msg.time_step - threshold_older;
-    stored_traffic_msgs(find_old_msgs) = [];
+    message_age_threshold = 2;
+    is_msg_expired = [stored_traffic_msgs.time_step] <= (msg.time_step - message_age_threshold);
+    stored_traffic_msgs(is_msg_expired) = [];
 end
