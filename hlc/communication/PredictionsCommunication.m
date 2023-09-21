@@ -24,6 +24,9 @@ classdef PredictionsCommunication
         end
 
         function obj = initialize_communication(obj, vehicle_id)
+            % initialize empty message list, relevant if global variables are not cleared
+            global stored_prediction_msgs
+            stored_prediction_msgs = [];
             obj.vehicle_id = vehicle_id;
             node_name = ['/node_', num2str(obj.vehicle_id)];
             obj.ros2_node = ros2node(node_name);
@@ -46,9 +49,40 @@ classdef PredictionsCommunication
             for i = 1:length(veh_indices_to_be_subscribed)
                 veh_id = veh_ids_to_be_subscribed(i);
                 topic_name_subscribe = ['/vehicle_', num2str(veh_id), '_pred'];
-                ros_subscribers{veh_indices_to_be_subscribed(i)} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Predictions", obj.options);
+                ros_subscribers{veh_indices_to_be_subscribed(i)} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Predictions", @obj.callback_subscriber, obj.options);
             end
 
+        end
+
+        function callback_subscriber(~, msg)
+            % CALLBACK_WHEN_RECEIVING_MESSAGE This is a callback function and will be
+            % executed automatically every time subscriber of ROS received a message.
+            %
+            % A global variable is defined to store message. Every time a message is
+            % received, the publisher and the time step of the message will be checked.
+            % A threshold of time step is defined for old messages. Too old messages
+            % are deleted.
+
+            global stored_prediction_msgs
+
+            if isempty(stored_prediction_msgs)
+                % if empty (no messages received so far)
+                stored_prediction_msgs = msg;
+            else
+                % else check if message with same vehicle id and time step exists
+                % and delete this message then
+                is_msg_outdated = ...
+                    ([stored_prediction_msgs.vehicle_id] == msg.vehicle_id) & ...
+                    ([stored_prediction_msgs.time_step] == msg.time_step);
+                stored_prediction_msgs(is_msg_outdated) = [];
+                % append message to list
+                stored_prediction_msgs(end + 1) = msg;
+            end
+
+            % delete messages older than a certain time steps compared to the time step of newly received message
+            message_age_threshold = 2;
+            is_msg_expired = [stored_prediction_msgs.time_step] <= (msg.time_step - message_age_threshold);
+            stored_prediction_msgs(is_msg_expired) = [];
         end
 
         function send_message(obj, time_step, predicted_areas, vehs_fallback)
