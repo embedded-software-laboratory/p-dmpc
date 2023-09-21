@@ -139,40 +139,6 @@ classdef TrafficCommunication
 
         end
 
-        function latest_msg = read_messages(~, time_step, amount, throw_error, timeout)
-            % Read message from the given time step
-            % amount of vehicles to read form. Typically all vehicles - 1
-            if nargin <= 4
-                timeout = 100.0;
-            end
-
-            global stored_traffic_msgs;
-            is_timeout = true;
-            read_start = tic; read_time = toc(read_start);
-
-            while read_time < timeout
-                find_msgs = [stored_traffic_msgs.time_step] == time_step;
-
-                if length(stored_traffic_msgs(find_msgs)) == amount
-                    is_timeout = false;
-                    latest_msg = stored_traffic_msgs(find_msgs);
-                    break
-                end
-
-                read_time = toc(read_start);
-                pause(1e-4)
-            end
-
-            if is_timeout
-
-                if throw_error
-                    error('Unable to receive the current %i messages of step %i within %d seconds', amount, time_step, timeout)
-                end
-
-            end
-
-        end
-
     end
 
 end
