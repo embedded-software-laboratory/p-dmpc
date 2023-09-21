@@ -113,6 +113,7 @@ classdef PredictionsCommunication
             global stored_prediction_msgs
 
             is_timeout = true;
+            % start timer for detecting timeout
             read_start = tic; read_time = toc(read_start);
 
             % get id of the vehicle from which the message is read
@@ -138,6 +139,8 @@ classdef PredictionsCommunication
                 end
 
                 read_time = toc(read_start);
+                % pause is necessary that MATLAB can executed the callback function
+                % when the while loop is running
                 pause(1e-4)
             end
 
