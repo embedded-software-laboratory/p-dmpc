@@ -243,7 +243,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step.
             % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step.
             should_fallback = false;
-            latest_msg = obj.ros_subscribers.predictions{veh_with_HP_i}.LatestMessage;
+            latest_msg = read_latest_message(obj.scenario.vehicles(vehicle_idx).communicate.predictions, obj.ros_subscribers.predictions{veh_with_HP_i});
 
             if latest_msg.time_step == obj.k
                 obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');

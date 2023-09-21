@@ -154,6 +154,36 @@ classdef PredictionsCommunication
 
         end
 
+        function latest_msg = read_latest_message(~, sub)
+            % Read latest available message from the given subscriber
+
+            global stored_prediction_msgs
+
+            is_found = false;
+
+            % get id of the vehicle from which the message is read
+            topic_name_split = split(sub.TopicName, '_');
+            vehicle_id_subscribed = str2double(topic_name_split(2));
+
+            if ~isempty(stored_prediction_msgs)
+                % find messages by vehicle id
+                is_found_message = [stored_prediction_msgs.vehicle_id] == int32(vehicle_id_subscribed);
+
+                if any(is_found_message)
+                    % return latest message
+                    latest_msg = stored_prediction_msgs(find(is_found_message, 1, "last"));
+                    is_found = true;
+                end
+
+            end
+
+            if ~is_found
+                % return empty struct if no message is found
+                latest_msg = struct([]);
+            end
+
+        end
+
     end
 
 end
