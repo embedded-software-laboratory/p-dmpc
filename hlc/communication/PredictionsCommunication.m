@@ -110,16 +110,29 @@ classdef PredictionsCommunication
                 timeout = 100.0;
             end
 
+            global stored_prediction_msgs
+
             is_timeout = true;
             read_start = tic; read_time = toc(read_start);
 
+            % get id of the vehicle from which the message is read
+            topic_name_split = split(sub.TopicName, '_');
+            vehicle_id_subscribed = str2double(topic_name_split(2));
+
             while read_time < timeout
 
-                if ~isempty(sub.LatestMessage)
+                if ~isempty(stored_prediction_msgs)
+                    % find messages by vehicle id and time step
+                    is_found_message = ...
+                        [stored_prediction_msgs.vehicle_id] == int32(vehicle_id_subscribed) & ...
+                        [stored_prediction_msgs.time_step] == int32(time_step);
 
-                    if sub.LatestMessage.time_step == time_step
+                    if any(is_found_message)
+                        % only one message should be found
+                        latest_msg = stored_prediction_msgs(is_found_message);
+                        % if message is found timeout is not triggered
                         is_timeout = false;
-                        break
+                        break;
                     end
 
                 end
@@ -136,8 +149,6 @@ classdef PredictionsCommunication
 
             end
 
-            % return the latest message
-            latest_msg = sub.LatestMessage;
         end
 
     end
