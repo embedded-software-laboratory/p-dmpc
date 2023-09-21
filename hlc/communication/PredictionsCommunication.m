@@ -1,4 +1,4 @@
-classdef PredictionsCommunication
+classdef PredictionsCommunication < handle
     % SCENARIO  Communication class
 
     properties
@@ -23,7 +23,7 @@ classdef PredictionsCommunication
             %             domain_ID = 11; % Vehicles can only communicate with vehicles in the same domain.
         end
 
-        function obj = initialize_communication(obj, vehicle_id)
+        function initialize_communication(obj, vehicle_id)
             % initialize empty message list, relevant if global variables are not cleared
             global stored_prediction_msgs
             stored_prediction_msgs = [];
@@ -34,7 +34,7 @@ classdef PredictionsCommunication
             obj.options = struct("History", "keeplast", "Depth", 40, "Durability", "transientlocal");
         end
 
-        function obj = create_publisher(obj)
+        function create_publisher(obj)
             % workaround to be able to create publisher in the lab
             obj.publisher = ros2publisher(obj.ros2_node, "/parameter_events");
             % create publisher: each vehicle send message only to its own topic with name '/vehicle_ID'

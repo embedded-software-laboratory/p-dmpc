@@ -1,4 +1,4 @@
-classdef TrafficCommunication
+classdef TrafficCommunication < handle
     % SCENARIO  Communication class
 
     properties
@@ -25,7 +25,7 @@ classdef TrafficCommunication
             obj.pose_indices = indices();
         end
 
-        function obj = initialize_communication(obj, vehicle_id)
+        function initialize_communication(obj, vehicle_id)
             % initialize empty message list, relevant if global variables are not cleared
             global stored_traffic_msgs
             stored_traffic_msgs = [];
@@ -36,7 +36,7 @@ classdef TrafficCommunication
             obj.options = struct("History", "keeplast", "Depth", 40, "Reliability", "reliable", "Durability", "transientlocal");
         end
 
-        function obj = create_publisher(obj)
+        function create_publisher(obj)
             % workaround to be able to create publisher in the lab
             obj.publisher = ros2publisher(obj.ros2_node, "/parameter_events");
             % create publisher: each vehicle send message only to its own topic with name '/vehicle_ID'

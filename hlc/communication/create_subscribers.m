@@ -30,9 +30,9 @@ function create_subscribers(hlc)
     veh_ids_to_be_subscribed = [hlc.plant.all_vehicle_ids(veh_indices_to_be_subscribed)];
     amount = hlc.scenario.options.amount;
     % subscribe to all other vehicles
-    hlc.ros_subscribers.traffic = create_subscriber(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.traffic, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount);
+    hlc.ros_subscribers.traffic = hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.traffic.create_subscriber(veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount);
     % subscribe to all vehicles
-    hlc.ros_subscribers.predictions = create_subscriber(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.predictions, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount);
+    hlc.ros_subscribers.predictions = hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.predictions.create_subscriber(veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount);
 
     if length(hlc.plant.indices_in_vehicle_list) == 1
         pause(5.0) % wait for all subscribers to be created in distributed case, because otherwise early sent messages will be lost.
