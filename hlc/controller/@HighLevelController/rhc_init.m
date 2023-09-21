@@ -144,7 +144,7 @@ function rhc_init(obj, x_measured, trims_measured)
         other_vehicles = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
 
         for iVeh = other_vehicles
-            latest_msg_i = read_message(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.traffic, obj.ros_subscribers.traffic{iVeh}, obj.k, true);
+            latest_msg_i = obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.traffic.read_message(obj.ros_subscribers.traffic{iVeh}, obj.k, true);
             obj.iter.x0(iVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
             obj.iter.trim_indices(iVeh) = latest_msg_i.current_trim_index;
             obj.iter.predicted_lanelets{iVeh} = latest_msg_i.predicted_lanelets';
