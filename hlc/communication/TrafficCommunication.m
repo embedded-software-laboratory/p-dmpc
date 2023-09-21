@@ -26,7 +26,7 @@ classdef TrafficCommunication
         end
 
         function obj = initialize_communication(obj, vehicle_id)
-            % initialize empty message list, relevant if parallel pool is reused
+            % initialize empty message list, relevant if global variables are not cleared
             global stored_traffic_msgs
             stored_traffic_msgs = [];
             obj.vehicle_id = vehicle_id;
