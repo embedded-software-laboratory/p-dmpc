@@ -1,0 +1,15 @@
+#*
+#
+#!include/
+#!include/*
+#!src/
+#!src/*
+#!test/
+#!test/*
+#!.clang-format
+#!CMakeLists.txt
+
+cmake-build-debug
+cmake-build-release
+build
+Makefile

@@ -9,7 +9,7 @@ classdef systemtests < matlab.unittest.TestCase
 
     methods (Test)
 
-        function centralized(testCase, scenario_type, use_cpp)
+        function centralized(testCase, scenario_type)
             lastwarn('');
             fprintf('\ncentralized systemtest for %s\n', scenario_type);
             %load Config from json
@@ -18,11 +18,6 @@ classdef systemtests < matlab.unittest.TestCase
             options = options.importFromJson(rawJson);
             options.scenario_type = scenario_type;
             options.is_prioritized = false;
-            if use_cpp
-                options.cpp_implementation = Function.CentralizedOptimal;
-            else
-                options.cpp_implementation = Function.None;
-            end
             testCase.verifyEmpty(lastwarn);
 
             main(options);
@@ -39,11 +34,7 @@ classdef systemtests < matlab.unittest.TestCase
             options.scenario_type = scenario_type;
             options.is_prioritized = true;
             options.priority = PriorityStrategies.([priority, '_priority']);
-            if use_cpp
-                options.cpp_implementation = Function.GraphSearchPBOptimal;
-            else
-                options.cpp_implementation = Function.None;
-            end
+            options.use_cpp = use_cpp;
 
             if strcmp(parallel, 'parallel')
                 options.compute_in_parallel = true;
