@@ -67,6 +67,10 @@ function [result, scenario] = main(varargin)
         hlc_factory.set_scenario(scenario);
         dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
 
+        if scenario.options.use_cpp
+            optimizer(Function.CheckMexFunction);
+        end
+
         if scenario.options.is_prioritized == true && scenario.options.compute_in_parallel
             %% simulate distribution locally using the Parallel Computing Toolbox
             get_parallel_pool(scenario.options.amount);

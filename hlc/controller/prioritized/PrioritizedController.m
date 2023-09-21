@@ -15,7 +15,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function obj = PrioritizedController(scenario, vehicle_ids)
             obj = obj@HighLevelController(scenario, vehicle_ids);
 
-            if obj.scenario.options.use_cpp()
+            if obj.scenario.options.use_cpp
                 obj.optimizer = GraphSearchMexPB(obj.scenario, obj.indices_in_vehicle_list);
             else
                 obj.optimizer = GraphSearch(obj.scenario);
