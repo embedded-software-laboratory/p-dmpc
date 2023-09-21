@@ -75,8 +75,6 @@ function [labOptions] = start_options()
 
         % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
         ui.AllowInheritingtheRightofWayCheckBox.Value = previousSelection.allow_priority_inheritance;
-
-        ui.useCCheckBox.Value = previousSelection.use_cpp;
     end
 
     %% Trigger UI change handles
@@ -112,7 +110,6 @@ function [labOptions] = start_options()
     hdv_ids = ui.HDVIDsEditField.Value;
     hdv_amount_selection = ui.AmountHDVsListBox.Value;
     is_manual_control = ui.AddHDVsCheckBox.Value;
-    use_cpp = ui.useCCheckBox.Value;
 
     % sample time [s]
     dtSelection = ui.SampleTimesSpinner.Value;
@@ -134,7 +131,7 @@ function [labOptions] = start_options()
     result_name = ui.CustomfilenameEditField.Value;
     % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
     allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
-    save([tempdir 'scenarioControllerSelection'], 'use_cpp', 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
+    save([tempdir 'scenarioControllerSelection'], 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
         'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', ...
         'isParlSelection', 'dtSelection', 'HpSelection', 'trim_setSelection', 'T_endSelection', 'max_num_CLsSelection', 'veh_ids', 'strategy_consider_veh_without_ROWSelection', 'strategy_enter_crossing_areaSelection', ...
         'should_save_result', 'result_name', 'allow_priority_inheritance');
@@ -168,7 +165,45 @@ function [labOptions] = start_options()
                                                 strcmp({controlStrategy{:, 2}}, controlStrategySelection), ...
                                                 2};
 
-    labOptions.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
+    %labOptions.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
+
+    switch string(controlStrategyHelper)
+    case "centralized"
+        labOptions.cpp_implementation = Function.None;
+        labOptions.is_prioritized = false;
+    case "pb non-coop"
+        labOptions.cpp_implementation = Function.None;
+        labOptions.is_prioritized = true;
+    case "CentralizedOptimal"
+        labOptions.cpp_implementation = Function.CentralizedOptimalPolymorphic;
+        labOptions.is_prioritized = false;
+    case "CentralizedConflictBased"
+        labOptions.cpp_implementation = Function.CentralizedConflictBased;
+        labOptions.is_prioritized = false;
+    case "CentralizedOptimalNodeParallelization"
+        labOptions.cpp_implementation = Function.CentralizedOptimalNodeParallelization;
+        labOptions.is_prioritized = false;
+    case "CentralizedOptimalAStarParallelization"
+        labOptions.cpp_implementation = Function.CentralizedOptimalAStarParallelization;
+        labOptions.is_prioritized = false;
+    case "CentralizedNaiveMonteCarlo"
+        labOptions.cpp_implementation = Function.CentralizedNaiveMonteCarloPolymorphic;
+        labOptions.is_prioritized = false;
+    case "CentralizedNaiveMonteCarloRootParallelization"
+        labOptions.cpp_implementation = Function.CentralizedNaiveMonteCarloPolymorphicParallel;
+        labOptions.is_prioritized = false;
+    case "CentralizedGrouping"
+        labOptions.cpp_implementation = Function.CentralizedGrouping;
+        labOptions.is_prioritized = false;
+    case "GraphSearchPBOptimal"
+        labOptions.cpp_implementation = Function.GraphSearchPBOptimal;
+        labOptions.is_prioritized = true;
+    case "GraphSearchPBIncrementalOptimal"
+        labOptions.cpp_implementation = Function.GraphSearchPBIncrementalOptimal;
+        labOptions.is_prioritized = true;
+    otherwise
+        keyboard;
+    end
 
     labOptions.amount = str2num(vehicleAmountSelection);
 
@@ -232,9 +267,6 @@ function [labOptions] = start_options()
 
     % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
     labOptions.allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
-
-    % if available, use C++ optimizer
-    labOptions.use_cpp = use_cpp;
 
     % Write Config to disk
     encodedJSON = jsonencode(labOptions);
@@ -350,6 +382,15 @@ function [list] = list_control_strategy
     list = { ...
                 '1', 'centralized'; ...
                 '2', 'pb non-coop'; ...
+                '3', 'GraphSearchPBOptimal'; ...
+                '4', 'GraphSearchPBIncrementalOptimal'; ...
+                '5', 'CentralizedOptimal'; ...
+                '6', 'CentralizedOptimalNodeParallelization'; ...
+                '7', 'CentralizedOptimalAStarParallelization'; ...
+                '8', 'CentralizedGrouping'; ...
+                '9', 'CentralizedConflictBased'; ...
+                '10', 'CentralizedNaiveMonteCarlo'; ...
+                '11', 'CentralizedNaiveMonteCarloRootParallelization'; ...
             };
 end
 

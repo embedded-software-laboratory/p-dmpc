@@ -46,7 +46,11 @@ classdef HLCFactory < handle
                 end
 
             else
-                hlc = CentralizedController(obj.scenario, vehicle_ids);
+                if obj.scenario.options.use_cpp()
+                    hlc = CentralizedMexController(obj.scenario, vehicle_ids);
+                else 
+                    hlc = CentralizedController(obj.scenario, vehicle_ids);
+                end
             end
 
             hlc.set_controller_name(obj.get_controller_name(obj.scenario.options));
@@ -74,7 +78,12 @@ classdef HLCFactory < handle
                 end
 
             else
-                controller_name = strcat('centralized-', 'RHGS-', char(options.priority));
+                if options.use_cpp()
+                    controller_name = strcat('mex-centralized-', 'RHGS-', char(options.priority));
+                else
+                    controller_name = strcat('centralized-', 'RHGS-', char(options.priority));
+
+                end
             end
 
         end
@@ -115,8 +124,17 @@ classdef HLCFactory < handle
             obj.scenario.options.T_end = T_end_backup;
             obj.scenario.options.should_save_result = save_result_backup;
 
-            if obj.scenario.options.use_cpp == true
-                clear mex;
+            if obj.scenario.options.use_cpp()
+                if ismac()
+                    % clear mex dont work on ARM Mac
+                    [~,result] = system('sysctl machdep.cpu.brand_string');
+                    matches = regexp(result, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
+                    if isempty(matches)
+                        clear mex;
+                    end
+                else
+                    clear mex;
+                end
             end
 
             disp("Dry Run Completed");

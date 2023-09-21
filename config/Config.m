@@ -57,7 +57,7 @@ classdef Config < matlab.mixin.Copyable
 
         is_force_parallel_vehs_in_same_grp = true; % true/false, if true, vehicles move in parallel will be forced in the same group
         reference_path = struct('lanelets_index', [], 'start_point', []); % custom reference path
-        use_cpp = false;
+        cpp_implementation Function = Function.None;
         mex_out_of_process_execution = false; % execute mex graph search functions in own process
 
     end
@@ -123,6 +123,9 @@ classdef Config < matlab.mixin.Copyable
             result = assign_data(obj, jsondecode(json));
         end
 
+        function result = use_cpp(obj)
+            result = obj.cpp_implementation ~= Function.None;
+        end
     end
 
 end
