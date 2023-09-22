@@ -11,6 +11,7 @@ classdef TrafficCommunication < handle
         msg_to_be_sent; % initialize message type
         options; % options to create publisher and subscriber
         pose_indices; % index of x, y, heading etc. in array
+        stored_traffic_msgs (1, :) struct % list with message structs
     end
 
     properties (Dependent)
@@ -28,8 +29,6 @@ classdef TrafficCommunication < handle
 
         function initialize_communication(obj, vehicle_id)
             % initialize empty message list, relevant if global variables are not cleared
-            global stored_traffic_msgs
-            stored_traffic_msgs = [];
             obj.vehicle_id = vehicle_id;
             node_name = ['/node_', num2str(obj.vehicle_id)];
             obj.ros2_node = ros2node(node_name);
@@ -58,7 +57,7 @@ classdef TrafficCommunication < handle
 
         end
 
-        function callback_subscriber(~, msg)
+        function callback_subscriber(obj, msg)
             % CALLBACK_WHEN_RECEIVING_MESSAGE This is a callback function and will be
             % executed automatically every time subscriber of ROS received a message.
             %
@@ -67,26 +66,24 @@ classdef TrafficCommunication < handle
             % A threshold of time step is defined for old messages. Too old messages
             % are deleted.
 
-            global stored_traffic_msgs
-
-            if isempty(stored_traffic_msgs)
+            if isempty(obj.stored_traffic_msgs)
                 % if empty (no messages received so far)
-                stored_traffic_msgs = msg;
+                obj.stored_traffic_msgs = msg;
             else
                 % else check if message with same vehicle id and time step exists
                 % and delete this message then
                 is_msg_outdated = ...
-                    ([stored_traffic_msgs.vehicle_id] == msg.vehicle_id) & ...
-                    ([stored_traffic_msgs.time_step] == msg.time_step);
-                stored_traffic_msgs(is_msg_outdated) = [];
+                    ([obj.stored_traffic_msgs.vehicle_id] == msg.vehicle_id) & ...
+                    ([obj.stored_traffic_msgs.time_step] == msg.time_step);
+                obj.stored_traffic_msgs(is_msg_outdated) = [];
                 % append message to list
-                stored_traffic_msgs(end + 1) = msg;
+                obj.stored_traffic_msgs(end + 1) = msg;
             end
 
             % delete messages older than a certain time steps compared to the time step of newly received message
             message_age_threshold = 2;
-            is_msg_expired = [stored_traffic_msgs.time_step] <= (msg.time_step - message_age_threshold);
-            stored_traffic_msgs(is_msg_expired) = [];
+            is_msg_expired = [obj.stored_traffic_msgs.time_step] <= (msg.time_step - message_age_threshold);
+            obj.stored_traffic_msgs(is_msg_expired) = [];
         end
 
         function send_message(obj, time_step, current_pose, current_trim_index, predicted_lanelets, occupied_areas, reachable_sets, is_fallback)
@@ -122,13 +119,11 @@ classdef TrafficCommunication < handle
             send(obj.publisher, obj.msg_to_be_sent);
         end
 
-        function latest_msg = read_message(~, sub, time_step, throw_error, timeout)
+        function latest_msg = read_message(obj, sub, time_step, throw_error, timeout)
             % Read message from the given time step
             if nargin <= 4
                 timeout = 100.0;
             end
-
-            global stored_traffic_msgs
 
             is_timeout = true;
             % start timer for detecting timeout
@@ -140,15 +135,15 @@ classdef TrafficCommunication < handle
 
             while read_time < timeout
 
-                if ~isempty(stored_traffic_msgs)
+                if ~isempty(obj.stored_traffic_msgs)
                     % find messages by vehicle id and time step
                     is_found_message = ...
-                        [stored_traffic_msgs.vehicle_id] == int32(vehicle_id_subscribed) & ...
-                        [stored_traffic_msgs.time_step] == int32(time_step);
+                        [obj.stored_traffic_msgs.vehicle_id] == int32(vehicle_id_subscribed) & ...
+                        [obj.stored_traffic_msgs.time_step] == int32(time_step);
 
                     if any(is_found_message)
                         % only one message should be found
-                        latest_msg = stored_traffic_msgs(is_found_message);
+                        latest_msg = obj.stored_traffic_msgs(is_found_message);
                         % if message is found timeout is not triggered
                         is_timeout = false;
                         break;
