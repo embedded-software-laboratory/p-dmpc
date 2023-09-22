@@ -49,16 +49,20 @@ function communication_init(hlc)
         end
 
         % read from all other vehicles to make sure all vehicles are ready (synchronization)
-        if length(hlc.plant.indices_in_vehicle_list) ~= 1
-            other_vehicles = 1:hlc.scenario.options.amount; % still read from own publishers to make sure messages are arriving
-        else
-            other_vehicles = setdiff(1:hlc.scenario.options.amount, hlc.plant.indices_in_vehicle_list);
-        end
+        for vehicle_index = hlc.plant.indices_in_vehicle_list
+            % loop over vehicles that read messages
+            other_vehicles = setdiff(1:hlc.scenario.options.amount, vehicle_index);
 
-        for veh_index = other_vehicles
-            disp(['reading initial msg from vehicle ', num2str(veh_index)]);
-            hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.traffic.read_message(hlc.ros_subscribers.traffic{veh_index}, hlc.k, true, 40.0);
-            hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.predictions.read_message(hlc.ros_subscribers.predictions{veh_index}, hlc.k, true, 40.0);
+            for vehicle_index_subscribed = other_vehicles
+                % loop over vehicles/hlcs that are subscribed
+                hlc.scenario.vehicles(vehicle_index).communicate.traffic.read_message( ...
+                    hlc.scenario.vehicles(vehicle_index).communicate.traffic.subscribers{vehicle_index_subscribed}, ...
+                    hlc.k, true, 40.0);
+                hlc.scenario.vehicles(vehicle_index).communicate.predictions.read_message( ...
+                    hlc.scenario.vehicles(vehicle_index).communicate.predictions.subscribers{vehicle_index_subscribed}, ...
+                    hlc.k, true, 40.0);
+            end
+
         end
 
         disp('communication initialized');

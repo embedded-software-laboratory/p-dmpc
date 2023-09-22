@@ -132,58 +132,66 @@ function rhc_init(obj, x_measured, trims_measured)
         [turn_braking_area_x, turn_braking_area_y] = translate_global(yaw0, x0, y0, braking_area(1, :), braking_area(2, :));
         obj.iter.emergency_maneuvers{iVeh}.braking_area = [turn_braking_area_x; turn_braking_area_y];
 
-        if obj.scenario.options.is_prioritized && obj.plant.amount == 1
+        if obj.scenario.options.is_prioritized
             %% Send data to sync obj.iter for all vehicles (especially needed for priority assignment)
             obj.scenario.vehicles(iVeh).communicate.traffic.send_message(obj.k, obj.iter.x0(iVeh, :), obj.iter.trim_indices(iVeh), obj.iter.predicted_lanelets{iVeh}, obj.iter.occupied_areas{iVeh}, obj.iter.reachable_sets(iVeh, :));
         end
 
     end
 
-    if obj.scenario.options.is_prioritized && obj.plant.amount == 1
+    if obj.scenario.options.is_prioritized
         %% read messages from other vehicles (There shouldn't be any other vehicles if centralized)
-        other_vehicles = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
 
-        for iVeh = other_vehicles
-            latest_msg_i = obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.traffic.read_message(obj.ros_subscribers.traffic{iVeh}, obj.k, true);
-            obj.iter.x0(iVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
-            obj.iter.trim_indices(iVeh) = latest_msg_i.current_trim_index;
-            obj.iter.predicted_lanelets{iVeh} = latest_msg_i.predicted_lanelets';
-            occupied_areas = latest_msg_i.occupied_areas;
-            obj.iter.occupied_areas{iVeh}.normal_offset(1, :) = occupied_areas(1).x;
-            obj.iter.occupied_areas{iVeh}.normal_offset(2, :) = occupied_areas(1).y;
-            obj.iter.occupied_areas{iVeh}.without_offset(1, :) = occupied_areas(2).x;
-            obj.iter.occupied_areas{iVeh}.without_offset(2, :) = occupied_areas(2).y;
-            obj.iter.reachable_sets(iVeh, :) = (arrayfun(@(array) {polyshape(array.x, array.y)}, latest_msg_i.reachable_sets))';
+        for jVeh = obj.plant.indices_in_vehicle_list
+            % loop over vehicle that reads the message
+            other_vehicles = setdiff(1:obj.scenario.options.amount, jVeh);
 
-            % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
-            % TODO is lanelets_index of other vehicles up to date?
-            if (obj.scenario.options.scenario_type == ScenarioType.commonroad)
-                predicted_lanelet_boundary = get_lanelets_boundary(obj.iter.predicted_lanelets{iVeh}, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.options.environment, obj.scenario.vehicles(iVeh).is_loop);
-                obj.iter.predicted_lanelet_boundary(iVeh, :) = predicted_lanelet_boundary;
+            for kVeh = other_vehicles
+                % loop over vehicle from which the messages are read
+                latest_msg_i = obj.scenario.vehicles(jVeh).communicate.traffic.read_message( ...
+                    obj.scenario.vehicles(jVeh).communicate.traffic.subscribers{kVeh}, ...
+                    obj.k, true);
+                obj.iter.x0(kVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
+                obj.iter.trim_indices(kVeh) = latest_msg_i.current_trim_index;
+                obj.iter.predicted_lanelets{kVeh} = latest_msg_i.predicted_lanelets';
+                occupied_areas = latest_msg_i.occupied_areas;
+                obj.iter.occupied_areas{kVeh}.normal_offset(1, :) = occupied_areas(1).x;
+                obj.iter.occupied_areas{kVeh}.normal_offset(2, :) = occupied_areas(1).y;
+                obj.iter.occupied_areas{kVeh}.without_offset(1, :) = occupied_areas(2).x;
+                obj.iter.occupied_areas{kVeh}.without_offset(2, :) = occupied_areas(2).y;
+                obj.iter.reachable_sets(kVeh, :) = (arrayfun(@(array) {polyshape(array.x, array.y)}, latest_msg_i.reachable_sets))';
+
+                % Calculate the predicted lanelet boundary of vehicle kVeh based on its predicted lanelets
+                % TODO is lanelets_index of other vehicles up to date?
+                if (obj.scenario.options.scenario_type == ScenarioType.commonroad)
+                    predicted_lanelet_boundary = get_lanelets_boundary(obj.iter.predicted_lanelets{kVeh}, obj.scenario.lanelet_boundary, obj.scenario.vehicles(kVeh).lanelets_index, obj.scenario.options.environment, obj.scenario.vehicles(kVeh).is_loop);
+                    obj.iter.predicted_lanelet_boundary(kVeh, :) = predicted_lanelet_boundary;
+                end
+
+                x0 = obj.iter.x0(kVeh, idx.x);
+                y0 = obj.iter.x0(kVeh, idx.y);
+                yaw0 = obj.iter.x0(kVeh, idx.heading);
+                trim_current = obj.iter.trim_indices(kVeh);
+
+                %% emergency maneuver for vehicle kVeh
+                % emergency left maneuver (without offset)
+                turn_left_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.left{1};
+                [turn_left_area_without_offset_x, turn_left_area_without_offset_y] = translate_global(yaw0, x0, y0, turn_left_area_without_offset(1, :), turn_left_area_without_offset(2, :));
+                obj.iter.emergency_maneuvers{kVeh}.left_area_without_offset = [turn_left_area_without_offset_x; turn_left_area_without_offset_y];
+                % emergency right maneuver (without offset)
+                turn_right_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.right{1};
+                [turn_right_area_without_offset_x, turn_right_area_without_offset_y] = translate_global(yaw0, x0, y0, turn_right_area_without_offset(1, :), turn_right_area_without_offset(2, :));
+                obj.iter.emergency_maneuvers{kVeh}.right_area_without_offset = [turn_right_area_without_offset_x; turn_right_area_without_offset_y];
+                % emergency braking maneuver (without offset)
+                braking_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.braking_without_offset;
+                [turn_braking_area_without_offset_x, turn_braking_area_without_offset_y] = translate_global(yaw0, x0, y0, braking_area_without_offset(1, :), braking_area_without_offset(2, :));
+                obj.iter.emergency_maneuvers{kVeh}.braking_area_without_offset = [turn_braking_area_without_offset_x; turn_braking_area_without_offset_y];
+                % emergency braking maneuver (with normal offset)
+                braking_area = obj.mpa.emergency_maneuvers{trim_current}.braking_with_offset;
+                [turn_braking_area_x, turn_braking_area_y] = translate_global(yaw0, x0, y0, braking_area(1, :), braking_area(2, :));
+                obj.iter.emergency_maneuvers{kVeh}.braking_area = [turn_braking_area_x; turn_braking_area_y];
             end
 
-            x0 = obj.iter.x0(iVeh, idx.x);
-            y0 = obj.iter.x0(iVeh, idx.y);
-            yaw0 = obj.iter.x0(iVeh, idx.heading);
-            trim_current = obj.iter.trim_indices(iVeh);
-
-            %% emergency maneuver for vehicle iVeh
-            % emergency left maneuver (without offset)
-            turn_left_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.left{1};
-            [turn_left_area_without_offset_x, turn_left_area_without_offset_y] = translate_global(yaw0, x0, y0, turn_left_area_without_offset(1, :), turn_left_area_without_offset(2, :));
-            obj.iter.emergency_maneuvers{iVeh}.left_area_without_offset = [turn_left_area_without_offset_x; turn_left_area_without_offset_y];
-            % emergency right maneuver (without offset)
-            turn_right_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.right{1};
-            [turn_right_area_without_offset_x, turn_right_area_without_offset_y] = translate_global(yaw0, x0, y0, turn_right_area_without_offset(1, :), turn_right_area_without_offset(2, :));
-            obj.iter.emergency_maneuvers{iVeh}.right_area_without_offset = [turn_right_area_without_offset_x; turn_right_area_without_offset_y];
-            % emergency braking maneuver (without offset)
-            braking_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.braking_without_offset;
-            [turn_braking_area_without_offset_x, turn_braking_area_without_offset_y] = translate_global(yaw0, x0, y0, braking_area_without_offset(1, :), braking_area_without_offset(2, :));
-            obj.iter.emergency_maneuvers{iVeh}.braking_area_without_offset = [turn_braking_area_without_offset_x; turn_braking_area_without_offset_y];
-            % emergency braking maneuver (with normal offset)
-            braking_area = obj.mpa.emergency_maneuvers{trim_current}.braking_with_offset;
-            [turn_braking_area_x, turn_braking_area_y] = translate_global(yaw0, x0, y0, braking_area(1, :), braking_area(2, :));
-            obj.iter.emergency_maneuvers{iVeh}.braking_area = [turn_braking_area_x; turn_braking_area_y];
         end
 
     end

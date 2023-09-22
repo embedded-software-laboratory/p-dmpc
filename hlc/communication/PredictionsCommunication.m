@@ -5,6 +5,7 @@ classdef PredictionsCommunication < handle
         ros2_node; % node of ROS 2
         vehicle_id; % vehicle ID
         publisher; % vehicle as publisher to send message
+        subscribers (1, :) % cell array with ros2 subscribers (entry of vehicle itself is always empty)
         time_step = int32(0); % time step
         stored_msgs; % stored messages
         msg_to_be_sent; % initialize message type
@@ -42,14 +43,15 @@ classdef PredictionsCommunication < handle
             obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/Predictions", obj.options);
         end
 
-        function ros_subscribers = create_subscriber(obj, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount)
+        function create_subscriber(obj, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount)
 
-            ros_subscribers = cell(amount, 1);
+            % initialize by constructing the last element
+            obj.subscribers{amount} = [];
 
             for i = 1:length(veh_indices_to_be_subscribed)
                 veh_id = veh_ids_to_be_subscribed(i);
                 topic_name_subscribe = ['/vehicle_', num2str(veh_id), '_pred'];
-                ros_subscribers{veh_indices_to_be_subscribed(i)} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Predictions", @obj.callback_subscriber, obj.options);
+                obj.subscribers{veh_indices_to_be_subscribed(i)} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Predictions", @obj.callback_subscriber, obj.options);
             end
 
         end
