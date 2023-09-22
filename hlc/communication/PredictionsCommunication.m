@@ -10,6 +10,7 @@ classdef PredictionsCommunication < handle
         stored_msgs; % stored messages
         msg_to_be_sent; % initialize message type
         options; % options to create publisher and subscriber
+        stored_prediction_msgs (1, :) struct % list with message structs
     end
 
     properties (Dependent)
@@ -25,9 +26,6 @@ classdef PredictionsCommunication < handle
         end
 
         function initialize_communication(obj, vehicle_id)
-            % initialize empty message list, relevant if global variables are not cleared
-            global stored_prediction_msgs
-            stored_prediction_msgs = [];
             obj.vehicle_id = vehicle_id;
             node_name = ['/node_', num2str(obj.vehicle_id)];
             obj.ros2_node = ros2node(node_name);
@@ -56,7 +54,7 @@ classdef PredictionsCommunication < handle
 
         end
 
-        function callback_subscriber(~, msg)
+        function callback_subscriber(obj, msg)
             % CALLBACK_WHEN_RECEIVING_MESSAGE This is a callback function and will be
             % executed automatically every time subscriber of ROS received a message.
             %
@@ -65,26 +63,24 @@ classdef PredictionsCommunication < handle
             % A threshold of time step is defined for old messages. Too old messages
             % are deleted.
 
-            global stored_prediction_msgs
-
-            if isempty(stored_prediction_msgs)
+            if isempty(obj.stored_prediction_msgs)
                 % if empty (no messages received so far)
-                stored_prediction_msgs = msg;
+                obj.stored_prediction_msgs = msg;
             else
                 % else check if message with same vehicle id and time step exists
                 % and delete this message then
                 is_msg_outdated = ...
-                    ([stored_prediction_msgs.vehicle_id] == msg.vehicle_id) & ...
-                    ([stored_prediction_msgs.time_step] == msg.time_step);
-                stored_prediction_msgs(is_msg_outdated) = [];
+                    ([obj.stored_prediction_msgs.vehicle_id] == msg.vehicle_id) & ...
+                    ([obj.stored_prediction_msgs.time_step] == msg.time_step);
+                obj.stored_prediction_msgs(is_msg_outdated) = [];
                 % append message to list
-                stored_prediction_msgs(end + 1) = msg;
+                obj.stored_prediction_msgs(end + 1) = msg;
             end
 
             % delete messages older than a certain time steps compared to the time step of newly received message
             message_age_threshold = 2;
-            is_msg_expired = [stored_prediction_msgs.time_step] <= (msg.time_step - message_age_threshold);
-            stored_prediction_msgs(is_msg_expired) = [];
+            is_msg_expired = [obj.stored_prediction_msgs.time_step] <= (msg.time_step - message_age_threshold);
+            obj.stored_prediction_msgs(is_msg_expired) = [];
         end
 
         function send_message(obj, time_step, predicted_areas, vehs_fallback)
@@ -106,13 +102,11 @@ classdef PredictionsCommunication < handle
             send(obj.publisher, obj.msg_to_be_sent);
         end
 
-        function latest_msg = read_message(~, sub, time_step, throw_error, timeout)
+        function latest_msg = read_message(obj, sub, time_step, throw_error, timeout)
             % Read message from the given time step
             if nargin <= 4
                 timeout = 100.0;
             end
-
-            global stored_prediction_msgs
 
             is_timeout = true;
             % start timer for detecting timeout
@@ -124,15 +118,15 @@ classdef PredictionsCommunication < handle
 
             while read_time < timeout
 
-                if ~isempty(stored_prediction_msgs)
+                if ~isempty(obj.stored_prediction_msgs)
                     % find messages by vehicle id and time step
                     is_found_message = ...
-                        [stored_prediction_msgs.vehicle_id] == int32(vehicle_id_subscribed) & ...
-                        [stored_prediction_msgs.time_step] == int32(time_step);
+                        [obj.stored_prediction_msgs.vehicle_id] == int32(vehicle_id_subscribed) & ...
+                        [obj.stored_prediction_msgs.time_step] == int32(time_step);
 
                     if any(is_found_message)
                         % only one message should be found
-                        latest_msg = stored_prediction_msgs(is_found_message);
+                        latest_msg = obj.stored_prediction_msgs(is_found_message);
                         % if message is found timeout is not triggered
                         is_timeout = false;
                         break;
@@ -156,10 +150,8 @@ classdef PredictionsCommunication < handle
 
         end
 
-        function latest_msg = read_latest_message(~, sub)
+        function latest_msg = read_latest_message(obj, sub)
             % Read latest available message from the given subscriber
-
-            global stored_prediction_msgs
 
             is_found = false;
 
@@ -167,13 +159,13 @@ classdef PredictionsCommunication < handle
             topic_name_split = split(sub.TopicName, '_');
             vehicle_id_subscribed = str2double(topic_name_split(2));
 
-            if ~isempty(stored_prediction_msgs)
+            if ~isempty(obj.stored_prediction_msgs)
                 % find messages by vehicle id
-                is_found_message = [stored_prediction_msgs.vehicle_id] == int32(vehicle_id_subscribed);
+                is_found_message = [obj.stored_prediction_msgs.vehicle_id] == int32(vehicle_id_subscribed);
 
                 if any(is_found_message)
                     % return latest message
-                    latest_msg = stored_prediction_msgs(find(is_found_message, 1, "last"));
+                    latest_msg = obj.stored_prediction_msgs(find(is_found_message, 1, "last"));
                     is_found = true;
                 end
 
