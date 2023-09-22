@@ -343,7 +343,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         iter_v.obstacles(end + 1) = {[x_reachable_sets'; y_reachable_sets']};
                     case '5'
                         % consider old trajectory as dynamic obstacle
-                        latest_msg = obj.ros_subscribers.predictions{veh_without_ROW}.LatestMessage;
+                        latest_msg = obj.scenario.vehicles(vehicle_idx).communicate.predictions.read_latest_message( ...
+                            obj.scenario.vehicles(vehicle_idx).communicate.predictions.subscribers{veh_without_ROW});
 
                         if latest_msg.time_step > 0
                             % the message does not come from the initial time step
