@@ -8,10 +8,6 @@ classdef (Abstract) HighLevelController < handle
         % or one for a local simulation
         plant;
 
-        % Ros Subscribers for Inter HLC Communication (distributed HLCs) or
-        % to simualate distributed communication in pb-sequential controller
-        ros_subscribers;
-
         optimizer;
         mpa;
         controller_name;
@@ -44,7 +40,6 @@ classdef (Abstract) HighLevelController < handle
             % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
-            obj.ros_subscribers = {};
             obj.k = 0;
             obj.controller_name = '';
             obj.initialized_reference_path = false;
