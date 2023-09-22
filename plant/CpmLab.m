@@ -200,7 +200,7 @@ classdef CpmLab < Plant
             % Send ready signal for all assigned vehicle ids
             disp('Sending ready signal');
 
-            for iVehicle = sort([obj.controlled_vehicle_ids, obj.scenario.options.manual_control_config.hdv_ids])
+            for iVehicle = [obj.controlled_vehicle_ids, obj.scenario.options.manual_control_config.hdv_ids]
                 ready_msg = ReadyStatus;
                 ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
                 ready_stamp = TimeStamp;
