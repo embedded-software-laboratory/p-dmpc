@@ -33,13 +33,7 @@ classdef (Abstract) Plant < handle
     methods
         % get methods for dependent properties
         function indices = get.indices_in_vehicle_list(obj)
-
-            if (length(obj.controlled_vehicle_ids) == 1)
-                indices = find(obj.all_vehicle_ids == obj.controlled_vehicle_ids, 1);
-            else
-                indices = 1:obj.amount;
-            end
-
+            [~, indices] = ismember(obj.controlled_vehicle_ids, obj.all_vehicle_ids);
         end
 
         function amount = get.amount(obj)
