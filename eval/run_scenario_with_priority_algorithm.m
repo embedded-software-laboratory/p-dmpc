@@ -4,6 +4,7 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
         scenarios Scenario
         algorithm (1, :) string
     end
+
     [nVeh, nSeeds] = size(scenarios);
     results = cell(nVeh, length(algorithm), nSeeds);
     n_simulations = nVeh * nSeeds * length(algorithm);
@@ -23,8 +24,8 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
                     algorithm{i_priority};
                 % run simulation
                 results_full_path = FileNameConstructor.get_results_full_path( ...
-                scenarios(iVeh, iSeed).options, ...
-                scenarios(iVeh, iSeed).options.veh_ids ...
+                    scenarios(iVeh, iSeed).options, ...
+                    scenarios(iVeh, iSeed).options.path_ids ...
                 );
 
                 if isfile(results_full_path)

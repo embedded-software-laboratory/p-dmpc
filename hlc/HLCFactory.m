@@ -31,7 +31,7 @@ classdef HLCFactory < handle
             end
 
             if dry_run
-                obj.dry_run_hlc(vehicle_ids);
+                obj.dry_run_hlc(plant.all_vehicle_ids);
             end
 
             if obj.scenario.options.is_prioritized
@@ -39,19 +39,17 @@ classdef HLCFactory < handle
                 if length(vehicle_ids) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    hlc = PrioritizedParallelController(obj.scenario, vehicle_ids);
+                    hlc = PrioritizedParallelController(obj.scenario, plant);
                 else
                     % PB Controller controlling all vehicles
-                    hlc = PrioritizedSequentialController(obj.scenario, vehicle_ids);
+                    hlc = PrioritizedSequentialController(obj.scenario, plant);
                 end
 
             else
-                hlc = CentralizedController(obj.scenario, vehicle_ids);
+                hlc = CentralizedController(obj.scenario, plant);
             end
 
             hlc.set_controller_name(obj.get_controller_name(obj.scenario.options));
-
-            hlc.set_hlc_adapter(plant);
 
         end
 
@@ -96,7 +94,7 @@ classdef HLCFactory < handle
         %
         % Important note: This might take some time depending on how hard to
         % solve the first timestep of this scenario is.
-        function dry_run_hlc(obj, vehicle_ids)
+        function dry_run_hlc(obj, dry_run_vehicle_ids)
             disp("Starting dry run of HLC");
             plot_backup = obj.scenario.options.options_plot_online.is_active;
             environment_backup = obj.scenario.options.environment;
@@ -108,7 +106,9 @@ classdef HLCFactory < handle
             obj.scenario.options.options_plot_online.is_active = false;
             obj.scenario.options.T_end = 2 * obj.scenario.options.dt;
             obj.scenario.options.should_save_result = false;
-            hlc = obj.get_hlc(vehicle_ids, false, plant);
+            plant.setup(obj.scenario, dry_run_vehicle_ids);
+
+            hlc = obj.get_hlc(dry_run_vehicle_ids, false, plant);
             hlc.run();
             obj.scenario.options.environment = environment_backup;
             obj.scenario.options.options_plot_online.is_active = plot_backup;

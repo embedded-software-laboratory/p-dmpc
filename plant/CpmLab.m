@@ -29,9 +29,14 @@ classdef CpmLab < Plant
 
         end
 
-        function setup(obj, scenario, veh_ids)
-            setup@Plant(obj, scenario, veh_ids);
-            assert(issorted(obj.veh_ids));
+        function setup(obj, scenario, ~, controlled_vehicle_ids)
+
+            arguments
+                obj (1, 1) CpmLab
+                scenario (1, 1) Scenario
+                ~% all_vehicle_ids are automatically received from the LCC
+                controlled_vehicle_ids (1, :) uint8 = []
+            end
 
             % Initialize data readers/writers...
             % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
@@ -55,32 +60,23 @@ classdef CpmLab < Plant
             obj.reader_vehicleStateList.WaitSet = true;
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
+            % get middleware period and vehicle ids from vehicle state list message
+            [sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
+
+            if (sample_count == 0)
+                error('No vehicle state list received during CpmLab.setup!');
+            end
+
+            state_list = sample(end);
+
             % Middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(obj.scenario.options.dt * 1e9);
+            obj.dt_period_nanos = uint64(scenario.options.dt * 1e9);
 
-            % Sync start with infrastructure
-            % Send ready signal for all assigned vehicle ids
-            disp('Sending ready signal');
-
-            for iVehicle = sort([obj.veh_ids, obj.scenario.options.manual_control_config.hdv_ids])
-                ready_msg = ReadyStatus;
-                ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
-                ready_stamp = TimeStamp;
-                ready_stamp.nanoseconds = uint64(0);
-                ready_msg.next_start_stamp = ready_stamp;
-                obj.writer_readyStatus.write(ready_msg);
+            if isempty(controlled_vehicle_ids)
+                controlled_vehicle_ids = state_list.active_vehicle_ids;
             end
 
-            % Wait for start or stop signal
-            disp('Waiting for start or stop signal');
-
-            got_start = false;
-            got_stop = false;
-
-            while (~got_stop && ~got_start)
-                [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
-            end
-
+            setup@Plant(obj, scenario, state_list.active_vehicle_ids, controlled_vehicle_ids);
         end
 
         function [x0, trim_indices] = measure(obj)
@@ -100,7 +96,7 @@ classdef CpmLab < Plant
 
                 for index = 1:length(state_list)
 
-                    if ismember(state_list(index).vehicle_id, obj.veh_ids) % measure cav states
+                    if ismember(state_list(index).vehicle_id, obj.controlled_vehicle_ids) % measure cav states
                         list_index = obj.indices_in_vehicle_list(cav_index); % use list to prevent breaking distributed control
                         cav_index = cav_index + 1;
                         x0(list_index, 1) = state_list(index).pose.x;
@@ -170,7 +166,7 @@ classdef CpmLab < Plant
                 obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
 
                 vehicle_command_trajectory = VehicleCommandTrajectory;
-                vehicle_command_trajectory.vehicle_id = uint8(obj.scenario.options.veh_ids(iVeh));
+                vehicle_command_trajectory.vehicle_id = uint8(obj.all_vehicle_ids(iVeh));
                 vehicle_command_trajectory.trajectory_points = trajectory_points;
                 vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
                     uint64(obj.sample(end).t_now);
@@ -197,6 +193,32 @@ classdef CpmLab < Plant
 
         function end_run(obj)
             disp('End')
+        end
+
+        function synchronize_start_with_plant(obj)
+            % Sync start with infrastructure
+            % Send ready signal for all assigned vehicle ids
+            disp('Sending ready signal');
+
+            for iVehicle = [obj.controlled_vehicle_ids, obj.scenario.options.manual_control_config.hdv_ids]
+                ready_msg = ReadyStatus;
+                ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
+                ready_stamp = TimeStamp;
+                ready_stamp.nanoseconds = uint64(0);
+                ready_msg.next_start_stamp = ready_stamp;
+                obj.writer_readyStatus.write(ready_msg);
+            end
+
+            % Wait for start or stop signal
+            disp('Waiting for start or stop signal');
+
+            got_start = false;
+            got_stop = false;
+
+            while (~got_stop && ~got_start)
+                [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
+            end
+
         end
 
     end

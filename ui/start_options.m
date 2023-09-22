@@ -38,7 +38,7 @@ function [labOptions] = start_options()
         ui.HDVIDsEditField.Value = previousSelection.hdv_ids;
         ui.EnvironmentButtonGroup.SelectedObject = ui.EnvironmentButtonGroup.Buttons(previousSelection.environmentSelection);
         ui.ParallelComputationDistributedExecutionListBox.Value = previousSelection.isParlSelection;
-        ui.CustomVehicleIdsEditField.Value = previousSelection.veh_ids;
+        ui.CustomReferencePathsEditField.Value = previousSelection.path_ids;
 
         ui.ScenarioListBox.Value = previousSelection.scenarioSelection;
         ui.ControlStrategyListBox.Value = previousSelection.controlStrategySelection;
@@ -108,7 +108,7 @@ function [labOptions] = start_options()
     vehicleAmountSelection = ui.AmountofVehiclesListBox.Value;
     visualizationSelection = ui.DoOnlinePlotListBox.Value;
     isParlSelection = ui.ParallelComputationDistributedExecutionListBox.Value;
-    veh_ids = ui.CustomVehicleIdsEditField.Value;
+    path_ids = ui.CustomReferencePathsEditField.Value;
     hdv_ids = ui.HDVIDsEditField.Value;
     hdv_amount_selection = ui.AmountHDVsListBox.Value;
     is_manual_control = ui.AddHDVsCheckBox.Value;
@@ -136,7 +136,7 @@ function [labOptions] = start_options()
     allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
     save([tempdir 'scenarioControllerSelection'], 'use_cpp', 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
         'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', ...
-        'isParlSelection', 'dtSelection', 'HpSelection', 'trim_setSelection', 'T_endSelection', 'max_num_CLsSelection', 'veh_ids', 'strategy_consider_veh_without_ROWSelection', 'strategy_enter_crossing_areaSelection', ...
+        'isParlSelection', 'dtSelection', 'HpSelection', 'trim_setSelection', 'T_endSelection', 'max_num_CLsSelection', 'path_ids', 'strategy_consider_veh_without_ROWSelection', 'strategy_enter_crossing_areaSelection', ...
         'should_save_result', 'result_name', 'allow_priority_inheritance');
 
     %% Convert to legacy/outputs
@@ -172,13 +172,13 @@ function [labOptions] = start_options()
 
     labOptions.amount = str2num(vehicleAmountSelection);
 
-    veh_ids = ui.CustomVehicleIdsEditField.Value;
+    path_ids = ui.CustomReferencePathsEditField.Value;
 
-    if veh_ids ~= ""
-        veh_ids(~isstrprop(veh_ids, 'digit')) = ' '; %replace non-numeric characters with empty space
-        labOptions.veh_ids = str2double(strsplit(strtrim(veh_ids)));
+    if path_ids ~= ""
+        path_ids(~isstrprop(path_ids, 'digit')) = ' '; %replace non-numeric characters with empty space
+        labOptions.path_ids = str2double(strsplit(strtrim(path_ids)));
     else
-        labOptions.veh_ids = [];
+        labOptions.path_ids = [];
     end
 
     labOptions.options_plot_online = OptionsPlotOnline();
@@ -286,6 +286,15 @@ function setEnvironmentElementsVisibility(ui)
     ui.AddHDVsCheckBox.Value = ui.AddHDVsCheckBox.Value && is_lab_selection;
     ui.AmountHDVsListBox.Enable = ui.AmountHDVsListBox.Enable && is_lab_selection;
     ui.HDVIDsEditField.Enable = ui.HDVIDsEditField.Enable && is_lab_selection;
+
+    % notify user that ULA reference path ids have to correspond to vehicle ids
+    is_ula_selection = (get_environment_selection(ui, true) == Environment.UnifiedLabApi);
+    if is_ula_selection
+        ui.Vehicle_Ids_label.Text = sprintf("Note: With Unified Lab API, Reference Path Ids have to match vehicle Ids!");
+        ui.Vehicle_Ids_label.Visible = 'On';
+    else
+        ui.Vehicle_Ids_label.Visible = 'Off';
+    end
 
     scenario = list_scenario(ui);
     ui.ScenarioListBox.Items = scenario(:, 2);

@@ -16,7 +16,7 @@ function communication_init(hlc)
     %% Also used for initial synchronization for distributed runs
     if ~hlc.scenario.options.is_manual_control
         % Communicate predicted trims, pridicted lanelets and areas to other vehicles
-        for veh_index = hlc.indices_in_vehicle_list
+        for veh_index = hlc.plant.indices_in_vehicle_list
             predicted_trims = repmat(trims_measured(veh_index), 1, Hp + 1); % current trim and predicted trims in the prediction horizon
 
             hlc.iter.x0(veh_index, :) = x0_measured(veh_index, :);
@@ -49,16 +49,16 @@ function communication_init(hlc)
         end
 
         % read from all other vehicles to make sure all vehicles are ready (synchronization)
-        if length(hlc.indices_in_vehicle_list) ~= 1
+        if length(hlc.plant.indices_in_vehicle_list) ~= 1
             other_vehicles = 1:hlc.scenario.options.amount; % still read from own publishers to make sure messages are arriving
         else
-            other_vehicles = setdiff(1:hlc.scenario.options.amount, hlc.indices_in_vehicle_list);
+            other_vehicles = setdiff(1:hlc.scenario.options.amount, hlc.plant.indices_in_vehicle_list);
         end
 
         for veh_index = other_vehicles
             disp(['reading initial msg from vehicle ', num2str(veh_index)]);
-            read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.k, true, 40.0);
-            read_message(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate.predictions, hlc.ros_subscribers.predictions{veh_index}, hlc.k, true, 40.0);
+            read_message(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.traffic, hlc.ros_subscribers.traffic{veh_index}, hlc.k, true, 40.0);
+            read_message(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate.predictions, hlc.ros_subscribers.predictions{veh_index}, hlc.k, true, 40.0);
         end
 
         disp('communication initialized');
