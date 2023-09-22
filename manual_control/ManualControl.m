@@ -26,16 +26,6 @@ classdef (Abstract) ManualControl < handle
             cmdStr = ['gnome-terminal --' ' ' './manual_control/launch_g29_force_feedback.sh'];
             system(cmdStr);
             disp('terminal launch finished')
-
-            % send ready message
-            matlabDomainId = 1;
-            [~, ~, ~, ~, ~, writer_readyStatus, ~, ~] = init_script(matlabDomainId); % #ok<ASGLU>
-            ready_msg = ReadyStatus;
-            ready_msg.source_id = strcat('manual_vehicle_', num2str(obj.vehicle_id));
-            ready_stamp = TimeStamp;
-            ready_stamp.nanoseconds = uint64(0);
-            ready_msg.next_start_stamp = ready_stamp;
-            writer_readyStatus.write(ready_msg);
         end
 
         function input_device_data = decode_input_data(obj)
