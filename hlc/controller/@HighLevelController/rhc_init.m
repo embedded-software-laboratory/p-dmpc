@@ -139,7 +139,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
     end
 
-    if obj.scenario.options.is_prioritized
+    if obj.scenario.options.is_prioritized && obj.amount == 1
         %% read messages from other vehicles (There shouldn't be any other vehicles if centralized)
 
         for jVeh = obj.plant.indices_in_vehicle_list
