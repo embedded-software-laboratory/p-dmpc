@@ -21,6 +21,7 @@ classdef (Abstract) HighLevelController < handle
         k;
         iter;
         info;
+        info_old; % old information for fallback
 
         manual_vehicles;
     end
@@ -34,7 +35,6 @@ classdef (Abstract) HighLevelController < handle
         got_stop;
         success; % to store unfinished results on error; set to true at the end of the main control loop
         vehs_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
-        info_old; % old information for fallback
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
         timing (1, 1) ControllerTiming;
@@ -297,7 +297,7 @@ classdef (Abstract) HighLevelController < handle
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
 
                         % plan for fallback case
-                        obj.info = pb_controller_fallback(obj, obj.iter, obj.info, obj.info_old, obj.scenario, obj.mpa, obj.plant.all_vehicle_ids, obj.plant.indices_in_vehicle_list);
+                        pb_controller_fallback(obj);
                         obj.total_fallback_times = obj.total_fallback_times + 1;
                     end
 
