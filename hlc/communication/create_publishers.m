@@ -60,9 +60,9 @@ function create_publishers(hlc)
 
         for vehicle_id = hlc.plant.controlled_vehicle_ids
             index = find(vehicle_id == hlc.plant.all_vehicle_ids);
-            hlc.scenario.vehicles(index).communicate.traffic = TrafficCommunication(); % create instance of the Comunication class
-            hlc.scenario.vehicles(index).communicate.traffic.initialize_communication(vehicle_id); % initialize
-            hlc.scenario.vehicles(index).communicate.traffic.create_publisher(); % create publisher
+            hlc.traffic_communication{index} = TrafficCommunication(); % create instance of the communication class
+            hlc.traffic_communication{index}.initialize_communication(vehicle_id); % initialize
+            hlc.traffic_communication{index}.create_publisher(); % create publisher
 
             hlc.scenario.vehicles(index).communicate.predictions = PredictionsCommunication(); % create instance of the Comunication class
             hlc.scenario.vehicles(index).communicate.predictions.initialize_communication(vehicle_id); % initialize

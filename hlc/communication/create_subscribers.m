@@ -20,7 +20,7 @@ function create_subscribers(hlc)
         % loop over vehicles that create subscriber
         veh_indices_to_be_subscribed = setdiff(1:hlc.scenario.options.amount, vehicle_index);
         veh_ids_to_be_subscribed = [hlc.plant.all_vehicle_ids(veh_indices_to_be_subscribed)];
-        hlc.scenario.vehicles(vehicle_index).communicate.traffic.create_subscriber(veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, hlc.scenario.options.amount);
+        hlc.traffic_communication{vehicle_index}.create_subscriber(veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, hlc.scenario.options.amount);
         hlc.scenario.vehicles(vehicle_index).communicate.predictions.create_subscriber(veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, hlc.scenario.options.amount);
     end
 

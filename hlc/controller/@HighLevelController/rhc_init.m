@@ -134,7 +134,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
         if obj.scenario.options.is_prioritized
             %% Send data to sync obj.iter for all vehicles (especially needed for priority assignment)
-            obj.scenario.vehicles(iVeh).communicate.traffic.send_message(obj.k, obj.iter.x0(iVeh, :), obj.iter.trim_indices(iVeh), obj.iter.predicted_lanelets{iVeh}, obj.iter.occupied_areas{iVeh}, obj.iter.reachable_sets(iVeh, :));
+            obj.traffic_communication{iVeh}.send_message(obj.k, obj.iter.x0(iVeh, :), obj.iter.trim_indices(iVeh), obj.iter.predicted_lanelets{iVeh}, obj.iter.occupied_areas{iVeh}, obj.iter.reachable_sets(iVeh, :));
         end
 
     end
@@ -148,8 +148,8 @@ function rhc_init(obj, x_measured, trims_measured)
 
             for kVeh = other_vehicles
                 % loop over vehicle from which the messages are read
-                latest_msg_i = obj.scenario.vehicles(jVeh).communicate.traffic.read_message( ...
-                    obj.scenario.vehicles(jVeh).communicate.traffic.subscribers{kVeh}, ...
+                latest_msg_i = obj.traffic_communication{jVeh}.read_message( ...
+                    obj.traffic_communication{jVeh}.subscribers{kVeh}, ...
                     obj.k, true);
                 obj.iter.x0(kVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
                 obj.iter.trim_indices(kVeh) = latest_msg_i.current_trim_index;
