@@ -45,7 +45,7 @@ function communication_init(hlc)
             predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
             reachable_sets = {}; % for initial time step, the reachable sets are not computed yet
             hlc.traffic_communication{veh_index}.send_message(hlc.k, current_pose, predicted_trims(1), predicted_lanelets, occupied_area, reachable_sets);
-            hlc.scenario.vehicles(veh_index).communicate.predictions.send_message(hlc.k, predicted_occupied_areas);
+            hlc.predictions_communication{veh_index}.send_message(hlc.k, predicted_occupied_areas);
         end
 
         % read from all other vehicles to make sure all vehicles are ready (synchronization)
@@ -58,8 +58,8 @@ function communication_init(hlc)
                 hlc.traffic_communication{vehicle_index}.read_message( ...
                     hlc.traffic_communication{vehicle_index}.subscribers{vehicle_index_subscribed}, ...
                     hlc.k, true, 40.0);
-                hlc.scenario.vehicles(vehicle_index).communicate.predictions.read_message( ...
-                    hlc.scenario.vehicles(vehicle_index).communicate.predictions.subscribers{vehicle_index_subscribed}, ...
+                hlc.predictions_communication{vehicle_index}.read_message( ...
+                    hlc.predictions_communication{vehicle_index}.subscribers{vehicle_index_subscribed}, ...
                     hlc.k, true, 40.0);
             end
 

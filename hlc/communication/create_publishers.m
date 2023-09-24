@@ -64,9 +64,9 @@ function create_publishers(hlc)
             hlc.traffic_communication{index}.initialize_communication(vehicle_id); % initialize
             hlc.traffic_communication{index}.create_publisher(); % create publisher
 
-            hlc.scenario.vehicles(index).communicate.predictions = PredictionsCommunication(); % create instance of the Comunication class
-            hlc.scenario.vehicles(index).communicate.predictions.initialize_communication(vehicle_id); % initialize
-            hlc.scenario.vehicles(index).communicate.predictions.create_publisher(); % create publisher
+            hlc.predictions_communication{index} = PredictionsCommunication(); % create instance of the communication class
+            hlc.predictions_communication{index}.initialize_communication(vehicle_id); % initialize
+            hlc.predictions_communication{index}.create_publisher(); % create publisher
         end
 
         duration = toc(start);

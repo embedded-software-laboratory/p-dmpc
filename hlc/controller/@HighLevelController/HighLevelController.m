@@ -12,6 +12,7 @@ classdef (Abstract) HighLevelController < handle
         % contains one instance for each vehicle that is controlled by the hlc
         % parallel/distributed execution: same size but only on entry that is not empty
         traffic_communication (1, :) cell
+        predictions_communication (1, :) cell
 
         optimizer;
         mpa;
@@ -243,8 +244,8 @@ classdef (Abstract) HighLevelController < handle
                             other_vehicles = setdiff(other_vehicles, irrelevant_vehicles, 'stable');
 
                             for veh_id = other_vehicles
-                                latest_msg = obj.scenario.vehicles(vehicle_index_hlc).communicate.predictions.read_message( ...
-                                    obj.scenario.vehicles(vehicle_index_hlc).communicate.predictions.subscribers{veh_id}, ...
+                                latest_msg = obj.predictions_communication{vehicle_index_hlc}.read_message( ...
+                                    obj.predictions_communication{vehicle_index_hlc}.subscribers{veh_id}, ...
                                     obj.k, true);
                                 fallback_info_veh_id = latest_msg.vehs_fallback';
                                 obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
@@ -257,8 +258,8 @@ classdef (Abstract) HighLevelController < handle
                             other_vehicles = setdiff(other_vehicles, irrelevant_vehicles);
 
                             for veh_id = other_vehicles
-                                latest_msg = obj.scenario.vehicles(vehicle_index_hlc).communicate.predictions.read_message( ...
-                                    obj.scenario.vehicles(vehicle_index_hlc).communicate.predictions.subscribers{veh_id}, ...
+                                latest_msg = obj.predictions_communication{vehicle_index_hlc}.read_message( ...
+                                    obj.predictions_communication{vehicle_index_hlc}.subscribers{veh_id}, ...
                                     obj.k, true);
                                 fallback_info_veh_id = latest_msg.vehs_fallback';
                                 obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);

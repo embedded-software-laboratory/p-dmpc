@@ -1,5 +1,8 @@
-function info = pb_controller_fallback(iter, info, info_old, scenario, mpa, all_vehicle_ids, indices_in_vehicle_list)
+function info = pb_controller_fallback(obj, iter, info, info_old, scenario, mpa, all_vehicle_ids, indices_in_vehicle_list)
     % pb_controller_fallback    planning by using last priority and trajectories directly
+
+    % input argument: obj - handle of high level controller
+    % TODO should be handle of prioritized controller (see issue #142)
 
     tick_per_step = scenario.options.tick_per_step + 1;
 
@@ -27,7 +30,7 @@ function info = pb_controller_fallback(iter, info, info_old, scenario, mpa, all_
             % are used by controller
             if scenario.options.is_prioritized && scenario.options.isDealPredictionInconsistency == false
                 % send message
-                scenario.vehicles(vehicle_idx).communicate.predictions.send_message(iter.k, info.shapes(vehicle_idx, :), info.vehs_fallback);
+                obj.predictions_communication{vehicle_idx}.send_message(iter.k, info.shapes(vehicle_idx, :), info.vehs_fallback);
             end
 
         end
