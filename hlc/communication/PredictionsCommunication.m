@@ -27,7 +27,7 @@ classdef PredictionsCommunication < handle
 
         function initialize_communication(obj, vehicle_id)
             obj.vehicle_id = vehicle_id;
-            node_name = ['/node_', num2str(obj.vehicle_id)];
+            node_name = ['/node_', num2str(obj.vehicle_id), '_prediction'];
             obj.ros2_node = ros2node(node_name);
             obj.msg_to_be_sent = ros2message('veh_msgs/Predictions'); % create ROS 2 message structure
             obj.options = struct("History", "keeplast", "Depth", 40, "Durability", "transientlocal");
@@ -37,7 +37,7 @@ classdef PredictionsCommunication < handle
             % workaround to be able to create publisher in the lab
             obj.publisher = ros2publisher(obj.ros2_node, "/parameter_events");
             % create publisher: each vehicle send message only to its own topic with name '/vehicle_ID'
-            topic_name_publish = ['/vehicle_', num2str(obj.vehicle_id), '_pred'];
+            topic_name_publish = ['/vehicle_', num2str(obj.vehicle_id), '_prediction'];
             obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/Predictions", obj.options);
         end
 
@@ -48,7 +48,7 @@ classdef PredictionsCommunication < handle
 
             for i = 1:length(veh_indices_to_be_subscribed)
                 veh_id = veh_ids_to_be_subscribed(i);
-                topic_name_subscribe = ['/vehicle_', num2str(veh_id), '_pred'];
+                topic_name_subscribe = ['/vehicle_', num2str(veh_id), '_prediction'];
                 obj.subscribers{veh_indices_to_be_subscribed(i)} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Predictions", @obj.callback_subscriber, obj.options);
             end
 

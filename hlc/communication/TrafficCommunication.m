@@ -30,7 +30,7 @@ classdef TrafficCommunication < handle
         function initialize_communication(obj, vehicle_id)
             % initialize empty message list, relevant if global variables are not cleared
             obj.vehicle_id = vehicle_id;
-            node_name = ['/node_', num2str(obj.vehicle_id)];
+            node_name = ['/node_', num2str(obj.vehicle_id), '_traffic'];
             obj.ros2_node = ros2node(node_name);
             obj.msg_to_be_sent = ros2message("veh_msgs/Traffic"); % create ROS 2 message structure
             obj.options = struct("History", "keeplast", "Depth", 40, "Reliability", "reliable", "Durability", "transientlocal");
