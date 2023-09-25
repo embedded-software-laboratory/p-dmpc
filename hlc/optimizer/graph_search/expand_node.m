@@ -11,9 +11,18 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     curG = info.tree.g(:, iNode);
 
     k_exp = curK + 1;
-    cur_trim_id = tuple2index(curTrim(:), trim_length);
-    successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
+    % mpa Verkleinerung bug fix --> can't use transition_matrix anymore
+    % cur_trim_id = tuple2index(curTrim(:),trim_length);
+    % successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
 
+    per_vehicle_trims = cell(1, iter.amount);
+    for iVehicle = 1:iter.amount
+        per_vehicle_trims{iVehicle} = find(scenario.mpa.transition_matrix_single(curTrim(iVehicle), :, k_exp));
+        if iVehicle > 1
+            per_vehicle_trims{iVehicle} = (per_vehicle_trims{iVehicle} - 1) * prod(trim_length(1:iVehicle-1));
+        end
+    end
+    successor_trim_ids = sum(cartprod(per_vehicle_trims{:}), 2);
     nTrims = numel(successor_trim_ids);
 
     expX = zeros(iter.amount, nTrims);

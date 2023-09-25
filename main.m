@@ -73,10 +73,6 @@ function [result, scenario] = main(varargin)
         % set active vehicle IDs and possibly initialize communication
         plant.setup(scenario);
 
-        if scenario.options.use_cpp
-            optimizer(Function.CheckMexFunction);
-        end
-
         if scenario.options.is_prioritized == true && scenario.options.compute_in_parallel
             %% simulate distribution locally using the Parallel Computing Toolbox
             get_parallel_pool(scenario.options.amount);
