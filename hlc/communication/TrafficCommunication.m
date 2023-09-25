@@ -4,8 +4,8 @@ classdef TrafficCommunication < handle
     properties
         ros2_node; % node of ROS 2
         vehicle_id; % vehicle ID
-        publisher; % vehicle as publisher to send message
-        subscribers (1, :) cell % cell array with ros2 subscribers (entry of vehicle itself is always empty)
+        ros2_publisher (1, 1) % ros2 publisher
+        ros2_subscriber (1, 1) % ros2 subscriber
         time_step = int32(0); % time step
         stored_msgs; % stored messages
         msg_to_be_sent; % initialize message type
@@ -38,22 +38,16 @@ classdef TrafficCommunication < handle
 
         function create_publisher(obj)
             % workaround to be able to create publisher in the lab
-            obj.publisher = ros2publisher(obj.ros2_node, "/parameter_events");
-            % create publisher: each vehicle send message only to its own topic with name '/vehicle_ID'
-            topic_name_publish = ['/vehicle_', num2str(obj.vehicle_id), '_traffic'];
-            obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/Traffic", obj.options);
+            obj.ros2_publisher = ros2publisher(obj.ros2_node, "/parameter_events");
+            % all vehicles share the same topic
+            % (it is accepted that a vehicle is triggered by its own message)
+            obj.ros2_publisher = ros2publisher(obj.ros2_node, "/vehicle_traffic", "veh_msgs/Traffic", obj.options);
         end
 
-        function create_subscriber(obj, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount)
-
-            obj.subscribers = cell(1, amount);
-
-            for i = 1:length(veh_indices_to_be_subscribed)
-                veh_id = veh_ids_to_be_subscribed(i);
-                topic_name_subscribe = ['/vehicle_', num2str(veh_id), '_traffic'];
-                obj.subscribers{veh_indices_to_be_subscribed(i)} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Traffic", @obj.callback_subscriber, obj.options);
-            end
-
+        function create_subscriber(obj)
+            % all vehicles share the same topic
+            % (it is accepted that a vehicle is triggered by its own message)
+            obj.ros2_subscriber = ros2subscriber(obj.ros2_node, "/vehicle_traffic", "veh_msgs/Traffic", @obj.callback_subscriber, obj.options);
         end
 
         function callback_subscriber(obj, msg)
@@ -115,7 +109,7 @@ classdef TrafficCommunication < handle
                 obj.msg_to_be_sent.reachable_sets(i).y = reachable_sets{i}.Vertices(:, 2);
             end
 
-            send(obj.publisher, obj.msg_to_be_sent);
+            send(obj.ros2_publisher, obj.msg_to_be_sent);
         end
 
         function latest_msg = read_message(obj, vehicle_id_subscribed, time_step, throw_error, timeout)
