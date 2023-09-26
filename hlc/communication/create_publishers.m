@@ -40,18 +40,6 @@ function create_publishers(hlc)
 
     end
 
-    if sum(cellfun(@(c)strcmp(c, 'ros_g29_force_feedback/ForceFeedback'), msgList)) == 0
-
-        if hlc.scenario.options.environment == Environment.CpmLab
-            % This message type is only needed for lab mode but not
-            % simulation mode
-            path_custom_msg = [file_path, filesep, '../../manual_control'];
-            disp('Generating ROS 2 custom message type...')
-            ros2genmsg(path_custom_msg)
-        end
-
-    end
-
     timer_nodes = tic;
     disp('Creating ROS 2 nodes...');
 
