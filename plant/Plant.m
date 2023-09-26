@@ -93,7 +93,7 @@ classdef (Abstract) Plant < handle
 
     methods (Access = protected)
 
-        function [x0, trim_indices] = measure_node(obj)
+        function [x0, trim_indices] = measure_node(obj, mpa)
             speeds = zeros(obj.scenario.options.amount, 1);
 
             for iVeh = 1:obj.indices_in_vehicle_list

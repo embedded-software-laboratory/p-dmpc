@@ -53,8 +53,6 @@ classdef (Abstract) HighLevelController < handle
             obj.scenario = scenario;
             obj.plant = plant;
 
-            disp('before MPA constructor, have plant.active ids:');
-            disp(plant.controlled_vehicle_ids);
             obj.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
 
             initial_state = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
