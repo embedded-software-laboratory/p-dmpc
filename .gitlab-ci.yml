@@ -57,6 +57,7 @@ Startup:
         lastwarn('', '');
         openProject('graph_based_planning.prj');
         [warnMsg, warnId] = lastwarn();
+        display(warnMsg);
         assert(isempty(warnId));"
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
