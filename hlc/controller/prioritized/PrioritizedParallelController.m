@@ -2,8 +2,8 @@ classdef PrioritizedParallelController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedParallelController(scenario, vehicle_ids, plant)
-            obj = obj@PrioritizedController(scenario, vehicle_ids, plant);
+        function obj = PrioritizedParallelController(scenario, plant)
+            obj = obj@PrioritizedController(scenario, plant);
         end
 
     end
@@ -18,7 +18,7 @@ classdef PrioritizedParallelController < PrioritizedController
 
             runtime_others = obj.init_step();
 
-            vehicle_idx = obj.indices_in_vehicle_list(1);
+            vehicle_idx = obj.plant.indices_in_vehicle_list(1);
 
             % plan for vehicle_idx
             runtime_planning = obj.plan_single_vehicle(vehicle_idx);

@@ -2,8 +2,8 @@ classdef PrioritizedSequentialController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedSequentialController(scenario, vehicle_ids, plant)
-            obj = obj@PrioritizedController(scenario, vehicle_ids, plant);
+        function obj = PrioritizedSequentialController(scenario, plant)
+            obj = obj@PrioritizedController(scenario, plant);
         end
 
     end
@@ -18,8 +18,8 @@ classdef PrioritizedSequentialController < PrioritizedController
 
             runtime_others = obj.init_step();
 
-            msg_send_time = zeros(1, obj.amount);
-            runtime_planning = zeros(1, obj.amount);
+            msg_send_time = zeros(1, obj.plant.amount);
+            runtime_planning = zeros(1, obj.plant.amount);
 
             for level_j = 1:length(obj.CL_based_hierarchy)
                 vehs_level_i = obj.CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level

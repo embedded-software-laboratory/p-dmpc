@@ -2,9 +2,9 @@ function cleanup()
     % This function cleans all generated files. This is useful, e.g., when
     % changing anything w.r.t. the compilers or when upgrading the matlab
     % version.
-    rmdir_helper("commun/cust1/matlab_msg_gen");
-    rmdir_helper("commun/cust2/matlab_msg_gen");
-    rmdir_helper("commun/unified_lab_api/matlab_msg_gen");
+    rmdir_helper("hlc/communication/cust1/matlab_msg_gen");
+    rmdir_helper("hlc/communication/unified_lab_api/matlab_msg_gen");
+    rmdir_helper("manual_control/matlab_msg_gen");
     rmfile_helper("lanelets/lanelet2/generate_lanelet2_ref_path_loop_indices_mex.mexa64");
     rmfile_helper("lanelets/lanelet2/load_lanelet2_map_matlab_mex.mexa64");
     rmfile_helper("mex/priority_queue_interface_mex.mexa64");

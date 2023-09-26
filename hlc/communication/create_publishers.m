@@ -54,17 +54,18 @@ function create_publishers(hlc)
 
     %     topicList = ros2("topic","list");
     %     nodeList = ros2("node","list");
-    if isempty(hlc.scenario.vehicles(hlc.indices_in_vehicle_list(1)).communicate)
+    if isempty(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate)
         start = tic;
         disp('Creating ROS 2 publishers...')
 
-        for index = hlc.indices_in_vehicle_list
+        for vehicle_id = hlc.plant.controlled_vehicle_ids
+            index = find(vehicle_id == hlc.plant.all_vehicle_ids);
             hlc.scenario.vehicles(index).communicate.traffic = TrafficCommunication(); % create instance of the Comunication class
-            hlc.scenario.vehicles(index).communicate.traffic = initialize_communication(hlc.scenario.vehicles(index).communicate.traffic, hlc.scenario.vehicles(index).ID); % initialize
+            hlc.scenario.vehicles(index).communicate.traffic = initialize_communication(hlc.scenario.vehicles(index).communicate.traffic, vehicle_id); % initialize
             hlc.scenario.vehicles(index).communicate.traffic = create_publisher(hlc.scenario.vehicles(index).communicate.traffic); % create publisher
 
             hlc.scenario.vehicles(index).communicate.predictions = PredictionsCommunication(); % create instance of the Comunication class
-            hlc.scenario.vehicles(index).communicate.predictions = initialize_communication(hlc.scenario.vehicles(index).communicate.predictions, hlc.scenario.vehicles(index).ID); % initialize
+            hlc.scenario.vehicles(index).communicate.predictions = initialize_communication(hlc.scenario.vehicles(index).communicate.predictions, vehicle_id); % initialize
             hlc.scenario.vehicles(index).communicate.predictions = create_publisher(hlc.scenario.vehicles(index).communicate.predictions); % create publisher
         end
 

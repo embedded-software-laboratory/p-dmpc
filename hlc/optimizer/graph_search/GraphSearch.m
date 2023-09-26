@@ -25,7 +25,7 @@ classdef GraphSearch < OptimizerInterface
             %
             Hp = obj.scenario.options.Hp;
             % initialize variable to store control results
-            info = ControlResultsInfo(iter.amount, Hp, [iter.vehicles.ID]);
+            info = ControlResultsInfo(iter.amount, Hp, iter.vehicle_ids);
 
             shapes_tmp = cell(iter.amount, 0);
             % Create tree with root node

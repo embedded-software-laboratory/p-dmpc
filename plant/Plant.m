@@ -8,8 +8,18 @@ classdef (Abstract) Plant < handle
         cur_node
         scenario
         k
-        veh_ids % which vehicles will controlled by this experiment instance
-        amount
+    end
+
+    properties (GetAccess = public, SetAccess = private)
+        % public so that the HLC can access them
+        % all active vehicle ids. when running distributedly, these can differ from controlled ids
+        all_vehicle_ids (1, :) uint8 % uint8 to conform to ids sent by the middleware
+        % which vehicles will controlled by this experiment instance
+        controlled_vehicle_ids (1, :) uint8
+    end
+
+    properties (Dependent, GetAccess = public)
+        amount % amount of vehicles controlled by this experiment instance
         indices_in_vehicle_list
     end
 
@@ -21,23 +31,38 @@ classdef (Abstract) Plant < handle
     end
 
     methods
+        % get methods for dependent properties
+        function indices = get.indices_in_vehicle_list(obj)
+            [~, indices] = ismember(obj.controlled_vehicle_ids, obj.all_vehicle_ids);
+        end
+
+        function amount = get.amount(obj)
+            amount = length(obj.controlled_vehicle_ids);
+        end
+
+    end
+
+    methods (Access = public)
 
         function obj = Plant()
         end
 
-        function setup(obj, scenario, veh_ids)
+        function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
+
+            arguments
+                obj (1, 1) Plant
+                scenario (1, 1) Scenario
+                all_vehicle_ids (1, :) uint8
+                controlled_vehicle_ids (1, :) uint8
+            end
+
             % This function does everything in order to run the object
             % later on. If further initialization needs to be done this
             % method shall be overriden and called in a child class.
             obj.scenario = scenario;
-            obj.veh_ids = veh_ids;
-            obj.amount = length(veh_ids);
 
-            if obj.amount == 1
-                obj.indices_in_vehicle_list = [find(obj.scenario.options.veh_ids == obj.veh_ids(1), 1)];
-            else
-                obj.indices_in_vehicle_list = 1:obj.amount;
-            end
+            obj.controlled_vehicle_ids = controlled_vehicle_ids;
+            obj.all_vehicle_ids = all_vehicle_ids;
 
             % temporarily create an MPA to get vehicles` trim config
             tmp_mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
@@ -50,18 +75,7 @@ classdef (Abstract) Plant < handle
             end
 
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
-        end
 
-        function [x0, trim_indices] = measure_node(obj, mpa)
-            % take last planned state as new actual state
-            speeds = zeros(obj.scenario.options.amount, 1);
-
-            for iVeh = 1:obj.indices_in_vehicle_list
-                speeds(iVeh) = mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;
-            end
-
-            x0 = [obj.cur_node(:, NodeInfo.x), obj.cur_node(:, NodeInfo.y), obj.cur_node(:, NodeInfo.yaw), speeds];
-            trim_indices = obj.cur_node(:, NodeInfo.trim);
         end
 
         function receive_map(~)
@@ -71,8 +85,23 @@ classdef (Abstract) Plant < handle
             error('This interface does not provide the possibility to retrieve a lab specific map.');
         end
 
-        function send_ready_msg(obj)
-            % placeholder to be overwritten if needed
+        function synchronize_start_with_plant(obj)
+            % can be overriden in child class if needed
+        end
+
+    end
+
+    methods (Access = protected)
+
+        function [x0, trim_indices] = measure_node(obj)
+            speeds = zeros(obj.scenario.options.amount, 1);
+
+            for iVeh = 1:obj.indices_in_vehicle_list
+                speeds(iVeh) = mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;
+            end
+
+            x0 = [obj.cur_node(:, NodeInfo.x), obj.cur_node(:, NodeInfo.y), obj.cur_node(:, NodeInfo.yaw), speeds];
+            trim_indices = obj.cur_node(:, NodeInfo.trim);
         end
 
     end

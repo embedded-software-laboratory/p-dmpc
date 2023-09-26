@@ -1,7 +1,7 @@
 {
     "scenario_type": "commonroad",
     "amount": 2,
-    "veh_ids": [
+    "path_ids": [
         26,
         37
     ],

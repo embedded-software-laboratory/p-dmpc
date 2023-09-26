@@ -38,7 +38,6 @@ function scenario = circle_scenario(options)
 
         veh.reference_trajectory = [veh.x_start veh.y_start
                                     veh.x_goal veh.y_goal];
-        veh.ID = iVeh;
 
         scenario.vehicles = [scenario.vehicles, veh];
     end

@@ -21,8 +21,26 @@ classdef SimLab < Plant
             obj.use_visualization_data_queue = true;
         end
 
-        function setup(obj, scenario, veh_ids)
-            setup@Plant(obj, scenario, veh_ids);
+        function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
+
+            arguments
+                obj (1, 1) SimLab
+                scenario (1, 1) Scenario
+                all_vehicle_ids (1, :) uint8 = scenario.options.path_ids
+                controlled_vehicle_ids (1, :) uint8 = []
+            end
+
+            % if [] is passed in, matlab does not choose the default
+            if isempty(all_vehicle_ids)
+                all_vehicle_ids = scenario.options.path_ids;
+            end
+
+            % only set controlled ids to all ids after all ids have been set
+            if isempty(controlled_vehicle_ids)
+                controlled_vehicle_ids = all_vehicle_ids;
+            end
+
+            setup@Plant(obj, scenario, all_vehicle_ids, controlled_vehicle_ids);
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue

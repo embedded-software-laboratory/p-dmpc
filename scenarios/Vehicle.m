@@ -1,4 +1,4 @@
-classdef Vehicle
+classdef Vehicle < handle
     % VEHICLE   Class representing vehicles in a scenario
 
     properties

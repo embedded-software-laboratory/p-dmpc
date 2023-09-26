@@ -13,7 +13,7 @@ classdef GraphSearchMexCentralized < GraphSearchMex
         function [info_v, graph_search_time] = run_optimizer(obj, iter, veh_index)
             graph_search_timer = tic;
             graph_search_data = GraphSearchData(iter, obj.scenario, veh_index);
-            info_v = ControlResultsInfo(iter.amount, obj.scenario.options.Hp, [iter.vehicles.ID]);
+            info_v = ControlResultsInfo(iter.amount, obj.scenario.options.Hp, iter.vehicle_ids);
             [next_nodes, info_v.predicted_trims, info_v.y_predicted, info_v.n_expanded, info_v.is_exhausted] = obj.do_graph_search(graph_search_data);
             graph_search_time = toc(graph_search_timer);
             info_v.tree = obj.create_tree(iter);
