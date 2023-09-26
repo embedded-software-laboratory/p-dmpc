@@ -54,23 +54,40 @@ function create_publishers(hlc)
 
     %     topicList = ros2("topic","list");
     %     nodeList = ros2("node","list");
-    if isempty(hlc.scenario.vehicles(hlc.plant.indices_in_vehicle_list(1)).communicate)
-        start = tic;
-        disp('Creating ROS 2 publishers...')
 
-        for vehicle_id = hlc.plant.controlled_vehicle_ids
-            index = find(vehicle_id == hlc.plant.all_vehicle_ids);
-            hlc.traffic_communication{index} = TrafficCommunication(); % create instance of the communication class
-            hlc.traffic_communication{index}.initialize_communication(vehicle_id); % initialize
-            hlc.traffic_communication{index}.create_publisher(); % create publisher
+    timer_nodes = tic;
+    disp('Creating ROS 2 nodes...');
 
-            hlc.predictions_communication{index} = PredictionsCommunication(); % create instance of the communication class
-            hlc.predictions_communication{index}.initialize_communication(vehicle_id); % initialize
-            hlc.predictions_communication{index}.create_publisher(); % create publisher
-        end
+    for vehicle_id = hlc.plant.controlled_vehicle_ids
+        index = find(vehicle_id == hlc.plant.all_vehicle_ids);
+        % create instance of the communication class
+        hlc.traffic_communication{index} = TrafficCommunication();
+        % create node and store topic name and message type
+        hlc.traffic_communication{index}.initialize(vehicle_id, ...
+            'traffic', '/vehicle_traffic', 'veh_msgs/Traffic');
 
-        duration = toc(start);
-        disp(['Finished creating publishers in ' num2str(duration) ' seconds.'])
+        % create instance of the communication class
+        hlc.predictions_communication{index} = PredictionsCommunication();
+        % create node and store topic name and message type
+        hlc.predictions_communication{index}.initialize(vehicle_id, ...
+            'prediction', '/vehicle_prediction', 'veh_msgs/Predictions');
     end
+
+    duration_nodes = toc(timer_nodes);
+    disp(['Finished creating nodes in ', ...
+              num2str(duration_nodes), ' seconds.']);
+
+    timer_publisher = tic;
+    disp('Creating ROS 2 publishers...');
+
+    for vehicle_index = hlc.plant.indices_in_vehicle_list
+        % create publishers
+        hlc.traffic_communication{vehicle_index}.create_publisher();
+        hlc.predictions_communication{vehicle_index}.create_publisher();
+    end
+
+    duration_publisher = toc(timer_publisher);
+    disp(['Finished creating publishers in ', ...
+              num2str(duration_publisher), ' seconds.']);
 
 end
