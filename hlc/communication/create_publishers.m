@@ -1,10 +1,10 @@
 function create_publishers(hlc)
-    % create_publishers This function creates all ROS publishers for the given hlc.
-    % ROS 2 nodes are created for each vehicle. Each vehicle has its own topic
-    % and sends its data only to its own topic.
+    % creates ros2 publisher for the given high level controller
+    % for each controlled vehicle a ros2 node is created
+    % all vehicles share topics for related messages
     %
     % INPUT:
-    %   hlc: Controller implementing the HighLevelController
+    %   hlc: handle of high level controller
     %
 
     % generate custom message type (for vehicle communication) if not exist
