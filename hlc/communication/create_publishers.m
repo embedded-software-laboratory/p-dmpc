@@ -52,9 +52,6 @@ function create_publishers(hlc)
 
     end
 
-    %     topicList = ros2("topic","list");
-    %     nodeList = ros2("node","list");
-
     timer_nodes = tic;
     disp('Creating ROS 2 nodes...');
 
