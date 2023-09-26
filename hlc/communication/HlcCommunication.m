@@ -82,9 +82,17 @@ classdef (Abstract) HlcCommunication < handle
             % if another message for a certain vehicle and time step is
             % received the old previous one is deleted
 
+            % if the callback is triggered by the own message, it does not add
+            % the message to the queue
+
             % the queue contains only messages
             % that are not older than two time steps
-            % this limits the queue length to 2 * n_vehicle
+            % this limits the queue length to 2 * (n_vehicle-1)
+
+            if int32(obj.vehicle_id) == message_received.vehicle_id
+                % if triggered by own message, do nothing
+                return;
+            end
 
             if isempty(obj.messages_stored)
                 % if empty (no messages received so far)
