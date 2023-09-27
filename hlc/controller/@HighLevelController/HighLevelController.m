@@ -1,17 +1,6 @@
 classdef (Abstract) HighLevelController < handle
     %TODO check for private/protected vars
     properties (Access = public)
-        % For which vehicle IDs to start the HLC
-        % Must be an array of vehicles. In distributed HLC case the array contains
-        % exactly 1 integer
-        vehicle_ids;
-
-        % amount of vehicle controlled by this HLC
-        amount;
-
-        % indices of vehicleList relevant for this HLC (e.g contains 1 index iff hlc.amount = 1)
-        indices_in_vehicle_list;
-
         % scenario
         scenario;
 
@@ -50,12 +39,10 @@ classdef (Abstract) HighLevelController < handle
 
     methods
         % Set default settings
-        function obj = HighLevelController(scenario, vehicle_ids)
+        function obj = HighLevelController(scenario, plant)
             % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
-            obj.vehicle_ids = [];
-            obj.amount = 0;
             obj.ros_subscribers = {};
             obj.k = 0;
             obj.controller_name = '';
@@ -65,12 +52,12 @@ classdef (Abstract) HighLevelController < handle
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
             obj.timing = ControllerTiming();
-            obj.set_vehicle_ids(vehicle_ids);
+            obj.plant = plant;
 
             % create fallback for first time step
-            obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, [scenario.vehicles.ID]);
+            obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, plant.all_vehicle_ids);
 
-            for vehicle_idx = obj.indices_in_vehicle_list
+            for vehicle_idx = obj.plant.indices_in_vehicle_list
                 k = 1;
                 x0 = [[scenario.vehicles.x_start]', [scenario.vehicles.y_start]', [scenario.vehicles.yaw_start]'];
                 trim_indices = [scenario.vehicles.trim_config];
@@ -95,25 +82,8 @@ classdef (Abstract) HighLevelController < handle
             scenario = obj.scenario;
         end
 
-        % 1 vehicle ID implies distributed
-        function set_vehicle_ids(obj, vehicle_ids)
-            obj.vehicle_ids = vehicle_ids;
-            obj.amount = length(vehicle_ids);
-
-            if obj.amount == 1
-                obj.indices_in_vehicle_list = [find([obj.scenario.vehicles.ID] == obj.vehicle_ids(1), 1)];
-            else
-                obj.indices_in_vehicle_list = 1:obj.amount;
-            end
-
-        end
-
         function set_controller_name(obj, name)
             obj.controller_name = name;
-        end
-
-        function set_hlc_adapter(obj, plant)
-            obj.plant = plant;
         end
 
     end
@@ -140,7 +110,7 @@ classdef (Abstract) HighLevelController < handle
             % overlapping points are removed when using MATLAB function `polyshape`
             warning('off', 'MATLAB:polyshape:repairedBySimplify')
 
-            obj.iter = IterationData(obj.scenario, obj.k);
+            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_vehicle_ids);
 
             obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
 
@@ -156,13 +126,13 @@ classdef (Abstract) HighLevelController < handle
                 obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
             end
 
-            obj.plant.setup(obj.scenario, obj.vehicle_ids);
-
             if obj.scenario.options.is_prioritized
                 % In priority-based computation, vehicles communicate via ROS 2
                 % Initialize the communication network of ROS 2
                 communication_init(obj);
             end
+
+            obj.plant.synchronize_start_with_plant();
 
             obj.timing.stop_timer("init_hlc_time");
         end
@@ -236,17 +206,17 @@ classdef (Abstract) HighLevelController < handle
                 % If using distributed hlcs, collect fallback info from
                 % other vehicles as required
                 if obj.scenario.options.compute_in_parallel
-                    irrelevant_vehicles = union(obj.indices_in_vehicle_list(1), obj.info.vehs_fallback);
+                    irrelevant_vehicles = union(obj.plant.indices_in_vehicle_list(1), obj.info.vehs_fallback);
 
                     if obj.scenario.options.fallback_type == FallbackType.local_fallback
-                        sub_graph_fallback = obj.belonging_vector_total(obj.indices_in_vehicle_list(1));
+                        sub_graph_fallback = obj.belonging_vector_total(obj.plant.indices_in_vehicle_list(1));
                         other_vehicles = find(obj.belonging_vector_total == sub_graph_fallback);
                         % remove own vehicle. No need to read from own
                         % publisher
                         other_vehicles = setdiff(other_vehicles, irrelevant_vehicles, 'stable');
 
                         for veh_id = other_vehicles
-                            latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k, true);
+                            latest_msg = read_message(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k, true);
                             fallback_info_veh_id = latest_msg.vehs_fallback';
                             obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
                         end
@@ -255,7 +225,7 @@ classdef (Abstract) HighLevelController < handle
                         other_vehicles = setdiff(1:obj.scenario.options.amount, irrelevant_vehicles);
 
                         for veh_id = other_vehicles
-                            latest_msg = read_message(obj.scenario.vehicles(obj.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k, true);
+                            latest_msg = read_message(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k, true);
                             fallback_info_veh_id = latest_msg.vehs_fallback';
                             obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
                         end
@@ -288,7 +258,7 @@ classdef (Abstract) HighLevelController < handle
                         str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
                         disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
-                        obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.indices_in_vehicle_list);
+                        obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.plant.all_vehicle_ids, obj.plant.indices_in_vehicle_list);
                         obj.total_fallback_times = obj.total_fallback_times + 1;
                     end
 
