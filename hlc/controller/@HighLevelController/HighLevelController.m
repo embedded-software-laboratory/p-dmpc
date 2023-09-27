@@ -45,7 +45,7 @@ classdef (Abstract) HighLevelController < handle
         info_old; % old information for fallback
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
-        timing (1,1) ControllerTiming;
+        timing (1, 1) ControllerTiming;
     end
 
     methods
@@ -193,11 +193,7 @@ classdef (Abstract) HighLevelController < handle
 
                 obj.iter.k = obj.k;
 
-                % no timer series
-                obj.timing.start_timer(strcat('hlc_step_',int2str(obj.k)));
-                % with timer series
                 obj.timing.start_timer("hlc step time", obj.k);
-
 
                 % Measurement
                 % -------------------------------------------------------------------------
@@ -233,7 +229,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.result.iter_runtime(obj.k) = toc(obj.result.step_timer);
 
                 % The controller computes plans
-                controller_timer = tic;
+                obj.timing.start_timer('controller_timer', obj.k);
 
                 %% controller %%
                 obj.controller();
@@ -301,7 +297,7 @@ classdef (Abstract) HighLevelController < handle
 
                 obj.info_old = obj.info; % save variable in case of fallback
                 %% save result of current time step
-                obj.result.controller_runtime(obj.k) = toc(controller_timer);
+                obj.timing.stop_timer('controller_timer', obj.k);
 
                 % save controller outputs in result struct
                 obj.result.scenario = obj.scenario;
@@ -373,7 +369,6 @@ classdef (Abstract) HighLevelController < handle
                 % -------------------------------------------------------------------------
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
 
-                obj.timing.stop_timer(strcat('hlc_step_',int2str(obj.k)));
                 obj.timing.stop_timer("hlc step time", obj.k);
             end
 
