@@ -5,8 +5,6 @@ function [result, scenario] = main(varargin)
         warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
     end
 
-    Timing.start_timer("main_runtime_total");
-
     % check if Config object is given as input
     options = read_object_from_input(varargin, 'Config');
     % check if Scenario object is given as input
@@ -95,11 +93,7 @@ function [result, scenario] = main(varargin)
 
             spmd (scenario.options.amount)
                 hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, plant);
-                Timing.start_timer("worker_hlc_runtime");
                 [result, scenario] = hlc.run();
-                Timing.stop_timer("worker_hlc_runtime")
-
-                result.global_timing_results = Timing.get_all_elapsed_times();
             end
 
             if do_plot
@@ -111,7 +105,6 @@ function [result, scenario] = main(varargin)
         else
             hlc = hlc_factory.get_hlc(scenario.options.veh_ids, dry_run, plant);
             [result, scenario] = hlc.run();
-            result.global_timing_results = Timing.get_all_elapsed_times();
         end
 
     end
