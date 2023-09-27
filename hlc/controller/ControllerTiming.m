@@ -143,13 +143,22 @@ classdef ControllerTiming < handle
         function elapsed_times = get_all_elapsed_times(obj)
             elapsed_times = struct;
 
-            % save results from single timings
-            elapsed_times.timing_results_once_keys = obj.name_to_timing_once;
-            elapsed_times.timing_results_once_results = obj.timings_once;
+            % save results from timins_once
+            timer_names = keys(obj.name_to_timing_once);
 
-            % save results from timing series
-            elapsed_times.timing_results_per_timestep_keys = obj.name_to_timing_per_timestep;
-            elapsed_times.timing_results_per_timestep_results = obj.timings_per_timestep;
+            for i = 1:length(timer_names)
+                name = timer_names{i};
+                elapsed_times.(name) = obj.get_elapsed_time(name);
+            end
+
+            % save results from timings_per_timestep
+            timer_names = keys(obj.name_to_timing_per_timestep);
+
+            for i = 1:length(timer_names)
+                name = timer_names{i};
+                elapsed_times.(name) = obj.timings_per_timestep(:, obj.name_to_timing_per_timestep(name), :);
+            end
+
         end
 
     end
