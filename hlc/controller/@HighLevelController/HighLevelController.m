@@ -186,14 +186,13 @@ classdef (Abstract) HighLevelController < handle
 
             %% Main control loop
             while (~obj.got_stop)
-                obj.result.step_timer = tic;
-
                 % increment interation counter
                 obj.k = obj.k + 1;
 
                 obj.iter.k = obj.k;
 
-                obj.timing.start_timer("hlc step time", obj.k);
+                obj.timing.start_timer("hlc_step_time", obj.k);
+                obj.timing.start_timer("iter_runtime", obj.k);
 
                 % Measurement
                 % -------------------------------------------------------------------------
@@ -226,10 +225,10 @@ classdef (Abstract) HighLevelController < handle
                 end
 
                 obj.result.distance(:, :, obj.k) = distance;
-                obj.result.iter_runtime(obj.k) = toc(obj.result.step_timer);
+                obj.timing.stop_timer("iter_runtime", obj.k);
 
                 % The controller computes plans
-                obj.timing.start_timer('controller_timer', obj.k);
+                obj.timing.start_timer("controller_time", obj.k);
 
                 %% controller %%
                 obj.controller();
@@ -297,7 +296,8 @@ classdef (Abstract) HighLevelController < handle
 
                 obj.info_old = obj.info; % save variable in case of fallback
                 %% save result of current time step
-                obj.timing.stop_timer('controller_timer', obj.k);
+                obj.timing.stop_timer("controller_time", obj.k);
+                obj.timing.stop_timer("hlc_step_time", obj.k);
 
                 % save controller outputs in result struct
                 obj.result.scenario = obj.scenario;
@@ -312,7 +312,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.result.priority_list(:, obj.k) = obj.iter.priority_list;
                 obj.result.coupling_adjacency(:, :, obj.k) = obj.iter.adjacency;
                 obj.result.computation_levels(obj.k) = obj.info.computation_levels;
-                obj.result.step_time(obj.k) = toc(obj.result.step_timer);
+                obj.result.step_time(obj.k) = obj.timing.get_elapsed_time("hlc_step_time", obj.k);
                 obj.result.obstacles = obj.iter.obstacles;
                 % reset iter obstacles to scenario default/static obstacles
                 obj.iter.obstacles = obj.scenario.obstacles;
@@ -368,8 +368,6 @@ classdef (Abstract) HighLevelController < handle
                 % Check for stop signal
                 % -------------------------------------------------------------------------
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
-
-                obj.timing.stop_timer("hlc step time", obj.k);
             end
 
             obj.success = true;

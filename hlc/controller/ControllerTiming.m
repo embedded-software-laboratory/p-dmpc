@@ -11,6 +11,7 @@ classdef ControllerTiming < handle
     end
 
     methods (Access = public)
+
         function obj = ControllerTiming()
             obj.name_to_timing_once = dictionary(string([]), uint32([]));
             obj.name_to_timing_per_timestep = dictionary(string([]), uint32([]));
@@ -18,41 +19,50 @@ classdef ControllerTiming < handle
         end
 
         function start_timer(obj, name, timestep)
+
             arguments
-                obj (1,1) ControllerTiming
-                name (1,1) string
+                obj (1, 1) ControllerTiming
+                name (1, 1) string
                 timestep = [] % optional
             end
 
             if isempty(timestep)
                 % create empty struct for timer start and elapsed time
                 if ~isKey(obj.name_to_timing_once, name)
+
                     if isempty(values(obj.name_to_timing_once))
                         obj.name_to_timing_once(name) = 1;
                     else
                         obj.name_to_timing_once(name) = max(values(obj.name_to_timing_once)) + 1;
                     end
+
                 end
+
                 % set start time
                 obj.timings_once(1, obj.name_to_timing_once(name)) = toc(obj.controller_start_time);
             else
                 % create empty struct for timer start and elapsed time
                 if ~isKey(obj.name_to_timing_per_timestep, name)
+
                     if isempty(values(obj.name_to_timing_per_timestep))
                         obj.name_to_timing_per_timestep(name) = 1;
                     else
                         obj.name_to_timing_per_timestep(name) = max(values(obj.name_to_timing_per_timestep)) + 1;
                     end
+
                 end
+
                 % set start time
                 obj.timings_per_timestep(1, obj.name_to_timing_per_timestep(name), timestep) = toc(obj.controller_start_time);
             end
+
         end
 
         function elapsed_time = stop_timer(obj, name, timestep)
+
             arguments
-                obj (1,1) ControllerTiming
-                name (1,1) string
+                obj (1, 1) ControllerTiming
+                name (1, 1) string
                 timestep = [] % optional
             end
 
@@ -71,19 +81,22 @@ classdef ControllerTiming < handle
         end
 
         function start_time = get_start_time(obj, name, timestep)
+
             arguments
-                obj (1,1) ControllerTiming
-                name (1,1) string
+                obj (1, 1) ControllerTiming
+                name (1, 1) string
                 timestep = [] % optional
             end
 
             if isempty(timestep)
+
                 if ~isKey(obj.name_to_timing_once, name)
                     error("no start time for specified timer name");
                 end
 
                 start_time = obj.timings_once(1, obj.name_to_timing_once(name));
             else
+
                 if ~isKey(obj.name_to_timing_per_timestep, name)
                     error("no start time for specified timer name");
                 end
@@ -94,6 +107,37 @@ classdef ControllerTiming < handle
             if isempty(start_time) || (start_time == 0)
                 error("start time for timer not set or set to zero");
             end
+
+        end
+
+        function elapsed_time = get_elapsed_time(obj, name, timestep)
+
+            arguments
+                obj (1, 1) ControllerTiming
+                name (1, 1) string
+                timestep = [] % optional
+            end
+
+            if isempty(timestep)
+
+                if ~isKey(obj.name_to_timing_once, name)
+                    error("no time elapsed for specified timer name");
+                end
+
+                elapsed_time = obj.timings_once(2, obj.name_to_timing_once(name));
+            else
+
+                if ~isKey(obj.name_to_timing_per_timestep, name)
+                    error("no time elapsed for specified timer name");
+                end
+
+                elapsed_time = obj.timings_per_timestep(2, obj.name_to_timing_per_timestep(name), timestep);
+            end
+
+            if isempty(elapsed_time) || (elapsed_time == 0)
+                error("elapsed time for timer not set or set to zero");
+            end
+
         end
 
         function elapsed_times = get_all_elapsed_times(obj)
