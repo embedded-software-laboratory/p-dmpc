@@ -57,9 +57,6 @@ classdef Timing < Singleton
             % save elapsed time to dictionary
             obj.timers(name).elapsed_time = elapsed_time;
             obj.set_singleton_data(obj);
-
-            fprintf("stop_timer called for %s, time %f, have obj.timers:\n", name, elapsed_time);
-            disp(obj.timers);
         end
 
         function elapsed_time = get_elapsed_time(name)
