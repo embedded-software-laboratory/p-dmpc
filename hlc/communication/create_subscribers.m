@@ -1,18 +1,11 @@
 function create_subscribers(hlc)
-    % create_subscribers This function creates the ROS subscribers for the given hlc.
-    % ROS 2 nodes are created for each vehicle. Each vehicle has its own topic
-    % and sends its data only to its own topic.
+    % creates ros2 subscribers for the given high level controller
+    % all vehicles share topics for related messages
     %
     % INPUT:
-    %   hlc: Controller implementing the HighLevelController
+    %   hlc: handle of high level controller
     %
 
-    % Create subscribers.
-    % Each vehicle subscribes all other vehicles.
-    % NOTE that subscribers are create only once but not loopover all
-    % vehicles to let all of them subscribe others because it is
-    % time-consuming to create many subscribers.
-    % The subscribers will be used by the given HLC.
     disp('Creating ROS 2 subscribers...')
     start = tic;
 
