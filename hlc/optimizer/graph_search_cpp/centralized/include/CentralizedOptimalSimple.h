@@ -12,6 +12,7 @@
 #include <VehicleData.h>
 
 namespace GraphBasedPlanning {
+	// CentralizedOptimalSimple is similar to CentralizedOptimalPolymorphic, but don't use polymorphic memory resource.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type, bool memory_saving = false>
 	class CentralizedOptimalSimple : public CentralizedGraphSearch<n_vehicles, scenario_type> {
 		OptimalNode<n_vehicles> *_root = nullptr;

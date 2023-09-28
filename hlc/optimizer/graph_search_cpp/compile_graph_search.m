@@ -8,7 +8,6 @@ default_priority_recompile = false;
 default_centralized_compile = true;
 default_priority_compile = true;
 default_cmake_path = 'cmake'; %fullfile(matlabroot, 'bin', computer('arch'), 'cmake', 'bin', 'cmake');
-%default_ninja_path = 'ninja';
 default_compiler_path = '';
 
 p = inputParser;
@@ -17,7 +16,6 @@ addParameter(p,'priority_compile', default_priority_compile, @islogical);
 addParameter(p,'centralized_recompile', default_centralized_recompile, @islogical);
 addParameter(p,'priority_recompile', default_priority_recompile, @islogical);
 addParameter(p,'cmake_path', default_cmake_path, @(x) validateattributes(x,{'char'},{'nonempty'}));
-%addParameter(p,'ninja_path', default_ninja_path, @(x) validateattributes(x,{'char'},{'nonempty'}));
 addParameter(p,'compiler_path', default_compiler_path, @(x) validateattributes(x,{'char'},{'nonempty'}));
 
 parse(p, varargin{:});

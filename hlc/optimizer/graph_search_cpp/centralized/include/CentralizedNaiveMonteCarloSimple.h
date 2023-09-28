@@ -6,13 +6,14 @@
 #include <boost/heap/priority_queue.hpp>
 #include <queue>
 
+#include "../../config.h"
 #include "CentralizedGraphSearch.h"
 #include "ConfigData.h"
 #include "MPA.h"
 #include "VehicleData.h"
-#include "../../config.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedNaiveMonteCarloSimple is similar to CentralisedNaiveMonteCarloPolymorphic, but don't use polymorphic memory resource.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type, std::uint64_t n_experiments>
 	class CentralizedNaiveMonteCarloSimple : public CentralizedGraphSearch<n_vehicles, scenario_type>, private Sampler<> {
 		boost::heap::priority_queue<MonteCarloNode<n_vehicles> const *, boost::heap::compare<typename MonteCarloNode<n_vehicles>::priority_queue_comparison>> _pq;

@@ -13,6 +13,8 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralisedIncremental recycles the already constructed tree for the next iteration. Since the cost computations are not consistent across iterations, they are determined by each node computing its own static reference points, which
+	// are then used by the child nodes for the cost and heuristic computations.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type>
 	class CentralizedIncremental : public CentralizedGraphSearch<n_vehicles, scenario_type> {
 		IncrementalNode<n_vehicles> *_next_root = nullptr;
@@ -132,8 +134,7 @@ namespace GraphBasedPlanning {
 
 				// calculation of the point from which the current minimum point is speed * dt away on the trajectory
 				for (unsigned int j = 0; j < this->_config->n_hp(); ++j) {
-					double max_distance_still_to_be_covered =
-					    this->_config->dt() * this->_mpa->max_speed();  // * (exp(j) + 1);  // max velocity
+					double max_distance_still_to_be_covered = this->_config->dt() * this->_mpa->max_speed();  // * (exp(j) + 1);  // max velocity
 
 					if (j == 0) max_distance_still_to_be_covered += this->_config->dt() * this->_mpa->max_speed();
 

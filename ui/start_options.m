@@ -75,6 +75,11 @@ function [labOptions] = start_options()
 
         % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
         ui.AllowInheritingtheRightofWayCheckBox.Value = previousSelection.allow_priority_inheritance;
+
+        callbackPBSelected(ui);
+
+        % Which optimizer to use
+        ui.OptimizerListBox.Value = previousSelection.optimizer;
     end
 
     %% Trigger UI change handles
@@ -110,6 +115,7 @@ function [labOptions] = start_options()
     hdv_ids = ui.HDVIDsEditField.Value;
     hdv_amount_selection = ui.AmountHDVsListBox.Value;
     is_manual_control = ui.AddHDVsCheckBox.Value;
+    optimizer = ui.OptimizerListBox.Value;
     
     % sample time [s]
     dtSelection = ui.SampleTimesSpinner.Value;
@@ -131,7 +137,7 @@ function [labOptions] = start_options()
     result_name = ui.CustomfilenameEditField.Value;
     % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
     allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
-    save([tempdir 'scenarioControllerSelection'], 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
+    save([tempdir 'scenarioControllerSelection'], 'optimizer', 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
         'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', ...
         'isParlSelection', 'dtSelection', 'HpSelection', 'trim_setSelection', 'T_endSelection', 'max_num_CLsSelection', 'path_ids', 'strategy_consider_veh_without_ROWSelection', 'strategy_enter_crossing_areaSelection', ...
         'should_save_result', 'result_name', 'allow_priority_inheritance');
@@ -165,43 +171,37 @@ function [labOptions] = start_options()
                                                 strcmp({controlStrategy{:, 2}}, controlStrategySelection), ...
                                                 2};
 
-    %labOptions.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
-    switch string(controlStrategyHelper)
-    case "centralized"
-        labOptions.cpp_implementation = Function.None;
-        labOptions.is_prioritized = false;
-    case "pb non-coop"
-        labOptions.cpp_implementation = Function.None;
-        labOptions.is_prioritized = true;
-    case "CentralizedOptimal"
-        labOptions.cpp_implementation = Function.CentralizedOptimalPolymorphic;
-        labOptions.is_prioritized = false;
-    case "CentralizedConflictBased"
-        labOptions.cpp_implementation = Function.CentralizedConflictBased;
-        labOptions.is_prioritized = false;
-    case "CentralizedOptimalNodeParallelization"
-        labOptions.cpp_implementation = Function.CentralizedOptimalNodeParallelization;
-        labOptions.is_prioritized = false;
-    case "CentralizedOptimalAStarParallelization"
-        labOptions.cpp_implementation = Function.CentralizedOptimalAStarParallelization;
-        labOptions.is_prioritized = false;
-    case "CentralizedNaiveMonteCarlo"
-        labOptions.cpp_implementation = Function.CentralizedNaiveMonteCarloPolymorphic;
-        labOptions.is_prioritized = false;
-    case "CentralizedNaiveMonteCarloRootParallelization"
-        labOptions.cpp_implementation = Function.CentralizedNaiveMonteCarloPolymorphicParallel;
-        labOptions.is_prioritized = false;
-    case "CentralizedGrouping"
-        labOptions.cpp_implementation = Function.CentralizedGrouping;
-        labOptions.is_prioritized = false;
-    case "GraphSearchPBOptimal"
-        labOptions.cpp_implementation = Function.GraphSearchPBOptimal;
-        labOptions.is_prioritized = true;
-    case "GraphSearchPBIncrementalOptimal"
-        labOptions.cpp_implementation = Function.GraphSearchPBIncrementalOptimal;
-        labOptions.is_prioritized = true;
+    labOptions.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
+
+    switch string(optimizer)
+    case "Matlab"
+        labOptions.cpp_optimizer = CppOptimizer.None;
+    case "C++"
+        if labOptions.is_prioritized
+           labOptions.cpp_optimizer = CppOptimizer.GraphSearchPBOptimal;
+        else
+            labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalPolymorphic;
+        end
+    case "C++ConflictBased"
+        labOptions.cpp_optimizer = CppOptimizer.CentralizedConflictBased;
+    case "C++NodeParallelization"
+        labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalNodeParallelization;
+    case "C++AStarParallelization"
+        labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalAStarParallelization;
+    case "C++NaiveMonteCarlo"
+        labOptions.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphic;
+    case "C++NaiveMonteCarloRootParallelization"
+        labOptions.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel;
+    case "C++Grouping"
+        labOptions.cpp_optimizer = CppOptimizer.CentralizedGrouping;
+    case "C++Incremental"
+        if labOptions.is_prioritized
+            labOptions.cpp_optimizer = CppOptimizer.GraphSearchPBIncrementalOptimal;
+        else
+            labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalIncremental;
+        end
     otherwise
-        keyboard;
+        error(['optimizer ', optimizer, ' not implemented/available!']);
     end
 
     labOptions.amount = str2num(vehicleAmountSelection);
@@ -306,7 +306,7 @@ end
 
 function out = get_pb_non_coop_selection(ui)
     % true if pb_non-coop lab selected
-    out = strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop') | strcmp(ui.ControlStrategyListBox.Value, 'GraphSearchPBOptimal') | strcmp(ui.ControlStrategyListBox.Value, 'GraphSearchPBIncrementalOptimal');
+    out = strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop');
 end
 
 function setEnvironmentElementsVisibility(ui)
@@ -341,13 +341,16 @@ end
 % callback function if parallel computation is selected/unselected
 function callbackPBSelected(ui)
 
-    if strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop') | strcmp(ui.ControlStrategyListBox.Value, 'GraphSearchPBOptimal') | strcmp(ui.ControlStrategyListBox.Value, 'GraphSearchPBIncrementalOptimal')
+    if strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop')
         ui.MaxComputationLevelsSpinner.Enable = 'on';
         ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'on';
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'on';
         ui.ParallelComputationDistributedExecutionListBox.Enable = 'on';
 
         ui.Label_4.Visible = 'Off';
+
+        list_optimizer = list_optimizer_prioritized();
+        ui.OptimizerListBox.Items = list_optimizer(:, 2);
     else
         ui.MaxComputationLevelsSpinner.Enable = 'off';
         ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'off';
@@ -356,6 +359,9 @@ function callbackPBSelected(ui)
 
         ui.Label_4.Text = sprintf("If not priority-based, the maximum allowed number of computation levels is irrelevant.");
         ui.Label_4.Visible = 'On';
+
+        list_optimizer = list_optimizer_centralized();
+        ui.OptimizerListBox.Items = list_optimizer(:, 2);
     end
 
 end
@@ -390,16 +396,29 @@ function [list] = list_control_strategy
     list = { ...
                 '1', 'centralized'; ...
                 '2', 'pb non-coop'; ...
-                '3', 'GraphSearchPBOptimal'; ...
-                '4', 'GraphSearchPBIncrementalOptimal'; ...
-                '5', 'CentralizedOptimal'; ...
-                '6', 'CentralizedOptimalNodeParallelization'; ...
-                '7', 'CentralizedOptimalAStarParallelization'; ...
-                '8', 'CentralizedGrouping'; ...
-                '9', 'CentralizedConflictBased'; ...
-                '10', 'CentralizedNaiveMonteCarlo'; ...
-                '11', 'CentralizedNaiveMonteCarloRootParallelization'; ...
             };
+end
+
+function [list] = list_optimizer_centralized
+    list = {
+                '1', 'Matlab';
+                '2', 'C++';
+                '3', 'C++NodeParallelization';
+                '4', 'C++AStarParallelization';
+                '5', 'C++Grouping';
+                '6', 'C++ConflictBased';
+                '7', 'C++NaiveMonteCarlo';
+                '8', 'C++NaiveMonteCarloRootParallelization';
+                '9', 'C++Incremental';
+        };
+end
+
+function [list] = list_optimizer_prioritized
+    list = {
+                '1', 'Matlab'
+                '2', 'C++'; ...
+                '3', 'C++Incremental'; ...
+        };
 end
 
 function [list] = list_priority_assignment_methods

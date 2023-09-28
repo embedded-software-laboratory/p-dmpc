@@ -15,6 +15,8 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralisedNaiveMonteCarloPolymorphic uses a Monte Carlo approach that aims to generate as many potential random solutions as possible. The randomness ensures that the entire search space can be considered for the solution and allows
+	// for a high exploration of the immense search space.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type, std::uint64_t n_experiments>
 	class CentralizedNaiveMonteCarloPolymorphic : public CentralizedGraphSearch<n_vehicles, scenario_type>, private Sampler<> {
 		std::uint64_t const size = n_experiments * sizeof(MonteCarloNode<n_vehicles>) * this->_config->n_hp() + 1024;

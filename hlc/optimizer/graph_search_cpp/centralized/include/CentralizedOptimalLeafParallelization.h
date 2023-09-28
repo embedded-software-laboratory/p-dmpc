@@ -11,6 +11,7 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedOptimalLeafParallelization is similar to CentralizedOptimalSimple, but parallelizes each expansion process. Here, the creation of the child nodes is carried out in parallel.
 	template <unsigned int n_vehicles>
 	struct ThreadDataCentralizedOptimalLeafParallelization {
 		std::array<std::uint8_t, n_vehicles> sizes;

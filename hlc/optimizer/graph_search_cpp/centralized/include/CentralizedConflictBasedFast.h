@@ -1,12 +1,12 @@
 #pragma once
 
+#include <MatlabException.h>
 #include <OptimalNode.h>
 
 #include <array>
 #include <numbers>
 #include <queue>
 #include <tuple>
-#include <MatlabException.h>
 
 #include "CentralizedGraphSearch.h"
 #include "CentralizedOptimalSimple.h"
@@ -15,8 +15,9 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedConflictBasedFast was an idea to shorten the lengthy calculation of CentralizedConflictBased by expanding only one conflict each time. However, this was not successful because longer prediction horizons were necessary.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type>
-	class CentralizedConflictBasedFast : public CentralizedGraphSearch<n_vehicles, scenario_type> {
+	class [[deprecated("did not work well")]] CentralizedConflictBasedFast : public CentralizedGraphSearch<n_vehicles, scenario_type> {
 		Node<n_vehicles> *_min = nullptr;
 		std::array<std::priority_queue<OptimalNode<1> *, std::vector<OptimalNode<1> *>, typename OptimalNode<1>::priority_queue_comparison>, n_vehicles> _pqs;
 
@@ -75,9 +76,7 @@ namespace GraphBasedPlanning {
 			delete this;  // commit suicide
 		}
 
-		~CentralizedConflictBasedFast() {
-			delete _min;
-		}
+		~CentralizedConflictBasedFast() { delete _min; }
 
 	   private:
 		bool check_path_new(std::array<Node<1> *, n_vehicles> const &nodes, std::array<std::vector<std::vector<std::vector<vec2>>>, n_vehicles> &collisions_before) {
@@ -147,9 +146,7 @@ namespace GraphBasedPlanning {
 			return true;
 		}
 
-		Node<n_vehicles> *convert_nodes(std::array<Node<1> *, n_vehicles> const mins) {
-			return convert_nodes_impl(mins, this->_config->n_hp(), std::make_integer_sequence<unsigned int, n_vehicles>{});
-		}
+		Node<n_vehicles> *convert_nodes(std::array<Node<1> *, n_vehicles> const mins) { return convert_nodes_impl(mins, this->_config->n_hp(), std::make_integer_sequence<unsigned int, n_vehicles>{}); }
 
 		template <unsigned int... I>
 		Node<n_vehicles> *convert_nodes_impl(std::array<Node<1> *, n_vehicles> const mins, unsigned int const k, std::integer_sequence<unsigned int, I...> &&Indices) {

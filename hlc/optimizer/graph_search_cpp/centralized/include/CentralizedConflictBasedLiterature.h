@@ -14,7 +14,8 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
-
+	// CentralizedConflictBasedLiterature is the adaptation to our problem of the following reference:
+	// Sharon, G., Stern, R., Felner, A., & Sturtevant, N. R. (2015). Conflict-based search for optimal multi-agent pathfinding. Artificial Intelligence, 219, 40-66.
 	template <unsigned int n_vehicle>
 	struct ConflictBasedNode {
 		ConflictBasedNode const *_parent = nullptr;

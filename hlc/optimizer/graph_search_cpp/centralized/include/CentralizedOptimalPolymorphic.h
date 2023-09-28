@@ -11,6 +11,7 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedOptimalPolymorphic is the C++ adaption of the matlab graph search.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type>
 	class CentralizedOptimalPolymorphic : public CentralizedGraphSearch<n_vehicles, scenario_type> {
 		std::pmr::monotonic_buffer_resource _upr;
@@ -62,9 +63,7 @@ namespace GraphBasedPlanning {
 #endif
 			}
 		}
-		void clean() final {
-			delete this;
-		}  // commit suicide, to uninitialize polymorphic data;
+		void clean() final { delete this; }  // commit suicide, to uninitialize polymorphic data;
 
 		~CentralizedOptimalPolymorphic() {
 #if DO_EVAL

@@ -18,8 +18,9 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedNaiveMonteCarloLimitingSearchRange idea was to optimise the next time step or the next primitive first, so that fewer random attempts have to be made with less optimal nodes.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type>
-	class CentralizedNaiveMonteCarloLimitingSearchRange : public CentralizedGraphSearch<n_vehicles, scenario_type>, private Sampler<> {
+	class [[deprecated("did not work too well")]] CentralizedNaiveMonteCarloLimitingSearchRange : public CentralizedGraphSearch<n_vehicles, scenario_type>, private Sampler<> {
 		Node<n_vehicles> *_min;
 		unsigned int shot = 0;
 		unsigned int n_shots;

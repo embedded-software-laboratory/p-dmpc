@@ -12,6 +12,7 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedGroupingConflictBased is the implementation of the conflict-based grouping concept (see CentralizedGrouping.h).
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type>
 	class CentralizedGroupingConflictBased : public CentralizedGraphSearch<n_vehicles, scenario_type> {
 		std::pmr::monotonic_buffer_resource _upr;
@@ -79,9 +80,7 @@ namespace GraphBasedPlanning {
 
 			throw NoSolutionException();
 		}
-		void clean() final {
-			delete this;
-		}  // commit suicide, to uninitialize polymorphic data;
+		void clean() final { delete this; }  // commit suicide, to uninitialize polymorphic data;
 
 		~CentralizedGroupingConflictBased() = default;
 

@@ -18,8 +18,9 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedMonteCarloTreeSearch tries to use the well-known Monte Carlo tree search approach to find a solution. Unfortunately, this did not work well.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type>
-	class CentralizedMonteCarloTreeSearch : public CentralizedGraphSearch<n_vehicles, scenario_type>, private Sampler<> {
+	class [[deprecated("did not work well")]] CentralizedMonteCarloTreeSearch : public CentralizedGraphSearch<n_vehicles, scenario_type>, private Sampler<> {
 		Node<n_vehicles> *_min;
 		MonteCarloTreeSearchNode<n_vehicles> *_root = nullptr;
 		std::vector<double> _normalization_values;
@@ -117,20 +118,6 @@ namespace GraphBasedPlanning {
 		~CentralizedMonteCarloTreeSearch() { delete _root; }
 
 	   private:
-		void print_children(double N) {
-			Printer::println(N);
-
-			// for (auto i = 0; i < _root->children_size(); ++i) {
-			//	Printer::print(_root->w(i), "/", _root->n(i), ", ");
-			// }
-			// Printer::println();
-
-			// for (auto i = 0; i < _root->child(0)->children_size(); ++i) {
-			//	Printer::print(_root->child(0)->w(i), "/", _root->child(0)->n(i), ", ");
-			// }
-			// Printer::println();
-		}
-
 		bool random_expand_node(MonteCarloTreeSearchNode<n_vehicles> *const node) {
 			if (node->children_size()) {  // node has already done a random simulation
 				// find index
@@ -187,148 +174,6 @@ namespace GraphBasedPlanning {
 
 				return ret;
 			}
-
-			/*
-			if (index < 0.0) return;
-
-			if (node->child(index)) {
-			    random_expand_node(node->child(index));
-			} else {
-			    MonteCarloTreeSearchNode<n_vehicles> *new_node = new MonteCarloTreeSearchNode<n_vehicles>(node, node->g(), node->k() + 1, index);
-			    auto const next_states = CentralizedGraphSearch<n_vehicles, scenario_type>::_mpa->template reachable_states<n_vehicles>(multipliers, index, node->trims(), sizes, node->k());
-
-			    CentralizedGraphSearch<n_vehicles, scenario_type>::_mpa->template init_node<n_vehicles>(new_node, next_states);
-			    init_cost(new_node);
-
-			    node->child(index) = new_node;
-
-			    // test if new child causes a collision:
-			    if (new_node->k() < CentralizedGraphSearch<n_vehicles, scenario_type>::_config->n_hp()) {
-			        std::array<std::vector<vec2>, n_vehicles> const vehicles_obstacles = CentralizedGraphSearch<n_vehicles, scenario_type>::_mpa->template calc_vehicles_obstacles_without_offset<n_vehicles>(new_node);
-			        if (!CentralizedGraphSearch<n_vehicles, scenario_type>::is_path_valid(vehicles_obstacles)) {
-			            node->probability(index) = 0.0;
-			            // Printer::println("lol");
-
-			            // TODO: maybe change parents' probability values, too.
-			            return;  // node is useless
-			        }
-			    } else {
-			        if (new_node->g() < _min->g()) {
-			            std::array<std::vector<vec2>, n_vehicles> const vehicles_obstacles = CentralizedGraphSearch<n_vehicles, scenario_type>::_mpa->template calc_vehicles_obstacles_without_offset<n_vehicles>(new_node);
-			            if (CentralizedGraphSearch<n_vehicles, scenario_type>::is_path_valid(vehicles_obstacles)) {
-			                _min = new_node;
-			                ++_minima_updates;
-
-			                // MonteCarloTreeSearchNode<n_vehicles> *tmp_parent = static_cast<MonteCarloTreeSearchNode<n_vehicles> *>(node->parent());
-			                // MonteCarloTreeSearchNode<n_vehicles> *tmp_child = node;
-			                //
-			                // for (auto i = 0; i < CentralizedGraphSearchSpecialization<n_vehicles, scenario_type>::_config->n_hp() - 1; ++i) {
-			                //	tmp_parent->probability(tmp_child->index()) *= 2;
-			                //	tmp_child = tmp_parent;
-			                //	tmp_parent = static_cast<MonteCarloTreeSearchNode<n_vehicles> *>(tmp_parent->parent());
-			                //}
-			            }
-			        }
-
-			        ++_updates;
-
-			        node->probability(index) = 0.0;
-			        return;
-			    }
-
-			    // Simulation: + // Backpropagation:
-			    double g = random_simulation(new_node);
-
-			    if (g >= 0.0) {
-			        // normalizing g:
-			        // linear rating: max distance: 2 * v_ref*dt, min distance: 0
-			        // auto const rating = std::max(-2.0 * g / _normalization_values.back() + 2.0, 0.0);
-
-			        auto const rating = -g / _normalization_values.back() + 1.0;
-			        auto const probability = std::exp(rating);
-
-			        for (auto i = new_node->k(); i; --i) {
-			            static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()) += probability * new_node->k() * new_node->k() * new_node->k() * n_vehicles * n_vehicles * n_vehicles;
-			            new_node = static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent());
-			        }
-
-			        ////auto const rating = -2.0 * g / _normalization_values.back() + 2.0;
-			        ////if (rating >= 0.0) {
-			        ////	auto const probability = std::log(rating + 1.0) + 1.0;
-			        ////	for (auto i = new_node->k(); i; --i) {
-			        ////		static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()) += probability;
-			        ////		//Printer::println(new_node->k(), ", ", rating, ", ", probability, ",", static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()));
-			        ////		new_node = static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent());
-			        ////	}
-			        ////} else {
-			        ////	for (auto i = new_node->k(); i; --i) {
-			        ////		Printer::println(static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()));
-			        ////		static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()) =
-			        ////		    std::pow(static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()), rating);
-			        ////		new_node = static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent());
-			        ////	}
-			        ////}
-
-			        // Printer::println("root: ");
-			        // for(auto i = 0; i < _root->children_size(); ++i) {
-			        //	Printer::print(_root->probability(i), ", ");
-			        // }
-			        // Printer::println();
-
-			        // auto const probability = 4.0 / (std::numbers::e * std::numbers::e * std::numbers::e * std::numbers::e) * std::exp(rating) * std::exp(rating);
-
-			        // Printer::println(rating);
-
-			        // static auto const cot1 = 1.0 / tan(1.0);
-			        // auto const probability = cot1 * std::tan(rating - 1.0) + 1.0;
-			        //  Printer::println(node->k(), ", ", g, ", ", rating, ", ", probability);
-			        // node->probability(new_node->index()) *= probability;
-
-			        // node->probability(new_node->index()) += new_node->k() * rating;
-			        // for (auto i = new_node->k(); i; --i) {
-			        //	//Printer::println(static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()));
-			        //	static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()) += new_node->k() * rating;
-			        //	new_node = static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent());
-			        // }
-
-			        // if (node->k() > 0) {
-			        //	//static auto const cot1_3 = cot1 * cot1 * cot1;
-			        //	//auto const probability2 = cot1_3 * std::tan(rating - 1.0) * std::tan(rating - 1.0) * std::tan(rating - 1.0) + 1.0;
-			        //	MonteCarloTreeSearchNode<n_vehicles> *const second_node = static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(node->parent());
-			        //	second_node->probability(node->index()) += node->k() * rating;
-			        // }
-
-			        // rating: map 0 to *2 and  to *1
-			        ////auto probability = 2 * exp(-g * std::numbers::ln2); std::tanh(rating - 1.0) + 1.0;
-			        ////
-			        ////if (probability == std::numeric_limits<double>::infinity()) Printer::println(g);
-			        ////
-			        ////node->probability(new_node->index()) *= probability;
-			        ////if (node->k() > 0) {
-			        ////	MonteCarloTreeSearchNode<n_vehicles> *const second_node = static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(node->parent());
-			        ////
-			        ////	auto probability2 = 0.075 * std::tanh(probability - 1.0) + 1.0;
-			        ////	static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(node->parent())->probability(node->index()) *= probability2;
-			        ////}
-			        ////
-			        ////if (node->probability(new_node->index()) == std::numeric_limits<double>::infinity()) {
-			        ////	Printer::println(new_node->k(), ", ", g, ", ", probability);
-			        ////	throw MexException("INF");
-			        ////}
-
-			        // for (auto i = new_node->k(); i; --i) {
-			        //	Printer::println(static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()));
-			        //	static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()) *= probability;
-			        //
-			        //	if (static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent())->probability(new_node->index()) == std::numeric_limits<double>::infinity()) {
-			        //		Printer::println(new_node->k(), ", ", g, ", ", probability);
-			        //		throw MexException("INF");
-			        //	}
-			        //
-			        //	new_node = static_cast<MonteCarloTreeSearchNode<n_vehicles> *const>(new_node->parent());
-			        //}
-			    }
-			}*/
 		}
 
 		bool check_path(Node<n_vehicles> const *node, unsigned int const k) const {

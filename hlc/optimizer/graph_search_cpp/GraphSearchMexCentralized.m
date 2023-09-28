@@ -3,7 +3,7 @@ classdef GraphSearchMexCentralized < OptimizerInterface
         function obj = GraphSearchMexCentralized(scenario)
             obj = obj@OptimizerInterface(scenario);
 
-			graph_search_cpp_centralized_mex(Function.InitializeWithScenario, obj.scenario);
+			graph_search_cpp_centralized_mex(CppOptimizer.InitializeWithScenario, obj.scenario);
         end
 
 		function [info_v, graph_search_time] = run_optimizer(obj, iter, veh_index)
@@ -11,7 +11,7 @@ classdef GraphSearchMexCentralized < OptimizerInterface
 			graph_search_data = GraphSearchData(iter, obj.scenario, veh_index);
 			info_v = ControlResultsInfo(iter.amount, obj.scenario.options.Hp, iter.vehicle_ids);
 
-            [next_nodes, info_v.predicted_trims, info_v.y_predicted] = graph_search_cpp_centralized_mex(obj.scenario.options.cpp_implementation, iter);
+            [next_nodes, info_v.predicted_trims, info_v.y_predicted] = graph_search_cpp_centralized_mex(obj.scenario.options.cpp_optimizer, iter);
 			graph_search_time = toc(graph_search_timer);
 			info_v.tree = obj.create_tree(iter);
 			info_v.tree_path = 1:(obj.scenario.options.Hp + 1);

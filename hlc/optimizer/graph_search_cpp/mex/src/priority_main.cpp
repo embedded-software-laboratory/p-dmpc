@@ -44,7 +44,7 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 		// initialize new graph search:
 		if (inputs[0].getType() == matlab::data::ArrayType::ENUM) {
 			matlab::data::EnumArray FunctionArray = std::move(inputs[0]);
-			if (FunctionArray.getClassName() != "Function") throw MatlabException("First Argument must be Enum of type Function! (is ", FunctionArray.getClassName(), ")");
+			if (FunctionArray.getClassName() != "CppOptimizer") throw MatlabException("First Argument must be Enum of type Function! (is ", FunctionArray.getClassName(), ")");
 			std::string Function = FunctionArray[0][0];
 
 			if (inputs.size() != 2) throw MatlabException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");

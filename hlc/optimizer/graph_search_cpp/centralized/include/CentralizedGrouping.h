@@ -17,6 +17,7 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedGrouping uses a conflict-based concept and adjacency values to group vehicles into smaller units and compute these smaller units to improve performance.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type>
 	class CentralizedGrouping : public CentralizedGraphSearch<n_vehicles, scenario_type> {
 		std::vector<std::set<unsigned int>> _coupling;

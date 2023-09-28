@@ -24,30 +24,30 @@ elseif scenario_version == "testing_sceanrio3"
 end
 
 if eval_option == "parallelization"
-    scenario.options.cpp_implementation = Function.CentralizedOptimalAStarParallelization;
+    scenario.options.cpp_optimizer = CppOptimizer.CentralizedOptimalAStarParallelization;
 elseif eval_option == "leaf_parallelization"
-	scenario.options.cpp_implementation = Function.CentralizedOptimalNodeParallelization;
+	scenario.options.cpp_optimizer = CppOptimizer.CentralizedOptimalNodeParallelization;
 elseif eval_option == "normal"
-	scenario.options.cpp_implementation = Function.CentralizedOptimalPolymorphic;
+	scenario.options.cpp_optimizer = CppOptimizer.CentralizedOptimalPolymorphic;
 elseif eval_option == "monte_carlo_settings"
-	scenario.options.cpp_implementation = Function.CentralizedNaiveMonteCarloPolymorphicParallel;
+	scenario.options.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel;
 elseif eval_option == "cbs"
-	scenario.options.cpp_implementation = Function.CentralizedConflictBased;
+	scenario.options.cpp_optimizer = CppOptimizer.CentralizedConflictBased;
 elseif eval_option == "normal_trajectory"
-	scenario.options.cpp_implementation = Function.CentralizedGrouping;
+	scenario.options.cpp_optimizer = CppOptimizer.CentralizedGrouping;
 elseif eval_option == "monte_carlo_trajectory"
-	scenario.options.cpp_implementation = Function.CentralizedNaiveMonteCarloPolymorphicParallel;
+	scenario.options.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel;
 elseif eval_option == "cbs_trajectory"
-	scenario.options.cpp_implementation = Function.CentralizedConflictBased;
+	scenario.options.cpp_optimizer = CppOptimizer.CentralizedConflictBased;
 end
 
 plant = PlantFactory.get_experiment_interface(scenario.options.environment);
+plant.setup(scenario);
 
 hlc_factory = HLCFactory();
 hlc_factory.set_scenario(scenario);
-dry_run = (scenario.options.environment == Environment.CpmLab);
-hlc = hlc_factory.get_hlc(scenario.options.veh_ids, dry_run, plant);
-pause(1);
+dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
+hlc = hlc_factory.get_hlc(plant.controlled_vehicle_ids, dry_run, plant);
 [result, scenario] = hlc.run();
 
 addpath('eval/eval_lukas');

@@ -13,6 +13,7 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedGraphSearch is an interface to all inheriting graph search implementations.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type>
 	class CentralizedGraphSearch : protected SAT {
 	   protected:

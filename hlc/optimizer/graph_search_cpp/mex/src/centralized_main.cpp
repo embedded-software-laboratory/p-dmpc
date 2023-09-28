@@ -20,7 +20,6 @@
 #include "CentralizedOptimalPolymorphic.h"
 #include "CentralizedOptimalRootParallelization.h"
 #include "CentralizedOptimalSimple.h"
-// #include "CentralizedConflictBasedFast.h"
 #include "CentralizedGrouping.h"
 #include "CentralizedGroupingConflictBased.h"
 #include "CentralizedNaiveMonteCarloPolymorphic.h"
@@ -51,11 +50,13 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 	~MexFunction() { Printer::println("~MexFunction()"); }
 
 	void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) final {
+#if DO_EVAL
 		Printer::println("operator()");
+#endif
 		// initialize new graph search:
 		if (inputs[0].getType() == matlab::data::ArrayType::ENUM) {
 			matlab::data::EnumArray FunctionArray = std::move(inputs[0]);
-			if (FunctionArray.getClassName() != "Function") throw MatlabException("First Argument must be Enum of type Function! (is ", FunctionArray.getClassName(), ")");
+			if (FunctionArray.getClassName() != "CppOptimizer") throw MatlabException("First Argument must be Enum of type Function! (is ", FunctionArray.getClassName(), ")");
 			std::string Function = FunctionArray[0][0];
 
 			if (inputs.size() != 2) throw MatlabException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
@@ -68,15 +69,17 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 
 				Printer::println("Initialized!");
 			} else {
+#if DO_EVAL
 				EvaluationDataSaver::Instance().start_iteration();
-
+#endif
 				auto [next_nodes_array, predicted_trims_array, y_predicted_array /*, n_expanded*/] = run_centralized(inputs[1], Function);
 
 				outputs[0] = std::move(next_nodes_array);
 				outputs[1] = std::move(predicted_trims_array);
 				outputs[2] = std::move(y_predicted_array);
-				// outputs[3] = std::move(n_expanded);
+#if DO_EVAL
 				EvaluationDataSaver::Instance().end_iteration();
+#endif
 			}
 		} else {
 			throw MatlabException("First Argument must be Enum! (is ", inputs[0].getType(), ")");
@@ -135,10 +138,6 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 			graph_search = new CentralizedNaiveMonteCarloPolymorphic<n_vehicles, scenario_type, Experiments>(_config, _mpa, std::move(vehicle_data));
 		} else if (Function == "CentralizedNaiveMonteCarloPolymorphicParallel") {
 			graph_search = new CentralizedNaiveMonteCarloPolymorphicParallel<n_vehicles, scenario_type, Experiments, Threads>(_config, _mpa, std::move(vehicle_data));
-			//	//} else if (Function == "CentralizedNaiveMonteCarloLimitingSearchRange") {
-			//	//	graph_search = new CentralizedNaiveMonteCarloLimitingSearchRange<n_vehicles, scenario_type>(_config, _mpa, std::move(vehicle_data));
-			//	//} else if (Function == "CentralizedNaiveMonteCarloLimitingSearchRangeParallel") {
-			//	//	graph_search = new CentralizedNaiveMonteCarloLimitingSearchRangeParallel<n_vehicles, scenario_type, 4>(_config, _mpa, std::move(vehicle_data));
 		} else if (Function == "CentralizedOptimalIncremental") {
 			static CentralizedIncremental<n_vehicles, scenario_type>* incremental_graph_search = nullptr;
 
@@ -158,16 +157,8 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 			} else {
 				graph_search = incremental_graph_search = new CentralizedIncremental<n_vehicles, scenario_type>(_config, _mpa, std::move(vehicle_data), dog);
 			}
-			//} else if (Function == "CentralizedMonteCarloTreeSearch") {
-			//	graph_search = new CentralizedMonteCarloTreeSearch<n_vehicles, scenario_type>(_config, _mpa, std::move(vehicle_data));
-			//} else if (Function == "CentralizedMonteCarloTreeSearchBasic") {
-			//	graph_search = new CentralizedMonteCarloTreeSearchBasic<n_vehicles, scenario_type>(_config, _mpa, std::move(vehicle_data));
-			//} else if (Function == "CentralizedConflictBasedFast") {
-			//	graph_search = new CentralizedConflictBasedFast<n_vehicles, scenario_type>(_config, _mpa, std::move(vehicle_data));
 		} else if (Function == "CentralizedConflictBased") {
 			graph_search = new CentralizedConflictBasedLiterature<n_vehicles, scenario_type>(_config, _mpa, std::move(vehicle_data));
-			//} else if (Function == "CentralizedCreatingDistribution") {
-			//	graph_search = new CentralizedCreatingDistribution<n_vehicles, scenario_type>(_config, _mpa, std::move(vehicle_data));
 		} else if (Function == "CentralizedGrouping") {
 			CouplingData coupling_data = make_coupling_data(iter, _config, _matlab);
 			graph_search = new CentralizedGrouping<n_vehicles, scenario_type>(_config, _mpa, std::move(vehicle_data), coupling_data);

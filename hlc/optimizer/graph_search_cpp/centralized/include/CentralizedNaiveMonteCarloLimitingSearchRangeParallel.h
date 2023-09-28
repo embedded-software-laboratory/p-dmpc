@@ -20,7 +20,7 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
-
+	// CentralizedNaiveMonteCarloLimitingSearchRangeParallel is similar to CentralizedNaiveMonteCarloLimitingSearchRange, but with root parallelization.
 	template <unsigned int n_vehicles>
 	struct ThreadDataCentralizedNaiveMonteCarloLimitingSearchRangeParallel {
 		std::vector<std::vector<Node<n_vehicles>>> _children;
@@ -29,7 +29,7 @@ namespace GraphBasedPlanning {
 	};
 
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type, unsigned int n_threads>
-	class CentralizedNaiveMonteCarloLimitingSearchRangeParallel : public CentralizedGraphSearch<n_vehicles, scenario_type>, private Sampler<> {
+	class [[deprecated("did not work too well")]] CentralizedNaiveMonteCarloLimitingSearchRangeParallel : public CentralizedGraphSearch<n_vehicles, scenario_type>, private Sampler<> {
 		Node<n_vehicles> *_min;
 		unsigned int shot = 0;
 		unsigned int n_shots;

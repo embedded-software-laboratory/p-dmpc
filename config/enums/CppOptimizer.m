@@ -1,4 +1,4 @@
-classdef Function < uint8
+classdef CppOptimizer < uint8
     %FUNCTION Enum to give C++ an indication of what to do.
 
     enumeration

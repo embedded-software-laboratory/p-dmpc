@@ -14,10 +14,10 @@ classdef GraphSearchMexPB < OptimizerInterface
                 % create mexhost for each vehicle (only if incremental search is used - no option in config yet)
                 for i_veh = 1:length(veh_indices)
                     obj.mexhosts(veh_indices(i_veh)) = mexhost;
-                    feval(obj.mexhosts(veh_indices(i_veh)), 'graph_search_cpp_priority_mex', Function.InitializeWithScenario, obj.scenario);
+                    feval(obj.mexhosts(veh_indices(i_veh)), 'graph_search_cpp_priority_mex', CppOptimizer.InitializeWithScenario, obj.scenario);
                 end
 			else
-				graph_search_cpp_priority_mex(Function.InitializeWithScenario, obj.scenario);
+				graph_search_cpp_priority_mex(CppOptimizer.InitializeWithScenario, obj.scenario);
             end
         end
 
@@ -54,10 +54,10 @@ classdef GraphSearchMexPB < OptimizerInterface
 
 		   	if obj.scenario.options.mex_out_of_process_execution
 			   [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...
-                feval(obj.mexhosts(graph_search_data.veh_idx(1)), 'graph_search_cpp_priority_mex', obj.scenario.options.cpp_implementation, graph_search_data);
+                feval(obj.mexhosts(graph_search_data.veh_idx(1)), 'graph_search_cpp_priority_mex', obj.scenario.options.cpp_optimizer, graph_search_data);
 			else
 				[next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...
-            	graph_search_cpp_priority_mex(obj.scenario.options.cpp_implementation, graph_search_data);
+            	graph_search_cpp_priority_mex(obj.scenario.options.cpp_optimizer, graph_search_data);
 			end
 
 		end

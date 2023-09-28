@@ -13,6 +13,7 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedOptimalRootParallelization is similar to CentralizedOptimalSimple, but parallelizes the A* execution. Here, several node expansions can be carried out concurrently.
 	template <unsigned int n_vehicles, SCENARIO_TYPE scenario_type, unsigned int n_threads>
 	class CentralizedOptimalRootParallelization : public CentralizedGraphSearch<n_vehicles, scenario_type> {
 		OptimalNode<n_vehicles> *_root = nullptr;

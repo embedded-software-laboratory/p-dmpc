@@ -17,6 +17,7 @@
 #include "VehicleData.h"
 
 namespace GraphBasedPlanning {
+	// CentralizedNaiveMonteCarloPolymorphicParallel is similar to CentralizedNaiveMonteCarloPolymorphic, but with root parallelization.
 	template <unsigned int n_vehicles, unsigned int n_threads, std::uint64_t n_experiments>
 	struct ThreadDataCentralizedNaiveMonteCarloPolymorphicParallel {
 		boost::heap::priority_queue<MonteCarloNode<n_vehicles> const *, boost::heap::compare<typename MonteCarloNode<n_vehicles>::priority_queue_comparison>> pq;
