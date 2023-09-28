@@ -119,7 +119,7 @@ classdef TrafficCommunication < handle
             send(obj.publisher, obj.msg_to_be_sent);
         end
 
-        function latest_msg = read_message(obj, sub, time_step, throw_error, timeout)
+        function latest_msg = read_message(obj, vehicle_id_subscribed, time_step, throw_error, timeout)
             % Read message from the given time step
             if nargin <= 4
                 timeout = 100.0;
@@ -128,10 +128,6 @@ classdef TrafficCommunication < handle
             is_timeout = true;
             % start timer for detecting timeout
             read_start = tic; read_time = toc(read_start);
-
-            % get id of the vehicle from which the message is read
-            topic_name_split = split(sub.TopicName, '_');
-            vehicle_id_subscribed = str2double(topic_name_split(2));
 
             while read_time < timeout
 
