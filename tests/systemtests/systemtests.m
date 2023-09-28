@@ -19,9 +19,9 @@ classdef systemtests < matlab.unittest.TestCase
             options.scenario_type = scenario_type;
             options.is_prioritized = false;
             if use_cpp
-                options.cpp_implementation = Function.CentralizedOptimal;
+                options.cpp_optimizer = CppOptimizer.CentralizedOptimalPolymorphic;
             else
-                options.cpp_implementation = Function.None;
+                options.cpp_optimizer = CppOptimizer.None;
             end
             testCase.verifyEmpty(lastwarn);
 
@@ -40,9 +40,9 @@ classdef systemtests < matlab.unittest.TestCase
             options.is_prioritized = true;
             options.priority = PriorityStrategies.([priority, '_priority']);
             if use_cpp
-                options.cpp_implementation = Function.GraphSearchPBOptimal;
+                options.cpp_optimizer = CppOptimizer.GraphSearchPBOptimal;
             else
-                options.cpp_implementation = Function.None;
+                options.cpp_optimizer = CppOptimizer.None;
             end
 
             if strcmp(parallel, 'parallel')
