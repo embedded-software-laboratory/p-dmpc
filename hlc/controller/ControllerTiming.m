@@ -148,7 +148,7 @@ classdef ControllerTiming < handle
 
             for i = 1:length(timer_names)
                 name = timer_names{i};
-                elapsed_times.(name) = obj.get_elapsed_time(name);
+                elapsed_times.(name) = obj.timings_once(:, obj.name_to_timing_once(name));
             end
 
             % save results from timings_per_timestep
