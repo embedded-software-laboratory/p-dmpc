@@ -113,7 +113,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
                     latest_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
-                        obj.predictions_communication{vehicle_idx}.subscribers{veh_with_HP_i}, ...
+                        obj.plant.all_vehicle_ids(veh_with_HP_i), ...
                         obj.k, true);
                     obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
 
@@ -246,7 +246,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step.
             should_fallback = false;
             latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
-                obj.predictions_communication{vehicle_idx}.subscribers{veh_with_HP_i});
+                obj.plant.all_vehicle_ids(veh_with_HP_i));
 
             if latest_msg.time_step == obj.k
                 obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
@@ -275,7 +275,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             if obj.k > 1
                 % the old trajectories are available from the second time step onwards
                 old_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
-                    obj.predictions_communication{vehicle_idx}.subscribers{veh_with_HP_i}, ...
+                    obj.plant.all_vehicle_ids(veh_with_HP_i), ...
                     obj.k - 1, true);
                 predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, old_msg.predicted_areas);
                 oldness_msg = obj.k - old_msg.time_step;
@@ -344,7 +344,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     case '5'
                         % consider old trajectory as dynamic obstacle
                         latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
-                            obj.predictions_communication{vehicle_idx}.subscribers{veh_without_ROW});
+                            obj.plant.all_vehicle_ids(veh_without_ROW));
 
                         if latest_msg.time_step > 0
                             % the message does not come from the initial time step
