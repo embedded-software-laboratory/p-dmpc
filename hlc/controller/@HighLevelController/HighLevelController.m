@@ -383,6 +383,10 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function save_results(obj)
+            % delete ros2 objects
+            obj.traffic_communication = {};
+            obj.predictions_communication = {};
+
             %% save results at end of experiment
             obj.result.total_fallback_times = obj.total_fallback_times;
             disp(['Total times of fallback: ' num2str(obj.total_fallback_times) '.'])
@@ -394,10 +398,6 @@ classdef (Abstract) HighLevelController < handle
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
 
             if obj.scenario.options.should_save_result
-                empty_cells = cell(1, obj.scenario.options.amount);
-                % delete ros nodes, because they can't be written to a
-                % file.
-                [obj.result.scenario.vehicles.communicate] = empty_cells{:};
                 obj.result.mpa = obj.mpa;
 
                 % Delete unimportant data
@@ -428,10 +428,6 @@ classdef (Abstract) HighLevelController < handle
                 % exportVideo( result );
             end
 
-            % hacky way to destroy all ros nodes to avoid duplicates
-            empty_cells = cell(1, obj.scenario.options.amount);
-            [obj.result.scenario.vehicles.communicate] = empty_cells{:};
-            [obj.scenario.vehicles.communicate] = empty_cells{:};
             obj.plant.end_run()
 
         end
