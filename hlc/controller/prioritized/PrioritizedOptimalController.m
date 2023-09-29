@@ -5,15 +5,12 @@ classdef PrioritizedOptimalController < PrioritizedController
         info_base
         iter_array_tmp (1, :) cell
         info_array_tmp (1, :) cell
-        permutations (1, :) cell
-        n_trials = 300;
     end
 
     methods
 
-        function obj = PrioritizedOptimalController(scenario, vehicle_ids)
-            obj = obj@PrioritizedController(scenario, vehicle_ids);
-            obj.n_trials = obj.scenario.options.trials_randomized_optimizer;
+        function obj = PrioritizedOptimalController(scenario, plant)
+            obj = obj@PrioritizedController(scenario, plant);
             obj.prioritizer = OptimalPrioritizer();
         end
 
@@ -21,30 +18,16 @@ classdef PrioritizedOptimalController < PrioritizedController
 
     methods (Access = protected)
 
-        function precompute_n_solutions(obj, n, iter)
-            % generate <n> random paths of length Hp
-
-            for i = 1:n
-                obj.optimizer.precompute_solution(iter);
-            end
-
-        end
-
         function controller(obj)
-            % PB_CONTROLLER_PARL Plan trajectory for one time step using a
-            % priority-based controller. Vehicles inside one group plan in sequence and
-            % between groups plan in pararllel. Controller simulates multiple
-            % distributed controllers in a for-loop.
-            % TODO: change description according to explorative controller
             obj.init_step();
 
             vehicle_idx = obj.indices_in_vehicle_list(1);
 
             for permutation = 1:factorial(obj.scenario.options.amount)
 
-                obj.iter.permutation = permutation;
-
                 obj.iter = obj.iter_base;
+                obj.info = obj.info_base;
+                obj.iter.permutation = permutation;
 
                 obj.prioritize();
                 obj.weigh();
@@ -138,17 +121,6 @@ classdef PrioritizedOptimalController < PrioritizedController
 
             obj.info = obj.info_array_tmp{chosen_solution};
             obj.iter = obj.iter_array_tmp{chosen_solution};
-        end
-
-        function swap_entries_all_coupling_matrices(obj, veh_i, veh_j)
-            entry_1 = (veh_i - 1) * obj.scenario.options.amount + veh_j;
-            entry_2 = (veh_j - 1) * obj.scenario.options.amount + veh_i;
-            entries = [entry_1, entry_2];
-            swapped_entries = fliplr(entries);
-            obj.iter.weighted_coupling(entries) = obj.iter_base.weighted_coupling(swapped_entries);
-            obj.iter.weighted_coupling_reduced(entries) = obj.iter_base.weighted_coupling_reduced(swapped_entries);
-            obj.iter.directed_coupling(entries) = obj.iter_base.directed_coupling(swapped_entries);
-            obj.iter.directed_coupling_reduced(entries) = obj.iter_base.directed_coupling_reduced(swapped_entries);
         end
 
     end
