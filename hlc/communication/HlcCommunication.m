@@ -166,8 +166,8 @@ classdef (Abstract) HlcCommunication < handle
 
                 if throw_error
                     error(['Unable to receive the current message ', ...
-                           'of step %i from vehicle %s within %d seconds'], ...
-                        time_step, sub.TopicName, timeout)
+                           'of step %d from vehicle %d within %d seconds'], ...
+                        time_step, vehicle_id_subscribed, timeout)
                 end
 
             end
