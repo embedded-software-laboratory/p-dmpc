@@ -136,6 +136,10 @@ classdef (Abstract) HlcCommunication < handle
             % start timer for detecting timeout
             read_start = tic; read_time = toc(read_start);
 
+            % initialize returned message
+            % used if queue is empty or timeout without error
+            latest_msg = struct([]);
+
             while read_time < timeout
 
                 if ~isempty(obj.messages_stored)
