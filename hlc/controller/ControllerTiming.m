@@ -6,8 +6,8 @@ classdef ControllerTiming < handle
         name_to_timing_per_timestep (1, 1) dictionary % maps string to column in `timings`
         name_to_timing_once (1, 1) dictionary
 
-        timings_per_timestep (2, :, :) double % start times and end times of timers per timestep
-        timings_once (2, :) double % start times and end times of timers executed once
+        timings_per_timestep (2, :, :) double % start time and duration of timers per timestep
+        timings_once (2, :) double % start time and duration of timers executed once
     end
 
     methods (Access = public)
