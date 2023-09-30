@@ -357,14 +357,13 @@ class MexFunction : public matlab::mex::Function,
 			outputs[3] = std::move(shapes_array);
 			outputs[4] = std::move(n_expanded_array);
 			outputs[5] = std::move(is_exhausted);
-		} else if (Function == "GraphSearchPBIncrementalOptimal") {
+		}
+        else if (Function == "GraphSearchPBIncrementalOptimal") {
 			if (inputs.size() != 2) throw MexException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MexException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			while (GraphBasedPlanning::GraphSearchPBIncrementalOptimal::preperation_done.load() == false)
-				;
-			while (GraphBasedPlanning::GraphSearchPBIncrementalOptimal::prep_thread_lock.test_and_set(std::memory_order_acquire))
-				;
+			while (GraphBasedPlanning::GraphSearchPBIncrementalOptimal::preperation_done.load() == false);
+			while (GraphBasedPlanning::GraphSearchPBIncrementalOptimal::prep_thread_lock.test_and_set(std::memory_order_acquire));
 			GraphBasedPlanning::GraphSearchPBIncrementalOptimal::preperation_done.store(false);
 
 			auto [next_nodes_array, predicted_trims_array, y_predicted_array, shapes_array, n_expanded_array, is_exhausted] = graph_search_callback_pb(
