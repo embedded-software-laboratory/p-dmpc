@@ -4,8 +4,8 @@ function maneuver = generate_maneuver(model, trim1, trim2, options)
     % currently works for BicycleModel
     % calculate displacement
 
-    steering_derivative = (trim2.steering - trim1.steering) / options.dt;
-    acceleration = (trim2.speed - trim1.speed) / options.dt;
+    steering_derivative = (trim2.steering - trim1.steering) / options.dt_seconds;
+    acceleration = (trim2.speed - trim1.speed) / options.dt_seconds;
 
     % maneuver state changes in local coordinates
     x0 = zeros(model.nx, 1);
@@ -17,7 +17,7 @@ function maneuver = generate_maneuver(model, trim1, trim2, options)
 
     % 1 tick more per step cause first values are the same as last ones in preceeding step
     [~, x] = ode45(@(t, x) model.ode(x, [steering_derivative, acceleration]), ...
-        linspace(0, options.dt, options.tick_per_step + 1), ...
+        linspace(0, options.dt_seconds, options.tick_per_step + 1), ...
         x0, ...
         odeset('RelTol', 1e-8, 'AbsTol', 1e-8) ...
     );

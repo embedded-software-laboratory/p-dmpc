@@ -7,7 +7,7 @@ function plot_distance_over_time(result)
 
     for ir = 1:numel(result)
         r = result(ir);
-        nSteps = min(size(r.vehicle_path_fullres, 2), round(T_end / r.scenario.options.dt));
+        nSteps = min(size(r.vehicle_path_fullres, 2), round(T_end / r.scenario.options.dt_seconds));
 
         for iVeh = 1:numel(r.scenario.vehicles)
             % Could also integrate speed, here sqrt of distance
@@ -45,11 +45,11 @@ function plot_distance_over_time(result)
 
     r = result(1);
 
-    xticks(0:r.scenario.options.dt:T_end);
+    xticks(0:r.scenario.options.dt_seconds:T_end);
     grid on;
     xlim([0, T_end]);
     % Plot obstacle
-    t = r.scenario.options.time_per_tick * (0:T_end / r.scenario.options.dt * r.scenario.options.tick_per_step);
+    t = r.scenario.options.time_per_tick * (0:T_end / r.scenario.options.dt_seconds * r.scenario.options.tick_per_step);
     x_max = r.obstacles{1}(1, 1) ...
         - r.scenario.vehicles(1).Length / 2 ...
         - r.scenario.options.offset ...

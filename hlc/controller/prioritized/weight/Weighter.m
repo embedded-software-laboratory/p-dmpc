@@ -1,7 +1,7 @@
 classdef (Abstract) Weighter < handle
 
     methods (Abstract)
-        weigh(obj, scenario, iter)
+        weigh(obj, scenario, mpa, iter)
     end
 
     methods (Static)

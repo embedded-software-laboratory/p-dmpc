@@ -64,6 +64,16 @@ classdef (Abstract) Plant < handle
             obj.controlled_vehicle_ids = controlled_vehicle_ids;
             obj.all_vehicle_ids = all_vehicle_ids;
 
+            % temporarily create an MPA to get vehicles` trim config
+            tmp_mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
+            initial_state = find([tmp_mpa.trims.speed] == 0 & [tmp_mpa.trims.steering] == 0, 1);
+
+            for iVeh = 1:scenario.options.amount
+                % initialize vehicle ids of all vehicles
+                obj.scenario.vehicles(iVeh).trim_config = initial_state;
+
+            end
+
             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount, 1), zeros(obj.scenario.options.amount, 1));
 
         end
@@ -83,11 +93,11 @@ classdef (Abstract) Plant < handle
 
     methods (Access = protected)
 
-        function [x0, trim_indices] = measure_node(obj)
+        function [x0, trim_indices] = measure_node(obj, mpa)
             speeds = zeros(obj.scenario.options.amount, 1);
 
             for iVeh = 1:obj.indices_in_vehicle_list
-                speeds(iVeh) = obj.scenario.mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;
+                speeds(iVeh) = mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;
             end
 
             x0 = [obj.cur_node(:, NodeInfo.x), obj.cur_node(:, NodeInfo.y), obj.cur_node(:, NodeInfo.yaw), speeds];

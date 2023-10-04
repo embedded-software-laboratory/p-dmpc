@@ -69,8 +69,9 @@ classdef CpmLab < Plant
 
             state_list = sample(end);
 
+            scenario.options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
             % Middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(scenario.options.dt * 1e9);
+            obj.dt_period_nanos = uint64(scenario.options.dt_seconds * 1e9);
 
             if isempty(controlled_vehicle_ids)
                 controlled_vehicle_ids = state_list.active_vehicle_ids;
@@ -79,7 +80,7 @@ classdef CpmLab < Plant
             setup@Plant(obj, scenario, state_list.active_vehicle_ids, controlled_vehicle_ids);
         end
 
-        function [x0, trim_indices] = measure(obj)
+        function [x0, trim_indices] = measure(obj, mpa)
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
             if (sample_count > 1)
@@ -107,10 +108,10 @@ classdef CpmLab < Plant
 
                 end
 
-                [~, trim_indices] = obj.measure_node();
+                [~, trim_indices] = obj.measure_node(mpa);
                 obj.pos_init = true;
             else
-                [x0(1:obj.scenario.options.amount, :), trim_indices] = obj.measure_node(); % get cav states from current node
+                [x0(1:obj.scenario.options.amount, :), trim_indices] = obj.measure_node(mpa); % get cav states from current node
             end
 
             % Always measure HDV
@@ -131,7 +132,7 @@ classdef CpmLab < Plant
 
         end
 
-        function apply(obj, info, ~, k, scenario)
+        function apply(obj, info, ~, k, mpa)
             y_pred = info.y_predicted;
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
@@ -157,7 +158,7 @@ classdef CpmLab < Plant
 
                     yaw = y_pred{iVeh}(i_predicted_points, 3);
 
-                    speed = scenario.mpa.trims(y_pred{iVeh}(i_predicted_points, 4)).speed;
+                    speed = mpa.trims(y_pred{iVeh}(i_predicted_points, 4)).speed;
 
                     trajectory_points(i_traj_pt).vx = cos(yaw) * speed;
                     trajectory_points(i_traj_pt).vy = sin(yaw) * speed;

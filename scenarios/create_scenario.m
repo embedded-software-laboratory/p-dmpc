@@ -31,12 +31,6 @@ function scenario = create_scenario(options, random_seed, plant)
             scenario = lanelet2_scenario(options, plant);
     end
 
-    initial_state = find([scenario.mpa.trims.speed] == 0 & [scenario.mpa.trims.steering] == 0, 1);
-
-    for iVeh = 1:options.amount
-        scenario.vehicles(iVeh).trim_config = initial_state;
-    end
-
-    %plot_mpa_over_time(scenario);
+    %plot_mpa_over_time(scenario, mpa);
     %plot_mpa(scenario,'do_export', true);
 end

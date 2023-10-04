@@ -50,5 +50,4 @@ function scenario = circle_scenario(options)
         scenario.assignPrios = true;
     end
 
-    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
 end

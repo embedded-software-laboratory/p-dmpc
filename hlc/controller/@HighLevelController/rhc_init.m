@@ -56,7 +56,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
         % Compute the predicted lanelets of iVeh vehicle
         % Byproducts: reference path and reference speed profile
-        [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(obj.scenario, obj.iter, iVeh, x0, y0);
+        [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(obj.scenario, obj.mpa, obj.iter, iVeh, x0, y0);
 
         % For non manual vehicles: Update ref speed and ref trajectory
         % reference speed and path points
@@ -147,7 +147,7 @@ function rhc_init(obj, x_measured, trims_measured)
         end
 
         % Compute reachable sets for vehicle iVeh
-        local_reachable_sets = obj.scenario.mpa.local_reachable_sets_conv;
+        local_reachable_sets = obj.mpa.local_reachable_sets_conv;
 
         obj.iter.reachable_sets(iVeh, :) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current, :), predicted_lanelet_boundary, obj.scenario.options);
 
@@ -166,23 +166,21 @@ function rhc_init(obj, x_measured, trims_measured)
         % Get vehicle's occupied area of emergency braking maneuver
         % with normal offset
 
-        mpa = obj.scenario.mpa;
-
         %% emergency maneuver for vehicle iVeh
         % emergency left maneuver (without offset)
-        turn_left_area_without_offset = mpa.emergency_maneuvers{trim_current}.left{1};
+        turn_left_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.left{1};
         [turn_left_area_without_offset_x, turn_left_area_without_offset_y] = translate_global(yaw0, x0, y0, turn_left_area_without_offset(1, :), turn_left_area_without_offset(2, :));
         obj.iter.emergency_maneuvers{iVeh}.left_area_without_offset = [turn_left_area_without_offset_x; turn_left_area_without_offset_y];
         % emergency right maneuver (without offset)
-        turn_right_area_without_offset = mpa.emergency_maneuvers{trim_current}.right{1};
+        turn_right_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.right{1};
         [turn_right_area_without_offset_x, turn_right_area_without_offset_y] = translate_global(yaw0, x0, y0, turn_right_area_without_offset(1, :), turn_right_area_without_offset(2, :));
         obj.iter.emergency_maneuvers{iVeh}.right_area_without_offset = [turn_right_area_without_offset_x; turn_right_area_without_offset_y];
         % emergency braking maneuver (without offset)
-        braking_area_without_offset = mpa.emergency_maneuvers{trim_current}.braking_without_offset;
+        braking_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.braking_without_offset;
         [turn_braking_area_without_offset_x, turn_braking_area_without_offset_y] = translate_global(yaw0, x0, y0, braking_area_without_offset(1, :), braking_area_without_offset(2, :));
         obj.iter.emergency_maneuvers{iVeh}.braking_area_without_offset = [turn_braking_area_without_offset_x; turn_braking_area_without_offset_y];
         % emergency braking maneuver (with normal offset)
-        braking_area = mpa.emergency_maneuvers{trim_current}.braking_with_offset;
+        braking_area = obj.mpa.emergency_maneuvers{trim_current}.braking_with_offset;
         [turn_braking_area_x, turn_braking_area_y] = translate_global(yaw0, x0, y0, braking_area(1, :), braking_area(2, :));
         obj.iter.emergency_maneuvers{iVeh}.braking_area = [turn_braking_area_x; turn_braking_area_y];
 
@@ -225,19 +223,19 @@ function rhc_init(obj, x_measured, trims_measured)
 
             %% emergency maneuver for vehicle iVeh
             % emergency left maneuver (without offset)
-            turn_left_area_without_offset = mpa.emergency_maneuvers{trim_current}.left{1};
+            turn_left_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.left{1};
             [turn_left_area_without_offset_x, turn_left_area_without_offset_y] = translate_global(yaw0, x0, y0, turn_left_area_without_offset(1, :), turn_left_area_without_offset(2, :));
             obj.iter.emergency_maneuvers{iVeh}.left_area_without_offset = [turn_left_area_without_offset_x; turn_left_area_without_offset_y];
             % emergency right maneuver (without offset)
-            turn_right_area_without_offset = mpa.emergency_maneuvers{trim_current}.right{1};
+            turn_right_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.right{1};
             [turn_right_area_without_offset_x, turn_right_area_without_offset_y] = translate_global(yaw0, x0, y0, turn_right_area_without_offset(1, :), turn_right_area_without_offset(2, :));
             obj.iter.emergency_maneuvers{iVeh}.right_area_without_offset = [turn_right_area_without_offset_x; turn_right_area_without_offset_y];
             % emergency braking maneuver (without offset)
-            braking_area_without_offset = mpa.emergency_maneuvers{trim_current}.braking_without_offset;
+            braking_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.braking_without_offset;
             [turn_braking_area_without_offset_x, turn_braking_area_without_offset_y] = translate_global(yaw0, x0, y0, braking_area_without_offset(1, :), braking_area_without_offset(2, :));
             obj.iter.emergency_maneuvers{iVeh}.braking_area_without_offset = [turn_braking_area_without_offset_x; turn_braking_area_without_offset_y];
             % emergency braking maneuver (with normal offset)
-            braking_area = mpa.emergency_maneuvers{trim_current}.braking_with_offset;
+            braking_area = obj.mpa.emergency_maneuvers{trim_current}.braking_with_offset;
             [turn_braking_area_x, turn_braking_area_y] = translate_global(yaw0, x0, y0, braking_area(1, :), braking_area(2, :));
             obj.iter.emergency_maneuvers{iVeh}.braking_area = [turn_braking_area_x; turn_braking_area_y];
         end

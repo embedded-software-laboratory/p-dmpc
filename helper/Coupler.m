@@ -21,7 +21,7 @@ classdef Coupler < handle
 
         end
 
-        function [coupling_info] = calculate_coupling_info(obj, scenario, iter)
+        function [coupling_info] = calculate_coupling_info(obj, scenario, mpa, iter)
 
             adjacency = iter.adjacency;
             amount = scenario.options.amount;
@@ -39,10 +39,10 @@ classdef Coupler < handle
                         % both vehicles are at intersection
                         is_intersection = ismember([veh_i, veh_j], obj.intersection_ids);
 
-                        [stac, distance_i, distance_j, collision_type, lanelet_relationship, is_move_side_by_side] = calculate_stac(veh_i, veh_j, scenario, iter);
+                        [stac, distance_i, distance_j, collision_type, lanelet_relationship, is_move_side_by_side] = calculate_stac(veh_i, veh_j, scenario, mpa, iter);
                         coupling_info{veh_i, veh_j} = struct('stac', stac, 'distance', [distance_i, distance_j], 'collision_type', collision_type, ...
                             'lanelet_relationship', lanelet_relationship, 'is_intersection', is_intersection, 'is_virtual_obstacle', false, 'is_move_side_by_side', is_move_side_by_side);
-                        [stac, distance_j, distance_i, collision_type, lanelet_relationship, is_move_side_by_side] = calculate_stac(veh_j, veh_i, scenario, iter);
+                        [stac, distance_j, distance_i, collision_type, lanelet_relationship, is_move_side_by_side] = calculate_stac(veh_j, veh_i, scenario, mpa, iter);
                         coupling_info{veh_j, veh_i} = struct('stac', stac, 'distance', [distance_j, distance_i], 'collision_type', collision_type, ...
                             'lanelet_relationship', lanelet_relationship, 'is_intersection', is_intersection, 'is_virtual_obstacle', false, 'is_move_side_by_side', is_move_side_by_side);
                     end

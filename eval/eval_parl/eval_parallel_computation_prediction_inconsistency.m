@@ -12,7 +12,7 @@ function results = eval_parallel_computation_prediction_inconsistency()
     options.Hp = 5;
 
     options.T_end = 4;
-    options.dt = 0.2;
+    options.dt_seconds = 0.2;
     options.max_num_CLs = 1;
     options.priority = 'STAC_priority';
     options.is_prioritized = true;

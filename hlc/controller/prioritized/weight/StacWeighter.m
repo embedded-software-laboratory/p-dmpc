@@ -16,7 +16,7 @@ classdef StacWeighter < Weighter
         function obj = StacWeighter()
         end
 
-        function [weighted_coupling] = weigh(obj, scenario, iter)
+        function [weighted_coupling] = weigh(obj, scenario, ~, iter)
             weighted_coupling = iter.directed_coupling;
 
             if ((iter.k == 1) && ~(scenario.options.scenario_type == ScenarioType.commonroad))

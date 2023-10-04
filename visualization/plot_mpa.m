@@ -1,7 +1,8 @@
-function plot_mpa(scenario, options)
+function plot_mpa(scenario, mpa, options)
 
     arguments
         scenario (1, 1) Scenario;
+        mpa (1, 1) MotionPrimitiveAutomaton;
         options.y_lim (1, 2) double = [-0.1, 1.0];
         options.x_lim (1, 2) double = rad2deg(pi / 18 * [-3, 3]);
         options.k (1, 1) double = 1;
@@ -10,8 +11,6 @@ function plot_mpa(scenario, options)
         options.with_labels (1, 1) logical = true;
         options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.document();
     end
-
-    mpa = scenario.mpa;
 
     trim_inputs = mpa.trims;
 

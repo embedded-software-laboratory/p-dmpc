@@ -28,6 +28,12 @@ classdef MotionPrimitiveAutomaton
     methods
 
         function [obj, trimsInfo] = MotionPrimitiveAutomaton(model, options)
+
+            arguments
+                model (1, 1) VehicleModel
+                options (1, 1) Config
+            end
+
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims),
@@ -36,8 +42,8 @@ classdef MotionPrimitiveAutomaton
 
             max_acceleration_m_s2 = 0.64;
             max_deceleration_m_s2 = 0.64;
-            max_acceleration_per_dt = max_acceleration_m_s2 * options.dt;
-            max_deceleration_per_dt = max_deceleration_m_s2 * options.dt;
+            max_acceleration_per_dt = max_acceleration_m_s2 * options.dt_seconds;
+            max_deceleration_per_dt = max_deceleration_m_s2 * options.dt_seconds;
 
             if options.is_prioritized
                 nVeh_mpa = 1;
@@ -66,7 +72,6 @@ classdef MotionPrimitiveAutomaton
                 % if number of function output arguments is not one, do not load offline MPA as the second output is not available offline
                 disp("Loading mpa...");
                 load(mpa_full_path, "mpa");
-                disp("Finished loading mpa...");
                 obj = mpa;
                 disp('Offline MPA was found and loaded.')
                 return

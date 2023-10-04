@@ -1,7 +1,8 @@
-function plot_mpa_over_time(scenario, options)
+function plot_mpa_over_time(scenario, mpa, options)
 
     arguments
         scenario (1, 1) Scenario;
+        mpa (1, 1) MotionPrimitiveAutomaton;
         options.y_lim (1, 2) double = [-0.1, 1.1];
         options.do_export (1, 1) logical = false;
         options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
@@ -16,7 +17,7 @@ function plot_mpa_over_time(scenario, options)
 
     for k = 1:scenario.options.Hp
         nexttile
-        plot_mpa(scenario, ...
+        plot_mpa(scenario, mpa, ...
             'do_export', false, ...
             'fig', fig, ...
             'k', k, ...

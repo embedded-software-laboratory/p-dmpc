@@ -1,4 +1,4 @@
-function [is_valid, shapes] = eval_edge_exact(iter, scenario, tree, iNode, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
+function [is_valid, shapes] = eval_edge_exact(iter, scenario, mpa, tree, iNode, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
     % EVAL_EDGE_EXACT   Evaluate if step is valid.
     %
     % INPUT:
@@ -45,7 +45,7 @@ function [is_valid, shapes] = eval_edge_exact(iter, scenario, tree, iNode, vehic
         t1 = pTrim(iVeh);
         t2 = cTrim(iVeh);
 
-        maneuver = scenario.mpa.maneuvers{t1, t2};
+        maneuver = mpa.maneuvers{t1, t2};
 
         c = cos(pYaw(iVeh));
         s = sin(pYaw(iVeh));

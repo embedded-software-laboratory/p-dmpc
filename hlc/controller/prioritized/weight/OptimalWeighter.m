@@ -13,7 +13,7 @@ classdef OptimalWeighter < Weighter
         function obj = OptimalWeighter()
         end
 
-        function [weighted_coupling] = weigh(obj, scenario, iter)
+        function [weighted_coupling] = weigh(obj, scenario, mpa, iter)
             weighted_coupling = iter.directed_coupling;
 
             [rows, cols] = find(iter.directed_coupling);
@@ -21,7 +21,7 @@ classdef OptimalWeighter < Weighter
             for i_row_col_pair = length(rows)
                 row = rows(i_row_col_pair);
                 col = cols(i_row_col_pair);
-                weighted_coupling(row, col) = obj.get_optimal_coupling_weight(scenario, iter, row, col);
+                weighted_coupling(row, col) = obj.get_optimal_coupling_weight(scenario, mpa, iter, row, col);
             end
 
         end
@@ -30,7 +30,7 @@ classdef OptimalWeighter < Weighter
 
     methods (Access = private)
 
-        function [optimal_coupling_weight] = get_optimal_coupling_weight(obj, scenario, iter, veh_i, veh_j)
+        function [optimal_coupling_weight] = get_optimal_coupling_weight(obj, scenario, mpa, iter, veh_i, veh_j)
             % GET_OPTIMAL_COUPLING_WEIGHT This function calculates the optimal coupling
             % weight between two coupled vehicles by counting the number of valid
             % motion primitives of the lower-priority vehicle. A motion primitive is
@@ -54,8 +54,8 @@ classdef OptimalWeighter < Weighter
             plot_options_RS = struct('Color', [0 0.4470 0.7410], 'LineWidth', 0.45, 'LineStyle', '-');
 
             % Reduce the information by one step
-            scenario.mpa.transition_matrix(:, :, 1) = [];
-            scenario.mpa.transition_matrix_single(:, :, 1) = [];
+            mpa.transition_matrix(:, :, 1) = [];
+            mpa.transition_matrix_single(:, :, 1) = [];
 
             iter_v = filter_iter(iter, filter_self);
 
@@ -70,13 +70,13 @@ classdef OptimalWeighter < Weighter
             states_current = iter_v.x0;
             % Find all connected trims
             cur_trim_id = iter_v.trim_indices;
-            connected_trims = find(scenario.mpa.transition_matrix(cur_trim_id, :, 1));
+            connected_trims = find(mpa.transition_matrix(cur_trim_id, :, 1));
             are_valid = true(size(connected_trims));
 
             % Execute motion primitives
             for iTrim = 1:length(connected_trims)
                 trim_next = connected_trims(iTrim);
-                m = scenario.mpa.maneuvers{cur_trim_id, trim_next};
+                m = mpa.maneuvers{cur_trim_id, trim_next};
                 [x_area_next, y_area_next] = translate_global(states_current(3), states_current(1), states_current(2), m.area(1, :), m.area(2, :));
                 [x_area_next_without_offset, y_area_next_without_offset] = translate_global(states_current(3), states_current(1), states_current(2), m.area_without_offset(1, :), m.area_without_offset(2, :));
                 area_next_xy = [x_area_next; y_area_next];
@@ -103,10 +103,10 @@ classdef OptimalWeighter < Weighter
                     iter_v.trim_indices = trim_next;
                     [x0_next, y0_next] = translate_global(states_current(3), states_current(1), states_current(2), m.dx, m.dy);
                     yaw0_next = states_current(3) + m.dyaw;
-                    speed0_next = scenario.mpa.trims(trim_next).speed;
+                    speed0_next = mpa.trims(trim_next).speed;
                     iter_v.x0 = [x0_next, y0_next, yaw0_next, speed0_next];
 
-                    [info_v, ~] = GraphSearch(scenario).run_optimizer(iter_v, []);
+                    [info_v, ~] = GraphSearch(scenario, mpa).run_optimizer(iter_v, []);
 
                     if info_v.is_exhausted
                         are_valid(iTrim) = false;

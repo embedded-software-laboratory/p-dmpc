@@ -7,7 +7,7 @@ options.scenario_type = ScenarioType.commonroad;
 options.trim_set = 9;
 options.Hp = 6;
 
-options.dt = 0.2;
+options.dt_seconds = 0.2;
 
 options.priority = 'STAC_priority';
 options.is_prioritized = true;
