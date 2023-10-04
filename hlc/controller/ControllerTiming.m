@@ -16,7 +16,7 @@ classdef ControllerTiming < handle
             obj.controller_start_time = tic;
         end
 
-        function start_timer(obj, name, timestep)
+        function start(obj, name, timestep)
 
             arguments
                 obj (1, 1) ControllerTiming
@@ -36,7 +36,7 @@ classdef ControllerTiming < handle
 
         end
 
-        function elapsed_time = stop_timer(obj, name, timestep)
+        function stop(obj, name, timestep)
 
             arguments
                 obj (1, 1) ControllerTiming
@@ -59,35 +59,17 @@ classdef ControllerTiming < handle
 
         end
 
-        function elapsed_time = get_elapsed_time(obj, name, timestep)
-
-            arguments
-                obj (1, 1) ControllerTiming
-                name (1, 1) string
-                timestep (1, 1) {mustBeInteger, mustBePositive} = 1 % optional
-            end
-
-            assert(obj.timer_exists(name), "timer does not exist");
-
-            if nargin == 2
-                elapsed_time = obj.timings_once(2, obj.name_to_timing_once(name));
-            else
-                elapsed_time = obj.timings_per_timestep(2, obj.name_to_timing_per_timestep(name), timestep);
-            end
-
-        end
-
-        function elapsed_times = get_all_elapsed_times(obj)
-            elapsed_times = struct;
+        function timings = get_all_timings(obj)
+            timings = struct;
 
             % save results from timings_once
             for name = obj.names_of_timings_once
-                elapsed_times.(name) = obj.timings_once(:, obj.name_to_timing_once(name));
+                timings.(name) = obj.timings_once(:, obj.name_to_timing_once(name));
             end
 
             % save results from timings_per_timestep
             for name = obj.names_of_timings_per_time_step
-                elapsed_times.(name) = obj.timings_per_timestep(:, obj.name_to_timing_per_timestep(name), :);
+                timings.(name) = obj.timings_per_timestep(:, obj.name_to_timing_per_timestep(name), :);
             end
 
         end

@@ -86,16 +86,20 @@ classdef (Abstract) HighLevelController < handle
             obj.save_results();
 
             if obj.scenario.options.use_cpp()
+
                 if ismac()
                     % clear mex dont work on ARM Mac
-                    [~,result] = system('sysctl machdep.cpu.brand_string');
+                    [~, result] = system('sysctl machdep.cpu.brand_string');
                     matches = regexp(result, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
+
                     if isempty(matches)
                         clear mex;
                     end
+
                 else
                     clear mex;
                 end
+
             end
 
             result = obj.result;
@@ -115,7 +119,7 @@ classdef (Abstract) HighLevelController < handle
     methods (Access = private)
 
         function init_hlc(obj)
-            obj.timing.start_timer("init_hlc_time");
+            obj.timing.start("init_hlc_time");
 
             % init result struct
             obj.result = get_result_struct(obj);
@@ -154,7 +158,7 @@ classdef (Abstract) HighLevelController < handle
 
             obj.plant.synchronize_start_with_plant();
 
-            obj.timing.stop_timer("init_hlc_time");
+            obj.timing.stop("init_hlc_time");
         end
 
         function clean_up(obj)
@@ -181,8 +185,8 @@ classdef (Abstract) HighLevelController < handle
 
                 obj.iter.k = obj.k;
 
-                obj.timing.start_timer("hlc_step_time", obj.k);
-                obj.timing.start_timer("iter_runtime", obj.k);
+                obj.timing.start("hlc_step_time", obj.k);
+                obj.timing.start("iter_runtime", obj.k);
 
                 % Measurement
                 % -------------------------------------------------------------------------
@@ -215,10 +219,10 @@ classdef (Abstract) HighLevelController < handle
                 end
 
                 obj.result.distance(:, :, obj.k) = distance;
-                obj.timing.stop_timer("iter_runtime", obj.k);
+                obj.timing.stop("iter_runtime", obj.k);
 
                 % The controller computes plans
-                obj.timing.start_timer("controller_time", obj.k);
+                obj.timing.start("controller_time", obj.k);
 
                 %% controller %%
                 obj.controller();
@@ -286,8 +290,8 @@ classdef (Abstract) HighLevelController < handle
 
                 obj.info_old = obj.info; % save variable in case of fallback
                 %% save result of current time step
-                obj.timing.stop_timer("controller_time", obj.k);
-                obj.timing.stop_timer("hlc_step_time", obj.k);
+                obj.timing.stop("controller_time", obj.k);
+                obj.timing.stop("hlc_step_time", obj.k);
 
                 % save controller outputs in result struct
                 obj.result.scenario = obj.scenario;
