@@ -1,17 +1,21 @@
 classdef CentralizedController < HighLevelController
+
     properties
         coupler
     end
+
     methods
 
         function obj = CentralizedController(scenario, plant)
             obj = obj@HighLevelController(scenario, plant);
+
             if obj.scenario.options.use_cpp()
                 obj.coupler = Coupler();
-                obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.mpa, obj.plant.indices_in_vehicle_list);
+                obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.mpa);
             else
                 obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
             end
+
         end
 
     end
