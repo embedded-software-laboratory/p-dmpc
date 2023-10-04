@@ -6,7 +6,7 @@ classdef ControllerTiming < handle
         names_of_timings_per_time_step (1, :) string % maps string to column in `timings`
         names_of_timings_once (1, :) string
 
-        timings_per_timestep (2, :, :) double % start time and duration of timers per timestep
+        timings_per_time_step (2, :, :) double % start time and duration of timers per time step
         timings_once (2, :) double % start time and duration of timers executed once
     end
 
@@ -16,12 +16,12 @@ classdef ControllerTiming < handle
             obj.controller_start_time = tic;
         end
 
-        function start(obj, name, timestep)
+        function start(obj, name, time_step)
 
             arguments
                 obj (1, 1) ControllerTiming
                 name (1, 1) string
-                timestep (1, 1) {mustBeInteger, mustBePositive} = 1 % optional
+                time_step (1, 1) {mustBeInteger, mustBePositive} = 1 % optional
             end
 
             % create empty struct for timer start and elapsed time
@@ -30,18 +30,18 @@ classdef ControllerTiming < handle
                 column = obj.name_to_timing_once(name);
                 obj.timings_once(1, column) = toc(obj.controller_start_time);
             else
-                column = obj.name_to_timing_per_timestep(name);
-                obj.timings_per_timestep(1, column, timestep) = toc(obj.controller_start_time);
+                column = obj.name_to_timing_per_time_step(name);
+                obj.timings_per_time_step(1, column, time_step) = toc(obj.controller_start_time);
             end
 
         end
 
-        function stop(obj, name, timestep)
+        function elapsed_time = stop(obj, name, time_step)
 
             arguments
                 obj (1, 1) ControllerTiming
                 name (1, 1) string
-                timestep (1, 1) {mustBeInteger, mustBePositive} = 1 % optional
+                time_step (1, 1) {mustBeInteger, mustBePositive} = 1 % optional
             end
 
             assert(obj.timer_exists(name), "timer does not exist");
@@ -53,8 +53,27 @@ classdef ControllerTiming < handle
                 elapsed_time = end_time - obj.timings_once(1, obj.name_to_timing_once(name));
                 obj.timings_once(2, obj.name_to_timing_once(name)) = elapsed_time;
             else
-                elapsed_time = end_time - obj.timings_per_timestep(1, obj.name_to_timing_per_timestep(name), timestep);
-                obj.timings_per_timestep(2, obj.name_to_timing_per_timestep(name), timestep) = elapsed_time;
+                elapsed_time = end_time - obj.timings_per_time_step(1, obj.name_to_timing_per_time_step(name), time_step);
+                obj.timings_per_time_step(2, obj.name_to_timing_per_time_step(name), time_step) = elapsed_time;
+            end
+
+        end
+
+        function elapsed_time = get_elapsed_time(obj, name, time_step)
+
+            arguments
+                obj (1, 1) ControllerTiming
+                name (1, 1) string
+                time_step (1, 1) {mustBeInteger, mustBePositive} = 1 % optional
+            end
+
+            assert(obj.timer_exists(name), "timer does not exist");
+
+            % get elapsed time
+            if nargin == 2
+                elapsed_time = obj.timings_once(2, obj.name_to_timing_once(name));
+            else
+                elapsed_time = obj.timings_per_time_step(2, obj.name_to_timing_per_time_step(name), time_step);
             end
 
         end
@@ -67,9 +86,9 @@ classdef ControllerTiming < handle
                 timings.(name) = obj.timings_once(:, obj.name_to_timing_once(name));
             end
 
-            % save results from timings_per_timestep
+            % save results from timings_per_time_step
             for name = obj.names_of_timings_per_time_step
-                timings.(name) = obj.timings_per_timestep(:, obj.name_to_timing_per_timestep(name), :);
+                timings.(name) = obj.timings_per_time_step(:, obj.name_to_timing_per_time_step(name), :);
             end
 
         end
@@ -78,7 +97,7 @@ classdef ControllerTiming < handle
 
     methods (Access = private)
 
-        function column = name_to_timing_per_timestep(obj, name)
+        function column = name_to_timing_per_time_step(obj, name)
             column = find(strcmp(obj.names_of_timings_per_time_step, name), 1);
 
             if isempty(column)
