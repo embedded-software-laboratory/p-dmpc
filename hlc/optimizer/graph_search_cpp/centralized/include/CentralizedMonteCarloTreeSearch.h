@@ -37,7 +37,7 @@ namespace GraphBasedPlanning {
 			// calculate the normalization values for rating the cost to come
 			for (auto i = 0; i < CentralizedGraphSearch<n_vehicles, scenario_type>::_config->n_hp(); ++i) {
 				for (auto j = 0; j < n_vehicles; ++j) {
-					_normalization_values[i] += CentralizedGraphSearch<n_vehicles, scenario_type>::_vehicle_data[j].v_ref(i) * CentralizedGraphSearch<n_vehicles, scenario_type>::_config->dt();
+					_normalization_values[i] += CentralizedGraphSearch<n_vehicles, scenario_type>::_vehicle_data[j].v_ref(i) * CentralizedGraphSearch<n_vehicles, scenario_type>::_config->dt_seconds();
 				}
 			}
 

@@ -97,7 +97,7 @@ namespace GraphBasedPlanning {
 			//                  timestep and vehicle
 			double max_distance_traveled = 0.0;
 			for (auto j = new_node->k(); j < _config->n_hp(); ++j) {
-				max_distance_traveled += _config->dt() * _vehicle_data[vehicle_id].v_ref(j);
+				max_distance_traveled += _config->dt_seconds() * _vehicle_data[vehicle_id].v_ref(j);
 
 				double const norm_x_h = new_node->x(0) - _vehicle_data[vehicle_id].reference_trajectory_point(j).x;
 				double const norm_y_h = new_node->y(0) - _vehicle_data[vehicle_id].reference_trajectory_point(j).y;
@@ -135,7 +135,7 @@ namespace GraphBasedPlanning {
 				//                  timestep and vehicle
 				double max_distance_traveled = 0.0;
 				for (auto j = new_node->k(); j < _config->n_hp(); ++j) {
-					max_distance_traveled += _config->dt() * _vehicle_data[i].v_ref(j);
+					max_distance_traveled += _config->dt_seconds() * _vehicle_data[i].v_ref(j);
 
 					double const norm_x_h = new_node->x(i) - _vehicle_data[i].reference_trajectory_point(j).x;
 					double const norm_y_h = new_node->y(i) - _vehicle_data[i].reference_trajectory_point(j).y;

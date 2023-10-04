@@ -134,9 +134,9 @@ namespace GraphBasedPlanning {
 
 				// calculation of the point from which the current minimum point is speed * dt away on the trajectory
 				for (unsigned int j = 0; j < this->_config->n_hp(); ++j) {
-					double max_distance_still_to_be_covered = this->_config->dt() * this->_mpa->max_speed();  // * (exp(j) + 1);  // max velocity
+					double max_distance_still_to_be_covered = this->_config->dt_seconds() * this->_mpa->max_speed();  // * (exp(j) + 1);  // max velocity
 
-					if (j == 0) max_distance_still_to_be_covered += this->_config->dt() * this->_mpa->max_speed();
+					if (j == 0) max_distance_still_to_be_covered += this->_config->dt_seconds() * this->_mpa->max_speed();
 
 					while (true) {
 						double const distance_to_next_line_strip = distance(trajectory_point, next_trajectory_point);
@@ -169,7 +169,7 @@ namespace GraphBasedPlanning {
 				unsigned int j, k;
 
 				for (j = new_node->k() - _iteration, k = 1; j < this->_config->n_hp(); ++j, ++k) {
-					max_distance_traveled += this->_config->dt() * this->_mpa->max_speed();  // * exp(-0.0595 * j);
+					max_distance_traveled += this->_config->dt_seconds() * this->_mpa->max_speed();  // * exp(-0.0595 * j);
 
 					double const norm_x_h = new_node->x(i) - static_cast<IncrementalNode<n_vehicles> const *>(new_node->parent())->trajectory_point(i, k).x;
 					double const norm_y_h = new_node->y(i) - static_cast<IncrementalNode<n_vehicles> const *>(new_node->parent())->trajectory_point(i, k).y;

@@ -53,7 +53,7 @@ namespace GraphBasedPlanning {
 					apply_function_recursivly(_root, [this](PriorityBasedNode *node) {
 						unsigned int i = 0;
 						unsigned int j = this->_config->n_hp() - 1;
-						double max_distance_traveled = this->_config->dt() * this->_vehicle_data[i].v_ref(j) * (this->_config->n_hp() - node->k());
+						double max_distance_traveled = this->_config->dt_seconds() * this->_vehicle_data[i].v_ref(j) * (this->_config->n_hp() - node->k());
 						double norm_x_h = node->x(i) - this->_vehicle_data[i].reference_trajectory_point(j).x;  //_reference_trajectory_points(i, j, 0);
 						double norm_y_h = node->y(i) - this->_vehicle_data[i].reference_trajectory_point(j).y;
 						double norm_squared_h = std::pow(std::max<>(std::sqrt(norm_x_h * norm_x_h + norm_y_h * norm_y_h) - max_distance_traveled, 0.0), 2);
