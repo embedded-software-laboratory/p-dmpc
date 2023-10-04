@@ -16,26 +16,6 @@ classdef ControllerTiming < handle
             obj.controller_start_time = tic;
         end
 
-        function column = name_to_timing_per_timestep(obj, name)
-            column = find(strcmp(obj.names_of_timings_per_time_step, name), 1);
-
-            if isempty(column)
-                obj.names_of_timings_per_time_step(end + 1) = name;
-                column = length(obj.names_of_timings_per_time_step);
-            end
-
-        end
-
-        function column = name_to_timing_once(obj, name)
-            column = find(strcmp(obj.names_of_timings_once, name), 1);
-
-            if isempty(column)
-                obj.names_of_timings_once(end + 1) = name;
-                column = length(obj.names_of_timings_once);
-            end
-
-        end
-
         function start_timer(obj, name, timestep)
 
             arguments
@@ -108,6 +88,30 @@ classdef ControllerTiming < handle
             % save results from timings_per_timestep
             for name = obj.names_of_timings_per_time_step
                 elapsed_times.(name) = obj.timings_per_timestep(:, obj.name_to_timing_per_timestep(name), :);
+            end
+
+        end
+
+    end
+
+    methods (Access = private)
+
+        function column = name_to_timing_per_timestep(obj, name)
+            column = find(strcmp(obj.names_of_timings_per_time_step, name), 1);
+
+            if isempty(column)
+                obj.names_of_timings_per_time_step(end + 1) = name;
+                column = length(obj.names_of_timings_per_time_step);
+            end
+
+        end
+
+        function column = name_to_timing_once(obj, name)
+            column = find(strcmp(obj.names_of_timings_once, name), 1);
+
+            if isempty(column)
+                obj.names_of_timings_once(end + 1) = name;
+                column = length(obj.names_of_timings_once);
             end
 
         end
