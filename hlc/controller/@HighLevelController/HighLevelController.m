@@ -219,7 +219,7 @@ classdef (Abstract) HighLevelController < handle
                 end
 
                 obj.result.distance(:, :, obj.k) = distance;
-                obj.timing.stop("iter_runtime", obj.k);
+                obj.result.iter_runtime(obj.k) = obj.timing.stop("iter_runtime", obj.k);
 
                 % The controller computes plans
                 obj.timing.start("controller_time", obj.k);
@@ -290,7 +290,7 @@ classdef (Abstract) HighLevelController < handle
 
                 obj.info_old = obj.info; % save variable in case of fallback
                 %% save result of current time step
-                obj.timing.stop("controller_time", obj.k);
+                obj.result.controller_runtime(obj.k) = obj.timing.stop("controller_time", obj.k);
                 obj.timing.stop("hlc_step_time", obj.k);
 
                 % save controller outputs in result struct
@@ -374,7 +374,7 @@ classdef (Abstract) HighLevelController < handle
 
             obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
             obj.result.nSteps = obj.k;
-            obj.result.controller_timing_results = obj.timing.get_all_elapsed_times();
+            obj.result.timings = obj.timing.get_all_timings();
 
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
 
