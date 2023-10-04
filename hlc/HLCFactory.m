@@ -115,8 +115,17 @@ classdef HLCFactory < handle
             obj.scenario.options.T_end = T_end_backup;
             obj.scenario.options.should_save_result = save_result_backup;
 
-            if obj.scenario.options.use_cpp == true
-                clear mex;
+            if obj.scenario.options.use_cpp()
+                if ismac()
+                    % clear mex dont work on ARM Mac
+                    [~,result] = system('sysctl machdep.cpu.brand_string');
+                    matches = regexp(result, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
+                    if isempty(matches)
+                        clear mex;
+                    end
+                else
+                    clear mex;
+                end
             end
 
             disp("Dry Run Completed");

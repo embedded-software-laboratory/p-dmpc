@@ -1,16 +1,17 @@
 classdef CentralizedController < HighLevelController
-
+    properties
+        coupler
+    end
     methods
 
         function obj = CentralizedController(scenario, plant)
             obj = obj@HighLevelController(scenario, plant);
-
-            if obj.scenario.options.use_cpp
+            if obj.scenario.options.use_cpp()
+                obj.coupler = Coupler();
                 obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.mpa, obj.plant.indices_in_vehicle_list);
             else
                 obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
             end
-
         end
 
     end
@@ -20,6 +21,10 @@ classdef CentralizedController < HighLevelController
         function controller(obj)
             % initialize variable to store control results
             obj.info = ControlResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, obj.plant.all_vehicle_ids);
+
+            if obj.scenario.options.use_cpp()
+                obj.iter.adjacency = obj.coupler.couple(obj.iter);
+            end
 
             % falsifies controller_runtime slightly
             subcontroller_timer = tic;
