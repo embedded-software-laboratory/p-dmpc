@@ -13,6 +13,7 @@ classdef (Abstract) HighLevelController < handle
         ros_subscribers;
 
         optimizer;
+        mpa;
         controller_name;
         result;
         k;
@@ -51,6 +52,16 @@ classdef (Abstract) HighLevelController < handle
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
             obj.plant = plant;
+
+            obj.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
+
+            initial_state = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
+
+            for iVeh = 1:scenario.options.amount
+                % initialize vehicle ids of all vehicles
+                scenario.vehicles(iVeh).trim_config = initial_state;
+
+            end
 
             % create fallback for first time step
             obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, plant.all_vehicle_ids);
@@ -170,7 +181,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % Measurement
                 % -------------------------------------------------------------------------
-                [x0_measured, trims_measured] = obj.plant.measure(); % trims_measured： which trim
+                [x0_measured, trims_measured] = obj.plant.measure(obj.mpa); % trims_measured： which trim
 
                 if mod(obj.k, 10) == 0
                     % only display 0, 10, 20, ...
@@ -262,7 +273,7 @@ classdef (Abstract) HighLevelController < handle
                         str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
                         disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
-                        obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.plant.all_vehicle_ids, obj.plant.indices_in_vehicle_list);
+                        obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.mpa, obj.plant.all_vehicle_ids, obj.plant.indices_in_vehicle_list);
                         obj.total_fallback_times = obj.total_fallback_times + 1;
                     end
 
@@ -317,7 +328,7 @@ classdef (Abstract) HighLevelController < handle
                 % if a vehicle stops for more than a defined time, assume deadlock
                 % TODO check if deadlocked vehicles are coupled. Sometimes single
                 % vehicles stop because trajectory planner fails to work as intended
-                vehs_stop = any(ismember(obj.info.trim_indices, obj.scenario.mpa.trims_stop), 2); % vehicles stop at the current time step
+                vehs_stop = any(ismember(obj.info.trim_indices, obj.mpa.trims_stop), 2); % vehicles stop at the current time step
                 obj.vehs_stop_duration(vehs_stop) = obj.vehs_stop_duration(vehs_stop) + 1;
                 obj.vehs_stop_duration(~vehs_stop) = 0; % reset others
 
@@ -336,7 +347,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % Apply control action
                 % -------------------------------------------------------------------------
-                obj.plant.apply(obj.info, obj.result, obj.k, obj.scenario);
+                obj.plant.apply(obj.info, obj.result, obj.k, obj.mpa);
 
                 % Check for stop signal
                 % -------------------------------------------------------------------------
@@ -352,7 +363,7 @@ classdef (Abstract) HighLevelController < handle
             obj.result.total_fallback_times = obj.total_fallback_times;
             disp(['Total times of fallback: ' num2str(obj.total_fallback_times) '.'])
 
-            obj.result.t_total = obj.k * obj.scenario.options.dt;
+            obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
             obj.result.nSteps = obj.k;
 
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
@@ -362,7 +373,7 @@ classdef (Abstract) HighLevelController < handle
                 % delete ros nodes, because they can't be written to a
                 % file.
                 [obj.result.scenario.vehicles.communicate] = empty_cells{:};
-                obj.result.mpa = obj.scenario.mpa;
+                obj.result.mpa = obj.mpa;
 
                 % Delete unimportant data
                 if obj.scenario.options.should_reduce_result
@@ -375,8 +386,7 @@ classdef (Abstract) HighLevelController < handle
                         obj.result.iteration_structs{iIter}.emergency_maneuvers = [];
                     end
 
-                    obj.result.scenario.mpa = [];
-                    obj.result.scenario.speed_profile_mpas = [];
+                    obj.result.mpa = [];
                 end
 
                 % check if file with the same name exists

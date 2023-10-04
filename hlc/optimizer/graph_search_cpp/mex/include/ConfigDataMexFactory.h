@@ -7,7 +7,7 @@
 #include <mex.hpp>
 
 namespace GraphBasedPlanning {
-	ConfigData make_config(matlab::data::Array const &scenario, std::shared_ptr<matlab::engine::MATLABEngine> &_matlab) {
+	ConfigData make_config(matlab::data::Array const &scenario, matlab::data::Array const &mpa_array, std::shared_ptr<matlab::engine::MATLABEngine> &_matlab) {
 		// get the number of steps in the horizon prediction
 		matlab::data::Array const options_array = _matlab->getProperty(scenario, u"options");
 		matlab::data::TypedArray<double> const hp_array = _matlab->getProperty(options_array, u"Hp");
@@ -17,7 +17,7 @@ namespace GraphBasedPlanning {
 		unsigned int const tick_per_step = static_cast<unsigned int>(tick_per_step_array[0][0]);
 
 		// get the time difference of the iterations
-		matlab::data::TypedArray<double> const dt_array = _matlab->getProperty(options_array, u"dt");
+		matlab::data::TypedArray<double> const dt_array = _matlab->getProperty(options_array, u"dt_seconds");
 		double const dt = dt_array[0][0];
 
 		// get the number of vehicles
@@ -50,7 +50,6 @@ namespace GraphBasedPlanning {
 		}
 
 		// get number of trims in the MPA
-		matlab::data::Array const mpa_array = _matlab->getProperty(scenario, u"mpa");
 		matlab::data::CellArray const maneuvers_array = _matlab->getProperty(mpa_array, u"maneuvers");
 		unsigned int const n_trims = maneuvers_array.getDimensions()[0];
 

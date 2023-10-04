@@ -8,7 +8,7 @@ function communication_init(hlc)
     %
 
     % measure vehicles' initial poses and trims
-    [x0_measured, trims_measured] = hlc.plant.measure();
+    [x0_measured, trims_measured] = hlc.plant.measure(hlc.mpa);
 
     Hp = hlc.scenario.options.Hp;
 
@@ -28,7 +28,7 @@ function communication_init(hlc)
             speed = hlc.iter.x0(veh_index, indices().speed);
             current_pose = [x0, y0, heading, speed];
 
-            predicted_lanelets = get_predicted_lanelets(hlc.scenario, hlc.iter, veh_index, x0, y0);
+            predicted_lanelets = get_predicted_lanelets(hlc.scenario, hlc.mpa, hlc.iter, veh_index, x0, y0);
 
             % get vehicles currently occupied area
             x_rec1 = [-1, -1, 1, 1, -1] * (hlc.scenario.vehicles(veh_index).Length / 2 + hlc.scenario.options.offset); % repeat the first entry to enclose the shape

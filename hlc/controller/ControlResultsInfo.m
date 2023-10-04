@@ -65,7 +65,7 @@ classdef ControlResultsInfo
             %obj.runtime_subcontroller_each_veh = zeros(nVeh);
         end
 
-        function obj = store_control_info(obj, info_v, scenario)
+        function obj = store_control_info(obj, info_v, scenario, mpa)
             % Store the control information, such as `tree`, `tree_path`,
             % `n_expanded`, `next_node`, `shapes`, `vehicle_fullres_path`, `predicted_trims`, `y_predicted`
             if scenario.options.is_prioritized
@@ -75,7 +75,7 @@ classdef ControlResultsInfo
                 obj.n_expanded(vehicle_idx, 1) = info_v.n_expanded;
                 obj.next_node = set_node(obj.next_node, vehicle_idx, info_v.tree.get_node(info_v.tree_path(2)));
                 obj.shapes(vehicle_idx, :) = info_v.shapes(:);
-                obj.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, scenario);
+                obj.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, mpa);
                 obj.predicted_trims(vehicle_idx, :) = info_v.predicted_trims; % store the planned trims in the future Hp time steps
                 %             obj.trim_indices(vehicle_idx) = info_v.trim_indices; % dependent variable
                 obj.y_predicted(vehicle_idx) = info_v.y_predicted; % store the information of the predicted output
@@ -87,7 +87,7 @@ classdef ControlResultsInfo
                 obj.n_expanded = info_v.n_expanded;
                 obj.next_node = set_node(obj.next_node, 1:scenario.options.amount, info_v.tree.get_node(info_v.tree_path(2)));
                 obj.shapes = info_v.shapes;
-                obj.vehicle_fullres_path = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, scenario)';
+                obj.vehicle_fullres_path = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, mpa)';
                 obj.predicted_trims = info_v.predicted_trims; % store the planned trims in the future Hp time steps
                 %                     obj.trim_indices = info_v.trim_indices; % dependent variable
                 obj.y_predicted = info_v.y_predicted(:); % store the information of the predicted output
@@ -137,10 +137,10 @@ classdef ControlResultsInfo
 
         end
 
-        function obj = handle_graph_search_exhaustion(obj, scenario, iter)
+        function obj = handle_graph_search_exhaustion(obj, scenario, iter, mpa)
             trim = iter.trim_indices;
 
-            if scenario.mpa.trims(trim).speed == 0 && ~strcmp(scenario.options.strategy_consider_veh_without_ROW, '1')
+            if mpa.trims(trim).speed == 0 && ~strcmp(scenario.options.strategy_consider_veh_without_ROW, '1')
                 % if a vehicle at a standstill cannot find a feasible
                 % trajectory, it will keep at a standstill without
                 % triggering a fallback. This kind of graph search is

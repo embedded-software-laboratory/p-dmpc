@@ -108,10 +108,4 @@ function scenario = lanelet2_scenario(options, plant)
         scenario.assignPrios = true;
     end
 
-    scenario.mpa = MotionPrimitiveAutomaton(scenario.model, options);
-
-    % initialize speed profile vector, currently 3 speed profiles are available
-    scenario.speed_profile_mpas = [scenario.mpa, scenario.mpa, scenario.mpa];
-
-    %     plot_local_reachable_sets(scenario.mpa, scenario.options.is_allow_non_convex)
 end

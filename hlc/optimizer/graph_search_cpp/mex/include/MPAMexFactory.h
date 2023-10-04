@@ -8,9 +8,7 @@
 #include <mex.hpp>
 
 namespace GraphBasedPlanning {
-	MPA make_mpa(matlab::data::Array const &scenario, std::shared_ptr<ConfigData const> const &config, std::shared_ptr<matlab::engine::MATLABEngine> &_matlab) {
-		matlab::data::Array const mpa_array = _matlab->getProperty(scenario, u"mpa");
-
+	MPA make_mpa(matlab::data::Array const &mpa_array, std::shared_ptr<ConfigData const> const &config, std::shared_ptr<matlab::engine::MATLABEngine> &_matlab) {
 		matlab::data::CellArray const maneuvers_array = _matlab->getProperty(mpa_array, u"maneuvers");
 
 		// get number of trims in the MPA

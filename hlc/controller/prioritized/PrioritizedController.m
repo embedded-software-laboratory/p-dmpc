@@ -16,9 +16,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj = obj@HighLevelController(scenario, plant);
 
             if obj.scenario.options.use_cpp()
-                obj.optimizer = GraphSearchMexPB(obj.scenario, obj.plant.indices_in_vehicle_list);
+                obj.optimizer = GraphSearchMexPB(obj.scenario, obj.mpa, obj.plant.indices_in_vehicle_list);
             else
-                obj.optimizer = GraphSearch(obj.scenario);
+                obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
             end
 
             obj.coupler = Coupler();
@@ -159,7 +159,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.info.runtime_graph_search_each_veh(vehicle_idx) = graph_search_time;
 
             if info_v.is_exhausted
-                info_v = handle_graph_search_exhaustion(info_v, obj.scenario, iter_v);
+                info_v = handle_graph_search_exhaustion(info_v, obj.scenario, iter_v, obj.mpa);
             end
 
             if info_v.needs_fallback
@@ -181,7 +181,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 end
 
             else
-                obj.info = store_control_info(obj.info, info_v, obj.scenario);
+                obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
             end
 
             if obj.iter.k == inf
@@ -214,7 +214,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         function couple(obj)
             obj.iter.adjacency = obj.coupler.couple(obj.iter);
-            obj.iter.coupling_info = obj.coupler.calculate_coupling_info(obj.scenario, obj.iter);
+            obj.iter.coupling_info = obj.coupler.calculate_coupling_info(obj.scenario, obj.mpa, obj.iter);
         end
 
         function prioritize(obj)
@@ -223,7 +223,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         end
 
         function weigh(obj)
-            obj.iter.weighted_coupling = obj.weighter.weigh(obj.scenario, obj.iter);
+            obj.iter.weighted_coupling = obj.weighter.weigh(obj.scenario, obj.mpa, obj.iter);
         end
 
         function reduce(obj)

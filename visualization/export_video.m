@@ -13,7 +13,7 @@ function export_video(result, video_export_setup)
         frame_ticks = 1;
     else
         framerate = 30;
-        frame_per_step = framerate * scenario.options.dt;
+        frame_per_step = framerate * scenario.options.dt_seconds;
         frame_ticks = round(linspace(2, scenario.options.tick_per_step + 1, frame_per_step));
     end
 

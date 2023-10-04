@@ -234,7 +234,7 @@ function [labOptions] = start_options()
                                                        1};
 
     % sample time [s]
-    labOptions.dt = dtSelection;
+    labOptions.dt_seconds = dtSelection;
 
     % predicion horizon
     labOptions.Hp = HpSelection;
@@ -318,6 +318,8 @@ function setEnvironmentElementsVisibility(ui)
     ui.AmountHDVsListBox.Enable = ui.AmountHDVsListBox.Enable && is_lab_selection;
     ui.HDVIDsEditField.Enable = ui.HDVIDsEditField.Enable && is_lab_selection;
 
+    % sample time is automatically set in the lab
+    ui.SampleTimesSpinner.Enable = ~is_lab_selection;
     % notify user that ULA reference path ids have to correspond to vehicle ids
     is_ula_selection = (get_environment_selection(ui, true) == Environment.UnifiedLabApi);
     if is_ula_selection

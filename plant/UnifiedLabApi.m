@@ -62,7 +62,7 @@ classdef UnifiedLabApi < Plant
             obj.prepare_ros2(); % Call this in case map_as_string was not used before
 
             % Middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(obj.scenario.options.dt * 1e9);
+            obj.dt_period_nanos = uint64(obj.scenario.options.dt_seconds * 1e9);
 
             disp('Setup. Phase 3: Perform preparation phase...');
 
@@ -124,7 +124,7 @@ classdef UnifiedLabApi < Plant
             disp('Start/Stop signal received. Leave setup.');
         end
 
-        function [x0, trim_indices] = measure(obj)
+        function [x0, trim_indices] = measure(obj, ~)
             disp('Measure');
 
             % Receive new messages. In order to recognize stop signals, we
@@ -207,7 +207,7 @@ classdef UnifiedLabApi < Plant
 
         end
 
-        function apply(obj, info, ~, k, scenario)
+        function apply(obj, info, ~, k, mpa)
             y_pred = info.y_predicted;
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
@@ -232,7 +232,7 @@ classdef UnifiedLabApi < Plant
 
                     yaw = y_pred{iVeh}(i_predicted_points, 3);
 
-                    speed = scenario.mpa.trims(y_pred{iVeh}(i_predicted_points, 4)).speed;
+                    speed = mpa.trims(y_pred{iVeh}(i_predicted_points, 4)).speed;
 
                     trajectory_points(i_traj_pt).vx = cos(yaw) * speed;
                     trajectory_points(i_traj_pt).vy = sin(yaw) * speed;

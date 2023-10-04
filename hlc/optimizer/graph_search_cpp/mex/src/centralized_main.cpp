@@ -14,16 +14,16 @@
 #include <set>
 
 #include "CentralizedConflictBasedLiterature.h"
+#include "CentralizedGrouping.h"
+#include "CentralizedGroupingConflictBased.h"
 #include "CentralizedIncremental.h"
+#include "CentralizedNaiveMonteCarloPolymorphic.h"
+#include "CentralizedNaiveMonteCarloPolymorphicParallel.h"
 #include "CentralizedNaiveMonteCarloSimple.h"
 #include "CentralizedOptimalLeafParallelization.h"
 #include "CentralizedOptimalPolymorphic.h"
 #include "CentralizedOptimalRootParallelization.h"
 #include "CentralizedOptimalSimple.h"
-#include "CentralizedGrouping.h"
-#include "CentralizedGroupingConflictBased.h"
-#include "CentralizedNaiveMonteCarloPolymorphic.h"
-#include "CentralizedNaiveMonteCarloPolymorphicParallel.h"
 #include "ConfigDataMexFactory.h"
 #include "CouplingDataMexFactory.h"
 #include "MPAMexFactory.h"
@@ -59,19 +59,21 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 			if (FunctionArray.getClassName() != "CppOptimizer") throw MatlabException("First Argument must be Enum of type Function! (is ", FunctionArray.getClassName(), ")");
 			std::string Function = FunctionArray[0][0];
 
-			if (inputs.size() != 2) throw MatlabException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
+			if (inputs.size() < 2) throw MatlabException("Wrong number of arguments! (Must be 2 or more, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MatlabException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
 			if (Function == "InitializeWithScenario") {
+				if (inputs.size() != 3) throw MatlabException("Wrong number of arguments! (Must be 3, is ", inputs.size(), ")");
 				// GraphBasedPlanning::Evaluation::reset();
-				_config = std::make_shared<GraphBasedPlanning::ConfigData>(GraphBasedPlanning::make_config(inputs[1], _matlab));
-				_mpa = std::make_shared<GraphBasedPlanning::MPA>(GraphBasedPlanning::make_mpa(inputs[1], _config, _matlab));
+				_config = std::make_shared<GraphBasedPlanning::ConfigData>(GraphBasedPlanning::make_config(inputs[1], inputs[2], _matlab));
+				_mpa = std::make_shared<GraphBasedPlanning::MPA>(GraphBasedPlanning::make_mpa(inputs[2], _config, _matlab));
 
 				Printer::println("Initialized!");
 			} else {
 #if DO_EVAL
 				EvaluationDataSaver::Instance().start_iteration();
 #endif
+				if (inputs.size() != 2) throw MatlabException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
 				auto [next_nodes_array, predicted_trims_array, y_predicted_array /*, n_expanded*/] = run_centralized(inputs[1], Function);
 
 				outputs[0] = std::move(next_nodes_array);
