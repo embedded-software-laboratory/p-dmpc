@@ -17,7 +17,7 @@ namespace GraphBasedPlanning {
 		unsigned int const tick_per_step = static_cast<unsigned int>(tick_per_step_array[0][0]);
 
 		// get the time difference of the iterations
-		matlab::data::TypedArray<double> const dt_array = _matlab->getProperty(options_array, u"dt");
+		matlab::data::TypedArray<double> const dt_array = _matlab->getProperty(options_array, u"dt_seconds");
 		double const dt = dt_array[0][0];
 
 		// get the number of vehicles
