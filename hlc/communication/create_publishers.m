@@ -43,8 +43,8 @@ function create_publishers(hlc)
     timer_nodes = tic;
     disp('Creating ROS 2 nodes...');
 
-    for vehicle_id = hlc.plant.controlled_vehicle_ids
-        index = find(vehicle_id == hlc.plant.all_vehicle_ids);
+    for index = hlc.plant.indices_in_vehicle_list
+        vehicle_id = hlc.plant.all_vehicle_ids(index);
         % create instance of the communication class
         hlc.traffic_communication{index} = TrafficCommunication();
         % create node and store topic name and message type
