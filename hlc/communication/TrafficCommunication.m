@@ -2,7 +2,7 @@ classdef TrafficCommunication < HlcCommunication
     % communication class for Traffic message
 
     properties
-        pose_indices (1, 1) struct % index of x, y, heading, speed in a struct
+        pose_indices (1, 1) struct % indices of x, y, heading, speed
     end
 
     methods
@@ -11,7 +11,8 @@ classdef TrafficCommunication < HlcCommunication
             % create communication class to connect to ROS2 network
             % call superclass constructor
             obj = obj@HlcCommunication();
-            % instance of class that hold the indices for x, y, yaw, speed
+            % struct that hold the indices for x, y, heading, speed
+            % it is stored as member variable to create it only once
             obj.pose_indices = indices();
         end
 

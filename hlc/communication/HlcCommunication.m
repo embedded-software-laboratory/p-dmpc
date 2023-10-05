@@ -221,6 +221,8 @@ classdef (Abstract) HlcCommunication < handle
 
                 if any(is_found_message)
                     % return latest message
+                    % the last messages corresponds to the latest message
+                    % because new messages are always appended to the queue
                     latest_msg = obj.messages_stored( ...
                         find(is_found_message, 1, "last"));
                     is_found = true;
