@@ -117,6 +117,24 @@ classdef (Abstract) HighLevelController < handle
         controller(obj);
     end
 
+    methods (Access = protected)
+
+        function clean_up(obj)
+
+            if ~obj.success
+                disp("Storing unfinished results up on error:")
+                % Don't store the last time step with erroneous data.
+                obj.k = obj.k - 1;
+                % Save the unfinished results.
+                obj.scenario.options.should_save_result = true;
+                obj.result.output_path = 'results/unfinished_result.mat';
+                obj.save_results();
+            end
+
+        end
+
+    end
+
     methods (Access = private)
 
         function init_hlc(obj)
@@ -160,20 +178,6 @@ classdef (Abstract) HighLevelController < handle
             obj.plant.synchronize_start_with_plant();
 
             obj.timing.stop("init_hlc_time");
-        end
-
-        function clean_up(obj)
-
-            if ~obj.success
-                disp("Storing unfinished results up on error:")
-                % Don't store the last time step with erroneous data.
-                obj.k = obj.k - 1;
-                % Save the unfinished results.
-                obj.scenario.options.should_save_result = true;
-                obj.result.output_path = 'results/unfinished_result.mat';
-                obj.save_results();
-            end
-
         end
 
         function hlc_main_control_loop(obj)
