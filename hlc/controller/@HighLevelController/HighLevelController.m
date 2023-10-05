@@ -391,10 +391,6 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function save_results(obj)
-            % delete ros2 objects
-            obj.traffic_communication = {};
-            obj.predictions_communication = {};
-
             %% save results at end of experiment
             obj.result.total_fallback_times = obj.total_fallback_times;
             disp(['Total times of fallback: ' num2str(obj.total_fallback_times) '.'])
