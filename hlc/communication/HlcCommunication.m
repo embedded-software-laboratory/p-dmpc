@@ -155,7 +155,6 @@ classdef (Abstract) HlcCommunication < handle
                 timeout (1, 1) double = 100.0
             end
 
-            is_timeout = true;
             % start timer for detecting timeout
             read_start = tic; read_time = toc(read_start);
 
@@ -176,9 +175,7 @@ classdef (Abstract) HlcCommunication < handle
                     if any(is_found_message)
                         % only one message should be found
                         latest_msg = obj.messages_stored(is_found_message);
-                        % if message is found timeout is not triggered
-                        is_timeout = false;
-                        break;
+                        return;
                     end
 
                 end
@@ -189,14 +186,10 @@ classdef (Abstract) HlcCommunication < handle
                 pause(1e-4)
             end
 
-            if is_timeout
-
-                if throw_error
-                    error(['Unable to receive the current message ', ...
-                           'of step %d from vehicle %d within %d seconds'], ...
-                        time_step, vehicle_id_subscribed, timeout)
-                end
-
+            if throw_error
+                error(['Unable to receive the current message ', ...
+                       'of step %d from vehicle %d within %d seconds'], ...
+                    time_step, vehicle_id_subscribed, timeout)
             end
 
         end
