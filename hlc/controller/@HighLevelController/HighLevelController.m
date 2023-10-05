@@ -157,13 +157,6 @@ classdef (Abstract) HighLevelController < handle
 
             obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
 
-            if obj.scenario.options.is_prioritized
-                % In priority-based computation, vehicles communicate via ROS 2
-                % Create publishers and subscribers before experiment setup
-                create_publishers(obj);
-                create_subscribers(obj);
-            end
-
             % init all manually controlled vehicles
             for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
                 obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
@@ -171,6 +164,9 @@ classdef (Abstract) HighLevelController < handle
 
             if obj.scenario.options.is_prioritized
                 % In priority-based computation, vehicles communicate via ROS 2
+                % Create publishers and subscribers before experiment setup
+                create_publishers(obj);
+                create_subscribers(obj);
                 % Initialize the communication network of ROS 2
                 communication_init(obj);
             end
