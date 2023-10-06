@@ -218,29 +218,28 @@ classdef (Abstract) HlcCommunication < handle
                 vehicle_id_subscribed (1, 1) double
             end
 
-            is_found = false;
+            % initialize returned message
+            % used if queue is empty or no message is found
+            latest_msg = struct([]);
 
-            if ~isempty(obj.messages_stored)
-                % find messages by vehicle id
-                is_found_message = [obj.messages_stored.vehicle_id] == ...
-                    int32(vehicle_id_subscribed);
-
-                if any(is_found_message)
-                    % return latest message
-                    % the last messages corresponds to the latest message
-                    % because new messages are always appended to the queue
-                    latest_msg = obj.messages_stored( ...
-                        find(is_found_message, 1, "last"));
-                    is_found = true;
-                end
-
+            if isempty(obj.messages_stored)
+                return
             end
 
-            if ~is_found
-                % return empty struct if no message is found
-                latest_msg = struct([]);
+            is_found_message = ...
+                [obj.messages_stored.vehicle_id] == ...
+                int32(vehicle_id_subscribed);
+
+            if ~any(is_found_message)
+                return
             end
 
+            % return latest message
+            % the last message corresponds to the latest message
+            % because new messages are always appended at the end of the queue
+            latest_msg = obj.messages_stored( ...
+                find(is_found_message, 1, "last") ...
+            );
         end
 
     end
