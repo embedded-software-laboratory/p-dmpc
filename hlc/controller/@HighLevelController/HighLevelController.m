@@ -77,7 +77,7 @@ classdef (Abstract) HighLevelController < handle
 
         function [result, scenario] = run(obj)
             obj.init_hlc();
-            obj.hlc_main_control_loop();
+            obj.main_control_loop();
             obj.save_results();
 
             if obj.scenario.options.use_cpp()
@@ -170,7 +170,7 @@ classdef (Abstract) HighLevelController < handle
             obj.timing.stop("init_hlc_time");
         end
 
-        function hlc_main_control_loop(obj)
+        function main_control_loop(obj)
             cleanup = onCleanup(@obj.clean_up);
 
             %% Main control loop
