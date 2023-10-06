@@ -156,34 +156,47 @@ classdef (Abstract) HlcCommunication < handle
             end
 
             % start timer for detecting timeout
-            read_start = tic; read_time = toc(read_start);
+            read_start = tic;
 
             % initialize returned message
-            % used if queue is empty or timeout without error
+            % used if timeout without error
             latest_msg = struct([]);
 
-            while read_time < timeout
-
-                if ~isempty(obj.messages_stored)
-                    % find messages by vehicle id and time step
-                    is_found_message = ...
-                        [obj.messages_stored.vehicle_id] == ...
-                        int32(vehicle_id_subscribed) & ...
-                        [obj.messages_stored.time_step] == ...
-                        int32(time_step);
-
-                    if any(is_found_message)
-                        % only one message should be found
-                        latest_msg = obj.messages_stored(is_found_message);
-                        return;
-                    end
-
-                end
-
-                read_time = toc(read_start);
+            while true
+                % remark to pause before continue:
                 % pause is necessary that MATLAB can executed the callback
                 % function when the while loop is running
-                pause(1e-4)
+
+                % measure time to detect timeout
+                read_time = toc(read_start);
+
+                % leave loop when timeout is exceeded
+                if read_time > timeout
+                    break
+                end
+
+                % jump to next loop iteration when message queue is empty
+                if isempty(obj.messages_stored)
+                    pause(1e-4)
+                    continue
+                end
+
+                % find messages by vehicle id and time step
+                is_found_message = ...
+                    [obj.messages_stored.vehicle_id] == ...
+                    int32(vehicle_id_subscribed) & ...
+                    [obj.messages_stored.time_step] == ...
+                    int32(time_step);
+
+                % jump to next loop iteration if no message is found
+                if ~any(is_found_message)
+                    pause(1e-4)
+                    continue
+                end
+
+                % only one message should be found
+                latest_msg = obj.messages_stored(is_found_message);
+                return
             end
 
             if throw_error
