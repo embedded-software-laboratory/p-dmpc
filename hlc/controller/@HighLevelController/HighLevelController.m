@@ -8,12 +8,6 @@ classdef (Abstract) HighLevelController < handle
         % or one for a local simulation
         plant;
 
-        % instances of communication classes stored in a cell array
-        % contains one instance for each vehicle that is controlled by the hlc
-        % parallel/distributed execution: same size but only on entry that is not empty
-        traffic_communication (1, :) cell
-        predictions_communication (1, :) cell
-
         optimizer;
         mpa;
         controller_name;

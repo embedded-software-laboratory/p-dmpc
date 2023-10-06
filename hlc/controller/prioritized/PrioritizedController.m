@@ -1,5 +1,13 @@
 classdef (Abstract) PrioritizedController < HighLevelController
 
+    properties (Access = public)
+        % instances of communication classes stored in a cell array
+        % contains one instance for each vehicle that is controlled by the hlc
+        % parallel/distributed execution: same size but only on entry that is not empty
+        traffic_communication (1, :) cell
+        predictions_communication (1, :) cell
+    end
+
     properties (Access = protected)
         CL_based_hierarchy;
         lanelet_crossing_areas;
