@@ -113,6 +113,10 @@ classdef (Abstract) HighLevelController < handle
 
     methods (Access = protected)
 
+        function init_hlc_specialization(~)
+            % method that can be overwritten by child classes if necessary
+        end
+
         function clean_up(obj)
 
             if ~obj.success
@@ -156,14 +160,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
             end
 
-            if obj.scenario.options.is_prioritized
-                % In priority-based computation, vehicles communicate via ROS 2
-                % Create publishers and subscribers before experiment setup
-                create_publishers(obj);
-                create_subscribers(obj);
-                % Initialize the communication network of ROS 2
-                communication_init(obj);
-            end
+            obj.init_hlc_specialization();
 
             obj.plant.synchronize_start_with_plant();
 

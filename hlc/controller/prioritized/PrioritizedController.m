@@ -45,6 +45,14 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
     methods (Access = protected)
 
+        function init_hlc_specialization(obj)
+            % in priority-based computation, vehicles communicate via ROS 2
+            create_publishers(obj);
+            create_subscribers(obj);
+            % initialize the communication network of ROS 2
+            communication_init(obj);
+        end
+
         function runtime_others = init_step(obj)
             runtime_others_tic = tic;
 
