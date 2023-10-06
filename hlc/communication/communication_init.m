@@ -16,36 +16,36 @@ function communication_init(obj)
     %% Also used for initial synchronization for distributed runs
 
     % Communicate predicted trims, pridicted lanelets and areas to other vehicles
-    for veh_index = obj.plant.indices_in_vehicle_list
-        predicted_trims = repmat(trims_measured(veh_index), 1, Hp + 1); % current trim and predicted trims in the prediction horizon
+    for vehicle_index = obj.plant.indices_in_vehicle_list
+        predicted_trims = repmat(trims_measured(vehicle_index), 1, Hp + 1); % current trim and predicted trims in the prediction horizon
 
-        obj.iter.x0(veh_index, :) = x0_measured(veh_index, :);
+        obj.iter.x0(vehicle_index, :) = x0_measured(vehicle_index, :);
         % get own trim
-        obj.iter.trim_indices(veh_index) = trims_measured(veh_index);
-        x0 = obj.iter.x0(veh_index, indices().x);
-        y0 = obj.iter.x0(veh_index, indices().y);
-        heading = obj.iter.x0(veh_index, indices().heading);
-        speed = obj.iter.x0(veh_index, indices().speed);
+        obj.iter.trim_indices(vehicle_index) = trims_measured(vehicle_index);
+        x0 = obj.iter.x0(vehicle_index, indices().x);
+        y0 = obj.iter.x0(vehicle_index, indices().y);
+        heading = obj.iter.x0(vehicle_index, indices().heading);
+        speed = obj.iter.x0(vehicle_index, indices().speed);
         current_pose = [x0, y0, heading, speed];
 
-        predicted_lanelets = get_predicted_lanelets(obj.scenario, obj.mpa, obj.iter, veh_index, x0, y0);
+        predicted_lanelets = get_predicted_lanelets(obj.scenario, obj.mpa, obj.iter, vehicle_index, x0, y0);
 
         % get vehicles currently occupied area
-        x_rec1 = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(veh_index).Length / 2 + obj.scenario.options.offset); % repeat the first entry to enclose the shape
-        y_rec1 = [-1, 1, 1, -1, -1] * (obj.scenario.vehicles(veh_index).Width / 2 + obj.scenario.options.offset);
+        x_rec1 = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(vehicle_index).Length / 2 + obj.scenario.options.offset); % repeat the first entry to enclose the shape
+        y_rec1 = [-1, 1, 1, -1, -1] * (obj.scenario.vehicles(vehicle_index).Width / 2 + obj.scenario.options.offset);
         % calculate displacement of model shape
         [x_rec2, y_rec2] = translate_global(heading, x0, y0, x_rec1, y_rec1);
         occupied_area.normal_offset = [x_rec2; y_rec2];
 
-        x_rec1_without_offset = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(veh_index).Length / 2); % repeat the first entry to enclose the shape
-        y_rec1_without_offset = [-1, 1, 1, -1, -1] * (obj.scenario.vehicles(veh_index).Width / 2);
+        x_rec1_without_offset = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(vehicle_index).Length / 2); % repeat the first entry to enclose the shape
+        y_rec1_without_offset = [-1, 1, 1, -1, -1] * (obj.scenario.vehicles(vehicle_index).Width / 2);
         [x_rec2_without_offset, y_rec2_without_offset] = translate_global(heading, x0, y0, x_rec1_without_offset, y_rec1_without_offset);
         occupied_area.without_offset = [x_rec2_without_offset; y_rec2_without_offset];
 
         predicted_occupied_areas = {}; % for initial time step, the occupied areas are not predicted yet
         reachable_sets = {}; % for initial time step, the reachable sets are not computed yet
 
-        obj.traffic_communication{veh_index}.send_message( ...
+        obj.traffic_communication{vehicle_index}.send_message( ...
             obj.k, ...
             current_pose, ...
             predicted_trims(1), ...
@@ -53,7 +53,7 @@ function communication_init(obj)
             occupied_area, ...
             reachable_sets ...
         );
-        obj.predictions_communication{veh_index}.send_message( ...
+        obj.predictions_communication{vehicle_index}.send_message( ...
             obj.k, ...
             predicted_occupied_areas ...
         );
