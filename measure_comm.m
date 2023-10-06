@@ -19,7 +19,7 @@ subscription_experimentState = ros2subscriber(comm_node, "/experiment_state", "s
 
 % create subscription for controller invocation without a callback since we want to activly wait
 % only keep the last message in the queue, i.e., we throw away missed ones
-subscription_controllerInvocation = ros2subscriber(comm_node, "/controller_invocation", "uti_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
+subscription_plannerInvocation = ros2subscriber(comm_node, "/planner_invocation", "uti_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
 
 % create client such that we can ask for the testbed characteristics in the preparation phase
 client_testbedCharacteristics = ros2svcclient(comm_node, '/testbed_characteristics_request', 'uti_msgs/TestbedCharacteristics');
@@ -39,8 +39,8 @@ publisher_readyState = ros2publisher(comm_node, '/ready_state', 'uti_msgs/Ready'
 % create publisher for trajectory commands
 publisher_trajectoryCommand = ros2publisher(comm_node, '/trajectory_command', 'uti_msgs/TrajectoryCommand');
 
-% create publisher for vehicle controller period
-publisher_vehicleControllerPeriod = ros2publisher(comm_node, '/vehicle_controller_period', 'builtin_interfaces/Duration');
+% create publisher for motion planner period
+publisher_motionPlannerPeriod = ros2publisher(comm_node, '/motion_planner_period', 'builtin_interfaces/Duration');
 
 % create client with which we can ask the lab for specific vehicles
 [actionClient_vehiclesRequest, goal_msg] = ros2actionclient(comm_node, '/vehicles_request', 'uti_msgs/VehiclesRequest');
@@ -131,12 +131,12 @@ end
 
 disp('Successfully received testbed characteristics.');
 
-% Set vehicle controller period
-vehicle_controller_period_request = ros2message(publisher_vehicleControllerPeriod);
-vehicle_controller_period_request.nanosec = uint32(dt_period_nanos);
-send(publisher_vehicleControllerPeriod, vehicle_controller_period_request);
+% Set motion planner period
+motion_planner_period_request = ros2message(publisher_motionPlannerPeriod);
+motion_planner_period_request.nanosec = uint32(dt_period_nanos);
+send(publisher_motionPlannerPeriod, motion_planner_period_request);
 
-disp('Sent request for vehicle controller period.');
+disp('Sent request for motion planner period.');
 
 % Request the vehicle ids which shall be used in this experiment (this should be an action, but we use only the initial message)
 % TODO: This assumes that the assigned vehicles are all vehicles needed in the experiment. Correct?
@@ -158,7 +158,7 @@ send(publisher_readyState, ready_msg);
 
 for veh_id = veh_ids
     ready_msg = ros2message(publisher_readyState);
-    ready_msg.entity = 'vehicle_controller';
+    ready_msg.entity = 'motion_planner';
     ready_msg.id = int32(veh_id);
     send(publisher_readyState, ready_msg);
 end
@@ -196,7 +196,7 @@ while (true)
     new_sample_received = false;
     while (~new_sample_received)
         try
-            new_sample = receive(subscription_controllerInvocation, 1);
+            new_sample = receive(subscription_plannerInvocation, 1);
             %disp(new_sample.eval-ros2time(comm_node,"now"));
             new_sample_received = true;
         catch % Timeout

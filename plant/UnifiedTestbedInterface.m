@@ -4,14 +4,14 @@ classdef UnifiedTestbedInterface < Plant
     properties (Access = private)
         comm_node %matlabParticipant
         subscription_experimentState
-        subscription_controllerInvocation % = vehicleStateList
+        subscription_plannerInvocation % = vehicleStateList
         client_testbedCharacteristics
         client_scaleRegistration
         client_mapDefinition % for defining the map
         client_mapRequest % for receiving the defined map
         publisher_readyState
         publisher_trajectoryCommand
-        publisher_vehicleControllerPeriod
+        publisher_motionPlannerPeriod
         actionClient_vehiclesRequest
         goal_msg % Contains the action client goal message
         goal_handle % Handle for action client goal
@@ -80,12 +80,12 @@ classdef UnifiedTestbedInterface < Plant
 
             disp('Successfully received testbed characteristics.');
 
-            % Set vehicle controller period
-            vehicle_controller_period_request = ros2message(obj.publisher_vehicleControllerPeriod);
-            vehicle_controller_period_request.nanosec = uint32(obj.dt_period_nanos);
-            send(obj.publisher_vehicleControllerPeriod, vehicle_controller_period_request);
+            % Set motion planner period
+            motion_planner_period_request = ros2message(obj.publisher_motionPlannerPeriod);
+            motion_planner_period_request.nanosec = uint32(obj.dt_period_nanos);
+            send(obj.publisher_motionPlannerPeriod, motion_planner_period_request);
 
-            disp('Sent request for vehicle controller period.');
+            disp('Sent request for motion planner period.');
 
             % Request the vehicle ids which shall be used in this experiment (this should be an action, but we use only the initial message)
             % TODO: This assumes that the assigned vehicles are all vehicles needed in the experiment. Correct?
@@ -107,7 +107,7 @@ classdef UnifiedTestbedInterface < Plant
 
             for veh_id = obj.veh_ids
                 ready_msg = ros2message(obj.publisher_readyState);
-                ready_msg.entity = 'vehicle_controller';
+                ready_msg.entity = 'motion_planner';
                 ready_msg.id = int32(veh_id);
                 send(obj.publisher_readyState, ready_msg);
             end
@@ -133,7 +133,7 @@ classdef UnifiedTestbedInterface < Plant
             while (~new_sample_received)
 
                 try
-                    new_sample = receive(obj.subscription_controllerInvocation, 1);
+                    new_sample = receive(obj.subscription_plannerInvocation, 1);
                     %disp(new_sample.eval-ros2time(obj.comm_node,"now"));
                     new_sample_received = true;
                 catch % Timeout
@@ -412,9 +412,9 @@ classdef UnifiedTestbedInterface < Plant
                 @obj.on_experiment_state_change, Durability = "transientlocal", Reliability = "reliable", ...
                 History = "keeplast", Depth = 2);
 
-            % create subscription for controller invocation without a callback since we want to activly wait
+            % create subscription for planner invocation without a callback since we want to activly wait
             % only keep the last message in the queue, i.e., we throw away missed ones
-            obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "uti_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
+            obj.subscription_plannerInvocation = ros2subscriber(obj.comm_node, "/planner_invocation", "uti_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
 
             % create client such that we can ask for the testbed characteristics in the preparation phase
             obj.client_testbedCharacteristics = ros2svcclient(obj.comm_node, '/testbed_characteristics_request', 'uti_msgs/TestbedCharacteristics');
@@ -434,8 +434,8 @@ classdef UnifiedTestbedInterface < Plant
             % create publisher for trajectory commands
             obj.publisher_trajectoryCommand = ros2publisher(obj.comm_node, '/trajectory_command', 'uti_msgs/TrajectoryCommand');
 
-            % create publisher for vehicle controller period
-            obj.publisher_vehicleControllerPeriod = ros2publisher(obj.comm_node, '/vehicle_controller_period', 'builtin_interfaces/Duration');
+            % create publisher for motion planner period
+            obj.publisher_motionPlannerPeriod = ros2publisher(obj.comm_node, '/motion_planner_period', 'builtin_interfaces/Duration');
 
             % create client with which we can ask the lab for specific vehicles
             [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'uti_msgs/VehiclesRequest');
