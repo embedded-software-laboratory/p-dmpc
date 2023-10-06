@@ -7,9 +7,6 @@ function create_publishers(hlc)
     %   hlc: handle of high level controller
     %
 
-    % generated message types if not already existing
-    hlc_ros2gen();
-
     timer_nodes = tic;
     disp('Creating ROS 2 nodes...');
 
