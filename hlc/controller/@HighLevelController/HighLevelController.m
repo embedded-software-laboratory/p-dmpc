@@ -109,6 +109,7 @@ classdef (Abstract) HighLevelController < handle
 
     methods (Abstract = true, Access = protected)
         controller(obj);
+        handle_fallback(obj);
     end
 
     methods (Access = protected)
@@ -252,7 +253,7 @@ classdef (Abstract) HighLevelController < handle
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
 
                         % plan for fallback case
-                        pb_controller_fallback(obj);
+                        obj.handle_fallback();
                         obj.total_fallback_times = obj.total_fallback_times + 1;
                     end
 
