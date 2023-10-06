@@ -540,6 +540,52 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
+        function collect_fallback(obj)
+            % collect fallback from other controllers
+
+            for vehicle_index_hlc = obj.plant.indices_in_vehicle_list
+                % own vehicle and vehicles that are already remembered to take fallback
+                irrelevant_vehicles = union(vehicle_index_hlc, obj.info.vehs_fallback);
+
+                if obj.scenario.options.fallback_type == FallbackType.local_fallback
+                    sub_graph_fallback = obj.belonging_vector_total(vehicle_index_hlc);
+                    % vehicles in the subgraph to check for fallback
+                    other_vehicles = find(obj.belonging_vector_total == sub_graph_fallback);
+                    % remove irrelevant vehicles which have not to be checked for fallback
+                    other_vehicles = setdiff(other_vehicles, irrelevant_vehicles, 'stable');
+
+                    for veh_id = other_vehicles
+                        latest_msg = obj.predictions_communication{vehicle_index_hlc}.read_message( ...
+                            obj.plant.all_vehicle_ids(veh_id), ...
+                            obj.k, ...
+                            true ...
+                        );
+                        fallback_info_veh_id = latest_msg.vehs_fallback';
+                        obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
+                    end
+
+                else
+                    % vehicles in the total graph to check for fallback
+                    other_vehicles = 1:obj.scenario.options.amount;
+                    % remove irrelevant vehicles which have not to be checked for fallback
+                    other_vehicles = setdiff(other_vehicles, irrelevant_vehicles);
+
+                    for veh_id = other_vehicles
+                        latest_msg = obj.predictions_communication{vehicle_index_hlc}.read_message( ...
+                            obj.plant.all_vehicle_ids(veh_id), ...
+                            obj.k, ...
+                            true ...
+                        );
+                        fallback_info_veh_id = latest_msg.vehs_fallback';
+                        obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
+                    end
+
+                end
+
+            end
+
+        end
+
         function clean_up(obj)
             % delete ros2 objects
             obj.traffic_communication = {};
