@@ -2,6 +2,7 @@ function create_subscribers(hlc)
     % create_subscribers This function creates the ROS subscribers for the given hlc.
     % ROS 2 nodes are created for each vehicle. Each vehicle has its own topic
     % and sends its data only to its own topic.
+    % As a precondition, generate_ros2_msgs() must have been called before.
     %
     % INPUT:
     %   hlc: Controller implementing the HighLevelController

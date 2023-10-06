@@ -14,6 +14,11 @@ function [result, scenario] = main_distributed(vehicle_id)
     % set active vehicle IDs and initialize communication
     plant.setup(scenario, [], vehicle_id);
 
+    % In priority-based computation, vehicles communicate via ROS 2.
+    % main.m will have deleted the ros2 message types before distributing the code.
+    % Therefore, the the ros2 message types need to be created here before experiment setup.
+    generate_ros2_msgs();
+
     % get HLC
     factory = HLCFactory();
     factory.set_scenario(scenario);
