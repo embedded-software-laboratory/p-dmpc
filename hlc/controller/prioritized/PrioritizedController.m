@@ -49,10 +49,52 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % generated message types if not already existing
             hlc_ros2gen();
             % in priority-based computation, vehicles communicate via ROS 2
-            create_publishers(obj);
-            create_subscribers(obj);
+            timer = tic;
+            fprintf('Creating ROS2 objects ... ');
+            obj.create_ros2_objects();
+            fprintf(' in %f seconds.\n', toc(timer));
             % initialize the communication network of ROS 2
             communication_init(obj);
+        end
+
+        function create_ros2_objects(obj)
+
+            for vehicle_index = obj.plant.indices_in_vehicle_list
+                vehicle_id = obj.plant.all_vehicle_ids(vehicle_index);
+
+                % create instance of the communication class
+                obj.traffic_communication{vehicle_index} = TrafficCommunication();
+                obj.predictions_communication{vehicle_index} = PredictionsCommunication();
+
+                % create node and store topic name and message type
+                obj.traffic_communication{vehicle_index}.initialize( ...
+                    vehicle_id, ...
+                    'traffic', ...
+                    '/vehicle_traffic', ...
+                    'veh_msgs/Traffic' ...
+                );
+                obj.predictions_communication{vehicle_index}.initialize( ...
+                    vehicle_id, ...
+                    'prediction', ...
+                    '/vehicle_prediction', ...
+                    'veh_msgs/Predictions' ...
+                );
+
+                % create publishers
+                obj.traffic_communication{vehicle_index}.create_publisher();
+                obj.predictions_communication{vehicle_index}.create_publisher();
+
+                % create subscribers
+                obj.traffic_communication{vehicle_index}.create_subscriber();
+                obj.predictions_communication{vehicle_index}.create_subscriber();
+            end
+
+            if length(obj.plant.indices_in_vehicle_list) == 1
+                % wait for all subscribers to be created in distributed case,
+                % because otherwise early sent messages will be lost.
+                pause(5.0);
+            end
+
         end
 
         function runtime_others = init_step(obj)
