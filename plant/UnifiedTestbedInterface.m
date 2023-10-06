@@ -16,7 +16,7 @@ classdef UnifiedTestbedInterface < Plant
         goal_msg % Contains the action client goal message
         goal_handle % Handle for action client goal
 
-        lab_properties
+        testbed_characteristics
         map_comm_done = false % true if either the default map was requested or an own one was successfully defined
         is_ros2_prepared = false % ensures that ros2 subscribers/publisher/... are only created once
         got_start = false
@@ -70,15 +70,15 @@ classdef UnifiedTestbedInterface < Plant
                 obj.set_map_in_lab(fileread(scenario.road_data_file_path));
             end
 
-            % Request lab properties
-            lab_properties_request = ros2message(obj.client_testbedCharacteristics);
-            obj.lab_properties = call(obj.client_testbedCharacteristics, lab_properties_request);
+            % Request testbed characteristics
+            testbed_characteristics_request = ros2message(obj.client_testbedCharacteristics);
+            obj.testbed_characteristics = call(obj.client_testbedCharacteristics, testbed_characteristics_request);
 
-            if (~obj.lab_properties.valid)
-                error('Lab properties request was not successful. Scaling service returned an error.');
+            if (~obj.testbed_characteristics.valid)
+                error('testbed characteristics request was not successful. Scaling service returned an error.');
             end
 
-            disp('Successfully received lab properties.');
+            disp('Successfully received testbed characteristics.');
 
             % Set vehicle controller period
             vehicle_controller_period_request = ros2message(obj.publisher_vehicleControllerPeriod);
@@ -416,8 +416,8 @@ classdef UnifiedTestbedInterface < Plant
             % only keep the last message in the queue, i.e., we throw away missed ones
             obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "uti_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
 
-            % create client such that we can ask for the lab properties in the preparation phase
-            obj.client_testbedCharacteristics = ros2svcclient(obj.comm_node, '/lab_properties_request', 'uti_msgs/TestbedCharacteristics');
+            % create client such that we can ask for the testbed characteristics in the preparation phase
+            obj.client_testbedCharacteristics = ros2svcclient(obj.comm_node, '/testbed_characteristics_request', 'uti_msgs/TestbedCharacteristics');
 
             % create client such that we can register the scale we want to use within the scaling node
             obj.client_scaleRegistration = ros2svcclient(obj.comm_node, '/scale_registration', 'uti_msgs/ScaleRegistration');

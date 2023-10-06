@@ -21,8 +21,8 @@ subscription_experimentState = ros2subscriber(comm_node, "/experiment_state", "s
 % only keep the last message in the queue, i.e., we throw away missed ones
 subscription_controllerInvocation = ros2subscriber(comm_node, "/controller_invocation", "uti_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
 
-% create client such that we can ask for the lab properties in the preparation phase
-client_testbedCharacteristics = ros2svcclient(comm_node, '/lab_properties_request', 'uti_msgs/TestbedCharacteristics');
+% create client such that we can ask for the testbed characteristics in the preparation phase
+client_testbedCharacteristics = ros2svcclient(comm_node, '/testbed_characteristics_request', 'uti_msgs/TestbedCharacteristics');
 
 % create client such that we can register the scale we want to use within the scaling node
 client_scaleRegistration = ros2svcclient(comm_node, '/scale_registration', 'uti_msgs/ScaleRegistration');
@@ -121,15 +121,15 @@ disp('Successfully registered map.');
 % end
 
 
-% Request lab properties
-lab_properties_request = ros2message(client_testbedCharacteristics);
-lab_properties = call(client_testbedCharacteristics, lab_properties_request);
+% Request testbed characteristics
+testbed_characteristics_request = ros2message(client_testbedCharacteristics);
+testbed_characteristics = call(client_testbedCharacteristics, testbed_characteristics_request);
 
-if (~lab_properties.valid)
-    error('Lab properties request was not successful. Scaling service returned an error.');
+if (~testbed_characteristics.valid)
+    error('testbed characteristics request was not successful. Scaling service returned an error.');
 end
 
-disp('Successfully received lab properties.');
+disp('Successfully received testbed characteristics.');
 
 % Set vehicle controller period
 vehicle_controller_period_request = ros2message(publisher_vehicleControllerPeriod);
