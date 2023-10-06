@@ -4,7 +4,7 @@ veh_ids = [1,2,3];
 n_veh = 3;
 
 % generated message types if not already existing
-ula_ros2gen();
+uti_ros2gen();
 
 disp('Setup. Phase 2: Creation of all reader and writes...');
 %matlabDomainId = 1; %TODO: If not working try str2double(getenv('DDS_DOMAIN'))
@@ -19,33 +19,33 @@ subscription_experimentState = ros2subscriber(comm_node, "/experiment_state", "s
 
 % create subscription for controller invocation without a callback since we want to activly wait
 % only keep the last message in the queue, i.e., we throw away missed ones
-subscription_controllerInvocation = ros2subscriber(comm_node, "/controller_invocation", "ula_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
+subscription_controllerInvocation = ros2subscriber(comm_node, "/controller_invocation", "uti_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
 
 % create client such that we can ask for the lab properties in the preparation phase
-client_labProperties = ros2svcclient(comm_node, '/lab_properties_request', 'ula_msgs/LabProperties');
+client_testbedCharacteristics = ros2svcclient(comm_node, '/lab_properties_request', 'uti_msgs/TestbedCharacteristics');
 
 % create client such that we can register the scale we want to use within the scaling node
-client_scaleRegistration = ros2svcclient(comm_node, '/scale_registration', 'ula_msgs/ScaleRegistration');
+client_scaleRegistration = ros2svcclient(comm_node, '/scale_registration', 'uti_msgs/ScaleRegistration');
 
 % create client with which we can define the map we want to use
-client_mapDefinition = ros2svcclient(comm_node, '/map_definition_request', 'ula_msgs/MapDefinition');
+client_mapDefinition = ros2svcclient(comm_node, '/map_definition_request', 'uti_msgs/MapDefinition');
 
 % create client with which we can receive the defined map
-client_mapRequest = ros2svcclient(comm_node, '/map_request', 'ula_msgs/MapRequest');
+client_mapRequest = ros2svcclient(comm_node, '/map_request', 'uti_msgs/MapRequest');
 
 % create publisher for ready state
-publisher_readyState = ros2publisher(comm_node, '/ready_state', 'ula_msgs/Ready');
+publisher_readyState = ros2publisher(comm_node, '/ready_state', 'uti_msgs/Ready');
 
 % create publisher for trajectory commands
-publisher_trajectoryCommand = ros2publisher(comm_node, '/trajectory_command', 'ula_msgs/TrajectoryCommand');
+publisher_trajectoryCommand = ros2publisher(comm_node, '/trajectory_command', 'uti_msgs/TrajectoryCommand');
 
 % create publisher for vehicle controller period
 publisher_vehicleControllerPeriod = ros2publisher(comm_node, '/vehicle_controller_period', 'builtin_interfaces/Duration');
 
 % create client with which we can ask the lab for specific vehicles
-[actionClient_vehiclesRequest, goal_msg] = ros2actionclient(comm_node, '/vehicles_request', 'ula_msgs/VehiclesRequest');
+[actionClient_vehiclesRequest, goal_msg] = ros2actionclient(comm_node, '/vehicles_request', 'uti_msgs/VehiclesRequest');
 % Since matlab does not provide support for actions, we use a normal message via the action bridge node
-% actionClient_vehiclesRequest = ros2publisher(comm_node, '/vehicles_request_action_bridge_goal', 'ula_msgs/VehicleIDs');
+% actionClient_vehiclesRequest = ros2publisher(comm_node, '/vehicles_request_action_bridge_goal', 'uti_msgs/VehicleIDs');
 
 % % NEEDED???
 % % create writer for lab visualization
@@ -108,22 +108,22 @@ disp('Successfully registered map.');
 % if nargin == 1 % no map given--> lab's default was successfully requested but now we still want to get it
 %     map_request = ros2message(client_mapRequest);
 %     map_request_response = call(client_mapRequest, map_request);
-% 
+%
 %     if (~map_request_response.defined)
 %         error('Map request was not successful. The lab returned that no map is currently defined.');
 %     end
-% 
+%
 %     if (~map_request_response.valid)
 %         error('Map request was not successful. Scaling service returned an error.');
 %     end
-% 
+%
 %     map_as_string = map_request_response.map;
 % end
 
 
 % Request lab properties
-lab_properties_request = ros2message(client_labProperties);
-lab_properties = call(client_labProperties, lab_properties_request);
+lab_properties_request = ros2message(client_testbedCharacteristics);
+lab_properties = call(client_testbedCharacteristics, lab_properties_request);
 
 if (~lab_properties.valid)
     error('Lab properties request was not successful. Scaling service returned an error.');
@@ -171,7 +171,7 @@ disp('Start loop...');
 
 % Generate trajectories upfront
 n_traj_pts = 4;
-trajectory_points(1:n_traj_pts) = ros2message('ula_msgs/TrajectoryPoint');
+trajectory_points(1:n_traj_pts) = ros2message('uti_msgs/TrajectoryPoint');
 for i_traj_pt = 1:n_traj_pts
     % Only dummy values
     trajectory_points(i_traj_pt).t = struct('sec',int32(0),'nanosec',uint32(0));
@@ -205,7 +205,7 @@ while (true)
 
     sample = new_sample;
 
-    
+
     for iVeh = veh_ids
         vehicle_command_trajectory(iVeh).eval = sample.eval; % Just forward time. Subtraject computation time of P-DMPC here later on
         send(publisher_trajectoryCommand, vehicle_command_trajectory(iVeh));

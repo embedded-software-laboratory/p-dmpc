@@ -39,7 +39,7 @@ function scenario = create_scenario(options, random_seed, plant)
         options.veh_ids = sort(vehicle_ids);
         options.is_manual_control = 0;
     else
-        disp('Running in CPM Lab or via Unified Lab API...')
+        disp('Running in CPM Lab or via Unified Testbed Interface...')
         vehicle_ids = options.veh_ids;
         options.is_prioritized = true;
 

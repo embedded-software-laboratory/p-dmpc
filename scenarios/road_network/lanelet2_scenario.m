@@ -11,16 +11,16 @@ function scenario = lanelet2_scenario(options, vehicle_ids, plant)
 
     % get road data
     if options.scenario_type == ScenarioType.lab_default
-        % ULA is required for that.
-        assert(isa(plant, "UnifiedLabApi"));
+        % UTI is required for that.
+        assert(isa(plant, "UnifiedTestbedInterface"));
 
-        disp('Retrieve map from lab via unified lab API.')
+        disp('Retrieve map from lab via unified testbed interface.')
 
-        % Receive map via ULA interface
+        % Receive map via UTI
         map_as_string = plant.receive_map();
 
         % Store string in temporary file
-        tmp_file_name = 'received_lanelet2_map_via_unifiedLabAPI.osm';
+        tmp_file_name = 'received_lanelet2_map_via_unifiedTestbedInterface.osm';
         writelines(map_as_string, [tempdir, filesep, tmp_file_name]);
 
         % Retrieve road data

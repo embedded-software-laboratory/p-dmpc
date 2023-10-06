@@ -65,7 +65,7 @@ function [result, scenario] = main(varargin)
     else
         hlc_factory = HLCFactory();
         hlc_factory.set_scenario(scenario);
-        dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
+        dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified testbed interface?
 
         if scenario.options.use_cpp
             optimizer(Function.CheckMexFunction);

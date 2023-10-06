@@ -7,7 +7,7 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
     %
     %   lanelets_index: IDs of the full lanelets
     %
-    %   environment: which environment is used (simulation, cpmlab, unified lab api)
+    %   environment: which environment is used (simulation, cpmlab, unified testbed interface)
     %
     %   is_loop: if the reference path is a loop
     %

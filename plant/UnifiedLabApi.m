@@ -1,11 +1,11 @@
-classdef UnifiedLabApi < Plant
-    % UNIFIEDLABPI    Instance of experiment interface for usage via the generalized lab api.
+classdef UnifiedTestbedInterface < Plant
+    % UNIFIEDTESTBEDINTERFACE    Instance of experiment interface for usage via the unified testbed interface.
 
     properties (Access = private)
         comm_node %matlabParticipant
         subscription_experimentState
         subscription_controllerInvocation % = vehicleStateList
-        client_labProperties
+        client_testbedCharacteristics
         client_scaleRegistration
         client_mapDefinition % for defining the map
         client_mapRequest % for receiving the defined map
@@ -31,7 +31,7 @@ classdef UnifiedLabApi < Plant
 
     methods
 
-        function obj = UnifiedLabApi()
+        function obj = UnifiedTestbedInterface()
             obj = obj@Plant();
             obj.pos_init = false;
 
@@ -42,7 +42,7 @@ classdef UnifiedLabApi < Plant
         end
 
         function map_as_string = receive_map(obj)
-            % ULA allows to receive a default map from the lab.
+            % UTI allows to receive a default map from the lab.
             % The return value is the file content of an .osm file as
             % string.
             obj.prepare_ros2();
@@ -71,8 +71,8 @@ classdef UnifiedLabApi < Plant
             end
 
             % Request lab properties
-            lab_properties_request = ros2message(obj.client_labProperties);
-            obj.lab_properties = call(obj.client_labProperties, lab_properties_request);
+            lab_properties_request = ros2message(obj.client_testbedCharacteristics);
+            obj.lab_properties = call(obj.client_testbedCharacteristics, lab_properties_request);
 
             if (~obj.lab_properties.valid)
                 error('Lab properties request was not successful. Scaling service returned an error.');
@@ -221,7 +221,7 @@ classdef UnifiedLabApi < Plant
                 n_traj_pts = obj.scenario.options.Hp;
                 n_predicted_points = size(y_pred{iVeh}, 1);
                 idx_predicted_points = 1:n_predicted_points / n_traj_pts:n_predicted_points;
-                trajectory_points(1:n_traj_pts) = ros2message('ula_msgs/TrajectoryPoint');
+                trajectory_points(1:n_traj_pts) = ros2message('uti_msgs/TrajectoryPoint');
 
                 for i_traj_pt = 1:n_traj_pts
                     i_predicted_points = idx_predicted_points(i_traj_pt);
@@ -400,7 +400,7 @@ classdef UnifiedLabApi < Plant
             disp('Setup. Phase 1: Generation of ROS2 messages...');
 
             % generated message types if not already existing
-            ula_ros2gen();
+            uti_ros2gen();
 
             disp('Setup. Phase 2: Creation of all reader and writes...');
             %matlabDomainId = 1; %TODO: If not working try str2double(getenv('DDS_DOMAIN'))
@@ -414,33 +414,33 @@ classdef UnifiedLabApi < Plant
 
             % create subscription for controller invocation without a callback since we want to activly wait
             % only keep the last message in the queue, i.e., we throw away missed ones
-            obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "ula_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
+            obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "uti_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
 
             % create client such that we can ask for the lab properties in the preparation phase
-            obj.client_labProperties = ros2svcclient(obj.comm_node, '/lab_properties_request', 'ula_msgs/LabProperties');
+            obj.client_testbedCharacteristics = ros2svcclient(obj.comm_node, '/lab_properties_request', 'uti_msgs/TestbedCharacteristics');
 
             % create client such that we can register the scale we want to use within the scaling node
-            obj.client_scaleRegistration = ros2svcclient(obj.comm_node, '/scale_registration', 'ula_msgs/ScaleRegistration');
+            obj.client_scaleRegistration = ros2svcclient(obj.comm_node, '/scale_registration', 'uti_msgs/ScaleRegistration');
 
             % create client with which we can define the map we want to use
-            obj.client_mapDefinition = ros2svcclient(obj.comm_node, '/map_definition_request', 'ula_msgs/MapDefinition');
+            obj.client_mapDefinition = ros2svcclient(obj.comm_node, '/map_definition_request', 'uti_msgs/MapDefinition');
 
             % create client with which we can receive the defined map
-            obj.client_mapRequest = ros2svcclient(obj.comm_node, '/map_request', 'ula_msgs/MapRequest');
+            obj.client_mapRequest = ros2svcclient(obj.comm_node, '/map_request', 'uti_msgs/MapRequest');
 
             % create publisher for ready state
-            obj.publisher_readyState = ros2publisher(obj.comm_node, '/ready_state', 'ula_msgs/Ready');
+            obj.publisher_readyState = ros2publisher(obj.comm_node, '/ready_state', 'uti_msgs/Ready');
 
             % create publisher for trajectory commands
-            obj.publisher_trajectoryCommand = ros2publisher(obj.comm_node, '/trajectory_command', 'ula_msgs/TrajectoryCommand');
+            obj.publisher_trajectoryCommand = ros2publisher(obj.comm_node, '/trajectory_command', 'uti_msgs/TrajectoryCommand');
 
             % create publisher for vehicle controller period
             obj.publisher_vehicleControllerPeriod = ros2publisher(obj.comm_node, '/vehicle_controller_period', 'builtin_interfaces/Duration');
 
             % create client with which we can ask the lab for specific vehicles
-            [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'ula_msgs/VehiclesRequest');
+            [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'uti_msgs/VehiclesRequest');
             % Since matlab does not provide support for actions, we use a normal message via the action bridge node
-            % obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'ula_msgs/VehicleIDs');
+            % obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'uti_msgs/VehicleIDs');
 
             % % NEEDED???
             % % create writer for lab visualization
