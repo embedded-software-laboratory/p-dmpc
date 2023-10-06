@@ -1,21 +1,21 @@
-function create_publishers(hlc)
+function create_publishers(obj)
     % creates ros2 publisher for the given high level controller
     % for each controlled vehicle a ros2 node is created
     % all vehicles share topics for related messages
     %
     % INPUT:
-    %   hlc: handle of high level controller
+    %   obj: handle of prioritized controller
     %
 
     timer_nodes = tic;
     disp('Creating ROS 2 nodes...');
 
-    for vehicle_index = hlc.plant.indices_in_vehicle_list
-        vehicle_id = hlc.plant.all_vehicle_ids(vehicle_index);
+    for vehicle_index = obj.plant.indices_in_vehicle_list
+        vehicle_id = obj.plant.all_vehicle_ids(vehicle_index);
         % create instance of the communication class
-        hlc.traffic_communication{vehicle_index} = TrafficCommunication();
+        obj.traffic_communication{vehicle_index} = TrafficCommunication();
         % create node and store topic name and message type
-        hlc.traffic_communication{vehicle_index}.initialize( ...
+        obj.traffic_communication{vehicle_index}.initialize( ...
             vehicle_id, ...
             'traffic', ...
             '/vehicle_traffic', ...
@@ -23,9 +23,9 @@ function create_publishers(hlc)
         );
 
         % create instance of the communication class
-        hlc.predictions_communication{vehicle_index} = PredictionsCommunication();
+        obj.predictions_communication{vehicle_index} = PredictionsCommunication();
         % create node and store topic name and message type
-        hlc.predictions_communication{vehicle_index}.initialize( ...
+        obj.predictions_communication{vehicle_index}.initialize( ...
             vehicle_id, ...
             'prediction', ...
             '/vehicle_prediction', ...
@@ -40,10 +40,10 @@ function create_publishers(hlc)
     timer_publisher = tic;
     disp('Creating ROS 2 publishers...');
 
-    for vehicle_index = hlc.plant.indices_in_vehicle_list
+    for vehicle_index = obj.plant.indices_in_vehicle_list
         % create publishers
-        hlc.traffic_communication{vehicle_index}.create_publisher();
-        hlc.predictions_communication{vehicle_index}.create_publisher();
+        obj.traffic_communication{vehicle_index}.create_publisher();
+        obj.predictions_communication{vehicle_index}.create_publisher();
     end
 
     duration_publisher = toc(timer_publisher);
