@@ -123,16 +123,6 @@ classdef (Abstract) HighLevelController < handle
 
         function clean_up(obj)
 
-            if ~obj.success
-                disp("Storing unfinished results up on error:")
-                % Don't store the last time step with erroneous data.
-                obj.k = obj.k - 1;
-                % Save the unfinished results.
-                obj.scenario.options.should_save_result = true;
-                obj.result.output_path = 'results/unfinished_result.mat';
-                obj.save_results();
-            end
-
             if obj.scenario.options.use_cpp()
 
                 if ismac()
@@ -345,6 +335,17 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function end_run(obj)
+
+            if ~obj.success
+                disp("Storing unfinished results up on error:")
+                % Don't store the last time step with erroneous data.
+                obj.k = obj.k - 1;
+                % Save the unfinished results.
+                obj.scenario.options.should_save_result = true;
+                obj.result.output_path = 'results/unfinished_result.mat';
+                obj.save_results();
+            end
+
             obj.clean_up();
         end
 
