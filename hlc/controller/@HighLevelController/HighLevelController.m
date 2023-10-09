@@ -179,7 +179,7 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function main_control_loop(obj)
-            cleanup = onCleanup(@obj.clean_up);
+            cleanup = onCleanup(@obj.end_run);
 
             %% Main control loop
             while (~obj.got_stop)
@@ -342,6 +342,10 @@ classdef (Abstract) HighLevelController < handle
             end
 
             obj.success = true;
+        end
+
+        function end_run(obj)
+            obj.clean_up();
         end
 
         function save_results(obj)
