@@ -132,23 +132,28 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function clean_up(obj)
+            % release memory allocated by mex files
 
-            if obj.scenario.options.use_cpp()
-
-                if ismac()
-                    % clear mex dont work on ARM Mac
-                    [~, cmdout] = system('sysctl machdep.cpu.brand_string');
-                    matches = regexp(cmdout, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
-
-                    if isempty(matches)
-                        clear mex;
-                    end
-
-                else
-                    clear mex;
-                end
-
+            if ~obj.scenario.options.use_cpp()
+                return
             end
+
+            % clear mex on all other computers
+            if ~ismac()
+                clear mex
+                return
+            end
+
+            % clear mex does not work on Mac with ARM chip
+            [~, cmdout] = system('sysctl machdep.cpu.brand_string');
+            matches = regexp(cmdout, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
+
+            if isempty(matches)
+                clear mex
+                return
+            end
+
+            % TODO alternative for clear mex on Mac with ARM chip
 
         end
 
