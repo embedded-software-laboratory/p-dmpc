@@ -540,8 +540,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function collect_fallback(obj)
-            % collect fallback from other controllers
+        function check_fallback(obj)
+            % check for fallback in other controllers
 
             for vehicle_index_hlc = obj.plant.indices_in_vehicle_list
                 % own vehicle and vehicles that are already remembered to take fallback

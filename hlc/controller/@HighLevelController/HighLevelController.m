@@ -118,7 +118,7 @@ classdef (Abstract) HighLevelController < handle
             % method that can be overwritten by child classes if necessary
         end
 
-        function collect_fallback(~)
+        function check_fallback(~)
             % method that can be overwritten by child classes if necessary
         end
 
@@ -225,7 +225,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.controller();
 
                 %% collect fallbacks %%
-                obj.collect_fallback();
+                obj.check_fallback();
 
                 %% fallback
                 if obj.scenario.options.fallback_type == FallbackType.no_fallback
