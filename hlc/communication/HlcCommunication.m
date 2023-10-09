@@ -109,7 +109,7 @@ classdef (Abstract) HlcCommunication < handle
 
             if int32(obj.vehicle_id) == message_received.vehicle_id
                 % if triggered by own message, do nothing
-                return;
+                return
             end
 
             if isempty(obj.messages_stored)
@@ -131,10 +131,10 @@ classdef (Abstract) HlcCommunication < handle
 
             % delete messages older than a certain time steps compared to
             % the time step of newly received message
-            message_age_threshold = 2;
+            message_age_maximum = 2;
             is_msg_expired = ...
                 [obj.messages_stored.time_step] <= ...
-                (message_received.time_step - message_age_threshold);
+                (message_received.time_step - message_age_maximum);
             obj.messages_stored(is_msg_expired) = [];
         end
 
