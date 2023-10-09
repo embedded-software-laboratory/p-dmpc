@@ -84,7 +84,20 @@ classdef (Abstract) HighLevelController < handle
             cleanupObj = onCleanup(@obj.end_run);
 
             obj.init_all();
-            obj.main_control_loop();
+
+            try
+                obj.main_control_loop();
+            catch ME
+                disp("Storing unfinished results up on error.")
+                % do not store the last time step with erroneous data
+                obj.k = obj.k - 1;
+                % force saving of unfinished results for inspection
+                obj.scenario.options.should_save_result = true;
+                % define path of unfinished results
+                obj.result.output_path = 'results/unfinished_result.mat';
+                % rethrow error for original error message
+                rethrow(ME)
+            end
 
             result = obj.result;
             scenario = obj.scenario;
@@ -335,20 +348,11 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function end_run(obj)
-
-            if ~obj.success
-                disp("Storing unfinished results up on error:")
-                % Don't store the last time step with erroneous data.
-                obj.k = obj.k - 1;
-                % Save the unfinished results.
-                obj.scenario.options.should_save_result = true;
-                obj.result.output_path = 'results/unfinished_result.mat';
-            end
-
+            % save finished or unfinished results
             obj.save_results();
-
+            % run plants end_run function
             obj.plant.end_run();
-
+            % clean up controller
             obj.clean_up();
         end
 
