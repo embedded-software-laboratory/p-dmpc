@@ -81,9 +81,10 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function [result, scenario] = run(obj)
+            cleanupObj = onCleanup(@obj.end_run);
+
             obj.init_all();
             obj.main_control_loop();
-            obj.save_results();
 
             result = obj.result;
             scenario = obj.scenario;
@@ -169,7 +170,6 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function main_control_loop(obj)
-            cleanup = onCleanup(@obj.end_run);
 
             %% Main control loop
             while (~obj.got_stop)
@@ -343,8 +343,9 @@ classdef (Abstract) HighLevelController < handle
                 % Save the unfinished results.
                 obj.scenario.options.should_save_result = true;
                 obj.result.output_path = 'results/unfinished_result.mat';
-                obj.save_results();
             end
+
+            obj.save_results();
 
             obj.clean_up();
         end
