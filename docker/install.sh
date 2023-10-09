@@ -10,7 +10,9 @@
 PUSH_IMAGE=false
 
 # If push_image==true, follow the instructions in the login_credentials.sh file.
-source login_credentials.sh
+if $PUSH_IMAGE; then
+  source login_credentials.sh
+fi
 
 # --------------------------------------------- IMAGE SETTINGS ----------------------------------------------------
 # To install another MATLAB release than R2022a in the container, change the value of MATLAB_RELEASE. Use only lower case.
