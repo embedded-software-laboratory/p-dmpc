@@ -347,6 +347,8 @@ classdef (Abstract) HighLevelController < handle
 
             obj.save_results();
 
+            obj.plant.end_run();
+
             obj.clean_up();
         end
 
@@ -391,8 +393,6 @@ classdef (Abstract) HighLevelController < handle
                 disp('As required, simulation/Experiment Results were not saved.')
                 % exportVideo( result );
             end
-
-            obj.plant.end_run()
 
         end
 
