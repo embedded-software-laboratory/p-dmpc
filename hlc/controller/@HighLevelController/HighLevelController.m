@@ -15,13 +15,13 @@ classdef (Abstract) HighLevelController < handle
         k;
         iter;
         info;
-        info_old; % old information for fallback
 
         manual_vehicles;
     end
 
     properties (Access = protected)
         belonging_vector_total;
+        info_old; % old control results for fallback
     end
 
     properties (Access = private)
