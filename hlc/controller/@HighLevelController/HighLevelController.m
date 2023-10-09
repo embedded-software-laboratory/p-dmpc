@@ -131,12 +131,8 @@ classdef (Abstract) HighLevelController < handle
             % method that can be overwritten by child classes if necessary
         end
 
-        function clean_up(obj)
+        function clean_up(~)
             % release memory allocated by mex files
-
-            if ~obj.scenario.options.use_cpp()
-                return
-            end
 
             % clear mex on all other computers
             if ~ismac()
