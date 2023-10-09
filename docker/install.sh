@@ -16,7 +16,7 @@ fi
 
 # --------------------------------------------- IMAGE SETTINGS ----------------------------------------------------
 # To install another MATLAB release than R2022a in the container, change the value of MATLAB_RELEASE. Use only lower case.
-MATLAB_RELEASE=r2022a
+MATLAB_RELEASE=r2023a
 
 # To change the Ubuntu version to use as OS for the container, change the value of UBUNTU_VERSION. Standard is Ubuntu 18.04 as this is the version
 # installed in the CPM Lab. Other possible tags can be found under https://hub.docker.com/_/ubuntu.
