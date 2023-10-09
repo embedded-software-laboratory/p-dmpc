@@ -25,9 +25,7 @@ classdef (Abstract) HighLevelController < handle
     end
 
     properties (Access = private)
-        initialized_reference_path;
         got_stop;
-        success; % to store unfinished results on error; set to true at the end of the main control loop
         vehs_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
@@ -47,9 +45,7 @@ classdef (Abstract) HighLevelController < handle
             % Or should we make valid and useful default values?
             obj.k = 0;
             obj.controller_name = '';
-            obj.initialized_reference_path = false;
             obj.got_stop = false;
-            obj.success = false;
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
             obj.timing = ControllerTiming();
@@ -208,7 +204,6 @@ classdef (Abstract) HighLevelController < handle
 
                 % Update the iteration data and sample reference trajectory
                 obj.rhc_init(x0_measured, trims_measured);
-                obj.initialized_reference_path = true;
 
                 % calculate the distance
                 distance = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
@@ -344,7 +339,6 @@ classdef (Abstract) HighLevelController < handle
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
             end
 
-            obj.success = true;
         end
 
         function end_run(obj)
