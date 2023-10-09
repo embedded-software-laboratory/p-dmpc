@@ -158,22 +158,20 @@ classdef (Abstract) HlcCommunication < handle
             % start timer for detecting timeout
             read_start = tic;
 
+            % initialize read_time
+            read_time = 0;
+
             % initialize returned message
             % used if timeout without error
             latest_msg = struct([]);
 
-            while true
+            while (read_time <= timeout)
                 % remark to pause before continue:
                 % pause is necessary that MATLAB can executed the callback
                 % function when the while loop is running
 
                 % measure time to detect timeout
                 read_time = toc(read_start);
-
-                % leave loop when timeout is exceeded
-                if read_time > timeout
-                    break
-                end
 
                 % jump to next loop iteration when message queue is empty
                 if isempty(obj.messages_stored)
