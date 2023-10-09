@@ -85,23 +85,6 @@ classdef (Abstract) HighLevelController < handle
             obj.main_control_loop();
             obj.save_results();
 
-            if obj.scenario.options.use_cpp()
-
-                if ismac()
-                    % clear mex dont work on ARM Mac
-                    [~, result] = system('sysctl machdep.cpu.brand_string');
-                    matches = regexp(result, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
-
-                    if isempty(matches)
-                        clear mex;
-                    end
-
-                else
-                    clear mex;
-                end
-
-            end
-
             result = obj.result;
             scenario = obj.scenario;
         end
@@ -148,6 +131,23 @@ classdef (Abstract) HighLevelController < handle
                 obj.scenario.options.should_save_result = true;
                 obj.result.output_path = 'results/unfinished_result.mat';
                 obj.save_results();
+            end
+
+            if obj.scenario.options.use_cpp()
+
+                if ismac()
+                    % clear mex dont work on ARM Mac
+                    [~, cmdout] = system('sysctl machdep.cpu.brand_string');
+                    matches = regexp(cmdout, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
+
+                    if isempty(matches)
+                        clear mex;
+                    end
+
+                else
+                    clear mex;
+                end
+
             end
 
         end
