@@ -1,20 +1,18 @@
 #!/bin/bash
 
-# --------------------------------------------- SETTINGS ----------------------------------------------------
+# All settings should be possible to set in this SETTINGS sections. The SCRIPT section shouldn't have to be changed.
 
-# All settings should be possible to set in this SETTINGS section. The SCRIPT section shouldn't have to be changed.
+# --------------------------------------------- UPLOAD SETTINGS ---------------------------------------------------
 
 # Define whether the built image should be pushed to the Gitlab container registry by setting PUSH_IMAGE to true or false. Default is false.
-# If set to true, the following environment variables GITLAB_USERNAME and GITLAB_ACCESS_TOKEN have to be set.
+# If set to true, the environment variables GITLAB_USERNAME and GITLAB_ACCESS_TOKEN in the file login_credentials have to be set.
 # If you first only build the image and then decide to push, just rerun the script with PUSH_IMAGE=true and the image does not have to be rebuild due to docker's cache.
 PUSH_IMAGE=false
 
-# Credentials to log into the Gitlab container registry can be set in the variables GITLAB_USERNAME and GITLAB_ACCESS_TOKEN.
-# To generate such a personal access token see https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html#create-a-personal-access-token.
-# The access token needs to have the scopes read_registry and write_registry enabled.
-GITLAB_USERNAME=<username>
-GITLAB_ACCESS_TOKEN=<access_token>
+# If push_image==true, follow the instructions in the login_credentials.sh file.
+source login_credentials.sh
 
+# --------------------------------------------- IMAGE SETTINGS ----------------------------------------------------
 # To install another MATLAB release than R2022a in the container, change the value of MATLAB_RELEASE. Use only lower case.
 MATLAB_RELEASE=r2022a
 
