@@ -114,8 +114,8 @@ classdef (Abstract) HighLevelController < handle
 
     methods (Access = protected)
 
-        function init_hlc_specialization(~)
-            % method that can be overwritten by child classes if necessary
+        function init(~)
+            % initialize high level controller
         end
 
         function check_fallback(~)
@@ -162,7 +162,8 @@ classdef (Abstract) HighLevelController < handle
             % record the number of time steps that vehicles consecutively fallback
             obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
 
-            obj.init_hlc_specialization();
+            % initialize high level controller itself
+            obj.init();
 
             obj.plant.synchronize_start_with_plant();
 
