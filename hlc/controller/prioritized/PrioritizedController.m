@@ -46,6 +46,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
     methods (Access = protected)
 
         function init(obj)
+            % initialize superclass
+            init@HighLevelController(obj);
             % generated message types if not already existing
             hlc_ros2gen();
             % in priority-based computation, vehicles communicate via ROS 2
