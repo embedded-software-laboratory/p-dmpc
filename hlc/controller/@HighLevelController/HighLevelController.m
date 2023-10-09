@@ -141,29 +141,26 @@ classdef (Abstract) HighLevelController < handle
     methods (Access = private)
 
         function init_hlc(obj)
-            obj.timing.start("init_hlc_time");
-
-            % init result struct
-            obj.result = get_result_struct(obj);
-
-            % record the number of time steps that vehicles continually stop
-            obj.vehs_stop_duration = zeros(obj.scenario.options.amount, 1);
-
-            %TODO Shouldn't this value be already set (to 0)?
-            obj.iter.k = obj.k;
-
             % turn off warning if intersections are detected and fixed, collinear points or
             % overlapping points are removed when using MATLAB function `polyshape`
             warning('off', 'MATLAB:polyshape:repairedBySimplify')
 
-            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_vehicle_ids);
+            obj.timing.start("init_hlc_time");
 
-            obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
-
-            % init all manually controlled vehicles
+            % initialize all manually controlled vehicles
             for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
                 obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
             end
+
+            % initialize iteration data
+            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_vehicle_ids);
+
+            % initialize result struct
+            obj.result = get_result_struct(obj);
+            % record the number of time steps that vehicles consecutively stop
+            obj.vehs_stop_duration = zeros(obj.scenario.options.amount, 1);
+            % record the number of time steps that vehicles consecutively fallback
+            obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
 
             obj.init_hlc_specialization();
 
