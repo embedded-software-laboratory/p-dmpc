@@ -34,6 +34,11 @@ classdef (Abstract) HighLevelController < handle
         timing (1, 1) ControllerTiming;
     end
 
+    methods (Abstract = true, Access = protected)
+        controller(obj);
+        handle_fallback(obj);
+    end
+
     methods
         % Set default settings
         function obj = HighLevelController(scenario, plant)
@@ -105,11 +110,6 @@ classdef (Abstract) HighLevelController < handle
             obj.controller_name = name;
         end
 
-    end
-
-    methods (Abstract = true, Access = protected)
-        controller(obj);
-        handle_fallback(obj);
     end
 
     methods (Access = protected)
