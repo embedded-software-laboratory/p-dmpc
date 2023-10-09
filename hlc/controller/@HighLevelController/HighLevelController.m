@@ -114,8 +114,24 @@ classdef (Abstract) HighLevelController < handle
 
     methods (Access = protected)
 
-        function init(~)
-            % initialize high level controller
+        function init(obj)
+            % initialize high level controller itself
+
+            % initialize all manually controlled vehicles
+            for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
+                obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
+            end
+
+            % initialize iteration data
+            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_vehicle_ids);
+
+            % initialize result struct
+            obj.result = get_result_struct(obj);
+
+            % record the number of time steps that vehicles
+            % consecutively stop and take fallback
+            obj.vehs_stop_duration = zeros(obj.scenario.options.amount, 1);
+            obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
         end
 
         function check_fallback(~)
@@ -152,24 +168,10 @@ classdef (Abstract) HighLevelController < handle
             % start initialization timer
             obj.timing.start("init_all_time");
 
-            % initialize all manually controlled vehicles
-            for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
-                obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
-            end
-
-            % initialize iteration data
-            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_vehicle_ids);
-
-            % initialize result struct
-            obj.result = get_result_struct(obj);
-            % record the number of time steps that vehicles consecutively stop
-            obj.vehs_stop_duration = zeros(obj.scenario.options.amount, 1);
-            % record the number of time steps that vehicles consecutively fallback
-            obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
-
             % initialize high level controller itself
             obj.init();
 
+            % synchronize with plant
             obj.plant.synchronize_start_with_plant();
 
             % stop initialization timer
