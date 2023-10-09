@@ -2,8 +2,6 @@ function rhc_init(obj, x_measured, trims_measured)
     % RHC_INIT  Preprocessing step for RHC controller
 
     idx = indices();
-    visualize_trajectory_index_lab = false;
-    visualize_boundaries_lab = false;
     predicted_lanelet_boundary = {[]};
 
     % init HDV: compute current lanelet id and reachable sets intersected
@@ -90,59 +88,9 @@ function rhc_init(obj, x_measured, trims_measured)
 
             obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;
 
-            if visualize_trajectory_index_lab
-                % visualize trajectory index
-                visualization_point = 0;
-
-                for i = 1:length(obj.iter.reference_trajectory_points(iVeh, :, :))
-                    point.x = obj.iter.reference_trajectory_points(iVeh, i, 1);
-                    point.y = obj.iter.reference_trajectory_points(iVeh, i, 2);
-                    visualization_point = point;
-
-                    color = Color;
-                    color.r = uint8(240);
-                    color.g = uint8(230);
-                    color.b = uint8(26);
-
-                    [visualization_command] = lab_visualizer(visualization_point, 'point', color);
-                    exp.visualize(visualization_command);
-                end
-
-            end
-
             % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
             predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.options.environment, obj.scenario.vehicles(iVeh).is_loop);
             obj.iter.predicted_lanelet_boundary(iVeh, :) = predicted_lanelet_boundary;
-
-            if visualize_boundaries_lab
-                % visualize boundaries
-                for i = 1:length(predicted_lanelet_boundary{1, 1})
-                    left_boundary = predicted_lanelet_boundary{1, 1};
-                    leftPoint.x = left_boundary(1, i);
-                    leftPoint.y = left_boundary(2, i);
-                    visualization_left_point = leftPoint;
-                    color = Color;
-                    color.r = uint8(170);
-                    color.g = uint8(24);
-                    color.b = uint8(186);
-                    [visualization_command] = lab_visualizer(visualization_left_point, 'point', color);
-                    exp.visualize(visualization_command);
-                end
-
-                for i = 1:length(predicted_lanelet_boundary{1, 2})
-                    right_boundary = predicted_lanelet_boundary{1, 2};
-                    rightPoint.x = right_boundary(1, i);
-                    rightPoint.y = right_boundary(2, i);
-                    visualization_right_point = rightPoint;
-                    color = Color;
-                    color.r = uint8(232);
-                    color.g = uint8(111);
-                    color.b = uint8(30);
-                    [visualization_command] = lab_visualizer(visualization_right_point, 'point', color);
-                    exp.visualize(visualization_command);
-                end
-
-            end
 
         end
 
