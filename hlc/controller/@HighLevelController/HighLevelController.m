@@ -35,6 +35,7 @@ classdef (Abstract) HighLevelController < handle
         info_old; % old information for fallback
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
+        timing (1, 1) ControllerTiming;
     end
 
     methods
@@ -51,6 +52,7 @@ classdef (Abstract) HighLevelController < handle
             obj.success = false;
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
+            obj.timing = ControllerTiming();
             obj.plant = plant;
 
             obj.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
@@ -84,16 +86,20 @@ classdef (Abstract) HighLevelController < handle
             obj.save_results();
 
             if obj.scenario.options.use_cpp()
+
                 if ismac()
                     % clear mex dont work on ARM Mac
-                    [~,result] = system('sysctl machdep.cpu.brand_string');
+                    [~, result] = system('sysctl machdep.cpu.brand_string');
                     matches = regexp(result, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
+
                     if isempty(matches)
                         clear mex;
                     end
+
                 else
                     clear mex;
                 end
+
             end
 
             result = obj.result;
@@ -113,6 +119,7 @@ classdef (Abstract) HighLevelController < handle
     methods (Access = private)
 
         function init_hlc(obj)
+            obj.timing.start("init_hlc_time");
 
             % init result struct
             obj.result = get_result_struct(obj);
@@ -151,6 +158,7 @@ classdef (Abstract) HighLevelController < handle
 
             obj.plant.synchronize_start_with_plant();
 
+            obj.timing.stop("init_hlc_time");
         end
 
         function clean_up(obj)
@@ -172,12 +180,13 @@ classdef (Abstract) HighLevelController < handle
 
             %% Main control loop
             while (~obj.got_stop)
-                obj.result.step_timer = tic;
-
                 % increment interation counter
                 obj.k = obj.k + 1;
 
                 obj.iter.k = obj.k;
+
+                obj.timing.start("hlc_step_time", obj.k);
+                obj.timing.start("iter_runtime", obj.k);
 
                 % Measurement
                 % -------------------------------------------------------------------------
@@ -210,10 +219,10 @@ classdef (Abstract) HighLevelController < handle
                 end
 
                 obj.result.distance(:, :, obj.k) = distance;
-                obj.result.iter_runtime(obj.k) = toc(obj.result.step_timer);
+                obj.result.iter_runtime(obj.k) = obj.timing.stop("iter_runtime", obj.k);
 
                 % The controller computes plans
-                controller_timer = tic;
+                obj.timing.start("controller_time", obj.k);
 
                 %% controller %%
                 obj.controller();
@@ -281,7 +290,8 @@ classdef (Abstract) HighLevelController < handle
 
                 obj.info_old = obj.info; % save variable in case of fallback
                 %% save result of current time step
-                obj.result.controller_runtime(obj.k) = toc(controller_timer);
+                obj.result.controller_runtime(obj.k) = obj.timing.stop("controller_time", obj.k);
+                obj.timing.stop("hlc_step_time", obj.k);
 
                 % save controller outputs in result struct
                 obj.result.scenario = obj.scenario;
@@ -296,7 +306,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.result.priority_list(:, obj.k) = obj.iter.priority_list;
                 obj.result.coupling_adjacency(:, :, obj.k) = obj.iter.adjacency;
                 obj.result.computation_levels(obj.k) = obj.info.computation_levels;
-                obj.result.step_time(obj.k) = toc(obj.result.step_timer);
+                obj.result.step_time(obj.k) = obj.timing.get_elapsed_time("hlc_step_time", obj.k);
                 obj.result.obstacles = obj.iter.obstacles;
                 % reset iter obstacles to scenario default/static obstacles
                 obj.iter.obstacles = obj.scenario.obstacles;
@@ -352,7 +362,6 @@ classdef (Abstract) HighLevelController < handle
                 % Check for stop signal
                 % -------------------------------------------------------------------------
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
-
             end
 
             obj.success = true;
@@ -365,6 +374,7 @@ classdef (Abstract) HighLevelController < handle
 
             obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
             obj.result.nSteps = obj.k;
+            obj.result.timings = obj.timing.get_all_timings();
 
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
 
