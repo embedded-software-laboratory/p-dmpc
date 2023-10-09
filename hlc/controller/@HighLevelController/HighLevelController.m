@@ -81,7 +81,7 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function [result, scenario] = run(obj)
-            obj.init_hlc();
+            obj.init_all();
             obj.main_control_loop();
             obj.save_results();
 
@@ -140,12 +140,17 @@ classdef (Abstract) HighLevelController < handle
 
     methods (Access = private)
 
-        function init_hlc(obj)
+        function init_all(obj)
+            % this function initializes sequentially
+            % the main components of the high level controller
+            % future: the function initializes the plant and the scenario
+
             % turn off warning if intersections are detected and fixed, collinear points or
             % overlapping points are removed when using MATLAB function `polyshape`
             warning('off', 'MATLAB:polyshape:repairedBySimplify')
 
-            obj.timing.start("init_hlc_time");
+            % start initialization timer
+            obj.timing.start("init_all_time");
 
             % initialize all manually controlled vehicles
             for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
@@ -167,7 +172,8 @@ classdef (Abstract) HighLevelController < handle
 
             obj.plant.synchronize_start_with_plant();
 
-            obj.timing.stop("init_hlc_time");
+            % stop initialization timer
+            obj.timing.stop("init_all_time");
         end
 
         function main_control_loop(obj)
