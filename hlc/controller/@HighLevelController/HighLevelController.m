@@ -80,14 +80,22 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function [result, scenario] = run(obj)
+            % run the controller
+
+            % object that executes the specified function on destruction
+            % this is done at the end of the current function
             cleanupObj = onCleanup(@obj.end_run);
 
+            % initialize the controller and its adapters
             obj.init_all();
 
+            % start controllers main control loop
             obj.main_control_loop();
 
+            % set to true if the controller ran properly
             obj.is_succeeded = true;
 
+            % specify returned variables
             result = obj.result;
             scenario = obj.scenario;
         end
