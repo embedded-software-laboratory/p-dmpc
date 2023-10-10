@@ -25,6 +25,9 @@ classdef (Abstract) HighLevelController < handle
     end
 
     properties (Access = private)
+        % member variable that is used to execute steps on error
+        is_succeeded (1, 1) logical = false
+
         got_stop;
         vehs_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
         total_fallback_times; % total times of fallbacks
@@ -81,15 +84,9 @@ classdef (Abstract) HighLevelController < handle
 
             obj.init_all();
 
-            try
-                obj.main_control_loop();
-            catch ME
-                % force saving of unfinished results for inspection
-                disp("Storing unfinished results up on error.")
-                obj.scenario.options.should_save_result = true;
-                % rethrow error for original error message
-                rethrow(ME)
-            end
+            obj.main_control_loop();
+
+            obj.is_succeeded = true;
 
             result = obj.result;
             scenario = obj.scenario;
@@ -350,6 +347,13 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function end_run(obj)
+
+            if ~obj.is_succeeded
+                % force saving of unfinished results for inspection
+                disp("Saving of unfinished results on error.")
+                obj.scenario.options.should_save_result = true;
+            end
+
             % save finished or unfinished results
             obj.save_results();
             % run plants end_run function
