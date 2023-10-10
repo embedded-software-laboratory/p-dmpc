@@ -85,8 +85,6 @@ classdef (Abstract) HighLevelController < handle
                 obj.main_control_loop();
             catch ME
                 disp("Storing unfinished results up on error.")
-                % do not store the last time step with erroneous data
-                obj.k = obj.k - 1;
                 % force saving of unfinished results for inspection
                 obj.scenario.options.should_save_result = true;
                 % define path of unfinished results
@@ -265,9 +263,14 @@ classdef (Abstract) HighLevelController < handle
                 end
 
                 obj.info_old = obj.info; % save variable in case of fallback
-                %% save result of current time step
+
+                % stop timer of current time step
                 obj.result.controller_runtime(obj.k) = obj.timing.stop("controller_time", obj.k);
                 obj.timing.stop("hlc_step_time", obj.k);
+
+                % update total number of steps and total runtime
+                obj.result.nSteps = obj.k;
+                obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
 
                 % save controller outputs in result struct
                 obj.result.scenario = obj.scenario;
@@ -356,8 +359,6 @@ classdef (Abstract) HighLevelController < handle
             obj.result.total_fallback_times = obj.total_fallback_times;
             disp(['Total times of fallback: ' num2str(obj.total_fallback_times) '.'])
 
-            obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
-            obj.result.nSteps = obj.k;
             obj.result.timings = obj.timing.get_all_timings();
 
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
