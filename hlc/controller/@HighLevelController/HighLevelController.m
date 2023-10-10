@@ -341,7 +341,10 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function end_run(obj)
+            % end run of controller
+            % this function is executed in every case
 
+            % if the controller did not succeed
             if ~obj.is_succeeded
                 % force saving of unfinished results for inspection
                 disp("Saving of unfinished results on error.")
@@ -359,8 +362,10 @@ classdef (Abstract) HighLevelController < handle
 
             % save finished or unfinished results
             obj.save_results();
+
             % run plants end_run function
             obj.plant.end_run();
+
             % clean up controller
             obj.clean_up();
         end
