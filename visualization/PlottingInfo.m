@@ -63,7 +63,6 @@ classdef PlottingInfo
                         result.scenario.options.is_prioritized && ...
                         result.scenario.options.scenario_type == ScenarioType.commonroad ...
                     )
-                    obj.belonging_vector = result.belonging_vector(:, k);
 
                     coupling_info_k = result.coupling_info{k};
                     populated_coupling_info_entries = find(~cellfun(@isempty, coupling_info_k));
@@ -75,6 +74,8 @@ classdef PlottingInfo
                     end
 
                 end
+
+                obj.belonging_vector = result.belonging_vector(:, k);
 
             end
 

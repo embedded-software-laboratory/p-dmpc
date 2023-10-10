@@ -300,7 +300,6 @@ classdef (Abstract) HighLevelController < handle
                     obj.result.num_couplings_ignored(obj.k) = nnz(obj.iter.directed_coupling) - nnz(obj.iter.directed_coupling_reduced);
                     obj.result.num_couplings_between_grps(obj.k) = obj.iter.num_couplings_between_grps;
                     obj.result.num_couplings_between_grps_ignored(obj.k) = obj.iter.num_couplings_between_grps_ignored;
-                    obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
                     obj.result.weighted_coupling_reduced{obj.k} = obj.iter.weighted_coupling_reduced;
                     obj.result.coupling_info{obj.k} = obj.iter.coupling_info;
                     obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
@@ -309,6 +308,7 @@ classdef (Abstract) HighLevelController < handle
                     obj.iter.lanelet_crossing_areas = {};
                 end
 
+                obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
                 obj.result.vehs_fallback{obj.k} = obj.info.vehs_fallback;
 
                 % check if deadlock occurs
