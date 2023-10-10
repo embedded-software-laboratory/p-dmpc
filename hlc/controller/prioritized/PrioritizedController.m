@@ -49,9 +49,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % initialize superclass
             init@HighLevelController(obj);
 
-            % generated message types if not already existing
-            hlc_ros2gen();
-
             % in priority-based computation, vehicles communicate via ROS 2
             timer = tic;
             fprintf('Creating ROS2 objects... ');

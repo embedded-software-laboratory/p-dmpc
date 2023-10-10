@@ -1,9 +1,14 @@
-function hlc_ros2gen
-    % generate custom message type (for vehicle communication) if not exist
+function generate_ros2_msgs()
+%GENERATE_ROS2_MSGS checks whether custom message types (for vehicle
+%communication) already exist and generates them if not.
+
     msgList = ros2("msg", "list"); % get all ROS 2 message types
+    % reg = ros.internal.CustomMessageRegistry.getInstance('ros2',true)
+    % msgList = reg.getMessageList
+    [file_path, ~, ~] = fileparts(mfilename('fullpath'));
 
     if ((sum(cellfun(@(c)strcmp(c, 'veh_msgs/Traffic'), msgList)) == 0) || (sum(cellfun(@(c)strcmp(c, 'veh_msgs/Predictions'), msgList)) == 0))
-        [file_path, ~, ~] = fileparts(mfilename('fullpath'));
+        % if the message type 'veh_msgs/Traffic' does not exist
 
         % Generate custom messages. NOTE that Python, CMake, and a C++ compiler are required (see
         % https://de.mathworks.com/help/ros/gs/ros-system-requirements.html
