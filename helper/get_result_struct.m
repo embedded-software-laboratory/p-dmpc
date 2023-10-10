@@ -17,7 +17,4 @@ function result = get_result_struct(hlc)
     result.vehs_fallback = cell(0, 1); % which vehicles should use their fallback trajectories
     result.vehicle_ids = hlc.plant.controlled_vehicle_ids;
 
-    % initialize path with unfinished results
-    result.output_path = 'results/unfinished_result.mat';
-
 end
