@@ -7,11 +7,8 @@ function generate_ros2_msgs()
     % msgList = reg.getMessageList
     [file_path, ~, ~] = fileparts(mfilename('fullpath'));
 
-    disp("Called here.")
-
     if ((sum(cellfun(@(c)strcmp(c, 'veh_msgs/Traffic'), msgList)) == 0) || (sum(cellfun(@(c)strcmp(c, 'veh_msgs/Predictions'), msgList)) == 0))
         % if the message type 'veh_msgs/Traffic' does not exist
-        path_custom_msg = [file_path, filesep, 'cust1'];
 
         % Generate custom messages. NOTE that Python, CMake, and a C++ compiler are required (see
         % https://de.mathworks.com/help/ros/gs/ros-system-requirements.html
@@ -29,7 +26,7 @@ function generate_ros2_msgs()
         disp('Generating ROS 2 custom message type...')
 
         try
-            ros2genmsg(path_custom_msg)
+            ros2genmsg(file_path)
         catch ME
             disp(['If all environments for ros2genmsg() are prepared but still failed, try to move the whole folder to a ' ...
                   'shallower path and run again if you use Windows machine, which sadly has a max path limit constraint.'])
