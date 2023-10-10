@@ -17,10 +17,7 @@ function result = get_result_struct(hlc)
     result.vehs_fallback = cell(0, 1); % which vehicles should use their fallback trajectories
     result.vehicle_ids = hlc.plant.controlled_vehicle_ids;
 
-    % create output directory and get the full path where the results will
-    % be saved
-    results_full_path = FileNameConstructor.get_results_full_path(scenario.options, hlc.plant.indices_in_vehicle_list);
-
-    result.output_path = results_full_path;
+    % initialize path with unfinished results
+    result.output_path = 'results/unfinished_result.mat';
 
 end

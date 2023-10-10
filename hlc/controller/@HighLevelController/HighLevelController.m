@@ -84,11 +84,9 @@ classdef (Abstract) HighLevelController < handle
             try
                 obj.main_control_loop();
             catch ME
-                disp("Storing unfinished results up on error.")
                 % force saving of unfinished results for inspection
+                disp("Storing unfinished results up on error.")
                 obj.scenario.options.should_save_result = true;
-                % define path of unfinished results
-                obj.result.output_path = 'results/unfinished_result.mat';
                 % rethrow error for original error message
                 rethrow(ME)
             end
@@ -342,6 +340,12 @@ classdef (Abstract) HighLevelController < handle
                 % -------------------------------------------------------------------------
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
             end
+
+            % define output path if control loop succeeded
+            obj.result.output_path = FileNameConstructor.get_results_full_path( ...
+                obj.scenario.options, ...
+                obj.plant.indices_in_vehicle_list ...
+            );
 
         end
 
