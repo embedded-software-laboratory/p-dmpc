@@ -1001,6 +1001,181 @@ classdef MotionPrimitiveAutomaton
 
         end
 
+        function plot_mpa(obj, scenario, options)
+
+            arguments
+                obj (1, 1) MotionPrimitiveAutomaton;
+                scenario (1, 1) Scenario;
+                options.y_lim (1, 2) double = [-0.1, 1.0];
+                options.x_lim (1, 2) double = rad2deg(pi / 18 * [-3, 3]);
+                options.k (1, 1) double = 1;
+                options.do_export (1, 1) logical = false;
+                options.fig (1, 1) matlab.ui.Figure = figure("Visible", "off");
+                options.with_labels (1, 1) logical = true;
+                options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.document();
+            end
+
+            trim_inputs = obj.trims;
+
+            trim_adjacency = obj.transition_matrix_single(:, :, options.k);
+
+            angle = rad2deg([trim_inputs.steering]);
+            speed = [trim_inputs.speed];
+            G = digraph(trim_adjacency, 'omitSelfLoops');
+
+            plot(G, 'XData', angle, 'YData', speed, ...
+                'ArrowSize', 5, ...
+                'MarkerSize', 3, ...
+                'NodeColor', rwth_blue(), ...
+                'EdgeColor', rwth_blue_50(), ...
+                'EdgeAlpha', 1 ...
+            );
+
+            if options.with_labels
+                xlabel('Steering Angle $\delta$ [$^{\circ}$]', 'Interpreter', 'latex');
+                ylabel('Speed $\mathrm{v}$ [m/s]', 'Interpreter', 'latex');
+            end
+
+            if isfield(options, 'x_lim')
+                xlim(options.x_lim);
+            end
+
+            if isfield(options, 'y_lim')
+                ylim(options.y_lim);
+            end
+
+            grid on
+
+            if options.do_export
+                file_ext = '.pdf';
+                folder_path = FileNameConstructor.gen_results_folder_path(scenario.options);
+                [~, file_name, ~] = fileparts(FileNameConstructor.get_mpa_name(scenario.options));
+                filepath = fullfile(folder_path, [file_name file_ext]);
+                set_figure_properties(options.fig, options.export_fig_cfg);
+                export_fig(options.fig, filepath)
+                close(options.fig);
+            else
+                options.fig.Visible = 'on';
+            end
+
+        end
+
+        function plot_mpa_over_time(obj, scenario, options)
+
+            arguments
+                obj (1, 1) MotionPrimitiveAutomaton;
+                scenario (1, 1) Scenario;
+                options.y_lim (1, 2) double = [-0.1, 1.1];
+                options.do_export (1, 1) logical = false;
+                options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
+            end
+
+            fig = figure("Visible", "off");
+            tiledLayoutHandle = tiledlayout( ...
+                1, scenario.options.Hp, ...
+                'TileSpacing', 'compact', ...
+                'Padding', 'compact' ...
+            );
+
+            for k = 1:scenario.options.Hp
+                nexttile
+                obj.plot_mpa(scenario, ...
+                    'do_export', false, ...
+                    'fig', fig, ...
+                    'k', k, ...
+                    'with_labels', false, ...
+                    'x_lim', rad2deg(pi / 18 * [-3, 3]) ...
+                );
+                title(sprintf("$t=k+%d$", k - 1), 'Interpreter', 'latex');
+            end
+
+            xlabel(tiledLayoutHandle, 'Steering Angle $\delta$ [$^{\circ}$]', ...
+                'Interpreter', 'latex' ...
+            );
+            ylabel(tiledLayoutHandle, 'Speed $\mathrm{v}$ [m/s]', ...
+                'Interpreter', 'latex' ...
+            );
+
+            if options.do_export
+                file_ext = '.pdf';
+                folder_path = FileNameConstructor.gen_results_folder_path(scenario.options);
+                [~, file_name, ~] = fileparts(FileNameConstructor.get_mpa_name(scenario.options));
+                filepath = fullfile(folder_path, [file_name file_ext]);
+                set_figure_properties(fig, options.export_fig_cfg);
+                export_fig(fig, filepath)
+                close(fig);
+            else
+                fig.Visible = 'on';
+            end
+
+        end
+
+        function plot_local_reachable_sets(obj, is_allow_non_convex)
+            % PLOT_LOCAL_REACHABLE_SETS Visualize the reachable sets starting from
+            % different root trims.
+
+            n_trims = size(obj.local_reachable_sets, 1);
+            Hp = size(obj.local_reachable_sets, 2);
+
+            fig = figure('Name', 'ReachableSets');
+            fig.Position = [10 10 500 1600];
+            t_fig = tiledlayout(n_trims, Hp, 'TileSpacing', 'compact');
+
+            for i = 1:n_trims
+
+                for t = 1:Hp
+                    nexttile;
+                    plot(obj.local_reachable_sets{i, t})
+                    hold on
+                    plot(obj.local_reachable_sets_conv{i, t})
+
+                    if t == 1
+                        ylabel(['root trim ', num2str(i)])
+                    end
+
+                    axis square
+                    grid on
+                    xlim([-0.2, 1.5]);
+                    ylim([-1.4 1.4]);
+                end
+
+            end
+
+            xlabel(t_fig, 'x [m]')
+            ylabel(t_fig, 'y [m]')
+            title(t_fig, 'Reachable Sets of Different Root Trims')
+
+            % save fig to pdf
+            set(fig, 'Units', 'Inches');
+            pos = get(fig, 'Position');
+            set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3), pos(4)])
+
+            [file_path, ~, ~] = fileparts(mfilename('fullpath')); % get the path of the current file
+            idcs = strfind(file_path, filesep); % find all positions of '/'
+            one_folder_up = file_path(1:idcs(end) - 1); % one folder up
+            folder_target = [one_folder_up, filesep, 'motion_primitive_automaton', filesep, 'local_reachable_sets'];
+
+            if ~isfolder(folder_target)
+                % create target folder if not exist
+                mkdir(folder_target)
+            end
+
+            file_name = ['trims', num2str(n_trims), '_Hp', num2str(Hp)];
+
+            if is_allow_non_convex
+                file_name = [file_name, '_non-convex'];
+            end
+
+            full_path = [folder_target, filesep, file_name];
+
+            if isfile(full_path)
+                warning('The file for visualization of the offline reachable sets was already saved.');
+            else
+                print(fig, full_path, '-dpdf', '-r0');
+            end
+
+        end
+
     end
 
 end

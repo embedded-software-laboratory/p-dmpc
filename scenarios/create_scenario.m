@@ -31,6 +31,6 @@ function scenario = create_scenario(options, random_seed, plant)
             scenario = lanelet2_scenario(options, plant);
     end
 
-    %plot_mpa_over_time(scenario, mpa);
+    %mpa.plot_mpa_over_time(scenario);
     %plot_mpa(scenario,'do_export', true);
 end
