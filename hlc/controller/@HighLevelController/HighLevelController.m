@@ -128,11 +128,11 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function clean_up(~)
-            % release memory allocated by mex files
+            % release memory allocated by mex functions
 
             % clear mex on all other computers
             if ~ismac()
-                clear mex
+                clear mex %#ok
                 return
             end
 
@@ -141,12 +141,12 @@ classdef (Abstract) HighLevelController < handle
             matches = regexp(cmdout, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
 
             if isempty(matches)
-                clear mex
+                clear mex %#ok
                 return
             end
 
             % TODO alternative for clear mex on Mac with ARM chip
-
+            warning('Memory allocation of mex functions is not freed.')
         end
 
     end
