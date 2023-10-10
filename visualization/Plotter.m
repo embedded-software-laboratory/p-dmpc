@@ -6,7 +6,7 @@ classdef (Abstract) Plotter < handle
     end
 
     properties (Access = protected)
-        fig (1, 1) matlab.ui.Figure % figure used for plotting
+        fig (1, 1) % matlab.ui.Figure % figure used for plotting; ...
         plot_options (1, 1) OptionsPlotOnline % options for plotting
         resolution (1, 2) int32 % pixels to plot in horizontal and vertical direction
         priority_colormap (:, 3) double % Colors for computation levels
