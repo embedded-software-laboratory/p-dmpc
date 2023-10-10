@@ -213,7 +213,7 @@ References in Bibtex format
 
 @inproceedings{scheffe2023scaled,
     title     = {A Scaled Experiment Platform to Study Interactions Between Humans and CAVs},
-    author    = {Scheffe, Patrick and Alrifaee, Bassam},
+    author    = {Patrick Scheffe and Bassam Alrifaee},
     booktitle = {IEEE Intelligent Vehicles Symposium (IV)},
     year      = {2023}
     pages     = {1--6},
