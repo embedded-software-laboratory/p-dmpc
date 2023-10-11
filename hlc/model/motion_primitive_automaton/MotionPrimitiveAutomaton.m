@@ -1001,18 +1001,15 @@ classdef MotionPrimitiveAutomaton
 
         end
 
-        function plot_mpa(obj, scenario, options)
+        function plot_mpa(obj, options)
 
             arguments
                 obj (1, 1) MotionPrimitiveAutomaton;
-                scenario (1, 1) Scenario;
                 options.y_lim (1, 2) double = [-0.1, 1.0];
                 options.x_lim (1, 2) double = rad2deg(pi / 18 * [-3, 3]);
                 options.k (1, 1) double = 1;
-                options.do_export (1, 1) logical = false;
-                options.fig (1, 1) matlab.ui.Figure = figure("Visible", "off");
+                options.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
                 options.with_labels (1, 1) logical = true;
-                options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.document();
             end
 
             trim_inputs = obj.trims;
@@ -1046,42 +1043,26 @@ classdef MotionPrimitiveAutomaton
 
             grid on
 
-            if options.do_export
-                file_ext = '.pdf';
-                folder_path = FileNameConstructor.gen_results_folder_path(scenario.options);
-                [~, file_name, ~] = fileparts(FileNameConstructor.get_mpa_name(scenario.options));
-                filepath = fullfile(folder_path, [file_name file_ext]);
-                set_figure_properties(options.fig, options.export_fig_cfg);
-                export_fig(options.fig, filepath)
-                close(options.fig);
-            else
-                options.fig.Visible = 'on';
-            end
-
         end
 
-        function plot_mpa_over_time(obj, scenario, options)
+        function plot_mpa_over_time(obj, options)
 
             arguments
                 obj (1, 1) MotionPrimitiveAutomaton;
-                scenario (1, 1) Scenario;
                 options.y_lim (1, 2) double = [-0.1, 1.1];
-                options.do_export (1, 1) logical = false;
-                options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
             end
 
-            fig = figure("Visible", "off");
+            fig = figure("Visible", "on");
+            Hp = size(obj.transition_matrix_single, 3);
             tiledLayoutHandle = tiledlayout( ...
-                1, scenario.options.Hp, ...
+                1, Hp, ...
                 'TileSpacing', 'compact', ...
                 'Padding', 'compact' ...
             );
 
-            for k = 1:scenario.options.Hp
+            for k = 1:Hp
                 nexttile
-                obj.plot_mpa(scenario, ...
-                    'do_export', false, ...
-                    'fig', fig, ...
+                obj.plot_mpa('fig', fig, ...
                     'k', k, ...
                     'with_labels', false, ...
                     'x_lim', rad2deg(pi / 18 * [-3, 3]) ...
@@ -1095,18 +1076,6 @@ classdef MotionPrimitiveAutomaton
             ylabel(tiledLayoutHandle, 'Speed $\mathrm{v}$ [m/s]', ...
                 'Interpreter', 'latex' ...
             );
-
-            if options.do_export
-                file_ext = '.pdf';
-                folder_path = FileNameConstructor.gen_results_folder_path(scenario.options);
-                [~, file_name, ~] = fileparts(FileNameConstructor.get_mpa_name(scenario.options));
-                filepath = fullfile(folder_path, [file_name file_ext]);
-                set_figure_properties(fig, options.export_fig_cfg);
-                export_fig(fig, filepath)
-                close(fig);
-            else
-                fig.Visible = 'on';
-            end
 
         end
 
