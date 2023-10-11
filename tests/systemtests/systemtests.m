@@ -2,14 +2,14 @@ classdef systemtests < matlab.unittest.TestCase
 
     properties (TestParameter)
         priority = {'coloring', 'constant', 'random', 'FCA', 'STAC'};
-        scenario_type = {ScenarioType.circle, ScenarioType.commonroad};
+        scenario_type = {'circle', 'commonroad'};
         parallel = {'sequential', 'parallel'};
         use_cpp = {true, false}
-        weight_strategy = {WeightStrategies.constant_weight
-                           WeightStrategies.STAC_weight
-                           WeightStrategies.random_weight
-                           WeightStrategies.distance_weight
-                           WeightStrategies.optimal_weight};
+        weight_strategy = {'constant_weight'
+                           'STAC_weight'
+                           'random_weight'
+                           'distance_weight'
+                           'optimal_weight'};
     end
 
     methods (Test)
@@ -21,7 +21,7 @@ classdef systemtests < matlab.unittest.TestCase
             rawJson = fileread('tests/systemtests/Config_systemtests.json');
             options = Config();
             options = options.importFromJson(rawJson);
-            options.scenario_type = scenario_type;
+            options.scenario_type = ScenarioType(scenario_type);
             options.is_prioritized = false;
 
             if use_cpp
@@ -43,7 +43,7 @@ classdef systemtests < matlab.unittest.TestCase
             rawJson = fileread('tests/systemtests/Config_systemtests.json');
             options = Config();
             options = options.importFromJson(rawJson);
-            options.scenario_type = scenario_type;
+            options.scenario_type = ScenarioType(scenario_type);
             options.is_prioritized = true;
             options.priority = PriorityStrategies.([priority, '_priority']);
 
@@ -85,10 +85,10 @@ classdef systemtests < matlab.unittest.TestCase
             rawJson = fileread('tests/systemtests/Config_systemtests.json');
             options = Config();
             options = options.importFromJson(rawJson);
-            options.scenario_type = scenario_type;
+            options.scenario_type = ScenarioType(scenario_type);
             options.is_prioritized = true;
             options.max_num_CLs = 1;
-            options.weight = weight_strategy;
+            options.weight = WeightStrategies(weight_strategy);
 
             testCase.verifyEmpty(lastwarn);
 
