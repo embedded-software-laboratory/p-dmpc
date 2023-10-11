@@ -1,5 +1,5 @@
-classdef RandomWeighter < Weighter
-    % RANDOMWEIGHTER  Instance of weight used for coupling weighting
+classdef RandomWeigher < Weigher
+    % RANDOMWEIGHER  Instance of weight used for coupling weighing
     % random weight for every coupling
 
     properties (Access = private)
@@ -7,7 +7,7 @@ classdef RandomWeighter < Weighter
 
     methods
 
-        function obj = RandomWeighter()
+        function obj = RandomWeigher()
         end
 
         function [weighted_coupling] = weigh(~, ~, ~, iter)

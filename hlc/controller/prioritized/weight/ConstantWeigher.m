@@ -1,5 +1,5 @@
-classdef ConstantWeighter < Weighter
-    % CONSTANTWEIGHTER  Instance of weight used for coupling weighting
+classdef ConstantWeigher < Weigher
+    % CONSTANTWEIGHER  Instance of weight used for coupling weighing
     % fixed weight for every coupling
 
     properties (Access = private)
@@ -8,7 +8,7 @@ classdef ConstantWeighter < Weighter
 
     methods
 
-        function obj = ConstantWeighter()
+        function obj = ConstantWeigher()
         end
 
         function [weighted_coupling] = weigh(obj, ~, ~, iter)

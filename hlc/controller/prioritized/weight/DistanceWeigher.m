@@ -1,12 +1,12 @@
-classdef DistanceWeighter < Weighter
-    % DISTANCEWEIGHTER gives higher weight for lower distance
+classdef DistanceWeigher < Weigher
+    % DISTANCEWEIGHER gives higher weight for lower distance
 
     properties (Access = private)
     end
 
     methods
 
-        function obj = DistanceWeighter()
+        function obj = DistanceWeigher()
         end
 
         function [weighted_coupling] = weigh(~, scenario, mpa, iter)

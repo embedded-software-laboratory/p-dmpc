@@ -1,5 +1,5 @@
-classdef OptimalWeighter < Weighter
-    % OPTIMALWEIGHTER  Instance of weight used for coupling weighting
+classdef OptimalWeigher < Weigher
+    % OPTIMALWEIGHER  Instance of weight used for coupling weighing
     % weight optimal between two coupled vehicles by counting the number of valid
     % motion primitives of the lower-priority vehicle. A motion primitive is
     % valid, if a fail-safe trajectory could still be found after this motion
@@ -10,7 +10,7 @@ classdef OptimalWeighter < Weighter
 
     methods
 
-        function obj = OptimalWeighter()
+        function obj = OptimalWeigher()
         end
 
         function [weighted_coupling] = weigh(obj, scenario, mpa, iter)

@@ -78,9 +78,9 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        function test_weighter(testCase, scenario_type, weight_strategy)
+        function test_weigher(testCase, scenario_type, weight_strategy)
             lastwarn('');
-            fprintf('\nweighter systemtest for %s\n', scenario_type)
+            fprintf('\nweigher systemtest for %s\n', scenario_type)
             %load Config from json
             rawJson = fileread('tests/systemtests/Config_systemtests.json');
             options = Config();
