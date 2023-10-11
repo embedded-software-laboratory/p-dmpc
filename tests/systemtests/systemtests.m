@@ -5,6 +5,11 @@ classdef systemtests < matlab.unittest.TestCase
         scenario_type = {ScenarioType.circle, ScenarioType.commonroad};
         parallel = {'sequential', 'parallel'};
         use_cpp = {true, false}
+        weight_strategy = {WeightStrategies.constant_weight
+                           WeightStrategies.STAC_weight
+                           WeightStrategies.random_weight
+                           WeightStrategies.distance_weight
+                           WeightStrategies.optimal_weight};
     end
 
     methods (Test)
@@ -18,11 +23,13 @@ classdef systemtests < matlab.unittest.TestCase
             options = options.importFromJson(rawJson);
             options.scenario_type = scenario_type;
             options.is_prioritized = false;
+
             if use_cpp
                 options.cpp_optimizer = CppOptimizer.CentralizedOptimalPolymorphic;
             else
                 options.cpp_optimizer = CppOptimizer.None;
             end
+
             testCase.verifyEmpty(lastwarn);
 
             main(options);
@@ -39,6 +46,7 @@ classdef systemtests < matlab.unittest.TestCase
             options.scenario_type = scenario_type;
             options.is_prioritized = true;
             options.priority = PriorityStrategies.([priority, '_priority']);
+
             if use_cpp
                 options.cpp_optimizer = CppOptimizer.GraphSearchPBOptimal;
             else
@@ -64,6 +72,24 @@ classdef systemtests < matlab.unittest.TestCase
             rawJson = fileread(['tests/systemtests/Config_visualization_2', char(scenario_type), '.json']);
             options = Config();
             options = options.importFromJson(rawJson);
+            testCase.verifyEmpty(lastwarn);
+
+            main(options);
+            testCase.verifyTrue(true);
+        end
+
+        function test_weighter(testCase, scenario_type, weight_strategy)
+            lastwarn('');
+            fprintf('\nweighter systemtest for %s\n', scenario_type)
+            %load Config from json
+            rawJson = fileread('tests/systemtests/Config_systemtests.json');
+            options = Config();
+            options = options.importFromJson(rawJson);
+            options.scenario_type = scenario_type;
+            options.is_prioritized = true;
+            options.max_num_CLs = 1;
+            options.weight = weight_strategy;
+
             testCase.verifyEmpty(lastwarn);
 
             main(options);
