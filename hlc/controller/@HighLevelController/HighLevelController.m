@@ -25,9 +25,10 @@ classdef (Abstract) HighLevelController < handle
     end
 
     properties (Access = private)
-        initialized_reference_path;
+        % member variable that is used to execute steps on error
+        is_run_succeeded (1, 1) logical = false
+
         got_stop;
-        success; % to store unfinished results on error; set to true at the end of the main control loop
         vehs_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
@@ -47,9 +48,7 @@ classdef (Abstract) HighLevelController < handle
             % Or should we make valid and useful default values?
             obj.k = 0;
             obj.controller_name = '';
-            obj.initialized_reference_path = false;
             obj.got_stop = false;
-            obj.success = false;
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
             obj.timing = ControllerTiming();
@@ -81,27 +80,22 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function [result, scenario] = run(obj)
+            % run the controller
+
+            % object that executes the specified function on destruction
+            % this is done at the end of the current function
+            cleanupObj = onCleanup(@obj.end_run);
+
+            % initialize the controller and its adapters
             obj.init_all();
+
+            % start controllers main control loop
             obj.main_control_loop();
-            obj.save_results();
 
-            if obj.scenario.options.use_cpp()
+            % set to true if the controller ran properly
+            obj.is_run_succeeded = true;
 
-                if ismac()
-                    % clear mex dont work on ARM Mac
-                    [~, result] = system('sysctl machdep.cpu.brand_string');
-                    matches = regexp(result, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
-
-                    if isempty(matches)
-                        clear mex;
-                    end
-
-                else
-                    clear mex;
-                end
-
-            end
-
+            % specify returned variables
             result = obj.result;
             scenario = obj.scenario;
         end
@@ -138,18 +132,26 @@ classdef (Abstract) HighLevelController < handle
             % method that can be overwritten by child classes if necessary
         end
 
-        function clean_up(obj)
+        function clean_up(~)
+            % release memory allocated by mex functions
 
-            if ~obj.success
-                disp("Storing unfinished results up on error:")
-                % Don't store the last time step with erroneous data.
-                obj.k = obj.k - 1;
-                % Save the unfinished results.
-                obj.scenario.options.should_save_result = true;
-                obj.result.output_path = 'results/unfinished_result.mat';
-                obj.save_results();
+            % clear mex on all other computers
+            if ~ismac()
+                clear mex %#ok
+                return
             end
 
+            % clear mex does not work on Mac with ARM chip
+            [~, cmdout] = system('sysctl machdep.cpu.brand_string');
+            matches = regexp(cmdout, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
+
+            if isempty(matches)
+                clear mex %#ok
+                return
+            end
+
+            % TODO alternative for clear mex on Mac with ARM chip
+            warning('Memory allocation of mex functions is not freed.')
         end
 
     end
@@ -179,7 +181,6 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function main_control_loop(obj)
-            cleanup = onCleanup(@obj.clean_up);
 
             %% Main control loop
             while (~obj.got_stop)
@@ -205,7 +206,6 @@ classdef (Abstract) HighLevelController < handle
 
                 % Update the iteration data and sample reference trajectory
                 obj.rhc_init(x0_measured, trims_measured);
-                obj.initialized_reference_path = true;
 
                 % calculate the distance
                 distance = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
@@ -266,9 +266,14 @@ classdef (Abstract) HighLevelController < handle
                 end
 
                 obj.info_old = obj.info; % save variable in case of fallback
-                %% save result of current time step
+
+                % stop timer of current time step
                 obj.result.controller_runtime(obj.k) = obj.timing.stop("controller_time", obj.k);
                 obj.timing.stop("hlc_step_time", obj.k);
+
+                % update total number of steps and total runtime
+                obj.result.nSteps = obj.k;
+                obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
 
                 % save controller outputs in result struct
                 obj.result.scenario = obj.scenario;
@@ -341,7 +346,36 @@ classdef (Abstract) HighLevelController < handle
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
             end
 
-            obj.success = true;
+        end
+
+        function end_run(obj)
+            % end run of controller
+            % this function is executed in every case
+
+            % if the controller did not succeed
+            if ~obj.is_run_succeeded
+                % force saving of unfinished results for inspection
+                disp("Saving of unfinished results on error.")
+                obj.scenario.options.should_save_result = true;
+
+                % define output path on error
+                obj.result.output_path = 'results/unfinished_result.mat';
+            else
+                % define output path on success
+                obj.result.output_path = FileNameConstructor.get_results_full_path( ...
+                    obj.scenario.options, ...
+                    obj.plant.indices_in_vehicle_list ...
+                );
+            end
+
+            % save finished or unfinished results
+            obj.save_results();
+
+            % run plant's end_run function
+            obj.plant.end_run();
+
+            % clean up controller
+            obj.clean_up();
         end
 
         function save_results(obj)
@@ -349,8 +383,6 @@ classdef (Abstract) HighLevelController < handle
             obj.result.total_fallback_times = obj.total_fallback_times;
             disp(['Total times of fallback: ' num2str(obj.total_fallback_times) '.'])
 
-            obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
-            obj.result.nSteps = obj.k;
             obj.result.timings = obj.timing.get_all_timings();
 
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
@@ -385,8 +417,6 @@ classdef (Abstract) HighLevelController < handle
                 disp('As required, simulation/Experiment Results were not saved.')
                 % exportVideo( result );
             end
-
-            obj.plant.end_run()
 
         end
 
