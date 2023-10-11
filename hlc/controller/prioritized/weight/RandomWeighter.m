@@ -10,7 +10,7 @@ classdef RandomWeighter < Weighter
         function obj = RandomWeighter()
         end
 
-        function [weighted_coupling] = weigh(obj, ~, ~, iter)
+        function [weighted_coupling] = weigh(~, ~, ~, iter)
             rand_stream = RandStream("mt19937ar", "Seed", iter.k);
             weighted_coupling = iter.directed_coupling;
 
