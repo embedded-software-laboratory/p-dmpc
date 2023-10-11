@@ -5,6 +5,7 @@ classdef WeightStrategies
         random_weight
         constant_weight
         optimal_weight
+        distance_weight
     end
 
 end

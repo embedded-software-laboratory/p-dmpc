@@ -18,6 +18,8 @@ classdef (Abstract) Weighter < handle
                     weighter = StacWeighter();
                 case WeightStrategies.optimal_weight
                     weighter = OptimalWeighter();
+                case WeightStrategies.distance_weight
+                    weighter = DistanceWeighter();
                 otherwise
                     weighter = ConstantWeighter();
                     warning('Unavailable Weighting Method chosen. Using Constant Weight.');
