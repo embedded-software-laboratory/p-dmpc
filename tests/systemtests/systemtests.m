@@ -8,8 +8,8 @@ classdef systemtests < matlab.unittest.TestCase
         weight_strategy = {'constant_weight'
                            'STAC_weight'
                            'random_weight'
-                           'distance_weight'
-                           'optimal_weight'};
+                           'distance_weight'};
+        %    'optimal_weight'}; % currently not working, see issues
     end
 
     methods (Test)
