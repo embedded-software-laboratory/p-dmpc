@@ -371,7 +371,7 @@ classdef (Abstract) HighLevelController < handle
             % save finished or unfinished results
             obj.save_results();
 
-            % run plants end_run function
+            % run plant's end_run function
             obj.plant.end_run();
 
             % clean up controller
