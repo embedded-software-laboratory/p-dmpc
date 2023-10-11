@@ -40,7 +40,6 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 	~MexFunction() { Printer::println("~MexFunction()"); }
 
 	void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) final {
-		Printer::println("operator()");
 		// initialize new graph search:
 		if (inputs[0].getType() == matlab::data::ArrayType::ENUM) {
 			matlab::data::EnumArray FunctionArray = std::move(inputs[0]);

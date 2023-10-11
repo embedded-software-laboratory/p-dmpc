@@ -50,9 +50,6 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 	~MexFunction() { Printer::println("~MexFunction()"); }
 
 	void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) final {
-#if DO_EVAL
-		Printer::println("operator()");
-#endif
 		// initialize new graph search:
 		if (inputs[0].getType() == matlab::data::ArrayType::ENUM) {
 			matlab::data::EnumArray FunctionArray = std::move(inputs[0]);
@@ -86,9 +83,6 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 		} else {
 			throw MatlabException("First Argument must be Enum! (is ", inputs[0].getType(), ")");
 		}
-#if DO_EVAL
-		Printer::println("~operator()");
-#endif
 	}
 
    private:
