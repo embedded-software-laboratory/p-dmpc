@@ -26,7 +26,7 @@ classdef (Abstract) HighLevelController < handle
 
     properties (Access = private)
         % member variable that is used to execute steps on error
-        is_succeeded (1, 1) logical = false
+        is_run_succeeded (1, 1) logical = false
 
         got_stop;
         vehs_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
@@ -93,7 +93,7 @@ classdef (Abstract) HighLevelController < handle
             obj.main_control_loop();
 
             % set to true if the controller ran properly
-            obj.is_succeeded = true;
+            obj.is_run_succeeded = true;
 
             % specify returned variables
             result = obj.result;
@@ -353,7 +353,7 @@ classdef (Abstract) HighLevelController < handle
             % this function is executed in every case
 
             % if the controller did not succeed
-            if ~obj.is_succeeded
+            if ~obj.is_run_succeeded
                 % force saving of unfinished results for inspection
                 disp("Saving of unfinished results on error.")
                 obj.scenario.options.should_save_result = true;
