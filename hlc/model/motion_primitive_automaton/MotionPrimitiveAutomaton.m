@@ -1065,7 +1065,8 @@ classdef MotionPrimitiveAutomaton
                 obj.plot_mpa('fig', fig, ...
                     'k', k, ...
                     'with_labels', false, ...
-                    'x_lim', rad2deg(pi / 18 * [-3, 3]) ...
+                    'x_lim', rad2deg(pi / 18 * [-3, 3]), ...
+                    'y_lim', options.y_lim ...
                 );
                 title(sprintf("$t=k+%d$", k - 1), 'Interpreter', 'latex');
             end
@@ -1079,7 +1080,7 @@ classdef MotionPrimitiveAutomaton
 
         end
 
-        function plot_local_reachable_sets(obj, is_allow_non_convex)
+        function plot_local_reachable_sets(obj)
             % PLOT_LOCAL_REACHABLE_SETS Visualize the reachable sets starting from
             % different root trims.
 
@@ -1113,36 +1114,6 @@ classdef MotionPrimitiveAutomaton
             xlabel(t_fig, 'x [m]')
             ylabel(t_fig, 'y [m]')
             title(t_fig, 'Reachable Sets of Different Root Trims')
-
-            % save fig to pdf
-            set(fig, 'Units', 'Inches');
-            pos = get(fig, 'Position');
-            set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3), pos(4)])
-
-            [file_path, ~, ~] = fileparts(mfilename('fullpath')); % get the path of the current file
-            idcs = strfind(file_path, filesep); % find all positions of '/'
-            one_folder_up = file_path(1:idcs(end) - 1); % one folder up
-            folder_target = [one_folder_up, filesep, 'motion_primitive_automaton', filesep, 'local_reachable_sets'];
-
-            if ~isfolder(folder_target)
-                % create target folder if not exist
-                mkdir(folder_target)
-            end
-
-            file_name = ['trims', num2str(n_trims), '_Hp', num2str(Hp)];
-
-            if is_allow_non_convex
-                file_name = [file_name, '_non-convex'];
-            end
-
-            full_path = [folder_target, filesep, file_name];
-
-            if isfile(full_path)
-                warning('The file for visualization of the offline reachable sets was already saved.');
-            else
-                print(fig, full_path, '-dpdf', '-r0');
-            end
-
         end
 
     end
