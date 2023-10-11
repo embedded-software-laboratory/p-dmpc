@@ -5,7 +5,7 @@ classdef Scenario
         vehicles = []; % array of Vehicle objects
         obstacles = {}; % static obstacles = {[xs;ys],...}
         lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
-        options;
+        options Config;
 
         model = [];
         r_goal = 0.1; % goal circle
