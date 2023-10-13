@@ -358,12 +358,14 @@ classdef (Abstract) HighLevelController < handle
                 return
             end
 
-            i_triggering_vehicles = find(obj.info.needs_fallback);
-
-            str_veh = sprintf('%d ', i_triggering_vehicles);
-            str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
-            disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
-            disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
+            % print information about occurred fallback
+            str_trigger_vehicles = sprintf(' %d', find(obj.info.needs_fallback));
+            str_fallback_vehicles = sprintf(' %d', obj.info.vehs_fallback);
+            fprintf('%s triggered by%s affects%s\n', ...
+                obj.scenario.options.fallback_type, ...
+                str_trigger_vehicles, ...
+                str_fallback_vehicles ...
+            )
 
             % plan for fallback case
             obj.plan_for_fallback();
