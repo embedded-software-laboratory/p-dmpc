@@ -588,7 +588,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function handle_fallback(obj)
+        function plan_for_fallback(obj)
             % planning by using last priority and trajectories directly
 
             tick_per_step = obj.scenario.options.tick_per_step + 1;

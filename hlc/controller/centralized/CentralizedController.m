@@ -59,7 +59,7 @@ classdef CentralizedController < HighLevelController
             obj.info.runtime_graph_search_max = obj.info.runtime_subcontroller_each_veh;
         end
 
-        function handle_fallback(~)
+        function plan_for_fallback(~)
             % TODO must be implemented! (see issue #142)
             error(['No fallback handling for centralized controller', ...
                    ' implemented yet!'])
