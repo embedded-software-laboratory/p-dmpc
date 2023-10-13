@@ -416,14 +416,16 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function save_results(obj)
-            %% save results at end of experiment
+            % save results at end of experiment
+
+            % print information about final values of counter
+            fprintf('Total times of fallback: %d\n', obj.total_fallback_times);
+            fprintf('Total runtime: %f seconds\n', obj.result.t_total);
+
             obj.result.total_fallback_times = obj.total_fallback_times;
-            disp(['Total times of fallback: ' num2str(obj.total_fallback_times) '.'])
 
             obj.result.scenario = obj.scenario;
             obj.result.timings = obj.timing.get_all_timings();
-
-            disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
 
             if obj.scenario.options.should_save_result
                 obj.result.mpa = obj.mpa;
