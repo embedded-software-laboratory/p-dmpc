@@ -50,9 +50,6 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 	~MexFunction() { Printer::println("~MexFunction()"); }
 
 	void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) final {
-#if DO_EVAL
-		Printer::println("operator()");
-#endif
 		// initialize new graph search:
 		if (inputs[0].getType() == matlab::data::ArrayType::ENUM) {
 			matlab::data::EnumArray FunctionArray = std::move(inputs[0]);
@@ -86,9 +83,6 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 		} else {
 			throw MatlabException("First Argument must be Enum! (is ", inputs[0].getType(), ")");
 		}
-#if DO_EVAL
-		Printer::println("~operator()");
-#endif
 	}
 
    private:
@@ -123,7 +117,6 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 #if DO_EVAL
 		save(function_used, Function);
 #endif
-		Printer::print(Function, ": ");
 		if (Function == "CentralizedOptimal") {
 			graph_search = new CentralizedOptimalSimple<n_vehicles, scenario_type, false>(_config, _mpa, std::move(vehicle_data));
 		} else if (Function == "CentralizedOptimalPolymorphic") {
@@ -179,7 +172,6 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 		save(time_used, seconds);
 		save(g_value, solution->g());
 #endif
-		Printer::println(seconds, "s");
 
 		std::vector<ColMajorMatrixAccessor<double>> next_nodes(_config->n_hp(), ColMajorMatrixAccessor<double>({_config->n_vehicles(), 8U}));
 		ColMajorMatrixAccessor<std::uint8_t> predicted_trims({n_vehicles, _config->n_hp() + 1});
