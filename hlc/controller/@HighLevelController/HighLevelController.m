@@ -328,7 +328,6 @@ classdef (Abstract) HighLevelController < handle
             obj.result.distance(:, :, obj.k) = vehicles_distances;
 
             % save controller outputs in result struct
-            obj.result.scenario = obj.scenario;
             obj.result.is_deadlock(obj.k) = 0;
             obj.result.iteration_structs{obj.k} = obj.iter;
             obj.result.trajectory_predictions(:, obj.k) = obj.info.y_predicted;
@@ -421,6 +420,7 @@ classdef (Abstract) HighLevelController < handle
             obj.result.total_fallback_times = obj.total_fallback_times;
             disp(['Total times of fallback: ' num2str(obj.total_fallback_times) '.'])
 
+            obj.result.scenario = obj.scenario;
             obj.result.timings = obj.timing.get_all_timings();
 
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
