@@ -333,40 +333,46 @@ classdef (Abstract) HighLevelController < handle
             obj.check_others_fallback();
 
             % boolean that is used to break the main control loop
+            % initialize it with value false
             is_fallback_handled = false;
+
+            if isempty(obj.info.vehs_fallback)
+                % increase counter of vehicles that take fallback
+                obj.vehs_fallback_times(obj.info.vehs_fallback) = ...
+                    obj.vehs_fallback_times(obj.info.vehs_fallback) + 1;
+
+                % reset fallback counter of vehicles that have no fallback
+                obj.vehs_fallback_times(setdiff( ...
+                    1:obj.scenario.options.amount, ...
+                    obj.info.vehs_fallback ...
+                )) = 0;
+
+                % if no fallback occurs return that fallback is handled
+                is_fallback_handled = true;
+                return
+            end
 
             if obj.scenario.options.fallback_type == FallbackType.no_fallback
                 % disabled fallback
-                if ~isempty(obj.info.vehs_fallback)
-                    disp('Fallback is disabled. Simulation ends.')
-                    return
-                end
-
-            else
-
-                is_fallback_handled = true;
-
-                obj.vehs_fallback_times(obj.info.vehs_fallback) = obj.vehs_fallback_times(obj.info.vehs_fallback) + 1;
-                vehs_not_fallback = setdiff(1:obj.scenario.options.amount, obj.info.vehs_fallback);
-                obj.vehs_fallback_times(vehs_not_fallback) = 0; % reset
-
-                % check whether at least one vehicle has fallen back Hp times successively
-
-                if ~isempty(obj.info.vehs_fallback)
-                    i_triggering_vehicles = find(obj.info.needs_fallback);
-
-                    str_veh = sprintf('%d ', i_triggering_vehicles);
-                    str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
-                    disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
-                    disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
-
-                    % plan for fallback case
-                    obj.plan_for_fallback();
-                    obj.total_fallback_times = obj.total_fallback_times + 1;
-                end
-
+                disp('Fallback is disabled. Simulation ends.')
+                return
             end
 
+            i_triggering_vehicles = find(obj.info.needs_fallback);
+
+            str_veh = sprintf('%d ', i_triggering_vehicles);
+            str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
+            disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
+            disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
+
+            % plan for fallback case
+            obj.plan_for_fallback();
+
+            % increase counter of total fallbacks
+            obj.total_fallback_times = obj.total_fallback_times + 1;
+
+            % if fallback is handled return that
+            is_fallback_handled = true;
         end
 
         function end_run(obj)
