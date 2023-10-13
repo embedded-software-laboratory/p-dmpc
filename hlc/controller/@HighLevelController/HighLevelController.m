@@ -302,6 +302,19 @@ classdef (Abstract) HighLevelController < handle
         function store_iteration_results(obj)
             % store iteration results like iter and info in the results struct
 
+            % calculate distances between vehicles
+            vehicles_distances = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
+
+            for j_veh = 1:obj.scenario.options.amount - 1
+                adjacent_vehicle = find(obj.iter.adjacency(j_veh, :));
+                adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > j_veh);
+
+                for k_veh = adjacent_vehicle
+                    vehicles_distances(j_veh, k_veh) = check_distance(obj.iter, j_veh, k_veh);
+                end
+
+            end
+
             % update total number of steps and total runtime
             obj.result.nSteps = obj.k;
             obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
@@ -311,21 +324,8 @@ classdef (Abstract) HighLevelController < handle
             obj.result.controller_runtime(obj.k) = obj.timing.get_elapsed_time("controller_time", obj.k);
             obj.result.step_time(obj.k) = obj.timing.get_elapsed_time("hlc_step_time", obj.k);
 
-            % calculate the distance
-            distance = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
-            adjacency = obj.iter.adjacency;
-
-            for jVeh = 1:obj.scenario.options.amount - 1
-                adjacent_vehicle = find(adjacency(jVeh, :));
-                adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > jVeh);
-
-                for vehn = adjacent_vehicle
-                    distance(jVeh, vehn) = check_distance(obj.iter, jVeh, vehn);
-                end
-
-            end
-
-            obj.result.distance(:, :, obj.k) = distance;
+            % store calculated distances
+            obj.result.distance(:, :, obj.k) = vehicles_distances;
 
             % save controller outputs in result struct
             obj.result.scenario = obj.scenario;
