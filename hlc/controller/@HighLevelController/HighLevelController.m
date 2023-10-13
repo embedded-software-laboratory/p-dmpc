@@ -273,7 +273,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
                 obj.result.directed_coupling{obj.k} = obj.iter.directed_coupling;
 
-                if obj.scenario.options.is_prioritized && obj.scenario.options.scenario_type == ScenarioType.commonroad
+                if obj.scenario.options.is_prioritized
                     obj.result.determine_couplings_time(obj.k) = obj.iter.timer.determine_couplings;
                     obj.result.group_vehs_time(obj.k) = obj.iter.timer.group_vehs;
                     obj.result.assign_priority_time(obj.k) = obj.iter.timer.assign_priority;
