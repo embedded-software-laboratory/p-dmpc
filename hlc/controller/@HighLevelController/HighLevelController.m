@@ -422,41 +422,35 @@ classdef (Abstract) HighLevelController < handle
             fprintf('Total times of fallback: %d\n', obj.total_fallback_times);
             fprintf('Total runtime: %f seconds\n', obj.result.t_total);
 
-            obj.result.total_fallback_times = obj.total_fallback_times;
+            if ~obj.scenario.options.should_save_result
+                % return results should not be saved
+                fprintf('As required, results were not saved\n');
+                return
+            end
 
+            obj.result.mpa = obj.mpa;
             obj.result.scenario = obj.scenario;
             obj.result.timings = obj.timing.get_all_timings();
+            obj.result.total_fallback_times = obj.total_fallback_times;
 
-            if obj.scenario.options.should_save_result
-                obj.result.mpa = obj.mpa;
+            if obj.scenario.options.should_reduce_result
+                % delete large data fields of to reduce file size
 
-                % Delete unimportant data
-                if obj.scenario.options.should_reduce_result
+                obj.result.mpa = [];
 
-                    for iIter = 1:length(obj.result.iteration_structs)
-                        obj.result.iteration_structs{iIter}.predicted_lanelet_boundary = [];
-                        obj.result.iteration_structs{iIter}.predicted_lanelets = [];
-                        obj.result.iteration_structs{iIter}.reachable_sets = [];
-                        obj.result.iteration_structs{iIter}.occupied_areas = [];
-                        obj.result.iteration_structs{iIter}.emergency_maneuvers = [];
-                    end
-
-                    obj.result.mpa = [];
+                for i_step = 1:length(obj.result.iteration_structs)
+                    obj.result.iteration_structs{i_step}.predicted_lanelets = [];
+                    obj.result.iteration_structs{i_step}.predicted_lanelet_boundary = [];
+                    obj.result.iteration_structs{i_step}.reachable_sets = [];
+                    obj.result.iteration_structs{i_step}.emergency_maneuvers = [];
+                    obj.result.iteration_structs{i_step}.occupied_areas = [];
                 end
 
-                % check if file with the same name exists
-                % while isfile(result.output_path)
-                %     warning('File with the same name exists, timestamp will be added to the file name.')
-                %     result.output_path = [result.output_path(1:end-4), '_', datestr(now,'yyyymmddTHHMMSS'), '.mat']; % move '.mat' to end
-                % end
-
-                result = obj.result;
-                save(obj.result.output_path, 'result');
-                disp(['Simulation results were saved under ' obj.result.output_path])
-            else
-                disp('As required, simulation/Experiment Results were not saved.')
-                % exportVideo( result );
             end
+
+            result = obj.result;
+            save(obj.result.output_path, 'result');
+            fprintf('Results were saved under: %s\n', obj.result.output_path);
 
         end
 
