@@ -207,7 +207,7 @@ classdef (Abstract) HighLevelController < handle
                 % Update the iteration data and sample reference trajectory
                 obj.rhc_init(x0_measured, trims_measured);
 
-                obj.result.iter_runtime(obj.k) = obj.timing.stop("iter_runtime", obj.k);
+                obj.timing.stop("iter_runtime", obj.k);
 
                 % The controller computes plans
                 obj.timing.start("controller_time", obj.k);
@@ -223,7 +223,6 @@ classdef (Abstract) HighLevelController < handle
                     % disabled fallback
                     if ~isempty(obj.info.vehs_fallback)
                         disp('Fallback is disabled. Simulation ends.')
-                        obj.result.iter_runtime(obj.k) = [];
                         break
                     end
 
@@ -252,12 +251,17 @@ classdef (Abstract) HighLevelController < handle
                 obj.info_old = obj.info; % save variable in case of fallback
 
                 % stop timer of current time step
-                obj.result.controller_runtime(obj.k) = obj.timing.stop("controller_time", obj.k);
+                obj.timing.stop("controller_time", obj.k);
                 obj.timing.stop("hlc_step_time", obj.k);
 
                 % update total number of steps and total runtime
                 obj.result.nSteps = obj.k;
                 obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
+
+                % store timings in result struct
+                obj.result.iter_runtime(obj.k) = obj.timing.get_elapsed_time("iter_runtime", obj.k);
+                obj.result.controller_runtime(obj.k) = obj.timing.get_elapsed_time("controller_time", obj.k);
+                obj.result.step_time(obj.k) = obj.timing.get_elapsed_time("hlc_step_time", obj.k);
 
                 % calculate the distance
                 distance = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
@@ -288,7 +292,6 @@ classdef (Abstract) HighLevelController < handle
                 obj.result.priority_list(:, obj.k) = obj.iter.priority_list;
                 obj.result.coupling_adjacency(:, :, obj.k) = obj.iter.adjacency;
                 obj.result.computation_levels(obj.k) = obj.info.computation_levels;
-                obj.result.step_time(obj.k) = obj.timing.get_elapsed_time("hlc_step_time", obj.k);
                 obj.result.obstacles = obj.iter.obstacles;
                 % reset iter obstacles to scenario default/static obstacles
                 obj.iter.obstacles = obj.scenario.obstacles;
