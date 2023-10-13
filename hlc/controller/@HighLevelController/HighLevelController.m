@@ -215,37 +215,10 @@ classdef (Abstract) HighLevelController < handle
                 %% controller %%
                 obj.controller();
 
-                % check fallback of other controllers
-                obj.check_others_fallback();
-
-                %% fallback
-                if obj.scenario.options.fallback_type == FallbackType.no_fallback
-                    % disabled fallback
-                    if ~isempty(obj.info.vehs_fallback)
-                        disp('Fallback is disabled. Simulation ends.')
-                        break
-                    end
-
-                else
-                    obj.vehs_fallback_times(obj.info.vehs_fallback) = obj.vehs_fallback_times(obj.info.vehs_fallback) + 1;
-                    vehs_not_fallback = setdiff(1:obj.scenario.options.amount, obj.info.vehs_fallback);
-                    obj.vehs_fallback_times(vehs_not_fallback) = 0; % reset
-
-                    % check whether at least one vehicle has fallen back Hp times successively
-
-                    if ~isempty(obj.info.vehs_fallback)
-                        i_triggering_vehicles = find(obj.info.needs_fallback);
-
-                        str_veh = sprintf('%d ', i_triggering_vehicles);
-                        str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
-                        disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
-                        disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
-
-                        % plan for fallback case
-                        obj.plan_for_fallback();
-                        obj.total_fallback_times = obj.total_fallback_times + 1;
-                    end
-
+                % handle fallback of controller
+                if ~obj.handle_fallback()
+                    % if fallback is not handled break the main control loop
+                    break
                 end
 
                 obj.info_old = obj.info; % save variable in case of fallback
@@ -347,6 +320,51 @@ classdef (Abstract) HighLevelController < handle
                 % Check for stop signal
                 % -------------------------------------------------------------------------
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
+            end
+
+        end
+
+        function is_fallback_handled = handle_fallback(obj)
+            % handle the fallback of the controller
+            % if fallback is disabled return
+            % boolean to break the main control loop
+
+            % check fallback of other controllers
+            obj.check_others_fallback();
+
+            % boolean that is used to break the main control loop
+            is_fallback_handled = false;
+
+            if obj.scenario.options.fallback_type == FallbackType.no_fallback
+                % disabled fallback
+                if ~isempty(obj.info.vehs_fallback)
+                    disp('Fallback is disabled. Simulation ends.')
+                    return
+                end
+
+            else
+
+                is_fallback_handled = true;
+
+                obj.vehs_fallback_times(obj.info.vehs_fallback) = obj.vehs_fallback_times(obj.info.vehs_fallback) + 1;
+                vehs_not_fallback = setdiff(1:obj.scenario.options.amount, obj.info.vehs_fallback);
+                obj.vehs_fallback_times(vehs_not_fallback) = 0; % reset
+
+                % check whether at least one vehicle has fallen back Hp times successively
+
+                if ~isempty(obj.info.vehs_fallback)
+                    i_triggering_vehicles = find(obj.info.needs_fallback);
+
+                    str_veh = sprintf('%d ', i_triggering_vehicles);
+                    str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
+                    disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
+                    disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
+
+                    % plan for fallback case
+                    obj.plan_for_fallback();
+                    obj.total_fallback_times = obj.total_fallback_times + 1;
+                end
+
             end
 
         end
