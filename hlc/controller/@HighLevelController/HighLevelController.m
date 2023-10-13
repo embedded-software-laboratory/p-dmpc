@@ -227,91 +227,13 @@ classdef (Abstract) HighLevelController < handle
                 obj.timing.stop("controller_time", obj.k);
                 obj.timing.stop("hlc_step_time", obj.k);
 
-                % update total number of steps and total runtime
-                obj.result.nSteps = obj.k;
-                obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
+                % store results from iteration in results struct
+                obj.store_iteration_results();
 
-                % store timings in result struct
-                obj.result.iter_runtime(obj.k) = obj.timing.get_elapsed_time("iter_runtime", obj.k);
-                obj.result.controller_runtime(obj.k) = obj.timing.get_elapsed_time("controller_time", obj.k);
-                obj.result.step_time(obj.k) = obj.timing.get_elapsed_time("hlc_step_time", obj.k);
-
-                % calculate the distance
-                distance = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
-                adjacency = obj.iter.adjacency;
-
-                for jVeh = 1:obj.scenario.options.amount - 1
-                    adjacent_vehicle = find(adjacency(jVeh, :));
-                    adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > jVeh);
-
-                    for vehn = adjacent_vehicle
-                        distance(jVeh, vehn) = check_distance(obj.iter, jVeh, vehn);
-                    end
-
-                end
-
-                obj.result.distance(:, :, obj.k) = distance;
-
-                % save controller outputs in result struct
-                obj.result.scenario = obj.scenario;
-                obj.result.is_deadlock(obj.k) = 0;
-                obj.result.iteration_structs{obj.k} = obj.iter;
-                obj.result.trajectory_predictions(:, obj.k) = obj.info.y_predicted;
-                obj.result.controller_outputs{obj.k} = obj.info.u;
-                obj.result.subcontroller_runtime_each_veh(:, obj.k) = obj.info.runtime_subcontroller_each_veh;
-                obj.result.graph_search_runtime_each_veh(:, obj.k) = obj.info.runtime_graph_search_each_veh;
-                obj.result.vehicle_path_fullres(:, obj.k) = obj.info.vehicle_fullres_path(:);
-                obj.result.n_expanded(:, obj.k) = obj.info.n_expanded;
-                obj.result.priority_list(:, obj.k) = obj.iter.priority_list;
-                obj.result.coupling_adjacency(:, :, obj.k) = obj.iter.adjacency;
-                obj.result.computation_levels(obj.k) = obj.info.computation_levels;
-                obj.result.obstacles = obj.iter.obstacles;
                 % reset iter obstacles to scenario default/static obstacles
                 obj.iter.obstacles = obj.scenario.obstacles;
-
-                obj.result.runtime_subcontroller_max(obj.k) = obj.info.runtime_subcontroller_max;
-                obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
-                obj.result.directed_coupling{obj.k} = obj.iter.directed_coupling;
-
-                if obj.scenario.options.is_prioritized
-                    obj.result.determine_couplings_time(obj.k) = obj.iter.timer.determine_couplings;
-                    obj.result.group_vehs_time(obj.k) = obj.iter.timer.group_vehs;
-                    obj.result.assign_priority_time(obj.k) = obj.iter.timer.assign_priority;
-                    obj.result.num_couplings(obj.k) = nnz(obj.iter.directed_coupling);
-                    obj.result.num_couplings_ignored(obj.k) = nnz(obj.iter.directed_coupling) - nnz(obj.iter.directed_coupling_reduced);
-                    obj.result.num_couplings_between_grps(obj.k) = obj.iter.num_couplings_between_grps;
-                    obj.result.num_couplings_between_grps_ignored(obj.k) = obj.iter.num_couplings_between_grps_ignored;
-                    obj.result.weighted_coupling_reduced{obj.k} = obj.iter.weighted_coupling_reduced;
-                    obj.result.coupling_info{obj.k} = obj.iter.coupling_info;
-                    obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
-                    obj.result.lanelet_crossing_areas{obj.k} = obj.iter.lanelet_crossing_areas;
-                    % important: reset lanelet crossing areas
-                    obj.iter.lanelet_crossing_areas = {};
-                end
-
-                obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
-                obj.result.vehs_fallback{obj.k} = obj.info.vehs_fallback;
-
-                % check if deadlock occurs
-                % if a vehicle stops for more than a defined time, assume deadlock
-                % TODO check if deadlocked vehicles are coupled. Sometimes single
-                % vehicles stop because trajectory planner fails to work as intended
-                vehs_stop = any(ismember(obj.info.trim_indices, obj.mpa.trims_stop), 2); % vehicles stop at the current time step
-                obj.vehs_stop_duration(vehs_stop) = obj.vehs_stop_duration(vehs_stop) + 1;
-                obj.vehs_stop_duration(~vehs_stop) = 0; % reset others
-
-                threshold_stop_steps = 3 * obj.scenario.options.Hp;
-                vehs_deadlocked = (obj.vehs_stop_duration > threshold_stop_steps);
-                n_deadlocked_vehicles = nnz(vehs_deadlocked);
-                % TODO n_coupled_deadlocked_vehicles
-                if n_deadlocked_vehicles > 0
-                    veh_idcs_deadlocked = find(vehs_deadlocked);
-                    veh_str = sprintf("%4d", veh_idcs_deadlocked);
-                    t_str = sprintf("%4d", obj.vehs_stop_duration(vehs_deadlocked));
-                    fprintf("Deadlock. Vehicle:%s\n", veh_str);
-                    fprintf("    For timesteps:%s\n", t_str)
-                    obj.result.is_deadlock(obj.k) = 1;
-                end
+                % important: reset lanelet crossing areas
+                obj.iter.lanelet_crossing_areas = {};
 
                 % Apply control action
                 % -------------------------------------------------------------------------
@@ -375,6 +297,93 @@ classdef (Abstract) HighLevelController < handle
 
             % if fallback is handled return that
             is_fallback_handled = true;
+        end
+
+        function store_iteration_results(obj)
+            % store iteration results like iter and info in the results struct
+
+            % update total number of steps and total runtime
+            obj.result.nSteps = obj.k;
+            obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
+
+            % store timings in result struct
+            obj.result.iter_runtime(obj.k) = obj.timing.get_elapsed_time("iter_runtime", obj.k);
+            obj.result.controller_runtime(obj.k) = obj.timing.get_elapsed_time("controller_time", obj.k);
+            obj.result.step_time(obj.k) = obj.timing.get_elapsed_time("hlc_step_time", obj.k);
+
+            % calculate the distance
+            distance = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
+            adjacency = obj.iter.adjacency;
+
+            for jVeh = 1:obj.scenario.options.amount - 1
+                adjacent_vehicle = find(adjacency(jVeh, :));
+                adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > jVeh);
+
+                for vehn = adjacent_vehicle
+                    distance(jVeh, vehn) = check_distance(obj.iter, jVeh, vehn);
+                end
+
+            end
+
+            obj.result.distance(:, :, obj.k) = distance;
+
+            % save controller outputs in result struct
+            obj.result.scenario = obj.scenario;
+            obj.result.is_deadlock(obj.k) = 0;
+            obj.result.iteration_structs{obj.k} = obj.iter;
+            obj.result.trajectory_predictions(:, obj.k) = obj.info.y_predicted;
+            obj.result.controller_outputs{obj.k} = obj.info.u;
+            obj.result.subcontroller_runtime_each_veh(:, obj.k) = obj.info.runtime_subcontroller_each_veh;
+            obj.result.graph_search_runtime_each_veh(:, obj.k) = obj.info.runtime_graph_search_each_veh;
+            obj.result.vehicle_path_fullres(:, obj.k) = obj.info.vehicle_fullres_path(:);
+            obj.result.n_expanded(:, obj.k) = obj.info.n_expanded;
+            obj.result.priority_list(:, obj.k) = obj.iter.priority_list;
+            obj.result.coupling_adjacency(:, :, obj.k) = obj.iter.adjacency;
+            obj.result.computation_levels(obj.k) = obj.info.computation_levels;
+            obj.result.obstacles = obj.iter.obstacles;
+
+            obj.result.runtime_subcontroller_max(obj.k) = obj.info.runtime_subcontroller_max;
+            obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
+            obj.result.directed_coupling{obj.k} = obj.iter.directed_coupling;
+
+            if obj.scenario.options.is_prioritized
+                obj.result.determine_couplings_time(obj.k) = obj.iter.timer.determine_couplings;
+                obj.result.group_vehs_time(obj.k) = obj.iter.timer.group_vehs;
+                obj.result.assign_priority_time(obj.k) = obj.iter.timer.assign_priority;
+                obj.result.num_couplings(obj.k) = nnz(obj.iter.directed_coupling);
+                obj.result.num_couplings_ignored(obj.k) = nnz(obj.iter.directed_coupling) - nnz(obj.iter.directed_coupling_reduced);
+                obj.result.num_couplings_between_grps(obj.k) = obj.iter.num_couplings_between_grps;
+                obj.result.num_couplings_between_grps_ignored(obj.k) = obj.iter.num_couplings_between_grps_ignored;
+                obj.result.weighted_coupling_reduced{obj.k} = obj.iter.weighted_coupling_reduced;
+                obj.result.coupling_info{obj.k} = obj.iter.coupling_info;
+                obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
+                obj.result.lanelet_crossing_areas{obj.k} = obj.iter.lanelet_crossing_areas;
+            end
+
+            obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
+            obj.result.vehs_fallback{obj.k} = obj.info.vehs_fallback;
+
+            % check if deadlock occurs
+            % if a vehicle stops for more than a defined time, assume deadlock
+            % TODO check if deadlocked vehicles are coupled. Sometimes single
+            % vehicles stop because trajectory planner fails to work as intended
+            vehs_stop = any(ismember(obj.info.trim_indices, obj.mpa.trims_stop), 2); % vehicles stop at the current time step
+            obj.vehs_stop_duration(vehs_stop) = obj.vehs_stop_duration(vehs_stop) + 1;
+            obj.vehs_stop_duration(~vehs_stop) = 0; % reset others
+
+            threshold_stop_steps = 3 * obj.scenario.options.Hp;
+            vehs_deadlocked = (obj.vehs_stop_duration > threshold_stop_steps);
+            n_deadlocked_vehicles = nnz(vehs_deadlocked);
+            % TODO n_coupled_deadlocked_vehicles
+            if n_deadlocked_vehicles > 0
+                veh_idcs_deadlocked = find(vehs_deadlocked);
+                veh_str = sprintf("%4d", veh_idcs_deadlocked);
+                t_str = sprintf("%4d", obj.vehs_stop_duration(vehs_deadlocked));
+                fprintf("Deadlock. Vehicle:%s\n", veh_str);
+                fprintf("    For timesteps:%s\n", t_str)
+                obj.result.is_deadlock(obj.k) = 1;
+            end
+
         end
 
         function end_run(obj)
