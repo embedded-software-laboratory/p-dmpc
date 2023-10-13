@@ -315,6 +315,31 @@ classdef (Abstract) HighLevelController < handle
 
             end
 
+            % calculate deadlock
+            % if a vehicle stops for more than a defined time, assume deadlock
+            % TODO check if deadlocked vehicles are coupled. Sometimes single
+            % vehicles stop because trajectory planner fails to work as intended
+
+            % vehicles that stop at the current time step
+            is_vehicle_stopped = ismember(obj.info.trim_indices, obj.mpa.trims_stop);
+            % increase couter of vehicles that stop
+            obj.vehs_stop_duration(is_vehicle_stopped) = ...
+                obj.vehs_stop_duration(is_vehicle_stopped) + 1;
+            % reset vehicles that do not stop anymore
+            obj.vehs_stop_duration(~is_vehicle_stopped) = 0;
+
+            % check for deadlock
+            threshold_stop_steps = 3 * obj.scenario.options.Hp;
+            is_vehicle_deadlocked = (obj.vehs_stop_duration > threshold_stop_steps);
+
+            % TODO n_coupled_deadlocked_vehicles
+            if any(is_vehicle_deadlocked)
+                str_vehicles_deadlocked = sprintf('%4d', find(is_vehicle_deadlocked));
+                str_steps_deadlocked = sprintf('%4d', obj.vehs_stop_duration(is_vehicle_deadlocked));
+                fprintf('Deadlock vehicle:%s\n', str_vehicles_deadlocked);
+                fprintf('       For steps:%s\n', str_steps_deadlocked);
+            end
+
             % update total number of steps and total runtime
             obj.result.nSteps = obj.k;
             obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
@@ -362,26 +387,7 @@ classdef (Abstract) HighLevelController < handle
             obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
             obj.result.vehs_fallback{obj.k} = obj.info.vehs_fallback;
 
-            % check if deadlock occurs
-            % if a vehicle stops for more than a defined time, assume deadlock
-            % TODO check if deadlocked vehicles are coupled. Sometimes single
-            % vehicles stop because trajectory planner fails to work as intended
-            vehs_stop = any(ismember(obj.info.trim_indices, obj.mpa.trims_stop), 2); % vehicles stop at the current time step
-            obj.vehs_stop_duration(vehs_stop) = obj.vehs_stop_duration(vehs_stop) + 1;
-            obj.vehs_stop_duration(~vehs_stop) = 0; % reset others
-
-            threshold_stop_steps = 3 * obj.scenario.options.Hp;
-            vehs_deadlocked = (obj.vehs_stop_duration > threshold_stop_steps);
-            n_deadlocked_vehicles = nnz(vehs_deadlocked);
-            % TODO n_coupled_deadlocked_vehicles
-            if n_deadlocked_vehicles > 0
-                veh_idcs_deadlocked = find(vehs_deadlocked);
-                veh_str = sprintf("%4d", veh_idcs_deadlocked);
-                t_str = sprintf("%4d", obj.vehs_stop_duration(vehs_deadlocked));
-                fprintf("Deadlock. Vehicle:%s\n", veh_str);
-                fprintf("    For timesteps:%s\n", t_str)
-                obj.result.is_deadlock(obj.k) = 1;
-            end
+            obj.result.is_deadlock(obj.k) = any(is_vehicle_deadlocked);
 
         end
 
