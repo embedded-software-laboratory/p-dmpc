@@ -8,7 +8,6 @@ classdef Vehicle < handle
         yaw_start = 0; % [radians]
         x_goal = 0; % [m]
         y_goal = 0; % [m]
-        yaw_goal = 0; % [radians]
         reference_trajectory = [0 0; 1 0; 3 1]; % [x1 y1; x2 y2; ...]
         Length = 0.22; % Vehicle length (bumper to bumper)[m]
         Width = 0.1; % Vehicle width [m]

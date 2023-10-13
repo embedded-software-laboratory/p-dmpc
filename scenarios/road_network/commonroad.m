@@ -60,7 +60,6 @@ function scenario = commonroad(options)
 
         yaw = calculate_yaw(veh.reference_trajectory);
         veh.yaw_start = yaw(1);
-        veh.yaw_goal = yaw(2:end);
         scenario.vehicles = [scenario.vehicles, veh];
     end
 

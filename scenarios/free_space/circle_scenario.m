@@ -27,7 +27,6 @@ function scenario = circle_scenario(options)
         veh.yaw_start = yaw;
         veh.x_goal = c * radius;
         veh.y_goal = s * radius;
-        veh.yaw_goal = yaw;
         % Lab: translate by center
         center_x = 2.25;
         center_y = 2;
