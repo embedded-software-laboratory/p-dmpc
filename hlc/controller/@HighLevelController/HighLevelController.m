@@ -128,7 +128,7 @@ classdef (Abstract) HighLevelController < handle
             obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
         end
 
-        function check_fallback(~)
+        function check_others_fallback(~)
             % method that can be overwritten by child classes if necessary
         end
 
@@ -215,8 +215,8 @@ classdef (Abstract) HighLevelController < handle
                 %% controller %%
                 obj.controller();
 
-                %% collect fallbacks %%
-                obj.check_fallback();
+                % check fallback of other controllers
+                obj.check_others_fallback();
 
                 %% fallback
                 if obj.scenario.options.fallback_type == FallbackType.no_fallback

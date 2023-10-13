@@ -542,8 +542,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function check_fallback(obj)
-            % check for fallback in other controllers
+        function check_others_fallback(obj)
+            % the function checks the messages from other controllers
+            % whether they take a fallback or not
 
             for vehicle_index_hlc = obj.plant.indices_in_vehicle_list
                 % own vehicle and vehicles that are already remembered to take fallback
