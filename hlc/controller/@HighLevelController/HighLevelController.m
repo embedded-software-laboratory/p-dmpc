@@ -87,7 +87,7 @@ classdef (Abstract) HighLevelController < handle
             cleanupObj = onCleanup(@obj.end_run);
 
             % initialize the controller and its adapters
-            obj.init_all();
+            obj.main_init();
 
             % start controllers main control loop
             obj.main_control_loop();
@@ -158,7 +158,7 @@ classdef (Abstract) HighLevelController < handle
 
     methods (Access = private)
 
-        function init_all(obj)
+        function main_init(obj)
             % this function initializes sequentially
             % the main components of the high level controller
             % future: the function initializes the plant and the scenario
