@@ -291,10 +291,6 @@ classdef (Abstract) Plotter < handle
 
             end
 
-            %     plot distance
-            %     text((iter.x0(v,1)+iter.x0(adj_v,1))/2,(iter.x0(v,2)+iter.x0(adj_v,2))/2,...
-            %         num2str(round(result.distance(v,adj_v,plotting_info.step),2)),'FontSize', 12, 'LineWidth',1,'Color','b');
-
             % Obstacle rectangle
             for obs = 1:nObst
                 patch(plotting_info.obstacles{obs}(1, :) ...

@@ -207,21 +207,6 @@ classdef (Abstract) HighLevelController < handle
                 % Update the iteration data and sample reference trajectory
                 obj.rhc_init(x0_measured, trims_measured);
 
-                % calculate the distance
-                distance = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
-                adjacency = obj.iter.adjacency;
-
-                for jVeh = 1:obj.scenario.options.amount - 1
-                    adjacent_vehicle = find(adjacency(jVeh, :));
-                    adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > jVeh);
-
-                    for vehn = adjacent_vehicle
-                        distance(jVeh, vehn) = check_distance(obj.iter, jVeh, vehn);
-                    end
-
-                end
-
-                obj.result.distance(:, :, obj.k) = distance;
                 obj.result.iter_runtime(obj.k) = obj.timing.stop("iter_runtime", obj.k);
 
                 % The controller computes plans
@@ -238,7 +223,6 @@ classdef (Abstract) HighLevelController < handle
                     % disabled fallback
                     if ~isempty(obj.info.vehs_fallback)
                         disp('Fallback is disabled. Simulation ends.')
-                        obj.result.distance(:, :, obj.k) = [];
                         obj.result.iter_runtime(obj.k) = [];
                         break
                     end
