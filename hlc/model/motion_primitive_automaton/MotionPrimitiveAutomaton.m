@@ -1001,6 +1001,121 @@ classdef MotionPrimitiveAutomaton
 
         end
 
+        function plot_mpa(obj, options)
+
+            arguments
+                obj (1, 1) MotionPrimitiveAutomaton;
+                options.y_lim (1, 2) double = [-0.1, 1.0];
+                options.x_lim (1, 2) double = rad2deg(pi / 18 * [-3, 3]);
+                options.k (1, 1) double = 1;
+                options.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
+                options.with_labels (1, 1) logical = true;
+            end
+
+            trim_inputs = obj.trims;
+
+            trim_adjacency = obj.transition_matrix_single(:, :, options.k);
+
+            angle = rad2deg([trim_inputs.steering]);
+            speed = [trim_inputs.speed];
+            G = digraph(trim_adjacency, 'omitSelfLoops');
+
+            plot(G, 'XData', angle, 'YData', speed, ...
+                'ArrowSize', 5, ...
+                'MarkerSize', 3, ...
+                'NodeColor', rwth_blue(), ...
+                'EdgeColor', rwth_blue_50(), ...
+                'EdgeAlpha', 1 ...
+            );
+
+            if options.with_labels
+                xlabel('Steering Angle $\delta$ [$^{\circ}$]', 'Interpreter', 'latex');
+                ylabel('Speed $\mathrm{v}$ [m/s]', 'Interpreter', 'latex');
+            end
+
+            if isfield(options, 'x_lim')
+                xlim(options.x_lim);
+            end
+
+            if isfield(options, 'y_lim')
+                ylim(options.y_lim);
+            end
+
+            grid on
+
+        end
+
+        function plot_mpa_over_time(obj, options)
+
+            arguments
+                obj (1, 1) MotionPrimitiveAutomaton;
+                options.y_lim (1, 2) double = [-0.1, 1.1];
+            end
+
+            fig = figure("Visible", "on");
+            Hp = size(obj.transition_matrix_single, 3);
+            tiledLayoutHandle = tiledlayout( ...
+                1, Hp, ...
+                'TileSpacing', 'compact', ...
+                'Padding', 'compact' ...
+            );
+
+            for k = 1:Hp
+                nexttile
+                obj.plot_mpa('fig', fig, ...
+                    'k', k, ...
+                    'with_labels', false, ...
+                    'x_lim', rad2deg(pi / 18 * [-3, 3]), ...
+                    'y_lim', options.y_lim ...
+                );
+                title(sprintf("$t=k+%d$", k - 1), 'Interpreter', 'latex');
+            end
+
+            xlabel(tiledLayoutHandle, 'Steering Angle $\delta$ [$^{\circ}$]', ...
+                'Interpreter', 'latex' ...
+            );
+            ylabel(tiledLayoutHandle, 'Speed $\mathrm{v}$ [m/s]', ...
+                'Interpreter', 'latex' ...
+            );
+
+        end
+
+        function plot_local_reachable_sets(obj)
+            % PLOT_LOCAL_REACHABLE_SETS Visualize the reachable sets starting from
+            % different root trims.
+
+            n_trims = size(obj.local_reachable_sets, 1);
+            Hp = size(obj.local_reachable_sets, 2);
+
+            fig = figure('Name', 'ReachableSets');
+            fig.Position = [10 10 500 1600];
+            t_fig = tiledlayout(n_trims, Hp, 'TileSpacing', 'compact');
+
+            for i = 1:n_trims
+
+                for t = 1:Hp
+                    nexttile;
+                    plot(obj.local_reachable_sets{i, t})
+                    hold on
+                    plot(obj.local_reachable_sets_conv{i, t})
+
+                    if t == 1
+                        ylabel(['root trim ', num2str(i)])
+                    end
+
+                    axis square
+                    grid on
+                    xlim([-0.2, 1.5]);
+                    ylim([-1.4 1.4]);
+                end
+
+            end
+
+            xlabel(t_fig, 'x [m]')
+            ylabel(t_fig, 'y [m]')
+            title(t_fig, 'Reachable Sets of Different Root Trims')
+        end
+
     end
 
 end
