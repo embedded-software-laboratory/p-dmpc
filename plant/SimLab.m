@@ -15,10 +15,8 @@ classdef SimLab < Plant
             obj.use_visualization_data_queue = false;
         end
 
-        function visualization_data_queue = set_visualization_data_queue(obj)
-            obj.visualization_data_queue = parallel.pool.DataQueue;
+        function visualization_data_queue = get_visualization_data_queue(obj)
             visualization_data_queue = obj.visualization_data_queue;
-            obj.use_visualization_data_queue = true;
         end
 
         function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
@@ -38,6 +36,17 @@ classdef SimLab < Plant
             % only set controlled ids to all ids after all ids have been set
             if isempty(controlled_vehicle_ids)
                 controlled_vehicle_ids = all_vehicle_ids;
+            end
+
+            % check whether visualization data queue is needed and initialize if necessary
+            if (scenario.options.is_prioritized ...
+                    && scenario.options.compute_in_parallel ...
+                    && scenario.options.options_plot_online.is_active ...
+                    && isempty(obj.visualization_data_queue) ...
+                )
+                obj.visualization_data_queue = parallel.pool.DataQueue;
+                visualization_data_queue = obj.visualization_data_queue;
+                obj.use_visualization_data_queue = true;
             end
 
             setup@Plant(obj, scenario, all_vehicle_ids, controlled_vehicle_ids);

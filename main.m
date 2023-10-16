@@ -48,30 +48,17 @@ function [result, scenario] = main(varargin)
     if is_prioritized_parallel_in_lab
         disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
 
-        if exist("hlc/communication/cust1/matlab_msg_gen", 'dir')
-
-            try
-                rmdir("hlc/communication/cust1/matlab_msg_gen", 's');
-            catch
-                warning("Unable to delete hlc/communication/cust1/matlab_msg_gen. Please delete manually");
-            end
-
-        end
-
-        if exist("manual_control/matlab_msg_gen", "dir")
-
-            try
-                rmdir("manual_control/matlab_msg_gen", 's');
-            catch
-                warning("Unable to delete manual_control/matlab_msg_gen. Please delete manually");
-            end
-
-        end
-
+        delete_ros2_msgs();
     else
 
         % set active vehicle IDs and possibly initialize communication
         plant.setup(scenario);
+
+        if scenario.options.is_prioritized
+            % In priority-based computation, vehicles communicate via ROS 2.
+            % Generate the ros2 msgs types.
+            generate_ros2_msgs();
+        end
 
         if scenario.options.is_prioritized == true && scenario.options.compute_in_parallel
             %% simulate distribution locally using the Parallel Computing Toolbox
@@ -83,7 +70,7 @@ function [result, scenario] = main(varargin)
             if do_plot
 
                 if can_handle_parallel_plot
-                    visualization_data_queue = plant.set_visualization_data_queue;
+                    visualization_data_queue = plant.get_visualization_data_queue;
                     % create central plotter - used by all workers via data queue
                     plotter = PlotterOnline(scenario, plant.indices_in_vehicle_list);
                     afterEach(visualization_data_queue, @plotter.data_queue_callback);

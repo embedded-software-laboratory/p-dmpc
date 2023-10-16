@@ -2,6 +2,9 @@
 
 - [Priority-Based Trajectory Planning for Networked Vehicles Using Motion Primitives](#priority-based-trajectory-planning-for-networked-vehicles-using-motion-primitives)
 - [Setup](#setup)
+    - [MATLAB R2023a](#matlab-r2023a)
+    - [System Requirements for MATLAB ROS Toolbox](#system-requirements-for-matlab-ros-toolbox)
+    - [Setup Details](#setup-details)
 - [Experiments](#experiments)
 - [References](#references)
 - [Acknowledgements](#acknowledgements)
@@ -208,12 +211,13 @@ References in Bibtex format
     doi    = {10.36227/techrxiv.20304015.v2}
 }
 
-@article{scheffe2023scaled,
-    author = {Patrick Scheffe and Bassam Alrifaee},
-    title  = {A Scaled Experiment Platform to Study Interactions Between Humans and CAVs},
-    year   = {2023},
-    month  = {2},
-    doi    = {10.13140/RG.2.2.24697.13923}
+@inproceedings{scheffe2023scaled,
+    title     = {A Scaled Experiment Platform to Study Interactions Between Humans and CAVs},
+    author    = {Patrick Scheffe and Bassam Alrifaee},
+    booktitle = {IEEE Intelligent Vehicles Symposium (IV)},
+    year      = {2023}
+    pages     = {1--6},
+    doi       = {10.1109/IV55152.2023.10186623}
 }
 
 @article{scheffe2022receding,
@@ -228,12 +232,12 @@ References in Bibtex format
 }
 
 @inproceedings{scheffe2022increasing,
-  title = {Increasing {{Feasibility}} with {{Dynamic Priority Assignment}} in {{Distributed Trajectory Planning}} for {{Road Vehicles}}},
-  booktitle = {{{IEEE International Conference}} on {{Intelligent Transportation Systems}} ({{ITSC}})},
-  author = {Scheffe, Patrick and Dorndorf, Georg and Alrifaee, Bassam},
-  year = {2022},
-  pages = {3873--3879},
-  doi = {10.1109/ITSC55140.2022.9922028}
+    title       = {Increasing {{Feasibility}} with {{Dynamic Priority Assignment}} in {{Distributed Trajectory Planning}} for {{Road Vehicles}}},
+    booktitle   = {{{IEEE International Conference}} on {{Intelligent Transportation Systems}} ({{ITSC}})},
+    author      = {Scheffe, Patrick and Dorndorf, Georg and Alrifaee, Bassam},
+    year        = {2022},
+    pages       = {3873--3879},
+    doi         = {10.1109/ITSC55140.2022.9922028}
 }
 
 ```

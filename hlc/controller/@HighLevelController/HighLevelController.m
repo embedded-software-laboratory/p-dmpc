@@ -8,10 +8,6 @@ classdef (Abstract) HighLevelController < handle
         % or one for a local simulation
         plant;
 
-        % Ros Subscribers for Inter HLC Communication (distributed HLCs) or
-        % to simualate distributed communication in pb-sequential controller
-        ros_subscribers;
-
         optimizer;
         mpa;
         controller_name;
@@ -25,17 +21,23 @@ classdef (Abstract) HighLevelController < handle
 
     properties (Access = protected)
         belonging_vector_total;
+        info_old; % old control results for fallback
     end
 
     properties (Access = private)
-        initialized_reference_path;
+        % member variable that is used to execute steps on error
+        is_run_succeeded (1, 1) logical = false
+
         got_stop;
-        success; % to store unfinished results on error; set to true at the end of the main control loop
         vehs_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
-        info_old; % old information for fallback
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
         timing (1, 1) ControllerTiming;
+    end
+
+    methods (Abstract = true, Access = protected)
+        controller(obj);
+        handle_fallback(obj);
     end
 
     methods
@@ -44,12 +46,9 @@ classdef (Abstract) HighLevelController < handle
             % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
-            obj.ros_subscribers = {};
             obj.k = 0;
             obj.controller_name = '';
-            obj.initialized_reference_path = false;
             obj.got_stop = false;
-            obj.success = false;
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
             obj.timing = ControllerTiming();
@@ -81,27 +80,22 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function [result, scenario] = run(obj)
-            obj.init_hlc();
-            obj.hlc_main_control_loop();
-            obj.save_results();
+            % run the controller
 
-            if obj.scenario.options.use_cpp()
+            % object that executes the specified function on destruction
+            % this is done at the end of the current function
+            cleanupObj = onCleanup(@obj.end_run);
 
-                if ismac()
-                    % clear mex dont work on ARM Mac
-                    [~, result] = system('sysctl machdep.cpu.brand_string');
-                    matches = regexp(result, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
+            % initialize the controller and its adapters
+            obj.init_all();
 
-                    if isempty(matches)
-                        clear mex;
-                    end
+            % start controllers main control loop
+            obj.main_control_loop();
 
-                else
-                    clear mex;
-                end
+            % set to true if the controller ran properly
+            obj.is_run_succeeded = true;
 
-            end
-
+            % specify returned variables
             result = obj.result;
             scenario = obj.scenario;
         end
@@ -112,71 +106,81 @@ classdef (Abstract) HighLevelController < handle
 
     end
 
-    methods (Abstract = true, Access = protected)
-        controller(obj);
+    methods (Access = protected)
+
+        function init(obj)
+            % initialize high level controller itself
+
+            % initialize all manually controlled vehicles
+            for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
+                obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
+            end
+
+            % initialize iteration data
+            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_vehicle_ids);
+
+            % initialize result struct
+            obj.result = get_result_struct(obj);
+
+            % record the number of time steps that vehicles
+            % consecutively stop and take fallback
+            obj.vehs_stop_duration = zeros(obj.scenario.options.amount, 1);
+            obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
+        end
+
+        function check_fallback(~)
+            % method that can be overwritten by child classes if necessary
+        end
+
+        function clean_up(~)
+            % release memory allocated by mex functions
+
+            % clear mex on all other computers
+            if ~ismac()
+                clear mex %#ok
+                return
+            end
+
+            % clear mex does not work on Mac with ARM chip
+            [~, cmdout] = system('sysctl machdep.cpu.brand_string');
+            matches = regexp(cmdout, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
+
+            if isempty(matches)
+                clear mex %#ok
+                return
+            end
+
+            % TODO alternative for clear mex on Mac with ARM chip
+            warning('Memory allocation of mex functions is not freed.')
+        end
+
     end
 
     methods (Access = private)
 
-        function init_hlc(obj)
-            obj.timing.start("init_hlc_time");
-
-            % init result struct
-            obj.result = get_result_struct(obj);
-
-            % record the number of time steps that vehicles continually stop
-            obj.vehs_stop_duration = zeros(obj.scenario.options.amount, 1);
-
-            %TODO Shouldn't this value be already set (to 0)?
-            obj.iter.k = obj.k;
+        function init_all(obj)
+            % this function initializes sequentially
+            % the main components of the high level controller
+            % future: the function initializes the plant and the scenario
 
             % turn off warning if intersections are detected and fixed, collinear points or
             % overlapping points are removed when using MATLAB function `polyshape`
             warning('off', 'MATLAB:polyshape:repairedBySimplify')
 
-            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_vehicle_ids);
+            % start initialization timer
+            obj.timing.start("init_all_time");
 
-            obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
+            % initialize high level controller itself
+            obj.init();
 
-            if obj.scenario.options.is_prioritized
-                % In priority-based computation, vehicles communicate via ROS 2
-                % Create publishers and subscribers before experiment setup
-                create_publishers(obj);
-                create_subscribers(obj);
-            end
-
-            % init all manually controlled vehicles
-            for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
-                obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
-            end
-
-            if obj.scenario.options.is_prioritized
-                % In priority-based computation, vehicles communicate via ROS 2
-                % Initialize the communication network of ROS 2
-                communication_init(obj);
-            end
-
+            % synchronize with plant
             obj.plant.synchronize_start_with_plant();
 
-            obj.timing.stop("init_hlc_time");
+            % stop initialization timer
+            obj.timing.stop("init_all_time");
         end
 
-        function clean_up(obj)
-
-            if ~obj.success
-                disp("Storing unfinished results up on error:")
-                % Don't store the last time step with erroneous data.
-                obj.k = obj.k - 1;
-                % Save the unfinished results.
-                obj.scenario.options.should_save_result = true;
-                obj.result.output_path = 'results/unfinished_result.mat';
-                obj.save_results();
-            end
-
-        end
-
-        function hlc_main_control_loop(obj)
-            cleanup = onCleanup(@obj.clean_up);
+        function main_control_loop(obj)
 
             %% Main control loop
             while (~obj.got_stop)
@@ -202,7 +206,6 @@ classdef (Abstract) HighLevelController < handle
 
                 % Update the iteration data and sample reference trajectory
                 obj.rhc_init(x0_measured, trims_measured);
-                obj.initialized_reference_path = true;
 
                 % calculate the distance
                 distance = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
@@ -227,36 +230,8 @@ classdef (Abstract) HighLevelController < handle
                 %% controller %%
                 obj.controller();
 
-                % If using distributed hlcs, collect fallback info from
-                % other vehicles as required
-                if obj.scenario.options.compute_in_parallel
-                    irrelevant_vehicles = union(obj.plant.indices_in_vehicle_list(1), obj.info.vehs_fallback);
-
-                    if obj.scenario.options.fallback_type == FallbackType.local_fallback
-                        sub_graph_fallback = obj.belonging_vector_total(obj.plant.indices_in_vehicle_list(1));
-                        other_vehicles = find(obj.belonging_vector_total == sub_graph_fallback);
-                        % remove own vehicle. No need to read from own
-                        % publisher
-                        other_vehicles = setdiff(other_vehicles, irrelevant_vehicles, 'stable');
-
-                        for veh_id = other_vehicles
-                            latest_msg = read_message(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k, true);
-                            fallback_info_veh_id = latest_msg.vehs_fallback';
-                            obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
-                        end
-
-                    else
-                        other_vehicles = setdiff(1:obj.scenario.options.amount, irrelevant_vehicles);
-
-                        for veh_id = other_vehicles
-                            latest_msg = read_message(obj.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).communicate.predictions, obj.ros_subscribers.predictions{veh_id}, obj.k, true);
-                            fallback_info_veh_id = latest_msg.vehs_fallback';
-                            obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
-                        end
-
-                    end
-
-                end
+                %% collect fallbacks %%
+                obj.check_fallback();
 
                 %% fallback
                 if obj.scenario.options.fallback_type == FallbackType.no_fallback
@@ -282,16 +257,23 @@ classdef (Abstract) HighLevelController < handle
                         str_fb_type = sprintf('triggering %s', char(obj.scenario.options.fallback_type));
                         disp_tmp = sprintf(' %d,', obj.info.vehs_fallback); disp_tmp(end) = [];
                         disp(['Vehicle ', str_veh, str_fb_type, ', affecting vehicle' disp_tmp '.'])
-                        obj.info = pb_controller_fallback(obj.iter, obj.info, obj.info_old, obj.scenario, obj.mpa, obj.plant.all_vehicle_ids, obj.plant.indices_in_vehicle_list);
+
+                        % plan for fallback case
+                        obj.handle_fallback();
                         obj.total_fallback_times = obj.total_fallback_times + 1;
                     end
 
                 end
 
                 obj.info_old = obj.info; % save variable in case of fallback
-                %% save result of current time step
+
+                % stop timer of current time step
                 obj.result.controller_runtime(obj.k) = obj.timing.stop("controller_time", obj.k);
                 obj.timing.stop("hlc_step_time", obj.k);
+
+                % update total number of steps and total runtime
+                obj.result.nSteps = obj.k;
+                obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
 
                 % save controller outputs in result struct
                 obj.result.scenario = obj.scenario;
@@ -323,7 +305,6 @@ classdef (Abstract) HighLevelController < handle
                     obj.result.num_couplings_ignored(obj.k) = nnz(obj.iter.directed_coupling) - nnz(obj.iter.directed_coupling_reduced);
                     obj.result.num_couplings_between_grps(obj.k) = obj.iter.num_couplings_between_grps;
                     obj.result.num_couplings_between_grps_ignored(obj.k) = obj.iter.num_couplings_between_grps_ignored;
-                    obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
                     obj.result.weighted_coupling_reduced{obj.k} = obj.iter.weighted_coupling_reduced;
                     obj.result.coupling_info{obj.k} = obj.iter.coupling_info;
                     obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
@@ -332,6 +313,7 @@ classdef (Abstract) HighLevelController < handle
                     obj.iter.lanelet_crossing_areas = {};
                 end
 
+                obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
                 obj.result.vehs_fallback{obj.k} = obj.info.vehs_fallback;
 
                 % check if deadlock occurs
@@ -364,7 +346,36 @@ classdef (Abstract) HighLevelController < handle
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
             end
 
-            obj.success = true;
+        end
+
+        function end_run(obj)
+            % end run of controller
+            % this function is executed in every case
+
+            % if the controller did not succeed
+            if ~obj.is_run_succeeded
+                % force saving of unfinished results for inspection
+                disp("Saving of unfinished results on error.")
+                obj.scenario.options.should_save_result = true;
+
+                % define output path on error
+                obj.result.output_path = 'results/unfinished_result.mat';
+            else
+                % define output path on success
+                obj.result.output_path = FileNameConstructor.get_results_full_path( ...
+                    obj.scenario.options, ...
+                    obj.plant.indices_in_vehicle_list ...
+                );
+            end
+
+            % save finished or unfinished results
+            obj.save_results();
+
+            % run plant's end_run function
+            obj.plant.end_run();
+
+            % clean up controller
+            obj.clean_up();
         end
 
         function save_results(obj)
@@ -372,17 +383,11 @@ classdef (Abstract) HighLevelController < handle
             obj.result.total_fallback_times = obj.total_fallback_times;
             disp(['Total times of fallback: ' num2str(obj.total_fallback_times) '.'])
 
-            obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
-            obj.result.nSteps = obj.k;
             obj.result.timings = obj.timing.get_all_timings();
 
             disp(['Total runtime: ' num2str(round(obj.result.t_total, 2)) ' seconds.'])
 
             if obj.scenario.options.should_save_result
-                empty_cells = cell(1, obj.scenario.options.amount);
-                % delete ros nodes, because they can't be written to a
-                % file.
-                [obj.result.scenario.vehicles.communicate] = empty_cells{:};
                 obj.result.mpa = obj.mpa;
 
                 % Delete unimportant data
@@ -412,12 +417,6 @@ classdef (Abstract) HighLevelController < handle
                 disp('As required, simulation/Experiment Results were not saved.')
                 % exportVideo( result );
             end
-
-            % hacky way to destroy all ros nodes to avoid duplicates
-            empty_cells = cell(1, obj.scenario.options.amount);
-            [obj.result.scenario.vehicles.communicate] = empty_cells{:};
-            [obj.scenario.vehicles.communicate] = empty_cells{:};
-            obj.plant.end_run()
 
         end
 

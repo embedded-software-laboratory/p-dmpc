@@ -116,7 +116,7 @@ function [labOptions] = start_options()
     hdv_amount_selection = ui.AmountHDVsListBox.Value;
     is_manual_control = ui.AddHDVsCheckBox.Value;
     optimizer = ui.OptimizerListBox.Value;
-    
+
     % sample time [s]
     dtSelection = ui.SampleTimesSpinner.Value;
     % predicion horizon
@@ -357,7 +357,10 @@ function callbackPBSelected(ui)
         ui.MaxComputationLevelsSpinner.Enable = 'off';
         ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'off';
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'off';
+
+        % centralized can never be run in parallel
         ui.ParallelComputationDistributedExecutionListBox.Enable = 'off';
+        ui.ParallelComputationDistributedExecutionListBox.Value = 'no';
 
         ui.Label_4.Text = sprintf("If not priority-based, the maximum allowed number of computation levels is irrelevant.");
         ui.Label_4.Visible = 'On';
