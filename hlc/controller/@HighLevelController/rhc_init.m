@@ -11,9 +11,9 @@ function rhc_init(obj, states_measured, trims_measured)
 
         % init reachable sets of hdvs
         lanelet_struct = obj.scenario.road_raw_data.lanelet;
-        x_hdv = states_measured(obj.scenario.options.amount + iHdv, :);
-        lanelet_id_hdv = map_position_to_closest_lanelets(obj.scenario.lanelets, x_hdv(idx.x), x_hdv(idx.y));
-        reachable_sets = obj.manual_vehicles(iHdv).compute_reachable_lane(x_hdv, lanelet_id_hdv);
+        state_hdv = states_measured(obj.scenario.options.amount + iHdv, :);
+        lanelet_id_hdv = map_position_to_closest_lanelets(obj.scenario.lanelets, state_hdv(idx.x), state_hdv(idx.y));
+        reachable_sets = obj.manual_vehicles(iHdv).compute_reachable_lane(state_hdv, lanelet_id_hdv);
 
         % turn polyshape to plain array (repeat the first row to enclosed the shape)
         polyshapes = [reachable_sets{:}];
@@ -30,7 +30,7 @@ function rhc_init(obj, states_measured, trims_measured)
                 lanelet_id_cav, ...
                 x_cav, ...
                 lanelet_id_hdv, ...
-                x_hdv, ...
+                state_hdv, ...
                 lanelet_struct ...
             );
         end
