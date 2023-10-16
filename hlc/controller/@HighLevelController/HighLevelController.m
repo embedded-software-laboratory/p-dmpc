@@ -64,8 +64,6 @@ classdef (Abstract) HighLevelController < handle
 
             end
 
-            plot_default(obj);
-
             % create fallback for first time step
             obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, plant.all_vehicle_ids);
 

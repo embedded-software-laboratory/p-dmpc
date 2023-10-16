@@ -9,7 +9,7 @@ function plot_mpa_over_time(mpa, scenario, options)
         options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    mpa.plot_over_time(y_lim = options.y_lim);
+    mpa.plot_over_time(y_lim = options.y_lim, fig = options.fig);
 
     %export figure
     if options.do_export
