@@ -25,18 +25,16 @@ function scenario = circle_scenario(options)
         veh.x_start = -c * radius;
         veh.y_start = -s * radius;
         veh.yaw_start = yaw;
-        veh.x_goal = c * radius;
-        veh.y_goal = s * radius;
         % Lab: translate by center
         center_x = 2.25;
         center_y = 2;
         veh.x_start = veh.x_start + center_x;
         veh.y_start = veh.y_start + center_y;
-        veh.x_goal = veh.x_goal + center_x;
-        veh.y_goal = veh.y_goal + center_y;
+        x_end = veh.x_start + c * 2 * radius;
+        y_end = veh.y_start + s * 2 * radius;
 
         veh.reference_trajectory = [veh.x_start veh.y_start
-                                    veh.x_goal veh.y_goal];
+                                    x_end y_end];
 
         scenario.vehicles = [scenario.vehicles, veh];
     end

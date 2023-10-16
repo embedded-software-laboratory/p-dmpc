@@ -87,11 +87,8 @@ function scenario = lanelet2_scenario(options, plant)
 
         veh.x_start = ref_path.path(start_point, 1);
         veh.y_start = ref_path.path(start_point, 2);
-        veh.x_goal = ref_path.path([start_point + 1:end, 1:start_point - 1], 1);
-        veh.y_goal = ref_path.path([start_point + 1:end, 1:start_point - 1], 2);
 
-        veh.reference_trajectory = [veh.x_start veh.y_start
-                                    veh.x_goal veh.y_goal];
+        veh.reference_trajectory = ref_path.path;
 
         veh.points_index = ref_path.points_index - start_point + 1;
 
