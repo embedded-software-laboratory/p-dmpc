@@ -1,4 +1,4 @@
-function rhc_init(obj, x_measured, trims_measured)
+function rhc_init(obj, states_measured, trims_measured)
     % RHC_INIT  Preprocessing step for RHC controller
 
     idx = indices();
@@ -10,7 +10,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
         % init reachable sets of hdvs
         lanelet_struct = obj.scenario.road_raw_data.lanelet;
-        x_hdv = x_measured(obj.scenario.options.amount + iHdv, :);
+        x_hdv = states_measured(obj.scenario.options.amount + iHdv, :);
         lanelet_id_hdv = map_position_to_closest_lanelets(obj.scenario.lanelets, x_hdv(idx.x), x_hdv(idx.y));
         reachable_sets = obj.manual_vehicles(iHdv).compute_reachable_lane(x_hdv, lanelet_id_hdv);
 
@@ -23,7 +23,7 @@ function rhc_init(obj, x_measured, trims_measured)
 
         % update reduced coupling adjacency for cav/hdv-pairs
         for iVeh = obj.plant.indices_in_vehicle_list
-            x_cav = x_measured(iVeh, :);
+            x_cav = states_measured(iVeh, :);
             lanelet_id_cav = map_position_to_closest_lanelets(obj.scenario.lanelets, x_cav(idx.x), x_cav(idx.y));
             obj.iter.hdv_adjacency(iVeh, iHdv) = ~is_hdv_behind( ...
                 lanelet_id_cav, ...
@@ -37,11 +37,11 @@ function rhc_init(obj, x_measured, trims_measured)
     end
 
     % remove manual vehicle states for further calculations
-    x_measured = x_measured(1:obj.scenario.options.amount, :);
+    states_measured = states_measured(1:obj.scenario.options.amount, :);
 
     for iVeh = obj.plant.indices_in_vehicle_list
         % states of controlled vehicles can be measured directly
-        obj.iter.x0(iVeh, :) = x_measured(iVeh, :);
+        obj.iter.x0(iVeh, :) = states_measured(iVeh, :);
         % get own trim
         obj.iter.trim_indices(iVeh) = trims_measured(iVeh);
         x0 = obj.iter.x0(iVeh, idx.x);
