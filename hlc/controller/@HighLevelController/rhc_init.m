@@ -1,6 +1,7 @@
 function rhc_init(obj, states_measured, trims_measured)
     % RHC_INIT  Preprocessing step for RHC controller
 
+    % create indices struct only once for efficiency
     idx = indices();
     predicted_lanelet_boundary = {[]};
 
