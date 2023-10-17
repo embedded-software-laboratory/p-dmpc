@@ -11,7 +11,6 @@ classdef Scenario
         dynamic_obstacle_area = {};
         dynamic_obstacle_shape = {};
         dynamic_obstacle_fullres = {};
-        dynamic_obstacle_reachableSets = {}; % reachable sets of the coupled vehicles with higher priorities in other groups
 
         lanelets; % coordinates of all lanelets
         intersection_lanelets; % IDs of intersection lanelets
