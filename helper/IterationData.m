@@ -66,8 +66,8 @@ classdef IterationData
             obj.adjacency = zeros(nVeh, nVeh);
             obj.hdv_adjacency = zeros(nVeh, hdv_amount);
             obj.dynamic_obstacle_area = scenario.dynamic_obstacle_area;
-            obj.dynamic_obstacle_shape = scenario.dynamic_obstacle_shape;
-            obj.dynamic_obstacle_fullres = scenario.dynamic_obstacle_fullres;
+            obj.dynamic_obstacle_shape = {};
+            obj.dynamic_obstacle_fullres = {};
             obj.dynamic_obstacle_reachableSets = {};
             obj.vehicle_to_lanelet = zeros(nVeh, 1);
             obj.directed_coupling = zeros(nVeh, nVeh);

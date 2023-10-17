@@ -9,8 +9,6 @@ classdef Scenario
 
         model = [];
         dynamic_obstacle_area = {};
-        dynamic_obstacle_shape = {};
-        dynamic_obstacle_fullres = {};
 
         lanelets; % coordinates of all lanelets
         intersection_lanelets; % IDs of intersection lanelets
