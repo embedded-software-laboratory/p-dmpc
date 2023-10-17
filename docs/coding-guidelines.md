@@ -4,10 +4,6 @@
     - don't put types in names (not: int_houses, i for Interface e.g. IHouse)
     - put units in variable names (delay_seconds)
     - avoid nesting, e.g. with guard clauses (`if (~necessary) continue; end`)
-    - functions should have similar granularity
-    (low-level ([example](https://git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/-/blob/3d051fdc54efd4d3980ee5a86120796544bcd73b/hlc/controller/@HighLevelController/HighLevelController.m#L135)) or
-    high-level ([example](https://git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/-/blob/3d051fdc54efd4d3980ee5a86120796544bcd73b/hlc/controller/@HighLevelController/HighLevelController.m#L161)),
-    not a mix of the two ([example](https://git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/-/blob/3d051fdc54efd4d3980ee5a86120796544bcd73b/hlc/controller/@HighLevelController/HighLevelController.m#L183)))
 - Code naming conventions
     - Classnames are `CamelCase`
     - Everything else is `snake_case`
@@ -26,6 +22,13 @@
 - Merging
     - rebase a branch that you alone work on to the target branch before a merge
     - use keywords in merge requests, e.g. "closes #issue-number", "relates to #issue-number"
+- Concepts
+    - use object-oriented programming when reasonable
+    - aim for visible input-output behavior of functions rather than obscure object state changes
+    - write functions with similar granularity
+    (low-level ([example](https://git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/-/blob/3d051fdc54efd4d3980ee5a86120796544bcd73b/hlc/controller/@HighLevelController/HighLevelController.m#L135)) or
+    high-level ([example](https://git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/-/blob/3d051fdc54efd4d3980ee5a86120796544bcd73b/hlc/controller/@HighLevelController/HighLevelController.m#L161)),
+    not a mix of the two ([example](https://git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/-/blob/3d051fdc54efd4d3980ee5a86120796544bcd73b/hlc/controller/@HighLevelController/HighLevelController.m#L183)))
 
 # MATLAB
 - Use Visual Studio Code, team's workspace settings in "/.vscode"
