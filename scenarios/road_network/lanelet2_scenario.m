@@ -100,8 +100,4 @@ function scenario = lanelet2_scenario(options, plant)
     scenario.options.plot_limits = [0, 4.5; 0, 4];
     scenario.model = BicycleModel(veh.Lf, veh.Lr);
 
-    if options.is_prioritized
-        scenario.assignPrios = true;
-    end
-
 end

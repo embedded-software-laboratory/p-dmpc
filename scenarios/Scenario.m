@@ -8,13 +8,11 @@ classdef Scenario
         options Config;
 
         model = [];
-        r_goal = 0.1; % goal circle
         dynamic_obstacle_area = {};
         dynamic_obstacle_shape = {};
         dynamic_obstacle_fullres = {};
         dynamic_obstacle_reachableSets = {}; % reachable sets of the coupled vehicles with higher priorities in other groups
 
-        assignPrios = false;
         lanelets; % coordinates of all lanelets
         intersection_lanelets; % IDs of intersection lanelets
         boundary;
