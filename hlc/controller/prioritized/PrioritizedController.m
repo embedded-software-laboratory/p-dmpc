@@ -379,7 +379,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function reduce(obj)
             [obj.iter.weighted_coupling_reduced, obj.iter.coupling_info, obj.iter.lanelet_crossing_areas] = ...
                 reduce_coupling_lanelet_crossing_area(obj.iter, obj.scenario.options.strategy_enter_lanelet_crossing_area);
-            obj.iter.directed_coupling_reduced = (obj.iter.weighted_coupling_reduced ~= 0);
+            obj.iter.directed_coupling_reduced = double(obj.iter.weighted_coupling_reduced ~= 0);
         end
 
         function group(obj)
