@@ -28,8 +28,6 @@ classdef IterationData
         weighted_coupling % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
         weighted_coupling_reduced % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas
         coupling_info % couling information of each coupling pair
-        num_couplings_between_grps % number of couplings between parallel groups
-        num_couplings_between_grps_ignored % reduced number of couplings between groups by using lanelet crossing lanelets
         belonging_vector % a column vector whose value indicate which group each vehicle belongs to
         parl_groups_info % struct, store information of parallel groups
         directed_coupling % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled

@@ -381,44 +381,11 @@ classdef (Abstract) HighLevelController < handle
 
             if obj.scenario.options.is_prioritized
 
-                % calculations
-                obj.iter.num_couplings_between_grps = 0; % number of couplings between groups
-                obj.iter.num_couplings_between_grps_ignored = 0; % ignored number of couplings between groups by using lanelet crossing lanelets
-
-                [row_coupling, col_coupling] = find(obj.iter.directed_coupling);
-                n_couplings = length(row_coupling);
-
-                for i_coupling = 1:n_couplings
-                    veh_i = row_coupling(i_coupling);
-                    veh_j = col_coupling(i_coupling);
-                    veh_ij = [veh_i, veh_j];
-                    is_same_grp = any(cellfun(@(c) all(ismember(veh_ij, c)), {obj.iter.parl_groups_info.vertices}));
-
-                    if is_same_grp
-                        continue
-                    end
-
-                    obj.iter.num_couplings_between_grps = obj.iter.num_couplings_between_grps + 1;
-
-                    if ( ...
-                            ~(obj.iter.directed_coupling(veh_i, veh_j) == 1) || ...
-                            ~(obj.iter.directed_coupling_reduced(veh_i, veh_j) == 0) ...
-                        )
-                        continue
-                    end
-
-                    obj.iter.num_couplings_between_grps_ignored = obj.iter.num_couplings_between_grps_ignored + 1;
-                end
-
                 % store iteration priority pipeline timings
                 obj.result.determine_couplings_time(obj.k) = obj.iter.timer.determine_couplings;
                 obj.result.group_vehs_time(obj.k) = obj.iter.timer.group_vehs;
                 obj.result.assign_priority_time(obj.k) = obj.iter.timer.assign_priority;
 
-                obj.result.num_couplings(obj.k) = nnz(obj.iter.directed_coupling);
-                obj.result.num_couplings_ignored(obj.k) = nnz(obj.iter.directed_coupling) - nnz(obj.iter.directed_coupling_reduced);
-                obj.result.num_couplings_between_grps(obj.k) = obj.iter.num_couplings_between_grps;
-                obj.result.num_couplings_between_grps_ignored(obj.k) = obj.iter.num_couplings_between_grps_ignored;
             end
 
         end
