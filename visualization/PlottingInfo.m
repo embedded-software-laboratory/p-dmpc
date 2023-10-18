@@ -48,36 +48,18 @@ classdef PlottingInfo
 
             obj.reachable_sets = result.iteration_structs{k}.reachable_sets;
 
-            if isfield(result, "lanelet_crossing_areas")
-                obj.lanelet_crossing_areas = result.lanelet_crossing_areas(:, k);
-            end
+            obj.lanelet_crossing_areas = result.lanelet_crossing_areas(:, k);
 
             obj.directed_coupling = result.directed_coupling(:, :, k);
 
-            obj.is_virtual_obstacle = false(result.scenario.options.amount, result.scenario.options.amount);
+            obj.is_virtual_obstacle = ( ...
+                result.directed_coupling(:, :, k) ~= ...
+                result.directed_coupling_reduced(:, :, k) ...
+            );
 
-            if ~isempty(result.iteration_structs{k}.weighted_coupling_reduced)
-                obj.weighted_coupling_reduced = result.iteration_structs{k}.weighted_coupling_reduced;
+            obj.weighted_coupling_reduced = result.weighted_coupling_reduced(:, :, k);
 
-                if ( ...
-                        result.scenario.options.is_prioritized && ...
-                        result.scenario.options.scenario_type == ScenarioType.commonroad ...
-                    )
-
-                    coupling_info_k = result.coupling_info(:, :, k);
-                    populated_coupling_info_entries = find(~cellfun(@isempty, coupling_info_k));
-                    populated_coupling_infos = [coupling_info_k{populated_coupling_info_entries}];
-
-                    if ~isempty(populated_coupling_infos)
-                        is_virtual_obstacle_filter = [populated_coupling_infos.is_virtual_obstacle];
-                        obj.is_virtual_obstacle(populated_coupling_info_entries(is_virtual_obstacle_filter)) = true;
-                    end
-
-                end
-
-                obj.belonging_vector = result.belonging_vector(:, k);
-
-            end
+            obj.belonging_vector = result.belonging_vector(:, k);
 
         end
 
