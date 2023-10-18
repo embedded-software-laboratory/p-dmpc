@@ -274,3 +274,98 @@ function is_move_side_by_side = is_vehicles_move_parallel(position_i, position_j
     end
 
 end
+
+function [time_to_catch, waiting_time, distance_traveled_leader_total, distance_traveled_follower_total] = get_the_shortest_time_to_catch(mpa, trim_leader, trim_follower, distance, time_step)
+    % Calculatet the shortest time to achieve a collision by
+    % letting the leader take an emergency braking and the follower
+    % take an full acceleration.
+    % The total traveled distances of the leader and the follower are also returned.
+    distance_remaining = distance;
+    time_to_catch = 0;
+    waiting_time = 0; % time that the leader stops and waits for the follower
+    distance_traveled_leader_total = 0;
+    distance_traveled_follower_total = 0;
+    speed_leader = mpa.trims(trim_leader).speed;
+    speed_follower = mpa.trims(trim_follower).speed;
+
+    % get the shortest path from the current trim to the equilibrium trim
+    shortest_path_to_equilibrium = mpa.shortest_paths_to_equilibrium{trim_leader};
+
+    % get the shortest path to the trims with the maximum speed
+    shortest_path_to_max_speed = mpa.shortest_paths_to_max_speed{trim_follower};
+    trim_max_speed = shortest_path_to_max_speed(end);
+    max_speed = mpa.trims(trim_max_speed).speed;
+
+    count_trim = 2; % start from the second trim in the path since the first one is the current trim
+
+    distance_traveled = @(v0, a, t) v0 * t +1/2 * a * t^2; % calculate distance based on the initial speed and constant acceleration
+    is_catch = false;
+
+    while ~is_catch
+
+        if speed_leader ~= 0
+            % leader continue to decelerate
+            trim_leader_next = shortest_path_to_equilibrium(count_trim);
+            speed_leader_next = mpa.trims(trim_leader_next).speed;
+            a_leader = (speed_leader_next - speed_leader) / time_step; % acceleration (negative value)
+            % assert(a_leader<=0)
+            % traveled distance of the current time step (assume linear acceleration)
+            distance_traveled_leader_tmp = distance_traveled(speed_leader, a_leader, time_step);
+        else
+            speed_leader_next = 0;
+            a_leader = 0;
+            distance_traveled_leader_tmp = 0;
+        end
+
+        if speed_follower ~= max_speed
+            % follower continue to accelerate
+            trim_follower_next = shortest_path_to_max_speed(count_trim);
+            speed_follower_next = mpa.trims(trim_follower_next).speed;
+            a_follower = (speed_follower_next - speed_follower) / time_step; % acceleration (positive value)
+            % assert(a_follower>=0)
+            distance_traveled_follower_tmp = distance_traveled(speed_follower, a_follower, time_step);
+        else
+            speed_follower_next = max_speed;
+            a_follower = 0;
+            distance_traveled_follower_tmp = distance_traveled(speed_follower, a_follower, time_step);
+        end
+
+        % remaining distance for the follower to catch the leader
+        distance_left_tmp = distance_remaining - distance_traveled_follower_tmp + distance_traveled_leader_tmp;
+
+        if distance_left_tmp <= 0
+            % the follower catchs the leader at this time step
+            is_catch = true;
+            % solve the quadratic equation to get the accumulating time of this time step
+            r = roots([1/2 * (a_follower - a_leader), speed_follower - speed_leader, -distance_remaining]);
+            assert(isreal(r) == true)
+            time_accumulate = max(r); % choose the positive one
+            % update the traveled distance of the current time step
+            distance_traveled_leader_tmp = speed_leader + 0.5 * a_leader * time_accumulate^2;
+            distance_traveled_follower_tmp = distance_traveled_leader_tmp + distance_remaining;
+
+        else
+            % accumulating time equals to the time step
+            time_accumulate = time_step;
+            % update the remaining distance
+            distance_remaining = distance_left_tmp;
+        end
+
+        % update the STAC
+        time_to_catch = time_to_catch + time_accumulate;
+        % update the total traveled distance
+        distance_traveled_leader_total = distance_traveled_leader_total + distance_traveled_leader_tmp;
+        distance_traveled_follower_total = distance_traveled_follower_total + distance_traveled_follower_tmp;
+        % update speeds
+        speed_leader = speed_leader_next; % update the current speed for the next iteration
+        speed_follower = speed_follower_next; % update the current speed for the next iteration
+        % update the waiting time
+        if speed_leader == 0 && speed_leader_next == 0
+            waiting_time = waiting_time + time_accumulate;
+        end
+
+        % update counter
+        count_trim = count_trim + 1;
+    end
+
+end
