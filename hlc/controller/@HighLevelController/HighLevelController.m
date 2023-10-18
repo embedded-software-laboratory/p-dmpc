@@ -400,7 +400,10 @@ classdef (Abstract) HighLevelController < handle
 
                     obj.iter.num_couplings_between_grps = obj.iter.num_couplings_between_grps + 1;
 
-                    if isempty(obj.iter.coupling_info{veh_i, veh_j}) || ~obj.iter.coupling_info{veh_i, veh_j}.is_virtual_obstacle
+                    if ( ...
+                            ~(obj.iter.directed_coupling(veh_i, veh_j) == 1) || ...
+                            ~(obj.iter.directed_coupling_reduced(veh_i, veh_j) == 0) ...
+                        )
                         continue
                     end
 
