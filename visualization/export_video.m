@@ -6,6 +6,8 @@ function export_video(result, video_export_setup)
     end
 
     scenario = result.scenario;
+    scenario.options.options_plot_online.is_video_mode = 1;
+
     nSteps = nnz(result.controller_runtime);
 
     if nargin > 1
@@ -43,8 +45,6 @@ function export_video(result, video_export_setup)
 
     disp('Exporting video ...');
     wb = waitbar(0, 'Exporting video ...', 'Name', 'Video Export Progress');
-
-    scenario.options.options_plot_online.is_video_mode = 1;
 
     for step_idx = 1:nSteps
 
