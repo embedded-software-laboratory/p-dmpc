@@ -380,6 +380,31 @@ classdef (Abstract) HighLevelController < handle
             obj.result.is_deadlock(obj.k) = any(is_vehicle_deadlocked);
 
             if obj.scenario.options.is_prioritized
+
+                % calculations
+                obj.iter.num_couplings_between_grps = 0; % number of couplings between groups
+                obj.iter.num_couplings_between_grps_ignored = 0; % ignored number of couplings between groups by using lanelet crossing lanelets
+
+                [row_coupling, col_coupling] = find(obj.iter.directed_coupling);
+                n_couplings = length(row_coupling);
+
+                for i_coupling = 1:n_couplings
+                    veh_i = row_coupling(i_coupling);
+                    veh_j = col_coupling(i_coupling);
+                    veh_ij = [veh_i, veh_j];
+                    is_same_grp = any(cellfun(@(c) all(ismember(veh_ij, c)), {obj.iter.parl_groups_info.vertices}));
+
+                    if ~is_same_grp
+                        obj.iter.num_couplings_between_grps = obj.iter.num_couplings_between_grps + 1;
+
+                        if ~isempty(obj.iter.coupling_info{veh_i, veh_j}) && obj.iter.coupling_info{veh_i, veh_j}.is_virtual_obstacle
+                            obj.iter.num_couplings_between_grps_ignored = obj.iter.num_couplings_between_grps_ignored + 1;
+                        end
+
+                    end
+
+                end
+
                 % store iteration priority pipeline timings
                 obj.result.determine_couplings_time(obj.k) = obj.iter.timer.determine_couplings;
                 obj.result.group_vehs_time(obj.k) = obj.iter.timer.group_vehs;
