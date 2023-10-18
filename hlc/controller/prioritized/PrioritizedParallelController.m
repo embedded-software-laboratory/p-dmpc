@@ -32,7 +32,6 @@ classdef PrioritizedParallelController < PrioritizedController
             obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_subcontroller_each_veh(vehicle_idx) + runtime_others;
             obj.info.runtime_subcontroller_max = obj.info.runtime_subcontroller_each_veh(vehicle_idx);
             obj.info.computation_levels = length(obj.CL_based_hierarchy);
-            obj.iter.lanelet_crossing_areas = obj.lanelet_crossing_areas;
         end
 
     end

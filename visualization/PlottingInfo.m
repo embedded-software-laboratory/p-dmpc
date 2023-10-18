@@ -49,10 +49,10 @@ classdef PlottingInfo
             obj.reachable_sets = result.iteration_structs{k}.reachable_sets;
 
             if isfield(result, "lanelet_crossing_areas")
-                obj.lanelet_crossing_areas = result.lanelet_crossing_areas{k};
+                obj.lanelet_crossing_areas = result.lanelet_crossing_areas(:, k);
             end
 
-            obj.directed_coupling = result.directed_coupling{k};
+            obj.directed_coupling = result.directed_coupling(:, :, k);
 
             obj.is_virtual_obstacle = false(result.scenario.options.amount, result.scenario.options.amount);
 
@@ -64,7 +64,7 @@ classdef PlottingInfo
                         result.scenario.options.scenario_type == ScenarioType.commonroad ...
                     )
 
-                    coupling_info_k = result.coupling_info{k};
+                    coupling_info_k = result.coupling_info(:, :, k);
                     populated_coupling_info_entries = find(~cellfun(@isempty, coupling_info_k));
                     populated_coupling_infos = [coupling_info_k{populated_coupling_info_entries}];
 

@@ -48,7 +48,6 @@ classdef PrioritizedSequentialController < PrioritizedController
                 obj.iter.parl_groups_info, obj.CL_based_hierarchy, ...
                 msg_send_time, runtime_others, runtime_planning);
 
-            obj.iter.lanelet_crossing_areas = obj.lanelet_crossing_areas;
         end
 
     end

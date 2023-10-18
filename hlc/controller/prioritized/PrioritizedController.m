@@ -10,7 +10,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
     properties (Access = protected)
         CL_based_hierarchy;
-        lanelet_crossing_areas;
+
         prioritizer
         weigher
         coupler

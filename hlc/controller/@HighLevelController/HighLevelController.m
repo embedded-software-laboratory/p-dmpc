@@ -233,7 +233,7 @@ classdef (Abstract) HighLevelController < handle
                 % reset iter obstacles to scenario default/static obstacles
                 obj.iter.obstacles = obj.scenario.obstacles;
                 % important: reset lanelet crossing areas
-                obj.iter.lanelet_crossing_areas = {};
+                obj.iter.lanelet_crossing_areas = cell(obj.scenario.options.amount, 1);
 
                 % Apply control action
                 % -------------------------------------------------------------------------
@@ -340,13 +340,13 @@ classdef (Abstract) HighLevelController < handle
             obj.result.obstacles = obj.iter.obstacles;
             obj.result.iteration_structs{obj.k} = obj.iter;
             obj.result.coupling_adjacency(:, :, obj.k) = obj.iter.adjacency;
-            obj.result.coupling_info{obj.k} = obj.iter.coupling_info;
+            obj.result.coupling_info(:, :, obj.k) = obj.iter.coupling_info;
             obj.result.priority_list(:, obj.k) = obj.iter.priority_list;
-            obj.result.directed_coupling{obj.k} = obj.iter.directed_coupling;
-            obj.result.weighted_coupling_reduced{obj.k} = obj.iter.weighted_coupling_reduced;
-            obj.result.lanelet_crossing_areas{obj.k} = obj.iter.lanelet_crossing_areas;
-            obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
+            obj.result.directed_coupling(:, :, obj.k) = obj.iter.directed_coupling;
+            obj.result.weighted_coupling_reduced(:, :, obj.k) = obj.iter.weighted_coupling_reduced;
+            obj.result.lanelet_crossing_areas(:, obj.k) = obj.iter.lanelet_crossing_areas;
             obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
+            obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
 
             % store graph search results
             obj.result.trajectory_predictions(:, obj.k) = obj.info.y_predicted;
