@@ -72,7 +72,7 @@ classdef IterationData
             obj.weighted_coupling = zeros(nVeh, nVeh);
             obj.weighted_coupling_reduced = zeros(nVeh, nVeh);
             obj.priority_list = ones(nVeh, 1);
-            obj.belonging_vector = zeros(nVeh, 1);
+            obj.belonging_vector = ones(nVeh, 1);
             obj.obstacles = scenario.obstacles;
             obj.lanelet_crossing_areas = cell(nVeh, 1);
             obj.amount = nVeh;
