@@ -123,12 +123,12 @@ function [reference_path_struct, loop] = generate_reference_path_loop(vehid, lan
 
     lanelets_target = lanelets(reference_path_struct.lanelets_index);
 
-    refPath_x = cellfun(@(c)c(:, LaneletInfo.cx), lanelets_target, 'UniformOutput', false);
-    refPath_x = vertcat(refPath_x{:});
-    refPath_y = cellfun(@(c)c(:, LaneletInfo.cy), lanelets_target, 'UniformOutput', false);
-    refPath_y = vertcat(refPath_y{:});
+    reference_path_x = cellfun(@(c)c(:, LaneletInfo.cx), lanelets_target, 'UniformOutput', false);
+    reference_path_x = vertcat(reference_path_x{:});
+    reference_path_y = cellfun(@(c)c(:, LaneletInfo.cy), lanelets_target, 'UniformOutput', false);
+    reference_path_y = vertcat(reference_path_y{:});
 
-    path = [refPath_x, refPath_y];
+    path = [reference_path_x, reference_path_y];
 
     % find identical successive points and delete them
     % Those are cases for the endpoint of one lanelet and the starting

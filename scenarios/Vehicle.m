@@ -6,7 +6,7 @@ classdef Vehicle < handle
         x_start = 0; % [m]
         y_start = 0; % [m]
         yaw_start = 0; % [radians]
-        reference_trajectory (:, 2) double; % [x1 y1; x2 y2; ...]
+        reference_path (:, 2) double; % [x1 y1; x2 y2; ...]
         Length = 0.22; % Vehicle length (bumper to bumper)[m]
         Width = 0.1; % Vehicle width [m]
         Lf = 0.1; % Distance between vehicle center and front axle center [m]

@@ -33,8 +33,8 @@ function scenario = circle_scenario(options)
         x_end = veh.x_start + c * 2 * radius;
         y_end = veh.y_start + s * 2 * radius;
 
-        veh.reference_trajectory = [veh.x_start veh.y_start
-                                    x_end y_end];
+        veh.reference_path = [veh.x_start veh.y_start
+                              x_end y_end];
 
         scenario.vehicles = [scenario.vehicles, veh];
     end

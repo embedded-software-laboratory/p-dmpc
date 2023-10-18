@@ -88,11 +88,11 @@ function scenario = lanelet2_scenario(options, plant)
         veh.x_start = reference_path_struct.path(start_point, 1);
         veh.y_start = reference_path_struct.path(start_point, 2);
 
-        veh.reference_trajectory = reference_path_struct.path;
+        veh.reference_path = reference_path_struct.path;
 
         veh.points_index = reference_path_struct.points_index - start_point + 1;
 
-        yaw = calculate_yaw(veh.reference_trajectory);
+        yaw = calculate_yaw(veh.reference_path);
         veh.yaw_start = yaw(1);
         scenario.vehicles = [scenario.vehicles, veh];
     end
