@@ -139,8 +139,31 @@ function [stac, distance_to_collision_i, distance_to_collision_j, collision_type
 
             switch collision_type
                 case CollisionType.from_rear
-                    % If two vehicles have a rear collision possibility, they STAC (shortest time to achieve a collision) is the TTC (time to catch)
-                    [stac, waiting_time, ~, ~] = get_the_shortest_time_to_catch(mpa, info_i.trim, info_j.trim, distance_two_vehs, scenario.options.dt_seconds);
+                    % If two vehicles have a rear collision, their STAC
+                    % is the time to catch.
+                    % The leader is the vehicle closer to the collision point
+                    is_vehicle_i_leader = (distance_to_collision_i < distance_to_collision_j);
+                    % Except in forking lanelets, where the collision point is
+                    % behind vehicles
+                    if (lanelet_relationship == LaneletRelationshipType.forking)
+                        is_vehicle_i_leader = ~is_vehicle_i_leader;
+                    end
+
+                    if is_vehicle_i_leader
+                        trim_leader = info_i.trim;
+                        trim_follower = info_j.trim;
+                    else
+                        trim_leader = info_j.trim;
+                        trim_follower = info_i.trim;
+                    end
+
+                    [stac, waiting_time, ~, ~] = get_the_shortest_time_to_catch( ...
+                        mpa, ...
+                        trim_leader, ...
+                        trim_follower, ...
+                        distance_two_vehs, ...
+                        scenario.options.dt_seconds ...
+                    );
                 case CollisionType.from_side
                     % If two vehicles has a side-impact collision possibility, check if they move in parallel
                     if is_move_side_by_side
