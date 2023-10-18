@@ -343,6 +343,8 @@ classdef (Abstract) HighLevelController < handle
             obj.result.coupling_info(:, :, obj.k) = obj.iter.coupling_info;
             obj.result.priority_list(:, obj.k) = obj.iter.priority_list;
             obj.result.directed_coupling(:, :, obj.k) = obj.iter.directed_coupling;
+            obj.result.weighted_coupling(:, :, obj.k) = obj.iter.weighted_coupling;
+            obj.result.directed_coupling_reduced(:, :, obj.k) = obj.iter.directed_coupling_reduced;
             obj.result.weighted_coupling_reduced(:, :, obj.k) = obj.iter.weighted_coupling_reduced;
             obj.result.lanelet_crossing_areas(:, obj.k) = obj.iter.lanelet_crossing_areas;
             obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
