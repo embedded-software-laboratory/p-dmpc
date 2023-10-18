@@ -1,4 +1,4 @@
-classdef PredictionsCommunication < HlcCommunication
+classdef PredictionsCommunication < InterHlcCommunication
     % communication class for predictions message
 
     properties
@@ -10,7 +10,7 @@ classdef PredictionsCommunication < HlcCommunication
         function obj = PredictionsCommunication()
             % create communication class to connect to ROS2 network
             % call superclass constructor
-            obj = obj@HlcCommunication();
+            obj = obj@InterHlcCommunication();
         end
 
         function send_message( ...

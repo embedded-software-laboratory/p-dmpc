@@ -1,4 +1,4 @@
-classdef TrafficCommunication < HlcCommunication
+classdef TrafficCommunication < InterHlcCommunication
     % communication class for Traffic message
 
     properties
@@ -10,7 +10,7 @@ classdef TrafficCommunication < HlcCommunication
         function obj = TrafficCommunication()
             % create communication class to connect to ROS2 network
             % call superclass constructor
-            obj = obj@HlcCommunication();
+            obj = obj@InterHlcCommunication();
             % struct that hold the indices for x, y, heading, speed
             % it is stored as member variable to create it only once
             obj.pose_indices = indices();
