@@ -349,45 +349,47 @@ classdef (Abstract) HighLevelController < handle
             obj.result.controller_runtime(obj.k) = obj.timing.get_elapsed_time("controller_time", obj.k);
             obj.result.step_time(obj.k) = obj.timing.get_elapsed_time("hlc_step_time", obj.k);
 
-            % store calculated distances
-            obj.result.distance(:, :, obj.k) = vehicles_distances;
-
-            % save controller outputs in result struct
-            obj.result.is_deadlock(obj.k) = 0;
+            % store iteration data
+            obj.result.obstacles = obj.iter.obstacles;
             obj.result.iteration_structs{obj.k} = obj.iter;
+            obj.result.coupling_adjacency(:, :, obj.k) = obj.iter.adjacency;
+            obj.result.coupling_info{obj.k} = obj.iter.coupling_info;
+            obj.result.priority_list(:, obj.k) = obj.iter.priority_list;
+            obj.result.directed_coupling{obj.k} = obj.iter.directed_coupling;
+            obj.result.weighted_coupling_reduced{obj.k} = obj.iter.weighted_coupling_reduced;
+            obj.result.lanelet_crossing_areas{obj.k} = obj.iter.lanelet_crossing_areas;
+            obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
+            obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
+
+            % store graph search results
             obj.result.trajectory_predictions(:, obj.k) = obj.info.y_predicted;
             obj.result.controller_outputs{obj.k} = obj.info.u;
-            obj.result.subcontroller_runtime_each_veh(:, obj.k) = obj.info.runtime_subcontroller_each_veh;
-            obj.result.graph_search_runtime_each_veh(:, obj.k) = obj.info.runtime_graph_search_each_veh;
             obj.result.vehicle_path_fullres(:, obj.k) = obj.info.vehicle_fullres_path(:);
             obj.result.n_expanded(:, obj.k) = obj.info.n_expanded;
-            obj.result.priority_list(:, obj.k) = obj.iter.priority_list;
-            obj.result.coupling_adjacency(:, :, obj.k) = obj.iter.adjacency;
-            obj.result.computation_levels(obj.k) = obj.info.computation_levels;
-            obj.result.obstacles = obj.iter.obstacles;
+            obj.result.vehs_fallback{obj.k} = obj.info.vehs_fallback;
 
+            % store graph search timings
+            obj.result.computation_levels(obj.k) = obj.info.computation_levels;
+            obj.result.subcontroller_runtime_each_veh(:, obj.k) = obj.info.runtime_subcontroller_each_veh;
+            obj.result.graph_search_runtime_each_veh(:, obj.k) = obj.info.runtime_graph_search_each_veh;
             obj.result.runtime_subcontroller_max(obj.k) = obj.info.runtime_subcontroller_max;
             obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
-            obj.result.directed_coupling{obj.k} = obj.iter.directed_coupling;
+
+            % store calculated values
+            obj.result.distance(:, :, obj.k) = vehicles_distances;
+            obj.result.is_deadlock(obj.k) = any(is_vehicle_deadlocked);
 
             if obj.scenario.options.is_prioritized
+                % store iteration priority pipeline timings
                 obj.result.determine_couplings_time(obj.k) = obj.iter.timer.determine_couplings;
                 obj.result.group_vehs_time(obj.k) = obj.iter.timer.group_vehs;
                 obj.result.assign_priority_time(obj.k) = obj.iter.timer.assign_priority;
+
                 obj.result.num_couplings(obj.k) = nnz(obj.iter.directed_coupling);
                 obj.result.num_couplings_ignored(obj.k) = nnz(obj.iter.directed_coupling) - nnz(obj.iter.directed_coupling_reduced);
                 obj.result.num_couplings_between_grps(obj.k) = obj.iter.num_couplings_between_grps;
                 obj.result.num_couplings_between_grps_ignored(obj.k) = obj.iter.num_couplings_between_grps_ignored;
-                obj.result.weighted_coupling_reduced{obj.k} = obj.iter.weighted_coupling_reduced;
-                obj.result.coupling_info{obj.k} = obj.iter.coupling_info;
-                obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
-                obj.result.lanelet_crossing_areas{obj.k} = obj.iter.lanelet_crossing_areas;
             end
-
-            obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
-            obj.result.vehs_fallback{obj.k} = obj.info.vehs_fallback;
-
-            obj.result.is_deadlock(obj.k) = any(is_vehicle_deadlocked);
 
         end
 
