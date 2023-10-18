@@ -1,7 +1,8 @@
 function plot_default(result, options)
 
     arguments
-        result (1, 1);
+        result.mpa (1, 1) MotionPrimitiveAutomaton;
+        result.scenario (1, 1) Scenario;
         options.do_export (1, 1) logical = false;
     end
 

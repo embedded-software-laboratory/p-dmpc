@@ -26,6 +26,8 @@ function plot_mpa_local_reachable_sets(mpa, options)
             mkdir(folder_target)
         end
 
+        n_trims = size(mpa.local_reachable_sets, 1);
+        Hp = size(mpa.local_reachable_sets, 2);
         file_name = ['trims', num2str(n_trims), '_Hp', num2str(Hp)];
 
         if options.is_allow_non_convex

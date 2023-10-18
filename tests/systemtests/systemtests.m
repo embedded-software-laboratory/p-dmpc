@@ -96,6 +96,40 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
+        function test_plot_default(testCase, scenario_type)
+            lastwarn('');
+            fprintf('\ndefault evaluation plotting systemtest for %s\n', scenario_type)
+            %load Config from json
+            rawJson = fileread('tests/systemtests/Config_plot_default_results.json');
+            config = Config();
+            config = config.importFromJson(rawJson);
+
+            testCase.verifyEmpty(lastwarn);
+
+            %OPTION 1: manually create
+            %create hlc manually because result returned by main does not contain mpa
+            plant = PlantFactory.get_experiment_interface(config.environment);
+            % create scenario
+            random_seed = RandStream('mt19937ar');
+            scenario = create_scenario(config, random_seed, plant);
+            plant.setup(scenario)
+
+            hlc_factory = HLCFactory();
+            hlc_factory.set_scenario(scenario);
+            dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
+            hlc = hlc_factory.get_hlc(plant.controlled_vehicle_ids, dry_run, plant);
+            [result, ~] = hlc.run();
+
+            %OPTION 2: let main run and read result file
+
+            plot_default(mpa = hlc.mpa, scenario = result.scenario);
+            testCase.verifyTrue(true);
+
+            plot_default(mpa = hlc.mpa, scenario = result.scenario, do_export = true);
+            testCase.verifyTrue(true);
+
+        end
+
     end
 
 end
