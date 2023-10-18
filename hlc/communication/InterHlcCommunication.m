@@ -1,4 +1,4 @@
-classdef (Abstract) HlcCommunication < handle
+classdef (Abstract) InterHlcCommunication < handle
     % abstract class for communication of a message
 
     properties
@@ -19,7 +19,7 @@ classdef (Abstract) HlcCommunication < handle
 
     methods
 
-        function obj = HlcCommunication()
+        function obj = InterHlcCommunication()
             % create communication class to connect to ROS2 network
         end
 
@@ -32,7 +32,7 @@ classdef (Abstract) HlcCommunication < handle
             )
 
             arguments
-                obj (1, 1) HlcCommunication
+                obj (1, 1) InterHlcCommunication
                 vehicle_id (1, 1) double
                 node_suffix (1, :) char
                 topic_name (1, :) char
@@ -148,7 +148,7 @@ classdef (Abstract) HlcCommunication < handle
             % read message from the given time step
 
             arguments
-                obj (1, 1) HlcCommunication
+                obj (1, 1) InterHlcCommunication
                 vehicle_id_subscribed (1, 1) double
                 time_step (1, 1) double
                 throw_error (1, 1) logical = true
@@ -212,7 +212,7 @@ classdef (Abstract) HlcCommunication < handle
             % read latest available message from the given subscriber
 
             arguments
-                obj (1, 1) HlcCommunication
+                obj (1, 1) InterHlcCommunication
                 vehicle_id_subscribed (1, 1) double
             end
 
