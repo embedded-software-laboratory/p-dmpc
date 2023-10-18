@@ -23,15 +23,15 @@ function scenario = commonroad(options)
 
         veh = Vehicle();
 
-        if isempty(options.reference_path.lanelets_index)
+        if isempty(options.reference_path_struct.lanelets_index)
             lanelets_index = [];
         else
-            lanelets_index = options.reference_path.lanelets_index{iveh};
+            lanelets_index = options.reference_path_struct.lanelets_index{iveh};
         end
 
-        reference_path = generate_reference_path_loop(options.path_ids(iveh), scenario.lanelets, lanelets_index); % function to generate refpath based on CPM Lab road geometry
-        veh.lanelets_index = reference_path.lanelets_index;
-        lanelet_ij = [reference_path.lanelets_index(1), reference_path.lanelets_index(end)];
+        reference_path_struct = generate_reference_path_loop(options.path_ids(iveh), scenario.lanelets, lanelets_index); % function to generate refpath based on CPM Lab road geometry
+        veh.lanelets_index = reference_path_struct.lanelets_index;
+        lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
 
         % check if the reference path is a loop
         lanelet_relationship = scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)};
@@ -42,18 +42,18 @@ function scenario = commonroad(options)
             veh.is_loop = false;
         end
 
-        if isempty(options.reference_path.start_point)
+        if isempty(options.reference_path_struct.start_point)
             start_point = 1;
         else
-            start_point = options.reference_path.start_point(iveh);
+            start_point = options.reference_path_struct.start_point(iveh);
         end
 
-        veh.x_start = reference_path.path(start_point, 1);
-        veh.y_start = reference_path.path(start_point, 2);
+        veh.x_start = reference_path_struct.path(start_point, 1);
+        veh.y_start = reference_path_struct.path(start_point, 2);
 
-        veh.reference_trajectory = reference_path.path;
+        veh.reference_trajectory = reference_path_struct.path;
 
-        veh.points_index = reference_path.points_index - start_point + 1;
+        veh.points_index = reference_path_struct.points_index - start_point + 1;
 
         yaw = calculate_yaw(veh.reference_trajectory);
         veh.yaw_start = yaw(1);
