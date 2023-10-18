@@ -20,6 +20,7 @@ classdef (Abstract) HighLevelController < handle
     end
 
     properties (Access = protected)
+        timing (1, 1) ControllerTiming;
         belonging_vector_total;
         info_old; % old control results for fallback
     end
@@ -32,7 +33,6 @@ classdef (Abstract) HighLevelController < handle
         vehs_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
-        timing (1, 1) ControllerTiming;
     end
 
     methods (Abstract = true, Access = protected)
@@ -378,15 +378,6 @@ classdef (Abstract) HighLevelController < handle
             % store calculated values
             obj.result.distance(:, :, obj.k) = vehicles_distances;
             obj.result.is_deadlock(obj.k) = any(is_vehicle_deadlocked);
-
-            if obj.scenario.options.is_prioritized
-
-                % store iteration priority pipeline timings
-                obj.result.determine_couplings_time(obj.k) = obj.iter.timer.determine_couplings;
-                obj.result.group_vehs_time(obj.k) = obj.iter.timer.group_vehs;
-                obj.result.assign_priority_time(obj.k) = obj.iter.timer.assign_priority;
-
-            end
 
         end
 

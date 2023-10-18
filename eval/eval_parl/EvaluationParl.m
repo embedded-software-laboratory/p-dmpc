@@ -221,13 +221,13 @@ classdef EvaluationParl
             obj.runtime_graph_search_average = mean(result.runtime_graph_search_max(obj.steps_ignored:obj.nSteps));
             obj.runtime_graph_search = max(result.runtime_graph_search_max(obj.steps_ignored:obj.nSteps));
 
-            obj.runtime_determine_couplings = max(result.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
-            obj.runtime_determine_couplings_average = mean(result.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_determine_couplings = max(result.timings.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_determine_couplings_average = mean(result.timings.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
             % in order to assign priorities, determination of couplings is needed
-            obj.runtime_assign_priority = max(result.assign_priority_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
-            obj.runtime_assign_priority_average = mean(result.assign_priority_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
-            obj.runtime_group_vehs = max(result.group_vehs_time(obj.steps_ignored:obj.nSteps));
-            obj.runtime_group_vehs_average = mean(result.group_vehs_time(obj.steps_ignored:obj.nSteps));
+            obj.runtime_assign_priority = max(result.timings.assign_priority_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_assign_priority_average = mean(result.timings.assign_priority_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_group_vehs = max(result.timings.group_vehs_time(obj.steps_ignored:obj.nSteps));
+            obj.runtime_group_vehs_average = mean(result.timings.group_vehs_time(obj.steps_ignored:obj.nSteps));
 
             obj.nodes_expanded_per_step = result.n_expanded(obj.steps_ignored:obj.nSteps);
             obj.nodes_expanded_average = mean(obj.nodes_expanded_per_step);

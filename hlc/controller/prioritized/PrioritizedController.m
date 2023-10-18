@@ -201,21 +201,21 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function runtime_others = init_step(obj)
             runtime_others_tic = tic;
 
-            determine_couplings_timer = tic;
+            obj.timing.start("determine_couplings_time", obj.k);
             obj.couple();
-            obj.iter.timer.determine_couplings = toc(determine_couplings_timer);
+            obj.timing.stop("determine_couplings_time", obj.k);
 
-            assign_priority_timer = tic;
+            obj.timing.start("assign_priority_time", obj.k);
             obj.prioritize();
-            obj.iter.timer.assign_priority = toc(assign_priority_timer);
+            obj.timing.stop("assign_priority_time", obj.k);
 
             obj.weigh();
 
             obj.reduce();
 
-            group_vehicles_timer = tic;
+            obj.timing.start("group_vehs_time", obj.k);
             obj.group();
-            obj.iter.timer.group_vehs = toc(group_vehicles_timer);
+            obj.timing.stop("group_vehs_time", obj.k);
 
             nVeh = obj.scenario.options.amount;
             Hp = obj.scenario.options.Hp;

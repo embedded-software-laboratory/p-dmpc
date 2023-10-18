@@ -34,7 +34,6 @@ classdef IterationData
         directed_coupling_reduced % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
         priority_list
         lanelet_crossing_areas
-        timer % struct, used to store computation time of different parts
         vehicles % copy of vehicle list (useful for filtered)
         vehicle_ids
         amount % number of involved vehicles (useful for filtered)
