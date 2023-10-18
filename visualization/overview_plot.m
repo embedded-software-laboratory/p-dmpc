@@ -54,7 +54,7 @@ function fig = overview_plot(result, step_indices, fig, colorOffset)
                 );
             end
 
-            % TODO plot dynamic obstacles from result.iteration_structs
+            % TODO plot dynamic obstacles from result
 
         end
 
