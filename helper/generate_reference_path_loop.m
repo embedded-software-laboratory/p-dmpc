@@ -1,11 +1,11 @@
-function [ref_path, loop] = generate_ref_path_loop(vehid, lanelets, lanelets_index)
-    % GENERATE_REF_PATH    returns a ref_path struct
-    % ref_path.lanelets_index: lanelet index of the reference path
-    % ref_path.path: reference path including x and y information
-    % ref_path.points_index: count the max index of reference points for each lanelets
+function [reference_path, loop] = generate_reference_path_loop(vehid, lanelets, lanelets_index)
+    % GENERATE_reference_path    returns a reference_path struct
+    % reference_path.lanelets_index: lanelet index of the reference path
+    % reference_path.path: reference path including x and y information
+    % reference_path.points_index: count the max index of reference points for each lanelets
 
     % Totally 7 loops of paths are designed
-    ref_path_loops = {[4, 6, 8, 60, 58, 56, 54, 80, 82, 84, 86, 34, 32, 30, 28, 2], ...
+    reference_path_loops = {[4, 6, 8, 60, 58, 56, 54, 80, 82, 84, 86, 34, 32, 30, 28, 2], ...
                           [1, 3, 23, 10, 12, 17, 43, 38, 36, 49, 29, 27], ...
                           [64, 62, 75, 55, 53, 79, 81, 101, 88, 90, 95, 69], ...
                           [40, 45, 97, 92, 94, 100, 83, 85, 33, 31, 48, 42], ...
@@ -13,7 +13,7 @@ function [ref_path, loop] = generate_ref_path_loop(vehid, lanelets, lanelets_ind
                           [41, 39, 20, 63, 61, 57, 55, 67, 65, 98, 37, 35, 31, 29], ...
                           [3, 5, 9, 11, 72, 91, 93, 81, 83, 87, 89, 46, 13, 15]};
 
-    ref_path = struct;
+    reference_path = struct;
 
     if isempty(lanelets_index)
 
@@ -108,20 +108,20 @@ function [ref_path, loop] = generate_ref_path_loop(vehid, lanelets, lanelets_ind
                 loop = 5; starting_lanelet = 71;
         end
 
-        ref_path_loop = ref_path_loops{loop};
-        find_start_idx = find(ref_path_loop == starting_lanelet);
+        reference_path_loop = reference_path_loops{loop};
+        find_start_idx = find(reference_path_loop == starting_lanelet);
 
         if find_start_idx == 1
-            ref_path.lanelets_index = ref_path_loop;
+            reference_path.lanelets_index = reference_path_loop;
         else
-            ref_path.lanelets_index = [ref_path_loop(find_start_idx:end), ref_path_loop(1:find_start_idx - 1)];
+            reference_path.lanelets_index = [reference_path_loop(find_start_idx:end), reference_path_loop(1:find_start_idx - 1)];
         end
 
     else
-        ref_path.lanelets_index = lanelets_index;
+        reference_path.lanelets_index = lanelets_index;
     end
 
-    lanelets_target = lanelets(ref_path.lanelets_index);
+    lanelets_target = lanelets(reference_path.lanelets_index);
 
     refPath_x = cellfun(@(c)c(:, LaneletInfo.cx), lanelets_target, 'UniformOutput', false);
     refPath_x = vertcat(refPath_x{:});
@@ -137,7 +137,7 @@ function [ref_path, loop] = generate_ref_path_loop(vehid, lanelets, lanelets_ind
     redundant_points_idx = [false; redundant_points_idx]; % add one element to keep size
     path_reduced = path(~redundant_points_idx, :);
 
-    ref_path.path = path_reduced;
+    reference_path.path = path_reduced;
 
     % the max points index of each lanelet
     points_length = cellfun(@(c)height(c), lanelets_target);
@@ -147,6 +147,6 @@ function [ref_path, loop] = generate_ref_path_loop(vehid, lanelets, lanelets_ind
     % consider the removed redandant points
     n_cumsum_redandant = cumsum(redundant_points_idx(:)');
 
-    ref_path.points_index = n_cumsum_lanelets_length - n_cumsum_redandant(n_cumsum_lanelets_length);
+    reference_path.points_index = n_cumsum_lanelets_length - n_cumsum_redandant(n_cumsum_lanelets_length);
 
 end

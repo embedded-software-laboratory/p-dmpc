@@ -56,7 +56,7 @@ classdef EvaluationParl
         path_tracking_errors % path tracking errors
 
         plot_option_real_path
-        plot_option_ref_path
+        plot_option_reference_path
         free_flow_speed % free flow speed
         fallback_times % total fallback times of all vehicles. Note that this is not the number of time steps when fallbacks occur
     end
@@ -96,7 +96,7 @@ classdef EvaluationParl
             obj.path_tracking_errors_MAE = zeros(obj.nVeh, 1);
             obj.runtime_total_per_step = zeros(0, 1);
             obj.plot_option_real_path = struct('Color', 'b', 'LineStyle', '-', 'LineWidth', 1.0, 'DisplayName', 'Real Path');
-            obj.plot_option_ref_path = struct('Color', 'r', 'LineStyle', '--', 'LineWidth', 1.0, 'DisplayName', 'Reference Path');
+            obj.plot_option_reference_path = struct('Color', 'r', 'LineStyle', '--', 'LineWidth', 1.0, 'DisplayName', 'Reference Path');
 
             obj.nSteps = length(result.vehs_fallback);
 
@@ -196,8 +196,8 @@ classdef EvaluationParl
         function obj = get_average_speeds(obj)
             % Calculates the average speed of each vehicle
             % note that we use reference path but not real path
-            ref_paths_diff = cellfun(@(c) diff(c, 1, 2), obj.reference_paths, 'UniformOutput', false);
-            distances = cellfun(@(c) sum(sqrt(c(1, :).^2 + c(2, :).^2)), ref_paths_diff);
+            reference_paths_diff = cellfun(@(c) diff(c, 1, 2), obj.reference_paths, 'UniformOutput', false);
+            distances = cellfun(@(c) sum(sqrt(c(1, :).^2 + c(2, :).^2)), reference_paths_diff);
             obj.average_speed_each_veh = distances ./ obj.t_total;
             obj.average_speed = mean(obj.average_speed_each_veh);
             obj.min_speed = min(obj.average_speed_each_veh);
@@ -240,10 +240,10 @@ classdef EvaluationParl
 
             c = colorbar;
             c.Title.String = 'Path Tracking Error';
-            p_max = plot(obj.reference_paths{veh_max_error}(1, :), obj.reference_paths{veh_max_error}(2, :), obj.plot_option_ref_path);
+            p_max = plot(obj.reference_paths{veh_max_error}(1, :), obj.reference_paths{veh_max_error}(2, :), obj.plot_option_reference_path);
             legend([s_max, p_max], {'Real Path (max error)', 'Reference Path (max error)'})
             %             s_min = obj.plot_path(obj.real_paths{veh_min_error},obj.path_tracking_errors{veh_min_error});
-            %             p_min = plot(obj.reference_paths{veh_min_error}(1,:),obj.reference_paths{veh_min_error}(2,:),obj.plot_option_ref_path);
+            %             p_min = plot(obj.reference_paths{veh_min_error}(1,:),obj.reference_paths{veh_min_error}(2,:),obj.plot_option_reference_path);
             %             legend([s_max,s_min,p_max,p_min],{'Real Path (max error)','Real Path (min error)','Reference Path (max error)','Reference Path (min error)'})
         end
 

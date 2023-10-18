@@ -15,7 +15,7 @@ classdef Vehicle < handle
         lanelets_index;
         points_index;
         communicate; % instance of the class `Communication`, used for communication via ROS 2
-        ref_path_loop_idx % totally 7 loops of paths are designed
+        reference_path_loop_idx % totally 7 loops of paths are designed
         is_loop = true; % whether the reference path is a loop
     end
 

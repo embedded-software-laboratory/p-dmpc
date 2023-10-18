@@ -49,26 +49,26 @@ function scenario = lanelet2_scenario(options, plant)
         veh = Vehicle();
         veh.trim_config = 1;
 
-        % Generate a ref path using the Lanelet2 Interface and generate_ref_path_loop
-        ref_path_loops = {Lanelet2_Interface.generate_ref_path_indices(scenario.road_data_file_path)};
+        % Generate a ref path using the Lanelet2 Interface and generate_reference_path_loop
+        reference_path_loops = {Lanelet2_Interface.generate_reference_path_indices(scenario.road_data_file_path)};
 
         if isempty(options.reference_path.lanelets_index)
-            ref_path_loop = ref_path_loops{1};
-            start_idx = mod(options.path_ids(iveh) * 2 - 1, width(ref_path_loop));
+            reference_path_loop = reference_path_loops{1};
+            start_idx = mod(options.path_ids(iveh) * 2 - 1, width(reference_path_loop));
 
             if start_idx == 1
-                lanelets_index = ref_path_loop;
+                lanelets_index = reference_path_loop;
             else
-                lanelets_index = [ref_path_loop(start_idx:end), ref_path_loop(1:start_idx - 1)];
+                lanelets_index = [reference_path_loop(start_idx:end), reference_path_loop(1:start_idx - 1)];
             end
 
         else
             lanelets_index = options.reference_path.lanelets_index{iveh};
         end
 
-        ref_path = generate_ref_path_loop(options.path_ids(iveh), scenario.lanelets, lanelets_index);
-        veh.lanelets_index = ref_path.lanelets_index;
-        lanelet_ij = [ref_path.lanelets_index(1), ref_path.lanelets_index(end)];
+        reference_path = generate_reference_path_loop(options.path_ids(iveh), scenario.lanelets, lanelets_index);
+        veh.lanelets_index = reference_path.lanelets_index;
+        lanelet_ij = [reference_path.lanelets_index(1), reference_path.lanelets_index(end)];
 
         % check if the reference path is a loop
         lanelet_relationship = scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)};
@@ -85,12 +85,12 @@ function scenario = lanelet2_scenario(options, plant)
             start_point = options.reference_path.start_point(iveh);
         end
 
-        veh.x_start = ref_path.path(start_point, 1);
-        veh.y_start = ref_path.path(start_point, 2);
+        veh.x_start = reference_path.path(start_point, 1);
+        veh.y_start = reference_path.path(start_point, 2);
 
-        veh.reference_trajectory = ref_path.path;
+        veh.reference_trajectory = reference_path.path;
 
-        veh.points_index = ref_path.points_index - start_point + 1;
+        veh.points_index = reference_path.points_index - start_point + 1;
 
         yaw = calculate_yaw(veh.reference_trajectory);
         veh.yaw_start = yaw(1);
