@@ -394,15 +394,17 @@ classdef (Abstract) HighLevelController < handle
                     veh_ij = [veh_i, veh_j];
                     is_same_grp = any(cellfun(@(c) all(ismember(veh_ij, c)), {obj.iter.parl_groups_info.vertices}));
 
-                    if ~is_same_grp
-                        obj.iter.num_couplings_between_grps = obj.iter.num_couplings_between_grps + 1;
-
-                        if ~isempty(obj.iter.coupling_info{veh_i, veh_j}) && obj.iter.coupling_info{veh_i, veh_j}.is_virtual_obstacle
-                            obj.iter.num_couplings_between_grps_ignored = obj.iter.num_couplings_between_grps_ignored + 1;
-                        end
-
+                    if is_same_grp
+                        continue
                     end
 
+                    obj.iter.num_couplings_between_grps = obj.iter.num_couplings_between_grps + 1;
+
+                    if isempty(obj.iter.coupling_info{veh_i, veh_j}) || ~obj.iter.coupling_info{veh_i, veh_j}.is_virtual_obstacle
+                        continue
+                    end
+
+                    obj.iter.num_couplings_between_grps_ignored = obj.iter.num_couplings_between_grps_ignored + 1;
                 end
 
                 % store iteration priority pipeline timings
