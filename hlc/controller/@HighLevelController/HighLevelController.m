@@ -302,19 +302,6 @@ classdef (Abstract) HighLevelController < handle
         function store_iteration_results(obj)
             % store iteration results like iter and info in the results struct
 
-            % calculate distances between vehicles
-            vehicles_distances = zeros(obj.scenario.options.amount, obj.scenario.options.amount);
-
-            for j_veh = 1:obj.scenario.options.amount - 1
-                adjacent_vehicle = find(obj.iter.adjacency(j_veh, :));
-                adjacent_vehicle = adjacent_vehicle(adjacent_vehicle > j_veh);
-
-                for k_veh = adjacent_vehicle
-                    vehicles_distances(j_veh, k_veh) = check_distance(obj.iter, j_veh, k_veh);
-                end
-
-            end
-
             % calculate deadlock
             % if a vehicle stops for more than a defined time, assume deadlock
             % TODO check if deadlocked vehicles are coupled. Sometimes single
@@ -376,7 +363,6 @@ classdef (Abstract) HighLevelController < handle
             obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
 
             % store calculated values
-            obj.result.distance(:, :, obj.k) = vehicles_distances;
             obj.result.is_deadlock(obj.k) = any(is_vehicle_deadlocked);
 
         end
