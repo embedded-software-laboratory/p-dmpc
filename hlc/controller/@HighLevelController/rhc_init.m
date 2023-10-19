@@ -3,7 +3,6 @@ function rhc_init(obj, states_measured, trims_measured)
 
     % create indices struct only once for efficiency
     idx = indices();
-    predicted_lanelet_boundary = {[]};
 
     % init HDV: compute current lanelet id and reachable sets intersected
     % with current & successor lane;
@@ -93,9 +92,14 @@ function rhc_init(obj, states_measured, trims_measured)
         end
 
         % Compute reachable sets for vehicle iVeh
-        local_reachable_sets = obj.mpa.local_reachable_sets_conv;
-
-        obj.iter.reachable_sets(iVeh, :) = get_reachable_sets(x0, y0, yaw0, local_reachable_sets(trim_current, :), predicted_lanelet_boundary, obj.scenario.options);
+        obj.iter.reachable_sets(iVeh, :) = get_reachable_sets( ...
+            x0, ...
+            y0, ...
+            yaw0, ...
+            obj.mpa.local_reachable_sets_conv(trim_current, :), ...
+            obj.iter.predicted_lanelet_boundary(iVeh, :), ...
+            obj.scenario.options ...
+        );
 
         % get vehicles currently occupied area
         x_rec1 = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(iVeh).Length / 2 + obj.scenario.options.offset); % repeat the first entry to enclose the shape
