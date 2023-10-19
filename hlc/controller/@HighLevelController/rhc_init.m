@@ -86,8 +86,6 @@ function rhc_init(obj, states_measured, trims_measured)
         obj.iter.reference_trajectory_points(iVeh, :, :) = reference.ReferencePoints;
         obj.iter.reference_trajectory_index(iVeh, :, :) = reference.ReferenceIndex;
 
-        obj.iter.last_trajectory_index(iVeh) = reference.ReferenceIndex(end);
-
         if (obj.scenario.options.scenario_type == ScenarioType.commonroad)
 
             obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;

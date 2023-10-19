@@ -14,7 +14,6 @@ classdef IterationData
         hdv_reachable_sets % reachable sets of hdvs
         occupied_areas % currently occupied areas with normal offset of vehicles
         emergency_maneuvers % occupied area of emergency braking maneuver
-        last_trajectory_index % initial trajectory index
         adjacency % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
         hdv_adjacency % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
         obstacles
@@ -55,7 +54,6 @@ classdef IterationData
             obj.hdv_reachable_sets = cell(hdv_amount, Hp);
             obj.occupied_areas = cell(nVeh, 1);
             obj.emergency_maneuvers = cell(nVeh, 1);
-            obj.last_trajectory_index = ones(nVeh, 1) * 10;
             obj.adjacency = zeros(nVeh, nVeh);
             obj.hdv_adjacency = zeros(nVeh, hdv_amount);
             obj.dynamic_obstacle_area = scenario.dynamic_obstacle_area;
