@@ -44,19 +44,19 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
                 return
             case '2'
                 % not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
-                is_ignore_coupling = is_intersecting_lanelets && is_at_intersection;
+                is_vehicle_pair_coupling_ignored = is_intersecting_lanelets && is_at_intersection;
             case '3'
                 % not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
-                is_ignore_coupling = (is_intersecting_lanelets || is_merging_lanelets) && is_at_intersection;
+                is_vehicle_pair_coupling_ignored = (is_intersecting_lanelets || is_merging_lanelets) && is_at_intersection;
             case '4'
                 % not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-                is_ignore_coupling = is_intersecting_lanelets || is_merging_lanelets;
+                is_vehicle_pair_coupling_ignored = is_intersecting_lanelets || is_merging_lanelets;
             otherwise
                 warning("Please specify one of the following strategies to let vehicle enter crossing area: '0', '1', '2', '3'.")
                 return
         end
 
-        if is_ignore_coupling
+        if is_vehicle_pair_coupling_ignored
             % check if vehicle without right-of-way has already enter the crossing area
 
             % get the crossing area of two vehicles' lanelet
