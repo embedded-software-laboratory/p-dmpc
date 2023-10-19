@@ -217,12 +217,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.group();
             obj.timing.stop("group_vehs_time", obj.k);
 
-            nVeh = obj.scenario.options.amount;
-            Hp = obj.scenario.options.Hp;
-
-            % initialize variable to store control results
-            obj.info = ControlResultsInfo(nVeh, Hp, obj.plant.all_vehicle_ids);
-
             runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search and msg send time
         end
 
@@ -257,7 +251,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     if ismember(vehicle_idx, obj.info.vehs_fallback)
                         % if the selected vehicle should take fallback
                         subcontroller_time = toc(subcontroller_timer);
-                        obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
                         return;
                     end
 
@@ -270,7 +263,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                     if should_fallback
                         subcontroller_time = toc(subcontroller_timer);
-                        obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
                         return;
                     end
 

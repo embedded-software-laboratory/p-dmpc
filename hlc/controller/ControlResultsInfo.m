@@ -61,8 +61,8 @@ classdef ControlResultsInfo
             obj.is_exhausted = false(nVeh, 1);
             obj.needs_fallback = false(nVeh, 1);
             %obj.u = zeros(nVeh,1);
-            %obj.runtime_graph_search_each_veh = zeros(nVeh);
-            %obj.runtime_subcontroller_each_veh = zeros(nVeh);
+            obj.runtime_subcontroller_each_veh = zeros(nVeh, 1);
+            obj.runtime_graph_search_each_veh = zeros(nVeh, 1);
         end
 
         function obj = store_control_info(obj, info_v, scenario, mpa)

@@ -18,6 +18,13 @@ classdef PrioritizedParallelController < PrioritizedController
 
             runtime_others = obj.init_step();
 
+            % initialize variable to store control results
+            obj.info = ControlResultsInfo( ...
+                obj.scenario.options.amount, ...
+                obj.scenario.options.Hp, ...
+                obj.plant.all_vehicle_ids ...
+            );
+
             vehicle_idx = obj.plant.indices_in_vehicle_list(1);
 
             % plan for vehicle_idx

@@ -18,6 +18,13 @@ classdef PrioritizedSequentialController < PrioritizedController
 
             runtime_others = obj.init_step();
 
+            % initialize variable to store control results
+            obj.info = ControlResultsInfo( ...
+                obj.scenario.options.amount, ...
+                obj.scenario.options.Hp, ...
+                obj.plant.all_vehicle_ids ...
+            );
+
             msg_send_time = zeros(1, obj.plant.amount);
             runtime_planning = zeros(1, obj.plant.amount);
 
@@ -28,7 +35,6 @@ classdef PrioritizedSequentialController < PrioritizedController
 
                     if ismember(vehicle_idx, obj.info.vehs_fallback)
                         % jump to next vehicle if the selected vehicle should take fallback
-                        obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
                         continue
                     end
 
