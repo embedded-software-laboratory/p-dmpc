@@ -45,6 +45,11 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
         v_ref_intermediate * scenario.options.dt_seconds ... % distance traveled in one time step
     );
 
+    if scenario.options.scenario_type == ScenarioType.circle
+        predicted_lanelets = [];
+        return
+    end
+
     ref_points_index = reshape(reference.ReferenceIndex, Hp, 1);
     %     ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle
 
@@ -58,34 +63,30 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
 
     ref_points_index = [ref_points_index; index_add];
 
-    if ~isempty(scenario.lanelets)
-        predicted_lanelets_idx = [];
+    predicted_lanelets_idx = [];
 
-        for i_points_index = 1:length(ref_points_index)
-            predicted_lanelets_idx = [predicted_lanelets_idx, sum(ref_points_index(i_points_index) > scenario.vehicles(iVeh).points_index) + 1];
-        end
+    for i_points_index = 1:length(ref_points_index)
+        predicted_lanelets_idx = [predicted_lanelets_idx, sum(ref_points_index(i_points_index) > scenario.vehicles(iVeh).points_index) + 1];
+    end
 
-        predicted_lanelets_idx = unique(predicted_lanelets_idx, 'stable'); % use 'stable' to keep the order
+    predicted_lanelets_idx = unique(predicted_lanelets_idx, 'stable'); % use 'stable' to keep the order
 
-        if scenario.options.is_prioritized
-            % at least two lanelets needed to predicted if parallel computation is used
-            if length(predicted_lanelets_idx) == 1
-                % at least predict two lanelets to avoid that the endpoint of the
-                % reference path being too close to the end of the predicted lanelets
-                predicted_lanelets_idx = [predicted_lanelets_idx, predicted_lanelets_idx + 1];
+    if scenario.options.is_prioritized
+        % at least two lanelets needed to predicted if parallel computation is used
+        if length(predicted_lanelets_idx) == 1
+            % at least predict two lanelets to avoid that the endpoint of the
+            % reference path being too close to the end of the predicted lanelets
+            predicted_lanelets_idx = [predicted_lanelets_idx, predicted_lanelets_idx + 1];
 
-                if predicted_lanelets_idx(end) > length(scenario.vehicles(iVeh).lanelets_index)
-                    % loop back to the first lanelet
-                    predicted_lanelets_idx(end) = 1;
-                end
-
+            if predicted_lanelets_idx(end) > length(scenario.vehicles(iVeh).lanelets_index)
+                % loop back to the first lanelet
+                predicted_lanelets_idx(end) = 1;
             end
 
         end
 
-        predicted_lanelets = scenario.vehicles(iVeh).lanelets_index(predicted_lanelets_idx);
-    else
-        predicted_lanelets = [];
     end
+
+    predicted_lanelets = scenario.vehicles(iVeh).lanelets_index(predicted_lanelets_idx);
 
 end
