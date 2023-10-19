@@ -90,24 +90,6 @@ function rhc_init(obj, states_measured, trims_measured)
 
         if (obj.scenario.options.scenario_type == ScenarioType.commonroad)
 
-            % if random path was updated, include the last lane before updating, because the predicted lane are planned starting from the updated lane
-            if obj.iter.lanes_before_update(iVeh, :, :) ~= zeros(1, 2)
-
-                for i = 1:length(obj.iter.lanes_before_update(iVeh, :, :))
-
-                    if ~ismember(obj.scenario.vehicles(iVeh).lanelets_index(1), predicted_lanelets)
-                        % prevent that first lane is no longer considered when adding lanes before update later
-                        predicted_lanelets = [obj.scenario.vehicles(iVeh).lanelets_index(1), predicted_lanelets];
-                    end
-
-                    if ~ismember(obj.iter.lanes_before_update{iVeh}(1, i), predicted_lanelets)
-                        predicted_lanelets = [obj.iter.lanes_before_update(iVeh, 1, i), predicted_lanelets];
-                    end
-
-                end
-
-            end
-
             obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;
 
             % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
