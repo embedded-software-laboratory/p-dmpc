@@ -223,9 +223,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % initialize variable to store control results
             obj.info = ControlResultsInfo(nVeh, Hp, obj.plant.all_vehicle_ids);
 
-            directed_graph = digraph(obj.iter.directed_coupling);
-            [obj.belonging_vector_total, ~] = conncomp(directed_graph, 'Type', 'weak'); % graph decomposition
-
             runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search and msg send time
         end
 
@@ -306,11 +303,13 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             if info_v.needs_fallback
                 % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
-                %                 disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
+
                 switch obj.scenario.options.fallback_type
                     case FallbackType.local_fallback
-                        sub_graph_fallback = obj.belonging_vector_total(vehicle_idx);
-                        obj.info.vehs_fallback = [obj.info.vehs_fallback; find(obj.belonging_vector_total == sub_graph_fallback).'];
+                        % local fallback: only vehicles in same subgraph take fallback
+                        belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
+                        sub_graph_fallback = belonging_vector_total(vehicle_idx);
+                        obj.info.vehs_fallback = [obj.info.vehs_fallback; find(belonging_vector_total == sub_graph_fallback).'];
                         obj.info.vehs_fallback = unique(obj.info.vehs_fallback, 'stable');
                     case FallbackType.global_fallback
                         % global fallback: all vehicles take fallback
@@ -545,9 +544,10 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 irrelevant_vehicles = union(vehicle_index_hlc, obj.info.vehs_fallback);
 
                 if obj.scenario.options.fallback_type == FallbackType.local_fallback
-                    sub_graph_fallback = obj.belonging_vector_total(vehicle_index_hlc);
+                    belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
+                    sub_graph_fallback = belonging_vector_total(vehicle_index_hlc);
                     % vehicles in the subgraph to check for fallback
-                    other_vehicles = find(obj.belonging_vector_total == sub_graph_fallback);
+                    other_vehicles = find(belonging_vector_total == sub_graph_fallback);
                     % remove irrelevant vehicles which have not to be checked for fallback
                     other_vehicles = setdiff(other_vehicles, irrelevant_vehicles, 'stable');
 

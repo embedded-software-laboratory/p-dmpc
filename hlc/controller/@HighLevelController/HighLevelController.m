@@ -21,8 +21,9 @@ classdef (Abstract) HighLevelController < handle
 
     properties (Access = protected)
         timing (1, 1) ControllerTiming;
-        belonging_vector_total;
-        info_old; % old control results for fallback
+
+        % old control results used for taking a fallback
+        info_old
     end
 
     properties (Access = private)
