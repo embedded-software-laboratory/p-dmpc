@@ -21,7 +21,6 @@
         "vehicles_lanelet_crossing_areas": [],
         "is_video_mode": true
     },
-    "is_manual_control": false,
     "manual_control_config": {
         "hdv_ids": [],
         "amount": 0
