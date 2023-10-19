@@ -4,27 +4,52 @@ function rhc_init(obj, states_measured, trims_measured)
     % create indices struct only once for efficiency
     idx = indices();
 
-    % init HDV: compute current lanelet id and reachable sets intersected
-    % with current & successor lane;
+    % calculate adjacency between CAVs and HDVs and HDV reachable sets
     for iHdv = 1:obj.scenario.options.manual_control_config.amount
 
-        % init reachable sets of hdvs
+        % determine HDV lanelet id based on HDV's position
         lanelet_struct = obj.scenario.road_raw_data.lanelet;
         state_hdv = states_measured(obj.scenario.options.amount + iHdv, :);
-        lanelet_id_hdv = map_position_to_closest_lanelets(obj.scenario.lanelets, state_hdv(idx.x), state_hdv(idx.y));
-        reachable_sets = obj.manual_vehicles(iHdv).compute_reachable_lane(state_hdv, lanelet_id_hdv);
+        lanelet_id_hdv = map_position_to_closest_lanelets( ...
+            obj.scenario.lanelets, ...
+            state_hdv(idx.x), ...
+            state_hdv(idx.y) ...
+        );
 
-        % turn polyshape to plain array (repeat the first row to enclosed the shape)
-        polyshapes = [reachable_sets{:}];
-        empty_sets = [polyshapes.NumRegions] == 0;
-        reachable_sets_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets(~empty_sets));
+        % calculate the intersection of reachable sets with the current and
+        % the successor lanelet (returned as cell array of polyshape objects
+        % for each step in the prediction horizon)
+        reachable_sets = obj.manual_vehicles(iHdv).compute_reachable_lane( ...
+            state_hdv, ...
+            lanelet_id_hdv ...
+        );
+
+        % determine empty polyshape objects
+        empty_sets = cellfun(@(c) c.NumRegions == 0, reachable_sets);
+        % fill empty reachable sets with a cell array containing an empty array
         obj.iter.hdv_reachable_sets(iHdv, empty_sets) = {[]};
-        obj.iter.hdv_reachable_sets(iHdv, ~empty_sets) = reachable_sets_array;
+        % convert polyshape in plain array (repeat first point to enclose the shape)
+        obj.iter.hdv_reachable_sets(iHdv, ~empty_sets) = cellfun(@(c) ...
+            [c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)'], ...
+            reachable_sets(~empty_sets), ...
+            'UniformOutput', false ...
+        );
 
         % update reduced coupling adjacency for cav/hdv-pairs
         for iVeh = obj.plant.indices_in_vehicle_list
+            % determine CAV lanelet id based on CAV's position
             state_cav = states_measured(iVeh, :);
-            lanelet_id_cav = map_position_to_closest_lanelets(obj.scenario.lanelets, state_cav(idx.x), state_cav(idx.y));
+            % TODO isn't the lanelet_id_cav already available?
+            lanelet_id_cav = map_position_to_closest_lanelets( ...
+                obj.scenario.lanelets, ...
+                state_cav(idx.x), ...
+                state_cav(idx.y) ...
+            );
+
+            % note coupling if HDV is not behind CAV
+            % if HDV is behind CAV and coupling is noted
+            % the optimizer will probably not find a solution
+            % since the CAV is totally in HDV's reachable set
             obj.iter.hdv_adjacency(iVeh, iHdv) = ~is_hdv_behind( ...
                 lanelet_id_cav, ...
                 state_cav, ...
