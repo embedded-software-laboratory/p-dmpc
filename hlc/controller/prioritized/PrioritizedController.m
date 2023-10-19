@@ -377,9 +377,26 @@ classdef (Abstract) PrioritizedController < HighLevelController
         end
 
         function reduce(obj)
-            [obj.iter.weighted_coupling_reduced, obj.iter.coupling_info, obj.iter.lanelet_crossing_areas] = ...
-                reduce_coupling_lanelet_crossing_area(obj.iter, obj.scenario.options.strategy_enter_lanelet_crossing_area);
-            obj.iter.directed_coupling_reduced = double(obj.iter.weighted_coupling_reduced ~= 0);
+            % initialize reduced couplings
+            obj.iter.directed_coupling_reduced = obj.iter.directed_coupling;
+            obj.iter.weighted_coupling_reduced = obj.iter.weighted_coupling;
+
+            % reduce only if no circle scenario and if any vehicle is coupled
+            if obj.scenario.options.scenario_type ~= ScenarioType.circle
+
+                % get ignored couplings and lanelet_crossing_areas
+                [ ...
+                     obj.iter.coupling_info, ...
+                     obj.iter.directed_coupling_reduced, ...
+                     obj.iter.weighted_coupling_reduced, ...
+                     obj.iter.lanelet_crossing_areas ...
+                 ] = reduce_coupling_lanelet_crossing_area( ...
+                    obj.iter, ...
+                    obj.scenario.options.strategy_enter_lanelet_crossing_area ...
+                );
+
+            end
+
         end
 
         function group(obj)

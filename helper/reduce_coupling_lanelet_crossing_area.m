@@ -1,24 +1,25 @@
-function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = reduce_coupling_lanelet_crossing_area(iter, strategy_enter_lanelet_crossing_area)
+function [coupling_info, directed_coupling_reduced, weighted_coupling_reduced, lanelet_crossing_areas] = reduce_coupling_lanelet_crossing_area(iter, strategy_enter_lanelet_crossing_area)
     % This function implement the strategies of letting vehicle enter the crossing area, which is the overlapping area of two
     % vehicles' lanelet boundaries. Four strategies are existed.
 
-    n_veh = size(iter.coupling_info, 1);
-
-    % information from iteration data that is used for reduction
+    % initialize modified return variables
     coupling_info = iter.coupling_info;
+    directed_coupling_reduced = iter.directed_coupling;
     weighted_coupling_reduced = iter.weighted_coupling;
 
-    % capture reduced couplings with boolean matrix
-    is_coupling_ignored = false(n_veh, n_veh);
     % initialize lanelet_crossing_areas
+    n_veh = size(iter.coupling_info, 1);
     lanelet_crossing_areas = cell(n_veh, 1);
 
-    % coupling info is empty if it is no commonroad scenario
-    if isempty([coupling_info{:}])
+    if all(iter.adjacency == 0, "all")
         return
     end
 
-    [rows, cols] = find(iter.weighted_coupling);
+    % capture reduced couplings with boolean matrix
+    is_coupling_ignored = false(n_veh, n_veh);
+
+    % find vehicle pairs
+    [rows, cols] = find(iter.directed_coupling);
 
     for veh_pair = 1:length(rows)
 
@@ -26,16 +27,16 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
         veh_j = cols(veh_pair);
 
         collision_type = iter.coupling_info{veh_i, veh_j}.collision_type;
-        lanelet_relationship = iter.coupling_info{veh_i, veh_j}.lanelet_relationship;
+        lanelet_relationship_type = iter.coupling_info{veh_i, veh_j}.lanelet_relationship;
 
         % only side-impact collision should be ignore by this strategy
         if collision_type == CollisionType.from_rear
             continue
         end
 
-        is_at_intersection = all((coupling_info{veh_i, veh_j}.is_intersection));
-        is_intersecting_lanelets = (lanelet_relationship == LaneletRelationshipType.crossing);
-        is_merging_lanelets = (lanelet_relationship == LaneletRelationshipType.merging);
+        is_at_intersection = all((iter.coupling_info{veh_i, veh_j}.is_intersection));
+        is_intersecting_lanelets = (lanelet_relationship_type == LaneletRelationshipType.crossing);
+        is_merging_lanelets = (lanelet_relationship_type == LaneletRelationshipType.merging);
 
         % check if coupling edge should be ignored
         switch strategy_enter_lanelet_crossing_area
@@ -105,11 +106,10 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
 
     end
 
-    % remove ignored coupling infos in both directions
+    % reduce couplings
     [coupling_info{is_coupling_ignored}] = deal([]);
-
-    % remove ignored weighted couplings
-    % since it is directed the half of the ignored entries should be already 0
+    % since it is directed the half of the ignored entries should already be 0
+    directed_coupling_reduced(is_coupling_ignored) = 0;
     weighted_coupling_reduced(is_coupling_ignored) = 0;
 
 end
