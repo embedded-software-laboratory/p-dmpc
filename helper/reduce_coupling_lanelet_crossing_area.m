@@ -2,19 +2,23 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
     % This function implement the strategies of letting vehicle enter the crossing area, which is the overlapping area of two
     % vehicles' lanelet boundaries. Four strategies are existed.
 
-    % Reduced coupling weights after forbidding vehicles entering their lanelet crossing areas
-    weighted_coupling = iter.weighted_coupling;
-    weighted_coupling_reduced = weighted_coupling;
+    n_veh = size(iter.coupling_info, 1);
+
+    % information from iteration data that is used for reduction
     coupling_info = iter.coupling_info;
-    nVeh = size(coupling_info, 1);
-    lanelet_crossing_areas = cell(nVeh, 1);
+    weighted_coupling_reduced = iter.weighted_coupling;
+
+    % capture reduced couplings with boolean matrix
+    is_coupling_ignored = false(n_veh, n_veh);
+    % initialize lanelet_crossing_areas
+    lanelet_crossing_areas = cell(n_veh, 1);
 
     % coupling info is empty if it is no commonroad scenario
     if isempty([coupling_info{:}])
         return
     end
 
-    [rows, cols] = find(weighted_coupling);
+    [rows, cols] = find(iter.weighted_coupling);
 
     for veh_pair = 1:length(rows)
 
@@ -88,11 +92,9 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
                 veh_free = veh_i;
             end
 
-            % disp(['Ignore the coupling from vehicle ' num2str(veh_free) ' to ' num2str(veh_forbid) ' by forbidding the latter to enter the crossing area of their lanelets.'])
-            coupling_info{veh_free, veh_forbid}.is_virtual_obstacle = true; % ignore coupling since no collision is possible anymore
-            coupling_info{veh_forbid, veh_free} = {}; % remove coupling info
+            is_coupling_ignored(veh_free, veh_forbid) = true;
+            is_coupling_ignored(veh_forbid, veh_free) = true;
 
-            weighted_coupling_reduced(veh_i, veh_j) = 0;
             % store lanelet crossing area for later use
             for i_region = 1:lanelet_crossing_area.NumRegions
                 [x_tmp, y_tmp] = boundary(lanelet_crossing_area, i_region);
@@ -102,5 +104,12 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
         end
 
     end
+
+    % remove ignored coupling infos in both directions
+    [coupling_info{is_coupling_ignored}] = deal([]);
+
+    % remove ignored weighted couplings
+    % since it is directed the half of the ignored entries should be already 0
+    weighted_coupling_reduced(is_coupling_ignored) = 0;
 
 end
