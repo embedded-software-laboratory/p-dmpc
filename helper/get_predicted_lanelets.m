@@ -63,10 +63,10 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
 
     ref_points_index = [ref_points_index; index_add];
 
-    predicted_lanelets_idx = [];
+    predicted_lanelets_idx = zeros(length(ref_points_index), 1);
 
     for i_points_index = 1:length(ref_points_index)
-        predicted_lanelets_idx = [predicted_lanelets_idx, sum(ref_points_index(i_points_index) > scenario.vehicles(iVeh).points_index) + 1];
+        predicted_lanelets_idx(i_points_index) = sum(ref_points_index(i_points_index) > scenario.vehicles(iVeh).points_index) + 1;
     end
 
     predicted_lanelets_idx = unique(predicted_lanelets_idx, 'stable'); % use 'stable' to keep the order
