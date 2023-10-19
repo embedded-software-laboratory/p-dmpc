@@ -52,6 +52,8 @@ classdef Coupler < handle
                             'is_move_side_by_side', is_move_side_by_side ...
                         );
 
+                        coupling_info{veh_j, veh_i} = coupling_info{veh_i, veh_j};
+
                     end
 
                 end
