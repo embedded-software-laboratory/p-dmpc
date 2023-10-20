@@ -31,31 +31,32 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
     right_bound = [right_bound_cell{:}];
     right_bound = [right_bound, predicted_lanelet_boundaries{end}{2}(end, :)']; % add the endpoint
 
-    % add several points of predecessor lanelet to ensure the whole
-    % vehicle body is inside its lanelet boundary
-    % see num_added below
-    find_first_predicted_lan = find(predicted_lanelets(1) == lanelets_index);
+    % it must be ensured that the whole vehicle body in inside the lanelet boundary
+    % therefore the predecessor lanelet is considered
+    % and several point from the predecessor are added
 
-    if find_first_predicted_lan == 1
+    % find the predecessor lanelet
+    index_predicted_lanelets_in_reference_lanelets = find(predicted_lanelets(1) == lanelets_index);
 
-        if is_loop
-            % loop back
-            predecessor_index = lanelets_index(end);
-        else
-            predecessor_index = [];
-        end
-
+    if index_predicted_lanelets_in_reference_lanelets ~= 1
+        % if lanelet is not first lanelet of reference path
+        predecessor_index = lanelets_index(index_predicted_lanelets_in_reference_lanelets - 1);
+    elseif is_loop
+        % if lanelet is first lanelet of reference path and the path is a loop
+        predecessor_index = lanelets_index(end);
     else
-        predecessor_index = lanelets_index(find_first_predicted_lan - 1);
+        predecessor_index = [];
     end
 
+    % add points to lanelet boundary
     if ~isempty(predecessor_index)
+        % if a predecessor lanelet exist
         predecessor_lanelet_left = lanelet_boundaries{predecessor_index}{1};
         predecessor_lanelet_right = lanelet_boundaries{predecessor_index}{2};
 
-        % Usually add for points of predecessor, but less if the
+        % Usually add four points of predecessor, but less if the
         % predecessor lanelet only consists of less elements
-        num_added = min(min(4, height(predecessor_lanelet_right) - 1), height(predecessor_lanelet_left) - 1);
+        num_added = min(4, min(height(predecessor_lanelet_right) - 1, height(predecessor_lanelet_left) - 1));
 
         % avoid add the last point since it is almost identical with the
         % first point of its successor
@@ -67,6 +68,7 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
     lanelet_boundary{2} = right_bound;
     x = [left_bound(1, :), right_bound(1, end:-1:1)];
     y = [left_bound(2, :), right_bound(2, end:-1:1)];
+
     % if x- and y-coordinates are ensured to be in the right order, set
     % 'Simplify' to false to save computation time
     lanelet_boundary{3} = polyshape(x, y, 'Simplify', false);
