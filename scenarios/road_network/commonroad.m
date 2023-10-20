@@ -23,11 +23,7 @@ function scenario = commonroad(options)
 
         veh = Vehicle();
 
-        if isempty(options.reference_path_struct.lanelets_index)
-            lanelets_index = [];
-        else
-            lanelets_index = options.reference_path_struct.lanelets_index{iveh};
-        end
+        lanelets_index = [];
 
         reference_path_struct = generate_reference_path_loop(options.path_ids(iveh), scenario.lanelets, lanelets_index); % function to generate refpath based on CPM Lab road geometry
         veh.lanelets_index = reference_path_struct.lanelets_index;

@@ -25,9 +25,10 @@ function results = eval_parallel_computation_prediction_inconsistency()
     options.strategy_enter_lanelet_crossing_area = '1';
     options.is_free_flow = false;
 
-    options.reference_path_struct.lanelets_index = {[95, 69, 64, 62, 75, 55, 53], [76, 24, 13, 15, 3, 5], [12, 73, 92, 94, 100, 101]};
-    options.reference_path_struct.start_point = [5, 1, 11];
-    options.amount = length(options.reference_path_struct.lanelets_index);
+    % TODO create fitting scenario
+    % options.reference_path_struct.lanelets_index = {[95, 69, 64, 62, 75, 55, 53], [76, 24, 13, 15, 3, 5], [12, 73, 92, 94, 100, 101]};
+    % options.reference_path_struct.start_point = [5, 1, 11];
+    % options.amount = length(options.reference_path_struct.lanelets_index);
     options.path_ids = 1:options.amount;
     results = cell(length(isDealPredictionInconsistency), options.amount);
 
