@@ -49,7 +49,7 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
         return
     end
 
-    ref_points_index = reshape(reference.ReferenceIndex, Hp, 1);
+    ref_points_index = reference.ReferenceIndex;
     %     ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle
 
     % predict several points more such that the predicted lanelets can cover all reachable set. Only in this way, the bounded reachable sets will not be cutoff at its front
