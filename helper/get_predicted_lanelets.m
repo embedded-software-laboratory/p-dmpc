@@ -1,33 +1,19 @@
-function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenario, mpa, iter, iVeh, x0, y0)
+function [predicted_lanelets] = get_predicted_lanelets(scenario, iVeh, reference)
     % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
-    % based on vehile's current states and reference path.
-    %
-    % INPUT:
-    %   scenario: object of the class `Scenario`
-    %
-    %   mpa: object of the class `MotionPrimitiveAutomaton`
-    %
-    %   iVeh: index of vehicle
-    %
-    %   trim_current: current trim
-    %
-    %   x0: x-coordinate
-    %
-    %   y0: y-coordinate
+    % based on vehicle's reference path.
     %
     % OUTPUT:
     %   predicted_lanelets: a row vector contains the predicted lanelets
-    %
-    %   reference: ReferencePoints [x1 y1; x2 y2; ...] and corresponding
-    %   ReferenceIndex (point index)
-    %
-    %   v_ref: reference speed
 
-    [reference, v_ref] = get_reference_trajectory(scenario, mpa, iter, iVeh, x0, y0);
-
-    if scenario.options.scenario_type == ScenarioType.circle
-        predicted_lanelets = [];
-        return
+    arguments
+        % object of class Scenario
+        scenario Scenario
+        % index of the vehicle in the vehicle list
+        iVeh (1, 1) double
+        % reference struct with the fields
+        %   ReferencePoints (Hp, 2) [x1 y1; x2 y2; ...]
+        %   ReferenceIndex (Hp, 1) point indices
+        reference (1, 1) struct
     end
 
     ref_points_index = reference.ReferenceIndex;

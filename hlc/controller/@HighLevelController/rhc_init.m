@@ -74,9 +74,15 @@ function rhc_init(obj, states_measured, trims_measured)
         yaw0 = obj.iter.x0(iVeh, idx.heading);
         trim_current = obj.iter.trim_indices(iVeh);
 
+        % Compute the reference path and speed
+        [reference, v_ref] = get_reference_trajectory(obj.scenario, obj.mpa, obj.iter, iVeh, x0, y0);
+
         % Compute the predicted lanelets of iVeh vehicle
-        % Byproducts: reference path and reference speed profile
-        [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(obj.scenario, obj.mpa, obj.iter, iVeh, x0, y0);
+        if obj.scenario.options.scenario_type == ScenarioType.circle
+            predicted_lanelets = [];
+        else
+            predicted_lanelets = get_predicted_lanelets(obj.scenario, iVeh, reference);
+        end
 
         % For non manual vehicles: Update ref speed and ref trajectory
         % reference speed and path points
