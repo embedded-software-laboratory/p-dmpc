@@ -91,7 +91,7 @@ function rhc_init(obj, states_measured, trims_measured)
             obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;
 
             % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
-            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.options.environment, obj.scenario.vehicles(iVeh).is_loop);
+            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.vehicles(iVeh).is_loop);
             obj.iter.predicted_lanelet_boundary(iVeh, :) = predicted_lanelet_boundary;
 
         end
@@ -180,7 +180,7 @@ function rhc_init(obj, states_measured, trims_measured)
                 % Calculate the predicted lanelet boundary of vehicle kVeh based on its predicted lanelets
                 % TODO is lanelets_index of other vehicles up to date?
                 if (obj.scenario.options.scenario_type == ScenarioType.commonroad)
-                    predicted_lanelet_boundary = get_lanelets_boundary(obj.iter.predicted_lanelets{kVeh}, obj.scenario.lanelet_boundary, obj.scenario.vehicles(kVeh).lanelets_index, obj.scenario.options.environment, obj.scenario.vehicles(kVeh).is_loop);
+                    predicted_lanelet_boundary = get_lanelets_boundary(obj.iter.predicted_lanelets{kVeh}, obj.scenario.lanelet_boundary, obj.scenario.vehicles(kVeh).lanelets_index, obj.scenario.vehicles(kVeh).is_loop);
                     obj.iter.predicted_lanelet_boundary(kVeh, :) = predicted_lanelet_boundary;
                 end
 
