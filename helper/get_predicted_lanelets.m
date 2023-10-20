@@ -26,15 +26,14 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
     Hp = size(mpa.transition_matrix_single, 3);
 
     % get reference speed and path points
-    v_ref = get_max_speed(mpa, iter.trim_indices(iVeh));
+    v_ref = mpa.get_max_speed(iter.trim_indices(iVeh));
 
-    v_ref_intermediate = zeros(Hp, 1);
-    current_speed = mpa.trims(iter.trim_indices(iVeh)).speed;
+    % determine intermediate speed between every two consecutive speeds
+    v_current = mpa.trims(iter.trim_indices(iVeh)).speed;
+    v_ref_intermediate = ([v_current; v_ref(1:end - 1)] + v_ref) / 2;
 
-    for i = 1:Hp
-        v_ref_intermediate(i) = (v_ref(i) + current_speed) / 2;
-        current_speed = v_ref(i);
-    end
+    % distance that can be traveled in each step of Hp
+    distance_max = v_ref_intermediate * scenario.options.dt_seconds;
 
     % Find equidistant points on the reference trajectory.
     reference = sample_reference_trajectory( ...
@@ -42,7 +41,7 @@ function [predicted_lanelets, reference, v_ref] = get_predicted_lanelets(scenari
         scenario.vehicles(iVeh).reference_path, ... % total reference path
         x0, ... % vehicle position x
         y0, ... % vehicle position y
-        v_ref_intermediate * scenario.options.dt_seconds ... % distance traveled in one time step
+        distance_max ... % distance traveled in one time step
     );
 
     if scenario.options.scenario_type == ScenarioType.circle
