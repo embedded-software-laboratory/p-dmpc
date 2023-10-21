@@ -24,55 +24,85 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
     Hp = size(local_reachable_sets, 2);
     reachable_sets = cell(1, Hp);
 
-    % if vehicle has predicted the lanelet boundary, the reachable sets would be the intersection of the full reachable sets and the lanelet boundary
-    if ~isempty(predicted_lanelet_boundary{1})
-        boundary_x = [predicted_lanelet_boundary{1}(1, :), predicted_lanelet_boundary{2}(1, end:-1:1)];
-        boundary_y = [predicted_lanelet_boundary{1}(2, :), predicted_lanelet_boundary{2}(2, end:-1:1)];
-        poly_boundary = polyshape(boundary_x, boundary_y, 'Simplify', false);
+    % get the full reachable sets in global frame as polyshape
+    for t = 1:Hp
+        % translate the local reachable sets to global coordinates
+        [reachable_set_x, reachable_set_y] = translate_global( ...
+            yaw0, ...
+            x0, ...
+            y0, ...
+            local_reachable_sets{t}.Vertices(:, 1)', ...
+            local_reachable_sets{t}.Vertices(:, 2)' ...
+        );
+
+        reachable_sets{t} = polyshape( ...
+            reachable_set_x, ...
+            reachable_set_y, ...
+            'Simplify', false ...
+        );
     end
 
-    for t = 1:Hp
-        % translate the offline calculated local reachable sets to global coordinate
-        [reachable_set_x, reachable_set_y] = ...
-            translate_global(yaw0, x0, y0, local_reachable_sets{t}.Vertices(:, 1)', local_reachable_sets{t}.Vertices(:, 2)');
-        ploy_reachable_sets = polyshape(reachable_set_x, reachable_set_y, 'Simplify', false);
+    % constrain the reachable sets by the boundaries of the predicted lanelets
+    if ( ...
+            options.scenario_type ~= ScenarioType.circle && ...
+            options.bound_reachable_sets ...
+        )
 
-        %         % MATLAB build-in function to rotate (around origin)
-        %         local_reachable_sets_rotated = rotate(local_reachable_sets{t},rad2deg(yaw0),[0,0]);
-        %         % MATLAB build-in function to translate
-        %         ploy_reachable_sets = translate(local_reachable_sets_rotated,[x0,y0]);
+        % create polyshape of all predicted lanelets
+        boundary_x = [ ...
+                          predicted_lanelet_boundary{1}(1, :), ... % left
+                          predicted_lanelet_boundary{2}(1, end:-1:1) ... % right
+                      ];
 
-        if options.bound_reachable_sets
-            % constrain the reachable sets by lanelet boundary
-            if ~isempty(predicted_lanelet_boundary{1})
-                % The fourth cell in predicted_lanelet_boundary is the narrowed boundary while the third cell is the original boundary
-                % Without narrowing, two lanelets are considered as overlap if they only share the same boundary
-                ploy_reachable_sets = intersect(ploy_reachable_sets, poly_boundary);
+        boundary_y = [ ...
+                          predicted_lanelet_boundary{1}(2, :), ... % left
+                          predicted_lanelet_boundary{2}(2, end:-1:1) ... % right
+                      ];
 
-                if ploy_reachable_sets.NumRegions > 1
-                    % Remove unexpected small regions resulting from the intersection of the lanelet boundaries and reachable sets
-                    polysort = sortregions(ploy_reachable_sets, 'numsides', 'descend'); % sort by number of sides
-                    R = regions(polysort);
-                    ploy_reachable_sets = R(1);
-                end
+        poly_boundary = polyshape(boundary_x, boundary_y, 'Simplify', false);
 
+        for t = 1:Hp
+
+            % compute intersection between reachable set and lanelet boundaries
+            reachable_sets{t} = intersect(reachable_sets{t}, poly_boundary);
+
+            if reachable_sets{t}.NumRegions > 1
+                % remove unexpected small regions resulting from computing
+                % the intersection
+
+                % sort polyshape intersection by number of sides
+                % separate each region of the polyshape into single polyshape
+                % objects (a polyshape object could contain multiple regions)
+                polyshape_regions = regions(sortregions( ...
+                    reachable_sets{t}, ...
+                    'numsides', ...
+                    'descend' ...
+                ));
+                % take polyshape with the highest number of sides
+                reachable_sets{t} = polyshape_regions(1);
+            end
+
+            if isempty(reachable_sets{t}.Vertices)
+                % empty reachable set due to intersection with wrong
+                % lanelet boundary
+
+                % restore reachable set
+                reachable_sets{t} = polyshape( ...
+                    reachable_set_x, ...
+                    reachable_set_y, ...
+                    'Simplify', false ...
+                );
             end
 
         end
 
-        if isempty(ploy_reachable_sets.Vertices)
-            % empy reachable set due to intersection with wrong lanelet boundary
-            % restore reachable set
-            ploy_reachable_sets = polyshape(reachable_set_x, reachable_set_y, 'Simplify', false);
-        end
+    end
 
-        if options.is_allow_non_convex
-            reachable_sets{t} = ploy_reachable_sets;
-        else
-            % convexify reachable sets if non-convex polygons are not allowed
-            reachable_sets{t} = convhull(ploy_reachable_sets);
-        end
-
+    % force convex reachable sets if non-convex polygons are not allowed
+    if ~options.is_allow_non_convex
+        reachable_sets = cellfun(@(c) convhull(c), reachable_sets, ...
+            'UniformOutput', false ...
+        );
     end
 
 end
