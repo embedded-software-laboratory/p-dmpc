@@ -36,18 +36,12 @@ function scenario = commonroad(options)
             veh.is_loop = false;
         end
 
-        if isempty(options.reference_path_struct.start_point)
-            start_point = 1;
-        else
-            start_point = options.reference_path_struct.start_point(iveh);
-        end
-
-        veh.x_start = reference_path_struct.path(start_point, 1);
-        veh.y_start = reference_path_struct.path(start_point, 2);
+        veh.x_start = reference_path_struct.path(1, 1);
+        veh.y_start = reference_path_struct.path(1, 2);
 
         veh.reference_path = reference_path_struct.path;
 
-        veh.points_index = reference_path_struct.points_index - start_point + 1;
+        veh.points_index = reference_path_struct.points_index;
 
         yaw = calculate_yaw(veh.reference_path);
         veh.yaw_start = yaw(1);
