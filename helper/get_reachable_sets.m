@@ -48,53 +48,10 @@ function reachable_sets = get_reachable_sets(x0, y0, yaw0, local_reachable_sets,
             options.bound_reachable_sets ...
         )
 
-        % create polyshape of all predicted lanelets
-        boundary_x = [ ...
-                          predicted_lanelet_boundary{1}(1, :), ... % left
-                          predicted_lanelet_boundary{2}(1, end:-1:1) ... % right
-                      ];
-
-        boundary_y = [ ...
-                          predicted_lanelet_boundary{1}(2, :), ... % left
-                          predicted_lanelet_boundary{2}(2, end:-1:1) ... % right
-                      ];
-
-        poly_boundary = polyshape(boundary_x, boundary_y, 'Simplify', false);
-
-        for t = 1:Hp
-
-            % compute intersection between reachable set and lanelet boundaries
-            reachable_sets{t} = intersect(reachable_sets{t}, poly_boundary);
-
-            if reachable_sets{t}.NumRegions > 1
-                % remove unexpected small regions resulting from computing
-                % the intersection
-
-                % sort polyshape intersection by number of sides
-                % separate each region of the polyshape into single polyshape
-                % objects (a polyshape object could contain multiple regions)
-                polyshape_regions = regions(sortregions( ...
-                    reachable_sets{t}, ...
-                    'numsides', ...
-                    'descend' ...
-                ));
-                % take polyshape with the highest number of sides
-                reachable_sets{t} = polyshape_regions(1);
-            end
-
-            if isempty(reachable_sets{t}.Vertices)
-                % empty reachable set due to intersection with wrong
-                % lanelet boundary
-
-                % restore reachable set
-                reachable_sets{t} = polyshape( ...
-                    reachable_set_x, ...
-                    reachable_set_y, ...
-                    'Simplify', false ...
-                );
-            end
-
-        end
+        [reachable_sets] = bound_reachable_sets( ...
+            reachable_sets, ...
+            predicted_lanelet_boundary{3} ...
+        );
 
     end
 
