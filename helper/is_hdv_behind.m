@@ -8,6 +8,8 @@ function result = is_hdv_behind(lanelet_id_cav, x_cav, lanelet_id_hdv, x_hdv, la
 
     % initialize array for predecessor lanelets
     predecessor_lanelets = [];
+    % initialize array for merging lanelets
+    overlapping_lanelets = [];
 
     for id_cav = lanelet_id_cav
 
@@ -23,7 +25,13 @@ function result = is_hdv_behind(lanelet_id_cav, x_cav, lanelet_id_hdv, x_hdv, la
                 continue
             end
 
-            if relationship.type ~= LaneletRelationshipType.longitudinal
+            if ( ...
+                    relationship.type == LaneletRelationshipType.merging || ...
+                    relationship.type == LaneletRelationshipType.forking ...
+                )
+                overlapping_lanelets = [overlapping_lanelets, id_hdv];
+                continue
+            elseif relationship.type ~= LaneletRelationshipType.longitudinal
                 continue
             end
 
@@ -63,15 +71,19 @@ function result = is_hdv_behind(lanelet_id_cav, x_cav, lanelet_id_hdv, x_hdv, la
         return;
     end
 
-    hdv_on_same_lanelet = any(ismember(lanelet_id_hdv, lanelet_id_cav));
+    % delete doubled lanelets
+    overlapping_lanelets = unique(overlapping_lanelets);
 
-    if hdv_on_same_lanelet
+    hdv_on_same_lanelet = any(ismember(lanelet_id_hdv, lanelet_id_cav));
+    hdv_on_overlapping_lanelet = ~isempty(overlapping_lanelets);
+
+    if hdv_on_same_lanelet || hdv_on_overlapping_lanelet
         vector_cav_hdv = x_hdv(1:2) - x_cav(1:2);
         vector_yaw = [cos(x_hdv(3)) sin(x_hdv(3))];
         scalar = dot(vector_yaw, vector_cav_hdv);
 
         if scalar < 0
-            % hdv is on same lanelet behind cav
+            % hdv is on same/overlapping lanelet behind cav
             result = true;
             return;
         end
