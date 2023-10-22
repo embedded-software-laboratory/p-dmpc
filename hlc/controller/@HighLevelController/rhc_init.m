@@ -75,19 +75,13 @@ function rhc_init(obj, states_measured, trims_measured)
         yaw0 = obj.iter.x0(iVeh, idx.heading);
         trim_current = obj.iter.trim_indices(iVeh);
 
-        % get vehicles currently occupied area with offset
-        % repeat the first entry to enclose the shape
-        x_rec1 = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(iVeh).Length / 2 + obj.scenario.options.offset);
-        y_rec1 = [-1, 1, 1, -1, -1] * (obj.scenario.vehicles(iVeh).Width / 2 + obj.scenario.options.offset);
-        [x_rec2, y_rec2] = translate_global(yaw0, x0, y0, x_rec1, y_rec1);
-        obj.iter.occupied_areas{iVeh}.normal_offset = [x_rec2; y_rec2];
-
-        % get vehicles currently occupied area without offset
-        % repeat the first entry to enclose the shape
-        x_rec1_without_offset = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(iVeh).Length / 2);
-        y_rec1_without_offset = [-1, 1, 1, -1, -1] * (obj.scenario.vehicles(iVeh).Width / 2);
-        [x_rec2_without_offset, y_rec2_without_offset] = translate_global(yaw0, x0, y0, x_rec1_without_offset, y_rec1_without_offset);
-        obj.iter.occupied_areas{iVeh}.without_offset = [x_rec2_without_offset; y_rec2_without_offset];
+        % get vehicles currently occupied areas
+        obj.iter.occupied_areas{iVeh} = obj.scenario.vehicles(iVeh).get_occupied_areas( ...
+            x0, ...
+            y0, ...
+            yaw0, ...
+            obj.scenario.options.offset ...
+        );
 
         % compute the reference path and speed
         [reference, v_ref] = get_reference_trajectory(obj.scenario, obj.mpa, obj.iter, iVeh, x0, y0);
