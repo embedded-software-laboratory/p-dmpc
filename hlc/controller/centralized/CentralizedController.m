@@ -22,13 +22,17 @@ classdef CentralizedController < HighLevelController
 
     methods (Access = protected)
 
-        function controller(obj)
-            % initialize variable to store control results
-            obj.info = ControlResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, obj.plant.all_vehicle_ids);
+        function relate_vehicles(obj)
 
             if obj.scenario.options.use_cpp()
                 obj.iter.adjacency = obj.coupler.couple(obj.iter);
             end
+
+        end
+
+        function controller(obj)
+            % initialize variable to store control results
+            obj.info = ControlResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, obj.plant.all_vehicle_ids);
 
             % falsifies controller_runtime slightly
             subcontroller_timer = tic;

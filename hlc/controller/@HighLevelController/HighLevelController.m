@@ -129,6 +129,10 @@ classdef (Abstract) HighLevelController < handle
             obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
         end
 
+        function relate_vehicles(~)
+            % method that can be overwritten by child classes if necessary
+        end
+
         function check_others_fallback(~)
             % method that can be overwritten by child classes if necessary
         end
@@ -212,6 +216,12 @@ classdef (Abstract) HighLevelController < handle
 
                 % The controller computes plans
                 obj.timing.start("controller_time", obj.k);
+                obj.timing.start("relation_time", obj.k);
+
+                % calculate information for the relations between the controlled vehicles
+                obj.relate_vehicles();
+
+                obj.timing.stop("relation_time", obj.k);
 
                 %% controller %%
                 obj.controller();
@@ -302,6 +312,11 @@ classdef (Abstract) HighLevelController < handle
 
         function store_iteration_results(obj)
             % store iteration results like iter and info in the results struct
+
+            % summarize timings from subcontroller
+            runtime_relation = obj.timing.get_elapsed_time("relation_time", obj.k);
+            obj.info.runtime_subcontroller_each_veh = obj.info.runtime_subcontroller_each_veh + runtime_relation;
+            obj.info.runtime_subcontroller_each_grp = obj.info.runtime_subcontroller_each_grp + runtime_relation;
 
             % calculate deadlock
             % if a vehicle stops for more than a defined time, assume deadlock

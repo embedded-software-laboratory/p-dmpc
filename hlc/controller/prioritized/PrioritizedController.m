@@ -184,8 +184,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function runtime_others = init_step(obj)
-            runtime_others_tic = tic;
+        function relate_vehicles(obj)
 
             obj.timing.start("determine_couplings_time", obj.k);
             obj.couple();
@@ -203,7 +202,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.group();
             obj.timing.stop("group_vehs_time", obj.k);
 
-            runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search and msg send time
         end
 
         function subcontroller_time = plan_single_vehicle(obj, vehicle_idx)

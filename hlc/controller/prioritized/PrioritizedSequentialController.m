@@ -16,8 +16,6 @@ classdef PrioritizedSequentialController < PrioritizedController
             % between groups plan in pararllel. Controller simulates multiple
             % distributed controllers in a for-loop.
 
-            runtime_others = obj.init_step();
-
             % initialize variable to store control results
             obj.info = ControlResultsInfo( ...
                 obj.scenario.options.amount, ...
@@ -52,7 +50,7 @@ classdef PrioritizedSequentialController < PrioritizedController
             % Calculate the total runtime of each group
             obj.info = get_run_time_total_all_grps(obj.info, ...
                 obj.iter.parl_groups_info, obj.CL_based_hierarchy, ...
-                msg_send_time, runtime_others, runtime_planning);
+                msg_send_time, runtime_planning);
 
         end
 

@@ -16,8 +16,6 @@ classdef PrioritizedParallelController < PrioritizedController
             % between groups plan in pararllel. Controller simulates multiple
             % distributed controllers in a for-loop.
 
-            runtime_others = obj.init_step();
-
             % initialize variable to store control results
             obj.info = ControlResultsInfo( ...
                 obj.scenario.options.amount, ...
@@ -36,7 +34,7 @@ classdef PrioritizedParallelController < PrioritizedController
 
             obj.info.runtime_graph_search_max = obj.info.runtime_graph_search_each_veh(vehicle_idx);
             obj.info.runtime_subcontroller_each_veh(vehicle_idx) = msg_send_time + runtime_planning;
-            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_subcontroller_each_veh(vehicle_idx) + runtime_others;
+            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_subcontroller_each_veh(vehicle_idx);
             obj.info.runtime_subcontroller_max = obj.info.runtime_subcontroller_each_veh(vehicle_idx);
             obj.info.computation_levels = length(obj.CL_based_hierarchy);
         end
