@@ -197,10 +197,13 @@ function rhc_init(obj, states_measured, trims_measured)
                 obj.iter.reachable_sets(kVeh, :) = (arrayfun(@(array) {polyshape(array.x, array.y)}, latest_msg_i.reachable_sets))';
 
                 % Calculate the predicted lanelet boundary of vehicle kVeh based on its predicted lanelets
-                % TODO is lanelets_index of other vehicles up to date?
-                if (obj.scenario.options.scenario_type == ScenarioType.commonroad)
-                    predicted_lanelet_boundary = get_lanelets_boundary(obj.iter.predicted_lanelets{kVeh}, obj.scenario.lanelet_boundary, obj.scenario.vehicles(kVeh).lanelets_index, obj.scenario.vehicles(kVeh).is_loop);
-                    obj.iter.predicted_lanelet_boundary(kVeh, :) = predicted_lanelet_boundary;
+                if obj.scenario.options.scenario_type ~= ScenarioType.circle
+                    obj.iter.predicted_lanelet_boundary(kVeh, :) = get_lanelets_boundary( ...
+                        obj.iter.predicted_lanelets{kVeh}, ...
+                        obj.scenario.lanelet_boundary, ...
+                        obj.scenario.vehicles(kVeh).lanelets_index, ...
+                        obj.scenario.vehicles(kVeh).is_loop ...
+                    );
                 end
 
                 x0 = obj.iter.x0(kVeh, idx.x);
