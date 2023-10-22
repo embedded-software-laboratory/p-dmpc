@@ -14,8 +14,6 @@ classdef Vehicle < handle
         ID = -1; % vehicle ID (should be positive integer)
         lanelets_index; % index of lanelets of the reference trajectory in the scenario lanelets
         points_index; % index of the last reference point of each lanelet from the reference trajectory
-        communicate; % instance of the class `Communication`, used for communication via ROS 2
-        reference_path_loop_idx % totally 7 loops of paths are designed
         is_loop = true; % whether the reference path is a loop
     end
 
