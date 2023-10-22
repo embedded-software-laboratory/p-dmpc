@@ -1,4 +1,4 @@
-function [reachable_sets_bounded] = bound_reachable_sets(reachable_sets, lanelet_boundary)
+function [reachable_sets_bounded] = get_bounded_reachable_sets(reachable_sets, lanelet_boundary)
     % bound_reachable_sets calculate the intersection between the reachable sets
     % and the boundary of the lanelets
     %
