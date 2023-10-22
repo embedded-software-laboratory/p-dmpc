@@ -892,6 +892,43 @@ classdef MotionPrimitiveAutomaton
 
         end
 
+        function global_emergency_maneuvers = get_global_emergency_maneuvers(obj, x, y, yaw, trim)
+            % the function takes the local emergency maneuvers for the current
+            % trim and translates it to the current position (x, y) and yaw
+            %
+            % Output:
+            %   global_emergency_maneuvers (1, 1) struct with the fields
+            %       left_area_without_offset (2, :) double [x; y]
+            %       right_area_without_offset (2, :) double [x; y]
+            %       braking_area_without_offset (2, :) double [x; y]
+            %       braking_area (2, :) double [x; y]
+
+            arguments
+                obj MotionPrimitiveAutomaton
+                x (1, 1) double % current x coordinate
+                y (1, 1) double % current y coordinate
+                yaw (1, 1) double % current yaw
+                trim (1, 1) double % current trim
+            end
+
+            % emergency left maneuver (without offset)
+            turn_left_area_without_offset = obj.emergency_maneuvers{trim}.left{1};
+            [turn_left_area_without_offset_x, turn_left_area_without_offset_y] = translate_global(yaw, x, y, turn_left_area_without_offset(1, :), turn_left_area_without_offset(2, :));
+            global_emergency_maneuvers.left_area_without_offset = [turn_left_area_without_offset_x; turn_left_area_without_offset_y];
+            % emergency right maneuver (without offset)
+            turn_right_area_without_offset = obj.emergency_maneuvers{trim}.right{1};
+            [turn_right_area_without_offset_x, turn_right_area_without_offset_y] = translate_global(yaw, x, y, turn_right_area_without_offset(1, :), turn_right_area_without_offset(2, :));
+            global_emergency_maneuvers.right_area_without_offset = [turn_right_area_without_offset_x; turn_right_area_without_offset_y];
+            % emergency braking maneuver (without offset)
+            braking_area_without_offset = obj.emergency_maneuvers{trim}.braking_without_offset;
+            [turn_braking_area_without_offset_x, turn_braking_area_without_offset_y] = translate_global(yaw, x, y, braking_area_without_offset(1, :), braking_area_without_offset(2, :));
+            global_emergency_maneuvers.braking_area_without_offset = [turn_braking_area_without_offset_x; turn_braking_area_without_offset_y];
+            % emergency braking maneuver (with normal offset)
+            braking_area = obj.emergency_maneuvers{trim}.braking_with_offset;
+            [turn_braking_area_x, turn_braking_area_y] = translate_global(yaw, x, y, braking_area(1, :), braking_area(2, :));
+            global_emergency_maneuvers.braking_area = [turn_braking_area_x; turn_braking_area_y];
+        end
+
         function global_reachable_sets = get_global_reachable_sets(obj, x, y, yaw, trim)
             % the function takes the local reachable sets for the current trim
             % and translates it to the current position (x, y) and yaw
