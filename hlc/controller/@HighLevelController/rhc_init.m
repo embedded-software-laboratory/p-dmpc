@@ -69,57 +69,65 @@ function rhc_init(obj, states_measured, trims_measured)
         obj.iter.x0(iVeh, :) = states_measured(iVeh, :);
         % get own trim
         obj.iter.trim_indices(iVeh) = trims_measured(iVeh);
+        % take further used state and trim infos
         x0 = obj.iter.x0(iVeh, idx.x);
         y0 = obj.iter.x0(iVeh, idx.y);
         yaw0 = obj.iter.x0(iVeh, idx.heading);
         trim_current = obj.iter.trim_indices(iVeh);
 
-        % Compute the reference path and speed
+        % get vehicles currently occupied area with offset
+        % repeat the first entry to enclose the shape
+        x_rec1 = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(iVeh).Length / 2 + obj.scenario.options.offset);
+        y_rec1 = [-1, 1, 1, -1, -1] * (obj.scenario.vehicles(iVeh).Width / 2 + obj.scenario.options.offset);
+        [x_rec2, y_rec2] = translate_global(yaw0, x0, y0, x_rec1, y_rec1);
+        obj.iter.occupied_areas{iVeh}.normal_offset = [x_rec2; y_rec2];
+
+        % get vehicles currently occupied area without offset
+        % repeat the first entry to enclose the shape
+        x_rec1_without_offset = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(iVeh).Length / 2);
+        y_rec1_without_offset = [-1, 1, 1, -1, -1] * (obj.scenario.vehicles(iVeh).Width / 2);
+        [x_rec2_without_offset, y_rec2_without_offset] = translate_global(yaw0, x0, y0, x_rec1_without_offset, y_rec1_without_offset);
+        obj.iter.occupied_areas{iVeh}.without_offset = [x_rec2_without_offset; y_rec2_without_offset];
+
+        % compute the reference path and speed
         [reference, v_ref] = get_reference_trajectory(obj.scenario, obj.mpa, obj.iter, iVeh, x0, y0);
 
-        % Compute the predicted lanelets of iVeh vehicle
-        if obj.scenario.options.scenario_type == ScenarioType.circle
-            predicted_lanelets = [];
-        else
-            predicted_lanelets = get_predicted_lanelets(obj.scenario, iVeh, reference);
-        end
-
-        % For non manual vehicles: Update ref speed and ref trajectory
-        % reference speed and path points
+        % reference speed
         obj.iter.v_ref(iVeh, :) = v_ref;
-
         % equidistant points on the reference trajectory.
         obj.iter.reference_trajectory_points(iVeh, :, :) = reference.ReferencePoints;
         obj.iter.reference_trajectory_index(iVeh, :, :) = reference.ReferenceIndex;
 
-        if (obj.scenario.options.scenario_type == ScenarioType.commonroad)
-
-            obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;
-
-            % Calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
-            predicted_lanelet_boundary = get_lanelets_boundary(predicted_lanelets, obj.scenario.lanelet_boundary, obj.scenario.vehicles(iVeh).lanelets_index, obj.scenario.vehicles(iVeh).is_loop);
-            obj.iter.predicted_lanelet_boundary(iVeh, :) = predicted_lanelet_boundary;
-
-        end
-
-        % Compute reachable sets for vehicle iVeh
+        % compute reachable sets for vehicle iVeh
+        local_reachable_sets = obj.mpa.local_reachable_sets_conv(trim_current, :);
         obj.iter.reachable_sets(iVeh, :) = get_reachable_sets( ...
             x0, ...
             y0, ...
             yaw0, ...
-            obj.mpa.local_reachable_sets_conv(trim_current, :) ...
+            local_reachable_sets ...
         );
 
-        % constrain the reachable sets by the boundaries of the predicted lanelets
-        if ( ...
-                obj.scenario.options.scenario_type ~= ScenarioType.circle && ...
-                obj.scenario.options.bound_reachable_sets ...
-            )
+        if obj.scenario.options.scenario_type ~= ScenarioType.circle
 
-            [obj.iter.reachable_sets(iVeh, :)] = bound_reachable_sets( ...
-                obj.iter.reachable_sets(iVeh, :), ...
-                obj.iter.predicted_lanelet_boundary{iVeh, 3} ...
+            % compute the predicted lanelets of vehicle iVeh
+            predicted_lanelets = get_predicted_lanelets(obj.scenario, iVeh, reference);
+            obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;
+
+            % calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
+            obj.iter.predicted_lanelet_boundary(iVeh, :) = get_lanelets_boundary( ...
+                predicted_lanelets, ...
+                obj.scenario.lanelet_boundary, ...
+                obj.scenario.vehicles(iVeh).lanelets_index, ...
+                obj.scenario.vehicles(iVeh).is_loop ...
             );
+
+            % constrain the reachable sets by the boundaries of the predicted lanelets
+            if obj.scenario.options.bound_reachable_sets
+                obj.iter.reachable_sets(iVeh, :) = bound_reachable_sets( ...
+                    obj.iter.reachable_sets(iVeh, :), ...
+                    obj.iter.predicted_lanelet_boundary{iVeh, 3} ...
+                );
+            end
 
         end
 
@@ -131,22 +139,8 @@ function rhc_init(obj, states_measured, trims_measured)
             );
         end
 
-        % get vehicles currently occupied area
-        x_rec1 = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(iVeh).Length / 2 + obj.scenario.options.offset); % repeat the first entry to enclose the shape
-        y_rec1 = [-1, 1, 1, -1, -1] * (obj.scenario.vehicles(iVeh).Width / 2 + obj.scenario.options.offset);
-        % calculate displacement of model shape
-        [x_rec2, y_rec2] = translate_global(yaw0, x0, y0, x_rec1, y_rec1);
-        obj.iter.occupied_areas{iVeh}.normal_offset = [x_rec2; y_rec2];
+        % get occupied area of emergency maneuver for vehicle iVeh
 
-        x_rec1_without_offset = [-1, -1, 1, 1, -1] * (obj.scenario.vehicles(iVeh).Length / 2); % repeat the first entry to enclose the shape
-        y_rec1_without_offset = [-1, 1, 1, -1, -1] * (obj.scenario.vehicles(iVeh).Width / 2);
-        [x_rec2_without_offset, y_rec2_without_offset] = translate_global(yaw0, x0, y0, x_rec1_without_offset, y_rec1_without_offset);
-        obj.iter.occupied_areas{iVeh}.without_offset = [x_rec2_without_offset; y_rec2_without_offset];
-
-        % Get vehicle's occupied area of emergency braking maneuver
-        % with normal offset
-
-        %% emergency maneuver for vehicle iVeh
         % emergency left maneuver (without offset)
         turn_left_area_without_offset = obj.mpa.emergency_maneuvers{trim_current}.left{1};
         [turn_left_area_without_offset_x, turn_left_area_without_offset_y] = translate_global(yaw0, x0, y0, turn_left_area_without_offset(1, :), turn_left_area_without_offset(2, :));
