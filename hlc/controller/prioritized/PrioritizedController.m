@@ -295,12 +295,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
             end
 
-            if obj.iter.k == inf
-                plot_obstacles(obj.scenario)
-                plot_obstacles(info_v.shapes)
-                plot_partitioned_graph(obj.iter.belonging_vector, obj.iter.weighted_coupling, 'ShowWeights', true)
-            end
-
             subcontroller_time = toc(subcontroller_timer);
         end
 
@@ -494,7 +488,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         if latest_msg.time_step > 0
                             % the message does not come from the initial time step
                             predicted_areas = arrayfun(@(array) {[array.x'; array.y']}, latest_msg.predicted_areas);
-                            shift_step = iter_v.k - latest_msg.time_step; % times that the prediction should be shifted and the last prediction should be repeated
+                            shift_step = obj.k - latest_msg.time_step; % times that the prediction should be shifted and the last prediction should be repeated
 
                             if shift_step > 1
                                 disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_i) ', considered vehicle: ' num2str(veh_without_ROW)])
@@ -593,7 +587,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 if obj.scenario.options.isDealPredictionInconsistency == false
                     % send message
                     obj.predictions_communication{vehicle_idx}.send_message( ...
-                        obj.iter.k, ...
+                        obj.k, ...
                         obj.info.shapes(vehicle_idx, :), ...
                         obj.info.vehs_fallback ...
                     );
