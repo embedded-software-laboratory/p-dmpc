@@ -106,26 +106,23 @@ classdef systemtests < matlab.unittest.TestCase
 
             testCase.verifyEmpty(lastwarn);
 
-            %OPTION 1: manually create
-            %create hlc manually because result returned by main does not contain mpa
-            plant = PlantFactory.get_experiment_interface(config.environment);
-            % create scenario
-            random_seed = RandStream('mt19937ar');
-            scenario = create_scenario(config, random_seed, plant);
-            plant.setup(scenario)
+            %let main run and read result file
+            [result, ~] = main(config);
 
-            hlc_factory = HLCFactory();
-            hlc_factory.set_scenario(scenario);
-            dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
-            hlc = hlc_factory.get_hlc(plant.controlled_vehicle_ids, dry_run, plant);
-            [result, ~] = hlc.run();
-
-            %OPTION 2: let main run and read result file
-
-            plot_default(mpa = hlc.mpa, scenario = result.scenario);
             testCase.verifyTrue(true);
 
-            plot_default(mpa = hlc.mpa, scenario = result.scenario, do_export = true);
+            output_path = FileNameConstructor.get_results_full_path( ...
+                result.scenario.options, ...
+                config.amount ... %gen_scenario_name uses config.amount as default
+            );
+            full_result = load(output_path);
+
+            %verify without exporting
+            plot_default(mpa = full_result.result.mpa, scenario = full_result.result.scenario);
+            testCase.verifyTrue(true);
+
+            %verify and check export too
+            plot_default(mpa = full_result.result.mpa, scenario = full_result.result.scenario, do_export = true);
             testCase.verifyTrue(true);
 
         end
