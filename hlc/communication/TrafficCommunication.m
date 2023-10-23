@@ -24,7 +24,8 @@ classdef TrafficCommunication < InterHlcCommunication
                 predicted_lanelets, ...
                 occupied_areas, ...
                 reachable_sets, ...
-                is_fallback ...
+                is_fallback, ...
+                permutation ...
             )
 
             arguments
@@ -36,6 +37,7 @@ classdef TrafficCommunication < InterHlcCommunication
                 occupied_areas (1, 1) struct
                 reachable_sets (1, :) cell
                 is_fallback (1, 1) logical = false
+                permutation (1, 1) double = 0
             end
 
             % vehicle send message to its topic
@@ -63,6 +65,8 @@ classdef TrafficCommunication < InterHlcCommunication
                 obj.message_to_be_sent.reachable_sets(i).x = reachable_sets{i}.Vertices(:, 1);
                 obj.message_to_be_sent.reachable_sets(i).y = reachable_sets{i}.Vertices(:, 2);
             end
+
+            obj.message_to_be_sent.permutation = int32(permutation);
 
             send(obj.ros2_publisher, obj.message_to_be_sent);
         end
