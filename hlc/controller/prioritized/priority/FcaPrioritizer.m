@@ -8,7 +8,7 @@ classdef FcaPrioritizer < Prioritizer
         function obj = FcaPrioritizer()
         end
 
-        function [directed_coupling] = prioritize(~, scenario, iter)
+        function [directed_coupling] = prioritize(~, ~, scenario, iter)
             adjacency = iter.adjacency;
 
             %% assign priorities to vehicles based on future collision assessment
