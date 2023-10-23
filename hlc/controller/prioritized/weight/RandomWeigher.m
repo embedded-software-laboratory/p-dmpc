@@ -1,5 +1,5 @@
-classdef RandomWeighter < Weighter
-    % RANDOMWEIGHTER  Instance of weight used for coupling weighting
+classdef RandomWeigher < Weigher
+    % RANDOMWEIGHER  Instance of weight used for coupling weighing
     % random weight for every coupling
 
     properties (Access = private)
@@ -7,10 +7,10 @@ classdef RandomWeighter < Weighter
 
     methods
 
-        function obj = RandomWeighter()
+        function obj = RandomWeigher()
         end
 
-        function [weighted_coupling] = weigh(obj, ~, ~, iter)
+        function [weighted_coupling] = weigh(~, ~, ~, iter)
             rand_stream = RandStream("mt19937ar", "Seed", iter.k);
             weighted_coupling = iter.directed_coupling;
 

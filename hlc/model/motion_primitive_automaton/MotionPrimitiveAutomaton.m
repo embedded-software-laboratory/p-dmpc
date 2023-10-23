@@ -131,16 +131,6 @@ classdef MotionPrimitiveAutomaton
                 obj.shortest_paths_to_equilibrium{i, 1} = get_shortest_path_to_equilibrium(obj, i);
             end
 
-            %             % transform maneuver area to polyshape which is required when using
-            %             % MATLAB function `union`
-            %             for i=1:n_trims
-            %                 child_trims = find(obj.transition_matrix_single(i,:,1));
-            %                 for idx=1:length(child_trims)
-            %                     j = child_trims(idx);
-            %
-            %                 end
-            %             end
-
             % get emergency trims and maneuvers
             [obj.emergency_trims, obj.emergency_maneuvers] = get_emergency_maneuvers(obj);
 
@@ -195,12 +185,8 @@ classdef MotionPrimitiveAutomaton
         end
 
         function max_speed = get_max_speed_of_mpa(obj)
-            % returns maximum speed of mpa (nSamples x 1)
-            % TODO replace with more reasonable version.
-            N = size(obj.transition_matrix_single, 3);
+            % returns maximum speed of mpa (1 x 1)
             max_speed = max([obj.trims(:).speed]);
-            max_speed = max_speed * ones(N, 1);
-            max_speed(end) = max_speed(end) / 2;
         end
 
         function max_speed = get_max_speed(obj, cur_trim_id)

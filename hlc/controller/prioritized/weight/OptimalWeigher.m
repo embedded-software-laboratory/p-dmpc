@@ -1,5 +1,5 @@
-classdef OptimalWeighter < Weighter
-    % OPTIMALWEIGHTER  Instance of weight used for coupling weighting
+classdef OptimalWeigher < Weigher
+    % OPTIMALWEIGHER  Instance of weight used for coupling weighing
     % weight optimal between two coupled vehicles by counting the number of valid
     % motion primitives of the lower-priority vehicle. A motion primitive is
     % valid, if a fail-safe trajectory could still be found after this motion
@@ -10,7 +10,7 @@ classdef OptimalWeighter < Weighter
 
     methods
 
-        function obj = OptimalWeighter()
+        function obj = OptimalWeigher()
         end
 
         function [weighted_coupling] = weigh(obj, scenario, mpa, iter)
@@ -18,7 +18,7 @@ classdef OptimalWeighter < Weighter
 
             [rows, cols] = find(iter.directed_coupling);
 
-            for i_row_col_pair = length(rows)
+            for i_row_col_pair = 1:length(rows)
                 row = rows(i_row_col_pair);
                 col = cols(i_row_col_pair);
                 weighted_coupling(row, col) = obj.get_optimal_coupling_weight(scenario, mpa, iter, row, col);
@@ -30,7 +30,7 @@ classdef OptimalWeighter < Weighter
 
     methods (Access = private)
 
-        function [optimal_coupling_weight] = get_optimal_coupling_weight(obj, scenario, mpa, iter, veh_i, veh_j)
+        function [optimal_coupling_weight] = get_optimal_coupling_weight(~, scenario, mpa, iter, veh_i, veh_j)
             % GET_OPTIMAL_COUPLING_WEIGHT This function calculates the optimal coupling
             % weight between two coupled vehicles by counting the number of valid
             % motion primitives of the lower-priority vehicle. A motion primitive is
@@ -45,19 +45,13 @@ classdef OptimalWeighter < Weighter
             scenario.options.Hp = scenario.options.Hp - 1;
             % Add reachable sets as dynamic obstacles
             reachable_sets_i = iter.reachable_sets(veh_i, 2:end);
-            reachable_sets_i_full = iter.reachable_sets(veh_i, :);
             % Turn polyshape to plain array (repeat the first row to enclosed the shape)
             reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
             iter_v.dynamic_obstacle_reachableSets(end + 1, :) = reachable_sets_i_array;
 
-            reachable_sets_i_array_full = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i_full);
-            plot_options_RS = struct('Color', [0 0.4470 0.7410], 'LineWidth', 0.45, 'LineStyle', '-');
-
             % Reduce the information by one step
             mpa.transition_matrix(:, :, 1) = [];
             mpa.transition_matrix_single(:, :, 1) = [];
-
-            iter_v = filter_iter(iter, filter_self);
 
             % Reduce the information by one step
             iter_v.reference_trajectory_index(1) = [];
@@ -65,7 +59,6 @@ classdef OptimalWeighter < Weighter
             iter_v.v_ref(1) = [];
 
             predicted_lanelet_boundary = [iter_v.predicted_lanelet_boundary{1}, [nan; nan], iter_v.predicted_lanelet_boundary{2}];
-            plot_options_LB = struct('Color', 'k', 'LineWidth', 0.65, 'LineStyle', '-');
 
             states_current = iter_v.x0;
             % Find all connected trims
@@ -91,8 +84,11 @@ classdef OptimalWeighter < Weighter
                 if InterX(area_next_xy, RS_i_xy)
                     % If not collision-free
                     are_valid(iTrim) = false;
-                elseif InterX(area_next_xy_without_offset, predicted_lanelet_boundary)
-                    are_valid(iTrim) = false;
+                elseif ~anynan(predicted_lanelet_boundary) % there is a lanelet boundary
+                    are_valid(iTrim) = ~InterX( ...
+                        area_next_xy_without_offset, ...
+                        predicted_lanelet_boundary ...
+                    );
                 else
                     % If collision-free, execute graph search and see if a fail-safe
                     % trajectory (for Hp-1 steps) could still be found if the current motion
@@ -110,14 +106,10 @@ classdef OptimalWeighter < Weighter
 
                     if info_v.is_exhausted
                         are_valid(iTrim) = false;
-                    else
-                        plot_options_trajectories = struct('Color', 'b', 'LineWidth', 0.55, 'LineStyle', '-');
-
                     end
 
                 end
 
-                plot_options_next_primitive = struct('Color', 'b', 'LineWidth', 0.55, 'LineStyle', '-');
             end
 
             % Set the coupling weight to the percentage of invalid motion
@@ -130,8 +122,8 @@ classdef OptimalWeighter < Weighter
             end
 
             if optimal_coupling_weight == 1
-                % a coupling weight of 1 means if those two vehicles is not in the
-                % same group, the lower-priority one must cannot find a feasible
+                % a coupling weight of 1 means if those two vehicles are not in the
+                % same group, the lower-priority one cannot find a feasible
                 % trajectory; therefore, set it to a very large value so that the
                 % graph cut algorithm will put them in the same group
                 optimal_coupling_weight = 10;

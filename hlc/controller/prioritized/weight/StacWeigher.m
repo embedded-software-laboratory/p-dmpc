@@ -1,5 +1,5 @@
-classdef StacWeighter < Weighter
-    % STACWEIGHTER  Instance of weight used for coupling weighting
+classdef StacWeigher < Weigher
+    % STACWEIGHER  Instance of weight used for coupling weighing
     % weight based on shortest time to achieve collision (STAC)
 
     properties (Access = private)
@@ -13,7 +13,7 @@ classdef StacWeighter < Weighter
 
     methods
 
-        function obj = StacWeighter()
+        function obj = StacWeigher()
         end
 
         function [weighted_coupling] = weigh(obj, scenario, ~, iter)

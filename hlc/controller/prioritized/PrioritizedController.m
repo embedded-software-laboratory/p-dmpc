@@ -12,7 +12,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         CL_based_hierarchy;
         lanelet_crossing_areas;
         prioritizer
-        weighter
+        weigher
         coupler
 
         consider_parallel_coupling (1, 1) function_handle = @()[];
@@ -31,7 +31,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             obj.coupler = Coupler();
             obj.prioritizer = Prioritizer.get_prioritizer(obj.scenario.options.priority);
-            obj.weighter = Weighter.get_weighter(obj.scenario.options.weight);
+            obj.weigher = Weigher.get_weigher(obj.scenario.options.weight);
 
             if obj.scenario.options.isDealPredictionInconsistency
                 obj.consider_parallel_coupling = @obj.parallel_coupling_reachability;
@@ -396,7 +396,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         end
 
         function weigh(obj)
-            obj.iter.weighted_coupling = obj.weighter.weigh(obj.scenario, obj.mpa, obj.iter);
+            obj.iter.weighted_coupling = obj.weigher.weigh(obj.scenario, obj.mpa, obj.iter);
         end
 
         function reduce(obj)
