@@ -118,7 +118,7 @@ classdef (Abstract) HighLevelController < handle
             end
 
             % initialize iteration data
-            obj.iter = IterationData(obj.scenario, obj.k, obj.plant.all_vehicle_ids);
+            obj.iter = IterationData(obj.scenario, obj.plant.all_vehicle_ids);
 
             % initialize result struct
             obj.result = get_result_struct(obj);
@@ -191,8 +191,6 @@ classdef (Abstract) HighLevelController < handle
             while (~obj.got_stop)
                 % increment interation counter
                 obj.k = obj.k + 1;
-
-                obj.iter.k = obj.k;
 
                 obj.timing.start("hlc_step_time", obj.k);
                 obj.timing.start("iter_runtime", obj.k);
