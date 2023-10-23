@@ -248,17 +248,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             end
 
-            if ~strcmp(obj.scenario.options.strategy_enter_lanelet_crossing_area, '1')
-                % Set lanelet intersecting areas as static obstacles if vehicle with lower priorities is not allowed to enter those area
-                iter_v.lanelet_crossing_areas = obj.iter.lanelet_crossing_areas{vehicle_idx};
-
-                if isempty(iter_v.lanelet_crossing_areas)
-                    iter_v.lanelet_crossing_areas = {}; % convert from 'double' to 'cell'
-                end
-
-                assert(iscell(iter_v.lanelet_crossing_areas));
-            end
-
             % consider coupled vehicles with lower priorities
             iter_v = obj.consider_vehs_with_LP(iter_v, vehicle_idx, all_coupled_vehs_with_LP);
 

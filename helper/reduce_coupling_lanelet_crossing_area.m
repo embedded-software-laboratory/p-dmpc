@@ -7,9 +7,9 @@ function [coupling_info, directed_coupling_reduced, weighted_coupling_reduced, l
     directed_coupling_reduced = iter.directed_coupling;
     weighted_coupling_reduced = iter.weighted_coupling;
 
-    % initialize lanelet_crossing_areas
+    % initialize lanelet_crossing_areas as cell array of cell arrays
     n_veh = size(iter.coupling_info, 1);
-    lanelet_crossing_areas = cell(n_veh, 1);
+    lanelet_crossing_areas = repmat({{}}, n_veh, 1);
 
     if all(iter.adjacency == 0, "all")
         return

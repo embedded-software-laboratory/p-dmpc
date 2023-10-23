@@ -242,7 +242,7 @@ classdef (Abstract) HighLevelController < handle
                 % reset iter obstacles to scenario default/static obstacles
                 obj.iter.obstacles = obj.scenario.obstacles;
                 % important: reset lanelet crossing areas
-                obj.iter.lanelet_crossing_areas = cell(obj.scenario.options.amount, 1);
+                obj.iter.lanelet_crossing_areas = repmat({{}}, obj.scenario.options.amount, 1);
 
                 % Apply control action
                 % -------------------------------------------------------------------------

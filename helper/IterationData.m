@@ -67,7 +67,7 @@ classdef IterationData
             obj.priority_list = ones(nVeh, 1);
             obj.belonging_vector = ones(nVeh, 1);
             obj.obstacles = scenario.obstacles;
-            obj.lanelet_crossing_areas = cell(nVeh, 1);
+            obj.lanelet_crossing_areas = repmat({{}}, nVeh, 1);
             obj.amount = nVeh;
             obj.vehicles = scenario.vehicles;
             obj.vehicle_ids = vehicle_ids;
