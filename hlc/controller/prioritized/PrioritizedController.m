@@ -249,7 +249,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
             end
 
             % consider coupled vehicles with lower priorities
-            iter_v = obj.consider_vehs_with_LP(iter_v, vehicle_idx, all_coupled_vehs_with_LP);
+            [obstacles, dynamic_obstacle_area] = obj.consider_vehs_with_LP(vehicle_idx, all_coupled_vehs_with_LP);
+            iter_v.obstacles = [iter_v.obstacles; obstacles];
+            iter_v.dynamic_obstacle_area = [iter_v.dynamic_obstacle_area; dynamic_obstacle_area];
 
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
@@ -417,26 +419,34 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function iter_v = consider_vehs_with_LP(obj, iter_v, vehicle_idx, all_coupling_vehs_without_ROW)
-            % CONSIDER_VEHS_WITH_LP Stategies to let vehicle with the right-of-way
+        function [obstacles, dynamic_obstacle_area] = consider_vehs_with_LP(obj, vehicle_idx, all_coupling_vehs_without_ROW)
+            % CONSIDER_VEHS_WITH_LP Strategies to let vehicle with the right-of-way
             % consider vehicle without the right-of-way
             % '1': do not consider
             % '2': consider currently occupied area as static obstacle
             % '3': consider the occupied area of emergency braking maneuver as static obstacle
             % '4': consider one-step reachable sets as static obstacle
             % '5': consider old trajectory as dynamic obstacle
+            %
+            % Output:
+            %   obstacles (:, 1) cell of areas [x; y]
+            %   dynamic_obstacle_area (:, Hp) cell of areas [x; y]
+
+            % preallocate cell array entries
+            obstacles = cell(length(all_coupling_vehs_without_ROW), 1);
+            dynamic_obstacle_area = cell(length(all_coupling_vehs_without_ROW), obj.scenario.options.Hp);
 
             for i_LP = 1:length(all_coupling_vehs_without_ROW)
                 veh_without_ROW = all_coupling_vehs_without_ROW(i_LP);
 
-                % stategies to let vehicle with the right-of-way consider vehicle without the right-of-way
+                % strategies to let vehicle with the right-of-way consider vehicle without the right-of-way
                 switch obj.scenario.options.strategy_consider_veh_without_ROW
                     case '1'
                         % do not consider
 
                     case '2'
                         % consider currently occupied area as static obstacle
-                        iter_v.obstacles{end + 1} = iter_v.occupied_areas{veh_without_ROW}.normal_offset; % add as static obstacles
+                        obstacles{i_LP} = obj.iter.occupied_areas{veh_without_ROW}.normal_offset;
 
                     case '3'
                         % consider the occupied area of emergency braking maneuver
@@ -446,52 +456,59 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         % possibility). Cases that vehicles drive successively are not
                         % included to avoid that vehicles behind push vehicles in
                         % front to move forward.
-                        switch obj.scenario.options.priority
-                            case PriorityStrategies.STAC_priority
 
-                                if ~iter_v.coupling_info{vehicle_idx, veh_without_ROW}.is_ignored && iter_v.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side ...
-                                        && iter_v.coupling_info{vehicle_idx, veh_without_ROW}.lanelet_relationship == LaneletRelationshipType.crossing
-                                    % the emergency braking maneuver is only considered if
-                                    % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
-                                    iter_v.obstacles{end + 1} = iter_v.emergency_maneuvers{veh_without_ROW}.braking_area;
-                                else
-                                    iter_v.obstacles{end + 1} = iter_v.occupied_areas{veh_without_ROW}.normal_offset;
-                                end
-
-                            otherwise
-                                iter_v.obstacles{end + 1} = iter_v.occupied_areas{veh_without_ROW}.normal_offset;
+                        if ( ...
+                                obj.scenario.options.scenario_type ~= ScenarioType.circle && ...
+                                obj.scenario.options.priority == PriorityStrategies.STAC_priority && ...
+                                obj.iter.directed_coupling_reduced(vehicle_idx, veh_without_ROW) == 1 && ...
+                                obj.iter.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side && ...
+                                obj.iter.coupling_info{vehicle_idx, veh_without_ROW}.lanelet_relationship == LaneletRelationshipType.crossing ...
+                            )
+                            % the emergency braking maneuver is only considered if
+                            % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
+                            obstacles{i_LP} = obj.iter.emergency_maneuvers{veh_without_ROW}.braking_area;
+                            continue
                         end
+
+                        obstacles{i_LP} = obj.iter.occupied_areas{veh_without_ROW}.normal_offset;
 
                     case '4'
                         % consider one-step reachable sets as static obstacle
-                        reachable_sets = iter_v.reachable_sets{veh_without_ROW, 1};
+                        reachable_sets = obj.iter.reachable_sets{veh_without_ROW, 1};
                         % get boundary of the polygon
                         [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
-                        iter_v.obstacles(end + 1) = {[x_reachable_sets'; y_reachable_sets']};
+                        obstacles{i_LP} = [x_reachable_sets'; y_reachable_sets'];
+
                     case '5'
                         % consider old trajectory as dynamic obstacle
                         latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
                             obj.plant.all_vehicle_ids(veh_without_ROW) ...
                         );
 
-                        if latest_msg.time_step > 0
-                            % the message does not come from the initial time step
-                            predicted_areas = arrayfun(@(array) {[array.x'; array.y']}, latest_msg.predicted_areas);
-                            shift_step = obj.k - latest_msg.time_step; % times that the prediction should be shifted and the last prediction should be repeated
-
-                            if shift_step > 1
-                                disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_i) ', considered vehicle: ' num2str(veh_without_ROW)])
-                            end
-
-                            predicted_areas = del_first_rpt_last(predicted_areas(:)', shift_step);
-                            iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas;
+                        if latest_msg.time_step <= 0
+                            continue
                         end
+
+                        % the message does not come from the initial time step
+                        predicted_areas = arrayfun(@(array) {[array.x'; array.y']}, latest_msg.predicted_areas);
+                        shift_step = obj.k - latest_msg.time_step; % times that the prediction should be shifted and the last prediction should be repeated
+
+                        if shift_step > 1
+                            disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_idx) ', considered vehicle: ' num2str(veh_without_ROW)])
+                        end
+
+                        predicted_areas = del_first_rpt_last(predicted_areas(:)', shift_step);
+                        dynamic_obstacle_area(i_LP, :) = predicted_areas;
 
                     otherwise
                         warning("Please specify one of the following strategies to let vehicle with a higher priority also consider vehicle with a lower priority: '1', '2', '3', '4', '5'.")
                 end
 
             end
+
+            % release preallocated cell array entries
+            obstacles(cellfun(@isempty, obstacles), :) = [];
+            dynamic_obstacle_area(cellfun(@isempty, dynamic_obstacle_area(:, 1)), :) = [];
 
         end
 

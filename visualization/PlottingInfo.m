@@ -34,7 +34,7 @@ classdef PlottingInfo
             obj.trajectory_predictions = result.trajectory_predictions(:, k);
             obj.ref_trajectory = result.iteration_structs{k}.reference_trajectory_points;
             obj.priorities = result.priority_list(:, k);
-            obj.n_obstacles = size(result.obstacles, 2);
+            obj.n_obstacles = size(result.obstacles, 1);
             obj.n_dynamic_obstacles = size(result.iteration_structs{k}.dynamic_obstacle_fullres, 1);
 
             if obj.n_obstacles > 0

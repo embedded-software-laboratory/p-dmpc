@@ -16,7 +16,7 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
     iter = result.iteration_structs{step_idx};
 
     nVeh = scenario.options.amount;
-    nObst = size(result.obstacles, 2);
+    nObst = size(result.obstacles, 1);
     nDynObst = size(iter.dynamic_obstacle_fullres, 1);
 
     if nargin < 3
