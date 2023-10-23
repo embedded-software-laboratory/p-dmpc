@@ -333,7 +333,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 switch obj.scenario.options.fallback_type
                     case FallbackType.local_fallback
                         sub_graph_fallback = obj.belonging_vector_total(vehicle_idx);
-                        obj.info.vehs_fallback = [obj.info.vehs_fallback, find(obj.belonging_vector_total == sub_graph_fallback)];
+                        obj.info.vehs_fallback = [obj.info.vehs_fallback; find(obj.belonging_vector_total == sub_graph_fallback).'];
                         obj.info.vehs_fallback = unique(obj.info.vehs_fallback, 'stable');
                     case FallbackType.global_fallback
                         % global fallback: all vehicles take fallback
