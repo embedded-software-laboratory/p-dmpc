@@ -11,7 +11,7 @@ function results = spp_book(visu_options)
     opt.recursive_feasibility = 1;
     opt.is_load_mpa = 0;
     opt.Hp = 3;
-    opt.trim_set = 1;
+    opt.trim_set = MpaTrimType.single_speed;
     veh = Vehicle();
     model = BicycleModel(veh.Lf, veh.Lr);
     sce_rec_1 = Scenario;
@@ -54,7 +54,7 @@ function results = spp_book(visu_options)
 
     % scenarios as in Jianyes Eval
     options = OptionsMain;
-    options.trim_set = 9;
+    options.trim_set = MpaTrimType.single_speed;
     options.T_end = 180;
     options.Hp = 8;
     options.is_prioritized = true;
