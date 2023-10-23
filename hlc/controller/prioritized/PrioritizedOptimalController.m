@@ -33,7 +33,6 @@ classdef PrioritizedOptimalController < PrioritizedController
                 obj.weigh();
                 obj.reduce();
                 obj.group();
-                obj.compute_belonging_vector();
 
                 % plan for vehicle_idx
                 runtime_planning = obj.plan_single_vehicle(vehicle_idx);
