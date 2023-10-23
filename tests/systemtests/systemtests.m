@@ -118,11 +118,11 @@ classdef systemtests < matlab.unittest.TestCase
             full_result = load(output_path);
 
             %verify without exporting
-            plot_default(mpa = full_result.result.mpa, scenario = full_result.result.scenario);
+            plot_default(full_result.result, do_export = false);
             testCase.verifyTrue(true);
 
             %verify and check export too
-            plot_default(mpa = full_result.result.mpa, scenario = full_result.result.scenario, do_export = true);
+            plot_default(full_result.result, do_export = true);
             testCase.verifyTrue(true);
 
         end
