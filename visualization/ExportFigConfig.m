@@ -107,48 +107,6 @@ classdef ExportFigConfig
             obj = ExportFigConfig.set_optional_properties(obj, options);
         end
 
-        function obj = spp_book_small(options)
-
-            arguments
-                options.fontsize
-                options.units
-                options.paperwidth
-                options.paperheight
-                options.linewidth
-                options.fontname
-                options.markersize
-            end
-
-            obj = ExportFigConfig();
-            obj.fontsize = 8;
-            obj.paperwidth = 7.5;
-            obj.paperheight = 4;
-            obj.linewidth = 0.5;
-            obj.fontname = 'Times';
-            obj = ExportFigConfig.set_optional_properties(obj, options);
-        end
-
-        function obj = spp_book_full(options)
-
-            arguments
-                options.fontsize
-                options.units
-                options.paperwidth
-                options.paperheight
-                options.linewidth
-                options.fontname
-                options.markersize
-            end
-
-            obj = ExportFigConfig();
-            obj.fontsize = 8;
-            obj.paperwidth = 11.7;
-            obj.paperheight = 7.85;
-            obj.linewidth = 0.5;
-            obj.fontname = 'Times';
-            obj = ExportFigConfig.set_optional_properties(obj, options);
-        end
-
         function obj = set_optional_properties(obj, options)
 
             arguments
