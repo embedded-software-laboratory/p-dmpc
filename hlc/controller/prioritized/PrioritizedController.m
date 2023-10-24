@@ -332,11 +332,10 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function [iter_v, should_fallback] = parallel_coupling_reachability(obj, iter_v, ~, veh_with_HP_i)
+        function iter_v = parallel_coupling_reachability(obj, iter_v, ~, veh_with_HP_i)
             % collisions with coupled vehicles with higher priorities in
             % different groups will be avoided by considering
             % their reachable sets as dynamic obstacles
-            should_fallback = false;
 
             % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
             reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i, :);
@@ -346,9 +345,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function [iter_v, should_fallback] = parallel_coupling_previous_trajectory(obj, iter_v, vehicle_idx, veh_with_HP_i)
-            should_fallback = false; % no fallback since no recursive feasibility guarantee
-            % otherwise add one-step delayed trajectories as dynamic obstacles
+        function iter_v = parallel_coupling_previous_trajectory(obj, iter_v, vehicle_idx, veh_with_HP_i)
+            % collisions with coupled vehicles with higher priorities in
+            % different groups will be avoided by considering
+            % their one-step delayed predicted trajectories as dynamic obstacle
+
             if obj.k > 1
                 % the old trajectories are available from the second time step onwards
                 old_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
@@ -423,11 +424,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                     % if they are in different groups and message of
                     % current time step is not available
-                    [iter_v, is_fallback_triggered] = obj.consider_parallel_coupling(iter_v, vehicle_idx, veh_with_HP_i);
-
-                    if is_fallback_triggered
-                        return;
-                    end
+                    iter_v = obj.consider_parallel_coupling(iter_v, vehicle_idx, veh_with_HP_i);
 
                 end
 
