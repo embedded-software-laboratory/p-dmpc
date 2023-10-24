@@ -198,8 +198,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function subcontroller_time = plan_single_vehicle(obj, vehicle_idx)
-            subcontroller_timer = tic;
+        function plan_single_vehicle(obj, vehicle_idx)
 
             % only keep self
             filter_self = false(1, obj.scenario.options.amount);
@@ -228,7 +227,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                     if ismember(vehicle_idx, obj.info.vehs_fallback)
                         % if the selected vehicle should take fallback
-                        subcontroller_time = toc(subcontroller_timer);
                         return;
                     end
 
@@ -240,7 +238,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     [iter_v, should_fallback] = obj.consider_parallel_coupling(iter_v, vehicle_idx, veh_with_HP_i);
 
                     if should_fallback
-                        subcontroller_time = toc(subcontroller_timer);
                         return;
                     end
 
@@ -286,7 +283,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
             end
 
-            subcontroller_time = toc(subcontroller_timer);
         end
 
         function msg_send_time = publish_predictions(obj, vehicle_idx)

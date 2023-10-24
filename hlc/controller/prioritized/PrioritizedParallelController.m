@@ -26,7 +26,9 @@ classdef PrioritizedParallelController < PrioritizedController
             vehicle_idx = obj.plant.indices_in_vehicle_list(1);
 
             % plan for vehicle_idx
-            runtime_planning = obj.plan_single_vehicle(vehicle_idx);
+            planning_timer = tic;
+            obj.plan_single_vehicle(vehicle_idx);
+            runtime_planning = toc(planning_timer);
 
             %% Send own data to other vehicles
 

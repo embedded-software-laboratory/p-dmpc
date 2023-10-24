@@ -37,7 +37,9 @@ classdef PrioritizedSequentialController < PrioritizedController
                     end
 
                     % plan for vehicle_idx
-                    runtime_planning(vehicle_idx) = obj.plan_single_vehicle(vehicle_idx);
+                    planning_timer = tic;
+                    obj.plan_single_vehicle(vehicle_idx);
+                    runtime_planning(vehicle_idx) = toc(planning_timer);
                 end
 
                 % Communicate data to other vehicles
