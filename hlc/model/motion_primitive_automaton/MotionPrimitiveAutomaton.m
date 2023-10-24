@@ -892,6 +892,46 @@ classdef MotionPrimitiveAutomaton
 
         end
 
+        function global_reachable_sets = get_global_reachable_sets(obj, x, y, yaw, trim)
+            % the function takes the local reachable sets for the current trim
+            % and translates it to the current position (x, y) and yaw
+            %
+            % Output:
+            %   global_reachable_sets (1, Hp) cell of polyshape objects
+
+            arguments
+                obj MotionPrimitiveAutomaton
+                x (1, 1) double % current x coordinate
+                y (1, 1) double % current y coordinate
+                yaw (1, 1) double % current yaw
+                trim (1, 1) double % current trim
+            end
+
+            local_reachable_sets_trim = obj.local_reachable_sets_conv(trim, :);
+
+            Hp = size(local_reachable_sets_trim, 2);
+            global_reachable_sets = cell(1, Hp);
+
+            % get the full reachable sets in global frame as polyshape
+            for t = 1:Hp
+                % translate the local reachable sets to global coordinates
+                [reachable_set_x, reachable_set_y] = translate_global( ...
+                    yaw, ...
+                    x, ...
+                    y, ...
+                    local_reachable_sets_trim{t}.Vertices(:, 1)', ...
+                    local_reachable_sets_trim{t}.Vertices(:, 2)' ...
+                );
+
+                global_reachable_sets{t} = polyshape( ...
+                    reachable_set_x, ...
+                    reachable_set_y, ...
+                    'Simplify', false ...
+                );
+            end
+
+        end
+
         function plot(obj, options)
 
             arguments
