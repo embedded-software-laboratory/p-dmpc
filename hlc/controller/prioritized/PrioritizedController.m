@@ -350,23 +350,25 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % different groups will be avoided by considering
             % their one-step delayed predicted trajectories as dynamic obstacle
 
-            if obj.k > 1
-                % the old trajectories are available from the second time step onwards
-                old_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
-                    obj.plant.all_vehicle_ids(veh_with_HP_i), ...
-                    obj.k - 1, ...
-                    true ...
-                );
-                predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, old_msg.predicted_areas);
-                oldness_msg = obj.k - old_msg.time_step;
-
-                if oldness_msg ~= 0
-                    % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
-                    predicted_areas_i = del_first_rpt_last(predicted_areas_i', oldness_msg);
-                end
-
-                iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
+            if obj.k <= 1
+                return
             end
+
+            % the old trajectories are available from the second time step onwards
+            old_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
+                obj.plant.all_vehicle_ids(veh_with_HP_i), ...
+                obj.k - 1, ...
+                true ...
+            );
+            predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, old_msg.predicted_areas);
+            oldness_msg = obj.k - old_msg.time_step;
+
+            if oldness_msg ~= 0
+                % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
+                predicted_areas_i = del_first_rpt_last(predicted_areas_i', oldness_msg);
+            end
+
+            iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
 
         end
 
