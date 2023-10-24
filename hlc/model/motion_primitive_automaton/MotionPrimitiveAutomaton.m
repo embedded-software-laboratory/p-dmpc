@@ -969,6 +969,11 @@ classdef MotionPrimitiveAutomaton
 
         end
 
+        function result = maximum_branching_factor(obj)
+            % Returns the maximum branching factor of the motion primitive automaton
+            result = max(sum(obj.transition_matrix_single, 2), [], 'all');
+        end
+
         function plot(obj, optional)
 
             arguments
