@@ -30,12 +30,6 @@ classdef PrioritizedSequentialController < PrioritizedController
                 vehs_level_i = obj.CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
 
                 for vehicle_idx = vehs_level_i
-
-                    if ismember(vehicle_idx, obj.info.vehs_fallback)
-                        % jump to next vehicle if the selected vehicle should take fallback
-                        continue
-                    end
-
                     % plan for vehicle_idx
                     planning_timer = tic;
                     obj.plan_single_vehicle(vehicle_idx);
