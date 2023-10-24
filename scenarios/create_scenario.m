@@ -7,7 +7,6 @@ function scenario = create_scenario(options, random_seed, plant)
 
     if options.environment == Environment.Simulation || options.environment == Environment.SimulationDistributed
         disp('Running in MATLAB simulation...')
-        options.is_manual_control = 0;
     else
         disp('Running in CPM Lab or via Unified Lab API...')
         options.is_prioritized = true;
@@ -30,4 +29,5 @@ function scenario = create_scenario(options, random_seed, plant)
         case ScenarioType.lab_default
             scenario = lanelet2_scenario(options, plant);
     end
+
 end
