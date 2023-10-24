@@ -375,8 +375,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function [iter_v, is_fallback_triggered] = consider_vehs_with_HP(obj, iter_v, vehicle_idx, all_coupled_vehs_with_HP)
             is_fallback_triggered = false;
 
-            grp_idx = arrayfun(@(array) ismember(vehicle_idx, array.vertices), iter_v.parl_groups_info);
-            all_vehs_same_grp = iter_v.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
+            grp_idx = arrayfun(@(array) ismember(vehicle_idx, array.vertices), obj.iter.parl_groups_info);
+            all_vehs_same_grp = obj.iter.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
 
             % coupled vehicles with higher priorities in the same group
             coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp);
