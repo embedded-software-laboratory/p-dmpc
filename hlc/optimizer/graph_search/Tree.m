@@ -164,6 +164,31 @@ classdef Tree < handle
 
         end
 
+        function result = number_of_vehicles(obj)
+            %% NUMBER_OF_VEHICLES  Return the number of vehicles in the Tree.
+            result = size(obj.x, 1);
+        end
+
+        function trim = get_trim(obj, i_vehicle, ID)
+            %% GET_TRIM  Return the trim of the given node.
+            trim = obj.trim(i_vehicle, ID);
+        end
+
+        function x = get_x(obj, i_vehicle, ID)
+            %% GET_X  Return the x coordinate of the given node.
+            x = obj.x(i_vehicle, ID);
+        end
+
+        function y = get_y(obj, i_vehicle, ID)
+            %% GET_X  Return the y coordinate of the given node.
+            y = obj.y(i_vehicle, ID);
+        end
+
+        function yaw = get_yaw(obj, i_vehicle, ID)
+            %% GET_X  Return the yaw coordinate of the given node.
+            yaw = obj.yaw(i_vehicle, ID);
+        end
+
     end
 
 end
