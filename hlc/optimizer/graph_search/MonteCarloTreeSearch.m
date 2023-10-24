@@ -28,13 +28,13 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             %
             Hp = obj.scenario.options.Hp;
             n_expansions_max = 900;
-            n_successor_trims_max = 12; % TODO from MPA
+            n_successor_trims_max = obj.mpa.maximum_branching_factor();
             % initialize variable to store control results
             info = ControlResultsInfo(iter.amount, Hp, iter.vehicle_ids);
 
             % Create tree with root node
             trim = iter.trim_indices;
-            successor_trims = find(obj.mpa.transition_matrix(trim, :, 1));
+            successor_trims = find(obj.mpa.transition_matrix_single(trim, :, 1));
             info.tree = MonteCarloTree(1, n_successor_trims_max, n_expansions_max);
             info.tree.add_root(iter.x0(1:3), trim, 0, 0, successor_trims);
 
@@ -85,7 +85,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                     if (i_step ~= Hp)
                         shapes_for_boundary_check = shapes_without_offset;
 
-                        node_successor_trims = find(obj.mpa.transition_matrix(goal_trim, :, i_step + 1));
+                        node_successor_trims = find(obj.mpa.transition_matrix_single(goal_trim, :, i_step + 1));
                     else
                         shapes_for_boundary_check = shapes_with_large_offset;
                     end
