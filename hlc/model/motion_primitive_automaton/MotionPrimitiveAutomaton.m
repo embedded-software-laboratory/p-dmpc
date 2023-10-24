@@ -892,14 +892,14 @@ classdef MotionPrimitiveAutomaton
 
         end
 
-        function plot_mpa(obj, options)
+        function plot(obj, options)
 
             arguments
                 obj (1, 1) MotionPrimitiveAutomaton;
                 options.y_lim (1, 2) double = [-0.1, 1.0];
                 options.x_lim (1, 2) double = rad2deg(pi / 18 * [-3, 3]);
                 options.k (1, 1) double = 1;
-                options.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
+                options.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
                 options.with_labels (1, 1) logical = true;
             end
 
@@ -912,16 +912,16 @@ classdef MotionPrimitiveAutomaton
             G = digraph(trim_adjacency, 'omitSelfLoops');
 
             plot(G, 'XData', angle, 'YData', speed, ...
-                'ArrowSize', 5, ...
-                'MarkerSize', 3, ...
-                'NodeColor', rwth_blue(), ...
-                'EdgeColor', rwth_blue_50(), ...
-                'EdgeAlpha', 1 ...
+                ArrowSize = 5, ...
+                MarkerSize = 3, ...
+                NodeColor = rwth_blue(), ...
+                EdgeColor = rwth_blue_50(), ...
+                EdgeAlpha = 1 ...
             );
 
             if options.with_labels
-                xlabel('Steering Angle $\delta$ [$^{\circ}$]', 'Interpreter', 'latex');
-                ylabel('Speed $\mathrm{v}$ [m/s]', 'Interpreter', 'latex');
+                xlabel('Steering Angle $\delta$ [$^{\circ}$]', Interpreter = 'latex');
+                ylabel('Speed $\mathrm{v}$ [m/s]', Interpreter = 'latex');
             end
 
             if isfield(options, 'x_lim')
@@ -936,51 +936,55 @@ classdef MotionPrimitiveAutomaton
 
         end
 
-        function plot_mpa_over_time(obj, options)
+        function plot_over_time(obj, options)
 
             arguments
                 obj (1, 1) MotionPrimitiveAutomaton;
                 options.y_lim (1, 2) double = [-0.1, 1.1];
+                options.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
             end
 
-            fig = figure("Visible", "on");
             Hp = size(obj.transition_matrix_single, 3);
             tiledLayoutHandle = tiledlayout( ...
                 1, Hp, ...
-                'TileSpacing', 'compact', ...
-                'Padding', 'compact' ...
+                TileSpacing = 'compact', ...
+                Padding = 'compact' ...
             );
 
             for k = 1:Hp
                 nexttile
-                obj.plot_mpa('fig', fig, ...
-                    'k', k, ...
-                    'with_labels', false, ...
-                    'x_lim', rad2deg(pi / 18 * [-3, 3]), ...
-                    'y_lim', options.y_lim ...
+                obj.plot(fig = options.fig, ...
+                    k = k, ...
+                    with_labels = false, ...
+                    x_lim = rad2deg(pi / 18 * [-3, 3]), ...
+                    y_lim = options.y_lim ...
                 );
                 title(sprintf("$t=k+%d$", k - 1), 'Interpreter', 'latex');
             end
 
             xlabel(tiledLayoutHandle, 'Steering Angle $\delta$ [$^{\circ}$]', ...
-                'Interpreter', 'latex' ...
+                Interpreter = 'latex' ...
             );
             ylabel(tiledLayoutHandle, 'Speed $\mathrm{v}$ [m/s]', ...
-                'Interpreter', 'latex' ...
+                Interpreter = 'latex' ...
             );
 
         end
 
-        function plot_local_reachable_sets(obj)
+        function plot_local_reachable_sets(obj, options)
             % PLOT_LOCAL_REACHABLE_SETS Visualize the reachable sets starting from
             % different root trims.
+
+            arguments
+                obj (1, 1) MotionPrimitiveAutomaton;
+                options.fig (1, 1) matlab.ui.Figure = figure(Name = "ReachableSets", Visible = "on");
+            end
 
             n_trims = size(obj.local_reachable_sets, 1);
             Hp = size(obj.local_reachable_sets, 2);
 
-            fig = figure('Name', 'ReachableSets');
-            fig.Position = [10 10 500 1600];
-            t_fig = tiledlayout(n_trims, Hp, 'TileSpacing', 'compact');
+            options.fig.Position = [10 10 500 1600];
+            t_fig = tiledlayout(n_trims, Hp, TileSpacing = 'compact');
 
             for i = 1:n_trims
 

@@ -96,6 +96,37 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
+        function test_plot_default(testCase, scenario_type)
+            lastwarn('');
+            fprintf('\ndefault evaluation plotting systemtest for %s\n', scenario_type)
+            %load Config from json
+            rawJson = fileread('tests/systemtests/Config_plot_default_results.json');
+            config = Config();
+            config = config.importFromJson(rawJson);
+
+            testCase.verifyEmpty(lastwarn);
+
+            %let main run and read result file
+            [result, ~] = main(config);
+
+            testCase.verifyTrue(true);
+
+            output_path = FileNameConstructor.get_results_full_path( ...
+                result.scenario.options, ...
+                config.amount ... %gen_scenario_name uses config.amount as default
+            );
+            full_result = load(output_path);
+
+            %verify without exporting
+            plot_default(full_result.result, do_export = false);
+            testCase.verifyTrue(true);
+
+            %verify and check export too
+            plot_default(full_result.result, do_export = true);
+            testCase.verifyTrue(true);
+
+        end
+
     end
 
 end
