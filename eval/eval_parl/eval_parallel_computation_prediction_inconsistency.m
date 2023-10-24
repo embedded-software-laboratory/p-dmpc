@@ -8,7 +8,7 @@ function results = eval_parallel_computation_prediction_inconsistency()
     options = Config();
     options.environment = Environment.Simulation;
     options.scenario_type = ScenarioType.commonroad;
-    options.trim_set = MpaTrimType.single_speed;
+    options.mpa_type = MpaType.single_speed;
     options.Hp = 5;
 
     options.T_end = 4;

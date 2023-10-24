@@ -19,7 +19,7 @@ classdef ManualVehicle
 
         function obj = ManualVehicle(id, scenario)
             options = scenario.options;
-            options.trim_set = MpaTrimType.single_speed;
+            options.mpa_type = MpaType.single_speed;
             options.is_prioritized = true;
             options.is_save_mpa = true;
             options.is_use_dynamic_programming = true;

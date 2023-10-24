@@ -27,10 +27,10 @@ classdef FileNameConstructor
 
             % GET_MPA_NAME Construct name for the file to which a object of the
             % class MPA is saved.
-            % Example:  MPA_trims12_Hp6
-            %           MPA_trims12_Hp6_parl_non-convex
+            % Example:  MPA_trimssingle_speed_Hp6
+            %           MPA_trimstriple_speed_Hp6_parl_non-convex
 
-            mpa_instance_name = ['MPA_', 'trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_T', num2str(options.dt_seconds)];
+            mpa_instance_name = ['MPA_', 'trims', num2str(options.mpa_type), '_Hp', num2str(options.Hp), '_T', num2str(options.dt_seconds)];
 
             if options.is_allow_non_convex
                 mpa_instance_name = [mpa_instance_name, '_non-convex'];
@@ -101,9 +101,9 @@ classdef FileNameConstructor
             if isempty(options.result_name)
                 % use default name
                 if options.compute_in_parallel
-                    scenario_name = ['veh_', num2str(options.path_ids(i_vehicles)), '_trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
+                    scenario_name = ['veh_', num2str(options.path_ids(i_vehicles)), '_trims', num2str(options.mpa_type), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
                 else
-                    scenario_name = ['trims', num2str(options.trim_set), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
+                    scenario_name = ['trims', num2str(options.mpa_type), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
                 end
 
                 veh_ids_str = sprintf('-%d', options.path_ids);

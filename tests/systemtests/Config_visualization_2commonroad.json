@@ -7,7 +7,7 @@
     ],
     "T_end": 5,
     "max_num_CLs": 4,
-    "trim_set": "single_speed",
+    "mpa_type": "single_speed",
     "should_save_result": false,
     "should_reduce_result": false,
     "is_save_mpa": false,

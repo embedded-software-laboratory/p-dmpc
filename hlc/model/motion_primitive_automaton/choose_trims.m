@@ -1,15 +1,15 @@
-function [trim_inputs, trim_adjacency] = choose_trims(trim_set, max_acceleration_per_dt, max_deceleration_per_dt)
+function [trim_inputs, trim_adjacency] = choose_trims(mpa_type, max_acceleration_per_dt, max_deceleration_per_dt)
     % CHOOSE_TRIMS  Choose trim set used.
     % NOTE: If new trim need to be added, please use successive number!
     arguments
-        trim_set (1, 1) MpaTrimType = MpaTrimType.single_speed;
+        mpa_type (1, 1) MpaType = MpaType.single_speed;
         % max acceleration in LE / dt
         max_acceleration_per_dt double = 0.131
         max_deceleration_per_dt double = max_acceleration_per_dt
     end
 
-    switch trim_set
-        case MpaTrimType.single_speed
+    switch mpa_type
+        case MpaType.single_speed
             %% 12 trims: two speeds (0, 0.5 and 0.6 m/s), 12 steering
             n_half = 5;
             steering_max = 0.6; % rad
@@ -33,7 +33,7 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set, max_acceleration
             trim_adjacency(2:end, 2:end) = trim_adjacency(2:end, 2:end) ...
                 - triu(ones(ntrims - 1), 2) ...
                 - tril(ones(ntrims - 1), -2);
-        case MpaTrimType.triple_speed
+        case MpaType.triple_speed
             %% 34 trims: three straight speeds (0.5, 0.75 and 1 m/s), 11 steering, one equilibrium state
             n_sixth = 5;
             steering_max = 0.6; %0.4135; % rad
@@ -82,7 +82,7 @@ function [trim_inputs, trim_adjacency] = choose_trims(trim_set, max_acceleration
                 trim_adjacency(j, i) = 1;
             end
 
-        case MpaTrimType.realistic % acceleration constraint + increased steering at low speeds
+        case MpaType.realistic % acceleration constraint + increased steering at low speeds
             % resolution of MPA
             d_speed = min(max_acceleration_per_dt, max_deceleration_per_dt);
             % max d_speed between two adjacent nodes/trims depends on

@@ -1,4 +1,4 @@
-classdef MpaTrimType
+classdef MpaType
 
     enumeration
         single_speed;
