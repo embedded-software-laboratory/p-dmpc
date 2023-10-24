@@ -205,44 +205,15 @@ classdef (Abstract) PrioritizedController < HighLevelController
             filter_self(vehicle_idx) = true;
             iter_v = filter_iter(obj.iter, filter_self);
 
-            grp_idx = arrayfun(@(array) ismember(vehicle_idx, array.vertices), iter_v.parl_groups_info);
-            all_vehs_same_grp = iter_v.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
-
             all_coupled_vehs_with_HP = find(iter_v.directed_coupling_reduced(:, vehicle_idx) == 1)'; % all coupled vehicles with higher priorities
             all_coupled_vehs_with_LP = find(iter_v.directed_coupling_reduced(vehicle_idx, :) == 1); % all coupled vehicles with lower priorities
 
-            coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp); % coupled vehicles with higher priorities in the same group
-            coupled_vehs_other_grps_with_HP = setdiff(all_coupled_vehs_with_HP, coupled_vehs_same_grp_with_HP); % coupled vehicles with higher priorities in other groups
+            % consider vehicles with higher priority
+            [iter_v, is_fallback_triggered] = consider_vehs_with_HP(obj, iter_v, vehicle_idx, all_coupled_vehs_with_HP);
 
-            for veh_with_HP_i = all_coupled_vehs_with_HP
-
-                if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
-                    % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
-                    latest_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
-                        obj.plant.all_vehicle_ids(veh_with_HP_i), ...
-                        obj.k, ...
-                        true ...
-                    );
-                    obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
-
-                    if ismember(vehicle_idx, obj.info.vehs_fallback)
-                        % if the selected vehicle should take fallback
-                        return;
-                    end
-
-                    predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-
-                    iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
-                else
-                    % if they are in different groups
-                    [iter_v, should_fallback] = obj.consider_parallel_coupling(iter_v, vehicle_idx, veh_with_HP_i);
-
-                    if should_fallback
-                        return;
-                    end
-
-                end
-
+            % if vehicle with higher priority triggered fallback, do not plan
+            if is_fallback_triggered
+                return
             end
 
             % consider coupled vehicles with lower priorities
@@ -411,6 +382,49 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 end
 
                 iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
+            end
+
+        end
+
+        function [iter_v, is_fallback_triggered] = consider_vehs_with_HP(obj, iter_v, vehicle_idx, all_coupled_vehs_with_HP)
+            is_fallback_triggered = false;
+
+            grp_idx = arrayfun(@(array) ismember(vehicle_idx, array.vertices), iter_v.parl_groups_info);
+            all_vehs_same_grp = iter_v.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
+
+            % coupled vehicles with higher priorities in the same group
+            coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp);
+
+            for veh_with_HP_i = all_coupled_vehs_with_HP
+
+                if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
+                    % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
+                    latest_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
+                        obj.plant.all_vehicle_ids(veh_with_HP_i), ...
+                        obj.k, ...
+                        true ...
+                    );
+                    obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
+
+                    if ismember(vehicle_idx, obj.info.vehs_fallback)
+                        % if the selected vehicle should take fallback
+                        is_fallback_triggered = true;
+                        return;
+                    end
+
+                    predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
+
+                    iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
+                else
+                    % if they are in different groups
+                    [iter_v, is_fallback_triggered] = obj.consider_parallel_coupling(iter_v, vehicle_idx, veh_with_HP_i);
+
+                    if is_fallback_triggered
+                        return;
+                    end
+
+                end
+
             end
 
         end
