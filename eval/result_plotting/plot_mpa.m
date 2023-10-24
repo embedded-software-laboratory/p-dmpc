@@ -28,7 +28,7 @@ function plot_mpa(mpa, scenario, options)
         filepath = fullfile(folder_path, [file_name file_ext]);
         set_figure_properties(options.fig, options.export_fig_cfg);
         export_fig(options.fig, filepath);
-        close(fig);
+        close(options.fig);
     end
 
 end

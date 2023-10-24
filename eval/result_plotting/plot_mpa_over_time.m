@@ -19,7 +19,7 @@ function plot_mpa_over_time(mpa, scenario, options)
         filepath = fullfile(folder_path, [file_name, '_over_time', file_ext]);
         set_figure_properties(options.fig, options.export_fig_cfg);
         export_fig(options.fig, filepath);
-        close(fig);
+        close(options.fig);
     end
 
 end
