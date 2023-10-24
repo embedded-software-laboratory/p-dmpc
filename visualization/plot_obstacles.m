@@ -6,8 +6,7 @@ function plot_obstacles(data, plot_options)
     %       1. cell array, where each cell contains a two-row matrix, the first
     %       and second rows being the x- and y-coordinates respectively.
     %       2. instance of the class "Scenario", where the properties
-    %       "obstacles", "dynamic_obstacle_area" and
-    %       "dynamic_obstacle_reachableSets" are the above mentioned cell
+    %       "obstacles" or "dynamic_obstacle_area" are the above mentioned cell
     %       array.
     %
 
@@ -36,7 +35,6 @@ function plot_obstacles(data, plot_options)
         % if input is an instance of the class "Scenario"
         plot_cell_array_of_shapes(data.obstacles, plot_options)
         plot_cell_array_of_shapes(data.dynamic_obstacle_area, plot_options)
-        plot_cell_array_of_shapes(data.dynamic_obstacle_reachableSets, plot_options)
         plot_cell_array_of_shapes(data.lanelet_crossing_areas, plot_options)
     else
         warning('Not supported data type.')
