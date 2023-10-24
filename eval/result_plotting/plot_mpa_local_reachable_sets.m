@@ -8,8 +8,6 @@ function plot_mpa_local_reachable_sets(mpa, scenario, options)
         options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    cleanupObj = onCleanup(@()end_plot_mpa_local_reachable_sets(options.fig, options.do_export));
-
     mpa.plot_local_reachable_sets(fig = options.fig);
 
     %export figure
@@ -20,19 +18,7 @@ function plot_mpa_local_reachable_sets(mpa, scenario, options)
         filepath = fullfile(folder_path, [file_name, '_local_reachable_sets', file_ext]);
         set_figure_properties(options.fig, options.export_fig_cfg);
         export_fig(options.fig, filepath);
-    end
-
-end
-
-function end_plot_mpa_local_reachable_sets(fig, do_export)
-
-    arguments
-        fig (1, 1) matlab.ui.Figure;
-        do_export (1, 1) logical
-    end
-
-    if do_export
-        close(fig);
+        close(options.fig);
     end
 
 end
