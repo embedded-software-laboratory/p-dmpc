@@ -16,13 +16,8 @@ classdef (Abstract) Weigher < handle
                     weigher = RandomWeigher();
                 case WeightStrategies.STAC_weight
                     weigher = StacWeigher();
-                case WeightStrategies.optimal_weight
-                    weigher = OptimalWeigher();
                 case WeightStrategies.distance_weight
                     weigher = DistanceWeigher();
-                otherwise
-                    weigher = ConstantWeigher();
-                    warning('Unavailable Weighing Method chosen. Using Constant Weight.');
             end
 
         end
