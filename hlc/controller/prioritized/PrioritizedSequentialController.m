@@ -13,7 +13,7 @@ classdef PrioritizedSequentialController < PrioritizedController
         function controller(obj)
             % PB_CONTROLLER_PARL Plan trajectory for one time step using a
             % priority-based controller. Vehicles inside one group plan in sequence and
-            % between groups plan in pararllel. Controller simulates multiple
+            % between groups plan in parallel. Controller simulates multiple
             % distributed controllers in a for-loop.
 
             % initialize variable to store control results
@@ -34,13 +34,15 @@ classdef PrioritizedSequentialController < PrioritizedController
                     planning_timer = tic;
                     obj.plan_single_vehicle(vehicle_idx);
                     runtime_planning(vehicle_idx) = toc(planning_timer);
-                end
 
-                % Communicate data to other vehicles
-                for vehicle_k = vehs_level_i
+                    % communicate data to other vehicles
                     msg_send_tic = tic;
-                    obj.publish_predictions(vehicle_k);
-                    msg_send_time(vehicle_k) = toc(msg_send_tic);
+                    obj.publish_predictions(vehicle_idx);
+                    msg_send_time(vehicle_idx) = toc(msg_send_tic);
+
+                    % pause that MATLAB can execute the callback function of
+                    % the sent prediction message
+                    pause(1e-2)
                 end
 
             end
