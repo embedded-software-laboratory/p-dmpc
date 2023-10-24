@@ -58,10 +58,10 @@ function plot_levels_data(data)
 
     % Export
     folder_path = FileNameConstructor.gen_results_folder_path( ...
-    result.scenario.options ...
+        result.scenario.options ...
     );
     filename = 'computation-levels-detail.pdf';
-    set_figure_properties(figHandle, ExportFigConfig.spp_book_small('paperheight', 7))
+    set_figure_properties(figHandle, ExportFigConfig.paper('paperheight', 7))
     export_fig(figHandle, fullfile(folder_path, filename));
     close(figHandle);
 
@@ -75,11 +75,11 @@ function plot_levels_data(data)
     xlabel('$N_{\mathrm{CL}}$', 'Interpreter', 'latex');
     ylabel('Priority Assignment Function');
     yticklabels({ ...
-            '$p_{\mathrm{fca}}$', ...
-            '$p_{\mathrm{color}}$', ...
-            '$p_{\mathrm{rand}}$', ...
-            '$p_{\mathrm{const}}$', ...
-        });
+                     '$p_{\mathrm{fca}}$', ...
+                     '$p_{\mathrm{color}}$', ...
+                     '$p_{\mathrm{rand}}$', ...
+                     '$p_{\mathrm{const}}$', ...
+                 });
 
     legend( ...
         'median', ...
@@ -91,17 +91,17 @@ function plot_levels_data(data)
 
     % Export
     folder_path = FileNameConstructor.gen_results_folder_path( ...
-    result.scenario.options ...
+        result.scenario.options ...
     );
     filename = 'computation-levels-overview.pdf';
-    set_figure_properties(figHandle, ExportFigConfig.spp_book_small('paperheight', 6))
+    set_figure_properties(figHandle, ExportFigConfig.paper('paperheight', 6))
     export_fig(figHandle, fullfile(folder_path, filename));
     close(figHandle);
 
     % plot
     figHandle = figure();
     markers = {'o', 'x', 'd', '+'
-        '^', 'pentagram', '*', 's'};
+               '^', 'pentagram', '*', 's'};
     colors = ["#0072BD", "#D95319", "#7E2F8E", "#77AC30"];
 
     for iPri = 1:nPri
@@ -128,11 +128,11 @@ function plot_levels_data(data)
 
     % Export
     folder_path = FileNameConstructor.gen_results_folder_path( ...
-    result.scenario.options ...
+        result.scenario.options ...
     );
     filename = 'computation-levels-graph.pdf';
     % TODO paper size to guarantee legend does not cover graph
-    set_figure_properties(figHandle, ExportFigConfig.spp_book_small('paperheight', 15, 'paperwidth', 15))
+    set_figure_properties(figHandle, ExportFigConfig.paper('paperheight', 15, 'paperwidth', 15))
     export_fig(figHandle, fullfile(folder_path, filename));
     close(figHandle);
 
@@ -165,10 +165,10 @@ function plot_levels_data(data)
 
     % Export document presets
     folder_path = FileNameConstructor.gen_results_folder_path( ...
-    result.scenario.options ...
+        result.scenario.options ...
     );
     filename = 'computation-levels-bar-plot-document.pdf';
-    set_figure_properties(figHandle, ExportFigConfig.spp_book_full('paperheight', 6))
+    set_figure_properties(figHandle, ExportFigConfig.document('paperheight', 6))
     % overwrite color order
     r100 = rwth_color_order;
     r50 = rwth_color_order_50;
@@ -212,7 +212,7 @@ function plot_levels_data(data)
 
     % Export document presets
     folder_path = FileNameConstructor.gen_results_folder_path( ...
-    result.scenario.options ...
+        result.scenario.options ...
     );
     filename = 'computation-levels-reduction.pdf';
     set_figure_properties(figHandle, ExportFigConfig.paper());
