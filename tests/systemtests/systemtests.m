@@ -6,10 +6,9 @@ classdef systemtests < matlab.unittest.TestCase
         parallel = {'sequential', 'parallel'};
         use_cpp = {true, false}
         weight_strategy = {'constant_weight'
-                           'STAC_weight'
                            'random_weight'
+                           'STAC_weight'
                            'distance_weight'};
-        %    'optimal_weight'}; % currently not working, see issues
     end
 
     methods (Test)
