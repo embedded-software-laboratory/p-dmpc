@@ -269,15 +269,17 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             obj.update_other_vehicles_traffic_info();
 
-            obj.timing.start("determine_couplings_time", obj.k);
+            obj.timing.start('coupling', obj.k);
             obj.couple();
-            obj.timing.stop("determine_couplings_time", obj.k);
+            obj.timing.stop("coupling", obj.k);
 
-            obj.timing.start("assign_priority_time", obj.k);
+            obj.timing.start("prioritization", obj.k);
             obj.prioritize();
-            obj.timing.stop("assign_priority_time", obj.k);
+            obj.timing.stop("prioritization", obj.k);
 
+            obj.timing.start('reduce_computation_levels', obj.k);
             obj.reduce_computation_levels();
+            obj.timing.stop('reduce_computation_levels', obj.k);
 
         end
 

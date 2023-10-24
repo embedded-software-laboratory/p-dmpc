@@ -59,7 +59,6 @@ function result = clean_result(result_in)
     %result.priority = result_in.priority;
     result.t_total = result_in.t_total;
     result.nSteps = result_in.nSteps;
-    result.controller_runtime = result_in.controller_runtime;
     result.output_path = result_in.output_path;
     result.iteration_structs = result_in.iteration_structs;
     result.directed_coupling = result_in.directed_coupling;

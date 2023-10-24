@@ -262,7 +262,7 @@ classdef (Abstract) HighLevelController < handle
             warning('off', 'MATLAB:polyshape:repairedBySimplify')
 
             % start initialization timer
-            obj.timing.start("init_all_time");
+            obj.timing.start("hlc_init_all");
 
             % initialize high level controller itself
             obj.init();
@@ -271,7 +271,7 @@ classdef (Abstract) HighLevelController < handle
             obj.plant.synchronize_start_with_plant();
 
             % stop initialization timer
-            obj.timing.stop("init_all_time");
+            obj.timing.stop("hlc_init_all");
         end
 
         function main_control_loop(obj)
@@ -286,8 +286,8 @@ classdef (Abstract) HighLevelController < handle
                     disp(['>>> Time step ' num2str(obj.k)])
                 end
 
-                obj.timing.start("hlc_step_time", obj.k);
-                obj.timing.start("iter_runtime", obj.k);
+                obj.timing.start("hlc_step", obj.k);
+                obj.timing.start("traffic_situation_update", obj.k);
 
                 % Measurement
                 % -------------------------------------------------------------------------
@@ -300,16 +300,13 @@ classdef (Abstract) HighLevelController < handle
                 obj.update_hdv_traffic_info(states_measured);
                 obj.update_controlled_vehicles_traffic_info(states_measured, trims_measured);
 
-                obj.timing.stop("iter_runtime", obj.k);
+                obj.timing.stop("traffic_situation_update", obj.k);
 
                 % The controller computes plans
-                obj.timing.start("controller_time", obj.k);
-                obj.timing.start("relation_time", obj.k);
+                obj.timing.start("controller", obj.k);
 
                 % determine couplings between the controlled vehicles
                 obj.create_coupling_graph();
-
-                obj.timing.stop("relation_time", obj.k);
 
                 %% controller %%
                 obj.controller();
@@ -323,8 +320,8 @@ classdef (Abstract) HighLevelController < handle
                 obj.info_old = obj.info; % save variable in case of fallback
 
                 % stop timer of current time step
-                obj.timing.stop("controller_time", obj.k);
-                obj.timing.stop("hlc_step_time", obj.k);
+                obj.timing.stop("controller", obj.k);
+                obj.timing.stop("hlc_step", obj.k);
 
                 % store results from iteration in results struct
                 obj.store_iteration_results();
@@ -504,7 +501,6 @@ classdef (Abstract) HighLevelController < handle
             % store timings in result struct
             obj.result.iter_runtime(obj.k) = obj.timing.get_elapsed_time("iter_runtime", obj.k);
             obj.result.controller_runtime(obj.k) = obj.timing.get_elapsed_time("controller_time", obj.k);
-            obj.result.step_time(obj.k) = obj.timing.get_elapsed_time("hlc_step_time", obj.k);
 
             % store iteration data
             obj.result.obstacles = obj.iter.obstacles;

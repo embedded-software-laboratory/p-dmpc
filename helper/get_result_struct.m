@@ -13,7 +13,6 @@ function result = get_result_struct(hlc)
     result.iteration_structs = cell(0, 1);
     result.vehicle_path_fullres = cell(scenario.options.amount, 0);
     result.trajectory_predictions = cell(scenario.options.amount, 0);
-    result.controller_runtime = zeros(0, 1);
     result.step_time = zeros(0, 1);
     result.belonging_vector = zeros(scenario.options.amount, 0); % belonging vector indicates to which group one vehicle belongs to
     result.priority_list = zeros(scenario.options.amount, 0);
