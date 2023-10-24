@@ -332,34 +332,17 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function [iter_v, should_fallback] = parallel_coupling_reachability(obj, iter_v, vehicle_idx, veh_with_HP_i)
-            % Collisions with coupled vehicles with higher priorities in different groups will be avoided by two ways depending on the time step at which
-            % their latest messages are sent:
-            % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step.
-            % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step.
+        function [iter_v, should_fallback] = parallel_coupling_reachability(obj, iter_v, ~, veh_with_HP_i)
+            % collisions with coupled vehicles with higher priorities in
+            % different groups will be avoided by considering
+            % their reachable sets as dynamic obstacles
             should_fallback = false;
-            latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
-                obj.plant.all_vehicle_ids(veh_with_HP_i) ...
-            );
 
-            if latest_msg.time_step == obj.k
-                obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
-
-                if ismember(vehicle_idx, obj.info.vehs_fallback)
-                    should_fallback = true;
-                    return
-                end
-
-                predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
-
-            else
-                % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
-                reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i, :);
-                % turn polyshape to plain array (repeat the first row to enclosed the shape)
-                reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
-                iter_v.dynamic_obstacle_reachableSets(end + 1, :) = reachable_sets_i_array;
-            end
+            % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
+            reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i, :);
+            % turn polyshape to plain array (repeat the first row to enclosed the shape)
+            reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
+            iter_v.dynamic_obstacle_reachableSets(end + 1, :) = reachable_sets_i_array;
 
         end
 
@@ -398,7 +381,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
             for veh_with_HP_i = all_coupled_vehs_with_HP
 
                 if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
-                    % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
+                    % if in the same group, read the current message and set the
+                    % predicted occupied areas as dynamic obstacles
                     latest_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
                         obj.plant.all_vehicle_ids(veh_with_HP_i), ...
                         obj.k, ...
@@ -416,7 +400,29 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                     iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
                 else
-                    % if they are in different groups
+                    % if they are in different groups, read the latest available
+                    % message and check it is from the current time step
+                    latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
+                        obj.plant.all_vehicle_ids(veh_with_HP_i) ...
+                    );
+
+                    % if the current message is available no less precise
+                    % information must be used to consider the vehicle
+                    if latest_msg.time_step == obj.k
+                        obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
+
+                        if ismember(vehicle_idx, obj.info.vehs_fallback)
+                            is_fallback_triggered = true;
+                            return
+                        end
+
+                        predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
+                        iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
+                        return
+                    end
+
+                    % if they are in different groups and message of
+                    % current time step is not available
                     [iter_v, is_fallback_triggered] = obj.consider_parallel_coupling(iter_v, vehicle_idx, veh_with_HP_i);
 
                     if is_fallback_triggered
