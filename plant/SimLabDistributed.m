@@ -38,7 +38,7 @@ classdef SimLabDistributed < Plant
             [x0, trim_indices] = obj.measure_node();
         end
 
-        function apply(obj, info, result, k, ~)
+        function apply(obj, info, result, k, ~, ~)
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
                 obj.cur_node(iVeh, :) = info.next_node(iVeh, :);

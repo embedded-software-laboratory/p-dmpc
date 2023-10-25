@@ -207,7 +207,7 @@ classdef UnifiedLabApi < Plant
 
         end
 
-        function apply(obj, info, ~, k, mpa)
+        function apply(obj, info, ~, k, mpa, ~)
             y_pred = info.y_predicted;
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list

@@ -67,7 +67,7 @@ classdef SimLab < Plant
             [x0, trim_indices] = obj.measure_node(mpa);
         end
 
-        function apply(obj, info, result, k, ~)
+        function apply(obj, info, result, k, ~, hlc_step_time)
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
                 obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
@@ -88,7 +88,7 @@ classdef SimLab < Plant
                     send(obj.visualization_data_queue, plotting_info);
                 else
                     % wait to simulate realtime plotting
-                    pause(obj.scenario.options.dt_seconds - result.step_time(obj.k))
+                    pause(obj.scenario.options.dt_seconds - hlc_step_time)
                     obj.plotter.plot(plotting_info);
                 end
 

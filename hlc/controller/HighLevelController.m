@@ -333,7 +333,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % Apply control action
                 % -------------------------------------------------------------------------
-                obj.plant.apply(obj.info, obj.result, obj.k, obj.mpa);
+                obj.plant.apply(obj.info, obj.result, obj.k, obj.mpa, obj.timing.get_elapsed_time('hlc_step', obj.k));
 
                 % Check for stop signal
                 % -------------------------------------------------------------------------
@@ -499,7 +499,6 @@ classdef (Abstract) HighLevelController < handle
             obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
 
             % store timings in result struct
-            obj.result.iter_runtime(obj.k) = obj.timing.get_elapsed_time("iter_runtime", obj.k);
             obj.result.controller_runtime(obj.k) = obj.timing.get_elapsed_time("controller_time", obj.k);
 
             % store iteration data
