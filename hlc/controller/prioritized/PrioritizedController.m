@@ -326,23 +326,45 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function iter_v = parallel_coupling_reachability(obj, iter_v, ~, veh_with_HP_i)
+        function dynamic_obstacle_area = parallel_coupling_reachability(obj, ~, veh_with_HP_i)
             % collisions with coupled vehicles with higher priorities in
             % different groups will be avoided by considering
             % their reachable sets as dynamic obstacles
+            %
+            % Output:
+            %   dynamic_obstacle_area (1, Hp) cell of areas [x; y]
+
+            arguments
+                obj (1, 1) PrioritizedController
+                ~% index of the current vehicle
+                veh_with_HP_i (1, 1) double % index of the vehicle with higher priority
+            end
 
             % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
             reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i, :);
             % turn polyshape to plain array (repeat the first row to enclosed the shape)
-            reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
-            iter_v.dynamic_obstacle_area(end + 1, :) = reachable_sets_i_array;
+            reachable_sets_i_cell_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
+            dynamic_obstacle_area = reachable_sets_i_cell_array;
 
         end
 
-        function iter_v = parallel_coupling_previous_trajectory(obj, iter_v, vehicle_idx, veh_with_HP_i)
+        function dynamic_obstacle_area = parallel_coupling_previous_trajectory(obj, vehicle_idx, veh_with_HP_i)
             % collisions with coupled vehicles with higher priorities in
             % different groups will be avoided by considering
             % their one-step delayed predicted trajectories as dynamic obstacle
+            %
+            % Output:
+            %   dynamic_obstacle_area (1, Hp) cell of areas [x; y]
+
+            arguments
+                obj (1, 1) PrioritizedController
+                vehicle_idx (1, 1) double % index of the current vehicle
+                veh_with_HP_i (1, 1) double % index of the vehicle with higher priority
+            end
+
+            % initialize the returned variable with dimension 0 that it does
+            % not extend the list of dynamic_obstacle_area
+            dynamic_obstacle_area = cell(0, obj.scenario.options.Hp);
 
             if obj.k <= 1
                 return
@@ -362,7 +384,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 predicted_areas_i = del_first_rpt_last(predicted_areas_i', oldness_msg);
             end
 
-            iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
+            dynamic_obstacle_area = predicted_areas_i;
 
         end
 
@@ -420,7 +442,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                     % if they are in different groups and message of
                     % current time step is not available
-                    iter_v = obj.consider_parallel_coupling(iter_v, vehicle_idx, veh_with_HP_i);
+                    iter_v.dynamic_obstacle_area(end + 1, :) = obj.consider_parallel_coupling(vehicle_idx, veh_with_HP_i);
 
                 end
 
