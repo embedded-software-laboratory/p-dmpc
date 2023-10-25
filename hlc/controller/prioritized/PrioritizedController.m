@@ -194,13 +194,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.prioritize();
             obj.timing.stop("assign_priority_time", obj.k);
 
-            obj.weigh();
-
-            obj.reduce();
-
-            obj.timing.start("group_vehs_time", obj.k);
-            obj.group();
-            obj.timing.stop("group_vehs_time", obj.k);
+            obj.reduce_computation_levels();
 
         end
 
@@ -347,17 +341,16 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.iter.priority_list = obj.prioritizer.get_priority_list(obj.iter.directed_coupling);
         end
 
-        function weigh(obj)
+        function reduce_computation_levels(obj)
+            % weigh
             obj.iter.weighted_coupling = obj.weigher.weigh(obj.scenario, obj.mpa, obj.iter);
-        end
 
-        function reduce(obj)
-            % initialize reduced couplings
+            % reduce by replacing with lanelet crossing area obstacles
             obj.iter.directed_coupling_reduced = obj.iter.directed_coupling;
             obj.iter.weighted_coupling_reduced = obj.iter.weighted_coupling;
 
-            % reduce only if no circle scenario and if any vehicle is coupled
             if obj.scenario.options.scenario_type ~= ScenarioType.circle
+                % reduce only if no circle scenario
 
                 % get ignored couplings and lanelet_crossing_areas
                 [ ...
@@ -372,11 +365,19 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             end
 
-        end
-
-        function group(obj)
+            obj.timing.start("group_vehs_time", obj.k);
+            % reduce by grouping and cutting edges
             method = 's-t-cut'; % 's-t-cut' or 'MILP'
-            [obj.CL_based_hierarchy, obj.iter.parl_groups_info, obj.iter.belonging_vector] = form_parallel_groups(obj.iter.weighted_coupling_reduced, obj.scenario.options.max_num_CLs, obj.iter.coupling_info, method, obj.scenario.options);
+            [obj.CL_based_hierarchy, obj.iter.parl_groups_info, obj.iter.belonging_vector ...
+             ] = form_parallel_groups( ...
+                obj.iter.weighted_coupling_reduced, ...
+                obj.scenario.options.max_num_CLs, ...
+                obj.iter.coupling_info, ...
+                method, ...
+                obj.scenario.options ...
+            );
+            obj.timing.stop("group_vehs_time", obj.k);
+
         end
 
         function [iter_v, should_fallback] = parallel_coupling_reachability(obj, iter_v, vehicle_idx, veh_with_HP_i)
