@@ -390,6 +390,21 @@ classdef (Abstract) PrioritizedController < HighLevelController
         end
 
         function [dynamic_obstacle_area, is_fallback_triggered] = consider_vehs_with_HP(obj, vehicle_idx, all_coupled_vehs_with_HP)
+            % consider_vehs_with_HP considering vehicles with higher priority
+            % strategy depends on whether the vehicles are in the same group
+            % and if the prediction consistency is should be guaranteed
+            %
+            % Output:
+            %   dynamic_obstacle_area (1, Hp) cell of areas [x; y]
+            %   is_fallback_triggered (1, 1) logical
+            %       true if higher prioritized vehicle has a fallback
+
+            arguments
+                obj (1, 1) PrioritizedController
+                vehicle_idx (1, 1) double % index of the current vehicle
+                all_coupled_vehs_with_HP double % indices of the vehicles with higher priority
+            end
+
             is_fallback_triggered = false;
 
             % preallocate cell array entries
