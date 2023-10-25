@@ -184,7 +184,87 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
+        function compute_vehicles_traffic_info(obj, states_measured, trims_measured)
+            % compute vehicles traffic info in HighLevelController
+            compute_vehicles_traffic_info@HighLevelController(obj, states_measured, trims_measured);
+
+            for iVeh = obj.plant.indices_in_vehicle_list
+                % Send data to sync obj.iter for all vehicles
+                obj.traffic_communication{iVeh}.send_message( ...
+                    obj.k, ...
+                    obj.iter.x0(iVeh, :), ...
+                    obj.iter.trim_indices(iVeh), ...
+                    obj.iter.predicted_lanelets{iVeh}, ...
+                    obj.iter.occupied_areas{iVeh}, ...
+                    obj.iter.reachable_sets(iVeh, :) ...
+                );
+            end
+
+        end
+
+        function update_other_vehicles_traffic_info(obj)
+            % read the traffic messages from the other vehicles and
+            % store the information in the IterationData object
+
+            % create indices struct only once for efficiency
+            idx = indices();
+
+            % read messages from other vehicles
+            for jVeh = obj.plant.indices_in_vehicle_list
+                % loop over vehicle that reads the message
+                other_vehicles = setdiff(1:obj.scenario.options.amount, jVeh);
+
+                for kVeh = other_vehicles
+                    % loop over vehicle from which the messages are read
+                    latest_msg_i = obj.traffic_communication{jVeh}.read_message( ...
+                        obj.plant.all_vehicle_ids(kVeh), ...
+                        obj.k, ...
+                        true ...
+                    );
+
+                    % take state and trim of vehicle kVeh
+                    obj.iter.x0(kVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
+                    obj.iter.trim_indices(kVeh) = latest_msg_i.current_trim_index;
+
+                    % transform occupied areas
+                    occupied_areas = latest_msg_i.occupied_areas;
+                    obj.iter.occupied_areas{kVeh}.normal_offset(1, :) = occupied_areas(1).x;
+                    obj.iter.occupied_areas{kVeh}.normal_offset(2, :) = occupied_areas(1).y;
+                    obj.iter.occupied_areas{kVeh}.without_offset(1, :) = occupied_areas(2).x;
+                    obj.iter.occupied_areas{kVeh}.without_offset(2, :) = occupied_areas(2).y;
+
+                    % transform reachable sets to polyshape object
+                    obj.iter.reachable_sets(kVeh, :) = (arrayfun(@(array) {polyshape(array.x, array.y)}, latest_msg_i.reachable_sets))';
+
+                    % transform predicted lanelets
+                    obj.iter.predicted_lanelets{kVeh} = latest_msg_i.predicted_lanelets';
+
+                    % calculate the predicted lanelet boundary of vehicle kVeh based on its predicted lanelets
+                    if obj.scenario.options.scenario_type ~= ScenarioType.circle
+                        obj.iter.predicted_lanelet_boundary(kVeh, :) = get_lanelets_boundary( ...
+                            obj.iter.predicted_lanelets{kVeh}, ...
+                            obj.scenario.lanelet_boundary, ...
+                            obj.scenario.vehicles(kVeh).lanelets_index, ...
+                            obj.scenario.vehicles(kVeh).is_loop ...
+                        );
+                    end
+
+                    % get occupied areas of emergency maneuvers for vehicle kVeh
+                    obj.iter.emergency_maneuvers{kVeh} = obj.mpa.get_global_emergency_maneuvers( ...
+                        obj.iter.x0(kVeh, idx.x), ...
+                        obj.iter.x0(kVeh, idx.y), ...
+                        obj.iter.x0(kVeh, idx.heading), ...
+                        obj.iter.trim_indices(kVeh) ...
+                    );
+                end
+
+            end
+
+        end
+
         function relate_vehicles(obj)
+
+            obj.update_other_vehicles_traffic_info();
 
             obj.timing.start("determine_couplings_time", obj.k);
             obj.couple();

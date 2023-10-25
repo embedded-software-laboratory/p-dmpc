@@ -129,6 +129,93 @@ classdef (Abstract) HighLevelController < handle
             obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
         end
 
+        function compute_vehicles_traffic_info(obj, states_measured, trims_measured)
+
+            % create indices struct only once for efficiency
+            idx = indices();
+
+            for iVeh = obj.plant.indices_in_vehicle_list
+                % states of controlled vehicles can be measured directly
+                obj.iter.x0(iVeh, :) = states_measured(iVeh, :);
+                % get own trim
+                obj.iter.trim_indices(iVeh) = trims_measured(iVeh);
+
+                % get vehicles currently occupied areas
+                obj.iter.occupied_areas{iVeh} = obj.scenario.vehicles(iVeh).get_occupied_areas( ...
+                    states_measured(iVeh, idx.x), ...
+                    states_measured(iVeh, idx.y), ...
+                    states_measured(iVeh, idx.heading), ...
+                    obj.scenario.options.offset ...
+                );
+
+                % get occupied area of emergency maneuvers for vehicle iVeh
+                obj.iter.emergency_maneuvers{iVeh} = obj.mpa.get_global_emergency_maneuvers( ...
+                    states_measured(iVeh, idx.x), ...
+                    states_measured(iVeh, idx.y), ...
+                    states_measured(iVeh, idx.heading), ...
+                    trims_measured(iVeh) ...
+                );
+
+                % compute reachable sets for vehicle iVeh
+                obj.iter.reachable_sets(iVeh, :) = obj.mpa.get_global_reachable_sets( ...
+                    states_measured(iVeh, idx.x), ...
+                    states_measured(iVeh, idx.y), ...
+                    states_measured(iVeh, idx.heading), ...
+                    trims_measured(iVeh) ...
+                );
+
+                % compute the reference path and speed
+                [reference, v_ref] = get_reference_trajectory( ...
+                    obj.mpa, ...
+                    obj.scenario.vehicles(iVeh).reference_path, ...
+                    states_measured(iVeh, idx.x), ...
+                    states_measured(iVeh, idx.y), ...
+                    trims_measured(iVeh), ...
+                    obj.scenario.options.dt_seconds ...
+                );
+
+                % reference speed
+                obj.iter.v_ref(iVeh, :) = v_ref;
+                % equidistant points on the reference trajectory.
+                obj.iter.reference_trajectory_points(iVeh, :, :) = reference.ReferencePoints;
+                obj.iter.reference_trajectory_index(iVeh, :, :) = reference.ReferenceIndex;
+
+                if obj.scenario.options.scenario_type ~= ScenarioType.circle
+
+                    % compute the predicted lanelets of vehicle iVeh
+                    predicted_lanelets = get_predicted_lanelets(obj.scenario, iVeh, reference);
+                    obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;
+
+                    % calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
+                    obj.iter.predicted_lanelet_boundary(iVeh, :) = get_lanelets_boundary( ...
+                        predicted_lanelets, ...
+                        obj.scenario.lanelet_boundary, ...
+                        obj.scenario.vehicles(iVeh).lanelets_index, ...
+                        obj.scenario.vehicles(iVeh).is_loop ...
+                    );
+
+                    % constrain the reachable sets by the boundaries of the predicted lanelets
+                    if obj.scenario.options.bound_reachable_sets
+                        obj.iter.reachable_sets(iVeh, :) = obj.mpa.get_bounded_reachable_sets( ...
+                            obj.iter.reachable_sets(iVeh, :), ...
+                            obj.iter.predicted_lanelet_boundary{iVeh, 3} ...
+                        );
+                    end
+
+                end
+
+                % force convex reachable sets if non-convex polygons are not allowed
+                if ~obj.scenario.options.is_allow_non_convex
+                    obj.iter.reachable_sets(iVeh, :) = cellfun(@(c) convhull(c), ...
+                        obj.iter.reachable_sets(iVeh, :), ...
+                        'UniformOutput', false ...
+                    );
+                end
+
+            end
+
+        end
+
         function relate_vehicles(~)
             % method that can be overwritten by child classes if necessary
         end
@@ -192,23 +279,24 @@ classdef (Abstract) HighLevelController < handle
                 % increment interation counter
                 obj.k = obj.k + 1;
 
-                obj.timing.start("hlc_step_time", obj.k);
-                obj.timing.start("iter_runtime", obj.k);
-
-                % Measurement
-                % -------------------------------------------------------------------------
-                [x0_measured, trims_measured] = obj.plant.measure(obj.mpa); % trims_measured： which trim
-
                 if mod(obj.k, 10) == 0
                     % only display 0, 10, 20, ...
                     disp(['>>> Time step ' num2str(obj.k)])
                 end
 
+                obj.timing.start("hlc_step_time", obj.k);
+                obj.timing.start("iter_runtime", obj.k);
+
+                % Measurement
+                % -------------------------------------------------------------------------
+                [states_measured, trims_measured] = obj.plant.measure(obj.mpa);
+
                 % Control
                 % ----------------------------------------------------------------------
 
-                % Update the iteration data and sample reference trajectory
-                obj.rhc_init(x0_measured, trims_measured);
+                % update the traffic situation
+                obj.compute_hdv_traffic_info(states_measured);
+                obj.compute_vehicles_traffic_info(states_measured, trims_measured);
 
                 obj.timing.stop("iter_runtime", obj.k);
 
@@ -251,6 +339,72 @@ classdef (Abstract) HighLevelController < handle
                 % Check for stop signal
                 % -------------------------------------------------------------------------
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
+            end
+
+        end
+
+        function compute_hdv_traffic_info(obj, states_measured)
+            % compute information about traffic situation and coupling with HDVs
+            % computed variables are hdv_adjacency, hdv_reachable_sets
+
+            % create indices struct only once for efficiency
+            idx = indices();
+
+            % calculate adjacency between CAVs and HDVs and HDV reachable sets
+            for iHdv = 1:obj.scenario.options.manual_control_config.amount
+
+                % determine HDV lanelet id based on HDV's position
+                state_hdv = states_measured(obj.scenario.options.amount + iHdv, :);
+                lanelet_id_hdv = map_position_to_closest_lanelets( ...
+                    obj.scenario.lanelets, ...
+                    state_hdv(idx.x), ...
+                    state_hdv(idx.y) ...
+                );
+
+                % calculate the intersection of reachable sets with the current and
+                % the successor lanelet (returned as cell array of polyshape objects
+                % for each step in the prediction horizon)
+                reachable_sets = obj.manual_vehicles(iHdv).compute_reachable_lane( ...
+                    state_hdv, ...
+                    lanelet_id_hdv ...
+                );
+
+                % determine empty polyshape objects
+                empty_sets = cellfun(@(c) c.NumRegions == 0, reachable_sets);
+                % fill empty reachable sets with a cell array containing an empty array
+                obj.iter.hdv_reachable_sets(iHdv, empty_sets) = {[]};
+                % convert polyshape in plain array (repeat first point to enclose the shape)
+                obj.iter.hdv_reachable_sets(iHdv, ~empty_sets) = cellfun(@(c) ...
+                    [c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)'], ...
+                    reachable_sets(~empty_sets), ...
+                    'UniformOutput', false ...
+                );
+
+                % update reduced coupling adjacency for cav/hdv-pairs
+                for iVeh = obj.plant.indices_in_vehicle_list
+                    % determine CAV lanelet id based on CAV's position
+                    state_cav = states_measured(iVeh, :);
+                    % TODO isn't the lanelet_id_cav already available?
+                    lanelet_id_cav = map_position_to_closest_lanelets( ...
+                        obj.scenario.lanelets, ...
+                        state_cav(idx.x), ...
+                        state_cav(idx.y) ...
+                    );
+
+                    % note coupling if HDV is not behind CAV
+                    % if HDV is behind CAV and coupling is noted
+                    % the optimizer will probably not find a solution
+                    % since the CAV is totally in HDV's reachable set
+                    obj.iter.hdv_adjacency(iVeh, iHdv) = ~is_hdv_behind( ...
+                        lanelet_id_cav, ...
+                        state_cav, ...
+                        lanelet_id_hdv, ...
+                        state_hdv, ...
+                        obj.scenario.lanelets, ...
+                        obj.scenario.lanelet_relationships ...
+                    );
+                end
+
             end
 
         end
