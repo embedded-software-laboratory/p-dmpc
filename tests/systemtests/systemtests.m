@@ -114,6 +114,7 @@ classdef systemtests < matlab.unittest.TestCase
             rawJson = fileread('tests/systemtests/Config_plot_default_results.json');
             config = Config();
             config = config.importFromJson(rawJson);
+            config.scenario_type = ScenarioType(scenario_type);
 
             testCase.verifyEmpty(lastwarn);
 
