@@ -432,6 +432,12 @@ classdef (Abstract) PrioritizedController < HighLevelController
             %   obstacles (:, 1) cell of areas [x; y]
             %   dynamic_obstacle_area (:, Hp) cell of areas [x; y]
 
+            arguments
+                obj (1, 1) PrioritizedController
+                vehicle_idx (1, 1) double % index of the current vehicle
+                all_coupling_vehs_without_ROW double % indices of the vehicles with lower priority
+            end
+
             % preallocate cell array entries
             obstacles = cell(length(all_coupling_vehs_without_ROW), 1);
             dynamic_obstacle_area = cell(length(all_coupling_vehs_without_ROW), obj.scenario.options.Hp);
