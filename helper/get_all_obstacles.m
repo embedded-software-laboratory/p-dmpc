@@ -21,7 +21,6 @@ function [vehicle_obstacles, hdv_obstacles] = get_all_obstacles(iter, scenario)
     check_closeness(iter.lanelet_crossing_areas)
 
     [~, n_occupiedAreas_Hp] = size(iter.dynamic_obstacle_area);
-    [~, n_reachableSets_Hp] = size(iter.dynamic_obstacle_reachableSets);
     [~, n_hdvSets_Hp] = size(iter.hdv_reachable_sets);
     adjacent_hdv = find(iter.hdv_adjacency);
 
@@ -36,15 +35,6 @@ function [vehicle_obstacles, hdv_obstacles] = get_all_obstacles(iter, scenario)
         check_closeness(predicted_occpuied_areas)
 
         % get reachable sets of the coupling vehicles in the current time step
-        if iStep <= n_reachableSets_Hp
-            reachable_sets = iter.dynamic_obstacle_reachableSets(:, iStep)';
-        else
-            reachable_sets = {};
-        end
-
-        check_closeness(reachable_sets)
-
-        % get reachable sets of the coupling vehicles in the current time step
         if iStep <= n_hdvSets_Hp && ~isempty(adjacent_hdv)
             hdv_reachable_sets = iter.hdv_reachable_sets(adjacent_hdv, iStep)';
         else
@@ -53,7 +43,7 @@ function [vehicle_obstacles, hdv_obstacles] = get_all_obstacles(iter, scenario)
 
         check_closeness(hdv_reachable_sets)
 
-        veh_obstacles_polygons_tmp = [current_occupied_areas(:)', predicted_occpuied_areas(:)', reachable_sets(:)'];
+        veh_obstacles_polygons_tmp = [current_occupied_areas(:)', predicted_occpuied_areas(:)'];
 
         % all obstacles, include static obstacles, dynamic obstacles and lanelet boundaries
         vehicle_obstacles{iStep} = veh_obstacles_polygons_tmp;

@@ -17,10 +17,9 @@ classdef IterationData
         adjacency % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
         hdv_adjacency % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
         obstacles
-        dynamic_obstacle_area
-        dynamic_obstacle_shape
-        dynamic_obstacle_fullres
-        dynamic_obstacle_reachableSets
+        dynamic_obstacle_area % (nObs x Hp) cell of areas [x; y]
+        dynamic_obstacle_shape % (1 x 2) array [Length, Width] for all obstacles
+        dynamic_obstacle_fullres % (nObs x ?) cell array
         vehicle_to_lanelet
         weighted_coupling % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
         weighted_coupling_reduced % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas
@@ -58,7 +57,6 @@ classdef IterationData
             obj.dynamic_obstacle_area = scenario.dynamic_obstacle_area;
             obj.dynamic_obstacle_shape = {};
             obj.dynamic_obstacle_fullres = {};
-            obj.dynamic_obstacle_reachableSets = {};
             obj.vehicle_to_lanelet = zeros(nVeh, 1);
             obj.directed_coupling = zeros(nVeh, nVeh);
             obj.directed_coupling_reduced = zeros(nVeh, nVeh);

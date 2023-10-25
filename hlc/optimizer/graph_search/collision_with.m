@@ -61,20 +61,6 @@ function collision = collision_with(iter, index, shapes, shapes_for_lanelet_chec
 
     end
 
-    % check if collides with the reachable sets of coupling vehicles with higher priorities
-    if ~isempty(iter.dynamic_obstacle_reachableSets)
-
-        for i = 1:size(iter.dynamic_obstacle_reachableSets, 1)
-
-            if intersect_sat(shapes{index}, iter.dynamic_obstacle_reachableSets{i, iStep})
-                collision = true;
-                return;
-            end
-
-        end
-
-    end
-
     if ~any(iter.hdv_adjacency)
 
         for i = find(iter.hdv_adjacency)

@@ -335,7 +335,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i, :);
             % turn polyshape to plain array (repeat the first row to enclosed the shape)
             reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
-            iter_v.dynamic_obstacle_reachableSets(end + 1, :) = reachable_sets_i_array;
+            iter_v.dynamic_obstacle_area(end + 1, :) = reachable_sets_i_array;
 
         end
 
