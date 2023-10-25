@@ -209,7 +209,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
             all_coupled_vehs_with_LP = find(iter_v.directed_coupling_reduced(vehicle_idx, :) == 1); % all coupled vehicles with lower priorities
 
             % consider vehicles with higher priority
-            [iter_v, is_fallback_triggered] = consider_vehs_with_HP(obj, iter_v, vehicle_idx, all_coupled_vehs_with_HP);
+            [dynamic_obstacle_area, is_fallback_triggered] = consider_vehs_with_HP(obj, vehicle_idx, all_coupled_vehs_with_HP);
+            iter_v.dynamic_obstacle_area = [iter_v.dynamic_obstacle_area; dynamic_obstacle_area];
 
             % if vehicle with higher priority triggered fallback, do not plan
             if is_fallback_triggered
@@ -388,8 +389,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function [iter_v, is_fallback_triggered] = consider_vehs_with_HP(obj, iter_v, vehicle_idx, all_coupled_vehs_with_HP)
+        function [dynamic_obstacle_area, is_fallback_triggered] = consider_vehs_with_HP(obj, vehicle_idx, all_coupled_vehs_with_HP)
             is_fallback_triggered = false;
+
+            % preallocate cell array entries
+            dynamic_obstacle_area = cell(length(all_coupled_vehs_with_HP), obj.scenario.options.Hp);
 
             grp_idx = arrayfun(@(array) ismember(vehicle_idx, array.vertices), obj.iter.parl_groups_info);
             all_vehs_same_grp = obj.iter.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
@@ -397,7 +401,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % coupled vehicles with higher priorities in the same group
             coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp);
 
-            for veh_with_HP_i = all_coupled_vehs_with_HP
+            for i_vehicle = 1:length(all_coupled_vehs_with_HP)
+                veh_with_HP_i = all_coupled_vehs_with_HP(i_vehicle);
 
                 if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
                     % if in the same group, read the current message and set the
@@ -412,12 +417,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     if ismember(vehicle_idx, obj.info.vehs_fallback)
                         % if the selected vehicle should take fallback
                         is_fallback_triggered = true;
-                        return;
+                    else
+                        predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
+                        dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
                     end
 
-                    predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-
-                    iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
                 else
                     % if they are in different groups, read the latest available
                     % message and check it is from the current time step
@@ -432,21 +436,24 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                         if ismember(vehicle_idx, obj.info.vehs_fallback)
                             is_fallback_triggered = true;
-                            return
+                        else
+                            predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
+                            dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
+
                         end
 
-                        predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                        iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
-                        return
+                    else
+                        % if they are in different groups and message of
+                        % current time step is not available
+                        dynamic_obstacle_area(i_vehicle, :) = obj.consider_parallel_coupling(vehicle_idx, veh_with_HP_i);
                     end
-
-                    % if they are in different groups and message of
-                    % current time step is not available
-                    iter_v.dynamic_obstacle_area(end + 1, :) = obj.consider_parallel_coupling(vehicle_idx, veh_with_HP_i);
 
                 end
 
             end
+
+            % release preallocated cell array entries
+            dynamic_obstacle_area(cellfun(@isempty, dynamic_obstacle_area(:, 1)), :) = [];
 
         end
 
