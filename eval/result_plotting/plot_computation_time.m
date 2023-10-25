@@ -2,7 +2,7 @@ function plot_computation_time(results, options)
 
     arguments
         results (:, :) struct; % TODO object; TODO (variable, but clear) array meaning
-        options.do_export (1, 1) logical = false;
+        options.do_export (1, 1) logical = true;
         options.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
         options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
@@ -27,15 +27,15 @@ function plot_computation_time(results, options)
         ylabel('Computation Time [s]', 'Interpreter', 'LaTex');
 
         if options.do_export
+
+            results_folder = FileNameConstructor.gen_results_folder_path(results(i).scenario.options);
+            filepath = fullfile(results_folder, sprintf('computation_time_result_%d.pdf', i));
             set_figure_properties(fig_per_result, ExportFigConfig.paper('paperheight', 12))
-            filepath = fullfile('results', sprintf('computation_time_%d.pdf', i));
             export_fig(fig_per_result, filepath);
             if (~fig_per_result.Visible); close(fig_per_result); end
         end
 
     end
-
-    close(fig_per_result)
 
     [~, order] = sort(nVehicles);
 
@@ -51,11 +51,14 @@ function plot_computation_time(results, options)
     xlabel('Number of Vehicles', 'Interpreter', 'LaTex');
     ylabel('Computation Time [s]', 'Interpreter', 'LaTex');
 
+    set_figure_properties(options.fig, ExportFigConfig.paper('paperheight', 12))
+
     if options.do_export
-        set_figure_properties(options.fig, ExportFigConfig.paper('paperheight', 12))
-        filepath = fullfile('results', 'computation_time.pdf');
+        results_folder = FileNameConstructor.all_results();
+        filepath = fullfile(results_folder, 'computation_time.pdf');
         export_fig(options.fig, filepath);
-        if (~options.fig.Visible); close(options.fig); end
     end
+
+    if (~options.fig.Visible); close(options.fig); end
 
 end

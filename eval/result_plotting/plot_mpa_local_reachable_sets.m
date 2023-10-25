@@ -10,15 +10,17 @@ function plot_mpa_local_reachable_sets(mpa, scenario, options)
 
     mpa.plot_local_reachable_sets(fig = options.fig);
 
+    set_figure_properties(options.fig, options.export_fig_cfg);
+
     %export figure
     if options.do_export
         file_ext = '.pdf';
         folder_path = FileNameConstructor.gen_results_folder_path(scenario.options);
         [~, file_name, ~] = fileparts(FileNameConstructor.get_mpa_name(scenario.options));
         filepath = fullfile(folder_path, [file_name, '_local_reachable_sets', file_ext]);
-        set_figure_properties(options.fig, options.export_fig_cfg);
         export_fig(options.fig, filepath);
-        close(options.fig);
     end
+
+    if (~options.fig.Visible); close(options.fig); end
 
 end

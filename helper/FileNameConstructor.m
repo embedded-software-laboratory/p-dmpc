@@ -59,15 +59,11 @@ classdef FileNameConstructor
                 controller_name = 'cen-rhgs';
             end
 
-            priority = char(options.priority);
-
             results_folder_name = strrep(strcat(char(options.scenario_type), '_', controller_name), ' ', '_');
 
-            [file_path, ~, ~] = fileparts(mfilename('fullpath')); % get the path of the current file
-            idcs = strfind(file_path, filesep); % find all positions of '/'
-            main_folder = file_path(1:idcs(end) - 1); % one folder up
-
-            results_folder_path = fullfile(main_folder, 'results', results_folder_name);
+            results_folder_path = fullfile(...
+                FileNameConstructor.all_results(), results_folder_name...
+            );
 
             if ~isfolder(results_folder_path)
                 % create target folder if not exist
@@ -166,6 +162,18 @@ classdef FileNameConstructor
                 FileNameConstructor.gen_results_folder_path(options) ...
                 , results_name ...
             );
+        end
+
+        function folder_path = all_results()
+            [file_path, ~, ~] = fileparts(mfilename('fullpath')); % get the path of the current file
+            idcs = strfind(file_path, filesep); % find all positions of '/'
+            main_folder = file_path(1:idcs(end) - 1); % one folder up
+            folder_path = fullfile(main_folder, 'results');
+
+            if ~isfolder(folder_path)
+                mkdir(folder_path)
+            end
+
         end
 
     end

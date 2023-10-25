@@ -3,7 +3,7 @@ function plot_experiment_snapshots(results, step_indices, options)
     arguments
         results (1, 1) struct;
         step_indices (1, :) double
-        options.do_export (1, 1) logical = false;
+        options.do_export (1, 1) logical = true;
         options.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
         options.colorOffset (1, 1) double = 0
     end
@@ -91,6 +91,11 @@ function plot_experiment_snapshots(results, step_indices, options)
             );
         end
 
+        % lanelets
+        if ~isempty(results.scenario.road_raw_data) && ~isempty(results.scenario.road_raw_data.lanelet)
+            plot_lanelets(results.scenario.road_raw_data.lanelet, results.scenario.options.scenario_type);
+        end
+
         daspect([1 1 1]);
         xlim(scenario.options.plot_limits(1, :));
         ylim(scenario.options.plot_limits(2, :));
@@ -104,11 +109,6 @@ function plot_experiment_snapshots(results, step_indices, options)
         title(['Step ' num2str(step_idx)], 'Interpreter', 'LaTex');
     end
 
-    % lanelets
-    if ~isempty(results.scenario.road_raw_data) && ~isempty(results.scenario.road_raw_data.lanelet)
-        plot_lanelets(results.scenario.road_raw_data.lanelet, results.scenario.options.scenario_type);
-    end
-
     set(options.fig.Children.Children(1), 'Units', 'centimeters');
     tile_height = options.fig.Children.Children(end).OuterPosition(4);
     x_axis_label_height = options.fig.Children.Children(1).OuterPosition(4) - tile_height;
@@ -120,7 +120,8 @@ function plot_experiment_snapshots(results, step_indices, options)
         results_folder = FileNameConstructor.gen_results_folder_path(results.scenario.options);
         filepath = fullfile(results_folder, 'snapshots.pdf');
         export_fig(options.fig, filepath)
-        if (~options.fig.Visible); close(options.fig); end
     end
+
+    if (~options.fig.Visible); close(options.fig); end
 
 end

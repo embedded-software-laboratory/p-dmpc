@@ -20,16 +20,7 @@ function export_frame(result, frame_export_setup)
     set_figure_properties(plotter.get_figure(), ExportFigConfig.video());
     frame = getframe(plotter.get_figure());
 
-    % get the path of the target folder to store figures
-    [self_path, ~, ~] = fileparts(mfilename('fullpath')); % get the path of the current file
-    idcs = strfind(self_path, filesep); % find all positions of '/'
-    main_folder = self_path(1:idcs(end) - 1); % one folders up, i.e., to main folder
-    results_folder_path = fullfile(main_folder, 'results'); % results folder
-
-    if ~isfolder(results_folder_path)
-        % create target folder if not exist
-        mkdir(results_folder_path)
-    end
+    results_folder_path = FileNameConstructor.all_results();
 
     filepath = fullfile(results_folder_path, frame_export_setup.frame_name); % full path of the fig
 

@@ -9,16 +9,17 @@ function plot_scenario(scenario, options)
 
     scenario.plot(fig = options.fig);
 
+    set_figure_properties(options.fig, ExportFigConfig.paper("paperheight", 6))
+
     %export figure
     if options.do_export
         folder_path = FileNameConstructor.gen_results_folder_path( ...
             scenario.options ...
         );
         file_name = 'scenario.pdf';
-        set_figure_properties(options.fig, ExportFigConfig.paper("paperheight", 6))
-
         export_fig(options.fig, fullfile(folder_path, file_name));
-        if (~options.fig.Visible); close(options.fig); end
     end
+
+    if (~options.fig.Visible); close(options.fig); end
 
 end
