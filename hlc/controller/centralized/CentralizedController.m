@@ -24,9 +24,13 @@ classdef CentralizedController < HighLevelController
 
         function create_coupling_graph(obj)
 
+            obj.timing.start('coupling', obj.k);
+
             if obj.scenario.options.use_cpp()
                 obj.iter.adjacency = obj.coupler.couple(obj.iter);
             end
+
+            obj.timing.stop('coupling', obj.k);
 
         end
 
