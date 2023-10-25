@@ -1,7 +1,7 @@
 {
     "amount": 3,
     "T_end": 5,
-    "max_num_CLs": 1,
+    "max_num_CLs": 2,
     "trim_set": 9,
     "options_plot_online": {
         "is_active": false
