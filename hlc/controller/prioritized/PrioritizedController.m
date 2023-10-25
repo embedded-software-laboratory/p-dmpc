@@ -209,8 +209,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             all_coupled_vehs_with_LP = find(iter_v.directed_coupling_reduced(vehicle_idx, :) == 1); % all coupled vehicles with lower priorities
 
             % consider vehicles with higher priority
-            [dynamic_obstacle_area, is_fallback_triggered] = consider_vehs_with_HP(obj, vehicle_idx, all_coupled_vehs_with_HP);
-            iter_v.dynamic_obstacle_area = [iter_v.dynamic_obstacle_area; dynamic_obstacle_area];
+            [dynamic_obstacle_area_HP, is_fallback_triggered] = consider_vehs_with_HP(obj, vehicle_idx, all_coupled_vehs_with_HP);
 
             % if vehicle with higher priority triggered fallback, do not plan
             if is_fallback_triggered
@@ -218,9 +217,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
             end
 
             % consider coupled vehicles with lower priorities
-            [obstacles, dynamic_obstacle_area] = obj.consider_vehs_with_LP(vehicle_idx, all_coupled_vehs_with_LP);
-            iter_v.obstacles = [iter_v.obstacles; obstacles];
-            iter_v.dynamic_obstacle_area = [iter_v.dynamic_obstacle_area; dynamic_obstacle_area];
+            [obstacles_LP, dynamic_obstacle_area_LP] = obj.consider_vehs_with_LP(vehicle_idx, all_coupled_vehs_with_LP);
+
+            % add obstacles for considering other vehicles
+            iter_v.obstacles = [iter_v.obstacles; obstacles_LP];
+            iter_v.dynamic_obstacle_area = [iter_v.dynamic_obstacle_area; dynamic_obstacle_area_HP; dynamic_obstacle_area_LP];
 
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
