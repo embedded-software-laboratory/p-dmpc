@@ -32,7 +32,7 @@ function [reference_path_struct, v_ref] = get_reference_trajectory(mpa, total_re
     distance_max = v_ref_intermediate * dt_seconds;
 
     % Find equidistant points on the reference path.
-    reference_path_struct = sample_reference_trajectory( ...
+    reference_path_struct = sample_reference_path( ...
         Hp, ... % number of prediction steps
         total_reference_path, ... % total_reference_path
         x0, ... % vehicle position x

@@ -1,4 +1,4 @@
-function reference_path_struct = sample_reference_trajectory(n_samples, reference_path, vehicle_x, vehicle_y, step_size)
+function reference_path_struct = sample_reference_path(n_samples, reference_path, vehicle_x, vehicle_y, step_size)
     % SAMPLE_REFERENCE_TRAJECTORY  Computes equidistant points along a piecewise linear curve. The first
     % point is the point on the curve closest to the given point
     % (vehicle_x,vehicle_y). All following points are on the curve with a
