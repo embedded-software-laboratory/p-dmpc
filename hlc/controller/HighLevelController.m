@@ -64,7 +64,7 @@ classdef (Abstract) HighLevelController < handle
 
             initial_state = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
 
-            for iVeh = 1:scenario.options.amount
+            for iVeh = obj.plant.indices_in_vehicle_list
                 % initialize vehicle ids of all vehicles
                 scenario.vehicles(iVeh).trim_config = initial_state;
                 obj.timing_per_vehicle(iVeh) = ControllerTiming();

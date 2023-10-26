@@ -23,9 +23,6 @@ classdef PrioritizedSequentialController < PrioritizedController
                 obj.plant.all_vehicle_ids ...
             );
 
-            msg_send_time = zeros(1, obj.plant.amount);
-            runtime_planning = zeros(1, obj.plant.amount);
-
             for level_j = 1:length(obj.CL_based_hierarchy)
                 vehs_level_i = obj.CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
 
