@@ -59,11 +59,6 @@ classdef CentralizedController < HighLevelController
                 obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
             end
 
-            obj.info.runtime_graph_search_each_veh = obj.info.runtime_subcontroller_each_veh;
-            % for centralize controller, all vehicles are in the same group
-            obj.info.runtime_subcontroller_each_grp = obj.info.runtime_subcontroller_each_veh;
-            obj.info.runtime_subcontroller_max = obj.info.runtime_subcontroller_each_veh;
-            obj.info.runtime_graph_search_max = obj.info.runtime_subcontroller_each_veh;
         end
 
         function plan_for_fallback(~)

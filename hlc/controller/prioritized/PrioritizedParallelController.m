@@ -31,14 +31,10 @@ classdef PrioritizedParallelController < PrioritizedController
             obj.timing_per_vehicle(vehicle_idx).stop('plan_single_vehicle', obj.k);
 
             %% Send own data to other vehicles
-            msg_send_tic = tic;
+            obj.timing_per_vehicle(vehicle_idx).start('publish_predictions', obj.k);
             obj.publish_predictions(vehicle_idx);
-            msg_send_time = toc(msg_send_tic);
+            obj.timing_per_vehicle(vehicle_idx).stop('publish_predictions', obj.k);
 
-            obj.info.runtime_graph_search_max = obj.info.runtime_graph_search_each_veh(vehicle_idx);
-            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = msg_send_time + runtime_planning;
-            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_subcontroller_each_veh(vehicle_idx);
-            obj.info.runtime_subcontroller_max = obj.info.runtime_subcontroller_each_veh(vehicle_idx);
             obj.info.computation_levels = length(obj.CL_based_hierarchy);
         end
 

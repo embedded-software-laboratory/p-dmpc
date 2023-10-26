@@ -34,11 +34,9 @@ classdef PrioritizedSequentialController < PrioritizedController
                     obj.timing_per_vehicle(vehicle_idx).start('plan_single_vehicle', obj.k);
                     obj.plan_single_vehicle(vehicle_idx);
                     obj.timing_per_vehicle(vehicle_idx).stop('plan_single_vehicle', obj.k);
-
-                    % communicate data to other vehicles
-                    msg_send_tic = tic;
+                    obj.timing_per_vehicle(vehicle_idx).start('publish_predictions', obj.k);
                     obj.publish_predictions(vehicle_idx);
-                    msg_send_time(vehicle_idx) = toc(msg_send_tic);
+                    obj.timing_per_vehicle(vehicle_idx).stop('publish_predictions', obj.k);
                 end
 
             end
