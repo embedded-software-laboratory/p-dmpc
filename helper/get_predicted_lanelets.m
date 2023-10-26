@@ -11,7 +11,7 @@ function [predicted_lanelets] = get_predicted_lanelets(scenario, iVeh, reference
         % index of the vehicle in the vehicle list
         iVeh (1, 1) double
         % reference_path_struct struct with the fields
-        %   ReferencePoints (Hp, 2) [x1 y1; x2 y2; ...]
+        %   path (Hp, 2) [x1 y1; x2 y2; ...]
         %   ReferenceIndex (Hp, 1) point indices
         reference_path_struct (1, 1) struct
     end

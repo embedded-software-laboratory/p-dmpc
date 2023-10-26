@@ -9,11 +9,11 @@ function reference_path_struct = sample_reference_trajectory(n_samples, referenc
     %       reference_path: piecewise linear curve [x1 y1; x2 y2; ...]
     %       vehicle_x,vehicle_y: start point
     %       step_size: Distance between points [d1; d2; ...]
-    % Returns: ReferencePoints [x1 y1; x2 y2; ...] and corresponding
+    % Returns: path [x1 y1; x2 y2; ...] and corresponding
     % ReferenceIndex (point index)
 
     reference_path_struct = struct;
-    reference_path_struct.ReferencePoints = zeros(n_samples, 2);
+    reference_path_struct.path = zeros(n_samples, 2);
     reference_path_struct.ReferenceIndex = zeros(n_samples, 1);
 
     [~, ~, xp, yp, ~, ~, TrajectoryIndex] = get_arc_distance_to_endpoint( ...
@@ -82,7 +82,7 @@ function reference_path_struct = sample_reference_trajectory(n_samples, referenc
         end
 
         % record step
-        reference_path_struct.ReferencePoints(i, :) = currentPoint;
+        reference_path_struct.path(i, :) = currentPoint;
         reference_path_struct.ReferenceIndex(i, :) = TrajectoryIndex;
 
     end

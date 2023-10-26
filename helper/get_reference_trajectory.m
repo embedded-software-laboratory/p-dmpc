@@ -5,7 +5,7 @@ function [reference_path_struct, v_ref] = get_reference_trajectory(mpa, total_re
     %
     % OUTPUT:
     %   reference_path_struct struct with fields
-    %       ReferencePoints (Hp, 2) [x1 y1; x2 y2; ...]
+    %       path (Hp, 2) [x1 y1; x2 y2; ...]
     %       ReferenceIndex (Hp, 1) point indices
     %
     %   v_ref (Hp, 1) reference speed
