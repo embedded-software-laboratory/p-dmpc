@@ -216,7 +216,7 @@ classdef (Abstract) HighLevelController < handle
 
         end
 
-        function relate_vehicles(~)
+        function create_coupling_graph(~)
             % method that can be overwritten by child classes if necessary
         end
 
@@ -304,8 +304,8 @@ classdef (Abstract) HighLevelController < handle
                 obj.timing.start("controller_time", obj.k);
                 obj.timing.start("relation_time", obj.k);
 
-                % calculate information for the relations between the controlled vehicles
-                obj.relate_vehicles();
+                % determine couplings between the controlled vehicles
+                obj.create_coupling_graph();
 
                 obj.timing.stop("relation_time", obj.k);
 

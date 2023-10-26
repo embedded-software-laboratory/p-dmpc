@@ -22,7 +22,7 @@ classdef CentralizedController < HighLevelController
 
     methods (Access = protected)
 
-        function relate_vehicles(obj)
+        function create_coupling_graph(obj)
 
             if obj.scenario.options.use_cpp()
                 obj.iter.adjacency = obj.coupler.couple(obj.iter);

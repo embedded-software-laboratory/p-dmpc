@@ -263,7 +263,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function relate_vehicles(obj)
+        function create_coupling_graph(obj)
 
             obj.update_other_vehicles_traffic_info();
 
