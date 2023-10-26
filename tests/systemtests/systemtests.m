@@ -64,6 +64,18 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
+        function grouping(testCase)
+            lastwarn('');
+            fprintf('\nTesting grouping algorithm\n');
+            %load Config from json
+            rawJson = fileread('tests/systemtests/Config_grouping.json');
+            options = Config();
+            options = options.importFromJson(rawJson);
+
+            main(options);
+            testCase.verifyTrue(true);
+        end
+
         function visualization(testCase, scenario_type)
             lastwarn('');
             fprintf('\nvisualization systemtest for %s\n', scenario_type)
