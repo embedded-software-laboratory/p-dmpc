@@ -129,7 +129,7 @@ classdef (Abstract) HighLevelController < handle
             obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
         end
 
-        function compute_vehicles_traffic_info(obj, states_measured, trims_measured)
+        function update_controlled_vehicles_traffic_info(obj, states_measured, trims_measured)
 
             % create indices struct only once for efficiency
             idx = indices();
@@ -295,8 +295,8 @@ classdef (Abstract) HighLevelController < handle
                 % ----------------------------------------------------------------------
 
                 % update the traffic situation
-                obj.compute_hdv_traffic_info(states_measured);
-                obj.compute_vehicles_traffic_info(states_measured, trims_measured);
+                obj.update_hdv_traffic_info(states_measured);
+                obj.update_controlled_vehicles_traffic_info(states_measured, trims_measured);
 
                 obj.timing.stop("iter_runtime", obj.k);
 
@@ -343,7 +343,7 @@ classdef (Abstract) HighLevelController < handle
 
         end
 
-        function compute_hdv_traffic_info(obj, states_measured)
+        function update_hdv_traffic_info(obj, states_measured)
             % compute information about traffic situation and coupling with HDVs
             % computed variables are hdv_adjacency, hdv_reachable_sets
 

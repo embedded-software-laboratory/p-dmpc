@@ -184,9 +184,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function compute_vehicles_traffic_info(obj, states_measured, trims_measured)
+        function update_controlled_vehicles_traffic_info(obj, states_measured, trims_measured)
             % compute vehicles traffic info in HighLevelController
-            compute_vehicles_traffic_info@HighLevelController(obj, states_measured, trims_measured);
+            update_controlled_vehicles_traffic_info@HighLevelController(obj, states_measured, trims_measured);
 
             for iVeh = obj.plant.indices_in_vehicle_list
                 % Send data to sync obj.iter for all vehicles
