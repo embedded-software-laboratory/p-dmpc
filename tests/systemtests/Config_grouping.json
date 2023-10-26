@@ -4,7 +4,7 @@
     "max_num_CLs": 2,
     "trim_set": 9,
     "options_plot_online": {
-        "is_active": false
+        "is_active": true
     },
     "scenario_type": "circle"
 }
