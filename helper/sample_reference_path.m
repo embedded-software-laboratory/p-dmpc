@@ -1,16 +1,21 @@
 function reference_path_struct = sample_reference_path(n_samples, reference_path, x_current, y_current, step_distances)
-    % SAMPLE_REFERENCE_TRAJECTORY  Computes equidistant points along a piecewise linear curve. The first
-    % point is the point on the curve closest to the given point
-    % (x_current,y_current). All following points are on the curve with a
-    % distance of 'step_distances' to their predecessor.
+    % Computes points with given distances along a piecewise linear curve.
+    % The first point is the point on the curve closest to the given point
+    % (x_current, y_current). All following points are on the curve with a
+    % distance of 'step_distances(i)' to their predecessor.
     %
-    % Arguments:
-    %       n_samples: number of points created
-    %       reference_path: piecewise linear curve [x1 y1; x2 y2; ...]
-    %       x_current,y_current: start point
-    %       step_distances: Distance between points [d1; d2; ...]
-    % Returns: path [x1 y1; x2 y2; ...] and corresponding
-    % points_index (point index)
+    % Output:
+    %   reference_path_struct struct with fields
+    %       path (n_samples, 2) [x1 y1; x2 y2; ...]
+    %       points_index (n_samples, 1) point indices
+
+    arguments
+        n_samples (1, 1) double % number of points created
+        reference_path (:, 2) double % piecewise linear curve [x1 y1; x2 y2; ...]
+        x_current (1, 1) double % actual x coordinate
+        y_current (1, 1) double % actual y coordinate
+        step_distances (:, 1) double % distances between points [d1; d2; ...]
+    end
 
     reference_path_struct = struct;
     reference_path_struct.path = zeros(n_samples, 2);
