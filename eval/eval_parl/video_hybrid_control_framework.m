@@ -27,7 +27,7 @@ switch i
         options.options_plot_online.plot_reachable_sets = true;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
         options.options_plot_online.vehicles_reachable_sets = [2];
-        options.bound_reachable_sets = false;
+        options.is_bounded_reachable_set_used = false;
         options.strategy_enter_lanelet_crossing_area = '1';
         options.max_num_CLs = 1;
         options.path_ids = [18, 41];
@@ -36,7 +36,7 @@ switch i
         options.T_end = 3;
         options.options_plot_online.plot_reachable_sets = true;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
-        options.bound_reachable_sets = true;
+        options.is_bounded_reachable_set_used = true;
         options.strategy_enter_lanelet_crossing_area = '1';
         options.max_num_CLs = 1;
         options.path_ids = [18, 41];
@@ -45,7 +45,7 @@ switch i
         options.T_end = 3;
         options.options_plot_online.plot_reachable_sets = false;
         options.options_plot_online.plot_lanelet_crossing_areaas = true;
-        options.bound_reachable_sets = true;
+        options.is_bounded_reachable_set_used = true;
         options.strategy_enter_lanelet_crossing_area = '4';
         options.max_num_CLs = 1;
         options.path_ids = [18, 41];
@@ -54,7 +54,7 @@ switch i
         options.T_end = 30;
         options.options_plot_online.plot_reachable_sets = false;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
-        options.bound_reachable_sets = true;
+        options.is_bounded_reachable_set_used = true;
         options.strategy_enter_lanelet_crossing_area = '4';
         options.max_num_CLs = 3;
         options.amount = 30;
@@ -64,7 +64,7 @@ switch i
         options.T_end = 10;
         options.options_plot_online.plot_reachable_sets = false;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
-        options.bound_reachable_sets = true;
+        options.is_bounded_reachable_set_used = true;
         options.strategy_enter_lanelet_crossing_area = '1';
         options.max_num_CLs = 4;
         options.amount = 17;

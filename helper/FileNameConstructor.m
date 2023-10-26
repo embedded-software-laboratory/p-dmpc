@@ -143,7 +143,7 @@ classdef FileNameConstructor
                     scenario_name = [scenario_name, '_W', weight];
                 end
 
-                if ~options.bound_reachable_sets
+                if ~options.is_bounded_reachable_set_used
                     scenario_name = [scenario_name, '_unboundedRS'];
                 end
 

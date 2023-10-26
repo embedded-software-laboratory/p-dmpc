@@ -24,7 +24,7 @@ classdef ManualVehicle
             options.is_save_mpa = true;
             options.is_use_dynamic_programming = true;
             options.recursive_feasibility = false;
-            options.bound_reachable_sets = true;
+            options.is_bounded_reachable_set_used = true;
             obj.options = options;
             obj.road_raw_data = scenario.road_raw_data;
             obj.ID = id;
