@@ -1,4 +1,4 @@
-function [predicted_lanelets] = get_predicted_lanelets(scenario, iVeh, reference)
+function [predicted_lanelets] = get_predicted_lanelets(scenario, iVeh, reference_path_struct)
     % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
     % based on vehicle's reference path.
     %
@@ -10,13 +10,13 @@ function [predicted_lanelets] = get_predicted_lanelets(scenario, iVeh, reference
         scenario Scenario
         % index of the vehicle in the vehicle list
         iVeh (1, 1) double
-        % reference struct with the fields
+        % reference_path_struct struct with the fields
         %   ReferencePoints (Hp, 2) [x1 y1; x2 y2; ...]
         %   ReferenceIndex (Hp, 1) point indices
-        reference (1, 1) struct
+        reference_path_struct (1, 1) struct
     end
 
-    ref_points_index = reference.ReferenceIndex;
+    ref_points_index = reference_path_struct.ReferenceIndex;
     %     ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle
 
     % predict several points more such that the predicted lanelets can cover all reachable set. Only in this way, the bounded reachable sets will not be cutoff at its front
