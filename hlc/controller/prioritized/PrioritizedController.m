@@ -209,55 +209,56 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % create index struct only once for efficiency
             state_index = indices();
 
+            % index of communication class
+            % note: only one is taken since each communication class receives
+            % the messages from all other vehicles
+            jVeh = obj.plant.indices_in_vehicle_list(1);
+
             % read messages from other vehicles
-            for jVeh = obj.plant.indices_in_vehicle_list
-                % loop over vehicle that reads the message
-                other_vehicles = setdiff(1:obj.scenario.options.amount, jVeh);
+            other_vehicle_indices = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
 
-                for kVeh = other_vehicles
-                    % loop over vehicle from which the messages are read
-                    latest_msg_i = obj.traffic_communication{jVeh}.read_message( ...
-                        obj.plant.all_vehicle_ids(kVeh), ...
-                        obj.k, ...
-                        true ...
-                    );
+            % loop over vehicle from which the messages are read
+            for kVeh = other_vehicle_indices
+                latest_msg_i = obj.traffic_communication{jVeh}.read_message( ...
+                    obj.plant.all_vehicle_ids(kVeh), ...
+                    obj.k, ...
+                    true ...
+                );
 
-                    % take state and trim of vehicle kVeh
-                    obj.iter.x0(kVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
-                    obj.iter.trim_indices(kVeh) = latest_msg_i.current_trim_index;
+                % take state and trim of vehicle kVeh
+                obj.iter.x0(kVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
+                obj.iter.trim_indices(kVeh) = latest_msg_i.current_trim_index;
 
-                    % transform occupied areas
-                    occupied_areas = latest_msg_i.occupied_areas;
-                    obj.iter.occupied_areas{kVeh}.normal_offset(1, :) = occupied_areas(1).x;
-                    obj.iter.occupied_areas{kVeh}.normal_offset(2, :) = occupied_areas(1).y;
-                    obj.iter.occupied_areas{kVeh}.without_offset(1, :) = occupied_areas(2).x;
-                    obj.iter.occupied_areas{kVeh}.without_offset(2, :) = occupied_areas(2).y;
+                % transform occupied areas
+                occupied_areas = latest_msg_i.occupied_areas;
+                obj.iter.occupied_areas{kVeh}.normal_offset(1, :) = occupied_areas(1).x;
+                obj.iter.occupied_areas{kVeh}.normal_offset(2, :) = occupied_areas(1).y;
+                obj.iter.occupied_areas{kVeh}.without_offset(1, :) = occupied_areas(2).x;
+                obj.iter.occupied_areas{kVeh}.without_offset(2, :) = occupied_areas(2).y;
 
-                    % transform reachable sets to polyshape object
-                    obj.iter.reachable_sets(kVeh, :) = (arrayfun(@(array) {polyshape(array.x, array.y)}, latest_msg_i.reachable_sets))';
+                % transform reachable sets to polyshape object
+                obj.iter.reachable_sets(kVeh, :) = (arrayfun(@(array) {polyshape(array.x, array.y)}, latest_msg_i.reachable_sets))';
 
-                    % transform predicted lanelets
-                    obj.iter.predicted_lanelets{kVeh} = latest_msg_i.predicted_lanelets';
+                % transform predicted lanelets
+                obj.iter.predicted_lanelets{kVeh} = latest_msg_i.predicted_lanelets';
 
-                    % calculate the predicted lanelet boundary of vehicle kVeh based on its predicted lanelets
-                    if obj.scenario.options.scenario_type ~= ScenarioType.circle
-                        obj.iter.predicted_lanelet_boundary(kVeh, :) = get_lanelets_boundary( ...
-                            obj.iter.predicted_lanelets{kVeh}, ...
-                            obj.scenario.lanelet_boundary, ...
-                            obj.scenario.vehicles(kVeh).lanelets_index, ...
-                            obj.scenario.vehicles(kVeh).is_loop ...
-                        );
-                    end
-
-                    % get occupied areas of emergency maneuvers for vehicle kVeh
-                    obj.iter.emergency_maneuvers{kVeh} = obj.mpa.get_global_emergency_maneuvers( ...
-                        obj.iter.x0(kVeh, state_index.x), ...
-                        obj.iter.x0(kVeh, state_index.y), ...
-                        obj.iter.x0(kVeh, state_index.heading), ...
-                        obj.iter.trim_indices(kVeh) ...
+                % calculate the predicted lanelet boundary of vehicle kVeh based on its predicted lanelets
+                if obj.scenario.options.scenario_type ~= ScenarioType.circle
+                    obj.iter.predicted_lanelet_boundary(kVeh, :) = get_lanelets_boundary( ...
+                        obj.iter.predicted_lanelets{kVeh}, ...
+                        obj.scenario.lanelet_boundary, ...
+                        obj.scenario.vehicles(kVeh).lanelets_index, ...
+                        obj.scenario.vehicles(kVeh).is_loop ...
                     );
                 end
 
+                % get occupied areas of emergency maneuvers for vehicle kVeh
+                obj.iter.emergency_maneuvers{kVeh} = obj.mpa.get_global_emergency_maneuvers( ...
+                    obj.iter.x0(kVeh, state_index.x), ...
+                    obj.iter.x0(kVeh, state_index.y), ...
+                    obj.iter.x0(kVeh, state_index.heading), ...
+                    obj.iter.trim_indices(kVeh) ...
+                );
             end
 
         end
