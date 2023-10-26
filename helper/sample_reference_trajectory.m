@@ -10,11 +10,11 @@ function reference_path_struct = sample_reference_trajectory(n_samples, referenc
     %       vehicle_x,vehicle_y: start point
     %       step_size: Distance between points [d1; d2; ...]
     % Returns: path [x1 y1; x2 y2; ...] and corresponding
-    % ReferenceIndex (point index)
+    % points_index (point index)
 
     reference_path_struct = struct;
     reference_path_struct.path = zeros(n_samples, 2);
-    reference_path_struct.ReferenceIndex = zeros(n_samples, 1);
+    reference_path_struct.points_index = zeros(n_samples, 1);
 
     [~, ~, xp, yp, ~, ~, TrajectoryIndex] = get_arc_distance_to_endpoint( ...
         vehicle_x, ...
@@ -83,7 +83,7 @@ function reference_path_struct = sample_reference_trajectory(n_samples, referenc
 
         % record step
         reference_path_struct.path(i, :) = currentPoint;
-        reference_path_struct.ReferenceIndex(i, :) = TrajectoryIndex;
+        reference_path_struct.points_index(i, :) = TrajectoryIndex;
 
     end
 

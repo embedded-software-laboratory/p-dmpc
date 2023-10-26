@@ -12,11 +12,11 @@ function [predicted_lanelets] = get_predicted_lanelets(scenario, iVeh, reference
         iVeh (1, 1) double
         % reference_path_struct struct with the fields
         %   path (Hp, 2) [x1 y1; x2 y2; ...]
-        %   ReferenceIndex (Hp, 1) point indices
+        %   points_index (Hp, 1) point indices
         reference_path_struct (1, 1) struct
     end
 
-    ref_points_index = reference_path_struct.ReferenceIndex;
+    ref_points_index = reference_path_struct.points_index;
     %     ref_points_index = [curTrajectoryIndex;ref_points_index]; % add current index of vehicle on its trajectory to consider the current position of the vehicle
 
     % predict several points more such that the predicted lanelets can cover all reachable set. Only in this way, the bounded reachable sets will not be cutoff at its front
