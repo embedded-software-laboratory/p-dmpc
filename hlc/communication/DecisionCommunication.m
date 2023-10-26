@@ -16,22 +16,19 @@ classdef DecisionCommunication < InterHlcCommunication
         function send_message( ...
                 obj, ...
                 time_step, ...
-                decision, ...
-                permutation ...
+                decision ...
             )
 
             arguments
                 obj (1, 1) DecisionCommunication
                 time_step (1, 1) double
                 decision (:, 1) double
-                permutation (1, 1) double = 0
             end
 
             % vehicle send message to its topic
             obj.message_to_be_sent.time_step = int32(time_step);
             obj.message_to_be_sent.vehicle_id = int32(obj.vehicle_id);
             obj.message_to_be_sent.decision = double(decision);
-            obj.message_to_be_sent.permutation = int32(permutation);
 
             send(obj.ros2_publisher, obj.message_to_be_sent);
         end
