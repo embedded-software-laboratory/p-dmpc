@@ -1,14 +1,14 @@
-function reference_path_struct = sample_reference_path(n_samples, reference_path, vehicle_x, vehicle_y, step_size)
+function reference_path_struct = sample_reference_path(n_samples, reference_path, x_current, y_current, step_distances)
     % SAMPLE_REFERENCE_TRAJECTORY  Computes equidistant points along a piecewise linear curve. The first
     % point is the point on the curve closest to the given point
-    % (vehicle_x,vehicle_y). All following points are on the curve with a
-    % distance of 'step_size' to their predecessor.
+    % (x_current,y_current). All following points are on the curve with a
+    % distance of 'step_distances' to their predecessor.
     %
     % Arguments:
     %       n_samples: number of points created
     %       reference_path: piecewise linear curve [x1 y1; x2 y2; ...]
-    %       vehicle_x,vehicle_y: start point
-    %       step_size: Distance between points [d1; d2; ...]
+    %       x_current,y_current: start point
+    %       step_distances: Distance between points [d1; d2; ...]
     % Returns: path [x1 y1; x2 y2; ...] and corresponding
     % points_index (point index)
 
@@ -17,14 +17,14 @@ function reference_path_struct = sample_reference_path(n_samples, reference_path
     reference_path_struct.points_index = zeros(n_samples, 1);
 
     [~, ~, xp, yp, ~, ~, TrajectoryIndex] = get_arc_distance_to_endpoint( ...
-        vehicle_x, ...
-        vehicle_y, ...
+        x_current, ...
+        y_current, ...
         reference_path(:, 1), ...
         reference_path(:, 2) ...
     );
 
     nLinePieces = size(reference_path, 1);
-    currentPoint = [xp yp];
+    current_reference_point = [xp yp];
 
     % If the first and the last Point of the reference path are the same(here within a small enough distance),
     % we think the reference is in a loop.
@@ -39,9 +39,9 @@ function reference_path_struct = sample_reference_path(n_samples, reference_path
     end
 
     for i = 1:n_samples
-        remainingLength = norm(currentPoint - reference_path(TrajectoryIndex, :), 2);
+        remainingLength = norm(current_reference_point - reference_path(TrajectoryIndex, :), 2);
 
-        if remainingLength > step_size(i) || TrajectoryIndex == nLinePieces
+        if remainingLength > step_distances(i) || TrajectoryIndex == nLinePieces
 
             % lanelets have overlapping points, which cannot be used to normalize
             while (reference_path(TrajectoryIndex, 1) == reference_path(TrajectoryIndexLast, 1) && reference_path(TrajectoryIndex, 2) == reference_path(TrajectoryIndexLast, 2) && TrajectoryIndexLast > 1)
@@ -52,18 +52,18 @@ function reference_path_struct = sample_reference_path(n_samples, reference_path
             %if the remaining lenght is larger than step size, then make a
             %step further first until the remaining length is less than the
             %step size
-            currentPoint = currentPoint + step_size(i) * normalize(reference_path(TrajectoryIndex, :) - reference_path(TrajectoryIndexLast, :));
+            current_reference_point = current_reference_point + step_distances(i) * normalize(reference_path(TrajectoryIndex, :) - reference_path(TrajectoryIndexLast, :));
 
         else
 
-            while remainingLength < step_size(i)
-                % while the remaining length is shorter than step_size,
-                % update the currentPoint to the current refPoint and update the
+            while remainingLength < step_distances(i)
+                % while the remaining length is shorter than step_distances,
+                % update the current_reference_point to the current refPoint and update the
                 % current reference point to the next refPoint until the
-                % first refPoint after one step_size is found
+                % first refPoint after one step_distances is found
 
                 reflength = remainingLength;
-                currentPoint = reference_path(TrajectoryIndex, :);
+                current_reference_point = reference_path(TrajectoryIndex, :);
 
                 TrajectoryIndexLast = TrajectoryIndex;
                 TrajectoryIndex = min(TrajectoryIndex + 1, nLinePieces);
@@ -74,15 +74,15 @@ function reference_path_struct = sample_reference_path(n_samples, reference_path
                     TrajectoryIndex = 1;
                 end
 
-                remainingLength = remainingLength + norm(currentPoint - reference_path(TrajectoryIndex, :), 2);
+                remainingLength = remainingLength + norm(current_reference_point - reference_path(TrajectoryIndex, :), 2);
             end
 
-            currentPoint = currentPoint + (step_size(i) - reflength) * normalize(reference_path(TrajectoryIndex, :) - reference_path(TrajectoryIndexLast, :));
+            current_reference_point = current_reference_point + (step_distances(i) - reflength) * normalize(reference_path(TrajectoryIndex, :) - reference_path(TrajectoryIndexLast, :));
             %             disp(['trajectoryIndex is :',num2str(TrajectoryIndex)])
         end
 
         % record step
-        reference_path_struct.path(i, :) = currentPoint;
+        reference_path_struct.path(i, :) = current_reference_point;
         reference_path_struct.points_index(i, :) = TrajectoryIndex;
 
     end
