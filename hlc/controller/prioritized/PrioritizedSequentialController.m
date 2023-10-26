@@ -31,9 +31,9 @@ classdef PrioritizedSequentialController < PrioritizedController
 
                 for vehicle_idx = vehs_level_i
                     % plan for vehicle_idx
-                    planning_timer = tic;
+                    obj.timing_per_vehicle(vehicle_idx).start('plan_single_vehicle', obj.k);
                     obj.plan_single_vehicle(vehicle_idx);
-                    runtime_planning(vehicle_idx) = toc(planning_timer);
+                    obj.timing_per_vehicle(vehicle_idx).stop('plan_single_vehicle', obj.k);
 
                     % communicate data to other vehicles
                     msg_send_tic = tic;
@@ -42,11 +42,6 @@ classdef PrioritizedSequentialController < PrioritizedController
                 end
 
             end
-
-            % Calculate the total runtime of each group
-            obj.info = get_run_time_total_all_grps(obj.info, ...
-                obj.iter.parl_groups_info, obj.CL_based_hierarchy, ...
-                msg_send_time, runtime_planning);
 
         end
 

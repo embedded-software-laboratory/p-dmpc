@@ -15,7 +15,7 @@ classdef (Abstract) OptimizerInterface < handle
     end
 
     methods (Abstract)
-        [info, graph_search_time] = run_optimizer(obj, iter, veh_index);
+        info = run_optimizer(obj, iter, veh_index);
     end
 
 end

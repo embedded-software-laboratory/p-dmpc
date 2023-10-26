@@ -269,17 +269,17 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             obj.update_other_vehicles_traffic_info();
 
-            obj.timing.start('coupling', obj.k);
+            obj.timing_general.start('coupling', obj.k);
             obj.couple();
-            obj.timing.stop("coupling", obj.k);
+            obj.timing_general.stop('coupling', obj.k);
 
-            obj.timing.start("prioritization", obj.k);
+            obj.timing_general.start('prioritization', obj.k);
             obj.prioritize();
-            obj.timing.stop("prioritization", obj.k);
+            obj.timing_general.stop('prioritization', obj.k);
 
-            obj.timing.start('reduce_computation_levels', obj.k);
+            obj.timing_general.start('reduce_computation_levels', obj.k);
             obj.reduce_computation_levels();
-            obj.timing.stop('reduce_computation_levels', obj.k);
+            obj.timing_general.stop('reduce_computation_levels', obj.k);
 
         end
 
@@ -310,12 +310,14 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
-            [info_v, graph_search_time] = obj.optimizer.run_optimizer(iter_v, vehicle_idx);
-            obj.info.runtime_graph_search_each_veh(vehicle_idx) = graph_search_time;
+            obj.timing_per_vehicle(vehicle_idx).start('optimizer', obj.k);
+            info_v = obj.optimizer.run_optimizer(iter_v, vehicle_idx);
 
             if info_v.is_exhausted
                 info_v = handle_graph_search_exhaustion(info_v, obj.scenario, iter_v, obj.mpa);
             end
+
+            obj.timing_per_vehicle(vehicle_idx).stop('optimizer', obj.k);
 
             if info_v.needs_fallback
                 % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories

@@ -20,7 +20,12 @@ classdef (Abstract) HighLevelController < handle
     end
 
     properties (Access = protected)
-        timing (1, 1) ControllerTiming;
+        % Until the PrioritizedSequentialController does not own a list of PrioritizedControllers as planned for the future,
+        % the HighLevelController maintains two timing variables:
+        % timing_general stores all timings holding for all vehicles
+        timing_general (1, 1) ControllerTiming;
+        % timing_per_veh stores the timings per vehicle
+        timing_per_vehicle (1, :) ControllerTiming;
 
         % old control results used for taking a fallback
         info_old
@@ -52,7 +57,7 @@ classdef (Abstract) HighLevelController < handle
             obj.got_stop = false;
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
-            obj.timing = ControllerTiming();
+            obj.timing_general = ControllerTiming();
             obj.plant = plant;
 
             obj.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
@@ -62,6 +67,7 @@ classdef (Abstract) HighLevelController < handle
             for iVeh = 1:scenario.options.amount
                 % initialize vehicle ids of all vehicles
                 scenario.vehicles(iVeh).trim_config = initial_state;
+                obj.timing_per_vehicle(iVeh) = ControllerTiming();
 
             end
 
@@ -262,7 +268,7 @@ classdef (Abstract) HighLevelController < handle
             warning('off', 'MATLAB:polyshape:repairedBySimplify')
 
             % start initialization timer
-            obj.timing.start("hlc_init_all");
+            obj.timing_general.start("hlc_init_all");
 
             % initialize high level controller itself
             obj.init();
@@ -271,7 +277,7 @@ classdef (Abstract) HighLevelController < handle
             obj.plant.synchronize_start_with_plant();
 
             % stop initialization timer
-            obj.timing.stop("hlc_init_all");
+            obj.timing_general.stop("hlc_init_all");
         end
 
         function main_control_loop(obj)
@@ -286,8 +292,8 @@ classdef (Abstract) HighLevelController < handle
                     disp(['>>> Time step ' num2str(obj.k)])
                 end
 
-                obj.timing.start("hlc_step", obj.k);
-                obj.timing.start("traffic_situation_update", obj.k);
+                obj.timing_general.start("hlc_step", obj.k);
+                obj.timing_general.start("traffic_situation_update", obj.k);
 
                 % Measurement
                 % -------------------------------------------------------------------------
@@ -300,10 +306,10 @@ classdef (Abstract) HighLevelController < handle
                 obj.update_hdv_traffic_info(states_measured);
                 obj.update_controlled_vehicles_traffic_info(states_measured, trims_measured);
 
-                obj.timing.stop("traffic_situation_update", obj.k);
+                obj.timing_general.stop("traffic_situation_update", obj.k);
 
                 % The controller computes plans
-                obj.timing.start("controller", obj.k);
+                obj.timing_general.start("controller", obj.k);
 
                 % determine couplings between the controlled vehicles
                 obj.create_coupling_graph();
@@ -314,14 +320,15 @@ classdef (Abstract) HighLevelController < handle
                 % handle fallback of controller
                 if ~obj.handle_fallback()
                     % if fallback is not handled break the main control loop
+                    obj.timing_general.reset('traffic_situation_update', obj.k);
                     break
                 end
 
                 obj.info_old = obj.info; % save variable in case of fallback
 
                 % stop timer of current time step
-                obj.timing.stop("controller", obj.k);
-                obj.timing.stop("hlc_step", obj.k);
+                obj.timing_general.stop("controller", obj.k);
+                obj.timing_general.stop("hlc_step", obj.k);
 
                 % store results from iteration in results struct
                 obj.store_iteration_results();
@@ -333,7 +340,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % Apply control action
                 % -------------------------------------------------------------------------
-                obj.plant.apply(obj.info, obj.result, obj.k, obj.mpa, obj.timing.get_elapsed_time('hlc_step', obj.k));
+                obj.plant.apply(obj.info, obj.result, obj.k, obj.mpa, obj.timing_general.get_elapsed_time('hlc_step', obj.k));
 
                 % Check for stop signal
                 % -------------------------------------------------------------------------
@@ -524,10 +531,6 @@ classdef (Abstract) HighLevelController < handle
 
             % store graph search timings
             obj.result.computation_levels(obj.k) = obj.info.computation_levels;
-            obj.result.subcontroller_runtime_each_veh(:, obj.k) = obj.info.runtime_subcontroller_each_veh;
-            obj.result.graph_search_runtime_each_veh(:, obj.k) = obj.info.runtime_graph_search_each_veh;
-            obj.result.runtime_subcontroller_max(obj.k) = obj.info.runtime_subcontroller_max;
-            obj.result.runtime_graph_search_max(obj.k) = obj.info.runtime_graph_search_max;
 
             % store calculated values
             obj.result.is_deadlock(obj.k) = any(is_vehicle_deadlocked);
@@ -579,8 +582,12 @@ classdef (Abstract) HighLevelController < handle
 
             obj.result.mpa = obj.mpa;
             obj.result.scenario = obj.scenario;
-            obj.result.timings = obj.timing.get_all_timings();
             obj.result.total_fallback_times = obj.total_fallback_times;
+            obj.result.timings_general = obj.timing_general.get_all_timings();
+
+            for iVeh = 1:obj.scenario.options.amount
+                obj.result.timings_per_vehicle(iVeh) = obj.timing_per_vehicle(iVeh).get_all_timings();
+            end
 
             if obj.scenario.options.should_reduce_result
                 % delete large data fields of to reduce file size

@@ -16,24 +16,25 @@ classdef GraphSearchMexPB < OptimizerInterface
                     obj.mexhosts(veh_indices(i_veh)) = mexhost;
                     feval(obj.mexhosts(veh_indices(i_veh)), 'graph_search_cpp_priority_mex', CppOptimizer.InitializeWithScenario, obj.scenario, obj.mpa);
                 end
-			else
-				graph_search_cpp_priority_mex(CppOptimizer.InitializeWithScenario, obj.scenario, obj.mpa);
+
+            else
+                graph_search_cpp_priority_mex(CppOptimizer.InitializeWithScenario, obj.scenario, obj.mpa);
             end
+
         end
 
-		function [info_v, graph_search_time] = run_optimizer(obj, iter, veh_index)
-			graph_search_timer = tic;
-			graph_search_data = GraphSearchData(iter, obj.scenario, veh_index);
-			info_v = ControlResultsInfo(iter.amount, obj.scenario.options.Hp, iter.vehicle_ids);
-			[next_nodes, info_v.predicted_trims, info_v.y_predicted, info_v.shapes, info_v.n_expanded, info_v.is_exhausted] = obj.do_graph_search(graph_search_data);
-			graph_search_time = toc(graph_search_timer);
-			info_v.tree = obj.create_tree(iter);
-			info_v.tree_path = 1:(obj.scenario.options.Hp + 1);
+        function info_v = run_optimizer(obj, iter, veh_index)
+            graph_search_data = GraphSearchData(iter, obj.scenario, veh_index);
+            info_v = ControlResultsInfo(iter.amount, obj.scenario.options.Hp, iter.vehicle_ids);
+            [next_nodes, info_v.predicted_trims, info_v.y_predicted, info_v.shapes, info_v.n_expanded, info_v.is_exhausted] = obj.do_graph_search(graph_search_data);
+            info_v.tree = obj.create_tree(iter);
+            info_v.tree_path = 1:(obj.scenario.options.Hp + 1);
 
             for i = 1:obj.scenario.options.Hp
-				info_v.tree.add_node(i, next_nodes{i});
+                info_v.tree.add_node(i, next_nodes{i});
             end
-		end
+
+        end
 
     end
 
@@ -50,18 +51,18 @@ classdef GraphSearchMexPB < OptimizerInterface
             tree = Tree(x, y, yaw, trim, k, g, h);
         end
 
-		function [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = do_graph_search(obj, graph_search_data)
+        function [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = do_graph_search(obj, graph_search_data)
 
-		   	if obj.scenario.options.mex_out_of_process_execution
-			   [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...
-                feval(obj.mexhosts(graph_search_data.veh_idx(1)), 'graph_search_cpp_priority_mex', obj.scenario.options.cpp_optimizer, graph_search_data);
-			else
-				[next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...
-            	graph_search_cpp_priority_mex(obj.scenario.options.cpp_optimizer, graph_search_data);
-			end
+            if obj.scenario.options.mex_out_of_process_execution
+                [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...
+                    feval(obj.mexhosts(graph_search_data.veh_idx(1)), 'graph_search_cpp_priority_mex', obj.scenario.options.cpp_optimizer, graph_search_data);
+            else
+                [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...
+                    graph_search_cpp_priority_mex(obj.scenario.options.cpp_optimizer, graph_search_data);
+            end
 
-		end
+        end
 
-	end
+    end
 
 end
