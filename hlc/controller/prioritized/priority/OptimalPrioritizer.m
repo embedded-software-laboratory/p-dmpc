@@ -16,7 +16,7 @@ classdef OptimalPrioritizer < Prioritizer
             directed_coupling = adjacency;
             nVeh = size(adjacency, 1);
             all_prios = perms(1:nVeh);
-            OptimalPrio = all_prios(iter.permutation, :);
+            OptimalPrio = all_prios(iter.priority_permutation, :);
 
             for iVeh = 1:nVeh
 

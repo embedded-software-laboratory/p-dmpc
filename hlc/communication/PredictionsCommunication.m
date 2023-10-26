@@ -18,7 +18,7 @@ classdef PredictionsCommunication < InterHlcCommunication
                 time_step, ...
                 predicted_areas, ...
                 vehs_fallback, ...
-                permutation ...
+                priority_permutation ...
             )
 
             arguments
@@ -26,7 +26,7 @@ classdef PredictionsCommunication < InterHlcCommunication
                 time_step (1, 1) double
                 predicted_areas (1, :) cell
                 vehs_fallback (:, 1) double = []
-                permutation (1, 1) double = 0
+                priority_permutation (1, 1) double = 0
             end
 
             % vehicle send message to its topic
@@ -40,7 +40,7 @@ classdef PredictionsCommunication < InterHlcCommunication
                 obj.message_to_be_sent.predicted_areas(i).y = predicted_areas{i}(2, :)';
             end
 
-            obj.message_to_be_sent.permutation = int32(permutation);
+            obj.message_to_be_sent.priority_permutation = int32(priority_permutation);
 
             send(obj.ros2_publisher, obj.message_to_be_sent);
         end

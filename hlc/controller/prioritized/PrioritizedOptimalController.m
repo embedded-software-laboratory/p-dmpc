@@ -23,11 +23,11 @@ classdef PrioritizedOptimalController < PrioritizedController
 
             vehicle_idx = obj.plant.indices_in_vehicle_list(1);
 
-            for permutation = 1:factorial(obj.scenario.options.amount)
+            for priority_permutation = 1:factorial(obj.scenario.options.amount)
 
                 obj.iter = obj.iter_base;
                 obj.info = obj.info_base;
-                obj.iter.permutation = permutation;
+                obj.iter.priority_permutation = priority_permutation;
 
                 assign_priority_timer = tic;
                 obj.prioritize();
@@ -49,8 +49,8 @@ classdef PrioritizedOptimalController < PrioritizedController
 
                 obj.info.computation_levels = length(obj.CL_based_hierarchy);
                 % temporarily store dwata
-                obj.iter_array_tmp{obj.iter.permutation} = obj.iter;
-                obj.info_array_tmp{obj.iter.permutation} = obj.info;
+                obj.iter_array_tmp{obj.iter.priority_permutation} = obj.iter;
+                obj.info_array_tmp{obj.iter.priority_permutation} = obj.info;
 
             end
 
