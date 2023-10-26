@@ -144,9 +144,7 @@ classdef (Abstract) InterHlcCommunication < handle
                 obj, ...
                 vehicle_id_subscribed, ...
                 time_step, ...
-                permutation, ...
-                throw_error, ...
-                timeout ...
+                optional ...
             )
             % read message from the given time step
 
@@ -154,9 +152,9 @@ classdef (Abstract) InterHlcCommunication < handle
                 obj (1, 1) InterHlcCommunication
                 vehicle_id_subscribed (1, 1) double
                 time_step (1, 1) double
-                permutation (1, 1) double = 0
-                throw_error (1, 1) logical = true
-                timeout (1, 1) double = 100.0
+                optional.throw_error (1, 1) logical = true
+                optional.timeout (1, 1) double = 100.0
+                optional.priority_permutation (1, 1) double = 0
             end
 
             % start timer for detecting timeout
@@ -169,7 +167,7 @@ classdef (Abstract) InterHlcCommunication < handle
             % used if timeout without error
             latest_msg = struct([]);
 
-            while (read_time <= timeout)
+            while (read_time <= optional.timeout)
                 % remark to pause before continue:
                 % pause is necessary that MATLAB can executed the callback
                 % function when the while loop is running
@@ -203,10 +201,10 @@ classdef (Abstract) InterHlcCommunication < handle
                 return
             end
 
-            if throw_error
+            if optional.throw_error
                 error(['Unable to receive the current message ', ...
                        'of step %d from vehicle %d within %d seconds'], ...
-                    time_step, vehicle_id_subscribed, timeout)
+                    time_step, vehicle_id_subscribed, optional.timeout)
             end
 
         end
