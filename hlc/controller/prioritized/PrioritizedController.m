@@ -117,8 +117,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     % In circle scenarios there are no lanelets
                     predicted_lanelets = [];
                 else
-                    % Compute the reference path
-                    reference = get_reference_trajectory( ...
+                    % Compute the reference trajectory
+                    reference_trajectory_struct = get_reference_trajectory( ...
                         obj.mpa, ...
                         obj.scenario.vehicles(vehicle_index).reference_path, ...
                         states_measured(vehicle_index, state_indices.x), ...
@@ -128,7 +128,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     );
 
                     % Compute the predicted lanelets of iVeh vehicle
-                    predicted_lanelets = get_predicted_lanelets(obj.scenario, vehicle_index, reference);
+                    predicted_lanelets = get_predicted_lanelets(obj.scenario, vehicle_index, reference_trajectory_struct);
                 end
 
                 % get vehicles currently occupied areas

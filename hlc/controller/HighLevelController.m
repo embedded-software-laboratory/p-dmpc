@@ -167,7 +167,7 @@ classdef (Abstract) HighLevelController < handle
                 );
 
                 % compute the reference path and speed
-                [reference_path_struct, v_ref] = get_reference_trajectory( ...
+                [reference_trajectory_struct, v_ref] = get_reference_trajectory( ...
                     obj.mpa, ...
                     obj.scenario.vehicles(iVeh).reference_path, ...
                     states_measured(iVeh, idx.x), ...
@@ -179,13 +179,13 @@ classdef (Abstract) HighLevelController < handle
                 % reference speed
                 obj.iter.v_ref(iVeh, :) = v_ref;
                 % equidistant points on the reference trajectory.
-                obj.iter.reference_trajectory_points(iVeh, :, :) = reference_path_struct.path;
-                obj.iter.reference_trajectory_index(iVeh, :, :) = reference_path_struct.points_index;
+                obj.iter.reference_trajectory_points(iVeh, :, :) = reference_trajectory_struct.path;
+                obj.iter.reference_trajectory_index(iVeh, :, :) = reference_trajectory_struct.points_index;
 
                 if obj.scenario.options.scenario_type ~= ScenarioType.circle
 
                     % compute the predicted lanelets of vehicle iVeh
-                    predicted_lanelets = get_predicted_lanelets(obj.scenario, iVeh, reference_path_struct);
+                    predicted_lanelets = get_predicted_lanelets(obj.scenario, iVeh, reference_trajectory_struct);
                     obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;
 
                     % calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets

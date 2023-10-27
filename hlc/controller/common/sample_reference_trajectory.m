@@ -1,11 +1,11 @@
-function reference_path_struct = sample_reference_trajectory(n_samples, reference_path, x_current, y_current, step_distances)
+function reference_trajectory_struct = sample_reference_trajectory(n_samples, reference_path, x_current, y_current, step_distances)
     % Computes points with given distances along a piecewise linear curve.
     % The first point is the point on the curve closest to the given point
     % (x_current, y_current). All following points are on the curve with a
     % distance of 'step_distances(i)' to their predecessor.
     %
     % Output:
-    %   reference_path_struct struct with fields
+    %   reference_trajectory_struct struct with fields
     %       path (n_samples, 2) [x1 y1; x2 y2; ...]
     %       points_index (n_samples, 1) point indices
 
@@ -17,9 +17,9 @@ function reference_path_struct = sample_reference_trajectory(n_samples, referenc
         step_distances (:, 1) double % distances between points [d1; d2; ...]
     end
 
-    reference_path_struct = struct;
-    reference_path_struct.path = zeros(n_samples, 2);
-    reference_path_struct.points_index = zeros(n_samples, 1);
+    reference_trajectory_struct = struct;
+    reference_trajectory_struct.path = zeros(n_samples, 2);
+    reference_trajectory_struct.points_index = zeros(n_samples, 1);
 
     [~, ~, xp, yp, ~, ~, TrajectoryIndex] = get_arc_distance_to_endpoint( ...
         x_current, ...
@@ -87,8 +87,8 @@ function reference_path_struct = sample_reference_trajectory(n_samples, referenc
         end
 
         % record step
-        reference_path_struct.path(i, :) = current_reference_point;
-        reference_path_struct.points_index(i, :) = TrajectoryIndex;
+        reference_trajectory_struct.path(i, :) = current_reference_point;
+        reference_trajectory_struct.points_index(i, :) = TrajectoryIndex;
 
     end
 
