@@ -136,6 +136,9 @@ classdef systemtests < matlab.unittest.TestCase
             plot_default(full_result.result, do_export = true);
             testCase.verifyTrue(true);
 
+            % verify export_video
+            export_video(full_result.result);
+
         end
 
     end
