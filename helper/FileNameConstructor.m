@@ -150,6 +150,12 @@ classdef FileNameConstructor
             else
                 % use custom name
                 scenario_name = options.result_name;
+
+                if options.compute_in_parallel
+                    % append vehicle id to custom name to avoid name collisions when the files are stored
+                    scenario_name = [scenario_name, '_veh_', num2str(options.path_ids(i_vehicles))];
+                end
+
             end
 
         end
