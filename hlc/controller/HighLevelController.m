@@ -102,9 +102,6 @@ classdef (Abstract) HighLevelController < handle
             % set to true if the controller ran properly
             obj.is_run_succeeded = true;
 
-            % Collect all results from this object and move it to the result struct
-            obj.save_results();
-
             % specify returned variables
             result = obj.result;
             scenario = obj.scenario;
