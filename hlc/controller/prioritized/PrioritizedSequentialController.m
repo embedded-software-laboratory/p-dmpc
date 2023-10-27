@@ -39,10 +39,6 @@ classdef PrioritizedSequentialController < PrioritizedController
                     msg_send_tic = tic;
                     obj.publish_predictions(vehicle_idx);
                     msg_send_time(vehicle_idx) = toc(msg_send_tic);
-
-                    % pause that MATLAB can execute the callback function of
-                    % the sent prediction message
-                    pause(1e-2)
                 end
 
             end
