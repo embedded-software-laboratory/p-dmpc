@@ -11,7 +11,7 @@ classdef PrioritizedOptimalController < PrioritizedController
 
         function obj = PrioritizedOptimalController(scenario, plant)
             obj = obj@PrioritizedController(scenario, plant);
-            obj.prioritizer = OptimalPrioritizer();
+            obj.prioritizer = ConstantPrioritizer();
         end
 
     end
