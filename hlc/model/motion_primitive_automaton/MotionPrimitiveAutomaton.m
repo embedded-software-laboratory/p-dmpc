@@ -929,12 +929,12 @@ classdef MotionPrimitiveAutomaton
             transformed_emergency_maneuvers.braking_area = [turn_braking_area_x; turn_braking_area_y];
         end
 
-        function global_reachable_sets = get_global_reachable_sets(obj, x, y, yaw, trim)
+        function transformed_reachable_sets = reachable_sets_at_pose(obj, x, y, yaw, trim)
             % the function takes the local reachable sets for the current trim
             % and translates it to the current position (x, y) and yaw
             %
             % Output:
-            %   global_reachable_sets (1, Hp) cell of polyshape objects
+            %   transformed_reachable_sets (1, Hp) cell of polyshape objects
 
             arguments
                 obj MotionPrimitiveAutomaton
@@ -947,7 +947,7 @@ classdef MotionPrimitiveAutomaton
             local_reachable_sets_trim = obj.local_reachable_sets_conv(trim, :);
 
             Hp = size(local_reachable_sets_trim, 2);
-            global_reachable_sets = cell(1, Hp);
+            transformed_reachable_sets = cell(1, Hp);
 
             % get the full reachable sets in global frame as polyshape
             for t = 1:Hp
@@ -960,7 +960,7 @@ classdef MotionPrimitiveAutomaton
                     local_reachable_sets_trim{t}.Vertices(:, 2)' ...
                 );
 
-                global_reachable_sets{t} = polyshape( ...
+                transformed_reachable_sets{t} = polyshape( ...
                     reachable_set_x, ...
                     reachable_set_y, ...
                     'Simplify', false ...
