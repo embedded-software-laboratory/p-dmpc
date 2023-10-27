@@ -22,17 +22,6 @@ function export_video(result, video_export_setup)
     plotter = PlotterOnline(scenario);
     plotter.set_figure_visibility(false);
 
-    test_mode = false;
-
-    if test_mode
-        plotting_info = PlottingInfo(1:scenario.options.amount, result, 1, 1);
-        plotter.plot(plotting_info);
-        set_figure_properties(plotter.get_figure(), ExportFigConfig.video());
-        frame = getframe(plotter.get_figure());
-        imwrite(frame.cdata, ['output\video_', char(scenario.options.scenario_type), '.png']);
-        return
-    end
-
     v = VideoWriter( ...
         FileNameConstructor.gen_video_file_path(scenario.options), ...
         'Motion JPEG AVI' ...
@@ -51,16 +40,15 @@ function export_video(result, video_export_setup)
         for frame_idx = frame_ticks
             plotting_info = PlottingInfo(1:scenario.options.amount, result, step_idx, frame_idx);
             plotter.plot(plotting_info);
-            set_figure_properties(plotter.get_figure(), ExportFigConfig().video);
             frame = getframe(plotter.get_figure());
             writeVideo(v, frame);
-            progress = (find(frame_ticks == frame_idx) / length(frame_ticks)) ...
-                * (1 / nSteps) + ((step_idx - 1) / nSteps);
-            ETA = toc(startTimer) * (1 - progress) / progress;
-            waitbar(progress, wb, ...
-                sprintf('Exporting video, %4.1f sec remaining...', ETA) ...
-            );
         end
+
+        progress = step_idx / nSteps;
+        time_remaining_seconds = toc(startTimer) * (1 - progress) / progress;
+        waitbar(progress, wb, ...
+            sprintf('Exporting video. %4.1f sec remaining...', time_remaining_seconds) ...
+        );
 
     end
 

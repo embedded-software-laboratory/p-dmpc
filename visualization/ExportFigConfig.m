@@ -98,7 +98,7 @@ classdef ExportFigConfig
             end
 
             obj = ExportFigConfig();
-            obj.fontsize = 20;
+            obj.fontsize = 14;
             obj.paperwidth = 1920;
             obj.paperheight = 1080;
             obj.linewidth = 1;

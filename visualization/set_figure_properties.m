@@ -138,8 +138,9 @@ function set_figure_properties(figHandle, export_fig_config)
                 coordinates = get(h_graphic, 'Position');
                 % get possible size of text in radius
                 uc = uicontrol('Style', 'text', 'Visible', 'Off', 'Units', 'normalized', ...
-                    'FontSize', export_fig_config.fontsize, 'FontName', export_fig_config.fontname, 'String', '8');
+                    'FontSize', export_fig_config.fontsize, 'FontName', export_fig_config.fontname, 'String', '20');
                 string_coordinates = get(uc, 'Extent');
+                delete(uc);
                 x_limits = xlim;
                 y_limits = ylim;
                 % compute new radius so that text fits into circle
