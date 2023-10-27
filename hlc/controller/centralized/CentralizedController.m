@@ -40,12 +40,13 @@ classdef CentralizedController < HighLevelController
 
             obj.timing_general.start('optimizer', obj.k);
             info_v = obj.optimizer.run_optimizer(obj.iter, obj.plant.indices_in_vehicle_list);
+            obj.timing_general.stop('optimizer', obj.k);
+
+            obj.timing_general.start('fallback', obj.k);
 
             if info_v.is_exhausted
                 info_v = handle_graph_search_exhaustion(info_v, obj.scenario, obj.iter, obj.mpa);
             end
-
-            obj.timing_general.stop('optimizer', obj.k);
 
             if info_v.needs_fallback
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
@@ -58,6 +59,8 @@ classdef CentralizedController < HighLevelController
                 % prepare output data
                 obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
             end
+
+            obj.timing_general.stop('fallback', obj.k);
 
         end
 

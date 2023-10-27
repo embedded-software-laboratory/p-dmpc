@@ -349,8 +349,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
-            [info_v, graph_search_time] = obj.optimizer.run_optimizer(iter_v, vehicle_idx);
-            obj.info.runtime_graph_search_each_veh(vehicle_idx) = graph_search_time;
+            obj.timing_per_vehicle(vehicle_idx).start('optimizer', obj.k);
+            obj.optimizer.run_optimizer(iter_v, vehicle_idx);
+            obj.timing_per_vehicle(vehicle_idx).stop('optimizer', obj.k);
+
+            obj.timing_per_vehicle(vehicle_idx).start('fallback', obj.k);
 
             if info_v.is_exhausted
                 info_v = handle_graph_search_exhaustion(info_v, obj.scenario, iter_v, obj.mpa);
@@ -379,6 +382,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
             else
                 obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
             end
+
+            obj.timing_per_vehicle(vehicle_idx).stop('fallback', obj.k);
 
         end
 
