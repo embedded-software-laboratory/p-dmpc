@@ -323,7 +323,6 @@ classdef (Abstract) HighLevelController < handle
                 % handle fallback of controller
                 if ~obj.handle_fallback()
                     % if fallback is not handled break the main control loop
-                    obj.timing_general.reset('traffic_situation_update', obj.k);
                     break
                 end
 

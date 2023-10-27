@@ -59,25 +59,6 @@ classdef ControllerTiming < handle
 
         end
 
-        function reset(obj, name, time_step)
-            % reset an already performed measurement, i.e., the results will be set to 0.
-
-            arguments
-                obj (1, 1) ControllerTiming
-                name (1, 1) string
-                time_step (1, 1) {mustBeInteger, mustBePositive} = 1 % optional
-            end
-
-            assert(obj.timer_exists(name), "timer does not exist");
-
-            if nargin == 2
-                obj.timings_once([1, 2], obj.name_to_timing_once(name)) = 0;
-            else
-                obj.timings_per_time_step([1, 2], obj.name_to_timing_per_time_step(name), time_step) = 0;
-            end
-
-        end
-
         function elapsed_time = get_elapsed_time(obj, name, time_step)
 
             arguments
