@@ -90,7 +90,6 @@ classdef (Abstract) HighLevelController < handle
             % run the controller
 
             % object that executes the specified function on destruction
-            % this is done at the end of the current function
             cleanupObj = onCleanup(@obj.end_run);
 
             % initialize the controller and its adapters
@@ -101,6 +100,10 @@ classdef (Abstract) HighLevelController < handle
 
             % set to true if the controller ran properly
             obj.is_run_succeeded = true;
+
+            % This triggers obj.end_run such that the returned result contains all information.
+            % It is only reached if onCleanup was not already destroyed before because of an error.
+            delete(cleanupObj);
 
             % specify returned variables
             result = obj.result;
