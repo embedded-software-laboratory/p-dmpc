@@ -37,8 +37,6 @@ classdef ConstantPrioritizer < Prioritizer
 
             end
 
-            [isDAG, ~] = kahn(directed_coupling);
-            assert(isDAG, 'Coupling matrix is not a DAG');
         end
 
     end
