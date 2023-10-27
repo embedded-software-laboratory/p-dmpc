@@ -93,9 +93,9 @@ classdef PrioritizedOptimalController < PrioritizedParallelController
 
     methods (Access = private)
 
-        function [chosen_solution, decision, fallback_solutions] = choose_solution_cost(obj)
+        function [chosen_solution, solution_cost, fallback_solutions] = choose_solution_cost(obj)
             n_solutions = length(obj.iter_array_tmp);
-            decision = zeros(n_solutions, 1);
+            solution_cost = zeros(n_solutions, 1);
             fallback_solutions = false(n_solutions, 1);
 
             if n_solutions > 1
@@ -111,35 +111,35 @@ classdef PrioritizedOptimalController < PrioritizedParallelController
                         g_end = obj.info_array_tmp{i_solution}.tree{obj.plant.indices_in_vehicle_list(1)}.g(obj.info_array_tmp{i_solution}.tree_path(obj.plant.indices_in_vehicle_list(1), end));
                     end
 
-                    decision(i_solution) = g_end;
+                    solution_cost(i_solution) = g_end;
 
                 end
 
                 % broadcast info about solution
-                obj.decision_communication{obj.plant.indices_in_vehicle_list(1)}.send_message(obj.k, decision);
+                obj.solution_cost_communication{obj.plant.indices_in_vehicle_list(1)}.send_message(obj.k, solution_cost);
 
                 % receive info about solutions
                 other_vehicles = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
 
                 for kVeh = other_vehicles
                     % loop over vehicle from which the messages are read
-                    latest_msg_i = obj.decision_communication{obj.plant.indices_in_vehicle_list(1)}.read_message( ...
+                    latest_msg_i = obj.solution_cost_communication{obj.plant.indices_in_vehicle_list(1)}.read_message( ...
                         obj.plant.all_vehicle_ids(kVeh), ...
                         obj.k, ...
                         throw_error = true ...
                     );
                     % calculate objective value
-                    decision_i = latest_msg_i.decision;
-                    fallback_solutions(decision_i >= 1e6) = true;
-                    decision = decision + decision_i;
+                    solution_cost_i = latest_msg_i.solution_cost;
+                    fallback_solutions(solution_cost_i >= 1e6) = true;
+                    solution_cost = solution_cost + solution_cost_i;
                 end
 
             end
 
-            % disp(decision)
+            disp(solution_cost)
 
             % choose accordingly
-            [~, chosen_solution] = min(decision);
+            [~, chosen_solution] = min(solution_cost);
             chosen_solution = chosen_solution(1); % guarantee that it is a single integer
         end
 

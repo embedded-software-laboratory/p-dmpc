@@ -6,7 +6,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         % parallel/distributed execution: same size but only on entry that is not empty
         traffic_communication (1, :) cell
         predictions_communication (1, :) cell
-        decision_communication (1, :) cell
+        solution_cost_communication (1, :) cell
     end
 
     properties (Access = protected)
@@ -68,7 +68,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 % create instance of the communication class
                 obj.traffic_communication{vehicle_index} = TrafficCommunication();
                 obj.predictions_communication{vehicle_index} = PredictionsCommunication();
-                obj.decision_communication{vehicle_index} = DecisionCommunication();
+                obj.solution_cost_communication{vehicle_index} = SolutionCostCommunication();
 
                 % create node and store topic name and message type
                 obj.traffic_communication{vehicle_index}.initialize( ...
@@ -83,22 +83,22 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     '/vehicle_prediction', ...
                     'veh_msgs/Predictions' ...
                 );
-                obj.decision_communication{vehicle_index}.initialize( ...
+                obj.solution_cost_communication{vehicle_index}.initialize( ...
                     vehicle_id, ...
-                    'decision', ...
-                    '/vehicle_decision', ...
-                    'veh_msgs/Decision' ...
+                    'solution_cost', ...
+                    '/vehicle_solution_cost', ...
+                    'veh_msgs/SolutionCost' ...
                 );
 
                 % create publishers
                 obj.traffic_communication{vehicle_index}.create_publisher();
                 obj.predictions_communication{vehicle_index}.create_publisher();
-                obj.decision_communication{vehicle_index}.create_publisher();
+                obj.solution_cost_communication{vehicle_index}.create_publisher();
 
                 % create subscribers
                 obj.traffic_communication{vehicle_index}.create_subscriber();
                 obj.predictions_communication{vehicle_index}.create_subscriber();
-                obj.decision_communication{vehicle_index}.create_subscriber();
+                obj.solution_cost_communication{vehicle_index}.create_subscriber();
             end
 
             if length(obj.plant.indices_in_vehicle_list) == 1
