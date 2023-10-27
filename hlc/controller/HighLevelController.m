@@ -342,7 +342,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % Apply control action
                 % -------------------------------------------------------------------------
-                obj.plant.apply(obj.info, obj.result, obj.k, obj.mpa, obj.timing_general.get_elapsed_time('hlc_step', obj.k));
+                obj.plant.apply(obj.info, obj.result, obj.k, obj.mpa);
 
                 % Check for stop signal
                 % -------------------------------------------------------------------------
