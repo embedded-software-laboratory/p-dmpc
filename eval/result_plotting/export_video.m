@@ -8,7 +8,7 @@ function export_video(result, video_export_setup)
     scenario = result.scenario;
     scenario.options.options_plot_online.is_video_mode = 1;
 
-    nSteps = nnz(result.timings.controller);
+    nSteps = nnz(result.timings_general.controller);
 
     if nargin > 1
         framerate = video_export_setup.framerate;
