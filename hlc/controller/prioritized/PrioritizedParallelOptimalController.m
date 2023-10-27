@@ -1,4 +1,4 @@
-classdef PrioritizedOptimalController < PrioritizedParallelController
+classdef PrioritizedParallelOptimalController < PrioritizedController
 
     properties (Access = private)
         iter_base
@@ -9,8 +9,8 @@ classdef PrioritizedOptimalController < PrioritizedParallelController
 
     methods
 
-        function obj = PrioritizedOptimalController(scenario, plant)
-            obj = obj@PrioritizedParallelController(scenario, plant);
+        function obj = PrioritizedParallelOptimalController(scenario, plant)
+            obj = obj@PrioritizedController(scenario, plant);
             obj.prioritizer = ConstantPrioritizer();
         end
 
@@ -136,7 +136,7 @@ classdef PrioritizedOptimalController < PrioritizedParallelController
 
             end
 
-            disp(solution_cost)
+            % disp(solution_cost)
 
             % choose accordingly
             [~, chosen_solution] = min(solution_cost);
