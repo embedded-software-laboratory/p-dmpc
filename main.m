@@ -32,8 +32,7 @@ function [result, scenario] = main(varargin)
 
         plant = PlantFactory.get_experiment_interface(options.environment);
         % create scenario
-        random_seed = RandStream('mt19937ar');
-        scenario = create_scenario(options, random_seed, plant);
+        scenario = create_scenario(options, plant);
     else
         plant = PlantFactory.get_experiment_interface(scenario.options.environment);
     end

@@ -1,4 +1,4 @@
-function scenario = create_scenario(options, random_seed, plant)
+function scenario = create_scenario(options, plant)
     %create scenario from options
 
     %% options preprocessing
