@@ -39,7 +39,7 @@ namespace GraphBasedPlanning {
 		// get the reference trajectory of each vehicle
 		std::vector<std::vector<vec2>> reference_trajectory(n_vehicles);
 		for (auto i = 0; i < n_vehicles; ++i) {
-			matlab::data::TypedArray<double> const reference_trajectory_array = _matlab->getProperty(vehicles_array, i, u"reference_trajectory");
+			matlab::data::TypedArray<double> const reference_trajectory_array = _matlab->getProperty(vehicles_array, i, u"reference_path");
 			reference_trajectory[i].resize(reference_trajectory_array.getDimensions()[0]);
 
 			// blöd, dass das Format in Matlab schlecht gewählt ist, sodass das folgende nötig wird:

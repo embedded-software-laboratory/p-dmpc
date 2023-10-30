@@ -1,4 +1,4 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <Info Type="StartUp" Visible="0" Icon="" File="hlc/optimizer/graph_search_cpp/compile_graph_search.m" Name="compile_graph_search">
-    <Extension Value="9ee34651-04f3-4a8b-9a0d-e0b06f92029c" Name="StartUpPrev"/>
+    <Extension Value="81a895c0-29c9-4b6c-9525-000540ff18da" Name="StartUpPrev"/>
 </Info>

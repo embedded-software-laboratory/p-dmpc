@@ -196,10 +196,6 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
 
     end
 
-    %     plot distance
-    %     text((iter.x0(v,1)+iter.x0(adj_v,1))/2,(iter.x0(v,2)+iter.x0(adj_v,2))/2,...
-    %         num2str(round(result.distance(v,adj_v,step_idx),2)), 'LineWidth',0.2,'Color','b');
-
     % Obstacle rectangle
     for obs = 1:nObst
         patch(result.obstacles{obs}(1, :) ...

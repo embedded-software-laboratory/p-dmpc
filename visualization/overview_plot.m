@@ -12,7 +12,6 @@ function fig = overview_plot(result, step_indices, fig, colorOffset)
 
     nVeh = scenario.options.amount;
     nObst = size(result.obstacles, 2);
-    nDynObst = size(scenario.dynamic_obstacle_fullres, 1);
 
     nFigs = numel(step_indices);
 
@@ -55,16 +54,7 @@ function fig = overview_plot(result, step_indices, fig, colorOffset)
                 );
             end
 
-            % dynamic obstacles
-            for obs = 1:nDynObst
-                pos_step = scenario.dynamic_obstacle_fullres{obs, step_idx};
-                x = pos_step(1, :);
-                obstaclePolygon = transformed_rectangle(x(1), x(2), pi / 2, scenario.dynamic_obstacle_shape(1), scenario.dynamic_obstacle_shape(2));
-                patch(obstaclePolygon(1, :) ...
-                    , obstaclePolygon(2, :) ...
-                    , [0.5 0.5 0.5] ...
-                );
-            end
+            % TODO plot dynamic obstacles from result
 
         end
 

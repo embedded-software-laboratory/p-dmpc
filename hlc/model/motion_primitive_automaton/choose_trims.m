@@ -135,27 +135,3 @@ function [trim_inputs, trim_adjacency] = choose_trims(mpa_type, max_acceleration
     end
 
 end
-
-%% local function
-function visualize_trims(trim_inputs, trim_adjacency)
-    figure
-    angle = rad2deg(trim_inputs(:, 1));
-    speed = trim_inputs(:, 2);
-    G = digraph(trim_adjacency, 'omitSelfLoops');
-    p = plot(G, 'XData', angle, 'YData', speed, 'MarkerSize', 10);
-
-    % workaround to change font size of node names
-    p.NodeLabel = {};
-    node_names = 1:length(angle);
-
-    for i = 1:length(node_names)
-        text(p.XData(i) + 0.8, p.YData(i), num2str(node_names(i)), 'FontSize', 20);
-    end
-
-    %
-    xlim([-40, 40])
-    ylim([-0.1, 1.0])
-    xlabel('Steering Angle $\delta\:[\circ]$', 'Interpreter', 'latex', 'FontName', 'Times New Roman');
-    ylabel('Speed $\nu\:[m/s]$', 'Interpreter', 'latex', 'FontName', 'Times New Roman');
-    grid on
-end

@@ -25,8 +25,8 @@ classdef FcaPrioritizer < Prioritizer
                 % position of nveh
                 nveh_x = iter.reference_trajectory_points(nveh, :, 1);
                 nveh_y = iter.reference_trajectory_points(nveh, :, 2);
-                refPath_n = [nveh_x; nveh_y]';
-                nveh_yaw = calculate_yaw(refPath_n);
+                reference_path_n = [nveh_x; nveh_y]';
+                nveh_yaw = calculate_yaw(reference_path_n);
                 % check adjacent vehicles
                 veh_adjacent = find(adjacency(nveh, :));
 
@@ -69,8 +69,8 @@ classdef FcaPrioritizer < Prioritizer
                         % position of iveh
                         iveh_x = iter.reference_trajectory_points(iveh, :, 1);
                         iveh_y = iter.reference_trajectory_points(iveh, :, 2);
-                        refPath_i = [iveh_x; iveh_y]';
-                        iveh_yaw = calculate_yaw(refPath_i);
+                        reference_path_i = [iveh_x; iveh_y]';
+                        iveh_yaw = calculate_yaw(reference_path_i);
 
                         % shape of iveh
                         [x_globals_i, y_globals_i] = translate_global(iveh_yaw(istep), iveh_x(istep), iveh_y(istep), x_locals, y_locals);
