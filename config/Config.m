@@ -124,6 +124,9 @@ classdef Config < matlab.mixin.Copyable
 
         function obj = validate(obj)
 
+            % limit maximum number of computation levels
+            obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
+
             % validate manual control config
             if ~obj.manual_control_config.is_active
                 % set values for inactive manual control config

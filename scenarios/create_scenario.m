@@ -3,7 +3,6 @@ function scenario = create_scenario(options, plant)
 
     %% options preprocessing
     % Use options to setup scenario
-    options.max_num_CLs = min(options.max_num_CLs, options.amount);
 
     if options.environment == Environment.Simulation || options.environment == Environment.SimulationDistributed
         disp('Running in MATLAB simulation...')
