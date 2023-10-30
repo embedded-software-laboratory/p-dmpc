@@ -21,14 +21,14 @@ classdef Coupler < handle
 
         end
 
-        function [coupling_info] = calculate_coupling_info(obj, scenario, mpa, iter)
+        function [coupling_info] = calculate_coupling_info(obj, time_step, scenario, mpa, iter)
 
             adjacency = iter.adjacency;
             amount = scenario.options.amount;
             coupling_info = cell(amount, amount);
 
             obj.previous_intersection_ids = obj.intersection_ids;
-            [obj.intersection_ids, ~] = vehicles_at_intersection(scenario, iter, obj.intersection_ids, [], obj.intersection_distance_threshold);
+            [obj.intersection_ids, ~] = vehicles_at_intersection(time_step, scenario, iter, obj.intersection_ids, [], obj.intersection_distance_threshold);
 
             for veh_i = 1:(amount - 1)
 

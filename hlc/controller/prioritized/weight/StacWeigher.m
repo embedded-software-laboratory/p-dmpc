@@ -16,10 +16,10 @@ classdef StacWeigher < Weigher
         function obj = StacWeigher()
         end
 
-        function [weighted_coupling] = weigh(obj, scenario, ~, iter)
+        function [weighted_coupling] = weigh(obj, time_step, scenario, ~, iter)
             weighted_coupling = iter.directed_coupling;
 
-            if ((iter.k == 1) && ~(scenario.options.scenario_type == ScenarioType.commonroad))
+            if ((time_step == 1) && ~(scenario.options.scenario_type == ScenarioType.commonroad))
                 warning('STAC Weight only available for Commonroad scenarios! May behave unexpectedly!')
             end
 

@@ -9,7 +9,7 @@ classdef DistanceWeigher < Weigher
         function obj = DistanceWeigher()
         end
 
-        function [weighted_coupling] = weigh(~, scenario, mpa, iter)
+        function [weighted_coupling] = weigh(~, ~, scenario, mpa, iter)
             weighted_coupling = iter.directed_coupling;
 
             [row, col] = find(iter.directed_coupling);

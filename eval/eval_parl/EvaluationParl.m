@@ -109,6 +109,46 @@ classdef EvaluationParl
             obj = obj.get_runtime_per_step(result);
             obj = obj.get_average_speeds;
 
+            % Number of couplings calculations
+
+            for k = 1:result.nSteps
+                % calculate number of couplings
+                result.num_couplings(k) = nnz(result.iteration_structs{k}.directed_coupling);
+                result.num_couplings_ignored(k) = nnz(result.iteration_structs{k}.directed_coupling) - nnz(result.iteration_structs{k}.directed_coupling_reduced);
+
+                % initialize counter
+                % number of couplings between parallel groups
+                result.num_couplings_between_grps(k) = 0;
+                % reduced number of couplings between groups by using lanelet crossing lanelets
+                result.num_couplings_between_grps_ignored(k) = 0;
+
+                [row_coupling, col_coupling] = find(result.iteration_structs{k}.directed_coupling);
+                n_couplings = length(row_coupling);
+
+                for i_coupling = 1:n_couplings
+                    veh_i = row_coupling(i_coupling);
+                    veh_j = col_coupling(i_coupling);
+                    veh_ij = [veh_i, veh_j];
+                    is_same_grp = any(cellfun(@(c) all(ismember(veh_ij, c)), {result.iteration_structs{k}.parl_groups_info.vertices}));
+
+                    if is_same_grp
+                        continue
+                    end
+
+                    result.num_couplings_between_grps(k) = result.num_couplings_between_grps(k) + 1;
+
+                    if ( ...
+                            ~(result.iteration_structs{k}.directed_coupling(veh_i, veh_j) == 1) || ...
+                            ~(result.iteration_structs{k}.directed_coupling_reduced(veh_i, veh_j) == 0) ...
+                        )
+                        continue
+                    end
+
+                    result.num_couplings_between_grps_ignored(k) = result.num_couplings_between_grps_ignored(k) + 1;
+                end
+
+            end
+
             % Number of couplings
             obj.num_couplings = mean(result.num_couplings(obj.steps_ignored:obj.nSteps));
             obj.num_couplings_ignored = mean(result.num_couplings_ignored(obj.steps_ignored:obj.nSteps));
@@ -181,13 +221,13 @@ classdef EvaluationParl
             obj.runtime_graph_search_average = mean(result.runtime_graph_search_max(obj.steps_ignored:obj.nSteps));
             obj.runtime_graph_search = max(result.runtime_graph_search_max(obj.steps_ignored:obj.nSteps));
 
-            obj.runtime_determine_couplings = max(result.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
-            obj.runtime_determine_couplings_average = mean(result.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_determine_couplings = max(result.timings.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_determine_couplings_average = mean(result.timings.determine_couplings_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
             % in order to assign priorities, determination of couplings is needed
-            obj.runtime_assign_priority = max(result.assign_priority_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
-            obj.runtime_assign_priority_average = mean(result.assign_priority_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
-            obj.runtime_group_vehs = max(result.group_vehs_time(obj.steps_ignored:obj.nSteps));
-            obj.runtime_group_vehs_average = mean(result.group_vehs_time(obj.steps_ignored:obj.nSteps));
+            obj.runtime_assign_priority = max(result.timings.assign_priority_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_assign_priority_average = mean(result.timings.assign_priority_time(obj.steps_ignored:obj.nSteps) + result.iter_runtime(obj.steps_ignored:obj.nSteps));
+            obj.runtime_group_vehs = max(result.timings.group_vehs_time(obj.steps_ignored:obj.nSteps));
+            obj.runtime_group_vehs_average = mean(result.timings.group_vehs_time(obj.steps_ignored:obj.nSteps));
 
             obj.nodes_expanded_per_step = result.n_expanded(obj.steps_ignored:obj.nSteps);
             obj.nodes_expanded_average = mean(obj.nodes_expanded_per_step);

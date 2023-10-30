@@ -10,7 +10,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
     properties (Access = protected)
         CL_based_hierarchy;
-        lanelet_crossing_areas;
+
         prioritizer
         weigher
         coupler
@@ -113,45 +113,33 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.iter.x0(vehicle_index, :) = states_measured(vehicle_index, :);
                 obj.iter.trim_indices(vehicle_index) = trims_measured(vehicle_index);
 
-                % calculate predicted lanelets
-                predicted_lanelets = get_predicted_lanelets( ...
-                    obj.scenario, ...
-                    obj.mpa, ...
-                    obj.iter, ...
-                    vehicle_index, ...
-                    states_measured(vehicle_index, state_indices.x), ...
-                    states_measured(vehicle_index, state_indices.y) ...
-                );
+                if obj.scenario.options.scenario_type == ScenarioType.circle
+                    % In circle scenarios there are no lanelets
+                    predicted_lanelets = [];
+                else
+                    % Compute the reference trajectory
+                    reference_trajectory_struct = get_reference_trajectory( ...
+                        obj.mpa, ...
+                        obj.scenario.vehicles(vehicle_index).reference_path, ...
+                        states_measured(vehicle_index, state_indices.x), ...
+                        states_measured(vehicle_index, state_indices.y), ...
+                        trims_measured(vehicle_index), ...
+                        obj.scenario.options.dt_seconds ...
+                    );
 
-                % get vehicle size
-                length = obj.scenario.vehicles(vehicle_index).Length;
-                width = obj.scenario.vehicles(vehicle_index).Width;
+                    % Compute the predicted lanelets of iVeh vehicle
+                    predicted_lanelets = get_predicted_lanelets(obj.scenario, vehicle_index, reference_trajectory_struct);
+                end
 
-                % get vehicles currently occupied area in vehicle frame
-                % repeat first entry at the end to enclose the shape
-                x_local_with_offset = [-1, -1, 1, 1, -1] * (length / 2 + obj.scenario.options.offset);
-                y_local_with_offset = [-1, 1, 1, -1, -1] * (width / 2 + obj.scenario.options.offset);
-                x_local_without_offset = [-1, -1, 1, 1, -1] * (length / 2);
-                y_local_without_offset = [-1, 1, 1, -1, -1] * (width / 2);
-
-                % calculate areas in global frame
-                [x_global_with_offset, y_global_with_offset] = translate_global( ...
-                    states_measured(vehicle_index, state_indices.heading), ...
+                % get vehicles currently occupied areas
+                occupied_areas = get_occupied_areas( ...
                     states_measured(vehicle_index, state_indices.x), ...
                     states_measured(vehicle_index, state_indices.y), ...
-                    x_local_with_offset, ...
-                    y_local_with_offset ...
-                );
-                [x_global_without_offset, y_global_without_offset] = translate_global( ...
                     states_measured(vehicle_index, state_indices.heading), ...
-                    states_measured(vehicle_index, state_indices.x), ...
-                    states_measured(vehicle_index, state_indices.y), ...
-                    x_local_without_offset, ...
-                    y_local_without_offset ...
+                    obj.scenario.vehicles(vehicle_index).Length, ...
+                    obj.scenario.vehicles(vehicle_index).Width, ...
+                    obj.scenario.options.offset ...
                 );
-
-                occupied_area.normal_offset = [x_global_with_offset; y_global_with_offset];
-                occupied_area.without_offset = [x_global_without_offset; y_global_without_offset];
 
                 % for initial time step, reachable_sets and predicted areas do not exist yet
                 reachable_sets = {};
@@ -163,7 +151,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     states_measured(vehicle_index, :), ...
                     trims_measured(vehicle_index), ...
                     predicted_lanelets, ...
-                    occupied_area, ...
+                    occupied_areas, ...
                     reachable_sets ...
                 );
                 obj.predictions_communication{vehicle_index}.send_message( ...
@@ -198,125 +186,125 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function runtime_others = init_step(obj)
-            runtime_others_tic = tic;
+        function update_controlled_vehicles_traffic_info(obj, states_measured, trims_measured)
+            % compute vehicles traffic info in HighLevelController
+            update_controlled_vehicles_traffic_info@HighLevelController(obj, states_measured, trims_measured);
 
-            determine_couplings_timer = tic;
-            obj.couple();
-            obj.iter.timer.determine_couplings = toc(determine_couplings_timer);
-
-            assign_priority_timer = tic;
-            obj.prioritize();
-            obj.iter.timer.assign_priority = toc(assign_priority_timer);
-
-            obj.weigh();
-
-            obj.reduce();
-
-            group_vehicles_timer = tic;
-            obj.group();
-            obj.iter.timer.group_vehs = toc(group_vehicles_timer);
-
-            nVeh = obj.scenario.options.amount;
-            Hp = obj.scenario.options.Hp;
-
-            % initialize variable to store control results
-            obj.info = ControlResultsInfo(nVeh, Hp, obj.plant.all_vehicle_ids);
-
-            directed_graph = digraph(obj.iter.directed_coupling);
-            [obj.belonging_vector_total, ~] = conncomp(directed_graph, 'Type', 'weak'); % graph decomposition
-
-            obj.iter.num_couplings_between_grps = 0; % number of couplings between groups
-            obj.iter.num_couplings_between_grps_ignored = 0; % ignored number of couplings between groups by using lanelet crossing lanelets
-
-            [row_coupling, col_coupling] = find(obj.iter.directed_coupling);
-            n_couplings = length(row_coupling);
-
-            for i_coupling = 1:n_couplings
-                veh_i = row_coupling(i_coupling);
-                veh_j = col_coupling(i_coupling);
-                veh_ij = [veh_i, veh_j];
-                is_same_grp = any(cellfun(@(c) all(ismember(veh_ij, c)), {obj.iter.parl_groups_info.vertices}));
-
-                if ~is_same_grp
-                    obj.iter.num_couplings_between_grps = obj.iter.num_couplings_between_grps + 1;
-
-                    if ~isempty(obj.iter.coupling_info{veh_i, veh_j}) && obj.iter.coupling_info{veh_i, veh_j}.is_virtual_obstacle
-                        obj.iter.num_couplings_between_grps_ignored = obj.iter.num_couplings_between_grps_ignored + 1;
-                    end
-
-                end
-
+            for iVeh = obj.plant.indices_in_vehicle_list
+                % Send data to sync obj.iter for all vehicles
+                obj.traffic_communication{iVeh}.send_message( ...
+                    obj.k, ...
+                    obj.iter.x0(iVeh, :), ...
+                    obj.iter.trim_indices(iVeh), ...
+                    obj.iter.predicted_lanelets{iVeh}, ...
+                    obj.iter.occupied_areas{iVeh}, ...
+                    obj.iter.reachable_sets(iVeh, :) ...
+                );
             end
 
-            runtime_others = toc(runtime_others_tic); % subcontroller runtime except for runtime of graph search and msg send time
         end
 
-        function subcontroller_time = plan_single_vehicle(obj, vehicle_idx)
-            subcontroller_timer = tic;
+        function update_other_vehicles_traffic_info(obj)
+            % read the traffic messages from the other vehicles and
+            % store the information in the IterationData object
+
+            % create index struct only once for efficiency
+            state_index = indices();
+
+            % index of communication class
+            % note: only one is taken since each communication class receives
+            % the messages from all other vehicles
+            jVeh = obj.plant.indices_in_vehicle_list(1);
+
+            % read messages from other vehicles
+            other_vehicle_indices = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
+
+            % loop over vehicle from which the messages are read
+            for kVeh = other_vehicle_indices
+                latest_msg_i = obj.traffic_communication{jVeh}.read_message( ...
+                    obj.plant.all_vehicle_ids(kVeh), ...
+                    obj.k, ...
+                    true ...
+                );
+
+                % take state and trim of vehicle kVeh
+                obj.iter.x0(kVeh, :) = [latest_msg_i.current_pose.x, latest_msg_i.current_pose.y, latest_msg_i.current_pose.heading, latest_msg_i.current_pose.speed];
+                obj.iter.trim_indices(kVeh) = latest_msg_i.current_trim_index;
+
+                % transform occupied areas
+                occupied_areas = latest_msg_i.occupied_areas;
+                obj.iter.occupied_areas{kVeh}.normal_offset(1, :) = occupied_areas(1).x;
+                obj.iter.occupied_areas{kVeh}.normal_offset(2, :) = occupied_areas(1).y;
+                obj.iter.occupied_areas{kVeh}.without_offset(1, :) = occupied_areas(2).x;
+                obj.iter.occupied_areas{kVeh}.without_offset(2, :) = occupied_areas(2).y;
+
+                % transform reachable sets to polyshape object
+                obj.iter.reachable_sets(kVeh, :) = (arrayfun(@(array) {polyshape(array.x, array.y)}, latest_msg_i.reachable_sets))';
+
+                % transform predicted lanelets
+                obj.iter.predicted_lanelets{kVeh} = latest_msg_i.predicted_lanelets';
+
+                % calculate the predicted lanelet boundary of vehicle kVeh based on its predicted lanelets
+                if obj.scenario.options.scenario_type ~= ScenarioType.circle
+                    obj.iter.predicted_lanelet_boundary(kVeh, :) = get_lanelets_boundary( ...
+                        obj.iter.predicted_lanelets{kVeh}, ...
+                        obj.scenario.lanelet_boundary, ...
+                        obj.scenario.vehicles(kVeh).lanelets_index, ...
+                        obj.scenario.vehicles(kVeh).is_loop ...
+                    );
+                end
+
+                % get occupied areas of emergency maneuvers for vehicle kVeh
+                obj.iter.emergency_maneuvers{kVeh} = obj.mpa.emergency_maneuvers_at_pose( ...
+                    obj.iter.x0(kVeh, state_index.x), ...
+                    obj.iter.x0(kVeh, state_index.y), ...
+                    obj.iter.x0(kVeh, state_index.heading), ...
+                    obj.iter.trim_indices(kVeh) ...
+                );
+            end
+
+        end
+
+        function create_coupling_graph(obj)
+
+            obj.update_other_vehicles_traffic_info();
+
+            obj.timing.start("determine_couplings_time", obj.k);
+            obj.couple();
+            obj.timing.stop("determine_couplings_time", obj.k);
+
+            obj.timing.start("assign_priority_time", obj.k);
+            obj.prioritize();
+            obj.timing.stop("assign_priority_time", obj.k);
+
+            obj.reduce_computation_levels();
+
+        end
+
+        function plan_single_vehicle(obj, vehicle_idx)
 
             % only keep self
             filter_self = false(1, obj.scenario.options.amount);
             filter_self(vehicle_idx) = true;
             iter_v = filter_iter(obj.iter, filter_self);
 
-            grp_idx = arrayfun(@(array) ismember(vehicle_idx, array.vertices), iter_v.parl_groups_info);
-            all_vehs_same_grp = iter_v.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
-
             all_coupled_vehs_with_HP = find(iter_v.directed_coupling_reduced(:, vehicle_idx) == 1)'; % all coupled vehicles with higher priorities
             all_coupled_vehs_with_LP = find(iter_v.directed_coupling_reduced(vehicle_idx, :) == 1); % all coupled vehicles with lower priorities
 
-            coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp); % coupled vehicles with higher priorities in the same group
-            coupled_vehs_other_grps_with_HP = setdiff(all_coupled_vehs_with_HP, coupled_vehs_same_grp_with_HP); % coupled vehicles with higher priorities in other groups
+            % consider vehicles with higher priority
+            [dynamic_obstacle_area_HP, is_fallback_triggered] = consider_vehs_with_HP(obj, vehicle_idx, all_coupled_vehs_with_HP);
 
-            for veh_with_HP_i = all_coupled_vehs_with_HP
-
-                if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
-                    % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
-                    latest_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
-                        obj.plant.all_vehicle_ids(veh_with_HP_i), ...
-                        obj.k, ...
-                        true ...
-                    );
-                    obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
-
-                    if ismember(vehicle_idx, obj.info.vehs_fallback)
-                        % if the selected vehicle should take fallback
-                        subcontroller_time = toc(subcontroller_timer);
-                        obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
-                        return;
-                    end
-
-                    predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-
-                    iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
-                else
-                    % if they are in different groups
-                    [iter_v, should_fallback] = obj.consider_parallel_coupling(iter_v, vehicle_idx, veh_with_HP_i);
-
-                    if should_fallback
-                        subcontroller_time = toc(subcontroller_timer);
-                        obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
-                        return;
-                    end
-
-                end
-
-            end
-
-            if ~strcmp(obj.scenario.options.strategy_enter_lanelet_crossing_area, '1')
-                % Set lanelet intersecting areas as static obstacles if vehicle with lower priorities is not allowed to enter those area
-                iter_v.lanelet_crossing_areas = obj.iter.lanelet_crossing_areas{vehicle_idx};
-
-                if isempty(iter_v.lanelet_crossing_areas)
-                    iter_v.lanelet_crossing_areas = {}; % convert from 'double' to 'cell'
-                end
-
-                assert(iscell(iter_v.lanelet_crossing_areas));
+            % if vehicle with higher priority triggered fallback, do not plan
+            if is_fallback_triggered
+                return
             end
 
             % consider coupled vehicles with lower priorities
-            iter_v = obj.consider_vehs_with_LP(iter_v, vehicle_idx, all_coupled_vehs_with_LP);
+            [obstacles_LP, dynamic_obstacle_area_LP] = obj.consider_vehs_with_LP(vehicle_idx, all_coupled_vehs_with_LP);
+
+            % add obstacles for considering other vehicles
+            iter_v.obstacles = [iter_v.obstacles; obstacles_LP];
+            iter_v.dynamic_obstacle_area = [iter_v.dynamic_obstacle_area; dynamic_obstacle_area_HP; dynamic_obstacle_area_LP];
 
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
@@ -329,11 +317,13 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             if info_v.needs_fallback
                 % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
-                %                 disp(['Graph search exhausted after expending node ' num2str(info_v.n_expanded) ' times for vehicle ' num2str(vehicle_idx) ', at time step: ' num2str(scenario.k) '.'])
+
                 switch obj.scenario.options.fallback_type
                     case FallbackType.local_fallback
-                        sub_graph_fallback = obj.belonging_vector_total(vehicle_idx);
-                        obj.info.vehs_fallback = [obj.info.vehs_fallback; find(obj.belonging_vector_total == sub_graph_fallback).'];
+                        % local fallback: only vehicles in same subgraph take fallback
+                        belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
+                        sub_graph_fallback = belonging_vector_total(vehicle_idx);
+                        obj.info.vehs_fallback = [obj.info.vehs_fallback; find(belonging_vector_total == sub_graph_fallback).'];
                         obj.info.vehs_fallback = unique(obj.info.vehs_fallback, 'stable');
                     case FallbackType.global_fallback
                         % global fallback: all vehicles take fallback
@@ -349,21 +339,12 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
             end
 
-            if obj.iter.k == inf
-                plot_obstacles(obj.scenario)
-                plot_obstacles(info_v.shapes)
-                plot_partitioned_graph(obj.iter.belonging_vector, obj.iter.weighted_coupling, 'ShowWeights', true)
-            end
-
-            subcontroller_time = toc(subcontroller_timer);
         end
 
-        function msg_send_time = publish_predictions(obj, vehicle_idx)
+        function publish_predictions(obj, vehicle_idx)
 
             if ~ismember(vehicle_idx, obj.info.vehs_fallback)
                 % if the selected vehicle should take fallback
-
-                msg_send_tic = tic;
                 predicted_areas_k = obj.info.shapes(vehicle_idx, :);
                 % send message
                 obj.predictions_communication{vehicle_idx}.send_message( ...
@@ -371,119 +352,244 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     predicted_areas_k, ...
                     obj.info.vehs_fallback ...
                 );
-                msg_send_time = toc(msg_send_tic);
-
             else
-                msg_send_tic = tic;
                 obj.predictions_communication{vehicle_idx}.send_message( ...
                     obj.k, ...
                     {}, ...
                     obj.info.vehs_fallback ...
                 );
-                msg_send_time = toc(msg_send_tic);
             end
 
         end
 
         function couple(obj)
             obj.iter.adjacency = obj.coupler.couple(obj.iter);
-            obj.iter.coupling_info = obj.coupler.calculate_coupling_info(obj.scenario, obj.mpa, obj.iter);
+            obj.iter.coupling_info = obj.coupler.calculate_coupling_info(obj.k, obj.scenario, obj.mpa, obj.iter);
         end
 
         function prioritize(obj)
-            obj.iter.directed_coupling = obj.prioritizer.prioritize(obj.scenario, obj.iter);
+            obj.iter.directed_coupling = obj.prioritizer.prioritize(obj.k, obj.scenario, obj.iter);
             obj.iter.priority_list = obj.prioritizer.get_priority_list(obj.iter.directed_coupling);
         end
 
-        function weigh(obj)
-            obj.iter.weighted_coupling = obj.weigher.weigh(obj.scenario, obj.mpa, obj.iter);
-        end
+        function reduce_computation_levels(obj)
+            % weigh
+            obj.iter.weighted_coupling = obj.weigher.weigh(obj.k, obj.scenario, obj.mpa, obj.iter);
 
-        function reduce(obj)
-            [obj.iter.weighted_coupling_reduced, obj.iter.coupling_info, obj.iter.lanelet_crossing_areas] = ...
-                reduce_coupling_lanelet_crossing_area(obj.iter, obj.scenario.options.strategy_enter_lanelet_crossing_area);
-            obj.iter.directed_coupling_reduced = (obj.iter.weighted_coupling_reduced ~= 0);
-        end
+            % reduce by replacing with lanelet crossing area obstacles
+            obj.iter.directed_coupling_reduced = obj.iter.directed_coupling;
+            obj.iter.weighted_coupling_reduced = obj.iter.weighted_coupling;
 
-        function group(obj)
-            method = 's-t-cut'; % 's-t-cut' or 'MILP'
-            [obj.CL_based_hierarchy, obj.iter.parl_groups_info, obj.iter.belonging_vector] = form_parallel_groups(obj.iter.weighted_coupling_reduced, obj.scenario.options.max_num_CLs, obj.iter.coupling_info, method, obj.scenario.options);
-        end
+            if obj.scenario.options.scenario_type ~= ScenarioType.circle
+                % reduce only if no circle scenario
 
-        function [iter_v, should_fallback] = parallel_coupling_reachability(obj, iter_v, vehicle_idx, veh_with_HP_i)
-            % Collisions with coupled vehicles with higher priorities in different groups will be avoided by two ways depending on the time step at which
-            % their latest messages are sent:
-            % 1. Their predicted occupied areas will be considered as dynamic obstacles if the latest messages come from the current time step.
-            % 2. Their reachable sets will be considered as dynamic obstacles if the latest messages come from past time step.
-            should_fallback = false;
-            latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
-                obj.plant.all_vehicle_ids(veh_with_HP_i) ...
-            );
-
-            if latest_msg.time_step == obj.k
-                obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
-
-                if ismember(vehicle_idx, obj.info.vehs_fallback)
-                    should_fallback = true;
-                    return
-                end
-
-                predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
-
-            else
-                % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
-                reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i, :);
-                % turn polyshape to plain array (repeat the first row to enclosed the shape)
-                reachable_sets_i_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
-                iter_v.dynamic_obstacle_reachableSets(end + 1, :) = reachable_sets_i_array;
-            end
-
-        end
-
-        function [iter_v, should_fallback] = parallel_coupling_previous_trajectory(obj, iter_v, vehicle_idx, veh_with_HP_i)
-            should_fallback = false; % no fallback since no recursive feasibility guarantee
-            % otherwise add one-step delayed trajectories as dynamic obstacles
-            if obj.k > 1
-                % the old trajectories are available from the second time step onwards
-                old_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
-                    obj.plant.all_vehicle_ids(veh_with_HP_i), ...
-                    obj.k - 1, ...
-                    true ...
+                % get ignored couplings and lanelet_crossing_areas
+                [ ...
+                     obj.iter.coupling_info, ...
+                     obj.iter.directed_coupling_reduced, ...
+                     obj.iter.weighted_coupling_reduced, ...
+                     obj.iter.lanelet_crossing_areas ...
+                 ] = reduce_coupling_lanelet_crossing_area( ...
+                    obj.iter, ...
+                    obj.scenario.options.strategy_enter_lanelet_crossing_area ...
                 );
-                predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, old_msg.predicted_areas);
-                oldness_msg = obj.k - old_msg.time_step;
 
-                if oldness_msg ~= 0
-                    % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
-                    predicted_areas_i = del_first_rpt_last(predicted_areas_i', oldness_msg);
-                end
-
-                iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
             end
+
+            obj.timing.start("group_vehs_time", obj.k);
+            % reduce by grouping and cutting edges
+            method = 's-t-cut'; % 's-t-cut' or 'MILP'
+            [obj.CL_based_hierarchy, obj.iter.parl_groups_info, obj.iter.belonging_vector ...
+             ] = form_parallel_groups( ...
+                obj.iter.weighted_coupling_reduced, ...
+                obj.scenario.options.max_num_CLs, ...
+                obj.iter.coupling_info, ...
+                method, ...
+                obj.scenario.options ...
+            );
+            obj.timing.stop("group_vehs_time", obj.k);
 
         end
 
-        function iter_v = consider_vehs_with_LP(obj, iter_v, vehicle_idx, all_coupling_vehs_without_ROW)
-            % CONSIDER_VEHS_WITH_LP Stategies to let vehicle with the right-of-way
+        function dynamic_obstacle_area = parallel_coupling_reachability(obj, ~, veh_with_HP_i)
+            % collisions with coupled vehicles with higher priorities in
+            % different groups will be avoided by considering
+            % their reachable sets as dynamic obstacles
+            %
+            % Output:
+            %   dynamic_obstacle_area (1, Hp) cell of areas [x; y]
+
+            arguments
+                obj (1, 1) PrioritizedController
+                ~% index of the current vehicle
+                veh_with_HP_i (1, 1) double % index of the vehicle with higher priority
+            end
+
+            % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
+            reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i, :);
+            % turn polyshape to plain array (repeat the first row to enclosed the shape)
+            reachable_sets_i_cell_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
+            dynamic_obstacle_area = reachable_sets_i_cell_array;
+
+        end
+
+        function dynamic_obstacle_area = parallel_coupling_previous_trajectory(obj, vehicle_idx, veh_with_HP_i)
+            % collisions with coupled vehicles with higher priorities in
+            % different groups will be avoided by considering
+            % their one-step delayed predicted trajectories as dynamic obstacle
+            %
+            % Output:
+            %   dynamic_obstacle_area (1, Hp) cell of areas [x; y]
+
+            arguments
+                obj (1, 1) PrioritizedController
+                vehicle_idx (1, 1) double % index of the current vehicle
+                veh_with_HP_i (1, 1) double % index of the vehicle with higher priority
+            end
+
+            % initialize the returned variable with dimension 0 that it does
+            % not extend the list of dynamic_obstacle_area
+            dynamic_obstacle_area = cell(0, obj.scenario.options.Hp);
+
+            if obj.k <= 1
+                return
+            end
+
+            % the old trajectories are available from the second time step onwards
+            old_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
+                obj.plant.all_vehicle_ids(veh_with_HP_i), ...
+                obj.k - 1, ...
+                true ...
+            );
+            predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, old_msg.predicted_areas);
+            oldness_msg = obj.k - old_msg.time_step;
+
+            if oldness_msg ~= 0
+                % consider the oldness of the message: delete the first n entries and repeat the last entry for n times
+                predicted_areas_i = del_first_rpt_last(predicted_areas_i', oldness_msg);
+            end
+
+            dynamic_obstacle_area = predicted_areas_i;
+
+        end
+
+        function [dynamic_obstacle_area, is_fallback_triggered] = consider_vehs_with_HP(obj, vehicle_idx, all_coupled_vehs_with_HP)
+            % consider_vehs_with_HP considering vehicles with higher priority
+            % strategy depends on whether the vehicles are in the same group
+            % and if the prediction consistency is should be guaranteed
+            %
+            % Output:
+            %   dynamic_obstacle_area (1, Hp) cell of areas [x; y]
+            %   is_fallback_triggered (1, 1) logical
+            %       true if higher prioritized vehicle has a fallback
+
+            arguments
+                obj (1, 1) PrioritizedController
+                vehicle_idx (1, 1) double % index of the current vehicle
+                all_coupled_vehs_with_HP double % indices of the vehicles with higher priority
+            end
+
+            is_fallback_triggered = false;
+
+            % preallocate cell array entries
+            dynamic_obstacle_area = cell(length(all_coupled_vehs_with_HP), obj.scenario.options.Hp);
+
+            grp_idx = arrayfun(@(array) ismember(vehicle_idx, array.vertices), obj.iter.parl_groups_info);
+            all_vehs_same_grp = obj.iter.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
+
+            % coupled vehicles with higher priorities in the same group
+            coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp);
+
+            for i_vehicle = 1:length(all_coupled_vehs_with_HP)
+                veh_with_HP_i = all_coupled_vehs_with_HP(i_vehicle);
+
+                if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
+                    % if in the same group, read the current message and set the
+                    % predicted occupied areas as dynamic obstacles
+                    latest_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
+                        obj.plant.all_vehicle_ids(veh_with_HP_i), ...
+                        obj.k, ...
+                        true ...
+                    );
+                    obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
+
+                    if ismember(vehicle_idx, obj.info.vehs_fallback)
+                        % if the selected vehicle should take fallback
+                        is_fallback_triggered = true;
+                    else
+                        predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
+                        dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
+                    end
+
+                else
+                    % if they are in different groups, read the latest available
+                    % message and check it is from the current time step
+                    latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
+                        obj.plant.all_vehicle_ids(veh_with_HP_i) ...
+                    );
+
+                    % if the current message is available no less precise
+                    % information must be used to consider the vehicle
+                    if latest_msg.time_step == obj.k
+                        obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
+
+                        if ismember(vehicle_idx, obj.info.vehs_fallback)
+                            is_fallback_triggered = true;
+                        else
+                            predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
+                            dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
+
+                        end
+
+                    else
+                        % if they are in different groups and message of
+                        % current time step is not available
+                        dynamic_obstacle_area(i_vehicle, :) = obj.consider_parallel_coupling(vehicle_idx, veh_with_HP_i);
+                    end
+
+                end
+
+            end
+
+            % release preallocated cell array entries
+            dynamic_obstacle_area(cellfun(@isempty, dynamic_obstacle_area(:, 1)), :) = [];
+
+        end
+
+        function [obstacles, dynamic_obstacle_area] = consider_vehs_with_LP(obj, vehicle_idx, all_coupling_vehs_without_ROW)
+            % CONSIDER_VEHS_WITH_LP Strategies to let vehicle with the right-of-way
             % consider vehicle without the right-of-way
             % '1': do not consider
             % '2': consider currently occupied area as static obstacle
             % '3': consider the occupied area of emergency braking maneuver as static obstacle
             % '4': consider one-step reachable sets as static obstacle
             % '5': consider old trajectory as dynamic obstacle
+            %
+            % Output:
+            %   obstacles (:, 1) cell of areas [x; y]
+            %   dynamic_obstacle_area (:, Hp) cell of areas [x; y]
+
+            arguments
+                obj (1, 1) PrioritizedController
+                vehicle_idx (1, 1) double % index of the current vehicle
+                all_coupling_vehs_without_ROW double % indices of the vehicles with lower priority
+            end
+
+            % preallocate cell array entries
+            obstacles = cell(length(all_coupling_vehs_without_ROW), 1);
+            dynamic_obstacle_area = cell(length(all_coupling_vehs_without_ROW), obj.scenario.options.Hp);
 
             for i_LP = 1:length(all_coupling_vehs_without_ROW)
                 veh_without_ROW = all_coupling_vehs_without_ROW(i_LP);
 
-                % stategies to let vehicle with the right-of-way consider vehicle without the right-of-way
+                % strategies to let vehicle with the right-of-way consider vehicle without the right-of-way
                 switch obj.scenario.options.strategy_consider_veh_without_ROW
                     case '1'
                         % do not consider
 
                     case '2'
                         % consider currently occupied area as static obstacle
-                        iter_v.obstacles{end + 1} = iter_v.occupied_areas{veh_without_ROW}.normal_offset; % add as static obstacles
+                        obstacles{i_LP} = obj.iter.occupied_areas{veh_without_ROW}.normal_offset;
 
                     case '3'
                         % consider the occupied area of emergency braking maneuver
@@ -493,46 +599,49 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         % possibility). Cases that vehicles drive successively are not
                         % included to avoid that vehicles behind push vehicles in
                         % front to move forward.
-                        switch obj.scenario.options.priority
-                            case PriorityStrategies.STAC_priority
 
-                                if ~iter_v.coupling_info{vehicle_idx, veh_without_ROW}.is_ignored && iter_v.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side ...
-                                        && iter_v.coupling_info{vehicle_idx, veh_without_ROW}.lanelet_relationship == LaneletRelationshipType.crossing
-                                    % the emergency braking maneuver is only considered if
-                                    % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
-                                    iter_v.obstacles{end + 1} = iter_v.emergency_maneuvers{veh_without_ROW}.braking_area;
-                                else
-                                    iter_v.obstacles{end + 1} = iter_v.occupied_areas{veh_without_ROW}.normal_offset;
-                                end
-
-                            otherwise
-                                iter_v.obstacles{end + 1} = iter_v.occupied_areas{veh_without_ROW}.normal_offset;
+                        if ( ...
+                                obj.scenario.options.scenario_type ~= ScenarioType.circle && ...
+                                obj.scenario.options.priority == PriorityStrategies.STAC_priority && ...
+                                obj.iter.directed_coupling_reduced(vehicle_idx, veh_without_ROW) == 1 && ...
+                                obj.iter.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side && ...
+                                obj.iter.coupling_info{vehicle_idx, veh_without_ROW}.lanelet_relationship == LaneletRelationshipType.crossing ...
+                            )
+                            % the emergency braking maneuver is only considered if
+                            % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
+                            obstacles{i_LP} = obj.iter.emergency_maneuvers{veh_without_ROW}.braking_area;
+                            continue
                         end
+
+                        obstacles{i_LP} = obj.iter.occupied_areas{veh_without_ROW}.normal_offset;
 
                     case '4'
                         % consider one-step reachable sets as static obstacle
-                        reachable_sets = iter_v.reachable_sets{veh_without_ROW, 1};
+                        reachable_sets = obj.iter.reachable_sets{veh_without_ROW, 1};
                         % get boundary of the polygon
                         [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
-                        iter_v.obstacles(end + 1) = {[x_reachable_sets'; y_reachable_sets']};
+                        obstacles{i_LP} = [x_reachable_sets'; y_reachable_sets'];
+
                     case '5'
                         % consider old trajectory as dynamic obstacle
                         latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
                             obj.plant.all_vehicle_ids(veh_without_ROW) ...
                         );
 
-                        if latest_msg.time_step > 0
-                            % the message does not come from the initial time step
-                            predicted_areas = arrayfun(@(array) {[array.x'; array.y']}, latest_msg.predicted_areas);
-                            shift_step = iter_v.k - latest_msg.time_step; % times that the prediction should be shifted and the last prediction should be repeated
-
-                            if shift_step > 1
-                                disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_i) ', considered vehicle: ' num2str(veh_without_ROW)])
-                            end
-
-                            predicted_areas = del_first_rpt_last(predicted_areas(:)', shift_step);
-                            iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas;
+                        if latest_msg.time_step <= 0
+                            continue
                         end
+
+                        % the message does not come from the initial time step
+                        predicted_areas = arrayfun(@(array) {[array.x'; array.y']}, latest_msg.predicted_areas);
+                        shift_step = obj.k - latest_msg.time_step; % times that the prediction should be shifted and the last prediction should be repeated
+
+                        if shift_step > 1
+                            disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_idx) ', considered vehicle: ' num2str(veh_without_ROW)])
+                        end
+
+                        predicted_areas = del_first_rpt_last(predicted_areas(:)', shift_step);
+                        dynamic_obstacle_area(i_LP, :) = predicted_areas;
 
                     otherwise
                         warning("Please specify one of the following strategies to let vehicle with a higher priority also consider vehicle with a lower priority: '1', '2', '3', '4', '5'.")
@@ -540,19 +649,25 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             end
 
+            % release preallocated cell array entries
+            obstacles(cellfun(@isempty, obstacles), :) = [];
+            dynamic_obstacle_area(cellfun(@isempty, dynamic_obstacle_area(:, 1)), :) = [];
+
         end
 
-        function check_fallback(obj)
-            % check for fallback in other controllers
+        function check_others_fallback(obj)
+            % the function checks the messages from other controllers
+            % whether they take a fallback or not
 
             for vehicle_index_hlc = obj.plant.indices_in_vehicle_list
                 % own vehicle and vehicles that are already remembered to take fallback
                 irrelevant_vehicles = union(vehicle_index_hlc, obj.info.vehs_fallback);
 
                 if obj.scenario.options.fallback_type == FallbackType.local_fallback
-                    sub_graph_fallback = obj.belonging_vector_total(vehicle_index_hlc);
+                    belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
+                    sub_graph_fallback = belonging_vector_total(vehicle_index_hlc);
                     % vehicles in the subgraph to check for fallback
-                    other_vehicles = find(obj.belonging_vector_total == sub_graph_fallback);
+                    other_vehicles = find(belonging_vector_total == sub_graph_fallback);
                     % remove irrelevant vehicles which have not to be checked for fallback
                     other_vehicles = setdiff(other_vehicles, irrelevant_vehicles, 'stable');
 
@@ -588,7 +703,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function handle_fallback(obj)
+        function plan_for_fallback(obj)
             % planning by using last priority and trajectories directly
 
             tick_per_step = obj.scenario.options.tick_per_step + 1;
@@ -621,7 +736,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 if obj.scenario.options.isDealPredictionInconsistency == false
                     % send message
                     obj.predictions_communication{vehicle_idx}.send_message( ...
-                        obj.iter.k, ...
+                        obj.k, ...
                         obj.info.shapes(vehicle_idx, :), ...
                         obj.info.vehs_fallback ...
                     );

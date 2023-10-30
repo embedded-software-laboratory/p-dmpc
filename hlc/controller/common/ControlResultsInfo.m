@@ -61,8 +61,8 @@ classdef ControlResultsInfo
             obj.is_exhausted = false(nVeh, 1);
             obj.needs_fallback = false(nVeh, 1);
             %obj.u = zeros(nVeh,1);
-            %obj.runtime_graph_search_each_veh = zeros(nVeh);
-            %obj.runtime_subcontroller_each_veh = zeros(nVeh);
+            obj.runtime_subcontroller_each_veh = zeros(nVeh, 1);
+            obj.runtime_graph_search_each_veh = zeros(nVeh, 1);
         end
 
         function obj = store_control_info(obj, info_v, scenario, mpa)
@@ -99,7 +99,7 @@ classdef ControlResultsInfo
         end
 
         function obj = get_run_time_total_all_grps(obj, parl_groups_info, CL_based_hierarchy, ...
-                msg_send_time, runtime_others, runtime_planning)
+                msg_send_time, runtime_planning)
             % Calculate the total runtime: in each parallel group, only one vehicle in each computation
             % level will be counted, this is the one with the maximum runtime
             n_grps = length(parl_groups_info); % number of parallel groups
@@ -129,8 +129,8 @@ classdef ControlResultsInfo
             end
 
             % graph search time depends on the maximum graph search time of all groups
-            obj.runtime_subcontroller_each_veh = obj.runtime_subcontroller_each_veh + runtime_others;
-            obj.runtime_subcontroller_each_grp = obj.runtime_subcontroller_each_grp + runtime_others;
+            obj.runtime_subcontroller_each_veh = obj.runtime_subcontroller_each_veh;
+            obj.runtime_subcontroller_each_grp = obj.runtime_subcontroller_each_grp;
             obj.runtime_graph_search_max = max(obj.runtime_graph_search_each_grp);
             obj.runtime_subcontroller_max = max(obj.runtime_subcontroller_each_grp);
             obj.computation_levels = length(CL_based_hierarchy);

@@ -16,7 +16,7 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
     iter = result.iteration_structs{step_idx};
 
     nVeh = scenario.options.amount;
-    nObst = size(result.obstacles, 2);
+    nObst = size(result.obstacles, 1);
     nDynObst = size(iter.dynamic_obstacle_fullres, 1);
 
     if nargin < 3
@@ -188,10 +188,13 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
         x0 = cellfun(@(c)c(tick_now, :), result.trajectory_predictions(:, step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
 
-        if ~isempty(iter.coupling_weights_reduced)
-            plot_coupling_lines(result.coupling_weights_reduced{step_idx}, x0, result.belonging_vector(:, step_idx), result.coupling_info{step_idx}.is_virtual_obstacle, coupling_visu)
+        if ~isempty(iter.weighted_coupling_reduced)
+            % TODO this does currently not work
+            % coupling_info is a cell array containing a struct for each coupling
+            % function call expects that it is a scalar struct
+            plot_coupling_lines(result.weighted_coupling_reduced(:, :, step_idx), x0, result.belonging_vector(:, step_idx), result.coupling_info(:, :, step_idx).is_virtual_obstacle, coupling_visu)
         else
-            plot_coupling_lines(result.directed_coupling{step_idx}, x0, [], [], coupling_visu)
+            plot_coupling_lines(result.directed_coupling(:, :, step_idx), x0, [], [], coupling_visu)
         end
 
     end

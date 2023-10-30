@@ -1,20 +1,25 @@
-function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = reduce_coupling_lanelet_crossing_area(iter, strategy_enter_lanelet_crossing_area)
+function [coupling_info, directed_coupling_reduced, weighted_coupling_reduced, lanelet_crossing_areas] = reduce_coupling_lanelet_crossing_area(iter, strategy_enter_lanelet_crossing_area)
     % This function implement the strategies of letting vehicle enter the crossing area, which is the overlapping area of two
     % vehicles' lanelet boundaries. Four strategies are existed.
 
-    % Reduced coupling weights after forbidding vehicles entering their lanelet crossing areas
-    weighted_coupling = iter.weighted_coupling;
-    weighted_coupling_reduced = weighted_coupling;
+    % initialize modified return variables
     coupling_info = iter.coupling_info;
-    nVeh = size(coupling_info, 1);
-    lanelet_crossing_areas = cell(nVeh, 1);
+    directed_coupling_reduced = iter.directed_coupling;
+    weighted_coupling_reduced = iter.weighted_coupling;
 
-    % coupling info is empty if it is no commonroad scenario
-    if isempty([coupling_info{:}])
+    % initialize lanelet_crossing_areas as cell array of cell arrays
+    n_veh = size(iter.coupling_info, 1);
+    lanelet_crossing_areas = repmat({{}}, n_veh, 1);
+
+    if all(iter.adjacency == 0, "all")
         return
     end
 
-    [rows, cols] = find(weighted_coupling);
+    % capture reduced couplings with boolean matrix
+    is_coupling_ignored = false(n_veh, n_veh);
+
+    % find vehicle pairs
+    [rows, cols] = find(iter.directed_coupling);
 
     for veh_pair = 1:length(rows)
 
@@ -22,16 +27,16 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
         veh_j = cols(veh_pair);
 
         collision_type = iter.coupling_info{veh_i, veh_j}.collision_type;
-        lanelet_relationship = iter.coupling_info{veh_i, veh_j}.lanelet_relationship;
+        lanelet_relationship_type = iter.coupling_info{veh_i, veh_j}.lanelet_relationship;
 
         % only side-impact collision should be ignore by this strategy
         if collision_type == CollisionType.from_rear
             continue
         end
 
-        is_at_intersection = all((coupling_info{veh_i, veh_j}.is_intersection));
-        is_intersecting_lanelets = (lanelet_relationship == LaneletRelationshipType.crossing);
-        is_merging_lanelets = (lanelet_relationship == LaneletRelationshipType.merging);
+        is_at_intersection = all((iter.coupling_info{veh_i, veh_j}.is_intersection));
+        is_intersecting_lanelets = (lanelet_relationship_type == LaneletRelationshipType.crossing);
+        is_merging_lanelets = (lanelet_relationship_type == LaneletRelationshipType.merging);
 
         % check if coupling edge should be ignored
         switch strategy_enter_lanelet_crossing_area
@@ -40,19 +45,19 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
                 return
             case '2'
                 % not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
-                is_ignore_coupling = is_intersecting_lanelets && is_at_intersection;
+                is_vehicle_pair_coupling_ignored = is_intersecting_lanelets && is_at_intersection;
             case '3'
                 % not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
-                is_ignore_coupling = (is_intersecting_lanelets || is_merging_lanelets) && is_at_intersection;
+                is_vehicle_pair_coupling_ignored = (is_intersecting_lanelets || is_merging_lanelets) && is_at_intersection;
             case '4'
                 % not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-                is_ignore_coupling = is_intersecting_lanelets || is_merging_lanelets;
+                is_vehicle_pair_coupling_ignored = is_intersecting_lanelets || is_merging_lanelets;
             otherwise
                 warning("Please specify one of the following strategies to let vehicle enter crossing area: '0', '1', '2', '3'.")
                 return
         end
 
-        if is_ignore_coupling
+        if is_vehicle_pair_coupling_ignored
             % check if vehicle without right-of-way has already enter the crossing area
 
             % get the crossing area of two vehicles' lanelet
@@ -88,11 +93,9 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
                 veh_free = veh_i;
             end
 
-            % disp(['Ignore the coupling from vehicle ' num2str(veh_free) ' to ' num2str(veh_forbid) ' by forbidding the latter to enter the crossing area of their lanelets.'])
-            coupling_info{veh_free, veh_forbid}.is_virtual_obstacle = true; % ignore coupling since no collision is possible anymore
-            coupling_info{veh_forbid, veh_free} = {}; % remove coupling info
+            is_coupling_ignored(veh_free, veh_forbid) = true;
+            is_coupling_ignored(veh_forbid, veh_free) = true;
 
-            weighted_coupling_reduced(veh_i, veh_j) = 0;
             % store lanelet crossing area for later use
             for i_region = 1:lanelet_crossing_area.NumRegions
                 [x_tmp, y_tmp] = boundary(lanelet_crossing_area, i_region);
@@ -102,5 +105,11 @@ function [weighted_coupling_reduced, coupling_info, lanelet_crossing_areas] = re
         end
 
     end
+
+    % reduce couplings
+    [coupling_info{is_coupling_ignored}] = deal([]);
+    % since it is directed the half of the ignored entries should already be 0
+    directed_coupling_reduced(is_coupling_ignored) = 0;
+    weighted_coupling_reduced(is_coupling_ignored) = 0;
 
 end

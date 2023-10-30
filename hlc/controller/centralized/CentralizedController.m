@@ -22,13 +22,17 @@ classdef CentralizedController < HighLevelController
 
     methods (Access = protected)
 
-        function controller(obj)
-            % initialize variable to store control results
-            obj.info = ControlResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, obj.plant.all_vehicle_ids);
+        function create_coupling_graph(obj)
 
             if obj.scenario.options.use_cpp()
                 obj.iter.adjacency = obj.coupler.couple(obj.iter);
             end
+
+        end
+
+        function controller(obj)
+            % initialize variable to store control results
+            obj.info = ControlResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, obj.plant.all_vehicle_ids);
 
             % falsifies controller_runtime slightly
             subcontroller_timer = tic;
@@ -59,7 +63,7 @@ classdef CentralizedController < HighLevelController
             obj.info.runtime_graph_search_max = obj.info.runtime_subcontroller_each_veh;
         end
 
-        function handle_fallback(~)
+        function plan_for_fallback(~)
             % TODO must be implemented! (see issue #142)
             error(['No fallback handling for centralized controller', ...
                    ' implemented yet!'])

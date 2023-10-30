@@ -1,4 +1,4 @@
-function [ids, times] = vehicles_at_intersection(scenario, iter, ids_old, times, threshold)
+function [ids, times] = vehicles_at_intersection(time_step, scenario, iter, ids_old, times, threshold)
 
     if isempty(times)
         % this is empty only at the initial time step
@@ -15,6 +15,6 @@ function [ids, times] = vehicles_at_intersection(scenario, iter, ids_old, times,
     ids_coming = setdiff(ids, ids_old);
 
     ids_leaving = setdiff(ids_old, ids);
-    times(ids_coming) = iter.k;
+    times(ids_coming) = time_step;
     times(ids_leaving) = inf; % set to inf if vehicle leaves the intersection
 end

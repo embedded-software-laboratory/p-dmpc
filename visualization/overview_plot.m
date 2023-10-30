@@ -11,7 +11,7 @@ function fig = overview_plot(result, step_indices, fig, colorOffset)
     scenario = result.scenario;
 
     nVeh = scenario.options.amount;
-    nObst = size(result.obstacles, 2);
+    nObst = size(result.obstacles, 1);
 
     nFigs = numel(step_indices);
 
