@@ -15,7 +15,6 @@ options.allow_priority_inheritance = false;
 options.should_save_result = true;
 options.should_reduce_result = false;
 options.is_plot_online = true;
-options.is_eval = false;
 options.strategy_consider_veh_without_ROW = '3';
 
 name = {'unboundedRSs', 'boundedRSs', 'laneletCrossingAreas', 'fullRun20Vehs30s', 'fullRun17VehsDeadlockRandomWeight'};

@@ -30,7 +30,6 @@ classdef Config < matlab.mixin.Copyable
         result_name = ''; % string or char, custom file name to save result
         allow_priority_inheritance = false; % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
 
-        is_eval = false; % true/false,
         is_free_flow = false; % true/false, if true, vehicles do not need to consider other vehicles.
         fallback_type FallbackType = FallbackType.local_fallback; % one of the following {'no', 'local', 'global'},
         % 'no' for disable fallback;

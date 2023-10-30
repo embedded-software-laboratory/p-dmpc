@@ -167,8 +167,6 @@ function [labOptions] = start_options()
         );
     end
 
-    %labOptions.is_eval = false;
-
     labOptions.manual_control_config = manual_control_config;
 
     labOptions.environment = get_environment_selection(ui, true);

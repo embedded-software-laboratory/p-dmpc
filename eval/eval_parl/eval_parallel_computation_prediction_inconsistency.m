@@ -20,7 +20,6 @@ function results = eval_parallel_computation_prediction_inconsistency()
     options.allow_priority_inheritance = false;
     options.should_save_result = true;
     options.should_reduce_result = false;
-    options.is_eval = false;
     options.strategy_consider_veh_without_ROW = '1';
     options.strategy_enter_lanelet_crossing_area = '1';
     options.is_free_flow = false;
