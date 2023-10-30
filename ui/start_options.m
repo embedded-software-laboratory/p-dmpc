@@ -73,9 +73,6 @@ function [labOptions] = start_options()
         % Custom file name
         ui.CustomfilenameEditField.Value = previousSelection.result_name;
 
-        % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
-        ui.AllowInheritingtheRightofWayCheckBox.Value = previousSelection.allow_priority_inheritance;
-
         callbackPBSelected(ui);
 
         % Which optimizer to use
@@ -135,12 +132,11 @@ function [labOptions] = start_options()
     should_save_result = ui.SaveresultCheckBox.Value;
     % Custom file name
     result_name = ui.CustomfilenameEditField.Value;
-    % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
-    allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
+
     save([tempdir 'scenarioControllerSelection'], 'optimizer', 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
         'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', ...
         'isParlSelection', 'dtSelection', 'HpSelection', 'mpa_typeSelection', 'T_endSelection', 'max_num_CLsSelection', 'path_ids', 'strategy_consider_veh_without_ROWSelection', 'strategy_enter_crossing_areaSelection', ...
-        'should_save_result', 'result_name', 'allow_priority_inheritance');
+        'should_save_result', 'result_name');
 
     %% Convert to legacy/outputs
     % initialize
@@ -271,9 +267,6 @@ function [labOptions] = start_options()
 
     % Custom file name to save result
     labOptions.result_name = ui.CustomfilenameEditField.Value;
-
-    % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
-    labOptions.allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
 
     % Write Config to disk
     encodedJSON = jsonencode(labOptions);

@@ -112,10 +112,6 @@ classdef FileNameConstructor
                                          '_ConsiderVehWithoutROW', options.strategy_consider_veh_without_ROW, '_EnterLaneletCrossingArea', options.strategy_enter_lanelet_crossing_area];
                 end
 
-                if options.allow_priority_inheritance
-                    scenario_name = [scenario_name, '_inherit'];
-                end
-
                 if options.is_free_flow
                     scenario_name = [scenario_name, '_freeFlow'];
                 end

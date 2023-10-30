@@ -17,7 +17,6 @@ function results = eval_parallel_computation_prediction_inconsistency()
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
     options.compute_in_parallel = false;
-    options.allow_priority_inheritance = false;
     options.should_save_result = true;
     options.should_reduce_result = false;
     options.strategy_consider_veh_without_ROW = '1';

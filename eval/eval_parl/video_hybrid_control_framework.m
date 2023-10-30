@@ -11,7 +11,6 @@ options.dt_seconds = 0.2;
 
 options.priority = 'STAC_priority';
 options.is_prioritized = true;
-options.allow_priority_inheritance = false;
 options.should_save_result = true;
 options.should_reduce_result = false;
 options.is_plot_online = true;

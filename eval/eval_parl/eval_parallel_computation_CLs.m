@@ -8,7 +8,6 @@ function eval_parallel_computation_CLs()
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
     options.compute_in_parallel = false;
-    options.allow_priority_inheritance = false;
     options.strategy_consider_veh_without_ROW = '3';
     options.strategy_enter_lanelet_crossing_area = '1';
     options.dt_seconds = 0.2;
