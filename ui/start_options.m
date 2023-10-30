@@ -166,6 +166,10 @@ function [labOptions] = start_options()
     switch string(optimizer)
         case "Matlab"
             labOptions.cpp_optimizer = CppOptimizer.None;
+            labOptions.matlab_optimizer = MatlabOptimizer.optimal;
+        case "MatlabRandomized"
+            labOptions.cpp_optimizer = CppOptimizer.None;
+            labOptions.matlab_optimizer = MatlabOptimizer.randomized;
         case "C++"
 
             if labOptions.is_prioritized
@@ -415,9 +419,10 @@ end
 
 function [list] = list_optimizer_prioritized
     list = {
-            '1', 'Matlab'
-            '2', 'C++'; ...
-                '3', 'C++Incremental'; ...
+            '1', 'Matlab';
+            '2', 'MatlabRandomized';
+            '3', 'C++';
+            '4', 'C++Incremental';
             };
 end
 
