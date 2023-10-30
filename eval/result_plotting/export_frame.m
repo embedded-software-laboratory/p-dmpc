@@ -25,7 +25,6 @@ function export_frame(result, frame_export_setup)
     filepath = fullfile(results_folder_path, frame_export_setup.frame_name); % full path of the fig
 
     imwrite(frame.cdata, filepath);
-    disp(append('A figure was saved under ', filepath))
 
     plotter.close_figure();
 
