@@ -123,6 +123,22 @@ classdef Config < matlab.mixin.Copyable
         end
 
         function obj = validate(obj)
+
+            % validate manual control config
+            if ~obj.manual_control_config.is_active
+                % set values for inactive manual control config
+                obj.manual_control_config.amount = 0;
+                obj.manual_control_config.hdv_ids = [];
+            else
+                % check if chosen amount matches with typed in hdv ids
+                assert( ...
+                    length(obj.manual_control_config.hdv_ids) == obj.manual_control_config.amount, ...
+                    'Amount of hdv_ids (%d) does not match amount of manual vehicles (%d)!', ...
+                    length(obj.manual_control_config.hdv_ids), ...
+                    obj.manual_control_config.amount ...
+                )
+            end
+
         end
 
     end

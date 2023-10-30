@@ -142,30 +142,18 @@ function [labOptions] = start_options()
     % initialize
     labOptions = Config();
 
-    % remark: flag value depends on environmentSelection
-    if ~is_manual_control
-        manual_control_config = ManualControlConfig;
-        manual_control_config.is_active = is_manual_control;
-        manual_control_config.amount = 0;
-        manual_control_config.hdv_ids = [];
-    else
-        manual_control_config = ManualControlConfig;
-        manual_control_config.is_active = is_manual_control;
-        manual_control_config.amount = str2double(hdv_amount_selection);
-        hdv_ids_input = ui.HDVIDsEditField.Value;
-        % replace non-numeric characters with spaces
-        hdv_ids_input(~isstrprop(hdv_ids_input, 'digit')) = ' ';
-        % trim leading/trailing spaces, split into cell array, convert to double
-        manual_control_config.hdv_ids = str2double(strsplit(strtrim(hdv_ids_input)));
-
-        % check if chosen amount matches with typed in ids
-        assert( ...
-            length(manual_control_config.hdv_ids) == manual_control_config.amount, ...
-            ['Type in exactly ', num2str(manual_control_config.amount), ' HDV ID(s)'] ...
-        );
-    end
-
-    labOptions.manual_control_config = manual_control_config;
+    % manual control config
+    % extract value from gui element
+    hdv_ids_input = ui.HDVIDsEditField.Value;
+    % replace non-numeric characters with spaces
+    hdv_ids_input(~isstrprop(hdv_ids_input, 'digit')) = ' ';
+    % trim leading/trailing spaces, split into cell array, convert to double
+    hdv_ids_number = str2double(strsplit(strtrim(hdv_ids_input)));
+    % store manual control config
+    labOptions.manual_control_config = ManualControlConfig;
+    labOptions.manual_control_config.is_active = is_manual_control;
+    labOptions.manual_control_config.amount = str2double(hdv_amount_selection);
+    labOptions.manual_control_config.hdv_ids = hdv_ids_number;
 
     labOptions.environment = get_environment_selection(ui, true);
 
