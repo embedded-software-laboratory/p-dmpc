@@ -29,26 +29,21 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
                 obj.info = obj.info_base;
                 obj.iter.priority_permutation = priority_permutation;
 
-                assign_priority_timer = tic;
                 obj.prioritize();
-                obj.iter.timer.assign_priority = toc(assign_priority_timer);
-
-                obj.weigh();
-
-                obj.reduce();
-
-                group_vehicles_timer = tic;
-                obj.group();
-                obj.iter.timer.group_vehs = toc(group_vehicles_timer);
+                obj.reduce_computation_levels();
 
                 % plan for vehicle_idx
-                runtime_planning = obj.plan_single_vehicle(vehicle_idx);
+                planning_timer = tic;
+                obj.plan_single_vehicle(vehicle_idx);
+                runtime_planning = toc(planning_timer);
 
                 %% Send own data to other vehicles
-                msg_send_time = obj.publish_predictions(vehicle_idx);
+                msg_send_tic = tic;
+                obj.publish_predictions(vehicle_idx);
+                msg_send_time = toc(msg_send_tic);
 
                 obj.info.computation_levels = length(obj.CL_based_hierarchy);
-                % temporarily store dwata
+                % temporarily store data
                 obj.iter_array_tmp{obj.iter.priority_permutation} = obj.iter;
                 obj.info_array_tmp{obj.iter.priority_permutation} = obj.info;
 
@@ -59,13 +54,11 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
             obj.info = obj.info_array_tmp{chosen_solution};
             obj.iter = obj.iter_array_tmp{chosen_solution};
 
-            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = runtime_planning;
             obj.info.runtime_graph_search_max = obj.info.runtime_graph_search_each_veh(vehicle_idx);
             obj.info.runtime_subcontroller_each_veh(vehicle_idx) = msg_send_time + runtime_planning;
-            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_subcontroller_each_veh(vehicle_idx) + runtime_others;
+            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_subcontroller_each_veh(vehicle_idx);
             obj.info.runtime_subcontroller_max = obj.info.runtime_subcontroller_each_veh(vehicle_idx);
             obj.info.computation_levels = length(obj.CL_based_hierarchy);
-            obj.iter.lanelet_crossing_areas = obj.lanelet_crossing_areas;
         end
 
     end
@@ -77,12 +70,8 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
             n_veh = obj.scenario.options.amount;
             Hp = obj.scenario.options.Hp;
             obj.info_base = ControlResultsInfo(n_veh, Hp, obj.plant.all_vehicle_ids);
-            determine_couplings_timer = tic;
             obj.couple();
             obj.iter_base = obj.iter;
-            obj.iter_base.timer.determine_couplings = toc(determine_couplings_timer);
-            obj.iter_base.num_couplings_between_grps = 0; % number of couplings between groups
-            obj.iter_base.num_couplings_between_grps_ignored = 0; % ignored number of couplings between groups by using lanelet crossing lanelets
 
             obj.iter_array_tmp = {};
             obj.info_array_tmp = {};
