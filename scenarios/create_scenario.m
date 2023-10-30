@@ -8,7 +8,6 @@ function scenario = create_scenario(options, plant)
         disp('Running in MATLAB simulation...')
     else
         disp('Running in CPM Lab or via Unified Lab API...')
-        options.is_prioritized = true;
     end
 
     % more than 1 vehicle and use of pb-sequential controller
