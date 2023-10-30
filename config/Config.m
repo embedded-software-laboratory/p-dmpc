@@ -135,6 +135,12 @@ classdef Config < matlab.mixin.Copyable
                 )
             end
 
+            % if prioritized controller runs sequentially with more than 1 vehicle
+            % activate out of process execution for mex function
+            if obj.amount > 1 && obj.is_prioritized && ~obj.compute_in_parallel
+                obj.mex_out_of_process_execution = true;
+            end
+
             % limit maximum number of computation levels
             obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
 
