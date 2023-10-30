@@ -129,10 +129,6 @@ classdef FileNameConstructor
                     scenario_name = [scenario_name, '_fullResult'];
                 end
 
-                if ~isempty(options.random_idx) && options.random_idx ~= 1
-                    scenario_name = [scenario_name, '_random', num2str(options.random_idx)];
-                end
-
                 if ~options.isDealPredictionInconsistency
                     scenario_name = [scenario_name, '_notDealWithPredictionInconsistency'];
                 end

@@ -30,7 +30,6 @@ function eval_parallel_computation_CLs()
     random_seed = RandStream('mt19937ar');
 
     for i = 1:random_times
-        options.random_idx = i;
 
         for j = 1:length(CLs_s)
 
