@@ -6,7 +6,7 @@
     ],
     "T_end": 2,
     "max_num_CLs": 4,
-    "trim_set": 9,
+    "mpa_type": "single_speed",
     "should_save_result": true,
     "should_reduce_result": false,
     "is_save_mpa": true,

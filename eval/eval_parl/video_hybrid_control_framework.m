@@ -4,7 +4,7 @@
 options = Config;
 options.environment = Environment.Simulation;
 options.scenario_type = ScenarioType.commonroad;
-options.trim_set = 9;
+options.mpa_type = MpaType.single_speed;
 options.Hp = 6;
 
 options.dt_seconds = 0.2;

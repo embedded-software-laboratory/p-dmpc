@@ -4,7 +4,7 @@ function eval_parallel_computation_CLs()
     options = Config();
     options.environment = Environment.Simulation;
     options.scenario_type = ScenarioType.commonroad;
-    options.trim_set = 9;
+    options.mpa_type = MpaType.single_speed;
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
     options.compute_in_parallel = false;

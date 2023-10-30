@@ -52,8 +52,8 @@ function [labOptions] = start_options()
         % predicion horizon
         ui.PredictionHorizonSpinner.Value = previousSelection.HpSelection;
 
-        % MPA trim ID
-        ui.MPAtrimIDSpinner.Value = previousSelection.trim_setSelection;
+        % MPA type
+        ui.MPATypeDropDown.Value = previousSelection.mpa_typeSelection;
 
         % simulation duration [s]
         ui.SimulationDurationsSpinner.Value = previousSelection.T_endSelection;
@@ -121,8 +121,8 @@ function [labOptions] = start_options()
     dtSelection = ui.SampleTimesSpinner.Value;
     % predicion horizon
     HpSelection = ui.PredictionHorizonSpinner.Value;
-    % MPA trim ID
-    trim_setSelection = ui.MPAtrimIDSpinner.Value;
+    % MPA type
+    mpa_typeSelection = ui.MPATypeDropDown.Value;
     % simulation duration [s]
     T_endSelection = ui.SimulationDurationsSpinner.Value;
     % maximum allowed number of computation levels
@@ -139,7 +139,7 @@ function [labOptions] = start_options()
     allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
     save([tempdir 'scenarioControllerSelection'], 'optimizer', 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
         'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', ...
-        'isParlSelection', 'dtSelection', 'HpSelection', 'trim_setSelection', 'T_endSelection', 'max_num_CLsSelection', 'path_ids', 'strategy_consider_veh_without_ROWSelection', 'strategy_enter_crossing_areaSelection', ...
+        'isParlSelection', 'dtSelection', 'HpSelection', 'mpa_typeSelection', 'T_endSelection', 'max_num_CLsSelection', 'path_ids', 'strategy_consider_veh_without_ROWSelection', 'strategy_enter_crossing_areaSelection', ...
         'should_save_result', 'result_name', 'allow_priority_inheritance');
 
     %% Convert to legacy/outputs
@@ -174,34 +174,38 @@ function [labOptions] = start_options()
     labOptions.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
 
     switch string(optimizer)
-    case "Matlab"
-        labOptions.cpp_optimizer = CppOptimizer.None;
-    case "C++"
-        if labOptions.is_prioritized
-           labOptions.cpp_optimizer = CppOptimizer.GraphSearchPBOptimal;
-        else
-            labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalPolymorphic;
-        end
-    case "C++ConflictBased"
-        labOptions.cpp_optimizer = CppOptimizer.CentralizedConflictBased;
-    case "C++NodeParallelization"
-        labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalNodeParallelization;
-    case "C++AStarParallelization"
-        labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalAStarParallelization;
-    case "C++NaiveMonteCarlo"
-        labOptions.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphic;
-    case "C++NaiveMonteCarloRootParallelization"
-        labOptions.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel;
-    case "C++Grouping"
-        labOptions.cpp_optimizer = CppOptimizer.CentralizedGrouping;
-    case "C++Incremental"
-        if labOptions.is_prioritized
-            labOptions.cpp_optimizer = CppOptimizer.GraphSearchPBIncrementalOptimal;
-        else
-            labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalIncremental;
-        end
-    otherwise
-        error(['optimizer ', optimizer, ' not implemented/available!']);
+        case "Matlab"
+            labOptions.cpp_optimizer = CppOptimizer.None;
+        case "C++"
+
+            if labOptions.is_prioritized
+                labOptions.cpp_optimizer = CppOptimizer.GraphSearchPBOptimal;
+            else
+                labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalPolymorphic;
+            end
+
+        case "C++ConflictBased"
+            labOptions.cpp_optimizer = CppOptimizer.CentralizedConflictBased;
+        case "C++NodeParallelization"
+            labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalNodeParallelization;
+        case "C++AStarParallelization"
+            labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalAStarParallelization;
+        case "C++NaiveMonteCarlo"
+            labOptions.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphic;
+        case "C++NaiveMonteCarloRootParallelization"
+            labOptions.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel;
+        case "C++Grouping"
+            labOptions.cpp_optimizer = CppOptimizer.CentralizedGrouping;
+        case "C++Incremental"
+
+            if labOptions.is_prioritized
+                labOptions.cpp_optimizer = CppOptimizer.GraphSearchPBIncrementalOptimal;
+            else
+                labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalIncremental;
+            end
+
+        otherwise
+            error(['optimizer ', optimizer, ' not implemented/available!']);
     end
 
     labOptions.amount = str2num(vehicleAmountSelection);
@@ -239,8 +243,8 @@ function [labOptions] = start_options()
     % predicion horizon
     labOptions.Hp = HpSelection;
 
-    % MPA trim ID
-    labOptions.trim_set = trim_setSelection;
+    % MPA type
+    labOptions.mpa_type = mpa_typeSelection;
 
     % simulation duration [s]
     labOptions.T_end = T_endSelection;
@@ -322,6 +326,7 @@ function setEnvironmentElementsVisibility(ui)
     ui.SampleTimesSpinner.Enable = ~is_lab_selection;
     % notify user that ULA reference path ids have to correspond to vehicle ids
     is_ula_selection = (get_environment_selection(ui, true) == Environment.UnifiedLabApi);
+
     if is_ula_selection
         ui.Vehicle_Ids_label.Text = sprintf("Note: With Unified Lab API, Reference Path Ids have to match vehicle Ids!");
         ui.Vehicle_Ids_label.Visible = 'On';
@@ -406,24 +411,24 @@ end
 
 function [list] = list_optimizer_centralized
     list = {
-                '1', 'Matlab';
-                '2', 'C++';
-                '3', 'C++NodeParallelization';
-                '4', 'C++AStarParallelization';
-                '5', 'C++Grouping';
-                '6', 'C++ConflictBased';
-                '7', 'C++NaiveMonteCarlo';
-                '8', 'C++NaiveMonteCarloRootParallelization';
-                '9', 'C++Incremental';
-        };
+            '1', 'Matlab';
+            '2', 'C++';
+            '3', 'C++NodeParallelization';
+            '4', 'C++AStarParallelization';
+            '5', 'C++Grouping';
+            '6', 'C++ConflictBased';
+            '7', 'C++NaiveMonteCarlo';
+            '8', 'C++NaiveMonteCarloRootParallelization';
+            '9', 'C++Incremental';
+            };
 end
 
 function [list] = list_optimizer_prioritized
     list = {
-                '1', 'Matlab'
-                '2', 'C++'; ...
+            '1', 'Matlab'
+            '2', 'C++'; ...
                 '3', 'C++Incremental'; ...
-        };
+            };
 end
 
 function [list] = list_priority_assignment_methods

@@ -79,7 +79,7 @@ classdef MotionPrimitiveAutomaton
 
             obj.recursive_feasibility = options.recursive_feasibility;
 
-            [trim_inputs, trim_adjacency] = choose_trims(options.trim_set, max_acceleration_per_dt, max_deceleration_per_dt);
+            [trim_inputs, trim_adjacency] = choose_trims(options.mpa_type, max_acceleration_per_dt, max_deceleration_per_dt);
             n_trims = length(trim_inputs);
 
             obj.transition_matrix_single = zeros([size(trim_adjacency), options.Hp]);

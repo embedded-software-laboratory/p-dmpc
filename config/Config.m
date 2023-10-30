@@ -11,7 +11,7 @@ classdef Config < matlab.mixin.Copyable
         weight WeightStrategies = WeightStrategies.constant_weight; % defines which weighting method is used
         dt_seconds = 0.2; % scalar, default sample time
         Hp = 6; % scalar, prediction horizon
-        trim_set = 7; % scalar, ID of trim primitives
+        mpa_type MpaType = MpaType.single_speed; % mpa type (element of {'single_speed', 'triple_speed', 'realistic'})
         T_end = 20; % scalar, simulation duration
         max_num_CLs = 99; % integer, maximum allowerd number of computation levels
         strategy_consider_veh_without_ROW = '2'; % one of the following: {'1', '2', '3', '4', '5'}, strategy of letting higher - priority vehicles consider their coupled vehicles with lower priorities

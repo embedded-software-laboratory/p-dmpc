@@ -116,7 +116,7 @@ function eval_coloring_paper()
                                       };
 
     options = Config;
-    options.trim_set = 9;
+    options.mpa_type = MpaType.single_speed;
     options.T_end = 180;
     options.Hp = 8;
     options.is_prioritized = true;
