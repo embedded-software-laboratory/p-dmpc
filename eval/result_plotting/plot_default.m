@@ -14,6 +14,4 @@ function plot_default(results, options)
     plot_trajectories(results, do_export = options.do_export);
 
     plot_scenario(results.scenario, do_export = options.do_export);
-    step_indices = [1, 5, 9];
-    plot_experiment_snapshots(results, step_indices, do_export = options.do_export);
 end
