@@ -3,7 +3,6 @@ function scenario = lanelet2_scenario(options, plant)
 
     scenario = Scenario();
 
-    options.recursive_feasibility = true;
     % read from options
     scenario.options = options;
 
