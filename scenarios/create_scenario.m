@@ -4,12 +4,6 @@ function scenario = create_scenario(options, plant)
     %% options preprocessing
     % Use options to setup scenario
 
-    if options.environment == Environment.Simulation || options.environment == Environment.SimulationDistributed
-        disp('Running in MATLAB simulation...')
-    else
-        disp('Running in CPM Lab or via Unified Lab API...')
-    end
-
     % more than 1 vehicle and use of pb-sequential controller
     % require out of process execution
     if options.amount > 1 && options.is_prioritized && ~options.compute_in_parallel

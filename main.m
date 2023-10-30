@@ -37,6 +37,13 @@ function [result, scenario] = main(varargin)
         plant = PlantFactory.get_experiment_interface(scenario.options.environment);
     end
 
+    % inform where experiment takes place
+    if options.environment == Environment.Simulation || options.environment == Environment.SimulationDistributed
+        disp('Running in MATLAB simulation...')
+    else
+        disp('Running in Lab...')
+    end
+
     % write scenario to disk if distributed (for lab or local debugging with main_distributed())
     if scenario.options.is_prioritized == true
         save('scenario.mat', 'scenario');
