@@ -145,10 +145,12 @@ function [labOptions] = start_options()
     % remark: flag value depends on environmentSelection
     if ~is_manual_control
         manual_control_config = ManualControlConfig;
+        manual_control_config.is_active = is_manual_control;
         manual_control_config.amount = 0;
         manual_control_config.hdv_ids = [];
     else
         manual_control_config = ManualControlConfig;
+        manual_control_config.is_active = is_manual_control;
         manual_control_config.amount = str2double(hdv_amount_selection);
         hdv_ids_input = ui.HDVIDsEditField.Value;
         % replace non-numeric characters with spaces
