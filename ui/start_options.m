@@ -270,6 +270,9 @@ function [labOptions] = start_options()
     % Custom file name to save result
     labOptions.result_name = ui.CustomfilenameEditField.Value;
 
+    % Validate Config file
+    labOptions = labOptions.validate();
+
     % Write Config to disk
     encodedJSON = jsonencode(labOptions);
     fid = fopen('Config.json', 'w');

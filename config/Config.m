@@ -122,6 +122,9 @@ classdef Config < matlab.mixin.Copyable
             result = obj.cpp_optimizer ~= CppOptimizer.None;
         end
 
+        function obj = validate(obj)
+        end
+
     end
 
 end
