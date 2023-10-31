@@ -4,7 +4,6 @@ classdef IterationData
     properties
         reference_trajectory_points
         reference_trajectory_index
-        k % current time/simulation step
         x0 % state
         trim_indices % current trim
         v_ref % reference speed
