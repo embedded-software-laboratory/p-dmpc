@@ -573,7 +573,7 @@ classdef (Abstract) HighLevelController < handle
             obj.result.total_fallback_times = obj.total_fallback_times;
             obj.result.timings_general = obj.timing_general.get_all_timings();
 
-            for iVeh = 1:obj.scenario.options.amount
+            for iVeh = 1:obj.plant.indices_in_vehicle_list
                 obj.result.timings_per_vehicle(iVeh) = obj.timing_per_vehicle(iVeh).get_all_timings();
             end
 
