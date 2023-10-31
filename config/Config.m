@@ -149,6 +149,19 @@ classdef Config < matlab.mixin.Copyable
             % limit maximum number of computation levels
             obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
 
+            % set default path ids if no path ids were defined
+            if isempty(obj.path_ids)
+                obj.path_ids = 1:obj.amount;
+            end
+
+            % validate amount of path ids
+            assert( ...
+                length(obj.path_ids) == obj.amount, ...
+                'Amount of path_ids (%d) does not match amount of vehicles (%d)!', ...
+                length(obj.path_ids), ...
+                obj.amount ...
+            )
+
             % validate manual control config
             if ~obj.manual_control_config.is_active
                 % set values for inactive manual control config
