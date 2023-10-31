@@ -151,7 +151,21 @@ classdef Config < matlab.mixin.Copyable
 
             % set default path ids if no path ids were defined
             if isempty(obj.path_ids)
-                obj.path_ids = 1:obj.amount;
+
+                switch obj.amount
+                    case 1
+                        obj.path_ids = 18;
+                    case 2
+                        obj.path_ids = [18, 20];
+                    case 3
+                        obj.path_ids = [18, 19, 20];
+                    case 4
+                        obj.path_ids = [17, 18, 19, 20];
+                    otherwise
+                        path_id_max = 41; % maximum defined path id
+                        obj.path_ids = randperm(RandStream("mt19937ar"), path_id_max, obj.amount);
+                end
+
             end
 
             % validate amount of path ids
