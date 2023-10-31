@@ -1,6 +1,5 @@
 function scenario = circle_scenario(options)
     % CIRCLE_SCENARIO   Constructor for scenario with vehicles circular arranged heading to the center of the circle.
-    options.is_allow_non_convex = false;
 
     if options.amount <= 2
         options.plot_limits = [-0.5, 5; 1.5, 2.5];

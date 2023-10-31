@@ -141,6 +141,11 @@ classdef Config < matlab.mixin.Copyable
                 obj.mex_out_of_process_execution = true;
             end
 
+            % enforce non convex reachable sets for non circle scenarios
+            if obj.scenario_type ~= ScenarioType.circle
+                obj.is_allow_non_convex = true;
+            end
+
             % limit maximum number of computation levels
             obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
 

@@ -6,8 +6,6 @@ function scenario = commonroad(options)
     % read from optionos
     scenario.options = options;
 
-    options.is_allow_non_convex = true;
-
     % get road data
     road_data = RoadDataCommonRoad().get_road_data();
     assignin('base', 'road_data', road_data);

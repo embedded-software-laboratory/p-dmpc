@@ -6,8 +6,6 @@ function scenario = lanelet2_scenario(options, plant)
     % read from options
     scenario.options = options;
 
-    options.is_allow_non_convex = true;
-
     % get road data
     if options.scenario_type == ScenarioType.lab_default
         % ULA is required for that.
