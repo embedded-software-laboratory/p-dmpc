@@ -80,7 +80,6 @@ classdef Config < matlab.mixin.Copyable
                 end
 
                 if findprop(obj, field).Dependent
-                    warning('Cannot set property %s for class Config as it is a dependent property', field);
                     continue;
                 end
 
