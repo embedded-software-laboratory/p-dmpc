@@ -25,7 +25,7 @@ classdef (Abstract) Plant < handle
 
     methods (Abstract)
         [x0, trim_indices] = measure(obj, ~)
-        apply(obj, info)
+        apply(obj, info, result, k, mpa)
         got_stop = is_stop(obj)
         end_run(obj)
     end

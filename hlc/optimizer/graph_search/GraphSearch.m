@@ -6,11 +6,9 @@ classdef GraphSearch < OptimizerInterface
             obj = obj@OptimizerInterface(scenario, mpa);
         end
 
-        function [info_v, graph_search_time] = run_optimizer(obj, iter, ~)
-            graph_search_timer = tic;
+        function info_v = run_optimizer(obj, iter, ~)
             % execute sub controller for 1-veh scenario
             info_v = obj.do_graph_search(iter);
-            graph_search_time = toc(graph_search_timer);
         end
 
     end

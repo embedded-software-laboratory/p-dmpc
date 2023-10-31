@@ -11,8 +11,8 @@ function computation_time_plot(results)
 
     for i = 1:nResults
         % make sure only one controller runtime is stored in the struct
-        assert(size(results(i).controller_runtime, 1) == 1);
-        runtimes = [runtimes, results(i).controller_runtime'];
+        % assert(size(results(i).controller_runtime, 1) == 1); % TODO
+        runtimes = [runtimes, results(i).timings_general.controller.'];
         nVehicles = [nVehicles, results(i).scenario.options.amount];
     end
 

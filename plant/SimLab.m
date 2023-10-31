@@ -6,6 +6,8 @@ classdef SimLab < Plant
         visualization_data_queue
         use_visualization_data_queue
         should_plot
+
+        step_timer (1, 1) uint64 % used for tic/toc to measure the time between measure() and apply() to make realtime plotting possible
     end
 
     methods
@@ -64,6 +66,7 @@ classdef SimLab < Plant
         %         end
 
         function [x0, trim_indices] = measure(obj, mpa)
+            obj.step_timer = tic(); % Keep time to enable realtime plotting in apply
             [x0, trim_indices] = obj.measure_node(mpa);
         end
 
@@ -88,7 +91,8 @@ classdef SimLab < Plant
                     send(obj.visualization_data_queue, plotting_info);
                 else
                     % wait to simulate realtime plotting
-                    pause(obj.scenario.options.dt_seconds - result.step_time(obj.k))
+                    step_time = toc(obj.step_timer);
+                    pause(obj.scenario.options.dt_seconds - step_time);
                     obj.plotter.plot(plotting_info);
                 end
 

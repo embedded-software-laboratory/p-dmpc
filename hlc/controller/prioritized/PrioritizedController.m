@@ -266,18 +266,22 @@ classdef (Abstract) PrioritizedController < HighLevelController
         end
 
         function create_coupling_graph(obj)
+            obj.timing_general.start('create_coupling_graph', obj.k);
 
             obj.update_other_vehicles_traffic_info();
 
-            obj.timing.start("determine_couplings_time", obj.k);
+            obj.timing_general.start('coupling', obj.k);
             obj.couple();
-            obj.timing.stop("determine_couplings_time", obj.k);
+            obj.timing_general.stop("coupling", obj.k);
 
-            obj.timing.start("assign_priority_time", obj.k);
+            obj.timing_general.start("prioritization", obj.k);
             obj.prioritize();
-            obj.timing.stop("assign_priority_time", obj.k);
+            obj.timing_general.stop("prioritization", obj.k);
 
+            obj.timing_general.start('reduce_computation_levels', obj.k);
             obj.reduce_computation_levels();
+            obj.timing_general.stop('reduce_computation_levels', obj.k);
+            obj.timing_general.stop('create_coupling_graph', obj.k);
 
         end
 
@@ -308,8 +312,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
-            [info_v, graph_search_time] = obj.optimizer.run_optimizer(iter_v, vehicle_idx);
-            obj.info.runtime_graph_search_each_veh(vehicle_idx) = graph_search_time;
+            obj.timing_per_vehicle(vehicle_idx).start('optimizer', obj.k);
+            info_v = obj.optimizer.run_optimizer(iter_v, vehicle_idx);
+            obj.timing_per_vehicle(vehicle_idx).stop('optimizer', obj.k);
+
+            obj.timing_per_vehicle(vehicle_idx).start('fallback', obj.k);
 
             if info_v.is_exhausted
                 info_v = handle_graph_search_exhaustion(info_v, obj.scenario, iter_v, obj.mpa);
@@ -339,12 +346,15 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
             end
 
+            obj.timing_per_vehicle(vehicle_idx).stop('fallback', obj.k);
+
         end
 
-        function publish_predictions(obj, vehicle_idx)
+        function msg_send_time = publish_predictions(obj, vehicle_idx)
 
             if ~ismember(vehicle_idx, obj.info.vehs_fallback)
                 % if the selected vehicle should take fallback
+
                 predicted_areas_k = obj.info.shapes(vehicle_idx, :);
                 % send message
                 obj.predictions_communication{vehicle_idx}.send_message( ...
@@ -352,12 +362,15 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     predicted_areas_k, ...
                     obj.info.vehs_fallback ...
                 );
+
             else
+                msg_send_tic = tic;
                 obj.predictions_communication{vehicle_idx}.send_message( ...
                     obj.k, ...
                     {}, ...
                     obj.info.vehs_fallback ...
                 );
+                msg_send_time = toc(msg_send_tic);
             end
 
         end
@@ -396,7 +409,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             end
 
-            obj.timing.start("group_vehs_time", obj.k);
+            obj.timing_general.start("group_vehs_time", obj.k);
             % reduce by grouping and cutting edges
             method = 's-t-cut'; % 's-t-cut' or 'MILP'
             [obj.CL_based_hierarchy, obj.iter.parl_groups_info, obj.iter.belonging_vector ...
@@ -407,7 +420,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 method, ...
                 obj.scenario.options ...
             );
-            obj.timing.stop("group_vehs_time", obj.k);
+            obj.timing_general.stop("group_vehs_time", obj.k);
 
         end
 
