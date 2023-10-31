@@ -295,49 +295,12 @@ classdef (Abstract) PrioritizedController < HighLevelController
             all_coupled_vehs_with_HP = find(iter_v.directed_coupling_reduced(:, vehicle_idx) == 1)'; % all coupled vehicles with higher priorities
             all_coupled_vehs_with_LP = find(iter_v.directed_coupling_reduced(vehicle_idx, :) == 1); % all coupled vehicles with lower priorities
 
-            coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp); % coupled vehicles with higher priorities in the same group
-            coupled_vehs_other_grps_with_HP = setdiff(all_coupled_vehs_with_HP, coupled_vehs_same_grp_with_HP); % coupled vehicles with higher priorities in other groups
+            % consider vehicles with higher priority
+            [dynamic_obstacle_area_HP, is_fallback_triggered] = consider_vehs_with_HP(obj, vehicle_idx, all_coupled_vehs_with_HP);
 
-            for veh_with_HP_i = all_coupled_vehs_with_HP
-
-                if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
-                    % if in the same group, read the current message and set the predicted occupied areas as dynamic obstacles
-                    latest_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
-                        obj.plant.all_vehicle_ids(veh_with_HP_i), ...
-                        obj.k, ...
-                        true ...
-                    );
-                    obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
-
-                    if ismember(vehicle_idx, obj.info.vehs_fallback)
-                        % if the selected vehicle should take fallback
-                        return;
-                    end
-
-                    predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-
-                    iter_v.dynamic_obstacle_area(end + 1, :) = predicted_areas_i;
-                else
-                    % if they are in different groups
-                    [iter_v, should_fallback] = obj.consider_parallel_coupling(iter_v, vehicle_idx, veh_with_HP_i);
-
-                    if should_fallback
-                        return;
-                    end
-
-                end
-
-            end
-
-            if ~strcmp(obj.scenario.options.strategy_enter_lanelet_crossing_area, '1')
-                % Set lanelet intersecting areas as static obstacles if vehicle with lower priorities is not allowed to enter those area
-                iter_v.lanelet_crossing_areas = obj.iter.lanelet_crossing_areas{vehicle_idx};
-
-                if isempty(iter_v.lanelet_crossing_areas)
-                    iter_v.lanelet_crossing_areas = {}; % convert from 'double' to 'cell'
-                end
-
-                assert(iscell(iter_v.lanelet_crossing_areas));
+            % if vehicle with higher priority triggered fallback, do not plan
+            if is_fallback_triggered
+                return
             end
 
             % consider coupled vehicles with lower priorities
@@ -350,7 +313,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
             obj.timing_per_vehicle(vehicle_idx).start('optimizer', obj.k);
-            obj.optimizer.run_optimizer(iter_v, vehicle_idx);
+            info_v = obj.optimizer.run_optimizer(iter_v, vehicle_idx);
             obj.timing_per_vehicle(vehicle_idx).stop('optimizer', obj.k);
 
             obj.timing_per_vehicle(vehicle_idx).start('fallback', obj.k);

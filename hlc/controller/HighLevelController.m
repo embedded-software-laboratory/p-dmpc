@@ -473,11 +473,6 @@ classdef (Abstract) HighLevelController < handle
         function store_iteration_results(obj)
             % store iteration results like iter and info in the results struct
 
-            % summarize timings from subcontroller
-            runtime_relation = obj.timing.get_elapsed_time("relation_time", obj.k);
-            obj.info.runtime_subcontroller_each_veh = obj.info.runtime_subcontroller_each_veh + runtime_relation;
-            obj.info.runtime_subcontroller_each_grp = obj.info.runtime_subcontroller_each_grp + runtime_relation;
-
             % calculate deadlock
             % if a vehicle stops for more than a defined time, assume deadlock
             % TODO check if deadlocked vehicles are coupled. Sometimes single
@@ -506,9 +501,6 @@ classdef (Abstract) HighLevelController < handle
             % update total number of steps and total runtime
             obj.result.nSteps = obj.k;
             obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
-
-            % store timings in result struct
-            obj.result.controller_runtime(obj.k) = obj.timing.get_elapsed_time("controller_time", obj.k);
 
             % store iteration data
             obj.result.obstacles = obj.iter.obstacles;
