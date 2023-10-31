@@ -84,7 +84,6 @@ function scenario = lanelet2_scenario(options, plant)
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
-    scenario.options.plot_limits = [0, 4.5; 0, 4];
     scenario.model = BicycleModel(veh.Lf, veh.Lr);
 
 end

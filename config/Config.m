@@ -41,7 +41,7 @@ classdef Config < matlab.mixin.Copyable
         recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
         time_per_tick = 0.01;
         offset = 0.01;
-        plot_limits = [-10, 10; -10, 10]; % default fallback if not defined
+        plot_limits = [0, 4.5; 0, 4]; % default fallback if not defined
         is_use_dynamic_programming = true; % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
 
         % MPA
@@ -162,6 +162,11 @@ classdef Config < matlab.mixin.Copyable
                     length(obj.manual_control_config.hdv_ids), ...
                     obj.manual_control_config.amount ...
                 )
+            end
+
+            % specify different plot limits for circle scenario with 2 vehicles
+            if obj.scenario_type == ScenarioType.circle && obj.amount <= 2
+                obj.plot_limits = [0, 4.5; 1.5, 2.5];
             end
 
         end

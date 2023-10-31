@@ -1,12 +1,6 @@
 function scenario = circle_scenario(options)
     % CIRCLE_SCENARIO   Constructor for scenario with vehicles circular arranged heading to the center of the circle.
 
-    if options.amount <= 2
-        options.plot_limits = [-0.5, 5; 1.5, 2.5];
-    else
-        options.plot_limits = [-0.5, 5; -0.5, 4.5];
-    end
-
     scenario = Scenario();
     % read from optionos
     scenario.options = options;
