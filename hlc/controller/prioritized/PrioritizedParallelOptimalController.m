@@ -19,8 +19,6 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
     methods (Access = protected)
 
         function controller(obj)
-            runtime_others = obj.init_step();
-
             vehicle_idx = obj.plant.indices_in_vehicle_list(1);
 
             for priority_permutation = 1:factorial(obj.scenario.options.amount)
@@ -65,17 +63,19 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
 
     methods (Access = protected)
 
-        function runtime_others = init_step(obj)
-            runtime_others_tic = tic;
+        function create_coupling_graph(obj)
             n_veh = obj.scenario.options.amount;
             Hp = obj.scenario.options.Hp;
             obj.info_base = ControlResultsInfo(n_veh, Hp, obj.plant.all_vehicle_ids);
-            obj.couple();
-            obj.iter_base = obj.iter;
 
+            obj.update_other_vehicles_traffic_info();
+            obj.timing.start("determine_couplings_time", obj.k);
+            obj.couple();
+            obj.timing.stop("determine_couplings_time", obj.k);
+
+            obj.iter_base = obj.iter;
             obj.iter_array_tmp = {};
             obj.info_array_tmp = {};
-            runtime_others = toc(runtime_others_tic);
         end
 
     end
