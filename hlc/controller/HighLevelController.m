@@ -568,12 +568,6 @@ classdef (Abstract) HighLevelController < handle
             fprintf('Total times of fallback: %d\n', obj.total_fallback_times);
             fprintf('Total runtime: %f seconds\n', obj.result.t_total);
 
-            if ~obj.scenario.options.should_save_result
-                % return results should not be saved
-                fprintf('As required, results were not saved\n');
-                return
-            end
-
             obj.result.mpa = obj.mpa;
             obj.result.scenario = obj.scenario;
             obj.result.total_fallback_times = obj.total_fallback_times;
@@ -596,6 +590,12 @@ classdef (Abstract) HighLevelController < handle
                     obj.result.iteration_structs{i_step}.occupied_areas = [];
                 end
 
+            end
+
+            if ~obj.scenario.options.should_save_result
+                % return results should not be saved
+                fprintf('As required, results were not saved\n');
+                return
             end
 
             result = obj.result;
