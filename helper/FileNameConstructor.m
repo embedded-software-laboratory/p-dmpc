@@ -98,13 +98,15 @@ classdef FileNameConstructor
             priority = char(options.priority);
             weight = char(options.weight);
 
+            scenario_name = '';
+
+            if options.compute_in_parallel
+                scenario_name = ['veh_', num2str(options.path_ids(i_vehicles)), '_'];
+            end
+
             if isempty(options.result_name)
                 % use default name
-                if options.compute_in_parallel
-                    scenario_name = ['veh_', num2str(options.path_ids(i_vehicles)), '_type_', char(options.mpa_type), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
-                else
-                    scenario_name = ['type_', char(options.mpa_type), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
-                end
+                scenario_name = [scenario_name, 'type_', char(options.mpa_type), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
 
                 veh_ids_str = sprintf('-%d', options.path_ids);
                 scenario_name = [scenario_name, '_ids', veh_ids_str];
@@ -149,13 +151,7 @@ classdef FileNameConstructor
 
             else
                 % use custom name
-                scenario_name = options.result_name;
-
-                if options.compute_in_parallel
-                    % append vehicle id to custom name to avoid name collisions when the files are stored
-                    scenario_name = [scenario_name, '_veh_', num2str(options.path_ids(i_vehicles))];
-                end
-
+                scenario_name = [scenario_name, options.result_name];
             end
 
         end
