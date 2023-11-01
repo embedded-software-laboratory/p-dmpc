@@ -114,6 +114,7 @@ classdef systemtests < matlab.unittest.TestCase
             rawJson = fileread('tests/systemtests/Config_plot_default_results.json');
             config = Config();
             config = config.importFromJson(rawJson);
+            config.scenario_type = ScenarioType(scenario_type);
 
             testCase.verifyEmpty(lastwarn);
 
@@ -138,6 +139,20 @@ classdef systemtests < matlab.unittest.TestCase
 
             % verify export_video
             export_video(full_result.result);
+
+            % verify other result plotting functions
+            step_indices = [1, 5, 9];
+            plot_experiment_snapshots( ...
+                full_result.result, ...
+                step_indices, ...
+                do_export = false ...
+            );
+            testCase.verifyTrue(true);
+            plot_experiment_snapshots( ...
+                full_result.result, ...
+                step_indices, ...
+                do_export = true ...
+            );
             testCase.verifyTrue(true);
         end
 

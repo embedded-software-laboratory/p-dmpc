@@ -974,11 +974,13 @@ classdef MotionPrimitiveAutomaton
             arguments
                 obj (1, 1) MotionPrimitiveAutomaton;
                 options.y_lim (1, 2) double = [-0.1, 1.0];
-                options.x_lim (1, 2) double = rad2deg(pi / 18 * [-3, 3]);
+                options.x_lim (1, 2) double = rad2deg(pi / 5 * [-1, 1]);
                 options.k (1, 1) double = 1;
                 options.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
                 options.with_labels (1, 1) logical = true;
             end
+
+            set(0, "CurrentFigure", options.fig);
 
             trim_inputs = obj.trims;
 
@@ -1021,6 +1023,8 @@ classdef MotionPrimitiveAutomaton
                 options.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
             end
 
+            set(0, "CurrentFigure", options.fig);
+
             Hp = size(obj.transition_matrix_single, 3);
             tiledLayoutHandle = tiledlayout( ...
                 1, Hp, ...
@@ -1033,7 +1037,6 @@ classdef MotionPrimitiveAutomaton
                 obj.plot(fig = options.fig, ...
                     k = k, ...
                     with_labels = false, ...
-                    x_lim = rad2deg(pi / 18 * [-3, 3]), ...
                     y_lim = options.y_lim ...
                 );
                 title(sprintf("$t=k+%d$", k - 1), 'Interpreter', 'latex');
@@ -1057,10 +1060,11 @@ classdef MotionPrimitiveAutomaton
                 options.fig (1, 1) matlab.ui.Figure = figure(Name = "ReachableSets", Visible = "on");
             end
 
+            set(0, "CurrentFigure", options.fig);
+
             n_trims = size(obj.local_reachable_sets, 1);
             Hp = size(obj.local_reachable_sets, 2);
 
-            options.fig.Position = [10 10 500 1600];
             t_fig = tiledlayout(n_trims, Hp, TileSpacing = 'compact');
 
             for i = 1:n_trims
