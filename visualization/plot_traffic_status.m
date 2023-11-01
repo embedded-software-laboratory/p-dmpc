@@ -175,10 +175,6 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
             text(x(1) + 0.1, x(2) + 0.1, num2str(v), 'LineWidth', 0.2, 'Color', 'b');
         end
 
-        % plot the vehicle ID
-        %         if visu.plot_vehicle_id
-        %             text(x(1)+0.1,x(2)+0.1,num2str(veh.ID), 'LineWidth',0.2,'Color','b');
-        %         end
     end
 
     % plot scenario adjacency

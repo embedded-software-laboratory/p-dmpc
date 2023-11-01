@@ -194,8 +194,7 @@ end
 %% auxilary functions
 
 function info = get_vehicle_info(id, iter)
-    info = struct('ID', [], 'position', [], 'yaw', [], 'trim', [], 'predicted_lanelets', [], 'length', []);
-    info.ID = id;
+    info = struct('position', [], 'yaw', [], 'trim', [], 'predicted_lanelets', [], 'length', []);
     info.position = [iter.x0(id, indices().x), iter.x0(id, indices().y)];
     info.yaw = iter.x0(id, indices().heading);
     info.trim = iter.trim_indices(id);
