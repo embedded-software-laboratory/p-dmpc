@@ -103,14 +103,8 @@ classdef SimLabDistributed < Plant
 
         end
 
-        function got_stop = is_stop(obj)
+        function got_stop = is_stop(~)
             got_stop = false;
-
-            if obj.k >= obj.scenario.options.k_end
-                disp('Simulation will be stopped as the defined simulation duration is reached.')
-                got_stop = true;
-            end
-
         end
 
         function end_run(obj)

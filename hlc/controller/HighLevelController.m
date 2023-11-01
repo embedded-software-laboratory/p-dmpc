@@ -342,6 +342,12 @@ classdef (Abstract) HighLevelController < handle
                 % Check for stop signal
                 % -------------------------------------------------------------------------
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
+
+                if ~obj.got_stop && obj.k >= obj.scenario.options.k_end
+                    disp('The HLC will be stopped as the defined experiment duration is reached.')
+                    obj.got_stop = true;
+                end
+
             end
 
         end

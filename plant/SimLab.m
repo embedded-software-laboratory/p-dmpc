@@ -120,11 +120,6 @@ classdef SimLab < Plant
 
             end
 
-            if obj.k >= obj.scenario.options.k_end
-                disp('Simulation will be stopped as the defined simulation duration is reached.')
-                got_stop = true;
-            end
-
         end
 
         function end_run(obj)
