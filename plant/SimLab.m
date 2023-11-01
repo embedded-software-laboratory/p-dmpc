@@ -60,11 +60,6 @@ classdef SimLab < Plant
 
         end
 
-        % TODO  function still in use?
-        %         function update(obj)
-        %             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
-        %         end
-
         function [x0, trim_indices] = measure(obj, mpa)
             obj.step_timer = tic(); % Keep time to enable realtime plotting in apply
             [x0, trim_indices] = obj.measure_node(mpa);
