@@ -19,6 +19,22 @@ classdef FileNameConstructor
 
     methods (Static)
 
+        function controller_name = get_controller_name(options)
+
+            if options.is_prioritized
+
+                if options.compute_in_parallel
+                    controller_name = strcat('par. PB-', 'RHGS-', char(options.priority));
+                else
+                    controller_name = strcat('seq. PB-', 'RHGS-', char(options.priority));
+                end
+
+            else
+                controller_name = strcat('centralized-', 'RHGS-', char(options.priority));
+            end
+
+        end
+
         function mpa_instance_name = get_mpa_name(options)
 
             arguments

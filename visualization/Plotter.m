@@ -36,7 +36,7 @@ classdef (Abstract) Plotter < handle
         end
 
         function result = get.strategy(obj)
-            result = HLCFactory.get_controller_name(obj.scenario.options);
+            result = FileNameConstructor.get_controller_name(obj.scenario.options);
         end
 
         function result = get.vehicles(obj)
