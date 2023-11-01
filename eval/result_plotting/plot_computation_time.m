@@ -9,8 +9,8 @@ function plot_computation_time(results, options)
 
     nResults = length(results);
 
-    runtimes = [];
-    nVehicles = [];
+    runtimes = zeros(results(1).nSteps, nResults);
+    nVehicles = zeros(1, nResults);
 
     fig_per_result = figure(visible = "off");
     set(0, 'currentfigure', fig_per_result);
@@ -18,8 +18,8 @@ function plot_computation_time(results, options)
     for i = 1:nResults
         % make sure only one controller runtime is stored in the struct
         % assert(size(results(i).controller_runtime, 1) == 1); % TODO
-        runtimes = [runtimes, results(i).timings_general.controller.'];
-        nVehicles = [nVehicles, results(i).scenario.options.amount];
+        runtimes(:, i) = squeeze(results(i).timings_general.controller(2,1,:));
+        nVehicles(i) = results(i).scenario.options.amount;
 
         bar(1:numel(runtimes), runtimes);
         % set labels
