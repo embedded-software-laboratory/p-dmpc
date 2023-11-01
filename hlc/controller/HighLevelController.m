@@ -60,26 +60,27 @@ classdef (Abstract) HighLevelController < handle
 
             obj.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
 
-            initial_state = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
-
             for iVeh = obj.plant.indices_in_vehicle_list
-                % initialize vehicle ids of all vehicles
-                scenario.vehicles(iVeh).trim_config = initial_state;
                 obj.timing_per_vehicle(iVeh) = ControllerTiming();
-
             end
 
             % create fallback for first time step
             obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, plant.all_vehicle_ids);
 
+            % find initial trim from mpa (equal for all vehicles)
+            initial_trim = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
+
             for vehicle_idx = obj.plant.indices_in_vehicle_list
-                k = 1;
-                x0 = [[scenario.vehicles.x_start]', [scenario.vehicles.y_start]', [scenario.vehicles.yaw_start]'];
-                trim_indices = [scenario.vehicles.trim_config];
-                obj.info_old.tree{vehicle_idx} = Tree(x0(vehicle_idx, 1), x0(vehicle_idx, 2), x0(vehicle_idx, 3), trim_indices(vehicle_idx), k, inf, inf);
+                % get initial pose from scenario
+                initial_pose = [scenario.vehicles(vehicle_idx).x_start, scenario.vehicles(vehicle_idx).y_start, scenario.vehicles(vehicle_idx).yaw_start];
+                % use scenario information to initialize info_old
+                obj.info_old.tree{vehicle_idx} = Tree(initial_pose(1), initial_pose(2), initial_pose(3), initial_trim, 1, inf, inf);
                 obj.info_old.tree_path(vehicle_idx, :) = ones(1, scenario.options.Hp + 1);
-                obj.info_old.y_predicted(vehicle_idx) = {repmat([x0(vehicle_idx, 1), x0(vehicle_idx, 2), x0(vehicle_idx, 3), trim_indices(vehicle_idx)], ...
-                                                             (scenario.options.tick_per_step + 1) * scenario.options.Hp, 1)};
+                obj.info_old.y_predicted(vehicle_idx) = {repmat( ...
+                                                             [initial_pose(1), initial_pose(2), initial_pose(3), initial_trim], ...
+                                                             (scenario.options.tick_per_step + 1) * scenario.options.Hp, ...
+                                                             1 ...
+                                                         )};
             end
 
         end
