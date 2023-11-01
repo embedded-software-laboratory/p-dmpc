@@ -2,7 +2,6 @@ classdef Vehicle < handle
     % VEHICLE   Class representing vehicles in a scenario
 
     properties
-        trim_config = 1; % initial trim configuration
         x_start = 0; % [m]
         y_start = 0; % [m]
         yaw_start = 0; % [radians]

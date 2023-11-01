@@ -44,7 +44,6 @@ function scenario = lanelet2_scenario(options, plant)
     for iveh = 1:nVeh
 
         veh = Vehicle();
-        veh.trim_config = 1;
 
         % Generate a ref path using the Lanelet2 Interface and generate_reference_path_loop
         reference_path_loops = {Lanelet2_Interface.generate_reference_path_indices(scenario.road_data_file_path)};
