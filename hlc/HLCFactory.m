@@ -49,8 +49,6 @@ classdef HLCFactory < handle
                 hlc = CentralizedController(obj.scenario, plant);
             end
 
-            hlc.set_controller_name(obj.get_controller_name(obj.scenario.options));
-
         end
 
         function set_scenario(obj, scenario)

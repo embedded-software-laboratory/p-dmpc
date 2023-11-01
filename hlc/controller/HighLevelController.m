@@ -10,7 +10,6 @@ classdef (Abstract) HighLevelController < handle
 
         optimizer;
         mpa;
-        controller_name;
         result;
         k;
         iter;
@@ -53,7 +52,6 @@ classdef (Abstract) HighLevelController < handle
             % We can then either throw an exception or use an arbitrary option when we find a default value
             % Or should we make valid and useful default values?
             obj.k = 0;
-            obj.controller_name = '';
             obj.got_stop = false;
             obj.total_fallback_times = 0;
             obj.scenario = scenario;
@@ -108,10 +106,6 @@ classdef (Abstract) HighLevelController < handle
             % specify returned variables
             result = obj.result;
             scenario = obj.scenario;
-        end
-
-        function set_controller_name(obj, name)
-            obj.controller_name = name;
         end
 
     end
