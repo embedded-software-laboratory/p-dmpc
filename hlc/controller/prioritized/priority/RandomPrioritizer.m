@@ -17,13 +17,13 @@ classdef RandomPrioritizer < Prioritizer
             priority_rand_stream = RandStream("mt19937ar", "Seed", time_step);
             directed_coupling = adjacency;
             nVeh = size(adjacency, 1);
-            RandPrio = randperm(priority_rand_stream, nVeh, nVeh);
+            current_priorities = randperm(priority_rand_stream, nVeh, nVeh);
 
             for iVeh = 1:nVeh
 
                 for jVeh = 1:nVeh
 
-                    if directed_coupling(iVeh, jVeh) && (RandPrio(iVeh) > RandPrio(jVeh))
+                    if directed_coupling(iVeh, jVeh) && (current_priorities(iVeh) > current_priorities(jVeh))
                         directed_coupling(iVeh, jVeh) = 0;
                     end
 
@@ -31,8 +31,6 @@ classdef RandomPrioritizer < Prioritizer
 
             end
 
-            [isDAG, ~] = kahn(directed_coupling);
-            assert(isDAG, 'Coupling matrix is not a DAG');
         end
 
     end

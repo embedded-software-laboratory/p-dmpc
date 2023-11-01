@@ -4,6 +4,7 @@ classdef IterationData
     properties
         reference_trajectory_points
         reference_trajectory_index
+        priority_permutation % permuation index for multiple priorities
         x0 % state
         trim_indices % current trim
         v_ref % reference speed
@@ -40,6 +41,7 @@ classdef IterationData
             nVeh = scenario.options.amount;
             Hp = scenario.options.Hp;
             hdv_amount = scenario.options.manual_control_config.amount;
+            obj.priority_permutation = 0;
             obj.reference_trajectory_points = zeros(nVeh, Hp, 2);
             obj.reference_trajectory_index = zeros(nVeh, Hp, 1);
             obj.x0 = zeros(nVeh, 4);

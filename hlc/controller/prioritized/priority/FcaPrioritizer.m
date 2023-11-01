@@ -88,7 +88,7 @@ classdef FcaPrioritizer < Prioritizer
 
             end
 
-            [~, FCAPrio] = sort(collisions, 'descend'); % ordered vehicle index w.r.t. priority
+            [~, current_priorities] = sort(collisions, 'descend'); % ordered vehicle index w.r.t. priority
             %disp(['collisions: ',num2str(collisions)])
             %disp(['priority_index: ',num2str(FCAPrio)])
 
@@ -98,7 +98,7 @@ classdef FcaPrioritizer < Prioritizer
 
                 for jVeh = 1:nVeh
 
-                    if directed_coupling(iVeh, jVeh) && (FCAPrio(iVeh) > FCAPrio(jVeh))
+                    if directed_coupling(iVeh, jVeh) && (current_priorities(iVeh) > current_priorities(jVeh))
                         directed_coupling(iVeh, jVeh) = 0;
                     end
 
@@ -106,8 +106,6 @@ classdef FcaPrioritizer < Prioritizer
 
             end
 
-            [isDAG, ~] = kahn(directed_coupling);
-            assert(isDAG, 'Coupling matrix is not a DAG');
         end
 
     end
