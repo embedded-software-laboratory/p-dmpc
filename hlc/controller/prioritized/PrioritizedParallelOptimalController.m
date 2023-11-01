@@ -30,33 +30,23 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
                 obj.prioritize();
                 obj.reduce_computation_levels();
 
+                obj.info.computation_levels = length(obj.CL_based_hierarchy);
+
                 % plan for vehicle_idx
-                planning_timer = tic;
                 obj.plan_single_vehicle(vehicle_idx);
-                runtime_planning = toc(planning_timer);
 
                 %% Send own data to other vehicles
-                msg_send_tic = tic;
                 obj.publish_predictions(vehicle_idx);
-                msg_send_time = toc(msg_send_tic);
 
-                obj.info.computation_levels = length(obj.CL_based_hierarchy);
                 % temporarily store data
                 obj.iter_array_tmp{obj.iter.priority_permutation} = obj.iter;
                 obj.info_array_tmp{obj.iter.priority_permutation} = obj.info;
-
             end
 
             [chosen_solution, ~, ~] = obj.choose_solution_cost();
 
             obj.info = obj.info_array_tmp{chosen_solution};
             obj.iter = obj.iter_array_tmp{chosen_solution};
-
-            obj.info.runtime_graph_search_max = obj.info.runtime_graph_search_each_veh(vehicle_idx);
-            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = msg_send_time + runtime_planning;
-            obj.info.runtime_subcontroller_each_veh(vehicle_idx) = obj.info.runtime_subcontroller_each_veh(vehicle_idx);
-            obj.info.runtime_subcontroller_max = obj.info.runtime_subcontroller_each_veh(vehicle_idx);
-            obj.info.computation_levels = length(obj.CL_based_hierarchy);
         end
 
     end
@@ -69,9 +59,9 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
             obj.info_base = ControlResultsInfo(n_veh, Hp, obj.plant.all_vehicle_ids);
 
             obj.update_other_vehicles_traffic_info();
-            obj.timing.start("determine_couplings_time", obj.k);
+            obj.timing_general.start("determine_couplings_time", obj.k);
             obj.couple();
-            obj.timing.stop("determine_couplings_time", obj.k);
+            obj.timing_general.stop("determine_couplings_time", obj.k);
 
             obj.iter_base = obj.iter;
             obj.iter_array_tmp = {};
