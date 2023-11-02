@@ -62,29 +62,8 @@ classdef (Abstract) HighLevelController < handle
 
             obj.coupler = Coupler();
 
-            obj.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
-
             for iVeh = obj.plant.indices_in_vehicle_list
                 obj.timing_per_vehicle(iVeh) = ControllerTiming();
-            end
-
-            % create fallback for first time step
-            obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, plant.all_vehicle_ids);
-
-            % find initial trim from mpa (equal for all vehicles)
-            initial_trim = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
-
-            for vehicle_idx = obj.plant.indices_in_vehicle_list
-                % get initial pose from scenario
-                initial_pose = [scenario.vehicles(vehicle_idx).x_start, scenario.vehicles(vehicle_idx).y_start, scenario.vehicles(vehicle_idx).yaw_start];
-                % use scenario information to initialize info_old
-                obj.info_old.tree{vehicle_idx} = Tree(initial_pose(1), initial_pose(2), initial_pose(3), initial_trim, 1, inf, inf);
-                obj.info_old.tree_path(vehicle_idx, :) = ones(1, scenario.options.Hp + 1);
-                obj.info_old.y_predicted(vehicle_idx) = {repmat( ...
-                                                             [initial_pose(1), initial_pose(2), initial_pose(3), initial_trim], ...
-                                                             (scenario.options.tick_per_step + 1) * scenario.options.Hp, ...
-                                                             1 ...
-                                                         )};
             end
 
         end
@@ -125,11 +104,38 @@ classdef (Abstract) HighLevelController < handle
                 obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
             end
 
+            % initialize result struct
+            obj.result = get_result_struct(obj.scenario, obj.plant.controlled_vehicle_ids);
+
+            % construct mpa
+            obj.mpa = MotionPrimitiveAutomaton(obj.scenario.model, obj.scenario.options);
+
             % initialize iteration data
             obj.iter = IterationData(obj.scenario, obj.plant.all_vehicle_ids);
 
-            % initialize result struct
-            obj.result = get_result_struct(obj.scenario, obj.plant.controlled_vehicle_ids);
+            % create old control results info in case of fallback at first time step
+            obj.info_old = ControlResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, obj.plant.all_vehicle_ids);
+
+            % find initial trim from mpa (equal for all vehicles)
+            initial_trim = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
+
+            % fill control results info for each controlled vehicle with scenario information
+            for vehicle_idx = obj.plant.indices_in_vehicle_list
+                % get initial pose from scenario
+                initial_pose = [ ...
+                                    obj.scenario.vehicles(vehicle_idx).x_start, ...
+                                    obj.scenario.vehicles(vehicle_idx).y_start, ...
+                                    obj.scenario.vehicles(vehicle_idx).yaw_start ...
+                                ];
+                % use scenario information to initialize info_old
+                obj.info_old.tree{vehicle_idx} = Tree(initial_pose(1), initial_pose(2), initial_pose(3), initial_trim, 1, inf, inf);
+                obj.info_old.tree_path(vehicle_idx, :) = ones(1, obj.scenario.options.Hp + 1);
+                obj.info_old.y_predicted(vehicle_idx) = {repmat( ...
+                                                             [initial_pose(1), initial_pose(2), initial_pose(3), initial_trim], ...
+                                                             (obj.scenario.options.tick_per_step + 1) * obj.scenario.options.Hp, ...
+                                                             1 ...
+                                                         )};
+            end
 
             % record the number of time steps that vehicles
             % consecutively stop and take fallback
