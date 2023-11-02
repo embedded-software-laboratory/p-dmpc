@@ -46,13 +46,11 @@ classdef SimLabDistributed < Plant
                 obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
             end
 
-            obj.k = k;
-
             if obj.should_plot
                 % visualize time step
                 % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, obj.k, tick_now);
+                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, k, tick_now);
 
                 %filter plotting info for controlled vehicles before
                 %sending

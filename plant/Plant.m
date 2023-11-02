@@ -5,7 +5,6 @@ classdef (Abstract) Plant < handle
         % struct used for every iteration
         cur_node
         scenario
-        k
     end
 
     properties (GetAccess = public, SetAccess = private)

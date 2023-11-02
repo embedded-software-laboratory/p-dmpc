@@ -134,14 +134,13 @@ classdef CpmLab < Plant
 
         end
 
-        function apply(obj, info, ~, k, mpa)
+        function apply(obj, info, ~, ~, mpa)
             y_pred = info.y_predicted;
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
                 obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
             end
 
-            obj.k = k;
             % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.scenario.options.amount, 1);
 
