@@ -26,6 +26,8 @@ classdef (Abstract) HighLevelController < handle
         % timing_per_veh stores the timings per vehicle
         timing_per_vehicle (1, :) ControllerTiming;
 
+        coupler
+
         % old control results used for taking a fallback
         info_old
     end
@@ -57,6 +59,8 @@ classdef (Abstract) HighLevelController < handle
             obj.scenario = scenario;
             obj.timing_general = ControllerTiming();
             obj.plant = plant;
+
+            obj.coupler = Coupler();
 
             obj.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
 

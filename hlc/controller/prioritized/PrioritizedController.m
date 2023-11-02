@@ -14,7 +14,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         prioritizer
         weigher
-        coupler
 
         consider_parallel_coupling (1, 1) function_handle = @()[];
     end
@@ -30,7 +29,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
             end
 
-            obj.coupler = Coupler();
             obj.prioritizer = Prioritizer.get_prioritizer(obj.scenario.options.priority);
             obj.weigher = Weigher.get_weigher(obj.scenario.options.weight);
 
