@@ -273,6 +273,9 @@ classdef (Abstract) HighLevelController < handle
             % start initialization timer
             obj.timing_general.start("hlc_init_all");
 
+            % receive step time from the plant
+            obj.scenario.options.dt_seconds = obj.plant.get_step_time();
+
             % initialize all manually controlled vehicles
             % (belongs to initialization of the scenario)
             for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
