@@ -129,7 +129,7 @@ classdef (Abstract) HighLevelController < handle
             obj.iter = IterationData(obj.scenario, obj.plant.all_vehicle_ids);
 
             % initialize result struct
-            obj.result = get_result_struct(obj);
+            obj.result = get_result_struct(obj.scenario, obj.plant.controlled_vehicle_ids);
 
             % record the number of time steps that vehicles
             % consecutively stop and take fallback
