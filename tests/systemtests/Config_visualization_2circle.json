@@ -1,6 +1,10 @@
 {
     "scenario_type": "circle",
     "amount": 2,
+    "path_ids": [
+        1,
+        2
+    ],
     "T_end": 5,
     "max_num_CLs": 4,
     "mpa_type": "single_speed",
