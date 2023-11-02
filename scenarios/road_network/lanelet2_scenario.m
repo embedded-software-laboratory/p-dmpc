@@ -1,10 +1,10 @@
-function scenario = lanelet2_scenario(options, plant)
+function scenario = lanelet2_scenario(amount, path_ids, scenario_type, plant)
     % Commonroad_Scenario
 
     scenario = Scenario();
 
     % get road data
-    if options.scenario_type == ScenarioType.lab_default
+    if scenario_type == ScenarioType.lab_default
         % ULA is required for that.
         assert(isa(plant, "UnifiedLabApi"));
 
@@ -20,7 +20,7 @@ function scenario = lanelet2_scenario(options, plant)
         % Retrieve road data
         road_data = RoadDataLanelet2(false).get_road_data(tmp_file_name, tempdir);
     else
-        assert(options.scenario_type == ScenarioType.lanelet2);
+        assert(scenario_type == ScenarioType.lanelet2);
 
         disp('Create Lanelet2 scenario.')
 
@@ -36,7 +36,7 @@ function scenario = lanelet2_scenario(options, plant)
     scenario.lanelet_relationships = road_data.lanelet_relationships;
     scenario.road_data_file_path = [road_data.road_folder_path, filesep, road_data.road_name];
 
-    nVeh = options.amount;
+    nVeh = amount;
 
     for iveh = 1:nVeh
 
@@ -47,7 +47,7 @@ function scenario = lanelet2_scenario(options, plant)
 
         % FIXME lanelets_index is not passed to `generate_reference_path_loop` as of !179
         reference_path_loop = reference_path_loops{1};
-        start_idx = mod(options.path_ids(iveh) * 2 - 1, width(reference_path_loop));
+        start_idx = mod(path_ids(iveh) * 2 - 1, width(reference_path_loop));
 
         if start_idx == 1
             lanelets_index = reference_path_loop;
@@ -55,7 +55,7 @@ function scenario = lanelet2_scenario(options, plant)
             lanelets_index = [reference_path_loop(start_idx:end), reference_path_loop(1:start_idx - 1)];
         end
 
-        reference_path_struct = generate_reference_path_loop(options.path_ids(iveh), scenario.lanelets, lanelets_index);
+        reference_path_struct = generate_reference_path_loop(path_ids(iveh), scenario.lanelets, lanelets_index);
         veh.lanelets_index = reference_path_struct.lanelets_index;
         lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
 

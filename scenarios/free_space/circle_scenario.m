@@ -1,10 +1,10 @@
-function scenario = circle_scenario(options)
+function scenario = circle_scenario(amount)
     % CIRCLE_SCENARIO   Constructor for scenario with vehicles circular arranged heading to the center of the circle.
 
     scenario = Scenario();
 
     radius = 2;
-    nVeh = options.amount;
+    nVeh = amount;
     yaws = pi * 2 / nVeh * (0:nVeh - 1);
 
     for iVeh = 1:nVeh

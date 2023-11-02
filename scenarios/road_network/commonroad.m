@@ -1,4 +1,4 @@
-function scenario = commonroad(options)
+function scenario = commonroad(amount, path_ids)
     % Commonroad_Scenario
 
     scenario = Scenario();
@@ -12,13 +12,13 @@ function scenario = commonroad(options)
     scenario.road_raw_data = road_data.road_raw_data;
     scenario.lanelet_relationships = road_data.lanelet_relationships;
 
-    nVeh = options.amount;
+    nVeh = amount;
 
     for iveh = 1:nVeh
 
         veh = Vehicle();
 
-        reference_path_struct = generate_reference_path_loop(options.path_ids(iveh), scenario.lanelets); % function to generate refpath based on CPM Lab road geometry
+        reference_path_struct = generate_reference_path_loop(path_ids(iveh), scenario.lanelets); % function to generate refpath based on CPM Lab road geometry
         veh.lanelets_index = reference_path_struct.lanelets_index;
         lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
 
