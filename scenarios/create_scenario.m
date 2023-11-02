@@ -13,4 +13,7 @@ function scenario = create_scenario(options, plant)
             scenario = lanelet2_scenario(options, plant);
     end
 
+    % assign options to scenario object
+    scenario.options = options;
+
 end

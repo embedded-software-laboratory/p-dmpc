@@ -23,6 +23,8 @@ function scenarios = commonroad_random(options, nVeh, seed)
             path_ids = sort(randsample(random_stream, 1:40, options.amount), 'ascend');
             options.path_ids = path_ids;
             scenario = commonroad(options);
+            scenario.options = options;
+
             % FIXME this property is not supported anymore
             scenario.random_stream = random_stream;
 

@@ -2,8 +2,6 @@ function scenario = circle_scenario(options)
     % CIRCLE_SCENARIO   Constructor for scenario with vehicles circular arranged heading to the center of the circle.
 
     scenario = Scenario();
-    % read from optionos
-    scenario.options = options;
 
     radius = 2;
     nVeh = options.amount;

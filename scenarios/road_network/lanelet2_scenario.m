@@ -3,9 +3,6 @@ function scenario = lanelet2_scenario(options, plant)
 
     scenario = Scenario();
 
-    % read from options
-    scenario.options = options;
-
     % get road data
     if options.scenario_type == ScenarioType.lab_default
         % ULA is required for that.

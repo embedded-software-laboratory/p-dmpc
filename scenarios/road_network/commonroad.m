@@ -3,9 +3,6 @@ function scenario = commonroad(options)
 
     scenario = Scenario();
 
-    % read from optionos
-    scenario.options = options;
-
     % get road data
     road_data = RoadDataCommonRoad().get_road_data();
     assignin('base', 'road_data', road_data);
