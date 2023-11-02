@@ -16,15 +16,18 @@ classdef SimLabDistributed < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, scenario, vehicle_ids)
+        function setup(obj, scenario, all_vehicle_ids, vehicle_ids)
 
             arguments
                 obj (1, 1) SimLabDistributed
                 scenario (1, 1) Scenario
+                all_vehicle_ids (1, :) uint8
                 vehicle_ids (1, :) = scenario.options.path_ids
             end
 
-            setup@Plant(obj, scenario, vehicle_ids);
+            disp(vehicle_ids)
+
+            setup@Plant(obj, scenario, all_vehicle_ids, vehicle_ids);
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
             obj.generate_plotting_info_msgs();
             obj.ros2_node = ros2node(['/plant_', num2str(obj.controlled_vehicle_ids(1))]);
@@ -34,8 +37,8 @@ classdef SimLabDistributed < Plant
             obj.msg_to_be_sent = ros2message("plotting_info/PlottingInfo");
         end
 
-        function [x0, trim_indices] = measure(obj)
-            [x0, trim_indices] = obj.measure_node();
+        function [x0, trim_indices] = measure(obj, mpa)
+            [x0, trim_indices] = obj.measure_node(mpa);
         end
 
         function apply(obj, info, result, k, ~)
