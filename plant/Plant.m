@@ -91,6 +91,11 @@ classdef (Abstract) Plant < handle
             error('This interface does not provide the possibility to retrieve a lab specific map.');
         end
 
+        function dt_seconds = get_step_time(obj)
+            % return step time that is set by the plant
+            dt_seconds = obj.scenario.options.dt_seconds;
+        end
+
         function synchronize_start_with_plant(obj)
             % can be overriden in child class if needed
         end
