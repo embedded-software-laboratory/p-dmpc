@@ -6,6 +6,10 @@ function [result, scenario] = main_distributed(vehicle_id)
         warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
     end
 
+    % read config from disk
+    options = Config();
+    options = options.importFromJson(fileread('Config.json'));
+
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
