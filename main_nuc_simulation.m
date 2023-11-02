@@ -121,18 +121,18 @@ function results = merge_results(results, res)
     % deadlock as boolean
     % maybe store that beforehand for every vehicle-timestep-combination
     results.is_deadlock = results.is_deadlock | res.is_deadlock;
-    results.subcontroller_runtime_each_veh(i_veh, :) = res.subcontroller_runtime_each_veh(i_veh, :);
-    results.graph_search_runtime_each_veh(i_veh, :) = res.graph_search_runtime_each_veh(i_veh, :);
     results.n_expanded(i_veh, :) = res.n_expanded(i_veh, :);
     % INFO: ignore all coupling info, they are the same on each nuc (dont know why they are safed in result AND in IterationData)
 
     % if someone needs one of these:
     % TODO: obstacles
     % TODO: lanelet_crossing_areas
-    % TODO: runtimes
     % TODO: all times need to be checked on how to compute when merged (are they even used anymore)
     results.total_fallback_times(i_veh) = res.total_fallback_times;
 
+    % Timings
+    results.timings_per_vehicle(i_veh) = res.timings_per_vehicle(i_veh);
+    results.timings_general(i_veh) = res.timings_general;
 end
 
 function iter = merge_iteration_structs(iter, iter_in)
