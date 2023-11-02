@@ -16,7 +16,6 @@ classdef (Abstract) Plant < handle
     end
 
     properties (Dependent, GetAccess = public)
-        amount % amount of vehicles controlled by this experiment instance
         indices_in_vehicle_list
     end
 
@@ -31,10 +30,6 @@ classdef (Abstract) Plant < handle
         % get methods for dependent properties
         function indices = get.indices_in_vehicle_list(obj)
             [~, indices] = ismember(obj.controlled_vehicle_ids, obj.all_vehicle_ids);
-        end
-
-        function amount = get.amount(obj)
-            amount = length(obj.controlled_vehicle_ids);
         end
 
     end
