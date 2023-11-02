@@ -7,7 +7,17 @@ classdef CentralizedController < HighLevelController
 
         function obj = CentralizedController(scenario, plant)
             obj = obj@HighLevelController(scenario, plant);
+        end
 
+    end
+
+    methods (Access = protected)
+
+        function init(obj)
+            % initialize superclass
+            init@HighLevelController(obj);
+
+            % construct optimizer
             if obj.scenario.options.use_cpp()
                 obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.mpa);
             else
@@ -15,10 +25,6 @@ classdef CentralizedController < HighLevelController
             end
 
         end
-
-    end
-
-    methods (Access = protected)
 
         function create_coupling_graph(obj)
 

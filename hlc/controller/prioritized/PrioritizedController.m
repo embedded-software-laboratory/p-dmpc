@@ -23,12 +23,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function obj = PrioritizedController(scenario, plant)
             obj = obj@HighLevelController(scenario, plant);
 
-            if obj.scenario.options.use_cpp()
-                obj.optimizer = GraphSearchMexPB(obj.scenario, obj.mpa, obj.plant.indices_in_vehicle_list);
-            else
-                obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
-            end
-
             obj.prioritizer = Prioritizer.get_prioritizer(obj.scenario.options.priority);
             obj.weigher = Weigher.get_weigher(obj.scenario.options.weight);
 
@@ -47,6 +41,13 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function init(obj)
             % initialize superclass
             init@HighLevelController(obj);
+
+            % construct optimizer
+            if obj.scenario.options.use_cpp()
+                obj.optimizer = GraphSearchMexPB(obj.scenario, obj.mpa, obj.plant.indices_in_vehicle_list);
+            else
+                obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
+            end
 
             % in priority-based computation, vehicles communicate via ROS 2
             timer = tic;
