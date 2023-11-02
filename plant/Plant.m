@@ -3,8 +3,6 @@ classdef (Abstract) Plant < handle
 
     properties (Access = protected)
         % struct used for every iteration
-        x0
-        trim_indices
         cur_node
         scenario
         k
