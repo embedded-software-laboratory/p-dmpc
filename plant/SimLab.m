@@ -21,10 +21,11 @@ classdef SimLab < Plant
             visualization_data_queue = obj.visualization_data_queue;
         end
 
-        function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) SimLab
+                options (1, 1) Config
                 scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8 = scenario.options.path_ids
                 controlled_vehicle_ids (1, :) uint8 = []
@@ -51,7 +52,7 @@ classdef SimLab < Plant
                 obj.use_visualization_data_queue = true;
             end
 
-            setup@Plant(obj, scenario, all_vehicle_ids, controlled_vehicle_ids);
+            setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue

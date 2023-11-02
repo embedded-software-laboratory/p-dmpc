@@ -16,7 +16,7 @@ function [result, scenario] = main_distributed(vehicle_id)
     dry_run = (scenario.options.environment == Environment.CpmLab || scenario.options.environment == Environment.SimulationDistributed); % TODO: Use dry run also for unified lab api?
     plant = PlantFactory.get_experiment_interface(scenario.options.environment);
     % set active vehicle IDs and initialize communication
-    plant.setup(scenario, scenario.options.path_ids, vehicle_id);
+    plant.setup(options, scenario, scenario.options.path_ids, vehicle_id);
 
     % In priority-based computation, vehicles communicate via ROS 2.
     % main.m will have deleted the ros2 message types before distributing the code.

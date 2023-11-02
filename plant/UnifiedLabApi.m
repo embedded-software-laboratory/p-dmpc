@@ -50,8 +50,8 @@ classdef UnifiedLabApi < Plant
             obj.map_comm_done = true;
         end
 
-        function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
-            setup@Plant(obj, scenario, all_vehicle_ids, controlled_vehicle_ids);
+        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
+            setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
 
             assert(issorted(obj.controlled_vehicle_ids));
 

@@ -47,10 +47,11 @@ classdef (Abstract) Plant < handle
         function obj = Plant()
         end
 
-        function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) Plant
+                options (1, 1) Config
                 scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8
                 controlled_vehicle_ids (1, :) uint8

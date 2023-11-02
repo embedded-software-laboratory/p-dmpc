@@ -29,10 +29,11 @@ classdef CpmLab < Plant
 
         end
 
-        function setup(obj, scenario, ~, controlled_vehicle_ids)
+        function setup(obj, options, scenario, ~, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) CpmLab
+                options (1, 1) Config
                 scenario (1, 1) Scenario
                 ~% all_vehicle_ids are automatically received from the LCC
                 controlled_vehicle_ids (1, :) uint8 = []
@@ -69,6 +70,7 @@ classdef CpmLab < Plant
 
             state_list = sample(end);
 
+            options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
             scenario.options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
             % Middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(scenario.options.dt_seconds * 1e9);
@@ -77,7 +79,7 @@ classdef CpmLab < Plant
                 controlled_vehicle_ids = state_list.active_vehicle_ids;
             end
 
-            setup@Plant(obj, scenario, state_list.active_vehicle_ids, controlled_vehicle_ids);
+            setup@Plant(obj, options, scenario, state_list.active_vehicle_ids, controlled_vehicle_ids);
         end
 
         function [x0, trim_indices] = measure(obj, mpa)

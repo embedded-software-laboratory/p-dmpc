@@ -88,7 +88,7 @@ classdef HLCFactory < handle
             obj.scenario.options.should_save_result = false;
 
             plant = PlantFactory.get_experiment_interface(obj.scenario.options.environment);
-            plant.setup(obj.scenario, dry_run_vehicle_ids);
+            plant.setup(obj.scenario.options, obj.scenario, dry_run_vehicle_ids);
 
             hlc = obj.get_hlc(dry_run_vehicle_ids, false, plant);
             hlc.run();
