@@ -1,4 +1,4 @@
-classdef Config < matlab.mixin.Copyable
+classdef Config
 
     properties
         environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
