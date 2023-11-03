@@ -99,11 +99,6 @@ classdef (Abstract) HighLevelController < handle
         function init(obj)
             % initialize high level controller itself
 
-            % initialize all manually controlled vehicles
-            for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
-                obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
-            end
-
             % initialize result struct
             obj.result = get_result_struct(obj.scenario, obj.plant.controlled_vehicle_ids);
 
@@ -277,6 +272,12 @@ classdef (Abstract) HighLevelController < handle
 
             % start initialization timer
             obj.timing_general.start("hlc_init_all");
+
+            % initialize all manually controlled vehicles
+            % (belongs to initialization of the scenario)
+            for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
+                obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
+            end
 
             % initialize high level controller itself
             obj.init();
