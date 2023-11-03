@@ -57,7 +57,7 @@ classdef Config
 
     end
 
-    properties (Dependent)
+    properties (Dependent, GetAccess = public, SetAccess = private)
         tick_per_step % number of data points per step
         k_end % total number of steps
         Hu % control horizon
