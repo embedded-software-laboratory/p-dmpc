@@ -1,7 +1,7 @@
 classdef Config
 
     properties
-        environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
+        environment Environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
         manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
         is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
