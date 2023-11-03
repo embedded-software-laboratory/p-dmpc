@@ -4,7 +4,6 @@ classdef (Abstract) Plant < handle
     properties (Access = protected)
         % struct used for every iteration
         cur_node (:, :) double % (n_veh, NodeInfo.n_cols) created by node.m
-        scenario Scenario % (1, 1)
         options Config % (1, 1)
     end
 
@@ -53,7 +52,6 @@ classdef (Abstract) Plant < handle
             % This function does everything in order to run the object
             % later on. If further initialization needs to be done this
             % method shall be overriden and called in a child class.
-            obj.scenario = scenario;
             obj.options = options;
 
             obj.controlled_vehicle_ids = controlled_vehicle_ids;
