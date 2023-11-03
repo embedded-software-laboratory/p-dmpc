@@ -25,8 +25,6 @@ classdef SimLabDistributed < Plant
                 vehicle_ids (1, :) = scenario.options.path_ids
             end
 
-            disp(vehicle_ids)
-
             setup@Plant(obj, scenario, all_vehicle_ids, vehicle_ids);
             obj.should_plot = obj.scenario.options.options_plot_online.is_active;
             obj.generate_plotting_info_msgs();
