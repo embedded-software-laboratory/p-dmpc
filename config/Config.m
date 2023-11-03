@@ -97,6 +97,14 @@ classdef Config
         function obj = Config()
         end
 
+        function result = exportAsJson(obj)
+            result = jsonencode(obj);
+        end
+
+        function result = importFromJson(obj, json)
+            result = assign_data(obj, jsondecode(json));
+        end
+
         function obj = assign_data(obj, struct)
             fn = fieldnames(struct);
 
@@ -120,14 +128,6 @@ classdef Config
 
             end
 
-        end
-
-        function result = exportAsJson(obj)
-            result = jsonencode(obj);
-        end
-
-        function result = importFromJson(obj, json)
-            result = assign_data(obj, jsondecode(json));
         end
 
         function result = use_cpp(obj)
