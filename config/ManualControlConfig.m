@@ -13,10 +13,10 @@ classdef ManualControlConfig
         end
 
         function obj = jsondecode(obj, json_struct)
-            fields = fieldnames(json_struct);
+            % for each loop requires fields as row vector
+            fields = string(fieldnames(json_struct)).';
 
-            for i_field = 1:length(fields)
-                field = fields{i_field};
+            for field = fields
 
                 if ~isprop(obj, field)
                     warning('Cannot set property %s for class ManualControlConfig as it does not exist', field);

@@ -106,11 +106,11 @@ classdef Config
             result = jsondecode(obj, jsondecode(json));
         end
 
-        function obj = jsondecode(obj, struct)
-            fn = fieldnames(struct);
+        function obj = jsondecode(obj, json_struct)
+            % for each loop requires fields as row vector
+            fields = string(fieldnames(json_struct)).';
 
-            for i_field = 1:length(fn)
-                field = fn{i_field};
+            for field = fields
 
                 if ~isprop(obj, field)
                     warning('Cannot set property %s for class Config as it does not exist', field);
@@ -118,14 +118,14 @@ classdef Config
                 end
 
                 % custom classes must provide jsondecode by its own
-                if strcmp(field, 'manual_control_config')
+                if strcmp(field, "manual_control_config")
                     obj.manual_control_config = ManualControlConfig();
-                    obj.manual_control_config = obj.manual_control_config.jsondecode(struct.manual_control_config);
-                elseif strcmp(field, 'options_plot_online')
+                    obj.manual_control_config = obj.manual_control_config.jsondecode(json_struct.manual_control_config);
+                elseif strcmp(field, "options_plot_online")
                     obj.options_plot_online = OptionsPlotOnline();
-                    obj.options_plot_online = obj.options_plot_online.jsondecode(struct.options_plot_online);
+                    obj.options_plot_online = obj.options_plot_online.jsondecode(json_struct.options_plot_online);
                 else
-                    obj.(field) = struct.(field);
+                    obj.(field) = json_struct.(field);
                 end
 
             end
