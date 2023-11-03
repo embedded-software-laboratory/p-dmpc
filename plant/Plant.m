@@ -60,11 +60,11 @@ classdef (Abstract) Plant < handle
             obj.all_vehicle_ids = all_vehicle_ids;
 
             % temporarily create an MPA to get vehicles` trim config
-            tmp_mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
+            tmp_mpa = MotionPrimitiveAutomaton(scenario.model, options);
 
             % find initial trim from mpa (equal for all vehicles)
             initial_trim = find([tmp_mpa.trims.speed] == 0 & [tmp_mpa.trims.steering] == 0, 1);
-            initial_trims = repmat(initial_trim, 1, scenario.options.amount);
+            initial_trims = repmat(initial_trim, 1, options.amount);
 
             % set initial node with information from scenario
             obj.cur_node = node( ...
@@ -73,8 +73,8 @@ classdef (Abstract) Plant < handle
                 [obj.scenario.vehicles(:).x_start]', ...
                 [obj.scenario.vehicles(:).y_start]', ...
                 [obj.scenario.vehicles(:).yaw_start]', ...
-                zeros(obj.scenario.options.amount, 1), ...
-                zeros(obj.scenario.options.amount, 1) ...
+                zeros(obj.options.amount, 1), ...
+                zeros(obj.options.amount, 1) ...
             );
 
         end
@@ -88,7 +88,7 @@ classdef (Abstract) Plant < handle
 
         function dt_seconds = get_step_time(obj)
             % return step time that is set by the plant
-            dt_seconds = obj.scenario.options.dt_seconds;
+            dt_seconds = obj.options.dt_seconds;
         end
 
         function synchronize_start_with_plant(obj)
@@ -100,7 +100,7 @@ classdef (Abstract) Plant < handle
     methods (Access = protected)
 
         function [x0, trim_indices] = measure_node(obj, mpa)
-            speeds = zeros(obj.scenario.options.amount, 1);
+            speeds = zeros(obj.options.amount, 1);
 
             for iVeh = 1:obj.indices_in_vehicle_list
                 speeds(iVeh) = mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;

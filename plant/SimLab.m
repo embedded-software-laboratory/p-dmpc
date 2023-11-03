@@ -27,13 +27,13 @@ classdef SimLab < Plant
                 obj (1, 1) SimLab
                 options (1, 1) Config
                 scenario (1, 1) Scenario
-                all_vehicle_ids (1, :) uint8 = scenario.options.path_ids
+                all_vehicle_ids (1, :) uint8 = options.path_ids
                 controlled_vehicle_ids (1, :) uint8 = []
             end
 
             % if [] is passed in, matlab does not choose the default
             if isempty(all_vehicle_ids)
-                all_vehicle_ids = scenario.options.path_ids;
+                all_vehicle_ids = options.path_ids;
             end
 
             % only set controlled ids to all ids after all ids have been set
@@ -42,9 +42,9 @@ classdef SimLab < Plant
             end
 
             % check whether visualization data queue is needed and initialize if necessary
-            if (scenario.options.is_prioritized ...
-                    && scenario.options.compute_in_parallel ...
-                    && scenario.options.options_plot_online.is_active ...
+            if (options.is_prioritized ...
+                    && options.compute_in_parallel ...
+                    && options.options_plot_online.is_active ...
                     && isempty(obj.visualization_data_queue) ...
                 )
                 obj.visualization_data_queue = parallel.pool.DataQueue;
@@ -53,7 +53,7 @@ classdef SimLab < Plant
             end
 
             setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
-            obj.should_plot = obj.scenario.options.options_plot_online.is_active;
+            obj.should_plot = obj.options.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue
                 obj.plotter = PlotterOnline(obj.scenario, obj.indices_in_vehicle_list);
@@ -74,19 +74,19 @@ classdef SimLab < Plant
 
             if obj.should_plot
                 % visualize time step
-                % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
+                % tick_now = obj.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
                 plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, k, tick_now);
 
                 if obj.use_visualization_data_queue
                     %filter plotting info for controlled vehicles before
                     %sending
-                    plotting_info = plotting_info.filter(obj.scenario.options.amount, obj.scenario.options.options_plot_online);
+                    plotting_info = plotting_info.filter(obj.options.amount, obj.options.options_plot_online);
                     send(obj.visualization_data_queue, plotting_info);
                 else
                     % wait to simulate realtime plotting
                     step_time = toc(obj.step_timer);
-                    pause(obj.scenario.options.dt_seconds - step_time);
+                    pause(obj.options.dt_seconds - step_time);
                     obj.plotter.plot(plotting_info);
                 end
 

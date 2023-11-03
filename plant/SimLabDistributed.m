@@ -23,11 +23,11 @@ classdef SimLabDistributed < Plant
                 options (1, 1) Config
                 scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8
-                vehicle_ids (1, :) = scenario.options.path_ids
+                vehicle_ids (1, :) = options.path_ids
             end
 
             setup@Plant(obj, options, scenario, all_vehicle_ids, vehicle_ids);
-            obj.should_plot = obj.scenario.options.options_plot_online.is_active;
+            obj.should_plot = obj.options.options_plot_online.is_active;
             obj.generate_plotting_info_msgs();
             obj.ros2_node = ros2node(['/plant_', num2str(obj.controlled_vehicle_ids(1))]);
             qos_options = struct("History", "keeplast", "Depth", 40, "Reliability", "reliable", "Durability", "transientlocal");
@@ -48,13 +48,13 @@ classdef SimLabDistributed < Plant
 
             if obj.should_plot
                 % visualize time step
-                % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
+                % tick_now = obj.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
                 plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, k, tick_now);
 
                 %filter plotting info for controlled vehicles before
                 %sending
-                plotting_info = plotting_info.filter(obj.scenario.options.amount, obj.scenario.options.options_plot_online);
+                plotting_info = plotting_info.filter(obj.options.amount, obj.options.options_plot_online);
                 obj.compute_msg_to_be_sent(plotting_info)
 
                 send(obj.publisher, obj.msg_to_be_sent); % send rosmessage
