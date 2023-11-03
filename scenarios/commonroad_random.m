@@ -12,18 +12,17 @@ function scenarios = commonroad_random(options, nVeh, seed)
 
     disp('Creating scenarios...')
     scenarios(length(nVeh), length(seed)) = Scenario();
-    options_copy = copy(options);
 
     for iVeh = 1:length(nVeh)
 
         for iSeed = 1:length(seed)
-            options = copy(options_copy);
-            options.amount = nVeh(iVeh);
+            options_random = options;
+            options_random.amount = nVeh(iVeh);
             random_stream = RandStream('mt19937ar', 'Seed', seed(iSeed));
-            path_ids = sort(randsample(random_stream, 1:40, options.amount), 'ascend');
-            options.path_ids = path_ids;
-            scenario = commonroad(options.amount, options.path_ids);
-            scenario.options = options;
+            path_ids = sort(randsample(random_stream, 1:40, options_random.amount), 'ascend');
+            options_random.path_ids = path_ids;
+            scenario = commonroad(options_random.amount, options_random.path_ids);
+            scenario.options = options_random;
 
             % FIXME this property is not supported anymore
             scenario.random_stream = random_stream;
