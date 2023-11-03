@@ -78,7 +78,7 @@ classdef CpmLab < Plant
             options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
 
             % middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(obj.options.dt_seconds * 1e9);
+            obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
 
             if isempty(controlled_vehicle_ids)
                 controlled_vehicle_ids = state_list.active_vehicle_ids;

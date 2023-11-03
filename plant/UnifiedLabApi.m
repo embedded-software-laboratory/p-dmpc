@@ -61,7 +61,7 @@ classdef UnifiedLabApi < Plant
             obj.prepare_ros2(); % Call this in case map_as_string was not used before
 
             % middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(obj.options.dt_seconds * 1e9);
+            obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
 
             disp('Setup. Phase 3: Perform preparation phase...');
 
