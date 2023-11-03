@@ -56,7 +56,7 @@ classdef SimLab < Plant
             obj.should_plot = obj.options.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue
-                obj.plotter = PlotterOnline(obj.scenario, obj.indices_in_vehicle_list);
+                obj.plotter = PlotterOnline(scenario, obj.indices_in_vehicle_list);
             end
 
         end
