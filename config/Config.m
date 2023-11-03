@@ -68,6 +68,19 @@ classdef Config
         function obj = Config()
         end
 
+        % empty set methods used by assign_data
+        % dependent properties with public GetAccess are encoded to a json file
+        % to automatically decode the json file set methods must be defined
+
+        function obj = set.tick_per_step(obj, ~)
+        end
+
+        function obj = set.k_end(obj, ~)
+        end
+
+        function obj = set.Hu(obj, ~)
+        end
+
         function obj = assign_data(obj, struct)
             fn = fieldnames(struct);
 
@@ -76,10 +89,6 @@ classdef Config
 
                 if ~isprop(obj, field)
                     warning('Cannot set property %s for class Config as it does not exist', field);
-                    continue;
-                end
-
-                if findprop(obj, field).Dependent
                     continue;
                 end
 
