@@ -12,7 +12,7 @@ classdef ManualControlConfig
         function obj = ManualControlConfig()
         end
 
-        function obj = assign_data(obj, json_struct)
+        function obj = jsondecode(obj, json_struct)
             fields = fieldnames(json_struct);
 
             for i_field = 1:length(fields)

@@ -21,7 +21,7 @@ classdef OptionsPlotOnline
         function obj = OptionsPlotOnline()
         end
 
-        function obj = assign_data(obj, struct)
+        function obj = jsondecode(obj, struct)
             fn = fieldnames(struct);
 
             for i_field = 1:length(fn)

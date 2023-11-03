@@ -77,7 +77,7 @@ classdef Config
             result = obj.Hp;
         end
 
-        % empty set methods used by assign_data
+        % empty set methods used by jsondecode
         % dependent properties with public GetAccess are encoded to a json file
         % to automatically decode the json file set methods must be defined
 
@@ -102,10 +102,11 @@ classdef Config
         end
 
         function result = importFromJson(obj, json)
-            result = assign_data(obj, jsondecode(json));
+            % custom classes must provide jsondecode by its own
+            result = jsondecode(obj, jsondecode(json));
         end
 
-        function obj = assign_data(obj, struct)
+        function obj = jsondecode(obj, struct)
             fn = fieldnames(struct);
 
             for i_field = 1:length(fn)
@@ -116,12 +117,13 @@ classdef Config
                     continue;
                 end
 
+                % custom classes must provide jsondecode by its own
                 if strcmp(field, 'manual_control_config')
                     obj.manual_control_config = ManualControlConfig();
-                    obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
+                    obj.manual_control_config = obj.manual_control_config.jsondecode(struct.manual_control_config);
                 elseif strcmp(field, 'options_plot_online')
                     obj.options_plot_online = OptionsPlotOnline();
-                    obj.options_plot_online = obj.options_plot_online.assign_data(struct.options_plot_online);
+                    obj.options_plot_online = obj.options_plot_online.jsondecode(struct.options_plot_online);
                 else
                     obj.(field) = struct.(field);
                 end
