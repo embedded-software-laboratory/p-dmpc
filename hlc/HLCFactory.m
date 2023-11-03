@@ -64,34 +64,34 @@ classdef HLCFactory < handle
         % Usually MATLAB takes some time to run code for the first time because
         % it has to compile it while running. If we run if before the
         % experiment starts, we save a few hundred milliseconds on the first
-        % actual timestep of the experiment.
+        % actual time step of the experiment.
         % This so far only works when the HLC doesn't require input arguments
         % It also assumes that if the HLC is distributed, all other HLCs start
         % at approximately the same time, because otherwise onEachTimestep
         % won't run through.
         %
         % Important note: This might take some time depending on how hard to
-        % solve the first timestep of this scenario is.
+        % solve the first time step of this scenario is.
+
         function dry_run_hlc(obj, dry_run_vehicle_ids)
             disp("Starting dry run of HLC");
-            plot_backup = obj.scenario.options.options_plot_online.is_active;
-            environment_backup = obj.scenario.options.environment;
-            T_end_backup = obj.scenario.options.T_end;
-            save_result_backup = obj.scenario.options.should_save_result;
-            % avoid sending any data to Cpm Lab. Thus, use Sim Lab
+
+            % use simulation to avoid communication with a lab
             obj.scenario.options.environment = Environment.Simulation;
-            plant = PlantFactory.get_experiment_interface(obj.scenario.options.environment);
+            % for simulation manual vehicles are disabled
+            obj.scenario.options.manual_control_config.is_active = false;
+            % for the dry run plotting is not necessary
             obj.scenario.options.options_plot_online.is_active = false;
+            % for the dry run reduce experiment time to a minimum
             obj.scenario.options.T_end = 2 * obj.scenario.options.dt_seconds;
+            % for the dry run results are not relevant
             obj.scenario.options.should_save_result = false;
+
+            plant = PlantFactory.get_experiment_interface(obj.scenario.options.environment);
             plant.setup(obj.scenario, dry_run_vehicle_ids);
 
             hlc = obj.get_hlc(dry_run_vehicle_ids, false, plant);
             hlc.run();
-            obj.scenario.options.environment = environment_backup;
-            obj.scenario.options.options_plot_online.is_active = plot_backup;
-            obj.scenario.options.T_end = T_end_backup;
-            obj.scenario.options.should_save_result = save_result_backup;
 
             if obj.scenario.options.use_cpp()
 
