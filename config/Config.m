@@ -65,7 +65,16 @@ classdef Config
 
     methods
 
-        function obj = Config()
+        function result = get.tick_per_step(obj)
+            result = round(obj.dt_seconds / obj.time_per_tick);
+        end
+
+        function result = get.k_end(obj)
+            result = floor(obj.T_end / obj.dt_seconds);
+        end
+
+        function result = get.Hu(obj)
+            result = obj.Hp;
         end
 
         % empty set methods used by assign_data
@@ -79,6 +88,13 @@ classdef Config
         end
 
         function obj = set.Hu(obj, ~)
+        end
+
+    end
+
+    methods (Access = public)
+
+        function obj = Config()
         end
 
         function obj = assign_data(obj, struct)
@@ -104,18 +120,6 @@ classdef Config
 
             end
 
-        end
-
-        function result = get.tick_per_step(obj)
-            result = round(obj.dt_seconds / obj.time_per_tick);
-        end
-
-        function result = get.k_end(obj)
-            result = floor(obj.T_end / obj.dt_seconds);
-        end
-
-        function result = get.Hu(obj)
-            result = obj.Hp;
         end
 
         function result = exportAsJson(obj)
