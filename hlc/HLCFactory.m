@@ -93,23 +93,6 @@ classdef HLCFactory < handle
             hlc = obj.get_hlc(dry_run_vehicle_ids, false, plant);
             hlc.run();
 
-            if obj.scenario.options.use_cpp()
-
-                if ismac()
-                    % clear mex dont work on ARM Mac
-                    [~, result] = system('sysctl machdep.cpu.brand_string');
-                    matches = regexp(result, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
-
-                    if isempty(matches)
-                        clear mex;
-                    end
-
-                else
-                    clear mex;
-                end
-
-            end
-
             disp("Dry Run Completed");
         end
 
