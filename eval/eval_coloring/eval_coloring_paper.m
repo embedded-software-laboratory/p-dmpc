@@ -62,13 +62,18 @@ function eval_coloring_paper()
     tcomp = zeros(1, length(n_agents));
     tcomp_helper = zeros(1, n_runs);
 
+    prioritizer = ColoringPrioritizer();
+    iter = struct;
+
     for n = range
         adjacency = triu(randi([0 1], n_agents(n), n_agents(n)), 1);
         adjacency = adjacency + adjacency';
 
+        iter.adjacency = adjacency;
+
         for i = 1:n_runs
             tstart = tic;
-            [isDAG, topo_groups] = topological_sorting_coloring(adjacency); %#ok<ASGLU>
+            prioritizer.prioritize([], [], iter);
             tcomp_helper(i) = toc(tstart);
         end
 
@@ -92,10 +97,11 @@ function eval_coloring_paper()
     fprintf("\nEvaluate computation time for priority assignment algorithm in 8-vehicle scenario at intersection\n")
     n = 100;
     tcomp_s = zeros(1, n);
+    iter.adjacency = c;
 
     for i = 1:n
         tstart = tic;
-        [isDAG, topo_groups] = topological_sorting_coloring(c); %#ok<ASGLU>
+        prioritizer.prioritize([], [], iter);
         tcomp_s(i) = toc(tstart);
     end
 
