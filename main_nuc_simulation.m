@@ -1,7 +1,14 @@
 function results = main_nuc_simulation()
     close all
     clear all
+
+    % read config from disk
+    options = Config();
+    options = options.importFromJson(fileread('Config.json'));
+
+    % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
+
     vehicle_ids = scenario.options.path_ids;
 
     fprintf('Starting remote HLCs...');
@@ -23,10 +30,10 @@ function results = main_nuc_simulation()
 
     generate_plotting_info_msgs();
     ros2_node = ros2node('/plant_plotting');
-    options = struct("History", "keepall", "Reliability", "reliable", "Durability", "transientlocal");
+    qos_options = struct("History", "keepall", "Reliability", "reliable", "Durability", "transientlocal");
     disp(['init subscriber for vehicles ', num2str(vehicle_ids)]);
     topic_name_subscribe = ['/plant_plotting'];
-    subscriber = ros2subscriber(ros2_node, topic_name_subscribe, "plotting_info/PlottingInfo", @enqueue_plotting_info, options);
+    subscriber = ros2subscriber(ros2_node, topic_name_subscribe, "plotting_info/PlottingInfo", @enqueue_plotting_info, qos_options);
     % initialize empty message queue
     global plotting_info_queue;
     plotting_info_queue = empty_plotting_info_queue();
