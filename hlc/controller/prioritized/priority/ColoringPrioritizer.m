@@ -11,7 +11,7 @@ classdef ColoringPrioritizer < Prioritizer
         function [directed_coupling] = prioritize(obj, ~, ~, iter)
             adjacency = iter.adjacency;
             % apply topological sorting algorithm with coloring
-            [topo_valid, topo_matrix] = topological_coloring(adjacency);
+            [topo_valid, topo_matrix] = ColoringPrioritizer.topological_coloring(adjacency);
             assert(topo_valid, 'No valid topological coloring possible.');
 
             % determine the order to reduce incoming edges
@@ -26,7 +26,7 @@ classdef ColoringPrioritizer < Prioritizer
 
     end
 
-    methods (Access = private)
+    methods (Static, Access = private)
 
         function [valid, L] = topological_coloring(A)
             % TOPOLOGICAL_COLORING  Find a topological sorting with a minimum number of levels (approximation)
@@ -43,7 +43,7 @@ classdef ColoringPrioritizer < Prioritizer
 
             while ~all(color ~= 0)
                 % get next vertex in coloring order
-                v = vertex_sdo_ldo(A, color, degree);
+                v = ColoringPrioritizer.vertex_sdo_ldo(A, color, degree);
                 neighbor_col = unique(color(A(v, :) == 1));
                 poss_col = setdiff(col, neighbor_col);
                 color(v) = poss_col(1);
