@@ -58,10 +58,11 @@ classdef (Abstract) Plotter < handle
 
         end
 
-        function obj = Plotter(scenario, veh_indices)
+        function obj = Plotter(options, scenario, veh_indices)
             %PLOTTER Create a Plotter object.
             %   Initialize all class members for the first time step and create a figure.
             arguments
+                options (1, 1) Config
                 scenario (1, 1) Scenario
                 veh_indices (1, :) int32 = 1:scenario.options.amount
             end

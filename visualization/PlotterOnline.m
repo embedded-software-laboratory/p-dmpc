@@ -20,7 +20,7 @@ classdef PlotterOnline < Plotter
                 veh_indices (1, :) int32 = 1:scenario.options.amount
             end
 
-            obj@Plotter(scenario, veh_indices);
+            obj@Plotter(options, scenario, veh_indices);
             obj.paused = false;
             obj.simulation_time_offset = 0;
             set(obj.fig, 'WindowKeyPressFcn', @obj.keyPressCallback);

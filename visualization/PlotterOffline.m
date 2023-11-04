@@ -21,7 +21,7 @@ classdef PlotterOffline < Plotter
                 veh_indices (1, :) int32 = 1:result.scenario.options.amount
             end
 
-            obj@Plotter(result.scenario, veh_indices);
+            obj@Plotter(result.options, result.scenario, veh_indices);
             obj.result = result;
             obj.delta_t_s = delta_t_s;
             obj.paused = true;
