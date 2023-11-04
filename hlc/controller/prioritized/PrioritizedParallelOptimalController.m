@@ -9,8 +9,8 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedParallelOptimalController(scenario, plant)
-            obj = obj@PrioritizedController(scenario, plant);
+        function obj = PrioritizedParallelOptimalController(options, scenario, plant)
+            obj = obj@PrioritizedController(options, scenario, plant);
             obj.prioritizer = ConstantPrioritizer();
         end
 

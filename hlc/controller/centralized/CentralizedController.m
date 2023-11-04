@@ -5,8 +5,8 @@ classdef CentralizedController < HighLevelController
 
     methods
 
-        function obj = CentralizedController(scenario, plant)
-            obj = obj@HighLevelController(scenario, plant);
+        function obj = CentralizedController(options, scenario, plant)
+            obj = obj@HighLevelController(options, scenario, plant);
         end
 
     end

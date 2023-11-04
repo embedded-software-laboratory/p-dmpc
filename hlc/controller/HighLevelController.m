@@ -49,9 +49,10 @@ classdef (Abstract) HighLevelController < handle
 
     methods
         % Set default settings
-        function obj = HighLevelController(scenario, plant)
+        function obj = HighLevelController(options, scenario, plant)
             % remove step time from options to avoid usage
             % before it is receive from the plant
+            options.dt_seconds = [];
             scenario.options.dt_seconds = [];
 
             % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set

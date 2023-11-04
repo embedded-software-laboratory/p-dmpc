@@ -22,14 +22,14 @@ classdef HLCFactory < handle
                 if length(vehicle_ids) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    hlc = PrioritizedParallelController(scenario, plant);
+                    hlc = PrioritizedParallelController(scenario.options, scenario, plant);
                 else
                     % PB Controller controlling all vehicles
-                    hlc = PrioritizedSequentialController(scenario, plant);
+                    hlc = PrioritizedSequentialController(scenario.options, scenario, plant);
                 end
 
             else
-                hlc = CentralizedController(scenario, plant);
+                hlc = CentralizedController(scenario.options, scenario, plant);
             end
 
         end
