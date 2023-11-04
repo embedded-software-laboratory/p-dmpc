@@ -62,13 +62,13 @@ classdef CpmLab < Plant
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
             % get middleware period and vehicle ids from vehicle state list message
-            [sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
+            [sample_for_setup, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
             if (sample_count == 0)
                 error('No vehicle state list received during CpmLab.setup!');
             end
 
-            state_list = sample(end);
+            state_list = sample_for_setup(end);
 
             % state_list.period_ms
             % data type unsigned long long (IDL)
