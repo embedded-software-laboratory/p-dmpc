@@ -5,6 +5,17 @@ classdef (Abstract) Plant < handle
         % struct used for every iteration
         cur_node (:, :) double % (n_veh, NodeInfo.n_cols) created by node.m
         options Config % (1, 1)
+
+        dt_seconds (1, 1) double
+        amount (1, 1) double
+
+        % used by labs
+        Hp (1, 1) double
+        manual_control_config ManualControlConfig % (1, 1)
+
+        % used by simulation
+        options_plot_online OptionsPlotOnline % (1, 1)
+
     end
 
     properties (GetAccess = public, SetAccess = private)
@@ -54,6 +65,14 @@ classdef (Abstract) Plant < handle
             % method shall be overriden and called in a child class.
             obj.options = options;
 
+            % save options that are required as properties in subclasses
+            obj.dt_seconds = options.dt_seconds;
+            obj.amount = options.amount;
+            obj.Hp = options.Hp;
+            obj.manual_control_config = options.manual_control_config;
+            obj.options_plot_online = options.options_plot_online;
+
+            % save vehicle_ids as properties
             obj.controlled_vehicle_ids = controlled_vehicle_ids;
             obj.all_vehicle_ids = all_vehicle_ids;
 
