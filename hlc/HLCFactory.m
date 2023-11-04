@@ -1,19 +1,11 @@
 classdef HLCFactory < handle
 
     properties (Access = public)
-        % scenario variable
-        scenario
-
     end
 
     methods
-        % Set default settings
-        function obj = HLCFactory()
-            % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set
-            % We can then either throw an exception or use an arbitrary option when we find a default value
-            % Or should we make valid and useful default values?
-            obj.scenario = [];
 
+        function obj = HLCFactory()
         end
 
         % Optional argument wether to do a dry run of the first timestep beforehand
