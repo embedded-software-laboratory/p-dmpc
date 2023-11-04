@@ -28,7 +28,8 @@ function [result, scenario] = main(varargin)
         % create scenario
         scenario = create_scenario(options, plant);
     else
-        plant = PlantFactory.get_experiment_interface(scenario.options.environment);
+        options = scenario.options;
+        plant = PlantFactory.get_experiment_interface(options.environment);
     end
 
     % inform where experiment takes place
@@ -39,11 +40,11 @@ function [result, scenario] = main(varargin)
     end
 
     % write scenario to disk if distributed (for lab or local debugging with main_distributed())
-    if scenario.options.is_prioritized == true
+    if options.is_prioritized == true
         save('scenario.mat', 'scenario');
     end
 
-    is_prioritized_parallel_in_lab = (scenario.options.is_prioritized && (scenario.options.environment == Environment.CpmLab || scenario.options.environment == Environment.SimulationDistributed) && scenario.options.compute_in_parallel);
+    is_prioritized_parallel_in_lab = (options.is_prioritized && (options.environment == Environment.CpmLab || options.environment == Environment.SimulationDistributed) && options.compute_in_parallel);
 
     if is_prioritized_parallel_in_lab
         disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
@@ -54,17 +55,17 @@ function [result, scenario] = main(varargin)
         % set active vehicle IDs and possibly initialize communication
         plant.setup(options, scenario);
 
-        if scenario.options.is_prioritized
+        if options.is_prioritized
             % In priority-based computation, vehicles communicate via ROS 2.
             % Generate the ros2 msgs types.
             generate_ros2_msgs();
         end
 
-        if scenario.options.is_prioritized == true && scenario.options.compute_in_parallel
+        if options.is_prioritized == true && options.compute_in_parallel
             %% simulate distribution locally using the Parallel Computing Toolbox
-            get_parallel_pool(scenario.options.amount);
+            get_parallel_pool(options.amount);
 
-            do_plot = scenario.options.options_plot_online.is_active;
+            do_plot = options.options_plot_online.is_active;
             can_handle_parallel_plot = isa(plant, 'SimLab');
 
             if do_plot
@@ -80,13 +81,13 @@ function [result, scenario] = main(varargin)
 
             end
 
-            spmd (scenario.options.amount)
+            spmd (options.amount)
                 % setup plant again, only control one vehicle
-                plant.setup(options, scenario, scenario.options.path_ids, scenario.options.path_ids(labindex));
+                plant.setup(options, scenario, options.path_ids, options.path_ids(labindex));
 
                 hlc_factory = HLCFactory();
                 hlc_factory.set_scenario(scenario);
-                dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
+                dry_run = (options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
                 % have the plant only control its own vehicle by calling setup a second time
                 hlc = hlc_factory.get_hlc(plant.controlled_vehicle_ids, dry_run, plant);
                 [result, scenario] = hlc.run();
@@ -102,7 +103,7 @@ function [result, scenario] = main(varargin)
 
             hlc_factory = HLCFactory();
             hlc_factory.set_scenario(scenario);
-            dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
+            dry_run = (options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
             hlc = hlc_factory.get_hlc(plant.controlled_vehicle_ids, dry_run, plant);
             [result, scenario] = hlc.run();
         end
