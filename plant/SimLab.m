@@ -48,7 +48,6 @@ classdef SimLab < Plant
                     && isempty(obj.visualization_data_queue) ...
                 )
                 obj.visualization_data_queue = parallel.pool.DataQueue;
-                visualization_data_queue = obj.visualization_data_queue;
                 obj.use_visualization_data_queue = true;
             end
 
