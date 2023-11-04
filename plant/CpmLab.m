@@ -22,11 +22,6 @@ classdef CpmLab < Plant
         function obj = CpmLab()
             obj = obj@Plant();
             obj.pos_init = false;
-
-            if ispc
-                error('You are using a Windows machine, please do not select lab mode!')
-            end
-
         end
 
         function setup(obj, options, scenario, ~, controlled_vehicle_ids)

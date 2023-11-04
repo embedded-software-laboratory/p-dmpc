@@ -34,11 +34,6 @@ classdef UnifiedLabApi < Plant
         function obj = UnifiedLabApi()
             obj = obj@Plant();
             obj.pos_init = false;
-
-            if ispc
-                error('You are using a Windows machine, please do not select lab mode!')
-            end
-
         end
 
         function map_as_string = receive_map(obj)
