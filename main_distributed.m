@@ -25,7 +25,6 @@ function [result, scenario] = main_distributed(vehicle_id)
 
     % get HLC
     factory = HLCFactory();
-    factory.set_scenario(scenario);
 
     if options.is_prioritized == true
         hlc = factory.get_hlc(scenario, vehicle_id, dry_run, plant);

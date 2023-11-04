@@ -21,10 +21,6 @@ classdef HLCFactory < handle
         % timestep during the experiment.
         function hlc = get_hlc(obj, scenario, vehicle_ids, dry_run, plant)
 
-            if isempty(obj.scenario)
-                throw(MException('HlcFactory:InvalidState', 'HlcScenario not set'));
-            end
-
             if dry_run
                 obj.dry_run_hlc(scenario, plant.all_vehicle_ids);
             end
@@ -44,10 +40,6 @@ classdef HLCFactory < handle
                 hlc = CentralizedController(scenario, plant);
             end
 
-        end
-
-        function set_scenario(obj, scenario)
-            obj.scenario = scenario;
         end
 
     end
