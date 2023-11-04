@@ -1,6 +1,8 @@
 classdef (Abstract) HighLevelController < handle
     %TODO check for private/protected vars
     properties (Access = public)
+        % config
+        options;
         % scenario
         scenario;
 
@@ -51,21 +53,20 @@ classdef (Abstract) HighLevelController < handle
         % Set default settings
         function obj = HighLevelController(options, scenario, plant)
             % remove step time from options to avoid usage
-            % before it is receive from the plant
+            % before it is received from the plant
+            options.dt_seconds = [];
             scenario.options = options;
-            scenario.options.dt_seconds = [];
 
-            % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set
-            % We can then either throw an exception or use an arbitrary option when we find a default value
-            % Or should we make valid and useful default values?
+            obj.options = options;
+            obj.scenario = scenario;
+            obj.plant = plant;
+
             obj.k = 0;
             obj.got_stop = false;
             obj.total_fallback_times = 0;
-            obj.scenario = scenario;
-            obj.timing_general = ControllerTiming();
-            obj.plant = plant;
 
             obj.coupler = Coupler();
+            obj.timing_general = ControllerTiming();
 
             for iVeh = obj.plant.indices_in_vehicle_list
                 obj.timing_per_vehicle(iVeh) = ControllerTiming();
@@ -279,6 +280,7 @@ classdef (Abstract) HighLevelController < handle
             obj.timing_general.start("hlc_init_all");
 
             % receive step time from the plant
+            obj.options.dt_seconds = obj.plant.get_step_time();
             obj.scenario.options.dt_seconds = obj.plant.get_step_time();
 
             % initialize all manually controlled vehicles
