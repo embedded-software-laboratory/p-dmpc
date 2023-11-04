@@ -154,6 +154,7 @@ classdef systemtests < matlab.unittest.TestCase
                 do_export = true ...
             );
             testCase.verifyTrue(true);
+            close all;
         end
 
     end
