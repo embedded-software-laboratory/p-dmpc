@@ -31,7 +31,7 @@ classdef HLCFactory < handle
             end
 
             if dry_run
-                obj.dry_run_hlc(plant.all_vehicle_ids);
+                obj.dry_run_hlc(obj.scenario, plant.all_vehicle_ids);
             end
 
             if obj.scenario.options.is_prioritized
@@ -73,22 +73,22 @@ classdef HLCFactory < handle
         % Important note: This might take some time depending on how hard to
         % solve the first time step of this scenario is.
 
-        function dry_run_hlc(obj, dry_run_vehicle_ids)
+        function dry_run_hlc(obj, scenario, dry_run_vehicle_ids)
             disp("Starting dry run of HLC");
 
             % use simulation to avoid communication with a lab
-            obj.scenario.options.environment = Environment.Simulation;
+            scenario.options.environment = Environment.Simulation;
             % for simulation manual vehicles are disabled
-            obj.scenario.options.manual_control_config.is_active = false;
+            scenario.options.manual_control_config.is_active = false;
             % for the dry run plotting is not necessary
-            obj.scenario.options.options_plot_online.is_active = false;
+            scenario.options.options_plot_online.is_active = false;
             % for the dry run reduce experiment time to a minimum
-            obj.scenario.options.T_end = 2 * obj.scenario.options.dt_seconds;
+            scenario.options.T_end = 2 * scenario.options.dt_seconds;
             % for the dry run results are not relevant
-            obj.scenario.options.should_save_result = false;
+            scenario.options.should_save_result = false;
 
-            plant = PlantFactory.get_experiment_interface(obj.scenario.options.environment);
-            plant.setup(obj.scenario.options, obj.scenario, dry_run_vehicle_ids);
+            plant = PlantFactory.get_experiment_interface(scenario.options.environment);
+            plant.setup(scenario.options, scenario, dry_run_vehicle_ids);
 
             hlc = obj.get_hlc(dry_run_vehicle_ids, false, plant);
             hlc.run();
