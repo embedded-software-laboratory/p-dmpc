@@ -53,7 +53,7 @@ function [result, scenario] = main(varargin)
     else
 
         % set active vehicle IDs and possibly initialize communication
-        plant.setup(options, scenario);
+        plant.setup(options, scenario, options.path_ids);
 
         if options.is_prioritized
             % In priority-based computation, vehicles communicate via ROS 2.

@@ -27,8 +27,8 @@ classdef SimLab < Plant
                 obj (1, 1) SimLab
                 options (1, 1) Config
                 scenario (1, 1) Scenario
-                all_vehicle_ids (1, :) uint8 = options.path_ids
-                controlled_vehicle_ids (1, :) uint8 = []
+                all_vehicle_ids (1, :) uint8
+                controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
 
             % if [] is passed in, matlab does not choose the default

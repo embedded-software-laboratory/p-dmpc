@@ -24,14 +24,14 @@ classdef CpmLab < Plant
             obj.pos_init = false;
         end
 
-        function setup(obj, options, scenario, ~, controlled_vehicle_ids)
+        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) CpmLab
                 options (1, 1) Config
                 scenario (1, 1) Scenario
-                ~% all_vehicle_ids are automatically received from the LCC
-                controlled_vehicle_ids (1, :) uint8 = []
+                all_vehicle_ids (1, :) uint8 % used to validate amount of set vehicle ids
+                controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
 
             % Initialize data readers/writers...
@@ -75,11 +75,19 @@ classdef CpmLab < Plant
             % middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
 
-            if isempty(controlled_vehicle_ids)
-                controlled_vehicle_ids = state_list.active_vehicle_ids;
-            end
+            % validate the amount of active_vehicle_ids
+            assert( ...
+                length(state_list.active_vehicle_ids) == ...
+                length(all_vehicle_ids) + options.manual_control_config.amount, ...
+                'Amount of active_vehicle_ids (%d) does not match expected amount (%d)!', ...
+                length(state_list.active_vehicle_ids), ...
+                length(all_vehicle_ids) + options.manual_control_config.amount ...
+            );
 
-            setup@Plant(obj, options, scenario, state_list.active_vehicle_ids, controlled_vehicle_ids);
+            % boolean that extracts the controlled_vehicle_ids from active_vehicle_ids
+            is_controlled = controlled_vehicle_ids == all_vehicle_ids;
+
+            setup@Plant(obj, options, scenario, state_list.active_vehicle_ids, state_list.active_vehicle_ids(is_controlled));
         end
 
         function [x0, trim_indices] = measure(obj, mpa)

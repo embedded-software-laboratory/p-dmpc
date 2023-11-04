@@ -46,6 +46,15 @@ classdef UnifiedLabApi < Plant
         end
 
         function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
+
+            arguments
+                obj (1, 1) UnifiedLabApi
+                options (1, 1) Config
+                scenario (1, 1) Scenario
+                all_vehicle_ids (1, :) uint8
+                controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
+            end
+
             setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
 
             assert(issorted(obj.controlled_vehicle_ids));
