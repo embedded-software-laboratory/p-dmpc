@@ -17,7 +17,7 @@ classdef PlotterOnline < Plotter
             arguments
                 options (1, 1) Config
                 scenario (1, 1) Scenario
-                veh_indices (1, :) int32 = 1:scenario.options.amount
+                veh_indices (1, :) int32 = 1:options.amount
             end
 
             obj@Plotter(options, scenario, veh_indices);
@@ -78,7 +78,7 @@ classdef PlotterOnline < Plotter
                 if complete
                     complete_plotting_info = obj.merge_plotting_infos(obj.plotting_info_collection.(field_name));
                     start_simulation_timer(obj);
-                    simulated_time = obj.scenario.options.dt_seconds * (complete_plotting_info.step);
+                    simulated_time = obj.options.dt_seconds * (complete_plotting_info.step);
                     simulation_time = toc(obj.timer) + obj.simulation_time_offset;
                     time_diff = simulated_time - simulation_time;
                     % avoid plotter trying catching up when simulation is
@@ -150,7 +150,7 @@ classdef PlotterOnline < Plotter
                 if complete
                     complete_plotting_info = obj.merge_plotting_infos(obj.plotting_info_collection.(field_name));
                     start_simulation_timer(obj);
-                    simulated_time = obj.scenario.options.dt_seconds * (complete_plotting_info.step);
+                    simulated_time = obj.options.dt_seconds * (complete_plotting_info.step);
                     simulation_time = toc(obj.timer) + obj.simulation_time_offset;
                     time_diff = simulated_time - simulation_time;
                     % avoid plotter trying catching up when simulation is
@@ -209,7 +209,7 @@ classdef PlotterOnline < Plotter
             % reconstruct matrices from list sent via ros2
             plotting_info = PlottingInfo();
             plotting_info.trajectory_predictions = reshape(msg.trajectory_predictions, 4, numel(msg.trajectory_predictions) / 4)';
-            plotting_info.ref_trajectory = zeros(1, obj.scenario.options.Hp, 2);
+            plotting_info.ref_trajectory = zeros(1, obj.options.Hp, 2);
             plotting_info.ref_trajectory(1, :, :) = reshape(msg.ref_trajectory, numel(msg.ref_trajectory) / 2, 2);
             plotting_info.priorities = msg.priorities;
             plotting_info.n_obstacles = msg.n_obstacles;
@@ -217,10 +217,10 @@ classdef PlotterOnline < Plotter
             plotting_info.step = msg.step;
             plotting_info.veh_indices = msg.veh_indices;
             plotting_info.tick_now = msg.tick_now;
-            plotting_info.weighted_coupling_reduced = reshape(msg.weighted_coupling_reduced, obj.scenario.options.amount, obj.scenario.options.amount)';
-            plotting_info.directed_coupling = reshape(msg.directed_coupling, obj.scenario.options.amount, obj.scenario.options.amount)';
+            plotting_info.weighted_coupling_reduced = reshape(msg.weighted_coupling_reduced, obj.options.amount, obj.options.amount)';
+            plotting_info.directed_coupling = reshape(msg.directed_coupling, obj.options.amount, obj.options.amount)';
             plotting_info.belonging_vector = msg.belonging_vector;
-            plotting_info.is_virtual_obstacle = reshape(msg.is_virtual_obstacle, obj.scenario.options.amount, obj.scenario.options.amount)';
+            plotting_info.is_virtual_obstacle = reshape(msg.is_virtual_obstacle, obj.options.amount, obj.options.amount)';
         end
 
         function complete_plotting_info = merge_plotting_infos(obj, plotting_info_collection)

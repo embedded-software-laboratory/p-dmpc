@@ -37,7 +37,7 @@ classdef (Abstract) Plotter < handle
         end
 
         function result = get.strategy(obj)
-            result = FileNameConstructor.get_controller_name(obj.scenario.options);
+            result = FileNameConstructor.get_controller_name(obj.options);
         end
 
         function result = get.vehicles(obj)
@@ -46,15 +46,15 @@ classdef (Abstract) Plotter < handle
 
         function result = get.hotkey_position(obj)
 
-            if obj.scenario.options.scenario_type == ScenarioType.commonroad
-                result = diag(obj.scenario.options.plot_limits) + [-1.6; 0];
-            elseif obj.scenario.options.scenario_type == ScenarioType.circle && obj.scenario.options.amount <= 2
-                result = obj.scenario.options.plot_limits(:, 1) + [0; -0.25];
-            elseif obj.scenario.options.scenario_type == ScenarioType.circle && obj.scenario.options.amount > 2
-                result = diag(obj.scenario.options.plot_limits) + [-2.1; 0];
+            if obj.options.scenario_type == ScenarioType.commonroad
+                result = diag(obj.options.plot_limits) + [-1.6; 0];
+            elseif obj.options.scenario_type == ScenarioType.circle && obj.options.amount <= 2
+                result = obj.options.plot_limits(:, 1) + [0; -0.25];
+            elseif obj.options.scenario_type == ScenarioType.circle && obj.options.amount > 2
+                result = diag(obj.options.plot_limits) + [-2.1; 0];
             else
                 % To be defined according to the specific scenario.
-                result = diag(obj.scenario.options.plot_limits) + [-1.6; 0];
+                result = diag(obj.options.plot_limits) + [-1.6; 0];
             end
 
         end
@@ -65,7 +65,7 @@ classdef (Abstract) Plotter < handle
             arguments
                 options (1, 1) Config
                 scenario (1, 1) Scenario
-                veh_indices (1, :) int32 = 1:scenario.options.amount
+                veh_indices (1, :) int32 = 1:options.amount
             end
 
             % Initialize variable for key press callback.
@@ -74,7 +74,7 @@ classdef (Abstract) Plotter < handle
             % General plotting options
             obj.options = options;
             obj.scenario = scenario;
-            obj.plot_options = scenario.options.options_plot_online;
+            obj.plot_options = options.options_plot_online;
             obj.export_fig_config = ExportFigConfig().video();
             obj.veh_indices = veh_indices;
             obj.time_step = 1;
@@ -101,7 +101,7 @@ classdef (Abstract) Plotter < handle
             );
 
             if ~isempty(scenario.road_raw_data) && ~isempty(scenario.road_raw_data.lanelet)
-                plot_lanelets(scenario.road_raw_data.lanelet, obj.scenario.options.scenario_type);
+                plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
             end
 
             % Define a colormap
@@ -113,8 +113,8 @@ classdef (Abstract) Plotter < handle
             axis equal
             xlabel('$x$ [m]', Interpreter = 'LaTex');
             ylabel('$y$ [m]', Interpreter = 'LaTex');
-            xlim(scenario.options.plot_limits(1, :));
-            ylim(scenario.options.plot_limits(2, :));
+            xlim(options.plot_limits(1, :));
+            ylim(options.plot_limits(2, :));
             daspect([1 1 1])
             set(0, 'DefaultTextFontname', obj.export_fig_config.fontname);
             set(0, 'DefaultAxesFontName', obj.export_fig_config.fontname);
@@ -216,8 +216,8 @@ classdef (Abstract) Plotter < handle
             % predicted trajectory
             for v = obj.veh_indices
                 line( ...
-                    plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step + 1:end, end], 1), ...
-                    plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step + 1:end, end], 2), ...
+                    plotting_info.trajectory_predictions{v}([1:obj.options.tick_per_step + 1:end, end], 1), ...
+                    plotting_info.trajectory_predictions{v}([1:obj.options.tick_per_step + 1:end, end], 2), ...
                     'Color', obj.priority_colormap(priority_list(v), :), ...
                     'LineStyle', 'none', ...
                     'Marker', '+', ...
@@ -276,7 +276,7 @@ classdef (Abstract) Plotter < handle
 
                     if (isempty(obj.plot_options.vehicles_reachable_sets) ...
                             || ismember(v, obj.plot_options.vehicles_reachable_sets))
-                        [RS_x, RS_y] = boundary(plotting_info.reachable_sets{v, obj.scenario.options.Hp});
+                        [RS_x, RS_y] = boundary(plotting_info.reachable_sets{v, obj.options.Hp});
                         line( ...
                             RS_x, RS_y, ...
                             'LineWidth', 1.0, ...
@@ -354,11 +354,11 @@ classdef (Abstract) Plotter < handle
 
             title_text = sprintf( ...
                 'Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs', ...
-                obj.scenario.options.scenario_type, ...
+                obj.options.scenario_type, ...
                 'Graph Search', ...
                 obj.strategy, ...
                 plotting_info.step, ...
-                (double(plotting_info.step) - 1) * obj.scenario.options.dt_seconds + (double(plotting_info.tick_now) - 1) * obj.scenario.options.time_per_tick ...
+                (double(plotting_info.step) - 1) * obj.options.dt_seconds + (double(plotting_info.tick_now) - 1) * obj.options.time_per_tick ...
             );
             t = title( ...
                 title_text, ...
