@@ -13,10 +13,10 @@ function [result, scenario] = main_distributed(vehicle_id)
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
-    dry_run = (scenario.options.environment == Environment.CpmLab || scenario.options.environment == Environment.SimulationDistributed); % TODO: Use dry run also for unified lab api?
-    plant = PlantFactory.get_experiment_interface(scenario.options.environment);
+    dry_run = (options.environment == Environment.CpmLab || options.environment == Environment.SimulationDistributed); % TODO: Use dry run also for unified lab api?
+    plant = PlantFactory.get_experiment_interface(options.environment);
     % set active vehicle IDs and initialize communication
-    plant.setup(options, scenario, scenario.options.path_ids, vehicle_id);
+    plant.setup(options, scenario, options.path_ids, vehicle_id);
 
     % In priority-based computation, vehicles communicate via ROS 2.
     % main.m will have deleted the ros2 message types before distributing the code.
@@ -27,7 +27,7 @@ function [result, scenario] = main_distributed(vehicle_id)
     factory = HLCFactory();
     factory.set_scenario(scenario);
 
-    if scenario.options.is_prioritized == true
+    if options.is_prioritized == true
         hlc = factory.get_hlc(vehicle_id, dry_run, plant);
         [result, scenario] = hlc.run();
     else
