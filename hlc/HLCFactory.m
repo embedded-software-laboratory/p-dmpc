@@ -14,7 +14,7 @@ classdef HLCFactory < handle
         function hlc = get_hlc(obj, options, scenario, plant, vehicle_ids, dry_run)
 
             if dry_run
-                obj.dry_run_hlc(scenario, plant.all_vehicle_ids);
+                obj.dry_run_hlc(options, scenario, plant.all_vehicle_ids);
             end
 
             if scenario.options.is_prioritized
@@ -52,7 +52,7 @@ classdef HLCFactory < handle
         % Important note: This might take some time depending on how hard to
         % solve the first time step of this scenario is.
 
-        function dry_run_hlc(obj, scenario, dry_run_vehicle_ids)
+        function dry_run_hlc(obj, options, scenario, dry_run_vehicle_ids)
             disp("Starting dry run of HLC");
 
             % use simulation to avoid communication with a lab
