@@ -4,7 +4,6 @@ classdef (Abstract) Plant < handle
     properties (Access = protected)
         % struct used for every iteration
         cur_node (:, :) double % (n_veh, NodeInfo.n_cols) created by node.m
-        options Config % (1, 1)
 
         dt_seconds (1, 1) double
         amount (1, 1) double
@@ -63,7 +62,6 @@ classdef (Abstract) Plant < handle
             % This function does everything in order to run the object
             % later on. If further initialization needs to be done this
             % method shall be overriden and called in a child class.
-            obj.options = options;
 
             % save options that are required as properties in subclasses
             obj.dt_seconds = options.dt_seconds;
