@@ -9,7 +9,7 @@ function results = main_nuc_simulation()
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
-    vehicle_ids = scenario.options.path_ids;
+    vehicle_ids = options.path_ids;
 
     fprintf('Starting remote HLCs...');
     script_path = fullfile(pwd, 'nuc_simulation', 'deploy_remote_hlcs.sh'); % assumes script is in curent directory
@@ -24,7 +24,7 @@ function results = main_nuc_simulation()
     [~, ~] = system(command);
     fprintf(' done.\n')
 
-    if scenario.options.options_plot_online.is_active
+    if options.options_plot_online.is_active
         plotter = PlotterOnline(options, scenario);
     end
 
@@ -38,7 +38,7 @@ function results = main_nuc_simulation()
     global plotting_info_queue;
     plotting_info_queue = empty_plotting_info_queue();
     n_finished = 0;
-    amount = scenario.options.amount;
+    amount = options.amount;
 
     while true
 
@@ -48,7 +48,7 @@ function results = main_nuc_simulation()
 
             if msg.step == -1 % check whether end-message was sent
                 n_finished = n_finished + 1;
-            elseif scenario.options.options_plot_online.is_active
+            elseif options.options_plot_online.is_active
                 plotter.ros2_callback(msg);
             end
 
@@ -110,7 +110,7 @@ function results = merge_results(results, res)
     % if this is the first result just copy
     if isempty(results)
         results = res;
-        results.total_fallback_times = zeros(res.scenario.options.amount, 1);
+        results.total_fallback_times = zeros(res.options.amount, 1);
         results.total_fallback_times(i_veh) = res.total_fallback_times;
         return;
     end
