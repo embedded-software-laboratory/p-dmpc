@@ -27,7 +27,7 @@ function [result, scenario] = main_distributed(vehicle_id)
     factory = HLCFactory();
 
     if options.is_prioritized == true
-        hlc = factory.get_hlc(scenario, plant, vehicle_id, dry_run);
+        hlc = factory.get_hlc(options, scenario, plant, vehicle_id, dry_run);
         [result, scenario] = hlc.run();
     else
         warning("Use main_distributed.m only for pb-scenarios.")
