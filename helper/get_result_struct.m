@@ -7,6 +7,7 @@ function result = get_result_struct(scenario, controlled_vehicle_ids)
     result.nSteps = 0;
     result.t_total = 0;
 
+    result.options = scenario.options;
     result.scenario = scenario;
     result.vehicle_ids = controlled_vehicle_ids;
     result.controller_outputs = cell(0, 1);
