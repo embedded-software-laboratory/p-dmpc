@@ -53,7 +53,7 @@ classdef SimLab < Plant
             end
 
             setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
-            obj.should_plot = obj.options.options_plot_online.is_active;
+            obj.should_plot = obj.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue
                 obj.plotter = PlotterOnline(scenario, obj.indices_in_vehicle_list);
@@ -74,19 +74,18 @@ classdef SimLab < Plant
 
             if obj.should_plot
                 % visualize time step
-                % tick_now = obj.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
                 plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, k, tick_now);
 
                 if obj.use_visualization_data_queue
                     %filter plotting info for controlled vehicles before
                     %sending
-                    plotting_info = plotting_info.filter(obj.options.amount, obj.options.options_plot_online);
+                    plotting_info = plotting_info.filter(obj.amount, obj.options_plot_online);
                     send(obj.visualization_data_queue, plotting_info);
                 else
                     % wait to simulate realtime plotting
                     step_time = toc(obj.step_timer);
-                    pause(obj.options.dt_seconds - step_time);
+                    pause(obj.dt_seconds - step_time);
                     obj.plotter.plot(plotting_info);
                 end
 

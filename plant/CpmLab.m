@@ -96,7 +96,7 @@ classdef CpmLab < Plant
 
             state_list = obj.sample(end).state_list;
 
-            x0 = zeros(obj.options.amount + obj.options.manual_control_config.amount, 4);
+            x0 = zeros(obj.amount + obj.manual_control_config.amount, 4);
 
             % for first iteration use real poses
             if (obj.pos_init == false)
@@ -118,7 +118,7 @@ classdef CpmLab < Plant
                 [~, trim_indices] = obj.measure_node(mpa);
                 obj.pos_init = true;
             else
-                [x0(1:obj.options.amount, :), trim_indices] = obj.measure_node(mpa); % get cav states from current node
+                [x0(1:obj.amount, :), trim_indices] = obj.measure_node(mpa); % get cav states from current node
             end
 
             % Always measure HDV
@@ -126,8 +126,8 @@ classdef CpmLab < Plant
 
             for index = 1:length(state_list)
 
-                if ismember(state_list(index).vehicle_id, obj.options.manual_control_config.hdv_ids)
-                    list_index = obj.options.amount + hdv_index;
+                if ismember(state_list(index).vehicle_id, obj.manual_control_config.hdv_ids)
+                    list_index = obj.amount + hdv_index;
                     hdv_index = hdv_index + 1;
                     x0(list_index, 1) = state_list(index).pose.x;
                     x0(list_index, 2) = state_list(index).pose.y;
@@ -147,10 +147,10 @@ classdef CpmLab < Plant
             end
 
             % calculate vehicle control messages
-            obj.out_of_map_limits = false(obj.options.amount, 1);
+            obj.out_of_map_limits = false(obj.amount, 1);
 
             for iVeh = obj.indices_in_vehicle_list
-                n_traj_pts = obj.options.Hp;
+                n_traj_pts = obj.Hp;
                 n_predicted_points = size(y_pred{iVeh}, 1);
                 idx_predicted_points = 1:n_predicted_points / n_traj_pts:n_predicted_points;
                 trajectory_points(1:n_traj_pts) = TrajectoryPoint;

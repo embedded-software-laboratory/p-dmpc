@@ -105,7 +105,7 @@ classdef (Abstract) Plant < handle
 
         function dt_seconds = get_step_time(obj)
             % return step time that is set by the plant
-            dt_seconds = obj.options.dt_seconds;
+            dt_seconds = obj.dt_seconds;
         end
 
         function synchronize_start_with_plant(obj)
@@ -117,7 +117,7 @@ classdef (Abstract) Plant < handle
     methods (Access = protected)
 
         function [x0, trim_indices] = measure_node(obj, mpa)
-            speeds = zeros(obj.options.amount, 1);
+            speeds = zeros(obj.amount, 1);
 
             for iVeh = 1:obj.indices_in_vehicle_list
                 speeds(iVeh) = mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;
