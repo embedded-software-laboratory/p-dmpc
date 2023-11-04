@@ -10,6 +10,7 @@ classdef (Abstract) Plotter < handle
         plot_options (1, 1) OptionsPlotOnline % options for plotting
         priority_colormap (:, 3) double % Colors for computation levels
 
+        options (1, 1) Config % Config object
         scenario (1, 1) Scenario % scenario object
         veh_indices (1, :) int32 % indices of vehicles for which this plotter instance is responsible
         time_step (1, 1) int64 % keep track wich time step is currently plotted
@@ -71,9 +72,10 @@ classdef (Abstract) Plotter < handle
             obj.abort = false;
 
             % General plotting options
-            obj.export_fig_config = ExportFigConfig().video();
-            obj.plot_options = scenario.options.options_plot_online;
+            obj.options = options;
             obj.scenario = scenario;
+            obj.plot_options = scenario.options.options_plot_online;
+            obj.export_fig_config = ExportFigConfig().video();
             obj.veh_indices = veh_indices;
             obj.time_step = 1;
             % Deactivate coupling lines for distributed plotting.
