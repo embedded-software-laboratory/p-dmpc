@@ -12,7 +12,7 @@ function export_frame(result, frame_export_setup)
     close all % if not, sometimes color bar will not be shown properly
     scenario = result.scenario;
 
-    plotter = PlotterOnline(scenario);
+    plotter = PlotterOnline(scenario.options, scenario);
     plotter.set_figure_visibility(false);
     frame_idx = 1;
     plotting_info = PlottingInfo(result.vehicle_ids, result, frame_export_setup.iStep, frame_idx);

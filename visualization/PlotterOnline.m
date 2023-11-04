@@ -11,10 +11,11 @@ classdef PlotterOnline < Plotter
 
     methods
 
-        function obj = PlotterOnline(scenario, veh_indices)
+        function obj = PlotterOnline(options, scenario, veh_indices)
             %PLOTTERONLINE Construct an instance of PlotterOnline
             %   Specify the scenario and optionally the vehicle indices to plot.
             arguments
+                options (1, 1) Config
                 scenario (1, 1) Scenario
                 veh_indices (1, :) int32 = 1:scenario.options.amount
             end

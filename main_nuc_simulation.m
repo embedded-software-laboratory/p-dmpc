@@ -25,7 +25,7 @@ function results = main_nuc_simulation()
     fprintf(' done.\n')
 
     if scenario.options.options_plot_online.is_active
-        plotter = PlotterOnline(scenario);
+        plotter = PlotterOnline(options, scenario);
     end
 
     generate_plotting_info_msgs();

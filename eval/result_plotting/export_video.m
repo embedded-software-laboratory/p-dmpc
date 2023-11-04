@@ -19,7 +19,7 @@ function export_video(result, video_export_setup)
         frame_ticks = round(linspace(2, scenario.options.tick_per_step + 1, frame_per_step));
     end
 
-    plotter = PlotterOnline(scenario);
+    plotter = PlotterOnline(scenario.options, scenario);
     plotter.set_figure_visibility(false);
 
     v = VideoWriter( ...

@@ -72,7 +72,7 @@ function [result, scenario] = main(varargin)
                 if can_handle_parallel_plot
                     visualization_data_queue = plant.get_visualization_data_queue;
                     % create central plotter - used by all workers via data queue
-                    plotter = PlotterOnline(scenario, plant.indices_in_vehicle_list);
+                    plotter = PlotterOnline(options, scenario, plant.indices_in_vehicle_list);
                     afterEach(visualization_data_queue, @plotter.data_queue_callback);
                 else
                     warning('The currently selected environment cannot handle plotting of a parallel execution!');

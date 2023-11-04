@@ -2,7 +2,6 @@ classdef SimLabDistributed < Plant
     % SIMLAB    Instance of experiment interface used for simulation in matlab.
 
     properties (Access = private)
-        plotter % own plotter to visualize if no visualization_data_queue is given
         should_plot
         ros2_node
         publisher
