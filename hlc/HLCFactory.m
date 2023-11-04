@@ -19,34 +19,29 @@ classdef HLCFactory < handle
         % Optional argument wether to do a dry run of the first timestep beforehand
         % dry_run can massively decrease the time needed for the first
         % timestep during the experiment.
-        function hlc = get_hlc(obj, vehicle_ids, dry_run, plant)
+        function hlc = get_hlc(obj, scenario, vehicle_ids, dry_run, plant)
 
             if isempty(obj.scenario)
                 throw(MException('HlcFactory:InvalidState', 'HlcScenario not set'));
             end
 
-            % If the user doesn't specify otherwise, we do a dry run beforehand
-            if nargin < 3
-                dry_run = true;
-            end
-
             if dry_run
-                obj.dry_run_hlc(obj.scenario, plant.all_vehicle_ids);
+                obj.dry_run_hlc(scenario, plant.all_vehicle_ids);
             end
 
-            if obj.scenario.options.is_prioritized
+            if scenario.options.is_prioritized
 
                 if length(vehicle_ids) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    hlc = PrioritizedParallelController(obj.scenario, plant);
+                    hlc = PrioritizedParallelController(scenario, plant);
                 else
                     % PB Controller controlling all vehicles
-                    hlc = PrioritizedSequentialController(obj.scenario, plant);
+                    hlc = PrioritizedSequentialController(scenario, plant);
                 end
 
             else
-                hlc = CentralizedController(obj.scenario, plant);
+                hlc = CentralizedController(scenario, plant);
             end
 
         end
@@ -90,7 +85,7 @@ classdef HLCFactory < handle
             plant = PlantFactory.get_experiment_interface(scenario.options.environment);
             plant.setup(scenario.options, scenario, dry_run_vehicle_ids);
 
-            hlc = obj.get_hlc(dry_run_vehicle_ids, false, plant);
+            hlc = obj.get_hlc(scenario, dry_run_vehicle_ids, false, plant);
             hlc.run();
 
             disp("Dry Run Completed");
