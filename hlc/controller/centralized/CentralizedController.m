@@ -61,7 +61,7 @@ classdef CentralizedController < HighLevelController
                 obj.info.needs_fallback(obj.info.vehs_fallback) = true;
             else
                 % prepare output data
-                obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
+                obj.info = store_control_info(obj.info, info_v, obj.options, obj.mpa);
             end
 
             obj.timing_general.stop('fallback', obj.k);

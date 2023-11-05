@@ -56,10 +56,10 @@ classdef ControlResultsInfo
             %obj.u = zeros(nVeh,1);
         end
 
-        function obj = store_control_info(obj, info_v, scenario, mpa)
+        function obj = store_control_info(obj, info_v, options, mpa)
             % Store the control information, such as `tree`, `tree_path`,
             % `n_expanded`, `next_node`, `shapes`, `vehicle_fullres_path`, `predicted_trims`, `y_predicted`
-            if scenario.options.is_prioritized
+            if options.is_prioritized
                 vehicle_idx = find(obj.controller_ID == info_v.controller_ID);
                 obj.tree{vehicle_idx} = info_v.tree;
                 obj.tree_path(vehicle_idx, :) = info_v.tree_path;
@@ -76,7 +76,7 @@ classdef ControlResultsInfo
                 % for centralized control
                 obj.tree = info_v.tree; % only for node explorationslee
                 obj.n_expanded = info_v.n_expanded;
-                obj.next_node = set_node(obj.next_node, 1:scenario.options.amount, info_v.tree.get_node(info_v.tree_path(2)));
+                obj.next_node = set_node(obj.next_node, 1:options.amount, info_v.tree.get_node(info_v.tree_path(2)));
                 obj.shapes = info_v.shapes;
                 obj.vehicle_fullres_path = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, mpa)';
                 obj.predicted_trims = info_v.predicted_trims; % store the planned trims in the future Hp time steps

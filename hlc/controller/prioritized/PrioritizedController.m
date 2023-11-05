@@ -357,7 +357,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 end
 
             else
-                obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
+                obj.info = store_control_info(obj.info, info_v, obj.options, obj.mpa);
             end
 
             obj.timing_per_vehicle(vehicle_idx).stop('fallback', obj.k);
@@ -761,7 +761,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 info_v.y_predicted = {y_pred_v};
 
                 % prepare output data
-                obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
+                obj.info = store_control_info(obj.info, info_v, obj.options, obj.mpa);
 
                 % data only need to be updated if isDealPredictionInconsistency
                 % is off, because only old reachable sets but no old predicted areas
