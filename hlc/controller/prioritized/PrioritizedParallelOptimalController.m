@@ -104,7 +104,7 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
                 obj.solution_cost_communication{obj.plant.indices_in_vehicle_list(1)}.send_message(obj.k, solution_cost);
 
                 % receive info about solutions
-                other_vehicles = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
+                other_vehicles = setdiff(1:obj.options.amount, obj.plant.indices_in_vehicle_list);
 
                 for kVeh = other_vehicles
                     % loop over vehicle from which the messages are read
