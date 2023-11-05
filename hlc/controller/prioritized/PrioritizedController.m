@@ -333,7 +333,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.timing_per_vehicle(vehicle_idx).start('fallback', obj.k);
 
             if info_v.is_exhausted
-                info_v = handle_graph_search_exhaustion(info_v, obj.scenario, iter_v, obj.mpa);
+                info_v = handle_graph_search_exhaustion(info_v, obj.options, iter_v, obj.mpa);
             end
 
             if info_v.needs_fallback
