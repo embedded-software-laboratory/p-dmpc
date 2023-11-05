@@ -18,7 +18,7 @@ classdef CentralizedController < HighLevelController
             init@HighLevelController(obj);
 
             % construct optimizer
-            if obj.scenario.options.use_cpp()
+            if obj.options.use_cpp()
                 obj.optimizer = GraphSearchMexCentralized(obj.scenario, obj.mpa);
             else
                 obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
