@@ -286,7 +286,7 @@ classdef (Abstract) HighLevelController < handle
             % initialize all manually controlled vehicles
             % (belongs to initialization of the scenario)
             for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
-                obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
+                obj.manual_vehicles = ManualVehicle(hdv_id, obj.options, obj.scenario);
             end
 
             % initialize high level controller itself

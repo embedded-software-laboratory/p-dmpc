@@ -17,8 +17,7 @@ classdef ManualVehicle
 
     methods
 
-        function obj = ManualVehicle(id, scenario)
-            options = scenario.options;
+        function obj = ManualVehicle(id, options, scenario)
             options.mpa_type = MpaType.single_speed;
             options.is_prioritized = true;
             options.is_save_mpa = true;
