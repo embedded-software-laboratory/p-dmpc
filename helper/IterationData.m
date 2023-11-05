@@ -38,9 +38,9 @@ classdef IterationData
     methods
 
         function obj = IterationData(options, scenario, vehicle_ids)
-            nVeh = scenario.options.amount;
-            Hp = scenario.options.Hp;
-            hdv_amount = scenario.options.manual_control_config.amount;
+            nVeh = options.amount;
+            Hp = options.Hp;
+            hdv_amount = options.manual_control_config.amount;
             obj.priority_permutation = 0;
             obj.reference_trajectory_points = zeros(nVeh, Hp, 2);
             obj.reference_trajectory_index = zeros(nVeh, Hp, 1);
