@@ -23,10 +23,10 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function obj = PrioritizedController(options, scenario, plant)
             obj = obj@HighLevelController(options, scenario, plant);
 
-            obj.prioritizer = Prioritizer.get_prioritizer(obj.scenario.options.priority);
-            obj.weigher = Weigher.get_weigher(obj.scenario.options.weight);
+            obj.prioritizer = Prioritizer.get_prioritizer(obj.options.priority);
+            obj.weigher = Weigher.get_weigher(obj.options.weight);
 
-            if obj.scenario.options.isDealPredictionInconsistency
+            if obj.options.isDealPredictionInconsistency
                 obj.consider_parallel_coupling = @obj.parallel_coupling_reachability;
             else
                 obj.consider_parallel_coupling = @obj.parallel_coupling_previous_trajectory;
