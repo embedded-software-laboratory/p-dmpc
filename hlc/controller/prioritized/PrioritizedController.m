@@ -302,7 +302,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function plan_single_vehicle(obj, vehicle_idx)
 
             % only keep self
-            filter_self = false(1, obj.scenario.options.amount);
+            filter_self = false(1, obj.options.amount);
             filter_self(vehicle_idx) = true;
             iter_v = filter_iter(obj.iter, filter_self);
 
@@ -339,7 +339,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             if info_v.needs_fallback
                 % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
 
-                switch obj.scenario.options.fallback_type
+                switch obj.options.fallback_type
                     case FallbackType.local_fallback
                         % local fallback: only vehicles in same subgraph take fallback
                         belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
@@ -348,10 +348,10 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         obj.info.vehs_fallback = unique(obj.info.vehs_fallback, 'stable');
                     case FallbackType.global_fallback
                         % global fallback: all vehicles take fallback
-                        obj.info.vehs_fallback = int32(1):int32(obj.scenario.options.amount);
+                        obj.info.vehs_fallback = int32(1):int32(obj.options.amount);
                     case FallbackType.no_fallback
                         % Fallback is disabled. Simulation will end.
-                        obj.info.vehs_fallback = int32(1):int32(obj.scenario.options.amount);
+                        obj.info.vehs_fallback = int32(1):int32(obj.options.amount);
                     otherwise
                         warning("Please define one of the follows as fallback strategy: 'no_fallback', 'local_fallback', and 'global_fallback'.")
                 end
