@@ -386,10 +386,10 @@ classdef (Abstract) HighLevelController < handle
             idx = indices();
 
             % calculate adjacency between CAVs and HDVs and HDV reachable sets
-            for iHdv = 1:obj.scenario.options.manual_control_config.amount
+            for iHdv = 1:obj.options.manual_control_config.amount
 
                 % determine HDV lanelet id based on HDV's position
-                state_hdv = states_measured(obj.scenario.options.amount + iHdv, :);
+                state_hdv = states_measured(obj.options.amount + iHdv, :);
                 lanelet_id_hdv = map_position_to_closest_lanelets( ...
                     obj.scenario.lanelets, ...
                     state_hdv(idx.x), ...
