@@ -21,8 +21,8 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
         function controller(obj)
             % initialize variable to store control results
             obj.info_base = ControlResultsInfo( ...
-                obj.scenario.options.amount, ...
-                obj.scenario.options.Hp, ...
+                obj.options.amount, ...
+                obj.options.Hp, ...
                 obj.plant.all_vehicle_ids ...
             );
 
@@ -35,7 +35,7 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
 
             vehicle_idx = obj.plant.indices_in_vehicle_list(1);
 
-            for priority_permutation = 1:factorial(obj.scenario.options.amount)
+            for priority_permutation = 1:factorial(obj.options.amount)
 
                 obj.iter = obj.iter_base;
                 obj.info = obj.info_base;
