@@ -30,7 +30,7 @@ classdef CentralizedController < HighLevelController
 
             obj.timing_general.start('coupling', obj.k);
 
-            if obj.scenario.options.use_cpp()
+            if obj.options.use_cpp()
                 obj.iter.adjacency = obj.coupler.couple(obj.iter);
             end
 
