@@ -106,7 +106,7 @@ classdef (Abstract) HighLevelController < handle
             % initialize high level controller itself
 
             % initialize result struct
-            obj.result = get_result_struct(obj.scenario, obj.plant.controlled_vehicle_ids);
+            obj.result = get_result_struct(obj.options, obj.scenario, obj.plant.controlled_vehicle_ids);
 
             % construct mpa
             obj.mpa = MotionPrimitiveAutomaton(obj.scenario.model, obj.scenario.options);

@@ -1,4 +1,4 @@
-function result = get_result_struct(scenario, controlled_vehicle_ids)
+function result = get_result_struct(options, scenario, controlled_vehicle_ids)
     % GET_RESULT_STRUCT     Initialize result struct returned by simulation.
 
     result = struct;
