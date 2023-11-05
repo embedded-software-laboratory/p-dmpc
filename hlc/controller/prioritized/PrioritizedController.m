@@ -231,7 +231,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             jVeh = obj.plant.indices_in_vehicle_list(1);
 
             % read messages from other vehicles
-            other_vehicle_indices = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
+            other_vehicle_indices = setdiff(1:obj.options.amount, obj.plant.indices_in_vehicle_list);
 
             % loop over vehicle from which the messages are read
             for kVeh = other_vehicle_indices
@@ -259,7 +259,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.iter.predicted_lanelets{kVeh} = latest_msg_i.predicted_lanelets';
 
                 % calculate the predicted lanelet boundary of vehicle kVeh based on its predicted lanelets
-                if obj.scenario.options.scenario_type ~= ScenarioType.circle
+                if obj.options.scenario_type ~= ScenarioType.circle
                     obj.iter.predicted_lanelet_boundary(kVeh, :) = get_lanelets_boundary( ...
                         obj.iter.predicted_lanelets{kVeh}, ...
                         obj.scenario.lanelet_boundary, ...
