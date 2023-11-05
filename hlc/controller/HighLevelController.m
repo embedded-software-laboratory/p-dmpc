@@ -112,7 +112,7 @@ classdef (Abstract) HighLevelController < handle
             obj.mpa = MotionPrimitiveAutomaton(obj.scenario.model, obj.scenario.options);
 
             % initialize iteration data
-            obj.iter = IterationData(obj.scenario, obj.plant.all_vehicle_ids);
+            obj.iter = IterationData(obj.options, obj.scenario, obj.plant.all_vehicle_ids);
 
             % create old control results info in case of fallback at first time step
             obj.info_old = ControlResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, obj.plant.all_vehicle_ids);

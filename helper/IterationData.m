@@ -37,7 +37,7 @@ classdef IterationData
 
     methods
 
-        function obj = IterationData(scenario, vehicle_ids)
+        function obj = IterationData(options, scenario, vehicle_ids)
             nVeh = scenario.options.amount;
             Hp = scenario.options.Hp;
             hdv_amount = scenario.options.manual_control_config.amount;
