@@ -109,13 +109,13 @@ classdef (Abstract) HighLevelController < handle
             obj.result = get_result_struct(obj.options, obj.scenario, obj.plant.controlled_vehicle_ids);
 
             % construct mpa
-            obj.mpa = MotionPrimitiveAutomaton(obj.scenario.model, obj.scenario.options);
+            obj.mpa = MotionPrimitiveAutomaton(obj.scenario.model, obj.options);
 
             % initialize iteration data
             obj.iter = IterationData(obj.options, obj.scenario, obj.plant.all_vehicle_ids);
 
             % create old control results info in case of fallback at first time step
-            obj.info_old = ControlResultsInfo(obj.scenario.options.amount, obj.scenario.options.Hp, obj.plant.all_vehicle_ids);
+            obj.info_old = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_ids);
 
             % find initial trim from mpa (equal for all vehicles)
             initial_trim = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
@@ -130,18 +130,18 @@ classdef (Abstract) HighLevelController < handle
                                 ];
                 % use scenario information to initialize info_old
                 obj.info_old.tree{vehicle_idx} = Tree(initial_pose(1), initial_pose(2), initial_pose(3), initial_trim, 1, inf, inf);
-                obj.info_old.tree_path(vehicle_idx, :) = ones(1, obj.scenario.options.Hp + 1);
+                obj.info_old.tree_path(vehicle_idx, :) = ones(1, obj.options.Hp + 1);
                 obj.info_old.y_predicted(vehicle_idx) = {repmat( ...
                                                              [initial_pose(1), initial_pose(2), initial_pose(3), initial_trim], ...
-                                                             (obj.scenario.options.tick_per_step + 1) * obj.scenario.options.Hp, ...
+                                                             (obj.options.tick_per_step + 1) * obj.options.Hp, ...
                                                              1 ...
                                                          )};
             end
 
             % record the number of time steps that vehicles
             % consecutively stop and take fallback
-            obj.vehs_stop_duration = zeros(obj.scenario.options.amount, 1);
-            obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
+            obj.vehs_stop_duration = zeros(obj.options.amount, 1);
+            obj.vehs_fallback_times = zeros(1, obj.options.amount);
         end
 
         function update_controlled_vehicles_traffic_info(obj, states_measured, trims_measured)
