@@ -122,7 +122,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.iter.x0(vehicle_index, :) = states_measured(vehicle_index, :);
                 obj.iter.trim_indices(vehicle_index) = trims_measured(vehicle_index);
 
-                if obj.scenario.options.scenario_type == ScenarioType.circle
+                if obj.options.scenario_type == ScenarioType.circle
                     % In circle scenarios there are no lanelets
                     predicted_lanelets = [];
                 else
@@ -133,7 +133,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         states_measured(vehicle_index, state_indices.x), ...
                         states_measured(vehicle_index, state_indices.y), ...
                         trims_measured(vehicle_index), ...
-                        obj.scenario.options.dt_seconds ...
+                        obj.options.dt_seconds ...
                     );
 
                     % Compute the predicted lanelets of iVeh vehicle
@@ -147,7 +147,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     states_measured(vehicle_index, state_indices.heading), ...
                     obj.scenario.vehicles(vehicle_index).Length, ...
                     obj.scenario.vehicles(vehicle_index).Width, ...
-                    obj.scenario.options.offset ...
+                    obj.options.offset ...
                 );
 
                 % for initial time step, reachable_sets and predicted areas do not exist yet
@@ -173,7 +173,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % to ensure that they are ready
             for vehicle_index = obj.plant.indices_in_vehicle_list
                 % loop over vehicles that read messages
-                other_vehicles = setdiff(1:obj.scenario.options.amount, vehicle_index);
+                other_vehicles = setdiff(1:obj.options.amount, vehicle_index);
 
                 for vehicle_index_subscribed = other_vehicles
                     % loop over controllers that are subscribed
