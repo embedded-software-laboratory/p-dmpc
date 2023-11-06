@@ -9,14 +9,14 @@ classdef GraphSearchMexCentralized < OptimizerInterface
         end
 
         function info_v = run_optimizer(obj, veh_index, iter, scenario, mpa, options)
-            graph_search_data = GraphSearchData(iter, obj.scenario, veh_index);
-            info_v = ControlResultsInfo(iter.amount, obj.scenario.options.Hp, iter.vehicle_ids);
+            % graph_search_data = GraphSearchData(iter, options.Hp);
+            info_v = ControlResultsInfo(iter.amount, options.Hp, iter.vehicle_ids);
 
-            [next_nodes, info_v.predicted_trims, info_v.y_predicted] = graph_search_cpp_centralized_mex(obj.scenario.options.cpp_optimizer, iter);
+            [next_nodes, info_v.predicted_trims, info_v.y_predicted] = graph_search_cpp_centralized_mex(options.cpp_optimizer, iter);
             info_v.tree = obj.create_tree(iter);
-            info_v.tree_path = 1:(obj.scenario.options.Hp + 1);
+            info_v.tree_path = 1:(options.Hp + 1);
 
-            for i = 1:obj.scenario.options.Hp
+            for i = 1:options.Hp
                 info_v.tree.add_node(i, next_nodes{i});
             end
 
