@@ -48,7 +48,7 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
 
     % partition the given graph to subgraphs with a certain upper graph size.
     % The sum of weights of edges connecting subgraphs is the objective value and should be minimized.
-    [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, max_num_CLs, coupling_info, method, options);
+    [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, coupling_info, max_num_CLs, options.is_force_parallel_vehs_in_same_grp, method);
 
     % subgraphs is mergeable if the number of computation levels of the
     % new graph does not exceed the maximum allowed number.
