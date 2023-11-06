@@ -69,7 +69,7 @@ classdef GraphSearch < OptimizerInterface
                 end
 
                 % Eval edge
-                [is_valid, shapes] = eval_edge_exact(iter, scenario, mpa, info.tree, cur_node_id, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
+                [is_valid, shapes] = eval_edge_exact(iter, options, mpa, info.tree, cur_node_id, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
 
                 if ~is_valid
                     % could remove node from tree here
