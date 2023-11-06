@@ -88,6 +88,7 @@ function results = eval_parallel_computation_prediction_inconsistency()
 
 end
 
+%% subfunction
 function plot_prediction_inconsistency_addressed(results, results_folder_path)
     close all
     plot_footprints(1, results, results_folder_path);
@@ -162,46 +163,46 @@ function export_videos(results, veh_colors, x_lim, y_lim, results_folder_path)
     for i = 1:numel(results)
         result = results{i};
 
-        result.scenario.options.options_plot_online.is_custom_colors = true;
-        result.scenario.options.options_plot_online.custom_colors = veh_colors;
-        result.scenario.options.plot_limits(1, :) = x_lim;
-        result.scenario.options.plot_limits(2, :) = y_lim;
-        result.scenario.options.options_plot_online.plot_xy_labels = false;
-        result.scenario.options.options_plot_online.plot_xy_ticks = false;
-        result.scenario.options.options_plot_online.is_dynamic_colors = false;
+        result.options.options_plot_online.is_custom_colors = true; % FIXME
+        result.options.options_plot_online.custom_colors = veh_colors; % FIXME
+        result.options.plot_limits(1, :) = x_lim;
+        result.options.plot_limits(2, :) = y_lim;
+        result.options.options_plot_online.plot_xy_labels = false; % FIXME
+        result.options.options_plot_online.plot_xy_ticks = false; % FIXME
+        result.options.options_plot_online.is_dynamic_colors = false; % FIXME
 
-        result.scenario.options.options_plot_online.plot_scenario_name = false;
-        result.scenario.options.options_plot_online.plot_timesteps = true;
+        result.options.options_plot_online.plot_scenario_name = false; % FIXME
+        result.options.options_plot_online.plot_timesteps = true; % FIXME
 
-        result.scenario.options.options_plot_online.is_video_mode = true;
-        result.scenario.options.options_plot_online.plot_coupling = true;
-        result.scenario.options.options_plot_online.plot_weight = false;
-        result.scenario.options.options_plot_online.plot_priority = false;
+        result.options.options_plot_online.is_video_mode = true;
+        result.options.options_plot_online.plot_coupling = true;
+        result.options.options_plot_online.plot_weight = false;
+        result.options.options_plot_online.plot_priority = false;
         approaches = {'reachable_set', 'previous_plans'};
         % TODO custom plot functions
         if i == 1
             % plot the reachable sets of vehicles 1 and 2
-            result.scenario.options.options_plot_online.plot_reachable_sets = true;
-            result.scenario.options.options_plot_online.vehicles_reachable_sets = [1, 2];
-            result.scenario.options.options_plot_online.plot_predicted_occupancy = true;
-            result.scenario.options.options_plot_online.vehicles_predicted_occupancy = [3];
+            result.options.options_plot_online.plot_reachable_sets = true;
+            result.options.options_plot_online.vehicles_reachable_sets = [1, 2];
+            result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
+            result.options.options_plot_online.vehicles_predicted_occupancy = [3]; % FIXME
             export_video(result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-view_vehicle_3.mp4']))
             % plot the actual plans of vehicles 1 and 2
-            result.scenario.options.options_plot_online.plot_reachable_sets = false;
-            result.scenario.options.options_plot_online.plot_predicted_occupancy = true;
-            result.scenario.options.options_plot_online.vehicles_predicted_occupancy = [1, 2, 3];
+            result.options.options_plot_online.plot_reachable_sets = false;
+            result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
+            result.options.options_plot_online.vehicles_predicted_occupancy = [1, 2, 3]; % FIXME
             export_video(result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-actual_plans.mp4']))
         else
             % plot the previously predicted occupancies of vehicles 1 and 2
-            result.scenario.options.options_plot_online.plot_predicted_occupancy_previous = true;
-            result.scenario.options.options_plot_online.vehicles_predicted_occupancy_previous = [1, 2];
-            result.scenario.options.options_plot_online.plot_predicted_occupancy = true;
-            result.scenario.options.options_plot_online.vehicles_predicted_occupancy = [3];
+            result.options.options_plot_online.plot_predicted_occupancy_previous = true; % FIXME
+            result.options.options_plot_online.vehicles_predicted_occupancy_previous = [1, 2]; % FIXME
+            result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
+            result.options.options_plot_online.vehicles_predicted_occupancy = [3]; % FIXME
             export_video(result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-view_vehicle_3.mp4']))
             % plot the actual plans of vehicles 1 and 2
-            result.scenario.options.options_plot_online.plot_predicted_occupancy_previous = false;
-            result.scenario.options.options_plot_online.plot_predicted_occupancy = true;
-            result.scenario.options.options_plot_online.vehicles_predicted_occupancy = [1, 2, 3];
+            result.options.options_plot_online.plot_predicted_occupancy_previous = false; % FIXME
+            result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
+            result.options.options_plot_online.vehicles_predicted_occupancy = [1, 2, 3]; % FIXME
             export_video(result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-actual_plans.mp4']))
         end
 
@@ -209,11 +210,12 @@ function export_videos(results, veh_colors, x_lim, y_lim, results_folder_path)
 
 end
 
-function plot_predicted_occupancy(trajectory_predictions, scenario, color, trims_stop, is_one_step_shifted)
+function plot_predicted_occupancy(trajectory_predictions, options, scenario, color, trims_stop, is_one_step_shifted)
 
     % PLOT_PREDICTED_OCCUPANCY Plot predicted occupied areas
     % Input
     %   trajectory_predictions: predicted trajectory
+    %   options: instance of the class "Config"
     %   scenario: instance of the class "Scenario"
     %   color: define color of the area
     %   trims_step: equlibrium trim(s)
@@ -221,7 +223,7 @@ function plot_predicted_occupancy(trajectory_predictions, scenario, color, trims
     %   will be shown
     %
     n_predictions = size(trajectory_predictions, 1);
-    n_ticks = n_predictions / scenario.options.Hp;
+    n_ticks = n_predictions / options.Hp;
 
     i = 0;
 
@@ -243,10 +245,10 @@ function plot_predicted_occupancy(trajectory_predictions, scenario, color, trims
             trim2 = trajectory_predictions(tick + n_ticks, 4);
         end
 
-        area = scenario.mpa.maneuvers{trim1, trim2}.area;
+        area = scenario.mpa.maneuvers{trim1, trim2}.area; % FIXME scenario.mpa
         [area_x, area_y] = translate_global(x(3), x(1), x(2), area(1, :), area(2, :));
         area_poly = polyshape([area_x; area_y]');
-        plot(area_poly, 'FaceColor', color, 'FaceAlpha', (i / (scenario.options.Hp + 2)) * 0.5)
+        plot(area_poly, 'FaceColor', color, 'FaceAlpha', (i / (options.Hp + 2)) * 0.5)
     end
 
 end
@@ -270,11 +272,12 @@ function plot_footprints(i_result, results, results_folder_path)
 
     tick_now = 1;
 
+    options = results{1, 1}.scenario;
     scenario = results{1, 1}.scenario;
 
-    nVehs = scenario.options.amount;
+    nVehs = options.amount;
 
-    plot_lanelets(scenario.road_raw_data.lanelet, scenario.options.scenario_type);
+    plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
 
     for v = 1:nVehs
         visualized_steps_num = [12, 5];
@@ -335,13 +338,14 @@ function plot_viewpoint_reachable_set(i_result, results, results_folder_path)
     ylim([ymin, ymax])
     daspect([1 1 1])
 
+    options = results{i_result, 1}.options;
     scenario = results{i_result, 1}.scenario;
-    nVehs = scenario.options.amount;
+    nVehs = options.amount;
     rwth_color = rwth_color_order();
     tick_now = 1;
     step_idx = 5;
 
-    plot_lanelets(scenario.road_raw_data.lanelet, scenario.options.scenario_type);
+    plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
     ego_vehs = 3;
     other_vehs = setdiff(1:nVehs, ego_vehs);
     % plot reachable set
@@ -355,7 +359,7 @@ function plot_viewpoint_reachable_set(i_result, results, results_folder_path)
     % plot predicted occupied areas of the ego vehicle
     trajectory_predictions = results{i_result, ego_vehs}.trajectory_predictions{ego_vehs, step_idx};
     is_one_step_shifted = false;
-    plot_predicted_occupancy(trajectory_predictions, scenario, rwth_color(ego_vehs, :), scenario.mpa.trims_stop, is_one_step_shifted)
+    plot_predicted_occupancy(trajectory_predictions, options, scenario, rwth_color(ego_vehs, :), scenario.mpa.trims_stop, is_one_step_shifted) % FIXME scenario.mpa
 
     % plot vehicle positions
     for v = 1:nVehs
@@ -403,13 +407,14 @@ function plot_viewpoint_previous_occupancy(i_result, results, results_folder_pat
     xlim([xmin, xmax])
     ylim([ymin, ymax])
 
+    options = results{i_result, 1}.options;
     scenario = results{i_result, 1}.scenario;
-    nVehs = scenario.options.amount;
+    nVehs = options.amount;
     rwth_color = rwth_color_order();
     tick_now = 1;
     step_idx = 5;
 
-    plot_lanelets(scenario.road_raw_data.lanelet, scenario.options.scenario_type);
+    plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
 
     ego_vehs = 3;
     other_vehs = setdiff(1:nVehs, ego_vehs);
@@ -418,13 +423,13 @@ function plot_viewpoint_previous_occupancy(i_result, results, results_folder_pat
     for v = other_vehs
         trajectory_predictions = results{i_result, v}.trajectory_predictions{v, step_idx - 1};
         is_one_step_shifted = true;
-        plot_predicted_occupancy(trajectory_predictions, scenario, rwth_color(v, :), scenario.mpa.trims_stop, is_one_step_shifted)
+        plot_predicted_occupancy(trajectory_predictions, options, scenario, rwth_color(v, :), scenario.mpa.trims_stop, is_one_step_shifted) % FIXME scenario.mpa
     end
 
     % plot predicted occupied areas of the ego vehicle
     trajectory_predictions = results{i_result, ego_vehs}.trajectory_predictions{ego_vehs, step_idx};
     is_one_step_shifted = false;
-    plot_predicted_occupancy(trajectory_predictions, scenario, rwth_color(ego_vehs, :), scenario.mpa.trims_stop, is_one_step_shifted)
+    plot_predicted_occupancy(trajectory_predictions, options, scenario, rwth_color(ego_vehs, :), scenario.mpa.trims_stop, is_one_step_shifted) % FIXME scenario.mpa
 
     % plot vehicle positions
     for v = 1:nVehs
@@ -471,19 +476,20 @@ function plot_actual_plans(i_result, results, results_folder_path)
     ylim([ymin, ymax])
     daspect([1 1 1])
 
+    options = results{i_result, 1}.options;
     scenario = results{i_result, 1}.scenario;
-    nVehs = scenario.options.amount;
+    nVehs = options.amount;
     rwth_color = rwth_color_order();
     tick_now = 1;
     step_idx = 5;
 
-    plot_lanelets(scenario.road_raw_data.lanelet, scenario.options.scenario_type);
+    plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
 
     % plot predicted occupied areas of all vehicle
     for v = 1:nVehs
         trajectory_predictions = results{i_result, v}.trajectory_predictions{v, step_idx};
         is_one_step_shifted = false;
-        plot_predicted_occupancy(trajectory_predictions, scenario, rwth_color(v, :), scenario.mpa.trims_stop, is_one_step_shifted)
+        plot_predicted_occupancy(trajectory_predictions, options, scenario, rwth_color(v, :), scenario.mpa.trims_stop, is_one_step_shifted) % FIXME scenario.mpa
     end
 
     % plot vehicle positions

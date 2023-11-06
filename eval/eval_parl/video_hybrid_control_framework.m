@@ -81,20 +81,15 @@ if isfile(full_path)
     disp('File already exists.')
 else
     % run simulation
-    if exist('options', 'var') && exist('scenario', 'var')
-        [~, ~, ~] = main(options, scenario);
-    else
-        [~, scenario, ~] = main(options);
-    end
-
+    [~, ~] = main(options);
 end
 
 load(full_path)
 
 %%
-result.scenario.options.options_plot_online.is_video_mode = true;
-result.scenario.options.options_plot_online.plot_coupling = true;
-result.scenario.options.options_plot_online.plot_priority = false;
+result.options.options_plot_online.is_video_mode = true;
+result.options.options_plot_online.plot_coupling = true;
+result.options.options_plot_online.plot_priority = false;
 
 videoExportSetup.framerate = 5;
 export_video(result, videoExportSetup)

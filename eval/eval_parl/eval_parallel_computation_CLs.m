@@ -168,10 +168,10 @@ function export_fig_for_video(results, results_folder_path)
     i_random = 1;
     result = results{i_random, i_CLs};
 
-    result.scenario.options.options_plot_online.is_video_mode = true;
-    result.scenario.options.options_plot_online.plot_coupling = true;
-    result.scenario.options.options_plot_online.plot_weight = true;
-    result.scenario.options.options_plot_online.plot_priority = true;
+    result.options.options_plot_online.is_video_mode = true;
+    result.options.options_plot_online.plot_coupling = true;
+    result.options.options_plot_online.plot_weight = true;
+    result.options.options_plot_online.plot_priority = true;
 
     % videoExportSetup.framerate = 30;
     timesteps = 14;
@@ -179,10 +179,10 @@ function export_fig_for_video(results, results_folder_path)
     for iStep = timesteps
 
         % after applying our approach
-        result.scenario.options.options_plot_online.plot_weight = true;
+        result.options.options_plot_online.plot_weight = true;
         export_frame(result, iStep = iStep, frame_name = 'coupling_after_our_approach.png')
         % before applying our approach
-        result.scenario.options.options_plot_online.plot_weight = false;
+        result.options.options_plot_online.plot_weight = false;
         belonging_vector = result.belonging_vector(:, iStep);
         result.belonging_vector(:, iStep) = 1;
         export_frame(result, iStep = iStep, frame_name = 'coupling_before_our_approach.png')
