@@ -81,6 +81,9 @@ classdef ControllerTiming < handle
         function timings = get_all_timings(obj)
             timings = struct;
 
+            % save controller_start_time for normalization with other workers/computers in eval
+            timings.controller_start_time = obj.controller_start_time;
+
             % save results from timings_once
             for name = obj.names_of_timings_once
                 timings.(name) = obj.timings_once(:, obj.name_to_timing_once(name));
