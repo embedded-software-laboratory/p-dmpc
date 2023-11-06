@@ -43,7 +43,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             init@HighLevelController(obj);
 
             % construct optimizer
-            if obj.scenario.options.use_cpp()
+            if obj.options.use_cpp()
                 obj.optimizer = GraphSearchMexPB(obj.scenario, obj.mpa, obj.plant.indices_in_vehicle_list);
             else
                 obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
