@@ -604,7 +604,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.result.timings_per_vehicle(iVeh) = obj.timing_per_vehicle(iVeh).get_all_timings();
             end
 
-            if obj.scenario.options.should_reduce_result
+            if obj.options.should_reduce_result
                 % delete large data fields of to reduce file size
 
                 obj.result.mpa = [];
@@ -619,7 +619,7 @@ classdef (Abstract) HighLevelController < handle
 
             end
 
-            if ~obj.scenario.options.should_save_result
+            if ~obj.options.should_save_result
                 % return results should not be saved
                 fprintf('As required, results were not saved\n');
                 return
