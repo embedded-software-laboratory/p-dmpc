@@ -21,14 +21,14 @@ classdef Coupler < handle
 
         end
 
-        function [coupling_info] = calculate_coupling_info(obj, time_step, scenario, mpa, iter)
+        function [coupling_info] = calculate_coupling_info(obj, time_step, options, scenario, mpa, iter)
 
             adjacency = iter.adjacency;
-            amount = scenario.options.amount;
+            amount = options.amount;
             coupling_info = cell(amount, amount);
 
             obj.previous_intersection_ids = obj.intersection_ids;
-            [obj.intersection_ids, ~] = vehicles_at_intersection(time_step, obj.intersection_ids, [], obj.intersection_distance_threshold, iter.x0, scenario.intersection_center, scenario.options.amount);
+            [obj.intersection_ids, ~] = vehicles_at_intersection(time_step, obj.intersection_ids, [], obj.intersection_distance_threshold, iter.x0, scenario.intersection_center, amount);
 
             for veh_i = 1:(amount - 1)
 
@@ -40,7 +40,7 @@ classdef Coupler < handle
                         is_intersection = ismember([veh_i, veh_j], obj.intersection_ids);
 
                         [stac, distance_i, distance_j, collision_type, lanelet_relationship, is_move_side_by_side] = ...
-                            calculate_stac(veh_i, veh_j, scenario.options.dt_seconds, scenario, mpa, iter);
+                            calculate_stac(veh_i, veh_j, options.dt_seconds, scenario, mpa, iter);
 
                         coupling_info{veh_i, veh_j} = struct( ...
                             'stac', stac, ...
