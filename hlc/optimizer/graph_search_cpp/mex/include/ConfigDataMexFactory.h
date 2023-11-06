@@ -7,12 +7,12 @@
 #include <mex.hpp>
 
 namespace GraphBasedPlanning {
-	ConfigData make_config(matlab::data::Array const &scenario, matlab::data::Array const &mpa_array, std::shared_ptr<matlab::engine::MATLABEngine> &_matlab) {
+	ConfigData make_config(matlab::data::Array const &options_array, matlab::data::Array const &mpa_array, matlab::data::Array const &scenario_array,  std::shared_ptr<matlab::engine::MATLABEngine> &_matlab) {
 		// get the number of steps in the horizon prediction
-		matlab::data::Array const options_array = _matlab->getProperty(scenario, u"options");
 		matlab::data::TypedArray<double> const hp_array = _matlab->getProperty(options_array, u"Hp");
 		unsigned int const n_hp = static_cast<unsigned int>(hp_array[0][0]);
 
+        // get the number of ticks in a single step
 		matlab::data::TypedArray<double> const tick_per_step_array = _matlab->getProperty(options_array, u"tick_per_step");
 		unsigned int const tick_per_step = static_cast<unsigned int>(tick_per_step_array[0][0]);
 
@@ -21,7 +21,7 @@ namespace GraphBasedPlanning {
 		double const dt = dt_array[0][0];
 
 		// get the number of vehicles
-		matlab::data::Array const vehicles_array = _matlab->getProperty(scenario, u"vehicles");
+		matlab::data::Array const vehicles_array = _matlab->getProperty(scenario_array, u"vehicles");
 		unsigned int const n_vehicles = vehicles_array.getNumberOfElements();
 
 		// get the scenario type of the graph search

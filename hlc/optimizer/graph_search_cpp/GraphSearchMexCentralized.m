@@ -5,7 +5,7 @@ classdef GraphSearchMexCentralized < OptimizerInterface
         function obj = GraphSearchMexCentralized(options, scenario, mpa)
             obj = obj@OptimizerInterface(scenario, mpa);
 
-            graph_search_cpp_centralized_mex(CppOptimizer.InitializeWithScenario, scenario, mpa);
+            graph_search_cpp_centralized_mex(CppOptimizer.InitializeWithScenario, options, mpa, scenario);
         end
 
         function info_v = run_optimizer(obj, iter, veh_index)

@@ -13,7 +13,7 @@ classdef GraphSearchMexPB < OptimizerInterface
 
             if ~options.mex_out_of_process_execution
                 % if mex is not executed out of the Matlab process
-                graph_search_cpp_priority_mex(CppOptimizer.InitializeWithScenario, scenario, mpa);
+                graph_search_cpp_priority_mex(CppOptimizer.InitializeWithScenario, options, mpa, scenario);
                 return
             end
 
@@ -21,7 +21,7 @@ classdef GraphSearchMexPB < OptimizerInterface
                 % create mexhost for each vehicle (only if incremental search is used - no option in config yet)
                 obj.mexhosts(vehicle_index) = mexhost;
                 % initialize C++ graph search
-                feval(obj.mexhosts(vehicle_index), 'graph_search_cpp_priority_mex', CppOptimizer.InitializeWithScenario, scenario, mpa);
+                feval(obj.mexhosts(vehicle_index), 'graph_search_cpp_priority_mex', CppOptimizer.InitializeWithScenario, options, mpa, scenario);
             end
 
         end
