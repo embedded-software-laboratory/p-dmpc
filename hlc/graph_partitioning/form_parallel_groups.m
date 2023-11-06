@@ -1,4 +1,4 @@
-function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(M, max_num_CLs, coupling_info, method, options)
+function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(M, coupling_info, max_num_CLs, is_force_parallel_vehs_in_same_grp, method)
     % FORM_PARALLEL_GROUPS Form parallel groups of vehicles based on the given
     % matrix M, which can either be a directed adjacency matrix or a weighting
     % matrix, while ensuring that the number of computation levels of each
@@ -10,13 +10,15 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
     %   target graph. Edge-weights will not be considered if M is the dajacency
     %   matrix.
     %
+    %   coupling_info: coupling information of each coupling pair
+    %
     %   max_num_CLs: maximum number of computation levels
     %
-    %   coupling_info: couling information of each coupling pair
+    %   is_force_parallel_vehs_in_same_grp:
+    %       boolean whether to force parallel driving vehicles
+    %       being in the same group
     %
     %   method: either 's-t-cut' or 'MILP'
-    %
-    %   options: instance of the class `OptionsMain`
     %
     % OUTPUT:
     %   parl_groups: also called CL_based_hierarchy, specifying the computation
@@ -48,7 +50,7 @@ function [parl_groups, subgraphs_info, belonging_vector] = form_parallel_groups(
 
     % partition the given graph to subgraphs with a certain upper graph size.
     % The sum of weights of edges connecting subgraphs is the objective value and should be minimized.
-    [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, coupling_info, max_num_CLs, options.is_force_parallel_vehs_in_same_grp, method);
+    [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, coupling_info, max_num_CLs, is_force_parallel_vehs_in_same_grp, method);
 
     % subgraphs is mergeable if the number of computation levels of the
     % new graph does not exceed the maximum allowed number.
