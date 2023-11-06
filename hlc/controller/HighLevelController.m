@@ -359,7 +359,7 @@ classdef (Abstract) HighLevelController < handle
                 % reset iter obstacles to scenario default/static obstacles
                 obj.iter.obstacles = obj.scenario.obstacles;
                 % important: reset lanelet crossing areas
-                obj.iter.lanelet_crossing_areas = repmat({{}}, obj.scenario.options.amount, 1);
+                obj.iter.lanelet_crossing_areas = repmat({{}}, obj.options.amount, 1);
 
                 % Apply control action
                 % -------------------------------------------------------------------------
@@ -369,7 +369,7 @@ classdef (Abstract) HighLevelController < handle
                 % -------------------------------------------------------------------------
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
 
-                if ~obj.got_stop && obj.k >= obj.scenario.options.k_end
+                if ~obj.got_stop && obj.k >= obj.options.k_end
                     disp('The HLC will be stopped as the defined experiment duration is reached.')
                     obj.got_stop = true;
                 end
