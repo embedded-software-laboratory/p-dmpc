@@ -8,7 +8,7 @@ classdef ColoringPrioritizer < Prioritizer
         function obj = ColoringPrioritizer()
         end
 
-        function [directed_coupling] = prioritize(obj, ~, ~, iter)
+        function [directed_coupling] = prioritize(obj, iter, ~, ~, ~)
             adjacency = iter.adjacency;
             % apply topological sorting algorithm with coloring
             [topo_valid, topo_matrix] = ColoringPrioritizer.topological_coloring(adjacency);

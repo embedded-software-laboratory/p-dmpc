@@ -10,7 +10,7 @@ classdef ConstantPrioritizer < Prioritizer
         function obj = ConstantPrioritizer()
         end
 
-        function [directed_coupling] = prioritize(~, ~, ~, iter)
+        function [directed_coupling] = prioritize(~, iter, ~, ~, ~)
             adjacency = iter.adjacency;
 
             directed_coupling = adjacency;

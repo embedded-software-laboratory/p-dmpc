@@ -6,7 +6,7 @@ classdef (Abstract) Prioritizer < handle
     end
 
     methods (Abstract)
-        prioritize(obj, time_step, scenario, iter)
+        prioritize(obj, iter, time_step, options, intersection_center)
     end
 
     methods (Static)

@@ -73,7 +73,7 @@ function eval_coloring_paper()
 
         for i = 1:n_runs
             tstart = tic;
-            prioritizer.prioritize([], [], iter);
+            prioritizer.prioritize(iter, [], [], []);
             tcomp_helper(i) = toc(tstart);
         end
 
@@ -101,7 +101,7 @@ function eval_coloring_paper()
 
     for i = 1:n
         tstart = tic;
-        prioritizer.prioritize([], [], iter);
+        prioritizer.prioritize(iter, [], [], []);
         tcomp_s(i) = toc(tstart);
     end
 

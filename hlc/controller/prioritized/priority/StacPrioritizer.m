@@ -20,18 +20,18 @@ classdef StacPrioritizer < Prioritizer
             obj.is_assign_unique_priority = false; % whether to asign unique priority
         end
 
-        %% priority
-        function [directed_coupling] = prioritize(obj, time_step, scenario, iter)
+        % priority
+        function [directed_coupling] = prioritize(obj, iter, time_step, options, intersection_center)
             adjacency = iter.adjacency;
             directed_coupling = adjacency;
-            amount = scenario.options.amount;
+            amount = options.amount;
 
-            if ((time_step == 1) && ~(scenario.options.scenario_type == ScenarioType.commonroad))
+            if ((time_step == 1) && ~(options.scenario_type == ScenarioType.commonroad))
                 warning('STAC Priority only available for Commonroad scenarios! May behave unexpectedly!')
             end
 
             obj.previous_intersection_ids = obj.intersection_ids;
-            [obj.intersection_ids, obj.intersection_entry_times] = vehicles_at_intersection(time_step, obj.intersection_ids, obj.intersection_entry_times, obj.intersection_distance_threshold, iter.x0, scenario.intersection_center, scenario.options.amount);
+            [obj.intersection_ids, obj.intersection_entry_times] = vehicles_at_intersection(time_step, obj.intersection_ids, obj.intersection_entry_times, obj.intersection_distance_threshold, iter.x0, intersection_center, amount);
 
             for veh_i = 1:(amount - 1)
 
