@@ -27,9 +27,11 @@ classdef GraphSearchMexPB < OptimizerInterface
         end
 
         function info_v = run_optimizer(obj, veh_index, iter, ~, options)
-            graph_search_data = GraphSearchData(iter, options.Hp);
             info_v = ControlResultsInfo(iter.amount, options.Hp, iter.vehicle_ids);
-            [next_nodes, info_v.predicted_trims, info_v.y_predicted, info_v.shapes, info_v.n_expanded, info_v.is_exhausted] = obj.do_graph_search(veh_index, graph_search_data, options);
+
+            [vehicle_obstacles, ~] = get_all_obstacles(iter, options.Hp);
+
+            [next_nodes, info_v.predicted_trims, info_v.y_predicted, info_v.shapes, info_v.n_expanded, info_v.is_exhausted] = obj.do_graph_search(veh_index, iter, vehicle_obstacles, options);
             info_v.tree = obj.create_tree(iter);
             info_v.tree_path = 1:(options.Hp + 1);
 
@@ -54,14 +56,14 @@ classdef GraphSearchMexPB < OptimizerInterface
             tree = Tree(x, y, yaw, trim, k, g, h);
         end
 
-        function [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = do_graph_search(obj, veh_index, graph_search_data, options)
+        function [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = do_graph_search(obj, veh_index, iter, vehicle_obstacles, options)
 
             if options.mex_out_of_process_execution
                 [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...
-                    feval(obj.mexhosts(veh_index(1)), 'graph_search_cpp_priority_mex', options.cpp_optimizer, graph_search_data);
+                    feval(obj.mexhosts(veh_index(1)), 'graph_search_cpp_priority_mex', options.cpp_optimizer, iter, vehicle_obstacles);
             else
                 [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...
-                    graph_search_cpp_priority_mex(options.cpp_optimizer, graph_search_data);
+                    graph_search_cpp_priority_mex(options.cpp_optimizer, iter, vehicle_obstacles);
             end
 
         end
