@@ -28,7 +28,7 @@ classdef GraphSearchData
             obj.predicted_lanelets = iter.predicted_lanelets;
             obj.predicted_lanelet_boundary = iter.predicted_lanelet_boundary(:, 1:2);
             obj.lanelet_crossing_areas = iter.lanelet_crossing_areas;
-            [obj.vehicle_obstacles, obj.hdv_obstacles] = get_all_obstacles(iter, scenario);
+            [obj.vehicle_obstacles, obj.hdv_obstacles] = get_all_obstacles(iter, scenario.options.Hp);
             obj.veh_idx = veh_idx;
         end
 

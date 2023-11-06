@@ -1,4 +1,4 @@
-function [vehicle_obstacles, hdv_obstacles] = get_all_obstacles(iter, scenario)
+function [vehicle_obstacles, hdv_obstacles] = get_all_obstacles(iter, Hp)
     % GET_ALL_OBSTACLES This function collects all obstacles, including
     % static and dynamic obstacles as well as lanelet boundaries, to
     % an array of two-row matrices. The first row is for x-coordinates and the
@@ -10,8 +10,8 @@ function [vehicle_obstacles, hdv_obstacles] = get_all_obstacles(iter, scenario)
     %   all vehicle obstacles in a certain prediction horizon, such as current
     %   occupied area, predicted occupied areas and reachable sets.
 
-    vehicle_obstacles = cell(1, scenario.options.Hp);
-    hdv_obstacles = cell(1, scenario.options.Hp);
+    vehicle_obstacles = cell(1, Hp);
+    hdv_obstacles = cell(1, Hp);
 
     % get static occupied areas of the considered vehicles
     current_occupied_areas = iter.obstacles;
@@ -24,7 +24,7 @@ function [vehicle_obstacles, hdv_obstacles] = get_all_obstacles(iter, scenario)
     [~, n_hdvSets_Hp] = size(iter.hdv_reachable_sets);
     adjacent_hdv = find(iter.hdv_adjacency);
 
-    for iStep = 1:scenario.options.Hp
+    for iStep = 1:Hp
         % get predicted occupied areas of the coupling vehicles in the current time step
         if iStep <= n_occupiedAreas_Hp
             predicted_occpuied_areas = iter.dynamic_obstacle_area(:, iStep)';
