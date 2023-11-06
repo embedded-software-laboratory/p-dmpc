@@ -76,7 +76,7 @@ function plot_runtime_data(data)
     % title(tiledLayoutHandle, 'Deadlock-Free Runtime');
 
     % Export
-    folder_path = FileNameConstructor.gen_results_folder_path(result.scenario.options);
+    folder_path = FileNameConstructor.gen_results_folder_path(result.options);
     filename = 'deadlock-free-runtime-detail.pdf';
     set_figure_properties(figHandle, ExportFigConfig.document('paperheight', 14))
     export_fig(figHandle, fullfile(folder_path, filename));
@@ -100,7 +100,7 @@ function plot_runtime_data(data)
 
     % Export document presets
     folder_path = FileNameConstructor.gen_results_folder_path( ...
-        result.scenario.options ...
+        result.options ...
     );
     filename = 'deadlock-free-avg-speed-over-nVeh.pdf';
     set_figure_properties(figHandle, ExportFigConfig.document())
@@ -177,7 +177,7 @@ function plot_runtime_data(data)
 
     % Export document presets
     folder_path = FileNameConstructor.gen_results_folder_path( ...
-        result.scenario.options ...
+        result.options ...
     );
     filename = 'deadlock-free-matrix.pdf';
     set_figure_properties(figHandle, ExportFigConfig.paper())

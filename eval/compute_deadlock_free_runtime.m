@@ -12,7 +12,7 @@ function [nSteps, t] = compute_deadlock_free_runtime(result)
         t = result.t_total;
         nSteps = result.nSteps;
     else
-        t = nSteps * result.scenario.options.dt_seconds;
+        t = nSteps * result.options.dt_seconds;
     end
 
 end

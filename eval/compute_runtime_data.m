@@ -11,7 +11,7 @@ function [ data ] = compute_runtime_data(res)
     avg_speed_by_veh_pri = zeros(nVeh,nPri);
 
     for iVeh = 1:nVeh
-        x_values(iVeh) = res{iVeh,1,1}.scenario.options.amount;
+        x_values(iVeh) = res{iVeh,1,1}.options.amount;
         for iPri = 1:nPri
             avg_speed_scenario = zeros(nSce,1);
             for iSce = 1:nSce
