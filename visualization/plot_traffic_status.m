@@ -12,10 +12,11 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
     %   visu: struct with fields: 'plot_vehicle_id', 'plot_priority', 'plot_coupling' and 'plot_weight'
     %
 
+    options = result.options;
     scenario = result.scenario;
     iter = result.iteration_structs{step_idx};
 
-    nVeh = scenario.options.amount;
+    nVeh = options.amount;
     nObst = size(result.obstacles, 1);
     nDynObst = size(iter.dynamic_obstacle_fullres, 1);
 
@@ -37,8 +38,8 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
     %     xlabel('$x\:[m]$','Interpreter','LaTex');
     %     ylabel('$y\:[m]$','Interpreter','LaTex');
 
-    xlim(scenario.options.plot_limits(1, :));
-    ylim(scenario.options.plot_limits(2, :));
+    xlim(options.plot_limits(1, :));
+    ylim(options.plot_limits(2, :));
     daspect([1 1 1])
 
     % plot the lanelets only once at the beginning
@@ -63,15 +64,15 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
                           '{\itesc}: end simulation'};
 
             if (scenario.name == ScenarioType.commonroad)
-                x_text_hotkey = scenario.options.plot_limits(1, 1) - 1.5;
-                y_text_hotkey = scenario.options.plot_limits(2, 2) - 0.5;
+                x_text_hotkey = options.plot_limits(1, 1) - 1.5;
+                y_text_hotkey = options.plot_limits(2, 2) - 0.5;
             elseif strcmp(scenario.name, 'Circle_scenario')
-                x_text_hotkey = scenario.options.plot_limits(1, 1) - 2.0;
-                y_text_hotkey = scenario.options.plot_limits(2, 2) - 0.5;
+                x_text_hotkey = options.plot_limits(1, 1) - 2.0;
+                y_text_hotkey = options.plot_limits(2, 2) - 0.5;
             else
                 % to be define according to the specific scenario
-                x_text_hotkey = scenario.options.plot_limits(1, 1) - 1.5;
-                y_text_hotkey = scenario.options.plot_limits(2, 2) - 0.5;
+                x_text_hotkey = options.plot_limits(1, 1) - 1.5;
+                y_text_hotkey = options.plot_limits(2, 2) - 0.5;
             end
 
             text(x_text_hotkey, y_text_hotkey, HotkeyDesc, 'Tag', 'hotkey');
@@ -135,8 +136,8 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
 
     % predicted trajectory
     for v = 1:nVeh
-        line(result.trajectory_predictions{v, step_idx}([1:scenario.options.tick_per_step + 1:end, end], 1), ...
-            result.trajectory_predictions{v, step_idx}([1:scenario.options.tick_per_step + 1:end, end], 2), ...
+        line(result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 1), ...
+            result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 2), ...
             'Color', vehColor(color_list(v), :), 'LineStyle', 'none', 'Marker', '+', 'MarkerFaceColor', vehColor(color_list(v), :), 'MarkerSize', 1, 'LineWidth', 0.2);
         % Matlab R2021a:
         %'Color',vehColor(color_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(color_list(v),:),'MarkerSize', 3, 'LineWidth',0.2 );
@@ -225,7 +226,7 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
     %         optimizer,...
     %         strategy,...
     %         step_idx,...
-    %         (step_idx-1)*scenario.options.dt_seconds+ (tick_now-1) * scenario.options.time_per_tick),'Interpreter','latex','FontSize', 12);
+    %         (step_idx-1)*options.dt_seconds+ (tick_now-1) * options.time_per_tick),'Interpreter','latex','FontSize', 12);
     %
     %     set(t,'HorizontalAlignment', 'center');
 
