@@ -1,4 +1,4 @@
-function [new_open_nodes] = expand_node(scenario, mpa, iter, iNode, info)
+function [new_open_nodes] = expand_node(options ,mpa, iter, iNode, info)
     % EXPAND_NODE   Expand node in search tree and return succeeding nodes.
     trim_tuple = mpa.trim_tuple;
     trim_length = length(mpa.trims) * ones(1, iter.amount);
@@ -34,7 +34,7 @@ function [new_open_nodes] = expand_node(scenario, mpa, iter, iNode, info)
     expG = curG * ones(1, nTrims);
     expH = zeros(1, nTrims);
 
-    time_steps_to_go = scenario.options.Hp - k_exp;
+    time_steps_to_go = options.Hp - k_exp;
 
     for iTrim = 1:nTrims
         id = successor_trim_ids(iTrim);
@@ -55,7 +55,7 @@ function [new_open_nodes] = expand_node(scenario, mpa, iter, iNode, info)
             expYaw(iVeh, iTrim) = curYaw(iVeh) + maneuver.dyaw;
 
             % Cost to come
-            % iter.reference is of size (scenario.options.amount,scenario.options.Hp,2)
+            % iter.reference is of size (options.amount,options.Hp,2)
             % Distance to reference trajectory points squared to conform with
             % J = (x-x_ref)' Q (x-x_ref)
             expG(iTrim) = expG(iTrim) + norm([expX(iVeh, iTrim) - iter.reference_trajectory_points(iVeh, k_exp, 1); expY(iVeh, iTrim) - iter.reference_trajectory_points(iVeh, k_exp, 2)])^2;
@@ -67,14 +67,14 @@ function [new_open_nodes] = expand_node(scenario, mpa, iter, iNode, info)
 
             for i_t = 1:time_steps_to_go
                 d_traveled_max = d_traveled_max ...
-                    + scenario.options.dt_seconds * iter.v_ref(iVeh, k_exp + i_t);
+                    + options.dt_seconds * iter.v_ref(iVeh, k_exp + i_t);
                 expH(iTrim) = expH(iTrim) + (max(0, (norm([expX(iVeh, iTrim) - iter.reference_trajectory_points(iVeh, k_exp + i_t, 1); expY(iVeh, iTrim) - iter.reference_trajectory_points(iVeh, k_exp + i_t, 2)]) - d_traveled_max))^2);
 
             end
 
             %             % vectorize the for-loop that calculates the cost-to-go (if
             %             needed)
-            %             distancesTraveledMax = cumsum(scenario.options.dt_seconds*iter.vRef(iVeh,k_exp+1:end));
+            %             distancesTraveledMax = cumsum(options.dt_seconds*iter.vRef(iVeh,k_exp+1:end));
             %             distancesXy = [expX(iVeh,iTrim);expY(iVeh,iTrim)] - [iter.reference_trajectory_points(iVeh,k_exp+1:end,1);iter.reference_trajectory_points(iVeh,k_exp+1:end,2)];
             %             straightLineDistances = sqrt(sum(distancesXy.^2,1));
             %             expH(iTrim) = sum((distancesTraveledMax-straightLineDistances).^2);
