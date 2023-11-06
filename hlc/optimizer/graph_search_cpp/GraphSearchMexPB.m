@@ -26,7 +26,7 @@ classdef GraphSearchMexPB < OptimizerInterface
 
         end
 
-        function info_v = run_optimizer(obj, iter, veh_index)
+        function info_v = run_optimizer(obj, veh_index, iter, scenario, mpa, options)
             graph_search_data = GraphSearchData(iter, obj.scenario, veh_index);
             info_v = ControlResultsInfo(iter.amount, obj.scenario.options.Hp, iter.vehicle_ids);
             [next_nodes, info_v.predicted_trims, info_v.y_predicted, info_v.shapes, info_v.n_expanded, info_v.is_exhausted] = obj.do_graph_search(graph_search_data);

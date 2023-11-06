@@ -6,7 +6,7 @@ classdef GraphSearch < OptimizerInterface
             obj = obj@OptimizerInterface(scenario, mpa);
         end
 
-        function info_v = run_optimizer(obj, iter, ~)
+        function info_v = run_optimizer(obj, ~, iter, scenario, mpa, options)
             % execute sub controller for 1-veh scenario
             info_v = obj.do_graph_search(iter);
         end
