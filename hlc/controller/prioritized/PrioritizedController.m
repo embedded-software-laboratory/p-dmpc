@@ -741,7 +741,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function plan_for_fallback(obj)
             % planning by using last priority and trajectories directly
 
-            tick_per_step = obj.scenario.options.tick_per_step + 1;
+            tick_per_step = obj.options.tick_per_step + 1;
 
             for vehicle_idx = obj.plant.indices_in_vehicle_list
 
@@ -750,7 +750,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 end
 
                 % initialize
-                info_v = ControlResultsInfo(1, obj.scenario.options.Hp, obj.plant.all_vehicle_ids(vehicle_idx));
+                info_v = ControlResultsInfo(1, obj.options.Hp, obj.plant.all_vehicle_ids(vehicle_idx));
 
                 info_v.tree = obj.info_old.tree{vehicle_idx};
                 info_v.tree_path = del_first_rpt_last(obj.info_old.tree_path(vehicle_idx, :));
@@ -759,7 +759,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                 % predicted trajectory of the next time step
                 y_pred_v = obj.info_old.y_predicted{vehicle_idx};
-                y_pred_v = [y_pred_v(tick_per_step + 1:end, :); y_pred_v(tick_per_step * (obj.scenario.options.Hp - 1) + 1:end, :)];
+                y_pred_v = [y_pred_v(tick_per_step + 1:end, :); y_pred_v(tick_per_step * (obj.options.Hp - 1) + 1:end, :)];
                 info_v.y_predicted = {y_pred_v};
 
                 % prepare output data
@@ -768,7 +768,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 % data only need to be updated if isDealPredictionInconsistency
                 % is off, because only old reachable sets but no old predicted areas
                 % are used by controller
-                if obj.scenario.options.isDealPredictionInconsistency == false
+                if obj.options.isDealPredictionInconsistency == false
                     % send message
                     obj.predictions_communication{vehicle_idx}.send_message( ...
                         obj.k, ...
