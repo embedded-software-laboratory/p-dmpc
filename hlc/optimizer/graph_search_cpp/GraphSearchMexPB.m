@@ -11,7 +11,7 @@ classdef GraphSearchMexPB < OptimizerInterface
             % When using C++, you don't want to send the scenario over
             % and over again, so it is done in the init function
 
-            if ~scenario.options.mex_out_of_process_execution
+            if ~options.mex_out_of_process_execution
                 % if mex is not executed out of the Matlab process
                 graph_search_cpp_priority_mex(CppOptimizer.InitializeWithScenario, scenario, mpa);
                 return
