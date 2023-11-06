@@ -43,7 +43,7 @@ classdef CentralizedController < HighLevelController
             obj.info = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_ids);
 
             obj.timing_general.start('optimizer', obj.k);
-            info_v = obj.optimizer.run_optimizer(obj.plant.indices_in_vehicle_list, obj.iter, obj.scenario, obj.mpa, obj.options);
+            info_v = obj.optimizer.run_optimizer(obj.plant.indices_in_vehicle_list, obj.iter, obj.mpa, obj.options);
             obj.timing_general.stop('optimizer', obj.k);
 
             obj.timing_general.start('fallback', obj.k);

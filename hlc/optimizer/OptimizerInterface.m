@@ -15,7 +15,7 @@ classdef (Abstract) OptimizerInterface < handle
     end
 
     methods (Abstract)
-        info = run_optimizer(obj, veh_index, iter, scenario, mpa, options);
+        info = run_optimizer(obj, veh_index, iter, mpa, options);
     end
 
 end

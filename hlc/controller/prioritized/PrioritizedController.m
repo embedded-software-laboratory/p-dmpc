@@ -327,7 +327,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
             obj.timing_per_vehicle(vehicle_idx).start('optimizer', obj.k);
-            info_v = obj.optimizer.run_optimizer(vehicle_idx, iter_v, obj.scenario, obj.mpa, obj.options);
+            info_v = obj.optimizer.run_optimizer(vehicle_idx, iter_v, obj.mpa, obj.options);
             obj.timing_per_vehicle(vehicle_idx).stop('optimizer', obj.k);
 
             obj.timing_per_vehicle(vehicle_idx).start('fallback', obj.k);

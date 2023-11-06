@@ -8,7 +8,7 @@ classdef GraphSearchMexCentralized < OptimizerInterface
             graph_search_cpp_centralized_mex(CppOptimizer.InitializeMex, options, mpa, scenario);
         end
 
-        function info_v = run_optimizer(obj, veh_index, iter, scenario, mpa, options)
+        function info_v = run_optimizer(obj, ~, iter, ~, options)
             % graph_search_data = GraphSearchData(iter, options.Hp);
             info_v = ControlResultsInfo(iter.amount, options.Hp, iter.vehicle_ids);
 
