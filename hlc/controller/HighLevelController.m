@@ -514,7 +514,7 @@ classdef (Abstract) HighLevelController < handle
             obj.vehs_stop_duration(~is_vehicle_stopped) = 0;
 
             % check for deadlock
-            threshold_stop_steps = 3 * obj.scenario.options.Hp;
+            threshold_stop_steps = 3 * obj.options.Hp;
             is_vehicle_deadlocked = (obj.vehs_stop_duration > threshold_stop_steps);
 
             % TODO n_coupled_deadlocked_vehicles
@@ -527,7 +527,7 @@ classdef (Abstract) HighLevelController < handle
 
             % update total number of steps and total runtime
             obj.result.nSteps = obj.k;
-            obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
+            obj.result.t_total = obj.k * obj.options.dt_seconds;
 
             % store iteration data
             obj.result.obstacles = obj.iter.obstacles;
