@@ -6,7 +6,7 @@ classdef Coupler < handle
     end
 
     properties (Constant, Access = private)
-        intersection_distance_threshold = 1.2; % vehicles are considered as at the intersecrion if their distances to the center point of intersection is smaller than this value
+        intersection_distance_threshold = 1.2; % vehicles are considered as at the intersection if their distances to the center point of intersection is smaller than this value
     end
 
     methods
@@ -28,7 +28,7 @@ classdef Coupler < handle
             coupling_info = cell(amount, amount);
 
             obj.previous_intersection_ids = obj.intersection_ids;
-            [obj.intersection_ids, ~] = vehicles_at_intersection(time_step, scenario, iter, obj.intersection_ids, [], obj.intersection_distance_threshold);
+            [obj.intersection_ids, ~] = vehicles_at_intersection(time_step, obj.intersection_ids, [], obj.intersection_distance_threshold, iter.x0, scenario.intersection_center, scenario.options.amount);
 
             for veh_i = 1:(amount - 1)
 
