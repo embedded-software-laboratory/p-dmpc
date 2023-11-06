@@ -478,7 +478,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             % initialize the returned variable with dimension 0 that it does
             % not extend the list of dynamic_obstacle_area
-            dynamic_obstacle_area = cell(0, obj.scenario.options.Hp);
+            dynamic_obstacle_area = cell(0, obj.options.Hp);
 
             if obj.k <= 1
                 return
@@ -522,7 +522,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             is_fallback_triggered = false;
 
             % preallocate cell array entries
-            dynamic_obstacle_area = cell(length(all_coupled_vehs_with_HP), obj.scenario.options.Hp);
+            dynamic_obstacle_area = cell(length(all_coupled_vehs_with_HP), obj.options.Hp);
 
             grp_idx = arrayfun(@(array) ismember(vehicle_idx, array.vertices), obj.iter.parl_groups_info);
             all_vehs_same_grp = obj.iter.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
@@ -608,13 +608,13 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             % preallocate cell array entries
             obstacles = cell(length(all_coupling_vehs_without_ROW), 1);
-            dynamic_obstacle_area = cell(length(all_coupling_vehs_without_ROW), obj.scenario.options.Hp);
+            dynamic_obstacle_area = cell(length(all_coupling_vehs_without_ROW), obj.options.Hp);
 
             for i_LP = 1:length(all_coupling_vehs_without_ROW)
                 veh_without_ROW = all_coupling_vehs_without_ROW(i_LP);
 
                 % strategies to let vehicle with the right-of-way consider vehicle without the right-of-way
-                switch obj.scenario.options.strategy_consider_veh_without_ROW
+                switch obj.options.strategy_consider_veh_without_ROW
                     case '1'
                         % do not consider
 
@@ -632,8 +632,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         % front to move forward.
 
                         if ( ...
-                                obj.scenario.options.scenario_type ~= ScenarioType.circle && ...
-                                obj.scenario.options.priority == PriorityStrategies.STAC_priority && ...
+                                obj.options.scenario_type ~= ScenarioType.circle && ...
+                                obj.options.priority == PriorityStrategies.STAC_priority && ...
                                 obj.iter.directed_coupling_reduced(vehicle_idx, veh_without_ROW) == 1 && ...
                                 obj.iter.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side && ...
                                 obj.iter.coupling_info{vehicle_idx, veh_without_ROW}.lanelet_relationship == LaneletRelationshipType.crossing ...
