@@ -23,7 +23,7 @@ function plot_runtime_for_step(results, k)
     end
 
     % Configure the colors that shall be used (in this order)
-    colors = ["#0072BD", "#D95319", "#EDB120", "#7E2F8E", "#77AC30", "#4DBEEE", "#A2142F"];
+    figHandle = figure();
 
     for field_i = 1:length(field_names)
         field_name = field_names(field_i);
@@ -35,7 +35,8 @@ function plot_runtime_for_step(results, k)
             time_to_draw(:, veh_i) = [t_start, t_start + duration];
         end
 
-        plt(:, field_i) = plot(time_to_draw, [1:options.amount; 1:options.amount], 'Color', colors(field_i), 'LineWidth', 5);
+        plt(:, field_i) = plot(time_to_draw, [1:options.amount; 1:options.amount], 'SeriesIndex', field_i, ...
+            'LineWidth', 5, 'Tag', 'box_as_line');
         hold on;
     end
 
@@ -43,6 +44,8 @@ function plot_runtime_for_step(results, k)
     xlabel('Time [ms]');
     ylabel('Vehicle');
     yticks(1:options.amount);
-    ylim([1 - 0.2, options.amount + 0.2])
+    ylim([1 - 0.2, options.amount + 0.2]);
+
+    set_figure_properties(figHandle, ExportFigConfig.document());
 
 end
