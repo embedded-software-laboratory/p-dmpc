@@ -11,7 +11,7 @@ classdef ConstantWeigher < Weigher
         function obj = ConstantWeigher()
         end
 
-        function [weighted_coupling] = weigh(obj, ~, ~, ~, iter)
+        function [weighted_coupling] = weigh(obj, iter, ~, ~, ~)
             weighted_coupling = iter.directed_coupling * obj.constant_weight;
         end
 

@@ -9,15 +9,13 @@ classdef DistanceWeigher < Weigher
         function obj = DistanceWeigher()
         end
 
-        function [weighted_coupling] = weigh(~, ~, scenario, mpa, iter)
+        function [weighted_coupling] = weigh(~, iter, ~, options, max_mpa_speed)
             weighted_coupling = iter.directed_coupling;
 
             [row, col] = find(iter.directed_coupling);
             n_couplings = length(row);
 
-            max_distance = 2 * mpa.get_max_speed_of_mpa() ...
-                * scenario.options.dt_seconds ...
-                * scenario.options.Hp;
+            max_distance = 2 * max_mpa_speed * options.dt_seconds * options.Hp;
 
             i_x = indices().x;
             i_y = indices().y;

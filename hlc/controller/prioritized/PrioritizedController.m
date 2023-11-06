@@ -403,7 +403,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         function reduce_computation_levels(obj)
             % weigh
-            obj.iter.weighted_coupling = obj.weigher.weigh(obj.k, obj.scenario, obj.mpa, obj.iter);
+            obj.iter.weighted_coupling = obj.weigher.weigh(obj.iter, obj.k, obj.options, obj.mpa.get_max_speed_of_mpa());
 
             % reduce by replacing with lanelet crossing area obstacles
             obj.iter.directed_coupling_reduced = obj.iter.directed_coupling;
