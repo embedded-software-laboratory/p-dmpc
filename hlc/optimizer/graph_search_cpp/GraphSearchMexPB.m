@@ -6,19 +6,22 @@ classdef GraphSearchMexPB < OptimizerInterface
 
     methods
 
-        function obj = GraphSearchMexPB(options, scenario, mpa, veh_indices)
+        function obj = GraphSearchMexPB(options, scenario, mpa, vehicle_indices)
             obj = obj@OptimizerInterface(scenario, mpa);
             % When using C++, you don't want to send the scenario over
             % and over again, so it is done in the init function
-            if scenario.options.mex_out_of_process_execution
-                % create mexhost for each vehicle (only if incremental search is used - no option in config yet)
-                for i_veh = 1:length(veh_indices)
-                    obj.mexhosts(veh_indices(i_veh)) = mexhost;
-                    feval(obj.mexhosts(veh_indices(i_veh)), 'graph_search_cpp_priority_mex', CppOptimizer.InitializeWithScenario, scenario, mpa);
-                end
 
-            else
+            if ~scenario.options.mex_out_of_process_execution
+                % if mex is not executed out of the Matlab process
                 graph_search_cpp_priority_mex(CppOptimizer.InitializeWithScenario, scenario, mpa);
+                return
+            end
+
+            for vehicle_index = vehicle_indices
+                % create mexhost for each vehicle (only if incremental search is used - no option in config yet)
+                obj.mexhosts(vehicle_index) = mexhost;
+                % initialize C++ graph search
+                feval(obj.mexhosts(vehicle_index), 'graph_search_cpp_priority_mex', CppOptimizer.InitializeWithScenario, scenario, mpa);
             end
 
         end
