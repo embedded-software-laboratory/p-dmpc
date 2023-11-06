@@ -44,9 +44,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             % construct optimizer
             if obj.options.use_cpp()
-                obj.optimizer = GraphSearchMexPB(obj.scenario, obj.mpa, obj.plant.indices_in_vehicle_list);
+                obj.optimizer = GraphSearchMexPB(obj.options, obj.scenario, obj.mpa, obj.plant.indices_in_vehicle_list);
             else
-                obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
+                obj.optimizer = GraphSearch(obj.options, obj.scenario, obj.mpa);
             end
 
             % in priority-based computation, vehicles communicate via ROS 2

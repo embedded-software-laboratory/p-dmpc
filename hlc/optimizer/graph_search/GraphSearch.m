@@ -2,7 +2,7 @@ classdef GraphSearch < OptimizerInterface
 
     methods
 
-        function obj = GraphSearch(scenario, mpa)
+        function obj = GraphSearch(~, scenario, mpa)
             obj = obj@OptimizerInterface(scenario, mpa);
         end
 
