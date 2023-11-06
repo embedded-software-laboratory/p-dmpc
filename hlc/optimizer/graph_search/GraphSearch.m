@@ -46,7 +46,7 @@ classdef GraphSearch < OptimizerInterface
                 % 2. InterX: works for both convex and non-convex polygons
                 method = 'InterX';
                 % if 'InterX' is used, all obstacles can be vectorized to speed up the collision checking
-                [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter, scenario);
+                [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter, options.Hp);
             else
                 method = 'sat';
                 % vectorization is currently not supported for 'sat'
