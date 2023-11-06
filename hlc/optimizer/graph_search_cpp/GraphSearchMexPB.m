@@ -29,7 +29,7 @@ classdef GraphSearchMexPB < OptimizerInterface
         function info_v = run_optimizer(obj, veh_index, iter, scenario, mpa, options)
             graph_search_data = GraphSearchData(iter, obj.scenario, veh_index);
             info_v = ControlResultsInfo(iter.amount, obj.scenario.options.Hp, iter.vehicle_ids);
-            [next_nodes, info_v.predicted_trims, info_v.y_predicted, info_v.shapes, info_v.n_expanded, info_v.is_exhausted] = obj.do_graph_search(graph_search_data);
+            [next_nodes, info_v.predicted_trims, info_v.y_predicted, info_v.shapes, info_v.n_expanded, info_v.is_exhausted] = obj.do_graph_search(graph_search_data, options);
             info_v.tree = obj.create_tree(iter);
             info_v.tree_path = 1:(obj.scenario.options.Hp + 1);
 
@@ -54,7 +54,7 @@ classdef GraphSearchMexPB < OptimizerInterface
             tree = Tree(x, y, yaw, trim, k, g, h);
         end
 
-        function [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = do_graph_search(obj, graph_search_data)
+        function [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = do_graph_search(obj, graph_search_data, options)
 
             if obj.scenario.options.mex_out_of_process_execution
                 [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...

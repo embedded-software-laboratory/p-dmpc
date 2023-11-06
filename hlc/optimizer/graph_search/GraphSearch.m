@@ -8,14 +8,14 @@ classdef GraphSearch < OptimizerInterface
 
         function info_v = run_optimizer(obj, ~, iter, scenario, mpa, options)
             % execute sub controller for 1-veh scenario
-            info_v = obj.do_graph_search(iter);
+            info_v = obj.do_graph_search(iter, scenario, mpa, options);
         end
 
     end
 
     methods (Access = private)
 
-        function info = do_graph_search(obj, iter)
+        function info = do_graph_search(obj, iter, scenario, mpa, options)
             % GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
             %
             % OUTPUT:
