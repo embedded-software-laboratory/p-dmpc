@@ -38,23 +38,9 @@ function collision = collision_with(iter, index, shapes, shapes_for_lanelet_chec
 
     end
 
-    if ~isempty(iter.vehicle_to_lanelet)
-        lane_idx = nonzeros(iter.vehicle_to_lanelet(index, :))';
+    if ~isempty(iter.predicted_lanelet_boundary(index, :))
 
-        for i = lane_idx
-            %if intersect_lanelets(shapes{index},scenario.lanelet_boundary{i})
-            if intersect_lanelets(shapes{index}, scenario.lanelets{i})
-                collision = true;
-                return;
-            end
-
-        end
-
-    end
-
-    if ~isempty(iter.predicted_lanelet_boundary(index, :)) % TODO use iter.lanelet_boundary
-
-        if intersect_lanelet_boundary(shapes_for_lanelet_check{index}, iter.predicted_lanelet_boundary(index, :)) % TODO use iter.lanelet_boundary
+        if intersect_lanelet_boundary(shapes_for_lanelet_check{index}, iter.predicted_lanelet_boundary(index, :))
             collision = true;
             return;
         end
