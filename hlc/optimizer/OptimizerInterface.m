@@ -1,15 +1,11 @@
 classdef (Abstract) OptimizerInterface < handle
 
     properties (Access = protected)
-        scenario;
-        mpa;
     end
 
     methods
 
-        function obj = OptimizerInterface(scenario, mpa)
-            obj.scenario = scenario;
-            obj.mpa = mpa;
+        function obj = OptimizerInterface()
         end
 
     end

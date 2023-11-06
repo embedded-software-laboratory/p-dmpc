@@ -2,8 +2,8 @@ classdef GraphSearch < OptimizerInterface
 
     methods
 
-        function obj = GraphSearch(~, scenario, mpa)
-            obj = obj@OptimizerInterface(scenario, mpa);
+        function obj = GraphSearch()
+            obj = obj@OptimizerInterface();
         end
 
         function info_v = run_optimizer(obj, ~, iter, mpa, options)

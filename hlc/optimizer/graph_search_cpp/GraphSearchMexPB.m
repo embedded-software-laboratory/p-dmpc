@@ -6,8 +6,8 @@ classdef GraphSearchMexPB < OptimizerInterface
 
     methods
 
-        function obj = GraphSearchMexPB(options, scenario, mpa, vehicle_indices)
-            obj = obj@OptimizerInterface(scenario, mpa);
+        function obj = GraphSearchMexPB(options, mpa, scenario, vehicle_indices)
+            obj = obj@OptimizerInterface();
             % When using C++, you don't want to send the scenario over
             % and over again, so it is done in the init function
 
