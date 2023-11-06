@@ -696,7 +696,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 % own vehicle and vehicles that are already remembered to take fallback
                 irrelevant_vehicles = union(vehicle_index_hlc, obj.info.vehs_fallback);
 
-                if obj.scenario.options.fallback_type == FallbackType.local_fallback
+                if obj.options.fallback_type == FallbackType.local_fallback
                     belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
                     sub_graph_fallback = belonging_vector_total(vehicle_index_hlc);
                     % vehicles in the subgraph to check for fallback
@@ -717,7 +717,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                 else
                     % vehicles in the total graph to check for fallback
-                    other_vehicles = 1:obj.scenario.options.amount;
+                    other_vehicles = 1:obj.options.amount;
                     % remove irrelevant vehicles which have not to be checked for fallback
                     other_vehicles = setdiff(other_vehicles, irrelevant_vehicles);
 
