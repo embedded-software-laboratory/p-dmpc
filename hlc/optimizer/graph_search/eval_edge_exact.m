@@ -74,7 +74,7 @@ function [is_valid, shapes] = eval_edge_exact(iter, scenario, mpa, tree, iNode, 
             case 'sat'
                 % check if collides with other vehicles' predicted trajectory or lanelets
 
-                if collision_with(iter, iVeh, shapes, shapes_for_boundary_check, scenario, iStep)
+                if collision_with(iter, iVeh, shapes, shapes_for_boundary_check, iStep)
                     is_valid = false;
                     return;
                 end
