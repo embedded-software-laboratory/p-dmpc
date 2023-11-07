@@ -28,7 +28,6 @@ function scenario = lanelet2_scenario(amount, path_ids, scenario_type, plant)
         road_data = RoadDataLanelet2(false).get_road_data();
     end
 
-    assignin('base', 'road_data_lab_default_scenario', road_data);
     scenario.lanelets = road_data.lanelets;
     scenario.intersection_lanelets = road_data.intersection_lanelets;
     scenario.lanelet_boundary = road_data.lanelet_boundary;

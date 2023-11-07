@@ -5,7 +5,6 @@ function scenario = commonroad(amount, path_ids)
 
     % get road data
     road_data = RoadDataCommonRoad().get_road_data();
-    assignin('base', 'road_data', road_data);
     scenario.lanelets = road_data.lanelets;
     scenario.intersection_lanelets = road_data.intersection_lanelets;
     scenario.lanelet_boundary = road_data.lanelet_boundary;
