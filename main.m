@@ -24,12 +24,10 @@ function [result, scenario] = main(varargin)
 
         end
 
-        plant = PlantFactory.get_experiment_interface(options.environment);
         % create scenario
         scenario = create_scenario(options);
     else
         options = scenario.options;
-        plant = PlantFactory.get_experiment_interface(options.environment);
     end
 
     % inform where experiment takes place
@@ -51,6 +49,8 @@ function [result, scenario] = main(varargin)
 
         delete_ros2_msgs();
     else
+        % get plant from options
+        plant = PlantFactory.get_experiment_interface(options.environment);
 
         % set active vehicle IDs and possibly initialize communication
         plant.setup(options, scenario, options.path_ids);
