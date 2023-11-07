@@ -1,5 +1,7 @@
 function plot_runtime_for_step(results, k)
     %% PLOT_RUNTIME_FOR_STEP plots the timing of the specified timestep where t=0 is the start of the first hlc_init measurement
+    %%      IMPORTANT: This function expects a result as input in which the controller_start_times were normalized before
+    %%                 by normalize_timing_results
 
     arguments
         results (1, :) cell; % cell array with the result structs of all vehicles
@@ -46,7 +48,7 @@ function plot_runtime_for_step(results, k)
             disp(timings)
             t_start = timings.(field_name)(1, 1, k) - t0; % Normalize (see above)
             duration = timings.(field_name)(2, 1, k);
-            time_to_draw(:, veh_i) = [t_start, t_start + duration];
+            time_to_draw(:, veh_i) = [t_start, t_start + duration] * 10^3; % Scale to ms
         end
 
         plt(:, field_i) = plot(time_to_draw, [1:options.amount; 1:options.amount], 'SeriesIndex', field_i, ...
