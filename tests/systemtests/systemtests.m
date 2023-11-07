@@ -145,6 +145,47 @@ classdef systemtests < matlab.unittest.TestCase
             close all;
         end
 
+        function test_plot_timing_result(testCase)
+            lastwarn('');
+            fprintf('\nTest plotting of timing results. Note: No experiment is run here but instead only old results are reused.\n')
+            %load Config from json as done in priority_based and load specific result structs of already performed experiments
+            rawJson = fileread('tests/systemtests/Config_systemtests.json');
+            options = Config();
+            options = options.importFromJson(rawJson);
+            options.scenario_type = ScenarioType.circle;
+            options.is_prioritized = true;
+            options.priority = PriorityStrategies.constant_priority;
+            options.cpp_optimizer = CppOptimizer.None;
+            options.compute_in_parallel = true;
+            % Needs to be added because this is generated in the main (that is not executed here)
+            options.path_ids = 1:options.amount;
+            options.max_num_CLs = 2;
+
+            % Load old results created in priority_based
+            result_veh1 = load(FileNameConstructor.get_results_full_path(options, 1));
+            result_veh2 = load(FileNameConstructor.get_results_full_path(options, 2));
+
+            % Test plotting of runtime over multiple experiments
+            results_multiple_experiments = cell(2);
+            results_multiple_experiments{1, 1} = result_veh2.result; % use result of vehicle 2 also as if it was the result in an experiment with only one vehicle
+            results_multiple_experiments{2, 1} = result_veh1.result;
+            results_multiple_experiments{2, 2} = result_veh2.result;
+
+            plot_runtime_multiple_experiments(results_multiple_experiments);
+            testCase.verifyTrue(true);
+
+            % Test plotting of runtime of one timestep within one experiment
+            result_one_experiment = cell(1, 2);
+            result_one_experiment{1, 1} = result_veh1.result;
+            result_one_experiment{1, 2} = result_veh2.result;
+
+            plot_runtime_for_step(result_one_experiment, 5);
+            testCase.verifyTrue(true);
+
+            close all;
+
+        end
+
     end
 
 end
