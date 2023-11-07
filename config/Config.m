@@ -45,7 +45,7 @@ classdef Config
         is_save_mpa = true; % true/false, the offline computed MPA will be saved if true
         is_load_mpa = true; % true/false, the offline computed MPA  will be load if exists
 
-        options_plot_online = OptionsPlotOnline(); % setup for online plotting
+        options_plot_online OptionsPlotOnline = OptionsPlotOnline(); % setup for online plotting
         is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
 
         is_force_parallel_vehs_in_same_grp = true; % true/false, if true, vehicles move in parallel will be forced in the same group
