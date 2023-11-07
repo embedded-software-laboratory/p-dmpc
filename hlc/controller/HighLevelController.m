@@ -74,7 +74,7 @@ classdef (Abstract) HighLevelController < handle
 
         end
 
-        function [result, scenario] = run(obj)
+        function result = run(obj)
             % run the controller
 
             % object that executes the specified function on destruction
@@ -95,7 +95,6 @@ classdef (Abstract) HighLevelController < handle
 
             % specify returned variables
             result = obj.result;
-            scenario = obj.scenario;
         end
 
     end

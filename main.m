@@ -71,7 +71,7 @@ function [result, scenario] = main(options)
                 dry_run = (options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
                 % have the plant only control its own vehicle by calling setup a second time
                 hlc = hlc_factory.get_hlc(options, scenario, plant, plant.controlled_vehicle_ids, dry_run);
-                [result, scenario] = hlc.run();
+                result = hlc.run();
             end
 
             if do_plot
@@ -79,13 +79,12 @@ function [result, scenario] = main(options)
             end
 
             result = {result{:}};
-            scenario = {scenario{:}};
         else
 
             hlc_factory = HLCFactory();
             dry_run = (options.environment == Environment.CpmLab); % TODO: dry run also for unified lab api?
             hlc = hlc_factory.get_hlc(options, scenario, plant, plant.controlled_vehicle_ids, dry_run);
-            [result, scenario] = hlc.run();
+            result = hlc.run();
         end
 
     end
