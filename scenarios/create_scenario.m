@@ -6,7 +6,7 @@ function scenario = create_scenario(options)
         case ScenarioType.circle
             scenario = circle_scenario(options.amount);
         case ScenarioType.commonroad
-            scenario = commonroad(options.amount, options.path_ids);
+            scenario = commonroad_scenario(options.amount, options.path_ids);
         case ScenarioType.lanelet2
             scenario = lanelet2_scenario(options.amount, options.path_ids, options.scenario_type);
         case ScenarioType.lab_default
