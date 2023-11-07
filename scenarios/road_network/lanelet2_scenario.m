@@ -48,11 +48,8 @@ function scenario = lanelet2_scenario(amount, path_ids, scenario_type)
         reference_path_loop = reference_path_loops{1};
         start_idx = mod(path_ids(iveh) * 2 - 1, width(reference_path_loop));
 
-        if start_idx == 1
-            lanelets_index = reference_path_loop;
-        else
-            lanelets_index = [reference_path_loop(start_idx:end), reference_path_loop(1:start_idx - 1)];
-        end
+        % shift reference_path_loop depending on start_idx
+        lanelets_index = [reference_path_loop(start_idx:end), reference_path_loop(1:start_idx - 1)];
 
         reference_path_struct = generate_reference_path_loop(path_ids(iveh), scenario.lanelets, lanelets_index);
         veh.lanelets_index = reference_path_struct.lanelets_index;
