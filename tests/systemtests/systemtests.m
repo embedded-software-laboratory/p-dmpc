@@ -178,8 +178,9 @@ classdef systemtests < matlab.unittest.TestCase
             result_one_experiment = cell(1, 2);
             result_one_experiment{1, 1} = result_veh1.result;
             result_one_experiment{1, 2} = result_veh2.result;
+            result_one_experiment_normalized = normalize_timing_results(result_one_experiment);
 
-            plot_runtime_for_step(result_one_experiment, 5);
+            plot_runtime_for_step(result_one_experiment_normalized, 5);
             testCase.verifyTrue(true);
 
             close all;
