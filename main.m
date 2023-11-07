@@ -1,17 +1,12 @@
-function [result, scenario] = main(varargin)
-    % MAIN  main function for graph-based receeding horizon control
+function [result, scenario] = main(options)
+    % MAIN  main function for graph-based receding horizon control
+
+    arguments
+        options (1, 1) Config = start_options();
+    end
 
     if verLessThan('matlab', '9.12')
         warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
-    end
-
-    % check if Config object is given as input
-    options = read_object_from_input(varargin, 'Config');
-
-    % If options are not given, determine from UI
-
-    if isempty(options)
-        options = start_options();
     end
 
     % create scenario
