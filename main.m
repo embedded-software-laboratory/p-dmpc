@@ -7,28 +7,15 @@ function [result, scenario] = main(varargin)
 
     % check if Config object is given as input
     options = read_object_from_input(varargin, 'Config');
-    % check if Scenario object is given as input
-    scenario = read_object_from_input(varargin, 'Scenario');
 
-    % If scenario/options are not given, determine from UI
-    if isempty(scenario)
+    % If options are not given, determine from UI
 
-        if isempty(options)
-
-            try
-                options = start_options();
-            catch ME
-                warning(ME.message);
-                return
-            end
-
-        end
-
-        % create scenario
-        scenario = create_scenario(options);
-    else
-        options = scenario.options;
+    if isempty(options)
+        options = start_options();
     end
+
+    % create scenario
+    scenario = create_scenario(options);
 
     % inform where experiment takes place
     if options.environment == Environment.Simulation || options.environment == Environment.SimulationDistributed
