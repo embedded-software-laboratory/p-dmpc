@@ -2,7 +2,9 @@ classdef ConstantPrioritizer < Prioritizer
     % constant_priority  Instance of interface_priority used for priority
     % assignment, fixed priority according to vehicle ids
 
-    properties (Access = private)
+    properties (GetAccess = public, SetAccess = private)
+        all_priorities % n_vehicles x n_unique_priority_permutations
+        n_priorities
     end
 
     methods
@@ -10,7 +12,7 @@ classdef ConstantPrioritizer < Prioritizer
         function obj = ConstantPrioritizer()
         end
 
-        function [directed_coupling] = prioritize(~, iter, ~, ~, ~)
+        function [directed_coupling] = prioritize(obj, iter, ~, ~, ~)
             adjacency = iter.adjacency;
 
             directed_coupling = adjacency;
@@ -21,8 +23,7 @@ classdef ConstantPrioritizer < Prioritizer
                 current_priorities = 1:nVeh;
             else
                 % specific permutation
-                all_priorities = perms(1:nVeh);
-                current_priorities = all_priorities(iter.priority_permutation, :);
+                current_priorities = obj.all_priorities(:, iter.priority_permutation);
             end
 
             for iVeh = 1:nVeh
@@ -36,6 +37,40 @@ classdef ConstantPrioritizer < Prioritizer
                 end
 
             end
+
+        end
+
+        function compute_unique_priorities(obj, adjacency)
+            obj.all_priorities = obj.unique_priorities(adjacency);
+            obj.n_priorities = size(obj.all_priorities, 2);
+        end
+
+        function priorities = unique_priorities(~, adjacency)
+            n_vehicles = size(adjacency, 1);
+            priorities = zeros(n_vehicles, factorial(n_vehicles));
+            directed_coupling_base = triu(adjacency, 1);
+            dag_coupling_base = digraph(directed_coupling_base);
+            n_edges = numedges(dag_coupling_base);
+            n_permutations = 2^n_edges;
+            i_priority = 1;
+
+            for i_permutation = 1:n_permutations
+                dag_coupling = dag_coupling_base;
+                flips = dec2bin(i_permutation - 1, n_edges) == '1';
+
+                for i_flip = find(flips)
+                    dag_coupling = flipedge(dag_coupling, i_flip);
+                end
+
+                if isdag(dag_coupling)
+                    priorities(:, i_priority) = toposort(dag_coupling);
+                    i_priority = i_priority + 1;
+                end
+
+            end
+
+            % Remove zero columns
+            priorities(:, all(~priorities, 1)) = [];
 
         end
 

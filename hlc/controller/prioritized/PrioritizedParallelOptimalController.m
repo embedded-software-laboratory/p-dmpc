@@ -29,13 +29,14 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
             % set base iteration data
             obj.iter_base = obj.iter;
 
-            % initalize
+            % initialize
             obj.iter_array_tmp = {};
             obj.info_array_tmp = {};
+            obj.prioritizer.compute_unique_priorities(obj.iter.adjacency);
 
             vehicle_idx = obj.plant.indices_in_vehicle_list(1);
 
-            for priority_permutation = 1:factorial(obj.options.amount)
+            for priority_permutation = 1:obj.prioritizer.n_priorities
 
                 obj.iter = obj.iter_base;
                 obj.info = obj.info_base;
