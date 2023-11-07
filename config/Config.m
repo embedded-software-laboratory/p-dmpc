@@ -161,6 +161,15 @@ classdef Config
                 )
             end
 
+            % set dry run flag
+            if ( ...
+                    obj.environment == Environment.CpmLab || ...
+                    obj.environment == Environment.UnifiedLabApi || ...
+                    obj.environment == Environment.SimulationDistributed ...
+                )
+                obj.is_dry_run = true;
+            end
+
             % if prioritized controller runs sequentially with more than 1 vehicle
             % activate out of process execution for mex function
             if obj.amount > 1 && obj.is_prioritized && ~obj.compute_in_parallel
