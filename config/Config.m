@@ -31,9 +31,6 @@ classdef Config
 
         is_free_flow = false; % true/false, if true, vehicles do not need to consider other vehicles.
         fallback_type FallbackType = FallbackType.local_fallback; % one of the following {'no', 'local', 'global'},
-        % 'no' for disable fallback;
-        % 'global' means once a vehicle triggers fallback, all other vehicles must also take fallback.
-        % 'local' means once a vehicle triggers fallback, only vehicles that have direct or undirected couplings with it will take fallabck.
 
         path_ids = []; % reference path IDs for selection of paths for the vehicles
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
