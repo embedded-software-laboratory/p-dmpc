@@ -17,9 +17,6 @@ classdef Scenario
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
     end
 
-    properties (Dependent)
-    end
-
     methods
 
         function obj = Scenario()
