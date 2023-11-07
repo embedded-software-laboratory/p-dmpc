@@ -1,4 +1,4 @@
-function scenario = create_scenario(options, plant)
+function scenario = create_scenario(options)
     %create scenario from options
 
     %% Setup Scenario
@@ -8,9 +8,9 @@ function scenario = create_scenario(options, plant)
         case ScenarioType.commonroad
             scenario = commonroad(options.amount, options.path_ids);
         case ScenarioType.lanelet2
-            scenario = lanelet2_scenario(options.amount, options.path_ids, options.scenario_type, plant);
+            scenario = lanelet2_scenario(options.amount, options.path_ids, options.scenario_type);
         case ScenarioType.lab_default
-            scenario = lanelet2_scenario(options.amount, options.path_ids, options.scenario_type, plant);
+            scenario = lanelet2_scenario(options.amount, options.path_ids, options.scenario_type);
     end
 
     % assign options to scenario object

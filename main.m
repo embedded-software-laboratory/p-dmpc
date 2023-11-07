@@ -26,7 +26,7 @@ function [result, scenario] = main(varargin)
 
         plant = PlantFactory.get_experiment_interface(options.environment);
         % create scenario
-        scenario = create_scenario(options, plant);
+        scenario = create_scenario(options);
     else
         options = scenario.options;
         plant = PlantFactory.get_experiment_interface(options.environment);

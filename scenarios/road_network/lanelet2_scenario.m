@@ -1,14 +1,16 @@
-function scenario = lanelet2_scenario(amount, path_ids, scenario_type, plant)
-    % Commonroad_Scenario
+function scenario = lanelet2_scenario(amount, path_ids, scenario_type)
+    % Lanelet2_Scenario
 
     scenario = Scenario();
 
     % get road data
     if scenario_type == ScenarioType.lab_default
+        disp('Retrieve map from lab via unified lab API later.')
+        return
+
+        %{
         % ULA is required for that.
         assert(isa(plant, "UnifiedLabApi"));
-
-        disp('Retrieve map from lab via unified lab API.')
 
         % Receive map via ULA interface
         map_as_string = plant.receive_map();
@@ -19,14 +21,12 @@ function scenario = lanelet2_scenario(amount, path_ids, scenario_type, plant)
 
         % Retrieve road data
         road_data = RoadDataLanelet2(false).get_road_data(tmp_file_name, tempdir);
-    else
-        assert(scenario_type == ScenarioType.lanelet2);
+        %}
 
-        disp('Create Lanelet2 scenario.')
-
-        % Get road data from default location
-        road_data = RoadDataLanelet2(false).get_road_data();
     end
+
+    % Get road data from default location
+    road_data = RoadDataLanelet2(false).get_road_data();
 
     scenario.lanelets = road_data.lanelets;
     scenario.intersection_lanelets = road_data.intersection_lanelets;
