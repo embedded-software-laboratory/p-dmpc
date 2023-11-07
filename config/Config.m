@@ -60,7 +60,6 @@ classdef Config
     properties (Dependent, GetAccess = public, SetAccess = private)
         tick_per_step % number of data points per step
         k_end % total number of steps
-        Hu % control horizon
     end
 
     methods
@@ -73,10 +72,6 @@ classdef Config
             result = floor(obj.T_end / obj.dt_seconds);
         end
 
-        function result = get.Hu(obj)
-            result = obj.Hp;
-        end
-
         % empty set methods used by jsondecode
         % dependent properties with public GetAccess are encoded to a json file
         % to automatically decode the json file set methods must be defined
@@ -85,9 +80,6 @@ classdef Config
         end
 
         function obj = set.k_end(obj, ~)
-        end
-
-        function obj = set.Hu(obj, ~)
         end
 
     end
