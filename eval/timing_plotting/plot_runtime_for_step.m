@@ -31,7 +31,6 @@ function plot_runtime_for_step(results, k)
         t0 = min(t0, results{veh_i}.timings_general.hlc_step(1, 1, k));
     end
 
-    % Configure the colors that shall be used (in this order)
     figHandle = figure();
 
     for field_i = 1:length(field_names)
@@ -45,7 +44,6 @@ function plot_runtime_for_step(results, k)
                 timings = results{1, veh_i}.timings_general(1);
             end
 
-            disp(timings)
             t_start = timings.(field_name)(1, 1, k) - t0; % Normalize (see above)
             duration = timings.(field_name)(2, 1, k);
             time_to_draw(:, veh_i) = [t_start, t_start + duration] * 10^3; % Scale to ms
