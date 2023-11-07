@@ -65,12 +65,11 @@ classdef ConstantPrioritizer < Prioritizer
                 if isdag(dag_coupling)
                     priorities(:, i_priority) = toposort(dag_coupling);
                     i_priority = i_priority + 1;
+                else
+                    priorities(:, end) = [];
                 end
 
             end
-
-            % Remove zero columns
-            priorities(:, all(~priorities, 1)) = [];
 
         end
 
