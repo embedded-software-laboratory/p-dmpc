@@ -124,8 +124,8 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
 
             output_path = FileNameConstructor.get_results_full_path( ...
-                result.scenario.options, ...
-                config.amount ... %gen_scenario_name uses config.amount as default
+                result.options, ...
+                result.options.amount ... %gen_scenario_name uses config.amount as default
             );
             full_result = load(output_path);
 
