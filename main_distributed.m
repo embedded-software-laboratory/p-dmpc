@@ -13,7 +13,6 @@ function [result, scenario] = main_distributed(vehicle_id)
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
-    dry_run = (options.environment == Environment.CpmLab || options.environment == Environment.SimulationDistributed); % TODO: Use dry run also for unified lab api?
     plant = PlantFactory.get_experiment_interface(options.environment);
     % set active vehicle IDs and initialize communication
     plant.setup(options, scenario, options.path_ids, vehicle_id);
@@ -27,7 +26,7 @@ function [result, scenario] = main_distributed(vehicle_id)
     factory = HLCFactory();
 
     if options.is_prioritized == true
-        hlc = factory.get_hlc(options, scenario, plant, vehicle_id, dry_run);
+        hlc = factory.get_hlc(options, scenario, plant, vehicle_id, options.is_dry_run);
         result = hlc.run();
     else
         warning("Use main_distributed.m only for pb-scenarios.")
