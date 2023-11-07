@@ -1,4 +1,4 @@
-function plot_runtime_for_step(results, k)
+function plot_runtime_for_step(results, k, optional)
     %% PLOT_RUNTIME_FOR_STEP plots the timing of the specified timestep where t=0 is the start of the first hlc_init measurement
     %%      IMPORTANT: This function expects a result as input in which the controller_start_times were normalized before
     %%                 by normalize_timing_results
@@ -6,6 +6,7 @@ function plot_runtime_for_step(results, k)
     arguments
         results (1, :) cell; % cell array with the result structs of all vehicles
         k uint64;
+        optional.do_export (1, 1) logical = true;
     end
 
     % useful variable for shorter notations
@@ -61,5 +62,15 @@ function plot_runtime_for_step(results, k)
     ylim([1 - 0.2, options.amount + 0.2]);
 
     set_figure_properties(figHandle, ExportFigConfig.document());
+
+    % Export
+    if optional.do_export
+        folder_path = FileNameConstructor.gen_results_folder_path( ...
+            results{1, 1}.scenario.options ...
+        );
+        filename = strcat('runtime_step_', string(k), '.pdf');
+        export_fig(figHandle, fullfile(folder_path, filename));
+        close(figHandle);
+    end
 
 end

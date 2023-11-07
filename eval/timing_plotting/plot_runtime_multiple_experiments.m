@@ -1,9 +1,10 @@
-function plot_runtime_multiple_experiments(results)
+function plot_runtime_multiple_experiments(results, optional)
     %PLOT_RUNTIME_MULTIPLE_EXPERIMENTS draws median and max in a stacked bar plot for multiple experiments with different numbers of vehicles
     arguments
         % cell array with the result structs of all vehicles (columns= different results of vehicles, rows= different experiments)
         % the first row needs to contain one vehicle, the second two vehicles, ...
         results (:, :) cell;
+        optional.do_export (1, 1) logical = true;
     end
 
     n_experiments = size(results, 1);
@@ -25,8 +26,8 @@ function plot_runtime_multiple_experiments(results)
 
     end
 
-    times_to_plot(:, 1) = time_med;
-    times_to_plot(:, 2) = time_max - time_med;
+    times_to_plot(:, 1) = time_med * 10^3;
+    times_to_plot(:, 2) = (time_max - time_med) * 10^3;
 
     figHandle = figure();
     bar(times_to_plot, 'stacked');
@@ -35,5 +36,15 @@ function plot_runtime_multiple_experiments(results)
     legend(["Median", "Max"], 'Interpreter', 'none');
 
     set_figure_properties(figHandle, ExportFigConfig.document());
+
+    % Export
+    if optional.do_export
+        folder_path = FileNameConstructor.gen_results_folder_path( ...
+            results{1, 1}.scenario.options ...
+        );
+        filename = 'runtime_multiple_experiments.pdf';
+        export_fig(figHandle, fullfile(folder_path, filename));
+        close(figHandle);
+    end
 
 end
