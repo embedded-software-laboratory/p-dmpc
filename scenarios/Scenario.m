@@ -38,18 +38,19 @@ classdef Scenario
 
         end
 
-        function plot(obj, options)
+        function plot(obj, options, optional)
 
             arguments
                 obj (1, 1) Scenario;
-                options.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
+                options (1, 1) Config;
+                optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
             end
 
-            set(0, 'CurrentFigure', options.fig);
+            set(0, 'CurrentFigure', optional.fig);
             daspect([1 1 1]);
 
-            xlim(obj.options.plot_limits(1, :));
-            ylim(obj.options.plot_limits(2, :));
+            xlim(options.plot_limits(1, :));
+            ylim(options.plot_limits(2, :));
 
             colors = rwth_color_order();
 
@@ -63,7 +64,7 @@ classdef Scenario
                 );
 
                 % vehicle rectangle
-                veh.plot(colors(iVeh,:));
+                veh.plot(colors(iVeh, :));
             end
 
             % Obstacles
@@ -74,7 +75,7 @@ classdef Scenario
 
             % lanelets
             if ~isempty(obj.road_raw_data) && ~isempty(obj.road_raw_data.lanelet)
-                plot_lanelets(obj.road_raw_data.lanelet, obj.options.scenario_type);
+                plot_lanelets(obj.road_raw_data.lanelet, options.scenario_type);
             end
 
             xlabel('$x$ [m]')
