@@ -84,6 +84,24 @@ classdef Config
 
     end
 
+    methods (Static)
+
+        function obj = load_from_file(json_file_path)
+
+            [~, ~, file_extension] = fileparts(json_file_path);
+
+            assert( ...
+                strcmp(file_extension, '.json'), ...
+                'Input must be a json file!' ...
+            );
+
+            obj = Config();
+            obj = obj.importFromJson(fileread(json_file_path));
+
+        end
+
+    end
+
     methods (Access = public)
 
         function obj = Config()
