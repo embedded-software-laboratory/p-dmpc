@@ -547,6 +547,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     if ismember(vehicle_idx, obj.info.vehs_fallback)
                         % if the selected vehicle should take fallback
                         is_fallback_triggered = true;
+                        break
                     else
                         predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
                         dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
@@ -566,6 +567,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                         if ismember(vehicle_idx, obj.info.vehs_fallback)
                             is_fallback_triggered = true;
+                            break
                         else
                             predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
                             dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
