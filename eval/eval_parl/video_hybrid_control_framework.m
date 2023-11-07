@@ -81,7 +81,7 @@ if isfile(full_path)
     disp('File already exists.')
 else
     % run simulation
-    [~, ~] = main(options);
+    main(options);
 end
 
 load(full_path)

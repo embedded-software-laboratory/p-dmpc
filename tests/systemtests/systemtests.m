@@ -119,7 +119,7 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyEmpty(lastwarn);
 
             %let main run and read result file
-            [result, ~] = main(config);
+            result = main(config);
 
             testCase.verifyTrue(true);
 

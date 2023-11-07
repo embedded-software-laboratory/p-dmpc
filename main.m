@@ -1,4 +1,4 @@
-function [result, scenario] = main(options)
+function result = main(options)
     % MAIN  main function for graph-based receding horizon control
 
     arguments

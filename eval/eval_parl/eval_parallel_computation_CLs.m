@@ -47,7 +47,7 @@ function eval_parallel_computation_CLs()
                 disp('File already exists.')
             else
                 % run simulation
-                [~, ~] = main(options);
+                main(options);
             end
 
             % data processing

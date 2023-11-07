@@ -21,7 +21,7 @@ function free_flow_speed = get_free_flow_speed(options)
         disp('File already exists.')
     else
         % run simulation
-        [~, ~] = main(options);
+        main(options);
     end
 
     % evaluate

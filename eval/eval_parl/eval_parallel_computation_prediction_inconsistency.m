@@ -41,7 +41,7 @@ function results = eval_parallel_computation_prediction_inconsistency()
                 disp('File already exists.')
             else
                 % run simulation
-                [~, ~] = main(options);
+                main(options);
             end
 
             load(full_path, 'result');
