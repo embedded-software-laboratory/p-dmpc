@@ -55,7 +55,7 @@ function plot_runtime_for_step(results, k, optional)
         hold on;
     end
 
-    legend(plt(1, :), cellstr(field_names), 'Interpreter', 'none');
+    legend(plt(1, :), strrep(cellstr(field_names), '_', ' '));
     xlabel('Time [ms]');
     ylabel('Vehicle');
     yticks(1:options.amount);
