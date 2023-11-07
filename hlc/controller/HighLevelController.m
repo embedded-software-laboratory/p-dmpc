@@ -55,7 +55,6 @@ classdef (Abstract) HighLevelController < handle
             % remove step time from options to avoid usage
             % before it is received from the plant
             options.dt_seconds = [];
-            scenario.options = options;
 
             obj.options = options;
             obj.scenario = scenario;
@@ -285,7 +284,6 @@ classdef (Abstract) HighLevelController < handle
 
             % receive step time from the plant
             obj.options.dt_seconds = obj.plant.get_step_time();
-            obj.scenario.options.dt_seconds = obj.plant.get_step_time();
 
             % initialize all manually controlled vehicles
             % (belongs to initialization of the scenario)

@@ -4,7 +4,6 @@ classdef Scenario
     properties (Access = public)
         vehicles = []; % array of Vehicle objects
         obstacles = {}; % static obstacles = {[xs;ys];...}
-        options Config;
 
         model = [];
         dynamic_obstacle_area = {};
