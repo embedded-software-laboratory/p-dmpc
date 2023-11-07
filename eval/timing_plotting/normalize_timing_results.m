@@ -30,11 +30,12 @@ function timings = normalize_one_timing_result(timings, min_start_time, veh_i)
     for field_i = 1:length(field_names)
 
         if strcmp(field_names{field_i}, 'controller_start_time')
-            continue;
+            timings(veh_i).controller_start_time = min_start_time;
+        else
+            timings(veh_i).(field_names{field_i})(1, 1, :) = ...
+                timings(veh_i).(field_names{field_i})(1, 1, :) + difference_to_min_in_seconds;
         end
 
-        timings(veh_i).(field_names{field_i})(1, 1, :) = ...
-            timings(veh_i).(field_names{field_i})(1, 1, :) + difference_to_min_in_seconds;
     end
 
 end
