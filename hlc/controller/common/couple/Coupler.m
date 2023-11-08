@@ -1,12 +1,19 @@
-classdef Coupler < handle
+classdef (Abstract) Coupler < handle
 
-    properties (Access = private)
+    properties (Access = protected)
         intersection_ids
         previous_intersection_ids
     end
 
-    properties (Constant, Access = private)
+    properties (Constant, Access = protected)
         intersection_distance_threshold = 1.2; % vehicles are considered as at the intersection if their distances to the center point of intersection is smaller than this value
+    end
+
+    methods (Abstract)
+
+        % Returns the adjacency matrix
+        [adjacency] = couple(obj, iter)
+
     end
 
     methods
@@ -14,14 +21,8 @@ classdef Coupler < handle
         function obj = Coupler()
         end
 
-        function [adjacency] = couple(~, iter)
-
-            reachable_sets = iter.reachable_sets;
-            adjacency = coupling_adjacency_reachable_sets(reachable_sets);
-
-        end
-
         function [coupling_info] = calculate_coupling_info(obj, time_step, options, scenario, mpa, iter)
+            % Calculates information going beyong the adjacency matrix like distance, stac, etc.
 
             adjacency = iter.adjacency;
             amount = options.amount;
