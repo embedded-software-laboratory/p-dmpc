@@ -3,8 +3,7 @@ function results = main_nuc_simulation()
     clear all
 
     % read config from disk
-    options = Config();
-    options = options.importFromJson(fileread('Config.json'));
+    options = Config.load_from_file('Config.json');
 
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;

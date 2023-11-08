@@ -7,8 +7,7 @@ function [result, scenario] = main_distributed(vehicle_id)
     end
 
     % read config from disk
-    options = Config();
-    options = options.importFromJson(fileread('Config.json'));
+    options = Config.load_from_file('Config.json');
 
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
