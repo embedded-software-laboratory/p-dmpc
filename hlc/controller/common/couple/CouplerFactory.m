@@ -11,6 +11,8 @@ classdef CouplerFactory
             switch (coupler_type)
                 case CouplerType.ReachableSet
                     coupler = ReachableSetCoupler();
+                case CouplerType.FullyConnected
+                    coupler = FullyConnectedCoupler();
             end
 
         end
