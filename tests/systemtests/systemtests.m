@@ -17,9 +17,7 @@ classdef systemtests < matlab.unittest.TestCase
             lastwarn('');
             fprintf('\ncentralized systemtest for %s\n', scenario_type);
             %load Config from json
-            rawJson = fileread('tests/systemtests/Config_systemtests.json');
-            options = Config();
-            options = options.importFromJson(rawJson);
+            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
             options.scenario_type = ScenarioType(scenario_type);
             options.is_prioritized = false;
 
@@ -39,9 +37,7 @@ classdef systemtests < matlab.unittest.TestCase
             lastwarn('');
             fprintf('\nprioritized %s systemtest for %s with %s priority\n', parallel, scenario_type, priority);
             %load Config from json
-            rawJson = fileread('tests/systemtests/Config_systemtests.json');
-            options = Config();
-            options = options.importFromJson(rawJson);
+            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
             options.scenario_type = ScenarioType(scenario_type);
             options.is_prioritized = true;
             options.priority = PriorityStrategies.([priority, '_priority']);
@@ -68,9 +64,7 @@ classdef systemtests < matlab.unittest.TestCase
             lastwarn('');
             fprintf('\nTesting grouping algorithm\n');
             %load Config from json
-            rawJson = fileread('tests/systemtests/Config_grouping.json');
-            options = Config();
-            options = options.importFromJson(rawJson);
+            options = Config.load_from_file('tests/systemtests/Config_grouping.json');
 
             main(options);
             testCase.verifyTrue(true);
@@ -80,9 +74,7 @@ classdef systemtests < matlab.unittest.TestCase
             lastwarn('');
             fprintf('\nvisualization systemtest for %s\n', scenario_type)
             %load Config from json
-            rawJson = fileread(['tests/systemtests/Config_visualization_2', char(scenario_type), '.json']);
-            options = Config();
-            options = options.importFromJson(rawJson);
+            options = Config.load_from_file(['tests/systemtests/Config_visualization_2', char(scenario_type), '.json']);
             testCase.verifyEmpty(lastwarn);
 
             main(options);
@@ -93,9 +85,7 @@ classdef systemtests < matlab.unittest.TestCase
             lastwarn('');
             fprintf('\nweigher systemtest for %s\n', scenario_type)
             %load Config from json
-            rawJson = fileread('tests/systemtests/Config_systemtests.json');
-            options = Config();
-            options = options.importFromJson(rawJson);
+            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
             options.scenario_type = ScenarioType(scenario_type);
             options.is_prioritized = true;
             options.max_num_CLs = 1;
@@ -111,21 +101,19 @@ classdef systemtests < matlab.unittest.TestCase
             lastwarn('');
             fprintf('\ndefault evaluation plotting systemtest for %s\n', scenario_type)
             %load Config from json
-            rawJson = fileread('tests/systemtests/Config_plot_default_results.json');
-            config = Config();
-            config = config.importFromJson(rawJson);
-            config.scenario_type = ScenarioType(scenario_type);
+            options = Config.load_from_file('tests/systemtests/Config_plot_default_results.json');
+            options.scenario_type = ScenarioType(scenario_type);
 
             testCase.verifyEmpty(lastwarn);
 
             %let main run and read result file
-            result = main(config);
+            result = main(options);
 
             testCase.verifyTrue(true);
 
             output_path = FileNameConstructor.get_results_full_path( ...
                 result.options, ...
-                result.options.amount ... %gen_scenario_name uses config.amount as default
+                result.options.amount ... %gen_scenario_name uses options.amount as default
             );
             full_result = load(output_path);
 
