@@ -64,7 +64,7 @@ classdef (Abstract) HighLevelController < handle
             obj.got_stop = false;
             obj.total_fallback_times = 0;
 
-            obj.coupler = ReachableSetCoupler();
+            obj.coupler = CouplerFactory.get_coupler(obj.options.coupler_type);
             obj.timing_general = ControllerTiming();
 
             for iVeh = obj.plant.indices_in_vehicle_list
