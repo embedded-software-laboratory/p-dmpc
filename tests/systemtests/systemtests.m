@@ -9,6 +9,7 @@ classdef systemtests < matlab.unittest.TestCase
                            'random_weight'
                            'STAC_weight'
                            'distance_weight'};
+        coupler_type = {'ReachableSet', 'FullyConnected'};
     end
 
     methods (Test)
@@ -90,6 +91,24 @@ classdef systemtests < matlab.unittest.TestCase
             options.is_prioritized = true;
             options.max_num_CLs = 1;
             options.weight = WeightStrategies(weight_strategy);
+
+            testCase.verifyEmpty(lastwarn);
+
+            main(options);
+            testCase.verifyTrue(true);
+        end
+
+        function test_coupler(testCase, coupler_type)
+            lastwarn('');
+            fprintf('\ncoupler systemtest for %s\n', coupler_type)
+            %load Config from json
+            rawJson = fileread('tests/systemtests/Config_systemtests.json');
+            options = Config();
+            options = options.importFromJson(rawJson);
+            options.scenario_type = ScenarioType.circle;
+            options.is_prioritized = true;
+            options.max_num_CLs = 1;
+            options.coupler_type = CouplerType(coupler_type);
 
             testCase.verifyEmpty(lastwarn);
 
