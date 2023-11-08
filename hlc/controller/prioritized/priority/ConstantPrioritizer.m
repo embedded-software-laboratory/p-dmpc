@@ -14,8 +14,6 @@ classdef ConstantPrioritizer < Prioritizer
 
         function [directed_coupling] = prioritize(obj, iter, ~, ~, ~)
             adjacency = iter.adjacency;
-
-            directed_coupling = adjacency;
             nVeh = size(adjacency, 1);
 
             if iter.priority_permutation == 0
@@ -26,17 +24,7 @@ classdef ConstantPrioritizer < Prioritizer
                 current_priorities = obj.all_priorities(:, iter.priority_permutation);
             end
 
-            for iVeh = 1:nVeh
-
-                for jVeh = 1:nVeh
-
-                    if directed_coupling(iVeh, jVeh) && (current_priorities(iVeh) > current_priorities(jVeh))
-                        directed_coupling(iVeh, jVeh) = 0;
-                    end
-
-                end
-
-            end
+            directed_coupling = Prioritizer.directed_coupling_from_priorities(adjacency, current_priorities);
 
         end
 
@@ -47,26 +35,23 @@ classdef ConstantPrioritizer < Prioritizer
 
         function priorities = unique_priorities(~, adjacency)
             n_vehicles = size(adjacency, 1);
-            priorities = zeros(n_vehicles, factorial(n_vehicles));
+            priorities = zeros(n_vehicles, 0);
             directed_coupling_base = triu(adjacency, 1);
             dag_coupling_base = digraph(directed_coupling_base);
             n_edges = numedges(dag_coupling_base);
             n_permutations = 2^n_edges;
-            i_priority = 1;
 
             for i_permutation = 1:n_permutations
                 dag_coupling = dag_coupling_base;
                 flips = dec2bin(i_permutation - 1, n_edges) == '1';
 
-                for i_flip = find(flips)
-                    dag_coupling = flipedge(dag_coupling, i_flip);
-                end
+                dag_coupling = flipedge(dag_coupling, find(flips));
 
                 if isdag(dag_coupling)
-                    priorities(:, i_priority) = toposort(dag_coupling);
-                    i_priority = i_priority + 1;
-                else
-                    priorities(:, end) = [];
+                    topological_order = toposort(dag_coupling);
+                    priority = zeros(1, n_vehicles);
+                    priority(topological_order) = 1:n_vehicles;
+                    priorities(:, end + 1) = priority; %#ok<AGROW>
                 end
 
             end

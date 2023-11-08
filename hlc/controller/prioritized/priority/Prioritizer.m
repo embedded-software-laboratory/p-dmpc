@@ -121,6 +121,27 @@ classdef (Abstract) Prioritizer < handle
 
         end
 
+        function directed_coupling = directed_coupling_from_priorities(adjacency, current_priorities)
+            % DIRECTED_COUPLING_FROM_PRIORITIES  Given the adjacency matrix and
+            % the current priorities, this function returns the directed coupling matrix.
+
+            directed_coupling = adjacency;
+            n_agents = size(directed_coupling, 1);
+
+            for i = 1:n_agents
+
+                for j = 1:n_agents
+
+                    if directed_coupling(i, j) && (current_priorities(i) > current_priorities(j))
+                        directed_coupling(i, j) = 0;
+                    end
+
+                end
+
+            end
+
+        end
+
     end
 
 end
