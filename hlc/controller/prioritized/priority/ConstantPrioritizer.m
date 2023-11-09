@@ -37,15 +37,19 @@ classdef ConstantPrioritizer < Prioritizer
             n_vehicles = size(adjacency, 1);
             priorities = zeros(n_vehicles, 0);
             directed_coupling_base = triu(adjacency, 1);
-            dag_coupling_base = digraph(directed_coupling_base);
-            n_edges = numedges(dag_coupling_base);
+            [edge_row, edge_col] = find(directed_coupling_base);
+            n_edges = length(edge_row);
             n_permutations = 2^n_edges;
 
             for i_permutation = 1:n_permutations
-                dag_coupling = dag_coupling_base;
                 flips = dec2bin(i_permutation - 1, n_edges) == '1';
 
-                dag_coupling = flipedge(dag_coupling, find(flips));
+                directed_coupling = directed_coupling_base;
+                idx = sub2ind(size(directed_coupling), edge_row(flips), edge_col(flips));
+                directed_coupling(idx) = 0;
+                idx = sub2ind(size(directed_coupling), edge_col(flips), edge_row(flips));
+                directed_coupling(idx) = 1;
+                dag_coupling = digraph(directed_coupling);
 
                 if isdag(dag_coupling)
                     topological_order = toposort(dag_coupling);
