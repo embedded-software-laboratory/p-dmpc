@@ -56,10 +56,10 @@ classdef ControlResultsInfo
             %obj.u = zeros(nVeh,1);
         end
 
-        function obj = store_control_info(obj, info_v, scenario, mpa)
+        function obj = store_control_info(obj, info_v, options, mpa)
             % Store the control information, such as `tree`, `tree_path`,
             % `n_expanded`, `next_node`, `shapes`, `vehicle_fullres_path`, `predicted_trims`, `y_predicted`
-            if scenario.options.is_prioritized
+            if options.is_prioritized
                 vehicle_idx = find(obj.controller_ID == info_v.controller_ID);
                 obj.tree{vehicle_idx} = info_v.tree;
                 obj.tree_path(vehicle_idx, :) = info_v.tree_path;
@@ -76,7 +76,7 @@ classdef ControlResultsInfo
                 % for centralized control
                 obj.tree = info_v.tree; % only for node explorationslee
                 obj.n_expanded = info_v.n_expanded;
-                obj.next_node = set_node(obj.next_node, 1:scenario.options.amount, info_v.tree.get_node(info_v.tree_path(2)));
+                obj.next_node = set_node(obj.next_node, 1:options.amount, info_v.tree.get_node(info_v.tree_path(2)));
                 obj.shapes = info_v.shapes;
                 obj.vehicle_fullres_path = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, mpa)';
                 obj.predicted_trims = info_v.predicted_trims; % store the planned trims in the future Hp time steps
@@ -89,10 +89,10 @@ classdef ControlResultsInfo
             obj.trim_indices = obj.predicted_trims(:, 2);
         end
 
-        function obj = handle_graph_search_exhaustion(obj, scenario, iter, mpa)
+        function obj = handle_graph_search_exhaustion(obj, options, iter, mpa)
             trim = iter.trim_indices;
 
-            if mpa.trims(trim).speed == 0 && ~strcmp(scenario.options.strategy_consider_veh_without_ROW, '1')
+            if mpa.trims(trim).speed == 0 && ~strcmp(options.strategy_consider_veh_without_ROW, '1')
                 % if a vehicle at a standstill cannot find a feasible
                 % trajectory, it will keep at a standstill without
                 % triggering a fallback. This kind of graph search is
@@ -101,12 +101,12 @@ classdef ControlResultsInfo
                 % this strategy can be used only if higher-priority
                 % vehicles consider at least the current occupied sets of
                 % lower-priority vehicles.
-                Hp = scenario.options.Hp;
+                Hp = options.Hp;
                 x = iter.x0(:, 1);
                 y = iter.x0(:, 2);
                 yaw = iter.x0(:, 3);
                 obj.tree_path = ones(size(x, 1), Hp + 1);
-                y_pred = {repmat([x, y, yaw, trim], (scenario.options.tick_per_step + 1) * Hp, 1)};
+                y_pred = {repmat([x, y, yaw, trim], (options.tick_per_step + 1) * Hp, 1)};
                 obj.y_predicted = y_pred;
 
                 vehiclePolygon = transformed_rectangle(x, y, yaw, iter.vehicles.Length, iter.vehicles.Width);

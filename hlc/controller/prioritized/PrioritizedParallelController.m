@@ -2,8 +2,8 @@ classdef PrioritizedParallelController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedParallelController(scenario, plant)
-            obj = obj@PrioritizedController(scenario, plant);
+        function obj = PrioritizedParallelController(options, scenario, plant)
+            obj = obj@PrioritizedController(options, scenario, plant);
         end
 
     end
@@ -18,8 +18,8 @@ classdef PrioritizedParallelController < PrioritizedController
 
             % initialize variable to store control results
             obj.info = ControlResultsInfo( ...
-                obj.scenario.options.amount, ...
-                obj.scenario.options.Hp, ...
+                obj.options.amount, ...
+                obj.options.Hp, ...
                 obj.plant.all_vehicle_ids ...
             );
 

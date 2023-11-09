@@ -1,33 +1,16 @@
-function scenario = create_scenario(options, random_seed, plant)
+function scenario = create_scenario(options)
     %create scenario from options
-
-    %% options preprocessing
-    % Use options to setup scenario
-    options.max_num_CLs = min(options.max_num_CLs, options.amount);
-
-    if options.environment == Environment.Simulation || options.environment == Environment.SimulationDistributed
-        disp('Running in MATLAB simulation...')
-    else
-        disp('Running in CPM Lab or via Unified Lab API...')
-        options.is_prioritized = true;
-    end
-
-    % more than 1 vehicle and use of pb-sequential controller
-    % require out of process execution
-    if options.amount > 1 && options.is_prioritized && ~options.compute_in_parallel
-        options.mex_out_of_process_execution = true;
-    end
 
     %% Setup Scenario
     switch options.scenario_type
         case ScenarioType.circle
-            scenario = circle_scenario(options);
+            scenario = circle_scenario(options.amount);
         case ScenarioType.commonroad
-            scenario = commonroad(options);
+            scenario = commonroad_scenario(options.amount, options.path_ids);
         case ScenarioType.lanelet2
-            scenario = lanelet2_scenario(options, plant);
+            scenario = lanelet2_scenario(options.amount, options.path_ids, options.scenario_type);
         case ScenarioType.lab_default
-            scenario = lanelet2_scenario(options, plant);
+            scenario = lanelet2_scenario(options.amount, options.path_ids, options.scenario_type);
     end
 
 end

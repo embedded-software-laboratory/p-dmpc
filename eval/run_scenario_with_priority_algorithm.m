@@ -23,6 +23,7 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
                 scenarios(iVeh, iSeed).options.priority = ...
                     algorithm{i_priority};
                 % run simulation
+                % FIXME this will not work after the options are removed from the scenario object
                 results_full_path = FileNameConstructor.get_results_full_path( ...
                     scenarios(iVeh, iSeed).options, ...
                     scenarios(iVeh, iSeed).options.path_ids ...
@@ -34,6 +35,7 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
                     result = r.result;
                 else
                     % run simulation
+                    % FIXME this will not work after the options are removed from the scenario object
                     result = main(scenarios(iVeh, iSeed));
                 end
 

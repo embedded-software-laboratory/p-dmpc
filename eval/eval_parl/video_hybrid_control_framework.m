@@ -11,11 +11,9 @@ options.dt_seconds = 0.2;
 
 options.priority = 'STAC_priority';
 options.is_prioritized = true;
-options.allow_priority_inheritance = false;
 options.should_save_result = true;
 options.should_reduce_result = false;
 options.is_plot_online = true;
-options.is_eval = false;
 options.strategy_consider_veh_without_ROW = '3';
 
 name = {'unboundedRSs', 'boundedRSs', 'laneletCrossingAreas', 'fullRun20Vehs30s', 'fullRun17VehsDeadlockRandomWeight'};
@@ -83,20 +81,15 @@ if isfile(full_path)
     disp('File already exists.')
 else
     % run simulation
-    if exist('options', 'var') && exist('scenario', 'var')
-        [~, ~, ~] = main(options, scenario);
-    else
-        [~, scenario, ~] = main(options);
-    end
-
+    main(options);
 end
 
 load(full_path)
 
 %%
-result.scenario.options.options_plot_online.is_video_mode = true;
-result.scenario.options.options_plot_online.plot_coupling = true;
-result.scenario.options.options_plot_online.plot_priority = false;
+result.options.options_plot_online.is_video_mode = true;
+result.options.options_plot_online.plot_coupling = true;
+result.options.options_plot_online.plot_priority = false;
 
 videoExportSetup.framerate = 5;
 export_video(result, videoExportSetup)

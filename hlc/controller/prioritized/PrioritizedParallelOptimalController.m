@@ -9,8 +9,8 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedParallelOptimalController(scenario, plant)
-            obj = obj@PrioritizedController(scenario, plant);
+        function obj = PrioritizedParallelOptimalController(options, scenario, plant)
+            obj = obj@PrioritizedController(options, scenario, plant);
             obj.prioritizer = ConstantPrioritizer();
         end
 
@@ -21,8 +21,8 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
         function controller(obj)
             % initialize variable to store control results
             obj.info_base = ControlResultsInfo( ...
-                obj.scenario.options.amount, ...
-                obj.scenario.options.Hp, ...
+                obj.options.amount, ...
+                obj.options.Hp, ...
                 obj.plant.all_vehicle_ids ...
             );
 
@@ -35,7 +35,7 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
 
             vehicle_idx = obj.plant.indices_in_vehicle_list(1);
 
-            for priority_permutation = 1:factorial(obj.scenario.options.amount)
+            for priority_permutation = 1:factorial(obj.options.amount)
 
                 obj.iter = obj.iter_base;
                 obj.info = obj.info_base;
@@ -104,7 +104,7 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
                 obj.solution_cost_communication{obj.plant.indices_in_vehicle_list(1)}.send_message(obj.k, solution_cost);
 
                 % receive info about solutions
-                other_vehicles = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
+                other_vehicles = setdiff(1:obj.options.amount, obj.plant.indices_in_vehicle_list);
 
                 for kVeh = other_vehicles
                     % loop over vehicle from which the messages are read

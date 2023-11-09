@@ -2,7 +2,6 @@ classdef Vehicle < handle
     % VEHICLE   Class representing vehicles in a scenario
 
     properties
-        trim_config = 1; % initial trim configuration
         x_start = 0; % [m]
         y_start = 0; % [m]
         yaw_start = 0; % [radians]
@@ -11,9 +10,8 @@ classdef Vehicle < handle
         Width = 0.1; % Vehicle width [m]
         Lf = 0.1; % Distance between vehicle center and front axle center [m]
         Lr = 0.1; % Distance between vehicle center and rear axle center [m]
-        ID = -1; % vehicle ID (should be positive integer)
-        lanelets_index; % index of lanelets of the reference trajectory in the scenario lanelets
-        points_index; % index of the last reference point of each lanelet from the reference trajectory
+        lanelets_index; % index of lanelets of the reference path in the scenario lanelets
+        points_index; % index of the last reference point of each lanelet from the reference path
         is_loop = true; % whether the reference path is a loop
     end
 

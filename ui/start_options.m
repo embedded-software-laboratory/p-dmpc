@@ -73,9 +73,6 @@ function [labOptions] = start_options()
         % Custom file name
         ui.CustomfilenameEditField.Value = previousSelection.result_name;
 
-        % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
-        ui.AllowInheritingtheRightofWayCheckBox.Value = previousSelection.allow_priority_inheritance;
-
         callbackPBSelected(ui);
 
         % Which optimizer to use
@@ -135,41 +132,28 @@ function [labOptions] = start_options()
     should_save_result = ui.SaveresultCheckBox.Value;
     % Custom file name
     result_name = ui.CustomfilenameEditField.Value;
-    % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
-    allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
+
     save([tempdir 'scenarioControllerSelection'], 'optimizer', 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
         'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', ...
         'isParlSelection', 'dtSelection', 'HpSelection', 'mpa_typeSelection', 'T_endSelection', 'max_num_CLsSelection', 'path_ids', 'strategy_consider_veh_without_ROWSelection', 'strategy_enter_crossing_areaSelection', ...
-        'should_save_result', 'result_name', 'allow_priority_inheritance');
+        'should_save_result', 'result_name');
 
     %% Convert to legacy/outputs
     % initialize
     labOptions = Config();
 
-    % remark: flag value depends on environmentSelection
-    if ~is_manual_control
-        manual_control_config = ManualControlConfig;
-        manual_control_config.amount = 0;
-        manual_control_config.hdv_ids = [];
-    else
-        manual_control_config = ManualControlConfig;
-        manual_control_config.amount = str2double(hdv_amount_selection);
-        hdv_ids_input = ui.HDVIDsEditField.Value;
-        % replace non-numeric characters with spaces
-        hdv_ids_input(~isstrprop(hdv_ids_input, 'digit')) = ' ';
-        % trim leading/trailing spaces, split into cell array, convert to double
-        manual_control_config.hdv_ids = str2double(strsplit(strtrim(hdv_ids_input)));
-
-        % check if chosen amount matches with typed in ids
-        assert( ...
-            length(manual_control_config.hdv_ids) == manual_control_config.amount, ...
-            ['Type in exactly ', num2str(manual_control_config.amount), ' HDV ID(s)'] ...
-        );
-    end
-
-    %labOptions.is_eval = false;
-
-    labOptions.manual_control_config = manual_control_config;
+    % manual control config
+    % extract value from gui element
+    hdv_ids_input = ui.HDVIDsEditField.Value;
+    % replace non-numeric characters with spaces
+    hdv_ids_input(~isstrprop(hdv_ids_input, 'digit')) = ' ';
+    % trim leading/trailing spaces, split into cell array, convert to double
+    hdv_ids_number = str2double(strsplit(strtrim(hdv_ids_input)));
+    % store manual control config
+    labOptions.manual_control_config = ManualControlConfig;
+    labOptions.manual_control_config.is_active = is_manual_control;
+    labOptions.manual_control_config.amount = str2double(hdv_amount_selection);
+    labOptions.manual_control_config.hdv_ids = hdv_ids_number;
 
     labOptions.environment = get_environment_selection(ui, true);
 
@@ -274,8 +258,8 @@ function [labOptions] = start_options()
     % Custom file name to save result
     labOptions.result_name = ui.CustomfilenameEditField.Value;
 
-    % Whether vehicles are allowed to inherit the right-of-way from their front vehicles
-    labOptions.allow_priority_inheritance = ui.AllowInheritingtheRightofWayCheckBox.Value;
+    % Validate Config file
+    labOptions = labOptions.validate();
 
     % Write Config to disk
     encodedJSON = jsonencode(labOptions);

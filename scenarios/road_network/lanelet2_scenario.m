@@ -1,20 +1,16 @@
-function scenario = lanelet2_scenario(options, plant)
-    % Commonroad_Scenario
+function scenario = lanelet2_scenario(amount, path_ids, scenario_type)
+    % Lanelet2_Scenario
 
     scenario = Scenario();
 
-    options.recursive_feasibility = true;
-    % read from options
-    scenario.options = options;
-
-    options.is_allow_non_convex = true;
-
     % get road data
-    if options.scenario_type == ScenarioType.lab_default
+    if scenario_type == ScenarioType.lab_default
+        disp('Retrieve map from lab via unified lab API later.')
+        return
+
+        %{
         % ULA is required for that.
         assert(isa(plant, "UnifiedLabApi"));
-
-        disp('Retrieve map from lab via unified lab API.')
 
         % Receive map via ULA interface
         map_as_string = plant.receive_map();
@@ -25,16 +21,13 @@ function scenario = lanelet2_scenario(options, plant)
 
         % Retrieve road data
         road_data = RoadDataLanelet2(false).get_road_data(tmp_file_name, tempdir);
-    else
-        assert(options.scenario_type == ScenarioType.lanelet2);
+        %}
 
-        disp('Create Lanelet2 scenario.')
-
-        % Get road data from default location
-        road_data = RoadDataLanelet2(false).get_road_data();
     end
 
-    assignin('base', 'road_data_lab_default_scenario', road_data);
+    % Get road data from default location
+    road_data = RoadDataLanelet2(false).get_road_data();
+
     scenario.lanelets = road_data.lanelets;
     scenario.intersection_lanelets = road_data.intersection_lanelets;
     scenario.lanelet_boundary = road_data.lanelet_boundary;
@@ -42,27 +35,23 @@ function scenario = lanelet2_scenario(options, plant)
     scenario.lanelet_relationships = road_data.lanelet_relationships;
     scenario.road_data_file_path = [road_data.road_folder_path, filesep, road_data.road_name];
 
-    nVeh = options.amount;
+    nVeh = amount;
 
     for iveh = 1:nVeh
 
         veh = Vehicle();
-        veh.trim_config = 1;
 
         % Generate a ref path using the Lanelet2 Interface and generate_reference_path_loop
         reference_path_loops = {Lanelet2_Interface.generate_reference_path_indices(scenario.road_data_file_path)};
 
         % FIXME lanelets_index is not passed to `generate_reference_path_loop` as of !179
         reference_path_loop = reference_path_loops{1};
-        start_idx = mod(options.path_ids(iveh) * 2 - 1, width(reference_path_loop));
+        start_idx = mod(path_ids(iveh) * 2 - 1, width(reference_path_loop));
 
-        if start_idx == 1
-            lanelets_index = reference_path_loop;
-        else
-            lanelets_index = [reference_path_loop(start_idx:end), reference_path_loop(1:start_idx - 1)];
-        end
+        % shift reference_path_loop depending on start_idx
+        lanelets_index = [reference_path_loop(start_idx:end), reference_path_loop(1:start_idx - 1)];
 
-        reference_path_struct = generate_reference_path_loop(options.path_ids(iveh), scenario.lanelets, lanelets_index);
+        reference_path_struct = generate_reference_path_loop(path_ids(iveh), scenario.lanelets, lanelets_index);
         veh.lanelets_index = reference_path_struct.lanelets_index;
         lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
 
@@ -87,7 +76,6 @@ function scenario = lanelet2_scenario(options, plant)
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
-    scenario.options.plot_limits = [0, 4.5; 0, 4];
     scenario.model = BicycleModel(veh.Lf, veh.Lr);
 
 end

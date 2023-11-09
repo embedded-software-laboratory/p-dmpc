@@ -19,16 +19,16 @@ classdef ExportFigConfig
 
     methods (Static)
 
-        function obj = paper(options)
+        function obj = paper(optional)
 
             arguments
-                options.fontsize
-                options.units
-                options.paperwidth
-                options.paperheight
-                options.linewidth
-                options.fontname
-                options.markersize
+                optional.fontsize
+                optional.units
+                optional.paperwidth
+                optional.paperheight
+                optional.linewidth
+                optional.fontname
+                optional.markersize
             end
 
             obj = ExportFigConfig();
@@ -38,19 +38,19 @@ classdef ExportFigConfig
             obj.paperheight = 4;
             obj.linewidth = 0.5;
             obj.fontname = 'Times';
-            obj = ExportFigConfig.set_optional_properties(obj, options);
+            obj = ExportFigConfig.set_optional_properties(obj, optional);
         end
 
-        function obj = document(options)
+        function obj = document(optional)
 
             arguments
-                options.fontsize
-                options.units
-                options.paperwidth
-                options.paperheight
-                options.linewidth
-                options.fontname
-                options.markersize
+                optional.fontsize
+                optional.units
+                optional.paperwidth
+                optional.paperheight
+                optional.linewidth
+                optional.fontname
+                optional.markersize
             end
 
             obj = ExportFigConfig();
@@ -60,19 +60,19 @@ classdef ExportFigConfig
             obj.paperheight = 7.85;
             obj.linewidth = 0.5;
             obj.fontname = 'Times';
-            obj = ExportFigConfig.set_optional_properties(obj, options);
+            obj = ExportFigConfig.set_optional_properties(obj, optional);
         end
 
-        function obj = presentation(options)
+        function obj = presentation(optional)
 
             arguments
-                options.fontsize
-                options.units
-                options.paperwidth
-                options.paperheight
-                options.linewidth
-                options.fontname
-                options.markersize
+                optional.fontsize
+                optional.units
+                optional.paperwidth
+                optional.paperheight
+                optional.linewidth
+                optional.fontname
+                optional.markersize
             end
 
             obj = ExportFigConfig();
@@ -82,19 +82,19 @@ classdef ExportFigConfig
             obj.paperheight = 14.01;
             obj.linewidth = 1;
             obj.fontname = 'Arial';
-            obj = ExportFigConfig.set_optional_properties(obj, options);
+            obj = ExportFigConfig.set_optional_properties(obj, optional);
         end
 
-        function obj = video(options)
+        function obj = video(optional)
 
             arguments
-                options.fontsize
-                options.units
-                options.paperwidth
-                options.paperheight
-                options.linewidth
-                options.fontname
-                options.markersize
+                optional.fontsize
+                optional.units
+                optional.paperwidth
+                optional.paperheight
+                optional.linewidth
+                optional.fontname
+                optional.markersize
             end
 
             obj = ExportFigConfig();
@@ -104,17 +104,17 @@ classdef ExportFigConfig
             obj.linewidth = 1;
             obj.fontname = 'Arial';
             obj.units = 'pixels';
-            obj = ExportFigConfig.set_optional_properties(obj, options);
+            obj = ExportFigConfig.set_optional_properties(obj, optional);
         end
 
-        function obj = set_optional_properties(obj, options)
+        function obj = set_optional_properties(obj, optional)
 
             arguments
                 obj
-                options
+                optional
             end
 
-            fn = fieldnames(options);
+            fn = fieldnames(optional);
 
             if isempty(fn)
                 return
@@ -122,8 +122,8 @@ classdef ExportFigConfig
 
             for field = fn
 
-                if ~isempty(options.(field{1}))
-                    obj.(field{1}) = options.(field{1});
+                if ~isempty(optional.(field{1}))
+                    obj.(field{1}) = optional.(field{1});
                 end
 
             end

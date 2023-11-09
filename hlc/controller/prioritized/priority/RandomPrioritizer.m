@@ -11,7 +11,7 @@ classdef RandomPrioritizer < Prioritizer
             obj.is_assign_unique_priority = false; % whether to asign unique priority
         end
 
-        function [directed_coupling] = prioritize(~, time_step, ~, iter)
+        function [directed_coupling] = prioritize(~, iter, time_step, ~, ~)
             adjacency = iter.adjacency;
 
             priority_rand_stream = RandStream("mt19937ar", "Seed", time_step);

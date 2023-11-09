@@ -1,7 +1,7 @@
-classdef Config < matlab.mixin.Copyable
+classdef Config
 
     properties
-        environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
+        environment Environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
         manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
         is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
@@ -28,78 +28,39 @@ classdef Config < matlab.mixin.Copyable
         should_save_result = true; % true/false, is save result
         should_reduce_result = true; % true/false, if true, reduced result will be save to save disk space (useful for a long run of simulation)
         result_name = ''; % string or char, custom file name to save result
-        allow_priority_inheritance = false; % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
 
-        is_eval = false; % true/false,
         is_free_flow = false; % true/false, if true, vehicles do not need to consider other vehicles.
         fallback_type FallbackType = FallbackType.local_fallback; % one of the following {'no', 'local', 'global'},
-        % 'no' for disable fallback;
-        % 'global' means once a vehicle triggers fallback, all other vehicles must also take fallback.
-        % 'local' means once a vehicle triggers fallback, only vehicles that have direct or undirected couplings with it will take fallabck.
 
         path_ids = []; % reference path IDs for selection of paths for the vehicles
-        random_idx = []; % integer, random choose different vehicles
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
         is_allow_non_convex = true; % true/false, whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
         recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
         time_per_tick = 0.01;
         offset = 0.01;
-        plot_limits = [-10, 10; -10, 10]; % default fallback if not defined
+        plot_limits = [0, 4.5; 0, 4]; % default fallback if not defined
         is_use_dynamic_programming = true; % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
 
         % MPA
         is_save_mpa = true; % true/false, the offline computed MPA will be saved if true
         is_load_mpa = true; % true/false, the offline computed MPA  will be load if exists
 
-        options_plot_online = OptionsPlotOnline(); % setup for online plotting
+        options_plot_online OptionsPlotOnline = OptionsPlotOnline(); % setup for online plotting
         is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
 
         is_force_parallel_vehs_in_same_grp = true; % true/false, if true, vehicles move in parallel will be forced in the same group
         cpp_optimizer CppOptimizer = CppOptimizer.None;
         mex_out_of_process_execution = false; % execute mex graph search functions in own process
+        is_dry_run (1, 1) logical = false; % whether to do a dry_run or not
 
     end
 
-    properties (Dependent)
+    properties (Dependent, GetAccess = public, SetAccess = private)
         tick_per_step % number of data points per step
         k_end % total number of steps
-        Hu % control horizon
     end
 
     methods
-
-        function obj = Config()
-        end
-
-        function obj = assign_data(obj, struct)
-            fn = fieldnames(struct);
-
-            for i_field = 1:length(fn)
-                field = fn{i_field};
-
-                if ~isprop(obj, field)
-                    warning('Cannot set property %s for class Config as it does not exist', field);
-                    continue;
-                end
-
-                if findprop(obj, field).Dependent
-                    warning('Cannot set property %s for class Config as it is a dependent property', field);
-                    continue;
-                end
-
-                if strcmp(field, 'manual_control_config')
-                    obj.manual_control_config = ManualControlConfig();
-                    obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
-                elseif strcmp(field, 'options_plot_online')
-                    obj.options_plot_online = OptionsPlotOnline();
-                    obj.options_plot_online = obj.options_plot_online.assign_data(struct.options_plot_online);
-                else
-                    obj.(field) = struct.(field);
-                end
-
-            end
-
-        end
 
         function result = get.tick_per_step(obj)
             result = round(obj.dt_seconds / obj.time_per_tick);
@@ -109,8 +70,39 @@ classdef Config < matlab.mixin.Copyable
             result = floor(obj.T_end / obj.dt_seconds);
         end
 
-        function result = get.Hu(obj)
-            result = obj.Hp;
+        % empty set methods used by jsondecode
+        % dependent properties with public GetAccess are encoded to a json file
+        % to automatically decode the json file set methods must be defined
+
+        function obj = set.tick_per_step(obj, ~)
+        end
+
+        function obj = set.k_end(obj, ~)
+        end
+
+    end
+
+    methods (Static)
+
+        function obj = load_from_file(json_file_path)
+
+            [~, ~, file_extension] = fileparts(json_file_path);
+
+            assert( ...
+                strcmp(file_extension, '.json'), ...
+                'Input must be a json file!' ...
+            );
+
+            obj = Config();
+            obj = obj.importFromJson(fileread(json_file_path));
+
+        end
+
+    end
+
+    methods (Access = public)
+
+        function obj = Config()
         end
 
         function result = exportAsJson(obj)
@@ -118,11 +110,139 @@ classdef Config < matlab.mixin.Copyable
         end
 
         function result = importFromJson(obj, json)
-            result = assign_data(obj, jsondecode(json));
+            % custom classes must provide jsondecode by its own
+            result = jsondecode(obj, jsondecode(json));
+        end
+
+        function obj = jsondecode(obj, json_struct)
+            % for each loop requires fields as row vector
+            fields = string(fieldnames(json_struct)).';
+
+            for field = fields
+
+                if ~isprop(obj, field)
+                    warning('Cannot set property %s for class Config as it does not exist', field);
+                    continue;
+                end
+
+                % custom classes must provide jsondecode by its own
+                if strcmp(field, "manual_control_config")
+                    obj.manual_control_config = ManualControlConfig();
+                    obj.manual_control_config = obj.manual_control_config.jsondecode(json_struct.manual_control_config);
+                elseif strcmp(field, "options_plot_online")
+                    obj.options_plot_online = OptionsPlotOnline();
+                    obj.options_plot_online = obj.options_plot_online.jsondecode(json_struct.options_plot_online);
+                else
+                    obj.(field) = json_struct.(field);
+                end
+
+            end
+
         end
 
         function result = use_cpp(obj)
             result = obj.cpp_optimizer ~= CppOptimizer.None;
+        end
+
+        function obj = validate(obj)
+
+            % throw error if centralized controller should run in lab
+            if ( ...
+                    obj.environment == Environment.CpmLab || ...
+                    obj.environment == Environment.UnifiedLabApi ...
+                )
+                assert( ...
+                    isunix && ~ismac, ...
+                    'The lab interfaces can only be used on a Linux system!' ...
+                )
+                assert( ...
+                    obj.is_prioritized == true, ...
+                    'You are trying to run a centralized controller in the lab!' ...
+                )
+            end
+
+            % set dry run flag
+            if ( ...
+                    obj.environment == Environment.CpmLab || ...
+                    obj.environment == Environment.UnifiedLabApi || ...
+                    obj.environment == Environment.SimulationDistributed ...
+                )
+                obj.is_dry_run = true;
+            end
+
+            % if prioritized controller runs sequentially with more than 1 vehicle
+            % activate out of process execution for mex function
+            if obj.amount > 1 && obj.is_prioritized && ~obj.compute_in_parallel
+                obj.mex_out_of_process_execution = true;
+            end
+
+            % forbid usage of StacPrioritizer or StacWeigher for circle scenarios
+            if obj.scenario_type == ScenarioType.circle
+                assert( ...
+                    obj.priority ~= PriorityStrategies.STAC_priority, ...
+                    'STAC Priority only available for Commonroad scenarios!' ...
+                )
+                assert( ...
+                    obj.weight ~= WeightStrategies.STAC_weight, ...
+                    'STAC Weight only available for Commonroad scenarios!' ...
+                )
+            end
+
+            % enforce non convex reachable sets for non circle scenarios
+            if obj.scenario_type ~= ScenarioType.circle
+                obj.is_allow_non_convex = true;
+            end
+
+            % limit maximum number of computation levels
+            obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
+
+            % set default path ids if no path ids were defined
+            if isempty(obj.path_ids)
+
+                switch obj.amount
+                    case 1
+                        obj.path_ids = 18;
+                    case 2
+                        obj.path_ids = [18, 20];
+                    case 3
+                        obj.path_ids = [18, 19, 20];
+                    case 4
+                        obj.path_ids = [17, 18, 19, 20];
+                    otherwise
+                        path_id_max = 41; % maximum defined path id
+                        obj.path_ids = randperm(RandStream("mt19937ar"), path_id_max, obj.amount);
+                end
+
+            end
+
+            % validate amount of path ids
+            assert( ...
+                length(obj.path_ids) == obj.amount, ...
+                'Amount of path_ids (%d) does not match amount of vehicles (%d)!', ...
+                length(obj.path_ids), ...
+                obj.amount ...
+            )
+
+            % validate manual control config
+            if ~obj.manual_control_config.is_active
+                % set values for inactive manual control config
+                obj.manual_control_config.amount = 0;
+                obj.manual_control_config.hdv_ids = [];
+            else
+                % check if chosen amount matches with typed in hdv ids
+                assert( ...
+                    length(obj.manual_control_config.hdv_ids) == obj.manual_control_config.amount, ...
+                    'Amount of hdv_ids (%d) does not match amount of manual vehicles (%d)!', ...
+                    length(obj.manual_control_config.hdv_ids), ...
+                    obj.manual_control_config.amount ...
+                )
+            end
+
+            % specify different plot limits for circle scenario with 2 vehicles
+            if obj.scenario_type == ScenarioType.circle && obj.amount <= 2
+                obj.plot_limits = [0, 4.5; 1.5, 2.5];
+            end
+
         end
 
     end

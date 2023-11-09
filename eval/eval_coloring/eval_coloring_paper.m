@@ -73,7 +73,7 @@ function eval_coloring_paper()
 
         for i = 1:n_runs
             tstart = tic;
-            prioritizer.prioritize([], [], iter);
+            prioritizer.prioritize(iter, [], [], []);
             tcomp_helper(i) = toc(tstart);
         end
 
@@ -101,7 +101,7 @@ function eval_coloring_paper()
 
     for i = 1:n
         tstart = tic;
-        prioritizer.prioritize([], [], iter);
+        prioritizer.prioritize(iter, [], [], []);
         tcomp_s(i) = toc(tstart);
     end
 
@@ -129,7 +129,6 @@ function eval_coloring_paper()
     options.environment = Environment.Simulation;
     options.options_plot_online.is_active = false;
     options.strategy_consider_veh_without_ROW = '2'; % '2': consider currently occupied area as static obstacle
-    options.allow_priority_inheritance = true;
     options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area
     options.should_save_result = 1;
     options.should_reduce_result = 1;

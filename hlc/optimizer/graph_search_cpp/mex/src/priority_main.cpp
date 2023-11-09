@@ -49,16 +49,16 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 			if (inputs.size() < 2) throw MatlabException("Wrong number of arguments! (Must be 2 or more, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MatlabException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			if (Function == "InitializeWithScenario") {
-				if (inputs.size() != 3) throw MatlabException("Wrong number of arguments! (Must be 3, is ", inputs.size(), ")");
+			if (Function == "InitializeMex") {
+				if (inputs.size() != 4) throw MatlabException("Wrong number of arguments! (Must be 4, is ", inputs.size(), ")");
 				// GraphBasedPlanning::Evaluation::reset();
-				_config = std::make_shared<GraphBasedPlanning::ConfigData>(GraphBasedPlanning::make_config(inputs[1], inputs[2], _matlab));
+				_config = std::make_shared<GraphBasedPlanning::ConfigData>(GraphBasedPlanning::make_config(inputs[1], inputs[2], inputs[3], _matlab));
 				_mpa = std::make_shared<GraphBasedPlanning::MPA>(GraphBasedPlanning::make_mpa(inputs[2], _config, _matlab));
 
 				Printer::println("Initialized!");
 			} else {
-				if (inputs.size() != 2) throw MatlabException("Wrong number of arguments! (Must be 2, is ", inputs.size(), ")");
-				auto [next_nodes_array, predicted_trims_array, y_predicted_array, shapes_array, n_expanded_array, is_exhausted] = run_priority_based(inputs[1], Function);
+				if (inputs.size() != 3) throw MatlabException("Wrong number of arguments! (Must be 3, is ", inputs.size(), ")");
+				auto [next_nodes_array, predicted_trims_array, y_predicted_array, shapes_array, n_expanded_array, is_exhausted] = run_priority_based(inputs[1], inputs[2], Function);
 
 				outputs[0] = std::move(next_nodes_array);
 				outputs[1] = std::move(predicted_trims_array);
@@ -93,11 +93,11 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 	}
 
 	template <GraphBasedPlanning::SCENARIO_TYPE scenario_type>
-	PriorityBasedResultStructMex run_priority_based(matlab::data::ObjectArray const& iter, std::string const& Function) {
+	PriorityBasedResultStructMex run_priority_based(matlab::data::ObjectArray const& iter, matlab::data::CellArray const& vehicle_obstacles_cell_array, std::string const& Function) {
 		using namespace GraphBasedPlanning;
 
 		std::array<VehicleData<scenario_type>, 1> vehicle_data = make_vehicle_data<1, scenario_type>(iter, _config, _matlab);
-		VehicleObstaclesData vehicle_obstacles_data = make_vehicle_obstacles_data(iter, _config, _matlab);
+		VehicleObstaclesData vehicle_obstacles_data = make_vehicle_obstacles_data(iter, vehicle_obstacles_cell_array, _config, _matlab);
 
 		PriorityBasedNode root = create_root(iter);
 
@@ -234,11 +234,11 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 		return {next_nodes_array, predicted_trims_array, y_predicted_array, shapes_array, n_expanded_array, is_exhausted_array};  //, n_expanded};
 	}
 
-	PriorityBasedResultStructMex run_priority_based(matlab::data::ObjectArray const& iter, std::string const& Function) {
+	PriorityBasedResultStructMex run_priority_based(matlab::data::ObjectArray const& iter, matlab::data::CellArray const& vehicle_obstacles_cell_array, std::string const& Function) {
 		using namespace GraphBasedPlanning;
 		switch (_config->scenario_type()) {
-			case SCENARIO_TYPE::Circle: return run_priority_based<SCENARIO_TYPE::Circle>(iter, Function);
-			case SCENARIO_TYPE::CommonRoad: return run_priority_based<SCENARIO_TYPE::CommonRoad>(iter, Function);
+			case SCENARIO_TYPE::Circle: return run_priority_based<SCENARIO_TYPE::Circle>(iter, vehicle_obstacles_cell_array, Function);
+			case SCENARIO_TYPE::CommonRoad: return run_priority_based<SCENARIO_TYPE::CommonRoad>(iter, vehicle_obstacles_cell_array, Function);
 			default: throw MatlabException("Scenario type '", _config->scenario_type(), "' not implemented/available!");
 		}
 	}

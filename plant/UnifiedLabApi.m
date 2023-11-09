@@ -34,11 +34,6 @@ classdef UnifiedLabApi < Plant
         function obj = UnifiedLabApi()
             obj = obj@Plant();
             obj.pos_init = false;
-
-            if ispc
-                error('You are using a Windows machine, please do not select lab mode!')
-            end
-
         end
 
         function map_as_string = receive_map(obj)
@@ -50,9 +45,17 @@ classdef UnifiedLabApi < Plant
             obj.map_comm_done = true;
         end
 
-        function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
-            setup@Plant(obj, scenario, all_vehicle_ids, controlled_vehicle_ids);
-            obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.amount, 1), zeros(obj.amount, 1));
+        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
+
+            arguments
+                obj (1, 1) UnifiedLabApi
+                options (1, 1) Config
+                scenario (1, 1) Scenario
+                all_vehicle_ids (1, :) uint8
+                controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
+            end
+
+            setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
 
             assert(issorted(obj.controlled_vehicle_ids));
 
@@ -61,8 +64,8 @@ classdef UnifiedLabApi < Plant
 
             obj.prepare_ros2(); % Call this in case map_as_string was not used before
 
-            % Middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(obj.scenario.options.dt_seconds * 1e9);
+            % middleware period for valid_after stamp
+            obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
 
             disp('Setup. Phase 3: Perform preparation phase...');
 
@@ -166,7 +169,7 @@ classdef UnifiedLabApi < Plant
             obj.sample = new_sample;
             state_list = obj.sample.vehicle_states;
 
-            x0 = zeros(obj.scenario.options.amount + obj.scenario.options.manual_control_config.amount, 4);
+            x0 = zeros(obj.amount + obj.manual_control_config.amount, 4);
 
             % for first iteration use real poses
             if (obj.pos_init == false)
@@ -186,7 +189,7 @@ classdef UnifiedLabApi < Plant
                 [~, trim_indices] = obj.measure_node();
                 obj.pos_init = true;
             else
-                [x0(1:obj.scenario.options.amount, :), trim_indices] = obj.measure_node(); % get cav states from current node
+                [x0(1:obj.amount, :), trim_indices] = obj.measure_node(); % get cav states from current node
             end
 
             % Always measure HDV
@@ -194,8 +197,8 @@ classdef UnifiedLabApi < Plant
 
             for index = 1:length(state_list)
 
-                if ismember(double(state_list(index).vehicle_id), obj.scenario.options.manual_control_config.hdv_ids)
-                    list_index = obj.scenario.options.amount + hdv_index;
+                if ismember(double(state_list(index).vehicle_id), obj.manual_control_config.hdv_ids)
+                    list_index = obj.amount + hdv_index;
                     hdv_index = hdv_index + 1;
                     x0(list_index, 1) = state_list(index).pose.x;
                     x0(list_index, 2) = state_list(index).pose.y;
@@ -207,19 +210,18 @@ classdef UnifiedLabApi < Plant
 
         end
 
-        function apply(obj, info, ~, k, mpa)
+        function apply(obj, info, ~, ~, mpa)
             y_pred = info.y_predicted;
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
                 obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
             end
 
-            obj.k = k;
             % calculate vehicle control messages
-            obj.out_of_map_limits = false(obj.scenario.options.amount, 1);
+            obj.out_of_map_limits = false(obj.amount, 1);
 
             for iVeh = obj.indices_in_vehicle_list
-                n_traj_pts = obj.scenario.options.Hp;
+                n_traj_pts = obj.Hp;
                 n_predicted_points = size(y_pred{iVeh}, 1);
                 idx_predicted_points = 1:n_predicted_points / n_traj_pts:n_predicted_points;
                 trajectory_points(1:n_traj_pts) = ros2message('ula_interfaces/TrajectoryPoint');
@@ -241,7 +243,7 @@ classdef UnifiedLabApi < Plant
                 obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
 
                 vehicle_command_trajectory = ros2message(obj.publisher_trajectoryCommand);
-                vehicle_command_trajectory.vehicle_id = int32(obj.scenario.vehicles(iVeh).ID);
+                vehicle_command_trajectory.vehicle_id = int32(obj.all_vehicle_ids(iVeh));
                 vehicle_command_trajectory.trajectory = trajectory_points;
                 vehicle_command_trajectory.t_creation = obj.enhance_timepoint(obj.sample.current_time, 0); % Just use as conversion function
                 vehicle_command_trajectory.t_valid_after = obj.enhance_timepoint(obj.sample.current_time, obj.dt_period_nanos + 1);

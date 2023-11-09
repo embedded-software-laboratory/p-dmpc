@@ -17,7 +17,7 @@ function [data] = compute_levels_data(res)
     nVeh_list = zeros(1, nVeh);
 
     for iVeh = 1:nVeh
-        nVeh_list(iVeh) = res{iVeh, 1, 1}.scenario.options.amount;
+        nVeh_list(iVeh) = res{iVeh, 1, 1}.options.amount;
 
         for iPri = 1:nPri
 
@@ -31,11 +31,12 @@ function [data] = compute_levels_data(res)
                     continue;
                 end
 
+                options_tmp = result.options;
                 scenario_tmp = result.scenario;
 
                 for iStep = nSteps:-1:1
                     % no adjacency given in 1-veh scenarios
-                    if scenario_tmp.options.amount > 1
+                    if options_tmp.amount > 1
                         iter_tmp = result.iteration_structs{iStep};
 
                         % assign priorities using different algorithms

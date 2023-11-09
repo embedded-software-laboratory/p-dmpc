@@ -1,4 +1,4 @@
-function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, max_num_CLs, coupling_info, method, options)
+function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, coupling_info, max_num_CLs, is_force_parallel_vehs_in_same_grp, method)
     % GRAPH_PARTITIONING_ALGORITHM Partition the given edge-weighted directed acyclic graph (DAG) while ensuring
     % the size of each subgraph do not exceed the defined maximum graph size.
     %
@@ -8,13 +8,15 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
     %   target graph. Edge-weights will not be considered if M is the dajacency
     %   matrix.
     %
-    %   max_num_CLs: maximum number of computation levels
-    %
     %   coupling_info: couling information of each coupling pair
     %
-    %   method: either 's-t-cut' or 'MILP'
+    %   max_num_CLs: maximum number of computation levels
     %
-    %   options: instance of the class `Config`
+    %   is_force_parallel_vehs_in_same_grp:
+    %       boolean whether to force parallel driving vehicles
+    %       being in the same group
+    %
+    %   method: either 's-t-cut' or 'MILP'
     %
     % OUTPUT:
     %   belonging_vector: a column vector whose values indicate which
@@ -29,7 +31,7 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
     entries = find(M);
     amount = size(M, 1);
 
-    if options.is_force_parallel_vehs_in_same_grp
+    if is_force_parallel_vehs_in_same_grp
 
         if ~isempty(entries) && ~isempty([coupling_info{:}]) % in case is isnt a commonroad scenario or there are no couplings
             used_coupling_info = [coupling_info{entries}];

@@ -6,7 +6,7 @@ classdef Coupler < handle
     end
 
     properties (Constant, Access = private)
-        intersection_distance_threshold = 1.2; % vehicles are considered as at the intersecrion if their distances to the center point of intersection is smaller than this value
+        intersection_distance_threshold = 1.2; % vehicles are considered as at the intersection if their distances to the center point of intersection is smaller than this value
     end
 
     methods
@@ -21,14 +21,14 @@ classdef Coupler < handle
 
         end
 
-        function [coupling_info] = calculate_coupling_info(obj, time_step, scenario, mpa, iter)
+        function [coupling_info] = calculate_coupling_info(obj, time_step, options, scenario, mpa, iter)
 
             adjacency = iter.adjacency;
-            amount = scenario.options.amount;
+            amount = options.amount;
             coupling_info = cell(amount, amount);
 
             obj.previous_intersection_ids = obj.intersection_ids;
-            [obj.intersection_ids, ~] = vehicles_at_intersection(time_step, scenario, iter, obj.intersection_ids, [], obj.intersection_distance_threshold);
+            [obj.intersection_ids, ~] = vehicles_at_intersection(time_step, obj.intersection_ids, [], obj.intersection_distance_threshold, iter.x0, scenario.intersection_center, amount);
 
             for veh_i = 1:(amount - 1)
 
@@ -40,7 +40,7 @@ classdef Coupler < handle
                         is_intersection = ismember([veh_i, veh_j], obj.intersection_ids);
 
                         [stac, distance_i, distance_j, collision_type, lanelet_relationship, is_move_side_by_side] = ...
-                            calculate_stac(veh_i, veh_j, scenario, mpa, iter);
+                            calculate_stac(veh_i, veh_j, options.dt_seconds, scenario, mpa, iter);
 
                         coupling_info{veh_i, veh_j} = struct( ...
                             'stac', stac, ...

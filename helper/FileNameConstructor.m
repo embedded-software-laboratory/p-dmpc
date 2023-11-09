@@ -19,6 +19,22 @@ classdef FileNameConstructor
 
     methods (Static)
 
+        function controller_name = get_controller_name(options)
+
+            if options.is_prioritized
+
+                if options.compute_in_parallel
+                    controller_name = strcat('par. PB-', 'RHGS-', char(options.priority));
+                else
+                    controller_name = strcat('seq. PB-', 'RHGS-', char(options.priority));
+                end
+
+            else
+                controller_name = strcat('centralized-', 'RHGS-', char(options.priority));
+            end
+
+        end
+
         function mpa_instance_name = get_mpa_name(options)
 
             arguments
@@ -112,10 +128,6 @@ classdef FileNameConstructor
                                          '_ConsiderVehWithoutROW', options.strategy_consider_veh_without_ROW, '_EnterLaneletCrossingArea', options.strategy_enter_lanelet_crossing_area];
                 end
 
-                if options.allow_priority_inheritance
-                    scenario_name = [scenario_name, '_inherit'];
-                end
-
                 if options.is_free_flow
                     scenario_name = [scenario_name, '_freeFlow'];
                 end
@@ -127,10 +139,6 @@ classdef FileNameConstructor
 
                 if ~options.should_reduce_result
                     scenario_name = [scenario_name, '_fullResult'];
-                end
-
-                if ~isempty(options.random_idx) && options.random_idx ~= 1
-                    scenario_name = [scenario_name, '_random', num2str(options.random_idx)];
                 end
 
                 if ~options.isDealPredictionInconsistency

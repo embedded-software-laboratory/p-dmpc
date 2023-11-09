@@ -1,26 +1,26 @@
-function plot_mpa_local_reachable_sets(mpa, scenario, options)
+function plot_mpa_local_reachable_sets(mpa, options, optional)
 
     arguments
         mpa (1, 1) MotionPrimitiveAutomaton;
-        scenario (1, 1) Scenario;
-        options.do_export (1, 1) logical = true;
-        options.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
-        options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
+        options (1, 1) Config
+        optional.do_export (1, 1) logical = true;
+        optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
+        optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    mpa.plot_local_reachable_sets(fig = options.fig);
+    mpa.plot_local_reachable_sets(fig = optional.fig);
 
-    set_figure_properties(options.fig, options.export_fig_cfg);
+    set_figure_properties(optional.fig, optional.export_fig_cfg);
 
     %export figure
-    if options.do_export
+    if optional.do_export
         file_ext = '.pdf';
-        folder_path = FileNameConstructor.gen_results_folder_path(scenario.options);
-        [~, file_name, ~] = fileparts(FileNameConstructor.get_mpa_name(scenario.options));
+        folder_path = FileNameConstructor.gen_results_folder_path(options);
+        [~, file_name, ~] = fileparts(FileNameConstructor.get_mpa_name(options));
         filepath = fullfile(folder_path, [file_name, '_local_reachable_sets', file_ext]);
-        export_fig(options.fig, filepath);
+        export_fig(optional.fig, filepath);
     end
 
-    if (~options.fig.Visible); close(options.fig); end
+    if (~optional.fig.Visible); close(optional.fig); end
 
 end

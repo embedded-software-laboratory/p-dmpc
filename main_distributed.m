@@ -6,13 +6,15 @@ function [result, scenario] = main_distributed(vehicle_id)
         warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
     end
 
+    % read config from disk
+    options = Config.load_from_file('Config.json');
+
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
-    dry_run = (scenario.options.environment == Environment.CpmLab || scenario.options.environment == Environment.SimulationDistributed); % TODO: Use dry run also for unified lab api?
-    plant = PlantFactory.get_experiment_interface(scenario.options.environment);
+    plant = PlantFactory.get_experiment_interface(options.environment);
     % set active vehicle IDs and initialize communication
-    plant.setup(scenario, scenario.options.path_ids, vehicle_id);
+    plant.setup(options, scenario, options.path_ids, vehicle_id);
 
     % In priority-based computation, vehicles communicate via ROS 2.
     % main.m will have deleted the ros2 message types before distributing the code.
@@ -21,11 +23,10 @@ function [result, scenario] = main_distributed(vehicle_id)
 
     % get HLC
     factory = HLCFactory();
-    factory.set_scenario(scenario);
 
-    if scenario.options.is_prioritized == true
-        hlc = factory.get_hlc(vehicle_id, dry_run, plant);
-        [result, scenario] = hlc.run();
+    if options.is_prioritized == true
+        hlc = factory.get_hlc(options, scenario, plant, vehicle_id, options.is_dry_run);
+        result = hlc.run();
     else
         warning("Use main_distributed.m only for pb-scenarios.")
     end

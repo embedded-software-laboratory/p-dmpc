@@ -1,10 +1,10 @@
-function plot_computation_time(results, options)
+function plot_computation_time(results, optional)
 
     arguments
         results (:, :) struct; % TODO object; TODO (variable, but clear) array meaning
-        options.do_export (1, 1) logical = true;
-        options.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
-        options.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
+        optional.do_export (1, 1) logical = true;
+        optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
+        optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
     nResults = length(results);
@@ -18,17 +18,17 @@ function plot_computation_time(results, options)
     for i = 1:nResults
         % make sure only one controller runtime is stored in the struct
         % assert(size(results(i).controller_runtime, 1) == 1); % TODO
-        runtimes(:, i) = squeeze(results(i).timings_general.controller(2,1,:));
-        nVehicles(i) = results(i).scenario.options.amount;
+        runtimes(:, i) = squeeze(results(i).timings_general.controller(2, 1, :));
+        nVehicles(i) = results(i).options.amount;
 
         bar(1:numel(runtimes), runtimes);
         % set labels
         xlabel('Time step $k$', 'Interpreter', 'LaTex');
         ylabel('Computation Time [s]', 'Interpreter', 'LaTex');
 
-        if options.do_export
+        if optional.do_export
 
-            results_folder = FileNameConstructor.gen_results_folder_path(results(i).scenario.options);
+            results_folder = FileNameConstructor.gen_results_folder_path(results(i).options);
             filepath = fullfile(results_folder, sprintf('computation_time_result_%d.pdf', i));
             set_figure_properties(fig_per_result, ExportFigConfig.paper('paperheight', 12))
             export_fig(fig_per_result, filepath);
@@ -43,7 +43,7 @@ function plot_computation_time(results, options)
     nVehicles(:) = nVehicles(order);
 
     % plot with axis on both sides and logarithmic scale
-    set(0, 'currentfigure', options.fig);
+    set(0, 'currentfigure', optional.fig);
     boxplot(runtimes, nVehicles, 'MedianStyle', 'line');
     set(gca, 'YScale', 'log');
 
@@ -51,14 +51,14 @@ function plot_computation_time(results, options)
     xlabel('Number of Vehicles', 'Interpreter', 'LaTex');
     ylabel('Computation Time [s]', 'Interpreter', 'LaTex');
 
-    set_figure_properties(options.fig, ExportFigConfig.paper('paperheight', 12))
+    set_figure_properties(optional.fig, ExportFigConfig.paper('paperheight', 12))
 
-    if options.do_export
+    if optional.do_export
         results_folder = FileNameConstructor.all_results();
         filepath = fullfile(results_folder, 'computation_time.pdf');
-        export_fig(options.fig, filepath);
+        export_fig(optional.fig, filepath);
     end
 
-    if (~options.fig.Visible); close(options.fig); end
+    if (~optional.fig.Visible); close(optional.fig); end
 
 end

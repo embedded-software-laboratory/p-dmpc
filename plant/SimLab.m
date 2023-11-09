@@ -21,18 +21,19 @@ classdef SimLab < Plant
             visualization_data_queue = obj.visualization_data_queue;
         end
 
-        function setup(obj, scenario, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) SimLab
+                options (1, 1) Config
                 scenario (1, 1) Scenario
-                all_vehicle_ids (1, :) uint8 = scenario.options.path_ids
-                controlled_vehicle_ids (1, :) uint8 = []
+                all_vehicle_ids (1, :) uint8
+                controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
 
             % if [] is passed in, matlab does not choose the default
             if isempty(all_vehicle_ids)
-                all_vehicle_ids = scenario.options.path_ids;
+                all_vehicle_ids = options.path_ids;
             end
 
             % only set controlled ids to all ids after all ids have been set
@@ -41,29 +42,23 @@ classdef SimLab < Plant
             end
 
             % check whether visualization data queue is needed and initialize if necessary
-            if (scenario.options.is_prioritized ...
-                    && scenario.options.compute_in_parallel ...
-                    && scenario.options.options_plot_online.is_active ...
+            if (options.is_prioritized ...
+                    && options.compute_in_parallel ...
+                    && options.options_plot_online.is_active ...
                     && isempty(obj.visualization_data_queue) ...
                 )
                 obj.visualization_data_queue = parallel.pool.DataQueue;
-                visualization_data_queue = obj.visualization_data_queue;
                 obj.use_visualization_data_queue = true;
             end
 
-            setup@Plant(obj, scenario, all_vehicle_ids, controlled_vehicle_ids);
-            obj.should_plot = obj.scenario.options.options_plot_online.is_active;
+            setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
+            obj.should_plot = obj.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue
-                obj.plotter = PlotterOnline(obj.scenario, obj.indices_in_vehicle_list);
+                obj.plotter = PlotterOnline(options, scenario, obj.indices_in_vehicle_list);
             end
 
         end
-
-        % TODO  function still in use?
-        %         function update(obj)
-        %             obj.cur_node = node(0, [obj.scenario.vehicles(:).trim_config], [obj.scenario.vehicles(:).x_start]', [obj.scenario.vehicles(:).y_start]', [obj.scenario.vehicles(:).yaw_start]', zeros(obj.scenario.options.amount,1), zeros(obj.scenario.options.amount,1));
-        %         end
 
         function [x0, trim_indices] = measure(obj, mpa)
             obj.step_timer = tic(); % Keep time to enable realtime plotting in apply
@@ -76,23 +71,20 @@ classdef SimLab < Plant
                 obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
             end
 
-            obj.k = k;
-
             if obj.should_plot
                 % visualize time step
-                % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, obj.k, tick_now);
+                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, k, tick_now);
 
                 if obj.use_visualization_data_queue
                     %filter plotting info for controlled vehicles before
                     %sending
-                    plotting_info = plotting_info.filter(obj.scenario.options.amount, obj.scenario.options.options_plot_online);
+                    plotting_info = plotting_info.filter(obj.amount, obj.options_plot_online);
                     send(obj.visualization_data_queue, plotting_info);
                 else
                     % wait to simulate realtime plotting
                     step_time = toc(obj.step_timer);
-                    pause(obj.scenario.options.dt_seconds - step_time);
+                    pause(obj.dt_seconds - step_time);
                     obj.plotter.plot(plotting_info);
                 end
 
@@ -123,11 +115,6 @@ classdef SimLab < Plant
                     got_stop = true;
                 end
 
-            end
-
-            if obj.k >= obj.scenario.options.k_end
-                disp('Simulation will be stopped as the defined simulation duration is reached.')
-                got_stop = true;
             end
 
         end

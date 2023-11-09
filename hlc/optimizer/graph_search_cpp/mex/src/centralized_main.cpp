@@ -59,10 +59,10 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 			if (inputs.size() < 2) throw MatlabException("Wrong number of arguments! (Must be 2 or more, is ", inputs.size(), ")");
 			if (inputs[1].getType() != matlab::data::ArrayType::VALUE_OBJECT) throw MatlabException("Data must be VALUE_OBJECT! (is ", inputs[1].getType(), ")");
 
-			if (Function == "InitializeWithScenario") {
-				if (inputs.size() != 3) throw MatlabException("Wrong number of arguments! (Must be 3, is ", inputs.size(), ")");
+			if (Function == "InitializeMex") {
+				if (inputs.size() != 4) throw MatlabException("Wrong number of arguments! (Must be 4, is ", inputs.size(), ")");
 				// GraphBasedPlanning::Evaluation::reset();
-				_config = std::make_shared<GraphBasedPlanning::ConfigData>(GraphBasedPlanning::make_config(inputs[1], inputs[2], _matlab));
+				_config = std::make_shared<GraphBasedPlanning::ConfigData>(GraphBasedPlanning::make_config(inputs[1], inputs[2], inputs[3], _matlab));
 				_mpa = std::make_shared<GraphBasedPlanning::MPA>(GraphBasedPlanning::make_mpa(inputs[2], _config, _matlab));
 
 				Printer::println("Initialized!");

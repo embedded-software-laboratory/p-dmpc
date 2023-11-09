@@ -8,7 +8,7 @@ classdef FcaPrioritizer < Prioritizer
         function obj = FcaPrioritizer()
         end
 
-        function [directed_coupling] = prioritize(~, ~, scenario, iter)
+        function [directed_coupling] = prioritize(~, iter, ~, options, ~)
             adjacency = iter.adjacency;
 
             %% assign priorities to vehicles based on future collision assessment
@@ -18,8 +18,8 @@ classdef FcaPrioritizer < Prioritizer
             collisions = zeros(1, nVeh);
 
             veh = Vehicle();
-            x_locals = [-1, -1, 1, 1] * (veh.Length / 2 + scenario.options.offset);
-            y_locals = [-1, 1, 1, -1] * (veh.Width / 2 + scenario.options.offset);
+            x_locals = [-1, -1, 1, 1] * (veh.Length / 2 + options.offset);
+            y_locals = [-1, 1, 1, -1] * (veh.Width / 2 + options.offset);
 
             for nveh = 1:nVeh - 1
                 % position of nveh

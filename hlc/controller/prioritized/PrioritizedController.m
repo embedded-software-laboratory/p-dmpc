@@ -14,27 +14,19 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         prioritizer
         weigher
-        coupler
 
         consider_parallel_coupling (1, 1) function_handle = @()[];
     end
 
     methods
 
-        function obj = PrioritizedController(scenario, plant)
-            obj = obj@HighLevelController(scenario, plant);
+        function obj = PrioritizedController(options, scenario, plant)
+            obj = obj@HighLevelController(options, scenario, plant);
 
-            if obj.scenario.options.use_cpp()
-                obj.optimizer = GraphSearchMexPB(obj.scenario, obj.mpa, obj.plant.indices_in_vehicle_list);
-            else
-                obj.optimizer = GraphSearch(obj.scenario, obj.mpa);
-            end
+            obj.prioritizer = Prioritizer.get_prioritizer(obj.options.priority);
+            obj.weigher = Weigher.get_weigher(obj.options.weight);
 
-            obj.coupler = Coupler();
-            obj.prioritizer = Prioritizer.get_prioritizer(obj.scenario.options.priority);
-            obj.weigher = Weigher.get_weigher(obj.scenario.options.weight);
-
-            if obj.scenario.options.isDealPredictionInconsistency
+            if obj.options.isDealPredictionInconsistency
                 obj.consider_parallel_coupling = @obj.parallel_coupling_reachability;
             else
                 obj.consider_parallel_coupling = @obj.parallel_coupling_previous_trajectory;
@@ -49,6 +41,13 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function init(obj)
             % initialize superclass
             init@HighLevelController(obj);
+
+            % construct optimizer
+            if obj.options.use_cpp()
+                obj.optimizer = GraphSearchMexPB(obj.options, obj.mpa, obj.scenario, obj.plant.indices_in_vehicle_list);
+            else
+                obj.optimizer = GraphSearch();
+            end
 
             % in priority-based computation, vehicles communicate via ROS 2
             timer = tic;
@@ -123,7 +122,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.iter.x0(vehicle_index, :) = states_measured(vehicle_index, :);
                 obj.iter.trim_indices(vehicle_index) = trims_measured(vehicle_index);
 
-                if obj.scenario.options.scenario_type == ScenarioType.circle
+                if obj.options.scenario_type == ScenarioType.circle
                     % In circle scenarios there are no lanelets
                     predicted_lanelets = [];
                 else
@@ -134,11 +133,16 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         states_measured(vehicle_index, state_indices.x), ...
                         states_measured(vehicle_index, state_indices.y), ...
                         trims_measured(vehicle_index), ...
-                        obj.scenario.options.dt_seconds ...
+                        obj.options.dt_seconds ...
                     );
 
                     % Compute the predicted lanelets of iVeh vehicle
-                    predicted_lanelets = get_predicted_lanelets(obj.scenario, vehicle_index, reference_trajectory_struct);
+                    predicted_lanelets = get_predicted_lanelets( ...
+                        obj.scenario.vehicles(vehicle_index).reference_path, ...
+                        obj.scenario.vehicles(vehicle_index).points_index, ...
+                        obj.scenario.vehicles(vehicle_index).lanelets_index, ...
+                        reference_trajectory_struct ...
+                    );
                 end
 
                 % get vehicles currently occupied areas
@@ -148,7 +152,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     states_measured(vehicle_index, state_indices.heading), ...
                     obj.scenario.vehicles(vehicle_index).Length, ...
                     obj.scenario.vehicles(vehicle_index).Width, ...
-                    obj.scenario.options.offset ...
+                    obj.options.offset ...
                 );
 
                 % for initial time step, reachable_sets and predicted areas do not exist yet
@@ -174,7 +178,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % to ensure that they are ready
             for vehicle_index = obj.plant.indices_in_vehicle_list
                 % loop over vehicles that read messages
-                other_vehicles = setdiff(1:obj.scenario.options.amount, vehicle_index);
+                other_vehicles = setdiff(1:obj.options.amount, vehicle_index);
 
                 for vehicle_index_subscribed = other_vehicles
                     % loop over controllers that are subscribed
@@ -227,7 +231,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             jVeh = obj.plant.indices_in_vehicle_list(1);
 
             % read messages from other vehicles
-            other_vehicle_indices = setdiff(1:obj.scenario.options.amount, obj.plant.indices_in_vehicle_list);
+            other_vehicle_indices = setdiff(1:obj.options.amount, obj.plant.indices_in_vehicle_list);
 
             % loop over vehicle from which the messages are read
             for kVeh = other_vehicle_indices
@@ -255,7 +259,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.iter.predicted_lanelets{kVeh} = latest_msg_i.predicted_lanelets';
 
                 % calculate the predicted lanelet boundary of vehicle kVeh based on its predicted lanelets
-                if obj.scenario.options.scenario_type ~= ScenarioType.circle
+                if obj.options.scenario_type ~= ScenarioType.circle
                     obj.iter.predicted_lanelet_boundary(kVeh, :) = get_lanelets_boundary( ...
                         obj.iter.predicted_lanelets{kVeh}, ...
                         obj.scenario.lanelet_boundary, ...
@@ -298,7 +302,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function plan_single_vehicle(obj, vehicle_idx)
 
             % only keep self
-            filter_self = false(1, obj.scenario.options.amount);
+            filter_self = false(1, obj.options.amount);
             filter_self(vehicle_idx) = true;
             iter_v = filter_iter(obj.iter, filter_self);
 
@@ -323,19 +327,19 @@ classdef (Abstract) PrioritizedController < HighLevelController
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
             obj.timing_per_vehicle(vehicle_idx).start('optimizer', obj.k);
-            info_v = obj.optimizer.run_optimizer(iter_v, vehicle_idx);
+            info_v = obj.optimizer.run_optimizer(vehicle_idx, iter_v, obj.mpa, obj.options);
             obj.timing_per_vehicle(vehicle_idx).stop('optimizer', obj.k);
 
             obj.timing_per_vehicle(vehicle_idx).start('fallback', obj.k);
 
             if info_v.is_exhausted
-                info_v = handle_graph_search_exhaustion(info_v, obj.scenario, iter_v, obj.mpa);
+                info_v = handle_graph_search_exhaustion(info_v, obj.options, iter_v, obj.mpa);
             end
 
             if info_v.needs_fallback
                 % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
 
-                switch obj.scenario.options.fallback_type
+                switch obj.options.fallback_type
                     case FallbackType.local_fallback
                         % local fallback: only vehicles in same subgraph take fallback
                         belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
@@ -344,16 +348,16 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         obj.info.vehs_fallback = unique(obj.info.vehs_fallback, 'stable');
                     case FallbackType.global_fallback
                         % global fallback: all vehicles take fallback
-                        obj.info.vehs_fallback = int32(1):int32(obj.scenario.options.amount);
+                        obj.info.vehs_fallback = int32(1):int32(obj.options.amount);
                     case FallbackType.no_fallback
                         % Fallback is disabled. Simulation will end.
-                        obj.info.vehs_fallback = int32(1):int32(obj.scenario.options.amount);
+                        obj.info.vehs_fallback = int32(1):int32(obj.options.amount);
                     otherwise
                         warning("Please define one of the follows as fallback strategy: 'no_fallback', 'local_fallback', and 'global_fallback'.")
                 end
 
             else
-                obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
+                obj.info = store_control_info(obj.info, info_v, obj.options, obj.mpa);
             end
 
             obj.timing_per_vehicle(vehicle_idx).stop('fallback', obj.k);
@@ -389,23 +393,23 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         function couple(obj)
             obj.iter.adjacency = obj.coupler.couple(obj.iter);
-            obj.iter.coupling_info = obj.coupler.calculate_coupling_info(obj.k, obj.scenario, obj.mpa, obj.iter);
+            obj.iter.coupling_info = obj.coupler.calculate_coupling_info(obj.k, obj.options, obj.scenario, obj.mpa, obj.iter);
         end
 
         function prioritize(obj)
-            obj.iter.directed_coupling = obj.prioritizer.prioritize(obj.k, obj.scenario, obj.iter);
+            obj.iter.directed_coupling = obj.prioritizer.prioritize(obj.iter, obj.k, obj.options, obj.scenario.intersection_center);
             obj.iter.priority_list = obj.prioritizer.get_priority_list(obj.iter.directed_coupling);
         end
 
         function reduce_computation_levels(obj)
             % weigh
-            obj.iter.weighted_coupling = obj.weigher.weigh(obj.k, obj.scenario, obj.mpa, obj.iter);
+            obj.iter.weighted_coupling = obj.weigher.weigh(obj.iter, obj.k, obj.options, obj.mpa.get_max_speed_of_mpa());
 
             % reduce by replacing with lanelet crossing area obstacles
             obj.iter.directed_coupling_reduced = obj.iter.directed_coupling;
             obj.iter.weighted_coupling_reduced = obj.iter.weighted_coupling;
 
-            if obj.scenario.options.scenario_type ~= ScenarioType.circle
+            if obj.options.scenario_type ~= ScenarioType.circle
                 % reduce only if no circle scenario
 
                 % get ignored couplings and lanelet_crossing_areas
@@ -416,7 +420,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                      obj.iter.lanelet_crossing_areas ...
                  ] = reduce_coupling_lanelet_crossing_area( ...
                     obj.iter, ...
-                    obj.scenario.options.strategy_enter_lanelet_crossing_area ...
+                    obj.options.strategy_enter_lanelet_crossing_area ...
                 );
 
             end
@@ -427,10 +431,10 @@ classdef (Abstract) PrioritizedController < HighLevelController
             [obj.CL_based_hierarchy, obj.iter.parl_groups_info, obj.iter.belonging_vector ...
              ] = form_parallel_groups( ...
                 obj.iter.weighted_coupling_reduced, ...
-                obj.scenario.options.max_num_CLs, ...
                 obj.iter.coupling_info, ...
-                method, ...
-                obj.scenario.options ...
+                obj.options.max_num_CLs, ...
+                obj.options.is_force_parallel_vehs_in_same_grp, ...
+                method ...
             );
             obj.timing_general.stop("group_vehs_time", obj.k);
 
@@ -474,7 +478,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             % initialize the returned variable with dimension 0 that it does
             % not extend the list of dynamic_obstacle_area
-            dynamic_obstacle_area = cell(0, obj.scenario.options.Hp);
+            dynamic_obstacle_area = cell(0, obj.options.Hp);
 
             if obj.k <= 1
                 return
@@ -518,7 +522,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             is_fallback_triggered = false;
 
             % preallocate cell array entries
-            dynamic_obstacle_area = cell(length(all_coupled_vehs_with_HP), obj.scenario.options.Hp);
+            dynamic_obstacle_area = cell(length(all_coupled_vehs_with_HP), obj.options.Hp);
 
             grp_idx = arrayfun(@(array) ismember(vehicle_idx, array.vertices), obj.iter.parl_groups_info);
             all_vehs_same_grp = obj.iter.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
@@ -543,6 +547,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     if ismember(vehicle_idx, obj.info.vehs_fallback)
                         % if the selected vehicle should take fallback
                         is_fallback_triggered = true;
+                        break
                     else
                         predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
                         dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
@@ -562,6 +567,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                         if ismember(vehicle_idx, obj.info.vehs_fallback)
                             is_fallback_triggered = true;
+                            break
                         else
                             predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
                             dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
@@ -604,13 +610,13 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             % preallocate cell array entries
             obstacles = cell(length(all_coupling_vehs_without_ROW), 1);
-            dynamic_obstacle_area = cell(length(all_coupling_vehs_without_ROW), obj.scenario.options.Hp);
+            dynamic_obstacle_area = cell(length(all_coupling_vehs_without_ROW), obj.options.Hp);
 
             for i_LP = 1:length(all_coupling_vehs_without_ROW)
                 veh_without_ROW = all_coupling_vehs_without_ROW(i_LP);
 
                 % strategies to let vehicle with the right-of-way consider vehicle without the right-of-way
-                switch obj.scenario.options.strategy_consider_veh_without_ROW
+                switch obj.options.strategy_consider_veh_without_ROW
                     case '1'
                         % do not consider
 
@@ -628,8 +634,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         % front to move forward.
 
                         if ( ...
-                                obj.scenario.options.scenario_type ~= ScenarioType.circle && ...
-                                obj.scenario.options.priority == PriorityStrategies.STAC_priority && ...
+                                obj.options.scenario_type ~= ScenarioType.circle && ...
+                                obj.options.priority == PriorityStrategies.STAC_priority && ...
                                 obj.iter.directed_coupling_reduced(vehicle_idx, veh_without_ROW) == 1 && ...
                                 obj.iter.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side && ...
                                 obj.iter.coupling_info{vehicle_idx, veh_without_ROW}.lanelet_relationship == LaneletRelationshipType.crossing ...
@@ -690,7 +696,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 % own vehicle and vehicles that are already remembered to take fallback
                 irrelevant_vehicles = union(vehicle_index_hlc, obj.info.vehs_fallback);
 
-                if obj.scenario.options.fallback_type == FallbackType.local_fallback
+                if obj.options.fallback_type == FallbackType.local_fallback
                     belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
                     sub_graph_fallback = belonging_vector_total(vehicle_index_hlc);
                     % vehicles in the subgraph to check for fallback
@@ -711,7 +717,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                 else
                     % vehicles in the total graph to check for fallback
-                    other_vehicles = 1:obj.scenario.options.amount;
+                    other_vehicles = 1:obj.options.amount;
                     % remove irrelevant vehicles which have not to be checked for fallback
                     other_vehicles = setdiff(other_vehicles, irrelevant_vehicles);
 
@@ -735,7 +741,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
         function plan_for_fallback(obj)
             % planning by using last priority and trajectories directly
 
-            tick_per_step = obj.scenario.options.tick_per_step + 1;
+            tick_per_step = obj.options.tick_per_step + 1;
 
             for vehicle_idx = obj.plant.indices_in_vehicle_list
 
@@ -744,7 +750,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 end
 
                 % initialize
-                info_v = ControlResultsInfo(1, obj.scenario.options.Hp, obj.plant.all_vehicle_ids(vehicle_idx));
+                info_v = ControlResultsInfo(1, obj.options.Hp, obj.plant.all_vehicle_ids(vehicle_idx));
 
                 info_v.tree = obj.info_old.tree{vehicle_idx};
                 info_v.tree_path = del_first_rpt_last(obj.info_old.tree_path(vehicle_idx, :));
@@ -753,16 +759,16 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                 % predicted trajectory of the next time step
                 y_pred_v = obj.info_old.y_predicted{vehicle_idx};
-                y_pred_v = [y_pred_v(tick_per_step + 1:end, :); y_pred_v(tick_per_step * (obj.scenario.options.Hp - 1) + 1:end, :)];
+                y_pred_v = [y_pred_v(tick_per_step + 1:end, :); y_pred_v(tick_per_step * (obj.options.Hp - 1) + 1:end, :)];
                 info_v.y_predicted = {y_pred_v};
 
                 % prepare output data
-                obj.info = store_control_info(obj.info, info_v, obj.scenario, obj.mpa);
+                obj.info = store_control_info(obj.info, info_v, obj.options, obj.mpa);
 
                 % data only need to be updated if isDealPredictionInconsistency
                 % is off, because only old reachable sets but no old predicted areas
                 % are used by controller
-                if obj.scenario.options.isDealPredictionInconsistency == false
+                if obj.options.isDealPredictionInconsistency == false
                     % send message
                     obj.predictions_communication{vehicle_idx}.send_message( ...
                         obj.k, ...

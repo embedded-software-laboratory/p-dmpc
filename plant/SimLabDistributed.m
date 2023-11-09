@@ -2,7 +2,6 @@ classdef SimLabDistributed < Plant
     % SIMLAB    Instance of experiment interface used for simulation in matlab.
 
     properties (Access = private)
-        plotter % own plotter to visualize if no visualization_data_queue is given
         should_plot
         ros2_node
         publisher
@@ -16,22 +15,23 @@ classdef SimLabDistributed < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, scenario, all_vehicle_ids, vehicle_ids)
+        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) SimLabDistributed
+                options (1, 1) Config
                 scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8
-                vehicle_ids (1, :) = scenario.options.path_ids
+                controlled_vehicle_ids (1, 1) uint8 = all_vehicle_ids(1)
             end
 
-            setup@Plant(obj, scenario, all_vehicle_ids, vehicle_ids);
-            obj.should_plot = obj.scenario.options.options_plot_online.is_active;
+            setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
+            obj.should_plot = obj.options_plot_online.is_active;
             obj.generate_plotting_info_msgs();
             obj.ros2_node = ros2node(['/plant_', num2str(obj.controlled_vehicle_ids(1))]);
-            options = struct("History", "keeplast", "Depth", 40, "Reliability", "reliable", "Durability", "transientlocal");
+            qos_options = struct("History", "keeplast", "Depth", 40, "Reliability", "reliable", "Durability", "transientlocal");
             topic_name_publish = ['/plant_plotting'];
-            obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "plotting_info/PlottingInfo", options);
+            obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "plotting_info/PlottingInfo", qos_options);
             obj.msg_to_be_sent = ros2message("plotting_info/PlottingInfo");
         end
 
@@ -45,17 +45,14 @@ classdef SimLabDistributed < Plant
                 obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
             end
 
-            obj.k = k;
-
             if obj.should_plot
                 % visualize time step
-                % tick_now = obj.scenario.options.tick_per_step + 2; % plot of next time step. set to 1 for plot of current time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, obj.k, tick_now);
+                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, k, tick_now);
 
                 %filter plotting info for controlled vehicles before
                 %sending
-                plotting_info = plotting_info.filter(obj.scenario.options.amount, obj.scenario.options.options_plot_online);
+                plotting_info = plotting_info.filter(obj.amount, obj.options_plot_online);
                 obj.compute_msg_to_be_sent(plotting_info)
 
                 send(obj.publisher, obj.msg_to_be_sent); % send rosmessage
@@ -103,14 +100,8 @@ classdef SimLabDistributed < Plant
 
         end
 
-        function got_stop = is_stop(obj)
+        function got_stop = is_stop(~)
             got_stop = false;
-
-            if obj.k >= obj.scenario.options.k_end
-                disp('Simulation will be stopped as the defined simulation duration is reached.')
-                got_stop = true;
-            end
-
         end
 
         function end_run(obj)

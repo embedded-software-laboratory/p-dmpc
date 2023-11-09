@@ -80,8 +80,8 @@ classdef EvaluationParl
 
             load(obj.results_full_path, 'result');
 
-            obj.nVeh = result.scenario.options.amount;
-            obj.dt_seconds = result.scenario.options.dt_seconds;
+            obj.nVeh = result.options.amount;
+            obj.dt_seconds = result.options.dt_seconds;
 
             if nargin == 2
                 obj.steps_ignored = max(1, floor(T_interval(1) / obj.dt_seconds));
@@ -101,7 +101,7 @@ classdef EvaluationParl
             obj.nSteps = length(result.vehs_fallback);
 
             obj.t_total = obj.dt_seconds * (obj.nSteps - obj.steps_ignored + 1);
-            %             if abs(obj.t_total-result.scenario.options.T_end)>obj.dt_seconds
+            %             if abs(obj.t_total-result.options.T_end)>obj.dt_seconds
             %                 warning('Simulation stops before reaching the specific time.')
             %             end
 
@@ -263,8 +263,8 @@ classdef EvaluationParl
             xlabel('\fontsize{14}{0}$x$ [m]', 'Interpreter', 'LaTex');
             ylabel('\fontsize{14}{0}$y$ [m]', 'Interpreter', 'LaTex');
 
-            xlim(result.scenario.options.plot_limits(1, :));
-            ylim(result.scenario.options.plot_limits(2, :));
+            xlim(result.options.plot_limits(1, :));
+            ylim(result.options.plot_limits(2, :));
             daspect([1 1 1])
 
             plot_lanelets(result.scenario.road_raw_data.lanelet, result.scenario.name)

@@ -22,20 +22,16 @@ classdef CpmLab < Plant
         function obj = CpmLab()
             obj = obj@Plant();
             obj.pos_init = false;
-
-            if ispc
-                error('You are using a Windows machine, please do not select lab mode!')
-            end
-
         end
 
-        function setup(obj, scenario, ~, controlled_vehicle_ids)
+        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) CpmLab
+                options (1, 1) Config
                 scenario (1, 1) Scenario
-                ~% all_vehicle_ids are automatically received from the LCC
-                controlled_vehicle_ids (1, :) uint8 = []
+                all_vehicle_ids (1, :) uint8 % used to validate amount of set vehicle ids
+                controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
 
             % Initialize data readers/writers...
@@ -61,23 +57,37 @@ classdef CpmLab < Plant
             obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
 
             % get middleware period and vehicle ids from vehicle state list message
-            [sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
+            [sample_for_setup, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
             if (sample_count == 0)
                 error('No vehicle state list received during CpmLab.setup!');
             end
 
-            state_list = sample(end);
+            state_list = sample_for_setup(end);
 
-            scenario.options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
-            % Middleware period for valid_after stamp
-            obj.dt_period_nanos = uint64(scenario.options.dt_seconds * 1e9);
+            % state_list.period_ms
+            % data type unsigned long long (IDL)
+            % aka uint64_t (C++) aka uint64 (Matlab)
 
-            if isempty(controlled_vehicle_ids)
-                controlled_vehicle_ids = state_list.active_vehicle_ids;
-            end
+            % take step time from state list
+            options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
 
-            setup@Plant(obj, scenario, state_list.active_vehicle_ids, controlled_vehicle_ids);
+            % middleware period for valid_after stamp
+            obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
+
+            % validate the amount of active_vehicle_ids
+            assert( ...
+                length(state_list.active_vehicle_ids) == ...
+                length(all_vehicle_ids) + options.manual_control_config.amount, ...
+                'Amount of active_vehicle_ids (%d) does not match expected amount (%d)!', ...
+                length(state_list.active_vehicle_ids), ...
+                length(all_vehicle_ids) + options.manual_control_config.amount ...
+            );
+
+            % boolean that extracts the controlled_vehicle_ids from active_vehicle_ids
+            is_controlled = controlled_vehicle_ids == all_vehicle_ids;
+
+            setup@Plant(obj, options, scenario, state_list.active_vehicle_ids, state_list.active_vehicle_ids(is_controlled));
         end
 
         function [x0, trim_indices] = measure(obj, mpa)
@@ -89,7 +99,7 @@ classdef CpmLab < Plant
 
             state_list = obj.sample(end).state_list;
 
-            x0 = zeros(obj.scenario.options.amount + obj.scenario.options.manual_control_config.amount, 4);
+            x0 = zeros(obj.amount + obj.manual_control_config.amount, 4);
 
             % for first iteration use real poses
             if (obj.pos_init == false)
@@ -111,7 +121,7 @@ classdef CpmLab < Plant
                 [~, trim_indices] = obj.measure_node(mpa);
                 obj.pos_init = true;
             else
-                [x0(1:obj.scenario.options.amount, :), trim_indices] = obj.measure_node(mpa); % get cav states from current node
+                [x0(1:obj.amount, :), trim_indices] = obj.measure_node(mpa); % get cav states from current node
             end
 
             % Always measure HDV
@@ -119,8 +129,8 @@ classdef CpmLab < Plant
 
             for index = 1:length(state_list)
 
-                if ismember(state_list(index).vehicle_id, obj.scenario.options.manual_control_config.hdv_ids)
-                    list_index = obj.scenario.options.amount + hdv_index;
+                if ismember(state_list(index).vehicle_id, obj.manual_control_config.hdv_ids)
+                    list_index = obj.amount + hdv_index;
                     hdv_index = hdv_index + 1;
                     x0(list_index, 1) = state_list(index).pose.x;
                     x0(list_index, 2) = state_list(index).pose.y;
@@ -132,19 +142,18 @@ classdef CpmLab < Plant
 
         end
 
-        function apply(obj, info, ~, k, mpa)
+        function apply(obj, info, ~, ~, mpa)
             y_pred = info.y_predicted;
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
                 obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
             end
 
-            obj.k = k;
             % calculate vehicle control messages
-            obj.out_of_map_limits = false(obj.scenario.options.amount, 1);
+            obj.out_of_map_limits = false(obj.amount, 1);
 
             for iVeh = obj.indices_in_vehicle_list
-                n_traj_pts = obj.scenario.options.Hp;
+                n_traj_pts = obj.Hp;
                 n_predicted_points = size(y_pred{iVeh}, 1);
                 idx_predicted_points = 1:n_predicted_points / n_traj_pts:n_predicted_points;
                 trajectory_points(1:n_traj_pts) = TrajectoryPoint;

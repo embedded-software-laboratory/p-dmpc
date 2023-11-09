@@ -2,13 +2,10 @@ classdef Scenario
     % SCENARIO  Scenario class
 
     properties (Access = public)
+        model = []; % instance of MuCar, BicycleModel or VehicleModel
         vehicles = []; % array of Vehicle objects
-        obstacles = {}; % static obstacles = {[xs;ys];...}
-        lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
-        options Config;
-
-        model = [];
-        dynamic_obstacle_area = {};
+        obstacles = {}; % (n_obstacle, 1) static obstacles = {[x;y];...}
+        dynamic_obstacle_area = {}; % (n_obstacle, Hp) dynamic obstacles = {[x;y],...}
 
         lanelets; % coordinates of all lanelets
         intersection_lanelets; % IDs of intersection lanelets
@@ -18,10 +15,6 @@ classdef Scenario
         lanelet_relationships; % relationship between two adjacent lanelets
         adjacency_lanelets; % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
-        random_stream = RandStream('mt19937ar'); % for reproducibility
-    end
-
-    properties (Dependent)
     end
 
     methods
@@ -29,27 +22,19 @@ classdef Scenario
         function obj = Scenario()
         end
 
-        function iter = get_next_dynamic_obstacles(obj, iter, iStep)
-            % GET_NEXT_DYNAMIC_OBSTACLES   Filter dynamic obstacles in scenario by current time step and prediction horizon length.
-
-            if ~isempty(obj.dynamic_obstacle_area)
-                iter.dynamic_obstacle_area = obj.dynamic_obstacle_area(:, iStep:iStep + obj.options.Hp - 1);
-            end
-
-        end
-
-        function plot(obj, options)
+        function plot(obj, options, optional)
 
             arguments
                 obj (1, 1) Scenario;
-                options.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
+                options (1, 1) Config;
+                optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
             end
 
-            set(0, 'CurrentFigure', options.fig);
+            set(0, 'CurrentFigure', optional.fig);
             daspect([1 1 1]);
 
-            xlim(obj.options.plot_limits(1, :));
-            ylim(obj.options.plot_limits(2, :));
+            xlim(options.plot_limits(1, :));
+            ylim(options.plot_limits(2, :));
 
             colors = rwth_color_order();
 
@@ -63,7 +48,7 @@ classdef Scenario
                 );
 
                 % vehicle rectangle
-                veh.plot(colors(iVeh,:));
+                veh.plot(colors(iVeh, :));
             end
 
             % Obstacles
@@ -74,7 +59,7 @@ classdef Scenario
 
             % lanelets
             if ~isempty(obj.road_raw_data) && ~isempty(obj.road_raw_data.lanelet)
-                plot_lanelets(obj.road_raw_data.lanelet, obj.options.scenario_type);
+                plot_lanelets(obj.road_raw_data.lanelet, options.scenario_type);
             end
 
             xlabel('$x$ [m]')

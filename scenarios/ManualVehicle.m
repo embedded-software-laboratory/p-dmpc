@@ -17,8 +17,7 @@ classdef ManualVehicle
 
     methods
 
-        function obj = ManualVehicle(id, scenario)
-            options = scenario.options;
+        function obj = ManualVehicle(id, options, road_raw_data)
             options.mpa_type = MpaType.single_speed;
             options.is_prioritized = true;
             options.is_save_mpa = true;
@@ -26,7 +25,7 @@ classdef ManualVehicle
             options.recursive_feasibility = false;
             options.is_bounded_reachable_set_used = true;
             obj.options = options;
-            obj.road_raw_data = scenario.road_raw_data;
+            obj.road_raw_data = road_raw_data;
             obj.ID = id;
             obj.model = BicycleModel(obj.Lf, obj.Lr);
             obj.mpa = MotionPrimitiveAutomaton(obj.model, options);

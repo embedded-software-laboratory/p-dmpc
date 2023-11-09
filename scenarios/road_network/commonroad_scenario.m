@@ -1,29 +1,23 @@
-function scenario = commonroad(options)
+function scenario = commonroad_scenario(amount, path_ids)
     % Commonroad_Scenario
 
     scenario = Scenario();
 
-    % read from optionos
-    scenario.options = options;
-
-    options.is_allow_non_convex = true;
-
     % get road data
     road_data = RoadDataCommonRoad().get_road_data();
-    assignin('base', 'road_data', road_data);
     scenario.lanelets = road_data.lanelets;
     scenario.intersection_lanelets = road_data.intersection_lanelets;
     scenario.lanelet_boundary = road_data.lanelet_boundary;
     scenario.road_raw_data = road_data.road_raw_data;
     scenario.lanelet_relationships = road_data.lanelet_relationships;
 
-    nVeh = options.amount;
+    nVeh = amount;
 
     for iveh = 1:nVeh
 
         veh = Vehicle();
 
-        reference_path_struct = generate_reference_path_loop(options.path_ids(iveh), scenario.lanelets); % function to generate refpath based on CPM Lab road geometry
+        reference_path_struct = generate_reference_path_loop(path_ids(iveh), scenario.lanelets); % function to generate refpath based on CPM Lab road geometry
         veh.lanelets_index = reference_path_struct.lanelets_index;
         lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
 
@@ -48,7 +42,6 @@ function scenario = commonroad(options)
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
-    scenario.options.plot_limits = [0, 4.5; 0, 4];
     scenario.model = BicycleModel(veh.Lf, veh.Lr);
 
 end

@@ -2,28 +2,27 @@ classdef GraphSearch < OptimizerInterface
 
     methods
 
-        function obj = GraphSearch(scenario, mpa)
-            obj = obj@OptimizerInterface(scenario, mpa);
+        function obj = GraphSearch()
+            obj = obj@OptimizerInterface();
         end
 
-        function info_v = run_optimizer(obj, iter, ~)
+        function info_v = run_optimizer(obj, ~, iter, mpa, options)
             % execute sub controller for 1-veh scenario
-            info_v = obj.do_graph_search(iter);
+            info_v = obj.do_graph_search(iter, mpa, options);
         end
 
     end
 
     methods (Access = private)
 
-        function info = do_graph_search(obj, iter)
+        function info = do_graph_search(~, iter, mpa, options)
             % GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
             %
             % OUTPUT:
             %   is_exhausted: (true/false) whether graph search is exhausted or not
-            %
-            Hp = obj.scenario.options.Hp;
+
             % initialize variable to store control results
-            info = ControlResultsInfo(iter.amount, Hp, iter.vehicle_ids);
+            info = ControlResultsInfo(iter.amount, options.Hp, iter.vehicle_ids);
 
             shapes_tmp = cell(iter.amount, 0);
             % Create tree with root node
@@ -41,13 +40,13 @@ classdef GraphSearch < OptimizerInterface
             pq = PriorityQueue();
             pq.push(1, 0);
 
-            if obj.scenario.options.is_allow_non_convex && iter.amount == 1
+            if options.is_allow_non_convex && iter.amount == 1
                 % currently two methods for intersecting check are available:
                 % 1. separating axis theorem (SAT) works only for convex polygons
                 % 2. InterX: works for both convex and non-convex polygons
                 method = 'InterX';
                 % if 'InterX' is used, all obstacles can be vectorized to speed up the collision checking
-                [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter, obj.scenario);
+                [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter, options.Hp);
             else
                 method = 'sat';
                 % vectorization is currently not supported for 'sat'
@@ -70,7 +69,7 @@ classdef GraphSearch < OptimizerInterface
                 end
 
                 % Eval edge
-                [is_valid, shapes] = eval_edge_exact(iter, obj.scenario, obj.mpa, info.tree, cur_node_id, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
+                [is_valid, shapes] = eval_edge_exact(iter, options, mpa, info.tree, cur_node_id, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
 
                 if ~is_valid
                     % could remove node from tree here
@@ -84,8 +83,8 @@ classdef GraphSearch < OptimizerInterface
 
                 shapes_tmp(:, cur_node_id) = shapes;
 
-                if info.tree.k(cur_node_id) == Hp
-                    y_pred = return_path_to(cur_node_id, info.tree, obj.mpa);
+                if info.tree.k(cur_node_id) == options.Hp
+                    y_pred = return_path_to(cur_node_id, info.tree, mpa);
                     info.y_predicted = y_pred;
                     info.shapes = return_path_area(shapes_tmp, info.tree, cur_node_id);
                     info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
@@ -98,11 +97,11 @@ classdef GraphSearch < OptimizerInterface
                 else
                     % Expand chosen node
                     new_open_nodes = expand_node( ...
-                        obj.scenario ...
-                        , obj.mpa ...
-                        , iter ...
-                        , cur_node_id ...
-                        , info ...
+                        options, ...
+                        mpa, ...
+                        iter, ...
+                        cur_node_id, ...
+                        info ...
                     );
                     g_weight = 1;
                     h_weight = 1;

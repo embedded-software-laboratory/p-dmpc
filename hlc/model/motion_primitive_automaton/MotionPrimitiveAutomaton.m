@@ -969,22 +969,22 @@ classdef MotionPrimitiveAutomaton
 
         end
 
-        function plot(obj, options)
+        function plot(obj, optional)
 
             arguments
                 obj (1, 1) MotionPrimitiveAutomaton;
-                options.y_lim (1, 2) double = [-0.1, 1.0];
-                options.x_lim (1, 2) double = rad2deg(pi / 5 * [-1, 1]);
-                options.k (1, 1) double = 1;
-                options.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
-                options.with_labels (1, 1) logical = true;
+                optional.y_lim (1, 2) double = [-0.1, 1.0];
+                optional.x_lim (1, 2) double = rad2deg(pi / 5 * [-1, 1]);
+                optional.k (1, 1) double = 1;
+                optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
+                optional.with_labels (1, 1) logical = true;
             end
 
-            set(0, "CurrentFigure", options.fig);
+            set(0, "CurrentFigure", optional.fig);
 
             trim_inputs = obj.trims;
 
-            trim_adjacency = obj.transition_matrix_single(:, :, options.k);
+            trim_adjacency = obj.transition_matrix_single(:, :, optional.k);
 
             angle = rad2deg([trim_inputs.steering]);
             speed = [trim_inputs.speed];
@@ -998,32 +998,32 @@ classdef MotionPrimitiveAutomaton
                 EdgeAlpha = 1 ...
             );
 
-            if options.with_labels
+            if optional.with_labels
                 xlabel('Steering Angle $\delta$ [$^{\circ}$]', Interpreter = 'latex');
                 ylabel('Speed $\mathrm{v}$ [m/s]', Interpreter = 'latex');
             end
 
-            if isfield(options, 'x_lim')
-                xlim(options.x_lim);
+            if isfield(optional, 'x_lim')
+                xlim(optional.x_lim);
             end
 
-            if isfield(options, 'y_lim')
-                ylim(options.y_lim);
+            if isfield(optional, 'y_lim')
+                ylim(optional.y_lim);
             end
 
             grid on
 
         end
 
-        function plot_over_time(obj, options)
+        function plot_over_time(obj, optional)
 
             arguments
                 obj (1, 1) MotionPrimitiveAutomaton;
-                options.y_lim (1, 2) double = [-0.1, 1.1];
-                options.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
+                optional.y_lim (1, 2) double = [-0.1, 1.1];
+                optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
             end
 
-            set(0, "CurrentFigure", options.fig);
+            set(0, "CurrentFigure", optional.fig);
 
             Hp = size(obj.transition_matrix_single, 3);
             tiledLayoutHandle = tiledlayout( ...
@@ -1034,10 +1034,10 @@ classdef MotionPrimitiveAutomaton
 
             for k = 1:Hp
                 nexttile
-                obj.plot(fig = options.fig, ...
+                obj.plot(fig = optional.fig, ...
                     k = k, ...
                     with_labels = false, ...
-                    y_lim = options.y_lim ...
+                    y_lim = optional.y_lim ...
                 );
                 title(sprintf("$t=k+%d$", k - 1), 'Interpreter', 'latex');
             end
@@ -1051,16 +1051,16 @@ classdef MotionPrimitiveAutomaton
 
         end
 
-        function plot_local_reachable_sets(obj, options)
+        function plot_local_reachable_sets(obj, optional)
             % PLOT_LOCAL_REACHABLE_SETS Visualize the reachable sets starting from
             % different root trims.
 
             arguments
                 obj (1, 1) MotionPrimitiveAutomaton;
-                options.fig (1, 1) matlab.ui.Figure = figure(Name = "ReachableSets", Visible = "on");
+                optional.fig (1, 1) matlab.ui.Figure = figure(Name = "ReachableSets", Visible = "on");
             end
 
-            set(0, "CurrentFigure", options.fig);
+            set(0, "CurrentFigure", optional.fig);
 
             n_trims = size(obj.local_reachable_sets, 1);
             Hp = size(obj.local_reachable_sets, 2);

@@ -1,6 +1,8 @@
 classdef (Abstract) HighLevelController < handle
     %TODO check for private/protected vars
     properties (Access = public)
+        % config
+        options;
         % scenario
         scenario;
 
@@ -10,7 +12,6 @@ classdef (Abstract) HighLevelController < handle
 
         optimizer;
         mpa;
-        controller_name;
         result;
         k;
         iter;
@@ -26,6 +27,8 @@ classdef (Abstract) HighLevelController < handle
         timing_general (1, 1) ControllerTiming;
         % timing_per_veh stores the timings per vehicle
         timing_per_vehicle (1, :) ControllerTiming;
+
+        coupler
 
         % old control results used for taking a fallback
         info_old
@@ -48,45 +51,29 @@ classdef (Abstract) HighLevelController < handle
 
     methods
         % Set default settings
-        function obj = HighLevelController(scenario, plant)
-            % Some default values are invalid and thus they're easily spotted when they haven't been explicitly set
-            % We can then either throw an exception or use an arbitrary option when we find a default value
-            % Or should we make valid and useful default values?
-            obj.k = 0;
-            obj.controller_name = '';
-            obj.got_stop = false;
-            obj.total_fallback_times = 0;
+        function obj = HighLevelController(options, scenario, plant)
+            % remove step time from options to avoid usage
+            % before it is received from the plant
+            options.dt_seconds = [];
+
+            obj.options = options;
             obj.scenario = scenario;
-            obj.timing_general = ControllerTiming();
             obj.plant = plant;
 
-            obj.mpa = MotionPrimitiveAutomaton(scenario.model, scenario.options);
+            obj.k = 0;
+            obj.got_stop = false;
+            obj.total_fallback_times = 0;
 
-            initial_state = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
+            obj.coupler = Coupler();
+            obj.timing_general = ControllerTiming();
 
             for iVeh = obj.plant.indices_in_vehicle_list
-                % initialize vehicle ids of all vehicles
-                scenario.vehicles(iVeh).trim_config = initial_state;
                 obj.timing_per_vehicle(iVeh) = ControllerTiming();
-
-            end
-
-            % create fallback for first time step
-            obj.info_old = ControlResultsInfo(scenario.options.amount, scenario.options.Hp, plant.all_vehicle_ids);
-
-            for vehicle_idx = obj.plant.indices_in_vehicle_list
-                k = 1;
-                x0 = [[scenario.vehicles.x_start]', [scenario.vehicles.y_start]', [scenario.vehicles.yaw_start]'];
-                trim_indices = [scenario.vehicles.trim_config];
-                obj.info_old.tree{vehicle_idx} = Tree(x0(vehicle_idx, 1), x0(vehicle_idx, 2), x0(vehicle_idx, 3), trim_indices(vehicle_idx), k, inf, inf);
-                obj.info_old.tree_path(vehicle_idx, :) = ones(1, scenario.options.Hp + 1);
-                obj.info_old.y_predicted(vehicle_idx) = {repmat([x0(vehicle_idx, 1), x0(vehicle_idx, 2), x0(vehicle_idx, 3), trim_indices(vehicle_idx)], ...
-                                                             (scenario.options.tick_per_step + 1) * scenario.options.Hp, 1)};
             end
 
         end
 
-        function [result, scenario] = run(obj)
+        function result = run(obj)
             % run the controller
 
             % object that executes the specified function on destruction
@@ -107,11 +94,6 @@ classdef (Abstract) HighLevelController < handle
 
             % specify returned variables
             result = obj.result;
-            scenario = obj.scenario;
-        end
-
-        function set_controller_name(obj, name)
-            obj.controller_name = name;
         end
 
     end
@@ -121,21 +103,43 @@ classdef (Abstract) HighLevelController < handle
         function init(obj)
             % initialize high level controller itself
 
-            % initialize all manually controlled vehicles
-            for hdv_id = obj.scenario.options.manual_control_config.hdv_ids
-                obj.manual_vehicles = ManualVehicle(hdv_id, obj.scenario);
-            end
+            % initialize result struct
+            obj.result = get_result_struct(obj.options, obj.scenario, obj.plant.controlled_vehicle_ids);
+
+            % construct mpa
+            obj.mpa = MotionPrimitiveAutomaton(obj.scenario.model, obj.options);
 
             % initialize iteration data
-            obj.iter = IterationData(obj.scenario, obj.plant.all_vehicle_ids);
+            obj.iter = IterationData(obj.options, obj.scenario, obj.plant.all_vehicle_ids);
 
-            % initialize result struct
-            obj.result = get_result_struct(obj);
+            % create old control results info in case of fallback at first time step
+            obj.info_old = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_ids);
+
+            % find initial trim from mpa (equal for all vehicles)
+            initial_trim = find([obj.mpa.trims.speed] == 0 & [obj.mpa.trims.steering] == 0, 1);
+
+            % fill control results info for each controlled vehicle with scenario information
+            for vehicle_idx = obj.plant.indices_in_vehicle_list
+                % get initial pose from scenario
+                initial_pose = [ ...
+                                    obj.scenario.vehicles(vehicle_idx).x_start, ...
+                                    obj.scenario.vehicles(vehicle_idx).y_start, ...
+                                    obj.scenario.vehicles(vehicle_idx).yaw_start ...
+                                ];
+                % use scenario information to initialize info_old
+                obj.info_old.tree{vehicle_idx} = Tree(initial_pose(1), initial_pose(2), initial_pose(3), initial_trim, 1, inf, inf);
+                obj.info_old.tree_path(vehicle_idx, :) = ones(1, obj.options.Hp + 1);
+                obj.info_old.y_predicted(vehicle_idx) = {repmat( ...
+                                                             [initial_pose(1), initial_pose(2), initial_pose(3), initial_trim], ...
+                                                             (obj.options.tick_per_step + 1) * obj.options.Hp, ...
+                                                             1 ...
+                                                         )};
+            end
 
             % record the number of time steps that vehicles
             % consecutively stop and take fallback
-            obj.vehs_stop_duration = zeros(obj.scenario.options.amount, 1);
-            obj.vehs_fallback_times = zeros(1, obj.scenario.options.amount);
+            obj.vehs_stop_duration = zeros(obj.options.amount, 1);
+            obj.vehs_fallback_times = zeros(1, obj.options.amount);
         end
 
         function update_controlled_vehicles_traffic_info(obj, states_measured, trims_measured)
@@ -156,7 +160,7 @@ classdef (Abstract) HighLevelController < handle
                     states_measured(iVeh, idx.heading), ...
                     obj.scenario.vehicles(iVeh).Length, ...
                     obj.scenario.vehicles(iVeh).Width, ...
-                    obj.scenario.options.offset ...
+                    obj.options.offset ...
                 );
 
                 % get occupied area of emergency maneuvers for vehicle iVeh
@@ -182,7 +186,7 @@ classdef (Abstract) HighLevelController < handle
                     states_measured(iVeh, idx.x), ...
                     states_measured(iVeh, idx.y), ...
                     trims_measured(iVeh), ...
-                    obj.scenario.options.dt_seconds ...
+                    obj.options.dt_seconds ...
                 );
 
                 % reference speed
@@ -191,10 +195,15 @@ classdef (Abstract) HighLevelController < handle
                 obj.iter.reference_trajectory_points(iVeh, :, :) = reference_trajectory_struct.path;
                 obj.iter.reference_trajectory_index(iVeh, :, :) = reference_trajectory_struct.points_index;
 
-                if obj.scenario.options.scenario_type ~= ScenarioType.circle
+                if obj.options.scenario_type ~= ScenarioType.circle
 
                     % compute the predicted lanelets of vehicle iVeh
-                    predicted_lanelets = get_predicted_lanelets(obj.scenario, iVeh, reference_trajectory_struct);
+                    predicted_lanelets = get_predicted_lanelets( ...
+                        obj.scenario.vehicles(iVeh).reference_path, ...
+                        obj.scenario.vehicles(iVeh).points_index, ...
+                        obj.scenario.vehicles(iVeh).lanelets_index, ...
+                        reference_trajectory_struct ...
+                    );
                     obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;
 
                     % calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
@@ -206,7 +215,7 @@ classdef (Abstract) HighLevelController < handle
                     );
 
                     % constrain the reachable sets by the boundaries of the predicted lanelets
-                    if obj.scenario.options.is_bounded_reachable_set_used
+                    if obj.options.is_bounded_reachable_set_used
                         obj.iter.reachable_sets(iVeh, :) = bound_reachable_sets( ...
                             obj.iter.reachable_sets(iVeh, :), ...
                             obj.iter.predicted_lanelet_boundary{iVeh, 3} ...
@@ -216,7 +225,7 @@ classdef (Abstract) HighLevelController < handle
                 end
 
                 % force convex reachable sets if non-convex polygons are not allowed
-                if ~obj.scenario.options.is_allow_non_convex
+                if ~obj.options.is_allow_non_convex
                     obj.iter.reachable_sets(iVeh, :) = cellfun(@(c) convhull(c), ...
                         obj.iter.reachable_sets(iVeh, :), ...
                         'UniformOutput', false ...
@@ -272,6 +281,15 @@ classdef (Abstract) HighLevelController < handle
 
             % start initialization timer
             obj.timing_general.start("hlc_init_all");
+
+            % receive step time from the plant
+            obj.options.dt_seconds = obj.plant.get_step_time();
+
+            % initialize all manually controlled vehicles
+            % (belongs to initialization of the scenario)
+            for hdv_id = obj.options.manual_control_config.hdv_ids
+                obj.manual_vehicles = ManualVehicle(hdv_id, obj.options, obj.scenario.road_raw_data);
+            end
 
             % initialize high level controller itself
             obj.init();
@@ -338,7 +356,7 @@ classdef (Abstract) HighLevelController < handle
                 % reset iter obstacles to scenario default/static obstacles
                 obj.iter.obstacles = obj.scenario.obstacles;
                 % important: reset lanelet crossing areas
-                obj.iter.lanelet_crossing_areas = repmat({{}}, obj.scenario.options.amount, 1);
+                obj.iter.lanelet_crossing_areas = repmat({{}}, obj.options.amount, 1);
 
                 % Apply control action
                 % -------------------------------------------------------------------------
@@ -347,6 +365,12 @@ classdef (Abstract) HighLevelController < handle
                 % Check for stop signal
                 % -------------------------------------------------------------------------
                 obj.got_stop = obj.plant.is_stop() || obj.got_stop;
+
+                if ~obj.got_stop && obj.k >= obj.options.k_end
+                    disp('The HLC will be stopped as the defined experiment duration is reached.')
+                    obj.got_stop = true;
+                end
+
             end
 
         end
@@ -359,10 +383,10 @@ classdef (Abstract) HighLevelController < handle
             idx = indices();
 
             % calculate adjacency between CAVs and HDVs and HDV reachable sets
-            for iHdv = 1:obj.scenario.options.manual_control_config.amount
+            for iHdv = 1:obj.options.manual_control_config.amount
 
                 % determine HDV lanelet id based on HDV's position
-                state_hdv = states_measured(obj.scenario.options.amount + iHdv, :);
+                state_hdv = states_measured(obj.options.amount + iHdv, :);
                 lanelet_id_hdv = map_position_to_closest_lanelets( ...
                     obj.scenario.lanelets, ...
                     state_hdv(idx.x), ...
@@ -436,7 +460,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % reset fallback counter of vehicles that have no fallback
                 obj.vehs_fallback_times(setdiff( ...
-                    1:obj.scenario.options.amount, ...
+                    1:obj.options.amount, ...
                     obj.info.vehs_fallback ...
                 )) = 0;
 
@@ -445,7 +469,7 @@ classdef (Abstract) HighLevelController < handle
                 return
             end
 
-            if obj.scenario.options.fallback_type == FallbackType.no_fallback
+            if obj.options.fallback_type == FallbackType.no_fallback
                 % disabled fallback
                 disp('Fallback is disabled. Simulation ends.')
                 return
@@ -455,7 +479,7 @@ classdef (Abstract) HighLevelController < handle
             str_trigger_vehicles = sprintf(' %d', find(obj.info.needs_fallback));
             str_fallback_vehicles = sprintf(' %d', obj.info.vehs_fallback);
             fprintf('%s triggered by%s affects%s\n', ...
-                obj.scenario.options.fallback_type, ...
+                obj.options.fallback_type, ...
                 str_trigger_vehicles, ...
                 str_fallback_vehicles ...
             )
@@ -487,7 +511,7 @@ classdef (Abstract) HighLevelController < handle
             obj.vehs_stop_duration(~is_vehicle_stopped) = 0;
 
             % check for deadlock
-            threshold_stop_steps = 3 * obj.scenario.options.Hp;
+            threshold_stop_steps = 3 * obj.options.Hp;
             is_vehicle_deadlocked = (obj.vehs_stop_duration > threshold_stop_steps);
 
             % TODO n_coupled_deadlocked_vehicles
@@ -500,7 +524,7 @@ classdef (Abstract) HighLevelController < handle
 
             % update total number of steps and total runtime
             obj.result.nSteps = obj.k;
-            obj.result.t_total = obj.k * obj.scenario.options.dt_seconds;
+            obj.result.t_total = obj.k * obj.options.dt_seconds;
 
             % store iteration data
             obj.result.obstacles = obj.iter.obstacles;
@@ -539,14 +563,14 @@ classdef (Abstract) HighLevelController < handle
             if ~obj.is_run_succeeded
                 % force saving of unfinished results for inspection
                 disp("Saving of unfinished results on error.")
-                obj.scenario.options.should_save_result = true;
+                obj.options.should_save_result = true;
 
                 % define output path on error
                 obj.result.output_path = 'results/unfinished_result.mat';
             else
                 % define output path on success
                 obj.result.output_path = FileNameConstructor.get_results_full_path( ...
-                    obj.scenario.options, ...
+                    obj.options, ...
                     obj.plant.indices_in_vehicle_list ...
                 );
             end
@@ -577,7 +601,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.result.timings_per_vehicle(iVeh) = obj.timing_per_vehicle(iVeh).get_all_timings();
             end
 
-            if obj.scenario.options.should_reduce_result
+            if obj.options.should_reduce_result
                 % delete large data fields of to reduce file size
 
                 obj.result.mpa = [];
@@ -592,7 +616,7 @@ classdef (Abstract) HighLevelController < handle
 
             end
 
-            if ~obj.scenario.options.should_save_result
+            if ~obj.options.should_save_result
                 % return results should not be saved
                 fprintf('As required, results were not saved\n');
                 return

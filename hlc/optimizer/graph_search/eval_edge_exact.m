@@ -1,8 +1,8 @@
-function [is_valid, shapes] = eval_edge_exact(iter, scenario, mpa, tree, iNode, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
+function [is_valid, shapes] = eval_edge_exact(iter, options, mpa, tree, iNode, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
     % EVAL_EDGE_EXACT   Evaluate if step is valid.
     %
     % INPUT:
-    %   scenario: instance of the class Scenario
+    %   options: instance of the class Config
     %
     %   tree: instance of the class Tree
     %
@@ -58,7 +58,7 @@ function [is_valid, shapes] = eval_edge_exact(iter, scenario, mpa, tree, iNode, 
         shape_y_without_offset = s * maneuver.area_without_offset(1, :) + c * maneuver.area_without_offset(2, :) + pY(iVeh);
         shapes_without_offset{iVeh} = [shape_x_without_offset; shape_y_without_offset];
 
-        if tree.k(iNode) == scenario.options.Hp
+        if tree.k(iNode) == options.Hp
             % with larger offset
             shape_x_for_boundary_check = c * maneuver.area_large_offset(1, :) - s * maneuver.area_large_offset(2, :) + pX(iVeh);
             shape_y_for_boundary_check = s * maneuver.area_large_offset(1, :) + c * maneuver.area_large_offset(2, :) + pY(iVeh);
@@ -74,7 +74,7 @@ function [is_valid, shapes] = eval_edge_exact(iter, scenario, mpa, tree, iNode, 
             case 'sat'
                 % check if collides with other vehicles' predicted trajectory or lanelets
 
-                if collision_with(iter, iVeh, shapes, shapes_for_boundary_check, scenario, iStep)
+                if collision_with(iter, iVeh, shapes, shapes_for_boundary_check, iStep)
                     is_valid = false;
                     return;
                 end
@@ -84,7 +84,7 @@ function [is_valid, shapes] = eval_edge_exact(iter, scenario, mpa, tree, iNode, 
                 % Note1: Shape must be closed!
                 % Note2: The collision check order is important.
                 % Normally, check collision with lanelet boundary last would be better.
-                if ~scenario.options.is_free_flow
+                if ~options.is_free_flow
                     % In free flow mode, vehicles do not need to consider
                     % other vehicles
                     if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
@@ -93,7 +93,7 @@ function [is_valid, shapes] = eval_edge_exact(iter, scenario, mpa, tree, iNode, 
                         return
                     end
 
-                    if scenario.options.amount > 1 && InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
+                    if options.amount > 1 && InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
                         % check collision with crossing area of lanelets
                         is_valid = false;
                         return

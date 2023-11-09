@@ -8,7 +8,6 @@ function eval_parallel_computation_CLs()
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
     options.compute_in_parallel = false;
-    options.allow_priority_inheritance = false;
     options.strategy_consider_veh_without_ROW = '3';
     options.strategy_enter_lanelet_crossing_area = '1';
     options.dt_seconds = 0.2;
@@ -30,7 +29,6 @@ function eval_parallel_computation_CLs()
     random_seed = RandStream('mt19937ar');
 
     for i = 1:random_times
-        options.random_idx = i;
 
         for j = 1:length(CLs_s)
 
@@ -49,7 +47,7 @@ function eval_parallel_computation_CLs()
                 disp('File already exists.')
             else
                 % run simulation
-                [~, ~] = main(options);
+                main(options);
             end
 
             % data processing
@@ -170,10 +168,10 @@ function export_fig_for_video(results, results_folder_path)
     i_random = 1;
     result = results{i_random, i_CLs};
 
-    result.scenario.options.options_plot_online.is_video_mode = true;
-    result.scenario.options.options_plot_online.plot_coupling = true;
-    result.scenario.options.options_plot_online.plot_weight = true;
-    result.scenario.options.options_plot_online.plot_priority = true;
+    result.options.options_plot_online.is_video_mode = true;
+    result.options.options_plot_online.plot_coupling = true;
+    result.options.options_plot_online.plot_weight = true;
+    result.options.options_plot_online.plot_priority = true;
 
     % videoExportSetup.framerate = 30;
     timesteps = 14;
@@ -181,10 +179,10 @@ function export_fig_for_video(results, results_folder_path)
     for iStep = timesteps
 
         % after applying our approach
-        result.scenario.options.options_plot_online.plot_weight = true;
+        result.options.options_plot_online.plot_weight = true;
         export_frame(result, iStep = iStep, frame_name = 'coupling_after_our_approach.png')
         % before applying our approach
-        result.scenario.options.options_plot_online.plot_weight = false;
+        result.options.options_plot_online.plot_weight = false;
         belonging_vector = result.belonging_vector(:, iStep);
         result.belonging_vector(:, iStep) = 1;
         export_frame(result, iStep = iStep, frame_name = 'coupling_before_our_approach.png')
