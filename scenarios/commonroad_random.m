@@ -20,7 +20,7 @@ function [options_array, scenario_array] = commonroad_random(amounts, seeds, opt
 
     path_id_max = 41; % maximum defined path id
 
-    disp('Creating options and scenarios...')
+    fprintf('Creating options and if requested scenarios... ');
     options_array(length(amounts), length(seeds)) = Config();
     scenario_array(length(amounts), length(seeds)) = Scenario();
 
@@ -46,5 +46,7 @@ function [options_array, scenario_array] = commonroad_random(amounts, seeds, opt
         end
 
     end
+
+    fprintf('done\n');
 
 end
