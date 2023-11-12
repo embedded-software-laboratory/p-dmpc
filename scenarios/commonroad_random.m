@@ -29,10 +29,12 @@ function [options_array, scenario_array] = commonroad_random(options, amounts, s
 
             options_array(i_amount, i_seed) = options_random;
 
-            scenario = commonroad_scenario(options_random.amount, options_random.path_ids);
+            if nargout == 1
+                % do not create scenarios if they were not requested
+                continue
+            end
 
-            % FIXME this property is not supported anymore
-            scenario.random_stream = random_stream;
+            scenario = commonroad_scenario(options_random.amount, options_random.path_ids);
 
             scenario_array(i_amount, i_seed) = scenario;
         end
