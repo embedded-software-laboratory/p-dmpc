@@ -1,23 +1,23 @@
-function scenarios = commonroad_random(options, nVeh, seed)
+function scenarios = commonroad_random(options, amounts, seed)
     % commonroad_random - generate a random scenario
-    %   scenarios = commonroad_random(options, nVeh, seed)
+    %   scenarios = commonroad_random(options, amounts, seed)
     %  options: OptionsMain object (vehicle ids are ignored)
-    %  nVeh: number of vehicles (can be array)
+    %  amounts: number of vehicles (can be array)
     %  seed: random seed (can be array)
     arguments
         options (1, 1) Config
-        nVeh (1, :) double
+        amounts (1, :) double
         seed (1, :) double
     end
 
     disp('Creating scenarios...')
-    scenarios(length(nVeh), length(seed)) = Scenario();
+    scenarios(length(amounts), length(seed)) = Scenario();
 
-    for iVeh = 1:length(nVeh)
+    for iVeh = 1:length(amounts)
 
         for iSeed = 1:length(seed)
             options_random = options;
-            options_random.amount = nVeh(iVeh);
+            options_random.amount = amounts(iVeh);
             random_stream = RandStream('mt19937ar', 'Seed', seed(iSeed));
             path_ids = sort(randsample(random_stream, 1:40, options_random.amount), 'ascend');
             options_random.path_ids = path_ids;
