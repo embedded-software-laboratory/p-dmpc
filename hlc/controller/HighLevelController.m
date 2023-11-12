@@ -54,14 +54,13 @@ classdef (Abstract) HighLevelController < handle
 
     methods
         % Set default settings
-        function obj = HighLevelController(options, scenario, plant)
+        function obj = HighLevelController(options, ~, plant)
             % remove step time from options to avoid usage
             % before it is received from the plant
             options.dt_seconds = [];
 
             obj.options = options;
             obj.scenario_adapter = ScenarioAdapter.get_scenario_adapter(options.scenario_type);
-            obj.scenario = scenario;
             obj.plant = plant;
 
             obj.k = 0;
@@ -291,6 +290,8 @@ classdef (Abstract) HighLevelController < handle
 
             % initialize scenario adapter
             obj.scenario_adapter.init(obj.options.amount, obj.options.path_ids);
+            % temporary passing of scenario from scenario adapter
+            obj.scenario = obj.scenario_adapter.scenario;
 
             % initialize all manually controlled vehicles
             % (belongs to initialization of the scenario)
