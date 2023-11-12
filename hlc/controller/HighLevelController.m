@@ -3,8 +3,6 @@ classdef (Abstract) HighLevelController < handle
     properties (Access = public)
         % config
         options;
-        % scenario
-        scenario;
 
         % Adapter for creating the scenario
         scenario_adapter;
@@ -290,8 +288,6 @@ classdef (Abstract) HighLevelController < handle
 
             % initialize scenario adapter
             obj.scenario_adapter.init(obj.options.amount, obj.options.path_ids);
-            % temporary passing of scenario from scenario adapter
-            obj.scenario = obj.scenario_adapter.scenario;
 
             % initialize all manually controlled vehicles
             % (belongs to initialization of the scenario)
