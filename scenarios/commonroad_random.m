@@ -1,4 +1,4 @@
-function [options_array, scenario_array] = commonroad_random(options, amounts, seeds)
+function [options_array, scenario_array] = commonroad_random(amounts, seeds, options)
     % commonroad_random - generate multiple options with commonroad scenarios
     % with random path_ids based on passed seeds and passed amounts
     %
@@ -7,9 +7,10 @@ function [options_array, scenario_array] = commonroad_random(options, amounts, s
     %   scenario_array (n_amounts, n_seeds) Scenario
 
     arguments
-        options (1, 1) Config
         amounts (1, :) double
         seeds (1, :) double
+        % options based on which the output arguments are created
+        options (1, 1) Config = Config();
     end
 
     path_id_max = 41; % maximum defined path id
