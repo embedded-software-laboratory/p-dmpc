@@ -33,15 +33,14 @@ function scenario = lanelet2_scenario(amount, path_ids, filepath_lanelet2_map)
 
         % Generate a ref path using the Lanelet2 Interface and generate_reference_path_loop
         reference_path_loops = {Lanelet2_Interface.generate_reference_path_indices(scenario.road_data_file_path)};
-
-        % FIXME lanelets_index is not passed to `generate_reference_path_loop` as of !179
+        % take loop from all defined loops
         reference_path_loop = reference_path_loops{1};
+        % define starting lanelet
         start_idx = mod(path_ids(iveh) * 2 - 1, width(reference_path_loop));
-
         % shift reference_path_loop depending on start_idx
         lanelets_index = [reference_path_loop(start_idx:end), reference_path_loop(1:start_idx - 1)];
 
-        reference_path_struct = generate_reference_path_loop(path_ids(iveh), scenario.lanelets, lanelets_index);
+        reference_path_struct = generate_reference_path_loop(lanelets_index, scenario.lanelets);
         veh.lanelets_index = reference_path_struct.lanelets_index;
         lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
 
