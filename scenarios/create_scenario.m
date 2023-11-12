@@ -8,9 +8,10 @@ function scenario = create_scenario(options)
         case ScenarioType.commonroad
             scenario = commonroad_scenario(options.amount, options.path_ids);
         case ScenarioType.lanelet2
-            scenario = lanelet2_scenario(options.amount, options.path_ids, options.scenario_type);
+            scenario = lanelet2_scenario(options.amount, options.path_ids);
         case ScenarioType.lab_default
-            scenario = lanelet2_scenario(options.amount, options.path_ids, options.scenario_type);
+            scenario = Scenario();
+            disp('Scenario is created later after map is retrieved via UnifiedLabApi');
     end
 
 end
