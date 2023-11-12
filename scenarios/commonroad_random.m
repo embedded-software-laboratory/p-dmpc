@@ -1,9 +1,10 @@
 function scenarios = commonroad_random(options, amounts, seeds)
-    % commonroad_random - generate a random scenario
-    %   scenarios = commonroad_random(options, amounts, seeds)
-    %  options: OptionsMain object (vehicle ids are ignored)
-    %  amounts: number of vehicles (can be array)
-    %  seeds: random seed (can be array)
+    % commonroad_random - generate multiple options for commonroad scenarios
+    % with random path_ids based on passed seeds and passed amounts
+    %
+    % Output:
+    %   scenarios (n_amounts, n_seeds) Scenario
+
     arguments
         options (1, 1) Config
         amounts (1, :) double
