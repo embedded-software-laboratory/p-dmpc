@@ -6,6 +6,9 @@ classdef (Abstract) HighLevelController < handle
         % scenario
         scenario;
 
+        % Adapter for creating the scenario
+        scenario_adapter;
+
         % Adapter for the lab
         % or one for a local simulation
         plant;
@@ -57,6 +60,7 @@ classdef (Abstract) HighLevelController < handle
             options.dt_seconds = [];
 
             obj.options = options;
+            obj.scenario_adapter = ScenarioAdapter.get_scenario_adapter(options.scenario_type);
             obj.scenario = scenario;
             obj.plant = plant;
 
