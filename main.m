@@ -19,10 +19,8 @@ function result = main(options)
         disp('Running in Lab...')
     end
 
-    % write scenario to disk if distributed (for lab or local debugging with main_distributed())
-    if options.is_prioritized == true
-        save('scenario.mat', 'scenario');
-    end
+    % write built scenario to disk
+    save('scenario.mat', 'scenario');
 
     is_prioritized_parallel_in_lab = (options.is_prioritized && (options.environment == Environment.CpmLab || options.environment == Environment.SimulationDistributed) && options.compute_in_parallel);
 
