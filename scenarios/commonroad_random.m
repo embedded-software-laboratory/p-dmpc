@@ -13,6 +13,9 @@ function [options_array, scenario_array] = commonroad_random(amounts, seeds, opt
         options (1, 1) Config = Config();
     end
 
+    % validate passed options
+    options = options.validate();
+
     assert( ...
         options.scenario_type == ScenarioType.commonroad, ...
         'Scenario type must be commonroad! Argument or default type is not correct!' ...
@@ -32,6 +35,9 @@ function [options_array, scenario_array] = commonroad_random(amounts, seeds, opt
             options_random = options;
             options_random.amount = amounts(i_amount);
             options_random.path_ids = randperm(random_stream, path_id_max, options_random.amount);
+
+            % validate modified options
+            options_random = options_random.validate();
 
             options_array(i_amount, i_seed) = options_random;
 
