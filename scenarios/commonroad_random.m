@@ -1,9 +1,10 @@
-function scenarios = commonroad_random(options, amounts, seeds)
-    % commonroad_random - generate multiple options for commonroad scenarios
+function [options_array, scenario_array] = commonroad_random(options, amounts, seeds)
+    % commonroad_random - generate multiple options with commonroad scenarios
     % with random path_ids based on passed seeds and passed amounts
     %
     % Output:
-    %   scenarios (n_amounts, n_seeds) Scenario
+    %   options_array (n_amounts, n_seeds) Config
+    %   scenario_array (n_amounts, n_seeds) Scenario
 
     arguments
         options (1, 1) Config
@@ -11,8 +12,9 @@ function scenarios = commonroad_random(options, amounts, seeds)
         seeds (1, :) double
     end
 
-    disp('Creating scenarios...')
-    scenarios(length(amounts), length(seeds)) = Scenario();
+    disp('Creating options and scenarios...')
+    options_array(length(amounts), length(seeds)) = Config();
+    scenario_array(length(amounts), length(seeds)) = Scenario();
 
     for iVeh = 1:length(amounts)
 
@@ -27,7 +29,7 @@ function scenarios = commonroad_random(options, amounts, seeds)
             % FIXME this property is not supported anymore
             scenario.random_stream = random_stream;
 
-            scenarios(iVeh, iSeed) = scenario;
+            scenario_array(iVeh, iSeed) = scenario;
         end
 
     end
