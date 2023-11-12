@@ -16,12 +16,12 @@ function [options_array, scenario_array] = commonroad_random(options, amounts, s
     options_array(length(amounts), length(seeds)) = Config();
     scenario_array(length(amounts), length(seeds)) = Scenario();
 
-    for iVeh = 1:length(amounts)
+    for i_amount = 1:length(amounts)
 
-        for iSeed = 1:length(seeds)
+        for i_seed = 1:length(seeds)
             options_random = options;
-            options_random.amount = amounts(iVeh);
-            random_stream = RandStream('mt19937ar', 'Seed', seeds(iSeed));
+            options_random.amount = amounts(i_amount);
+            random_stream = RandStream('mt19937ar', 'Seed', seeds(i_seed));
             path_ids = sort(randsample(random_stream, 1:40, options_random.amount), 'ascend');
             options_random.path_ids = path_ids;
             scenario = commonroad_scenario(options_random.amount, options_random.path_ids);
@@ -29,7 +29,7 @@ function [options_array, scenario_array] = commonroad_random(options, amounts, s
             % FIXME this property is not supported anymore
             scenario.random_stream = random_stream;
 
-            scenario_array(iVeh, iSeed) = scenario;
+            scenario_array(i_amount, i_seed) = scenario;
         end
 
     end
