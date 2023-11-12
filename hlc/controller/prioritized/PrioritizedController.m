@@ -20,8 +20,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
     methods
 
-        function obj = PrioritizedController(options, scenario, plant)
-            obj = obj@HighLevelController(options, scenario, plant);
+        function obj = PrioritizedController(options, plant)
+            obj = obj@HighLevelController(options, plant);
 
             obj.prioritizer = Prioritizer.get_prioritizer(obj.options.priority);
             obj.weigher = Weigher.get_weigher(obj.options.weight);

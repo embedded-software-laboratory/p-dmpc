@@ -54,7 +54,7 @@ classdef (Abstract) HighLevelController < handle
 
     methods
         % Set default settings
-        function obj = HighLevelController(options, ~, plant)
+        function obj = HighLevelController(options, plant)
             % remove step time from options to avoid usage
             % before it is received from the plant
             options.dt_seconds = [];
