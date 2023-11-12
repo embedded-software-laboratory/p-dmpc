@@ -13,6 +13,11 @@ function [options_array, scenario_array] = commonroad_random(amounts, seeds, opt
         options (1, 1) Config = Config();
     end
 
+    assert( ...
+        options.scenario_type == ScenarioType.commonroad, ...
+        'Scenario type must be commonroad! Argument or default type is not correct!' ...
+    )
+
     path_id_max = 41; % maximum defined path id
 
     disp('Creating options and scenarios...')
