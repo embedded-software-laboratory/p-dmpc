@@ -9,7 +9,7 @@ classdef systemtests < matlab.unittest.TestCase
                            'random_weight'
                            'STAC_weight'
                            'distance_weight'};
-        coupling = {'reachable_set_coupling', 'full_coupling'};
+        coupling = {'reachable_set_coupling', 'full_coupling', 'no_coupling'};
     end
 
     methods (Test)
