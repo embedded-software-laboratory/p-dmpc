@@ -18,7 +18,6 @@ classdef (Abstract) HighLevelController < handle
         iter;
         info;
 
-        manual_vehicles;
     end
 
     properties (Access = protected)
@@ -287,13 +286,7 @@ classdef (Abstract) HighLevelController < handle
             obj.options.dt_seconds = obj.plant.get_step_time();
 
             % initialize scenario adapter
-            obj.scenario_adapter.init(obj.options.amount, obj.options.path_ids);
-
-            % initialize all manually controlled vehicles
-            % (belongs to initialization of the scenario)
-            for hdv_id = obj.options.manual_control_config.hdv_ids
-                obj.manual_vehicles = ManualVehicle(hdv_id, obj.options, obj.scenario_adapter.scenario.road_raw_data);
-            end
+            obj.scenario_adapter.init(obj.options);
 
             % initialize high level controller itself
             obj.init();
@@ -400,7 +393,7 @@ classdef (Abstract) HighLevelController < handle
                 % calculate the intersection of reachable sets with the current and
                 % the successor lanelet (returned as cell array of polyshape objects
                 % for each step in the prediction horizon)
-                reachable_sets = obj.manual_vehicles(iHdv).compute_reachable_lane( ...
+                reachable_sets = obj.scenario_adapter.manual_vehicles(iHdv).compute_reachable_lane( ...
                     state_hdv, ...
                     lanelet_id_hdv ...
                 );
