@@ -10,7 +10,7 @@ function plot_runtime_for_step(results, k, optional)
     end
 
     % useful variable for shorter notations
-    options = results{1, 1}.scenario.options;
+    options = results{1, 1}.options;
 
     % Configure, which field names in the timing object are relevant, dependent on the used controller
     if options.is_prioritized & options.compute_in_parallel
@@ -66,7 +66,7 @@ function plot_runtime_for_step(results, k, optional)
     % Export
     if optional.do_export
         folder_path = FileNameConstructor.gen_results_folder_path( ...
-            results{1, 1}.scenario.options ...
+            results{1, 1}.options ...
         );
         filename = strcat('runtime_step_', string(k), '.pdf');
         export_fig(figHandle, fullfile(folder_path, filename));
