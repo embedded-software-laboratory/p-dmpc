@@ -36,15 +36,6 @@ classdef UnifiedLabApi < Plant
             obj.pos_init = false;
         end
 
-        function map_as_string = receive_map(obj)
-            % ULA allows to receive a default map from the lab.
-            % The return value is the file content of an .osm file as
-            % string.
-            obj.prepare_ros2();
-            map_as_string = obj.set_map_in_lab();
-            obj.map_comm_done = true;
-        end
-
         function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
@@ -123,6 +114,15 @@ classdef UnifiedLabApi < Plant
                 obj.set_map_in_lab(fileread(scenario.road_data_file_path));
             end
 
+        end
+
+        function map_as_string = receive_map(obj)
+            % ULA allows to receive a default map from the lab.
+            % The return value is the file content of an .osm file as
+            % string.
+            obj.prepare_ros2();
+            map_as_string = obj.set_map_in_lab();
+            obj.map_comm_done = true;
         end
 
         function synchronize_start_with_plant(obj)
