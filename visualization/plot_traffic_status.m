@@ -1,9 +1,9 @@
-function plot_traffic_status(result, step_idx, tick_now, visu)
+function plot_traffic_status(experiment_result, step_idx, tick_now, visu)
     % PLOTONLINE    Plot function used for plotting the simulation state in a specified tick
     %               during a specified time step
     %
     % INPUT:
-    %   result: simulation results
+    %   experiment_result: simulation ExperimentResults
     %
     %   step_idx: time step
     %
@@ -12,12 +12,19 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
     %   visu: struct with fields: 'plot_vehicle_id', 'plot_priority', 'plot_coupling' and 'plot_weight'
     %
 
-    options = result.options;
-    scenario = result.scenario;
-    iter = result.iteration_structs{step_idx};
+    arguments
+        experiment_result (1, 1) ExperimentResult;
+        step_idx (1, 1) {mustBeInteger};
+        tick_now (1, 1) {mustBeInteger};
+        visu (1, 1) struct;
+    end
+
+    options = experiment_result.options;
+    scenario = experiment_result.scenario;
+    iter = experiment_result.iteration_data{step_idx};
 
     nVeh = options.amount;
-    nObst = size(result.obstacles, 1);
+    nObst = size(iter.obstacles, 1);
     nDynObst = size(iter.dynamic_obstacle_fullres, 1);
 
     if nargin < 3
@@ -89,14 +96,14 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
     switch visu.color_mode
         case 'priority'
             % vehicles with the same priority have the same color
-            n_priorities = max(result.priority(:, step_idx)); % number of different priorities
+            n_priorities = max(experiment_result.priority(:, step_idx)); % number of different priorities
             n_colors = max(n_colors_min, n_priorities);
-            color_list = result.priority(:, step_idx);
+            color_list = experiment_result.priority(:, step_idx);
         case 'group'
-            n_groups = max(result.belonging_vector(:, step_idx));
+            n_groups = max(iter.belonging_vector(:));
             % vehicles in the same group have the same color
             n_colors = max(n_colors_min, n_groups);
-            color_list = result.belonging_vector(:, step_idx);
+            color_list = iter.belonging_vector(:);
     end
 
     sticks = round(linspace(1, size(get_colormap, 1), n_colors + 2));
@@ -136,22 +143,22 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
 
     % predicted trajectory
     for v = 1:nVeh
-        line(result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 1), ...
-            result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 2), ...
+        line(experiment_result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 1), ...
+            experiment_result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 2), ...
             'Color', vehColor(color_list(v), :), 'LineStyle', 'none', 'Marker', '+', 'MarkerFaceColor', vehColor(color_list(v), :), 'MarkerSize', 1, 'LineWidth', 0.2);
         % Matlab R2021a:
         %'Color',vehColor(color_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',vehColor(color_list(v),:),'MarkerSize', 3, 'LineWidth',0.2 );
         % Matlab R2020a:
         %'Color',vehColor(color_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',vehColor(color_list(v),:),'MarkerSize', 3, 'LineWidth',0.2 );
-        line(result.trajectory_predictions{v, step_idx}(:, 1), ...
-            result.trajectory_predictions{v, step_idx}(:, 2), ...
+        line(experiment_result.trajectory_predictions{v, step_idx}(:, 1), ...
+            experiment_result.trajectory_predictions{v, step_idx}(:, 2), ...
             'Color', vehColor(color_list(v), :), 'LineWidth', 0.2);
     end
 
     % Vehicle rectangles
     for v = 1:nVeh
         veh = scenario.vehicles(v);
-        pos_step = result.trajectory_predictions{v, step_idx};
+        pos_step = experiment_result.trajectory_predictions{v, step_idx};
         x = pos_step(tick_now, :);
         vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
         patch(vehiclePolygon(1, :) ...
@@ -163,12 +170,12 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
 
     % IDs, priorities
     for v = 1:nVeh
-        pos_step = result.trajectory_predictions{v, step_idx};
+        pos_step = experiment_result.trajectory_predictions{v, step_idx};
         x = pos_step(tick_now, :);
 
         % plot the priority
         %         if visu.plot_priority
-        %             text(x(1),x(2),num2str(result.priority(v,step_idx)), 'LineWidth',0.2,'Color','m');
+        %             text(x(1),x(2),num2str(experiment_result.priority(v,step_idx)), 'LineWidth',0.2,'Color','m');
         %         end
 
         % plot the vehicle index
@@ -182,24 +189,24 @@ function plot_traffic_status(result, step_idx, tick_now, visu)
     coupling_visu = struct('FontSize', 9, 'LineWidth', 0.5, 'isShowLine', visu.plot_coupling, 'isShowValue', visu.plot_weight);
 
     if visu.plot_coupling
-        x0 = cellfun(@(c)c(tick_now, :), result.trajectory_predictions(:, step_idx), 'UniformOutput', false);
+        x0 = cellfun(@(c)c(tick_now, :), experiment_result.trajectory_predictions(:, step_idx), 'UniformOutput', false);
         x0 = cell2mat(x0);
 
-        if ~isempty(iter.weighted_coupling_reduced)
+        if ~isempty(iter.coupling_weights_reduced)
             % TODO this does currently not work
             % coupling_info is a cell array containing a struct for each coupling
             % function call expects that it is a scalar struct
-            plot_coupling_lines(result.weighted_coupling_reduced(:, :, step_idx), x0, result.belonging_vector(:, step_idx), result.coupling_info(:, :, step_idx).is_virtual_obstacle, coupling_visu)
+            plot_coupling_lines(iter.weighted_coupling_reduced, x0, iter.belonging_vector(:), iter.coupling_info.is_virtual_obstacle, coupling_visu);
         else
-            plot_coupling_lines(result.directed_coupling(:, :, step_idx), x0, [], [], coupling_visu)
+            plot_coupling_lines(iter.directed_coupling, x0, [], [], coupling_visu);
         end
 
     end
 
     % Obstacle rectangle
     for obs = 1:nObst
-        patch(result.obstacles{obs}(1, :) ...
-            , result.obstacles{obs}(2, :) ...
+        patch(iter.obstacles{obs}(1, :) ...
+            , iter.obstacles{obs}(2, :) ...
             , [0.5 0.5 0.5] ...
             , 'LineWidth', 0.2 ...
         );

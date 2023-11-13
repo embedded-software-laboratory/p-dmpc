@@ -22,7 +22,7 @@ classdef PlottingInfo
 
     methods
 
-        function obj = PlottingInfo(veh_indices, result, k, tick_now)
+        function obj = PlottingInfo(veh_indices, experiment_result, k, tick_now)
 
             if nargin == 0
                 return;
@@ -31,35 +31,53 @@ classdef PlottingInfo
             obj.veh_indices = veh_indices;
             obj.step = k;
             obj.tick_now = tick_now;
-            obj.trajectory_predictions = result.trajectory_predictions(:, k);
-            obj.ref_trajectory = result.iteration_structs{k}.reference_trajectory_points;
-            obj.priorities = result.priority_list(:, k);
-            obj.n_obstacles = size(result.obstacles, 1);
-            obj.n_dynamic_obstacles = size(result.iteration_structs{k}.dynamic_obstacle_fullres, 1);
+            obj.trajectory_predictions = experiment_result.trajectory_predictions(:, k);
+            obj.ref_trajectory = experiment_result.iteration_data{k}.reference_trajectory_points;
+            obj.priorities = experiment_result.iteration_data{k}.priority_list(:);
+            obj.n_obstacles = size(experiment_result.iteration_data{k}.obstacles, 1);
+            obj.n_dynamic_obstacles = size(experiment_result.iteration_data{k}.dynamic_obstacle_fullres, 1);
 
             if obj.n_obstacles > 0
-                obj.obstacles = result.obstacles;
+                obj.obstacles = experiment_result.iteration_data{k}.obstacles;
             end
 
             if obj.n_dynamic_obstacles > 0
-                obj.dynamic_obstacles = result.iteration_structs{k}.dynamic_obstacle_fullres{:, k};
-                obj.dynamic_obstacles_shape = result.iteration_structs{k}.dynamic_obstacle_shape;
+                obj.dynamic_obstacles = experiment_result.iteration_data{k}.dynamic_obstacle_fullres{:, k};
+                obj.dynamic_obstacles_shape = experiment_result.iteration_data{k}.dynamic_obstacle_shape;
             end
 
-            obj.reachable_sets = result.iteration_structs{k}.reachable_sets;
+            obj.reachable_sets = experiment_result.iteration_data{k}.reachable_sets;
 
-            obj.lanelet_crossing_areas = result.lanelet_crossing_areas(:, k);
+            if isfield(experiment_result, "lanelet_crossing_areas")
+                obj.lanelet_crossing_areas = experiment_result.iteration_data{k}.lanelet_crossing_areas(:);
+            end
 
-            obj.directed_coupling = result.directed_coupling(:, :, k);
+            obj.directed_coupling = experiment_result.iteration_data{k}.directed_coupling;
 
-            obj.is_virtual_obstacle = ( ...
-                result.directed_coupling(:, :, k) ~= ...
-                result.directed_coupling_reduced(:, :, k) ...
-            );
+            obj.is_virtual_obstacle = false(experiment_result.options.amount, experiment_result.options.amount);
 
-            obj.weighted_coupling_reduced = result.weighted_coupling_reduced(:, :, k);
+            if ~isempty(experiment_result.iteration_data{k}.weighted_coupling_reduced)
+                obj.weighted_coupling_reduced = experiment_result.iteration_data{k}.weighted_coupling_reduced;
 
-            obj.belonging_vector = result.belonging_vector(:, k);
+                if ( ...
+                        experiment_result.options.is_prioritized && ...
+                        experiment_result.options.scenario_type == ScenarioType.commonroad ...
+                    )
+
+                    coupling_info_k = experiment_result.iteration_data{k}.coupling_info;
+                    populated_coupling_info_entries = find(~cellfun(@isempty, coupling_info_k));
+                    populated_coupling_infos = [coupling_info_k{populated_coupling_info_entries}];
+
+                    if ~isempty(populated_coupling_infos)
+                        is_virtual_obstacle_filter = [populated_coupling_infos.is_virtual_obstacle];
+                        obj.is_virtual_obstacle(populated_coupling_info_entries(is_virtual_obstacle_filter)) = true;
+                    end
+
+                end
+
+                obj.belonging_vector = experiment_result.iteration_data{k}.belonging_vector(:);
+
+            end
 
         end
 
