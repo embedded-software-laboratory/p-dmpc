@@ -3,7 +3,7 @@ classdef (Abstract) ScenarioAdapter < handle
     % to use the required scenario
 
     properties (Access = public)
-        manual_vehicles ManualVehicle
+        manual_vehicles ManualVehicle % (1, n_hdv)
     end
 
     properties (Abstract)
@@ -45,8 +45,9 @@ classdef (Abstract) ScenarioAdapter < handle
 
         function init_hdv(obj, options)
 
-            for hdv_id = options.manual_control_config.hdv_ids
-                obj.manual_vehicles = ManualVehicle(hdv_id, options, obj.scenario.road_raw_data);
+            for i_hdv = 1:options.manual_control_config.amount
+                hdv_id = options.manual_control_config.hdv_ids(i_hdv);
+                obj.manual_vehicles(i_hdv) = ManualVehicle(hdv_id, options, obj.scenario.road_raw_data);
             end
 
         end
