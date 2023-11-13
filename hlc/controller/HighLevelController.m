@@ -12,7 +12,7 @@ classdef (Abstract) HighLevelController < handle
 
         optimizer;
         mpa;
-        result;
+        experiment_result;
         k;
         iter;
         info;
@@ -39,7 +39,7 @@ classdef (Abstract) HighLevelController < handle
         is_run_succeeded (1, 1) logical = false
 
         got_stop;
-        vehs_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
+        vehicles_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
     end
@@ -73,7 +73,7 @@ classdef (Abstract) HighLevelController < handle
 
         end
 
-        function result = run(obj)
+        function experiment_result = run(obj)
             % run the controller
 
             % object that executes the specified function on destruction
@@ -88,12 +88,12 @@ classdef (Abstract) HighLevelController < handle
             % set to true if the controller ran properly
             obj.is_run_succeeded = true;
 
-            % This triggers obj.end_run such that the returned result contains all information.
+            % This triggers obj.end_run such that the returned experiment_result contains all information.
             % It is only reached if onCleanup was not already destroyed before because of an error.
             delete(cleanupObj);
 
             % specify returned variables
-            result = obj.result;
+            experiment_result = obj.experiment_result;
         end
 
     end
@@ -103,8 +103,8 @@ classdef (Abstract) HighLevelController < handle
         function init(obj)
             % initialize high level controller itself
 
-            % initialize result struct
-            obj.result = get_result_struct(obj.options, obj.scenario, obj.plant.controlled_vehicle_ids);
+            % initialize ExperimentResult object
+            obj.experiment_result = ExperimentResult(obj);
 
             % construct mpa
             obj.mpa = MotionPrimitiveAutomaton(obj.scenario.model, obj.options);
@@ -139,7 +139,7 @@ classdef (Abstract) HighLevelController < handle
             % record the number of time steps that vehicles
             % consecutively stop and take fallback
             obj.vehs_stop_duration = zeros(obj.options.amount, 1);
-            obj.vehs_fallback_times = zeros(1, obj.options.amount);
+            obj.vehicles_fallback_times = zeros(1, obj.options.amount);
         end
 
         function update_controlled_vehicles_traffic_info(obj, states_measured, trims_measured)
@@ -350,7 +350,7 @@ classdef (Abstract) HighLevelController < handle
                 obj.timing_general.stop("controller", obj.k);
                 obj.timing_general.stop("hlc_step", obj.k);
 
-                % store results from iteration in results struct
+                % store results from iteration in ExperimentResult
                 obj.store_iteration_results();
 
                 % reset iter obstacles to scenario default/static obstacles
@@ -360,7 +360,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % Apply control action
                 % -------------------------------------------------------------------------
-                obj.plant.apply(obj.info, obj.result, obj.k, obj.mpa);
+                obj.plant.apply(obj.info, obj.experiment_result, obj.k, obj.mpa);
 
                 % Check for stop signal
                 % -------------------------------------------------------------------------
@@ -453,15 +453,15 @@ classdef (Abstract) HighLevelController < handle
             % initialize it with value false
             is_fallback_handled = false;
 
-            if isempty(obj.info.vehs_fallback)
+            if isempty(obj.info.vehicles_fallback)
                 % increase counter of vehicles that take fallback
-                obj.vehs_fallback_times(obj.info.vehs_fallback) = ...
-                    obj.vehs_fallback_times(obj.info.vehs_fallback) + 1;
+                obj.vehicles_fallback_times(obj.info.vehicles_fallback) = ...
+                    obj.vehicles_fallback_times(obj.info.vehicles_fallback) + 1;
 
                 % reset fallback counter of vehicles that have no fallback
-                obj.vehs_fallback_times(setdiff( ...
+                obj.vehicles_fallback_times(setdiff( ...
                     1:obj.options.amount, ...
-                    obj.info.vehs_fallback ...
+                    obj.info.vehicles_fallback ...
                 )) = 0;
 
                 % if no fallback occurs return that fallback is handled
@@ -477,7 +477,7 @@ classdef (Abstract) HighLevelController < handle
 
             % print information about occurred fallback
             str_trigger_vehicles = sprintf(' %d', find(obj.info.needs_fallback));
-            str_fallback_vehicles = sprintf(' %d', obj.info.vehs_fallback);
+            str_fallback_vehicles = sprintf(' %d', obj.info.vehicles_fallback);
             fprintf('%s triggered by%s affects%s\n', ...
                 obj.options.fallback_type, ...
                 str_trigger_vehicles, ...
@@ -495,7 +495,7 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function store_iteration_results(obj)
-            % store iteration results like iter and info in the results struct
+            % store iteration results like iter and info in the ExperimentResult object
 
             % calculate deadlock
             % if a vehicle stops for more than a defined time, assume deadlock
@@ -523,35 +523,20 @@ classdef (Abstract) HighLevelController < handle
             end
 
             % update total number of steps and total runtime
-            obj.result.nSteps = obj.k;
-            obj.result.t_total = obj.k * obj.options.dt_seconds;
+            obj.experiment_result.n_steps = obj.k;
+            obj.experiment_result.t_total = obj.k * obj.options.dt_seconds;
 
             % store iteration data
-            obj.result.obstacles = obj.iter.obstacles;
-            obj.result.iteration_structs{obj.k} = obj.iter;
-            obj.result.coupling_adjacency(:, :, obj.k) = obj.iter.adjacency;
-            obj.result.coupling_info(:, :, obj.k) = obj.iter.coupling_info;
-            obj.result.priority_list(:, obj.k) = obj.iter.priority_list;
-            obj.result.directed_coupling(:, :, obj.k) = obj.iter.directed_coupling;
-            obj.result.weighted_coupling(:, :, obj.k) = obj.iter.weighted_coupling;
-            obj.result.directed_coupling_reduced(:, :, obj.k) = obj.iter.directed_coupling_reduced;
-            obj.result.weighted_coupling_reduced(:, :, obj.k) = obj.iter.weighted_coupling_reduced;
-            obj.result.lanelet_crossing_areas(:, obj.k) = obj.iter.lanelet_crossing_areas;
-            obj.result.belonging_vector(:, obj.k) = obj.iter.belonging_vector;
-            obj.result.parl_groups_info{obj.k} = obj.iter.parl_groups_info;
+            obj.experiment_result.iteration_data{obj.k} = obj.iter;
 
             % store graph search results
-            obj.result.trajectory_predictions(:, obj.k) = obj.info.y_predicted;
-            obj.result.controller_outputs{obj.k} = obj.info.u;
-            obj.result.vehicle_path_fullres(:, obj.k) = obj.info.vehicle_fullres_path(:);
-            obj.result.n_expanded(:, obj.k) = obj.info.n_expanded;
-            obj.result.vehs_fallback{obj.k} = obj.info.vehs_fallback;
+            obj.experiment_result.trajectory_predictions(:, obj.k) = obj.info.y_predicted;
+            obj.experiment_result.vehicle_path_fullres(:, obj.k) = obj.info.vehicle_fullres_path;
+            obj.experiment_result.n_expanded(:, obj.k) = obj.info.n_expanded;
+            obj.experiment_result.vehicles_fallback{obj.k} = obj.info.vehicles_fallback;
 
             % store graph search timings
-            obj.result.computation_levels(obj.k) = obj.info.computation_levels;
-
-            % store calculated values
-            obj.result.is_deadlock(obj.k) = any(is_vehicle_deadlocked);
+            obj.experiment_result.computation_levels(obj.k) = obj.info.computation_levels;
 
         end
 
@@ -561,21 +546,21 @@ classdef (Abstract) HighLevelController < handle
 
             % if the controller did not succeed
             if ~obj.is_run_succeeded
-                % force saving of unfinished results for inspection
+                % force saving of unfinished ExperimentResult object for inspection
                 disp("Saving of unfinished results on error.")
                 obj.options.should_save_result = true;
 
                 % define output path on error
-                obj.result.output_path = 'results/unfinished_result.mat';
+                obj.experiment_result.output_path = 'results/unfinished_result.mat';
             else
                 % define output path on success
-                obj.result.output_path = FileNameConstructor.get_results_full_path( ...
+                obj.experiment_result.output_path = FileNameConstructor.get_results_full_path( ...
                     obj.options, ...
                     obj.plant.indices_in_vehicle_list ...
                 );
             end
 
-            % save finished or unfinished results
+            % save finished or unfinished ExperimentResult
             obj.save_results();
 
             % run plant's end_run function
@@ -586,45 +571,43 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function save_results(obj)
-            % save results at end of experiment
+            % save ExperimentResult object at end of experiment
 
             % print information about final values of counter
             fprintf('Total times of fallback: %d\n', obj.total_fallback_times);
-            fprintf('Total runtime: %f seconds\n', obj.result.t_total);
+            fprintf('Total runtime: %f seconds\n', obj.experiment_result.t_total);
 
-            obj.result.mpa = obj.mpa;
-            obj.result.scenario = obj.scenario;
-            obj.result.total_fallback_times = obj.total_fallback_times;
-            obj.result.timings_general = obj.timing_general.get_all_timings();
+            obj.experiment_result.mpa = obj.mpa;
+            obj.experiment_result.scenario = obj.scenario;
+            obj.experiment_result.total_fallback_times = obj.total_fallback_times;
+            obj.experiment_result.timings_general = obj.timing_general.get_all_timings();
 
-            for iVeh = obj.plant.indices_in_vehicle_list
-                obj.result.timings_per_vehicle(iVeh) = obj.timing_per_vehicle(iVeh).get_all_timings();
-            end
+            obj.experiment_result.timings_per_vehicle = arrayfun(@(e) e.get_all_timings(), obj.timing_per_vehicle);
 
             if obj.options.should_reduce_result
                 % delete large data fields of to reduce file size
 
-                obj.result.mpa = [];
+                obj.experiment_result.mpa = [];
 
-                for i_step = 1:length(obj.result.iteration_structs)
-                    obj.result.iteration_structs{i_step}.predicted_lanelets = [];
-                    obj.result.iteration_structs{i_step}.predicted_lanelet_boundary = [];
-                    obj.result.iteration_structs{i_step}.reachable_sets = [];
-                    obj.result.iteration_structs{i_step}.emergency_maneuvers = [];
-                    obj.result.iteration_structs{i_step}.occupied_areas = [];
+                for i_step = 1:length(obj.experiment_result.iteration_data)
+                    obj.experiment_result.iteration_data{i_step}.predicted_lanelets = [];
+                    obj.experiment_result.iteration_data{i_step}.predicted_lanelet_boundary = [];
+                    obj.experiment_result.iteration_data{i_step}.reachable_sets = [];
+                    obj.experiment_result.iteration_data{i_step}.emergency_maneuvers = [];
+                    obj.experiment_result.iteration_data{i_step}.occupied_areas = [];
                 end
 
             end
 
             if ~obj.options.should_save_result
-                % return results should not be saved
-                fprintf('As required, results were not saved\n');
+                % return ExperimentResult object should not be saved
+                fprintf('As required, experiment_result was not saved\n');
                 return
             end
 
-            result = obj.result;
-            save(obj.result.output_path, 'result');
-            fprintf('Results were saved under: %s\n', obj.result.output_path);
+            experiment_result = obj.experiment_result;
+            save(obj.experiment_result.output_path, 'experiment_result');
+            fprintf('Results were saved in: %s\n', obj.experiment_result.output_path);
 
         end
 
