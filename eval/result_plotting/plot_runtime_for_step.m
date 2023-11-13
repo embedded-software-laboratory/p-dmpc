@@ -32,7 +32,7 @@ function plot_runtime_for_step(results, k, optional)
         t0 = min(t0, results{veh_i}.timings_general.hlc_step(1, 1, k));
     end
 
-    figHandle = figure();
+    figure_handle = figure();
 
     for field_i = 1:length(field_names)
         field_name = field_names(field_i);
@@ -50,18 +50,18 @@ function plot_runtime_for_step(results, k, optional)
             time_to_draw(:, veh_i) = [t_start, t_start + duration] * 10^3; % Scale to ms
         end
 
-        plt(:, field_i) = plot(time_to_draw, [1:options.amount; 1:options.amount], 'SeriesIndex', field_i, ...
+        plot_handle(:, field_i) = plot(time_to_draw, [1:options.amount; 1:options.amount], 'SeriesIndex', field_i, ...
             'LineWidth', 5, 'Tag', 'box_as_line');
         hold on;
     end
 
-    legend(plt(1, :), strrep(cellstr(field_names), '_', ' '));
+    legend(plot_handle(1, :), strrep(cellstr(field_names), '_', ' '));
     xlabel('Time [ms]');
     ylabel('Vehicle');
     yticks(1:options.amount);
     ylim([1 - 0.2, options.amount + 0.2]);
 
-    set_figure_properties(figHandle, ExportFigConfig.document());
+    set_figure_properties(figure_handle, ExportFigConfig.document());
 
     % Export
     if optional.do_export
@@ -69,8 +69,8 @@ function plot_runtime_for_step(results, k, optional)
             results{1, 1}.options ...
         );
         filename = strcat('runtime_step_', string(k), '.pdf');
-        export_fig(figHandle, fullfile(folder_path, filename));
-        close(figHandle);
+        export_fig(figure_handle, fullfile(folder_path, filename));
+        close(figure_handle);
     end
 
 end

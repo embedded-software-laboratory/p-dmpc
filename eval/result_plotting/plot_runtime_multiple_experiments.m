@@ -29,22 +29,22 @@ function plot_runtime_multiple_experiments(results, optional)
     times_to_plot(:, 1) = time_med * 10^3;
     times_to_plot(:, 2) = (time_max - time_med) * 10^3;
 
-    figHandle = figure();
+    figure_handle = figure();
     bar(times_to_plot, 'stacked');
     xlabel('Number of vehicles in experiment');
     ylabel('Time [ms]');
     legend(["Median", "Max"], 'Interpreter', 'none');
 
-    set_figure_properties(figHandle, ExportFigConfig.document());
+    set_figure_properties(figure_handle, ExportFigConfig.document());
 
     % Export
     if optional.do_export
         folder_path = FileNameConstructor.gen_results_folder_path( ...
-            results{1, 1}.scenario.options ...
+            results{1, 1}.options ...
         );
         filename = 'runtime_multiple_experiments.pdf';
-        export_fig(figHandle, fullfile(folder_path, filename));
-        close(figHandle);
+        export_fig(figure_handle, fullfile(folder_path, filename));
+        close(figure_handle);
     end
 
 end
