@@ -5,13 +5,13 @@ classdef CouplerFactory
         function coupler = get_coupler(coupler_type)
             %GET_COUPLER creates a coupler according to the set option
             arguments
-                coupler_type CouplerType;
+                coupler_type CouplerStrategies;
             end
 
             switch (coupler_type)
-                case CouplerType.ReachableSet
+                case CouplerStrategies.ReachableSet
                     coupler = ReachableSetCoupler();
-                case CouplerType.FullyConnected
+                case CouplerStrategies.FullyConnected
                     coupler = FullyConnectedCoupler();
             end
 

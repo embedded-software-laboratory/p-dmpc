@@ -1,4 +1,4 @@
-classdef CouplerType
+classdef CouplerStrategies
 
     enumeration
         ReachableSet

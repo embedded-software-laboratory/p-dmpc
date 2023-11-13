@@ -108,7 +108,7 @@ classdef systemtests < matlab.unittest.TestCase
             options.scenario_type = ScenarioType.circle;
             options.is_prioritized = true;
             options.max_num_CLs = 1;
-            options.coupler_type = CouplerType(coupler_type);
+            options.coupler_type = CouplerStrategies(coupler_type);
 
             testCase.verifyEmpty(lastwarn);
 
