@@ -17,7 +17,6 @@ classdef UnifiedLabApi < Plant
         goal_handle % Handle for action client goal
 
         lab_properties
-        map_comm_done = false % true if either the default map was requested or an own one was successfully defined
         is_ros2_prepared = false % ensures that ros2 subscribers/publisher/... are only created once
         got_start = false
         got_stop = false
@@ -53,7 +52,7 @@ classdef UnifiedLabApi < Plant
             obj.got_start = false;
             obj.got_stop = false;
 
-            obj.prepare_ros2(); % Call this in case map_as_string was not used before
+            obj.prepare_ros2();
 
             % middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
@@ -110,19 +109,17 @@ classdef UnifiedLabApi < Plant
             obj.goal_handle = sendGoal(obj.actionClient_vehiclesRequest, obj.goal_msg, callbackOpts);
             disp('Sent message to define the vehicle ids. We assume that goal was accepted, so no further test...');
 
-            if (~obj.map_comm_done) % Map was not already defined in lab
-                obj.set_map_in_lab(fileread(scenario.road_data_file_path));
-            end
+        end
 
+        function register_map(obj, map_as_string)
+            % ULA allows to set a scenario map in the lab.
+            obj.set_map_in_lab(map_as_string);
         end
 
         function map_as_string = receive_map(obj)
             % ULA allows to receive a default map from the lab.
-            % The return value is the file content of an .osm file as
-            % string.
-            obj.prepare_ros2();
+            % The return value is the file content of an .osm file as string.
             map_as_string = obj.set_map_in_lab();
-            obj.map_comm_done = true;
         end
 
         function synchronize_start_with_plant(obj)
