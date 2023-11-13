@@ -1,5 +1,9 @@
 {
     "amount": 2,
+    "path_ids": [
+        18,
+        20
+    ],
     "T_end": 5,
     "max_num_CLs": 1,
     "mpa_type": "single_speed",
