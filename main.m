@@ -1,4 +1,4 @@
-function result = main(options)
+function experiment_result = main(options)
     % MAIN  main function for graph-based receding horizon control
 
     arguments
@@ -70,19 +70,19 @@ function result = main(options)
                 hlc_factory = HLCFactory();
                 % have the plant only control its own vehicle by calling setup a second time
                 hlc = hlc_factory.get_hlc(options, scenario, plant, plant.controlled_vehicle_ids, options.is_dry_run);
-                result = hlc.run();
+                experiment_result = hlc.run();
             end
 
             if do_plot
                 plotter.close_figure();
             end
 
-            result = {result{:}};
+            experiment_result = {experiment_result{:}};
         else
 
             hlc_factory = HLCFactory();
             hlc = hlc_factory.get_hlc(options, scenario, plant, plant.controlled_vehicle_ids, options.is_dry_run);
-            result = hlc.run();
+            experiment_result = hlc.run();
         end
 
     end

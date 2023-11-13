@@ -87,9 +87,9 @@ end
 load(full_path)
 
 %%
-result.options.options_plot_online.is_video_mode = true;
-result.options.options_plot_online.plot_coupling = true;
-result.options.options_plot_online.plot_priority = false;
+experiment_result.options.options_plot_online.is_video_mode = true;
+experiment_result.options.options_plot_online.plot_coupling = true;
+experiment_result.options.options_plot_online.plot_priority = false;
 
 videoExportSetup.framerate = 5;
-export_video(result, videoExportSetup)
+export_video(experiment_result, videoExportSetup)

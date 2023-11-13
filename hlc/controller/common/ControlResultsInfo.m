@@ -13,7 +13,7 @@ classdef ControlResultsInfo
         trim_indices (:, 1) double % predicted trim of the next time step
         y_predicted (:, 1) cell % predicted trajectory
         computation_levels (1, 1) double % actual number of computation levels of the whole system
-        vehs_fallback (:, 1) int32 % vehicles that need to take fallback
+        vehicles_fallback (:, 1) int32 % vehicles that need to take fallback
         is_exhausted (:, 1) logical % whether graph search is exhausted
         needs_fallback % vehicle at a stillstand but the graph search is still exhausted
         u (:, 1) double % control input
@@ -50,7 +50,7 @@ classdef ControlResultsInfo
             obj.predicted_trims = zeros(nVeh, Hp + 1);
             obj.y_predicted = cell(nVeh, 1);
             obj.computation_levels = inf;
-            obj.vehs_fallback = int32.empty;
+            obj.vehicles_fallback = int32.empty;
             obj.is_exhausted = false(nVeh, 1);
             obj.needs_fallback = false(nVeh, 1);
             %obj.u = zeros(nVeh,1);

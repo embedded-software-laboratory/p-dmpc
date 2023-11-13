@@ -32,14 +32,14 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
                 if isfile(results_full_path)
                     disp('File already exists.')
                     r = load(results_full_path);
-                    result = r.result;
+                    experiment_result = r.experiment_result;
                 else
                     % run simulation
                     % FIXME this will not work after the options are removed from the scenario object
-                    result = main(scenarios(iVeh, iSeed));
+                    experiment_result = main(scenarios(iVeh, iSeed));
                 end
 
-                results{iVeh, i_priority, iSeed} = clean_result(result);
+                results{iVeh, i_priority, iSeed} = clean_result(experiment_result);
 
                 % evaluate
                 %e_differentNumVehs{i_priority} = EvaluationParl(results_full_path,[0,options.T_end]);
@@ -56,12 +56,15 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
 end
 
 function result = clean_result(result_in)
+
+    arguments
+        result_in (1, 1) ExperimentResult;
+    end
+
     result.scenario = result_in.scenario;
-    result.is_deadlock = result_in.is_deadlock;
     %result.priority = result_in.priority;
     result.t_total = result_in.t_total;
-    result.nSteps = result_in.nSteps;
+    result.n_steps = result_in.n_steps;
     result.output_path = result_in.output_path;
-    result.iteration_structs = result_in.iteration_structs;
-    result.directed_coupling = result_in.directed_coupling;
+    result.iteration_data = result_in.iteration_data;
 end

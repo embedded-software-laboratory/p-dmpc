@@ -22,7 +22,7 @@ function eval_parallel_computation_CLs()
     random_times = 10;
     CLs_s = [1, 2, 4, 6, options.amount];
     e_CLs = cell(random_times, length(CLs_s));
-    results = cell(random_times, length(CLs_s));
+    experiment_results = cell(random_times, length(CLs_s));
     n_simulations = numel(e_CLs);
     count = 0;
 
@@ -52,8 +52,8 @@ function eval_parallel_computation_CLs()
 
             % data processing
             e_CLs{i, j} = EvaluationParl(options);
-            load(full_path, 'result')
-            results{i, j} = result;
+            load(full_path, 'experiment_result')
+            experiment_results{i, j} = experiment_result;
 
             % display progress
             count = count + 1;
@@ -85,7 +85,7 @@ function eval_parallel_computation_CLs()
 
     % export video
     disp('--------Exporting frames--------')
-    export_fig_for_video(results, results_folder_path)
+    export_fig_for_video(experiment_results, results_folder_path)
     disp('--------Frames exported--------')
 
 end
@@ -163,15 +163,15 @@ function plot_different_num_CLs(e_CLs, free_flow_speed, CLs_s, results_folder_pa
 end
 
 %% export videos
-function export_fig_for_video(results, results_folder_path)
+function export_fig_for_video(experiment_results, results_folder_path)
     i_CLs = 3; % number of computation levels: 4
     i_random = 1;
-    result = results{i_random, i_CLs};
+    experiment_result = experiment_results{i_random, i_CLs};
 
-    result.options.options_plot_online.is_video_mode = true;
-    result.options.options_plot_online.plot_coupling = true;
-    result.options.options_plot_online.plot_weight = true;
-    result.options.options_plot_online.plot_priority = true;
+    experiment_result.options.options_plot_online.is_video_mode = true;
+    experiment_result.options.options_plot_online.plot_coupling = true;
+    experiment_result.options.options_plot_online.plot_weight = true;
+    experiment_result.options.options_plot_online.plot_priority = true;
 
     % videoExportSetup.framerate = 30;
     timesteps = 14;
@@ -179,17 +179,17 @@ function export_fig_for_video(results, results_folder_path)
     for iStep = timesteps
 
         % after applying our approach
-        result.options.options_plot_online.plot_weight = true;
-        export_frame(result, iStep = iStep, frame_name = 'coupling_after_our_approach.png')
+        experiment_result.options.options_plot_online.plot_weight = true;
+        export_frame(experiment_result, iStep = iStep, frame_name = 'coupling_after_our_approach.png')
         % before applying our approach
-        result.options.options_plot_online.plot_weight = false;
-        belonging_vector = result.belonging_vector(:, iStep);
-        result.belonging_vector(:, iStep) = 1;
-        export_frame(result, iStep = iStep, frame_name = 'coupling_before_our_approach.png')
+        experiment_result.options.options_plot_online.plot_weight = false;
+        belonging_vector = experiment_result.iteration_data{iStep}.belonging_vector(:);
+        experiment_result.iteration_data{iStep}.belonging_vector(:) = 1;
+        export_frame(experiment_result, iStep = iStep, frame_name = 'coupling_before_our_approach.png')
 
         fig1 = figure();
         hold on
-        plot_partitioned_graph(belonging_vector', result.iteration_structs{iStep}.coupling_weights_reduced, 'ShowWeights', true, 'ShowCutEdges', false)
+        plot_partitioned_graph(belonging_vector', experiment_result.iteration_data{iStep}.coupling_weights_reduced, 'ShowWeights', true, 'ShowCutEdges', false)
         % title('Before applying our method')
         box on
         file_path_1 = fullfile(results_folder_path, 'graph_before_our_approach.png');
@@ -198,7 +198,7 @@ function export_fig_for_video(results, results_folder_path)
 
         fig2 = figure();
         hold on
-        plot_partitioned_graph(belonging_vector', result.iteration_structs{iStep}.coupling_weights, 'ShowWeights', true, 'ShowCutEdges', true)
+        plot_partitioned_graph(belonging_vector', experiment_result.iteration_data{iStep}.coupling_weights, 'ShowWeights', true, 'ShowCutEdges', true)
         % title('After applying our method')
         box on
         file_path_2 = fullfile(results_folder_path, 'graph_after_our_approach.png');

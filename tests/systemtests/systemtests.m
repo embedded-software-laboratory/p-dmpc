@@ -107,37 +107,37 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyEmpty(lastwarn);
 
             %let main run and read result file
-            result = main(options);
+            experiment_result = main(options);
 
             testCase.verifyTrue(true);
 
             output_path = FileNameConstructor.get_results_full_path( ...
-                result.options, ...
-                result.options.amount ... %gen_scenario_name uses options.amount as default
+                experiment_result.options, ...
+                experiment_result.options.amount ... %gen_scenario_name uses options.amount as default
             );
             full_result = load(output_path);
 
             %verify without exporting
-            plot_default(full_result.result, do_export = false);
+            plot_default(full_result.experiment_result, do_export = false);
             testCase.verifyTrue(true);
 
             %verify and check export too
-            plot_default(full_result.result, do_export = true);
+            plot_default(full_result.experiment_result, do_export = true);
             testCase.verifyTrue(true);
 
             % verify export_video
-            export_video(full_result.result);
+            export_video(full_result.experiment_result);
 
             % verify other result plotting functions
             step_indices = [1, 5, 9];
             plot_experiment_snapshots( ...
-                full_result.result, ...
+                full_result.experiment_result, ...
                 step_indices, ...
                 do_export = false ...
             );
             testCase.verifyTrue(true);
             plot_experiment_snapshots( ...
-                full_result.result, ...
+                full_result.experiment_result, ...
                 step_indices, ...
                 do_export = true ...
             );
