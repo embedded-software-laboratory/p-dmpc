@@ -149,17 +149,10 @@ classdef systemtests < matlab.unittest.TestCase
             lastwarn('');
             fprintf('\nTest plotting of timing results. Note: No experiment is run here but instead only old results are reused.\n')
             %load Config from json as done in priority_based and load specific result structs of already performed experiments
-            rawJson = fileread('tests/systemtests/Config_systemtests.json');
-            options = Config();
-            options = options.importFromJson(rawJson);
+            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
             options.scenario_type = ScenarioType.circle;
             options.is_prioritized = true;
-            options.priority = PriorityStrategies.constant_priority;
-            options.cpp_optimizer = CppOptimizer.None;
             options.compute_in_parallel = true;
-            % Needs to be added because this is generated in the main (that is not executed here)
-            options.path_ids = 1:options.amount;
-            options.max_num_CLs = 2;
 
             % Load old results created in priority_based
             result_veh1 = load(FileNameConstructor.get_results_full_path(options, 1));
@@ -171,7 +164,9 @@ classdef systemtests < matlab.unittest.TestCase
             results_multiple_experiments{2, 1} = result_veh1.result;
             results_multiple_experiments{2, 2} = result_veh2.result;
 
-            plot_runtime_multiple_experiments(results_multiple_experiments);
+            plot_runtime_multiple_experiments(results_multiple_experiments, do_export = true);
+            testCase.verifyTrue(true);
+            plot_runtime_multiple_experiments(results_multiple_experiments, do_export = false);
             testCase.verifyTrue(true);
 
             % Test plotting of runtime of one timestep within one experiment
@@ -180,7 +175,9 @@ classdef systemtests < matlab.unittest.TestCase
             result_one_experiment{1, 2} = result_veh2.result;
             result_one_experiment_normalized = normalize_timing_results(result_one_experiment);
 
-            plot_runtime_for_step(result_one_experiment_normalized, 5);
+            plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = true);
+            testCase.verifyTrue(true);
+            plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = false);
             testCase.verifyTrue(true);
 
             close all;
