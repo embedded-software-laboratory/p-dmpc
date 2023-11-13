@@ -1,8 +1,8 @@
 classdef CouplerStrategies
 
     enumeration
-        ReachableSet
-        FullyConnected
+        reachable_set_coupling
+        full_coupling
     end
 
 end

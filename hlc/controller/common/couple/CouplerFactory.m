@@ -2,16 +2,16 @@ classdef CouplerFactory
 
     methods (Static)
 
-        function coupler = get_coupler(coupler_type)
+        function coupler = get_coupler(coupling)
             %GET_COUPLER creates a coupler according to the set option
             arguments
-                coupler_type CouplerStrategies;
+                coupling CouplerStrategies;
             end
 
-            switch (coupler_type)
-                case CouplerStrategies.ReachableSet
+            switch (coupling)
+                case CouplerStrategies.reachable_set_coupling
                     coupler = ReachableSetCoupler();
-                case CouplerStrategies.FullyConnected
+                case CouplerStrategies.full_coupling
                     coupler = FullyConnectedCoupler();
             end
 
