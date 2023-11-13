@@ -84,7 +84,7 @@ function [is_valid, shapes] = eval_edge_exact(iter, options, mpa, tree, iNode, v
                 % Note1: Shape must be closed!
                 % Note2: The collision check order is important.
                 % Normally, check collision with lanelet boundary last would be better.
-                if ~options.is_free_flow
+                if options.coupling ~= CouplerStrategies.no_coupling
                     % In free flow mode, vehicles do not need to consider
                     % other vehicles
                     if InterX(shapes{iVeh}, vehicle_obstacles{iStep})

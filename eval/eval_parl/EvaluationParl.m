@@ -246,7 +246,7 @@ classdef EvaluationParl
 
             %             % get sampleTime_FFS
             %             [~,obj.free_flow_speed] = FreeFlowSpeed;
-            %             if ~obj.options.is_free_flow
+            %             if options.coupling ~= CouplerStrategies.no_coupling
             %                 obj.travel_time_index = obj.average_speed/obj.free_flow_speed(num2str(obj.dt_seconds));
             %             else
             %                 obj.travel_time_index = 1;
