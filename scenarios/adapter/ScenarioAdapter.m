@@ -11,9 +11,7 @@ classdef (Abstract) ScenarioAdapter < handle
     end
 
     methods (Abstract)
-        % filepath either for a full scenario
-        % in a .mat file or a lanelet2 map in a .osm file
-        init(obj, options, filepath)
+        init(obj, options, plant)
     end
 
     methods (Static)

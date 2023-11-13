@@ -12,17 +12,17 @@ classdef BuiltScenario < ScenarioAdapter
             obj = obj@ScenarioAdapter();
         end
 
-        function init(obj, options, filepath_matlab_scenario)
+        function init(obj, options, plant)
             % initialize the member scenario of the scenario adapter
-            % with a scenario saved in filepath_matlab_scenario
+            % with a scenario saved in 'scenario.mat'
 
             arguments
                 obj (1, 1) BuiltScenario
                 options (1, 1) Config
-                filepath_matlab_scenario (1, :) char = 'scenario.mat';
+                plant (1, 1) Plant
             end
 
-            scenario_loaded = load(filepath_matlab_scenario, 'scenario').scenario;
+            scenario_loaded = load('scenario.mat', 'scenario').scenario;
 
             assert( ...
                 length(scenario_loaded.vehicles) == options.amount, ...
@@ -31,10 +31,24 @@ classdef BuiltScenario < ScenarioAdapter
                 options.amount ...
             )
 
+            if isa(plant, "UnifiedLabApi") && options.scenario_type == ScenarioType.lanelet2
+                plant.register_map(fileread(scenario_loaded.road_data_file_path));
+            end
+
             obj.scenario = scenario_loaded;
 
             % init manual vehicles
             obj.init_hdv(options);
+        end
+
+    end
+
+    methods (Access = private)
+
+        function register_map(~, map_as_string)
+            % registering the map of the scenario
+            % the functionality is currently part of UnifiedLabApi
+            fprintf('Successfully registered the map %s.', map_as_string);
         end
 
     end

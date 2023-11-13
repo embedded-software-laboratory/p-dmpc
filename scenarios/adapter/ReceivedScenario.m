@@ -12,7 +12,7 @@ classdef ReceivedScenario < ScenarioAdapter
             obj = obj@ScenarioAdapter();
         end
 
-        function init(obj, options, filepath_lanelet2_map)
+        function init(obj, options, plant)
             % initialize the member scenario of the scenario adapter
             % currently it receives only a filepath to a lanelet2 map,
             % transforms the map to Matlab data types and
@@ -21,10 +21,15 @@ classdef ReceivedScenario < ScenarioAdapter
             arguments
                 obj (1, 1) ReceivedScenario
                 options (1, 1) Config
-                filepath_lanelet2_map (1, :) char = 'lab_reduced.osm';
+                plant (1, 1) Plant
             end
 
-            % filepath_lanelet2_map = obj.receive_map();
+            if isa(plant, "UnifiedLabApi")
+                filepath_lanelet2_map = plant.receive_map();
+            else
+                filepath_lanelet2_map = 'lab_reduced.osm';
+            end
+
             obj.scenario = lanelet2_scenario(options.amount, options.path_ids, filepath_lanelet2_map);
 
             % init manual vehicles
