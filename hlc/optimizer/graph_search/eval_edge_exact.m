@@ -84,31 +84,26 @@ function [is_valid, shapes] = eval_edge_exact(iter, options, mpa, tree, iNode, v
                 % Note1: Shape must be closed!
                 % Note2: The collision check order is important.
                 % Normally, check collision with lanelet boundary last would be better.
-                if ~options.is_free_flow
-                    % In free flow mode, vehicles do not need to consider
-                    % other vehicles
-                    if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
-                        % check collision with vehicle obstacles
-                        is_valid = false;
-                        return
-                    end
+                if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
+                    % check collision with vehicle obstacles
+                    is_valid = false;
+                    return
+                end
 
-                    if options.amount > 1 && InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
-                        % check collision with crossing area of lanelets
-                        is_valid = false;
-                        return
-                    end
+                if options.amount > 1 && InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
+                    % check collision with crossing area of lanelets
+                    is_valid = false;
+                    return
+                end
 
-                    is_hdv_obstacle = ~all(all(isnan(hdv_obstacles{iStep})));
+                is_hdv_obstacle = ~all(all(isnan(hdv_obstacles{iStep})));
 
-                    if (is_hdv_obstacle && ...
-                            InterX(shapes{iVeh}, hdv_obstacles{iStep}) ...
-                        )
-                        % check collision with manual vehicle obstacles
-                        is_valid = false;
-                        return
-                    end
-
+                if (is_hdv_obstacle && ...
+                        InterX(shapes{iVeh}, hdv_obstacles{iStep}) ...
+                    )
+                    % check collision with manual vehicle obstacles
+                    is_valid = false;
+                    return
                 end
 
                 % check collision with lanelet obstacles
