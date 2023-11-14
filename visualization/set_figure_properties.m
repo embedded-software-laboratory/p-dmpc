@@ -157,6 +157,12 @@ function set_figure_properties(figHandle, export_fig_config)
 
             end
 
+            if strcmpi(get(h_graphic, 'Tag'), 'box_as_line')
+                set(h_graphic ...
+                    , 'LineWidth', export_fig_config.linewidth_timing_boxes ...
+                );
+            end
+
         end
 
     end
