@@ -1,17 +1,14 @@
 classdef ConstantPrioritizer < Prioritizer
-    % constant_priority  Instance of interface_priority used for priority
-    % assignment, fixed priority according to vehicle ids
+    % ConstantPrioritizer  Assign fixed priority. Defaults to priorities
+    % according to vehicle ids.
     properties
-        current_priorities
+        % priority array must be longer than the number of agents
+        current_priorities (1, :) double = 1:50;
     end
 
     methods
 
         function obj = ConstantPrioritizer()
-        end
-
-        function set_priorities(obj, priorities)
-            obj.current_priorities = priorities;
         end
 
         function [directed_coupling] = prioritize(obj, iter, ~, ~, ~)

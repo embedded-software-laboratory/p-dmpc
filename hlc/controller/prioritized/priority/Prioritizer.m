@@ -19,8 +19,6 @@ classdef (Abstract) Prioritizer < handle
                     prioritizer = ColoringPrioritizer();
                 case PriorityStrategies.constant_priority
                     prioritizer = ConstantPrioritizer();
-                    max_num_agents = 50;
-                    prioritizer.set_priorities(1:max_num_agents);
                 case PriorityStrategies.random_priority
                     prioritizer = RandomPrioritizer();
                 case PriorityStrategies.FCA_priority

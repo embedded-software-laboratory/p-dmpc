@@ -43,7 +43,7 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
                 obj.info = obj.info_base;
                 obj.iter.priority_permutation = priority_permutation;
 
-                obj.prioritizer.set_priorities(unique_priorities(:, priority_permutation));
+                obj.prioritizer.current_priorities = unique_priorities(:, priority_permutation);
 
                 obj.prioritize();
                 obj.reduce_computation_levels();
