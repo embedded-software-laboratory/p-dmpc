@@ -145,7 +145,7 @@ classdef UnifiedLabApi < Plant
             disp('Start/Stop signal received. Leave setup.');
         end
 
-        function [x0, trim_indices] = measure(obj, ~)
+        function [x0, trim_indices, cav_measurements] = measure(obj, ~)
             disp('Measure');
 
             % Receive new messages. In order to recognize stop signals, we
@@ -187,10 +187,16 @@ classdef UnifiedLabApi < Plant
             obj.sample = new_sample;
             state_list = obj.sample.vehicle_states;
 
+            % initialize return variables
             x0 = zeros(obj.amount + obj.manual_control_config.amount, 4);
+            cav_measurements(obj.amount, 1) = PlantMeasurement();
 
             % for first iteration use real poses
             if (obj.pos_init == false)
+
+                % since there is no steering info in [rad],
+                % the initial_steering is assumed to 0
+                initial_steering = 0;
 
                 for index = 1:length(state_list)
 
@@ -200,6 +206,14 @@ classdef UnifiedLabApi < Plant
                         x0(list_index, 2) = state_list(index).pose.y;
                         x0(list_index, 3) = state_list(index).pose.theta;
                         x0(list_index, 4) = [state_list(index).speed.linear];
+
+                        cav_measurements(list_index) = PlantMeasurement( ...
+                            state_list(index).pose.x, ...
+                            state_list(index).pose.y, ...
+                            state_list(index).pose.yaw, ...
+                            state_list(index).speed.linear, ...
+                            initial_steering ...
+                        );
                     end
 
                 end
@@ -208,6 +222,7 @@ classdef UnifiedLabApi < Plant
                 obj.pos_init = true;
             else
                 [x0(1:obj.amount, :), trim_indices] = obj.measure_node(); % get cav states from current node
+                cav_measurements = obj.measurements;
             end
 
             % Always measure HDV
