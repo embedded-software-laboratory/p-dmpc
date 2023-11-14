@@ -25,7 +25,7 @@ function timings = normalize_one_timing_result(timings, min_start_time, veh_i)
     field_names = fieldnames(timings, '-full');
 
     % Store diff to minimal timing in controller_start_time
-    difference_to_min_in_seconds = double(timings(veh_i).controller_start_time - min_start_time) * 10^-6;
+    difference_to_min_in_seconds = double(timings(veh_i).controller_start_time - min_start_time);
 
     for field_i = 1:length(field_names)
 
