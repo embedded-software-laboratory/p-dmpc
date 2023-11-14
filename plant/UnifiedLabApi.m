@@ -188,7 +188,6 @@ classdef UnifiedLabApi < Plant
             state_list = obj.sample.vehicle_states;
 
             % initialize return variables
-            x0 = zeros(obj.amount + obj.manual_control_config.amount, 4);
             cav_measurements(obj.amount, 1) = PlantMeasurement();
 
             % for first iteration use real poses
@@ -202,10 +201,6 @@ classdef UnifiedLabApi < Plant
 
                     if ismember(double(state_list(index).vehicle_id), obj.controlled_vehicle_ids) % measure cav states
                         list_index = obj.indices_in_vehicle_list(index); % use list to prevent breaking distributed control
-                        x0(list_index, 1) = state_list(index).pose.x;
-                        x0(list_index, 2) = state_list(index).pose.y;
-                        x0(list_index, 3) = state_list(index).pose.theta;
-                        x0(list_index, 4) = [state_list(index).speed.linear];
 
                         cav_measurements(list_index) = PlantMeasurement( ...
                             state_list(index).pose.x, ...
@@ -218,10 +213,8 @@ classdef UnifiedLabApi < Plant
 
                 end
 
-                [~, trim_indices] = obj.measure_node();
                 obj.pos_init = true;
             else
-                [x0(1:obj.amount, :), trim_indices] = obj.measure_node(); % get cav states from current node
                 cav_measurements = obj.measurements;
             end
 
@@ -236,12 +229,6 @@ classdef UnifiedLabApi < Plant
             for index = 1:length(state_list)
 
                 if ismember(double(state_list(index).vehicle_id), obj.manual_control_config.hdv_ids)
-                    list_index = obj.amount + hdv_index;
-                    x0(list_index, 1) = state_list(index).pose.x;
-                    x0(list_index, 2) = state_list(index).pose.y;
-                    x0(list_index, 3) = state_list(index).pose.theta;
-                    x0(list_index, 4) = [state_list(index).speed.linear];
-
                     hdv_measurements(hdv_index) = PlantMeasurement( ...
                         state_list(index).pose.x, ...
                         state_list(index).pose.y, ...

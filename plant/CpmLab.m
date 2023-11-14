@@ -90,7 +90,7 @@ classdef CpmLab < Plant
             setup@Plant(obj, options, scenario, state_list.active_vehicle_ids, state_list.active_vehicle_ids(is_controlled));
         end
 
-        function [cav_measurements, hdv_measurements] = measure(obj, mpa)
+        function [cav_measurements, hdv_measurements] = measure(obj, ~)
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
             if (sample_count > 1)
@@ -100,7 +100,6 @@ classdef CpmLab < Plant
             state_list = obj.sample(end).state_list;
 
             % initialize return variables
-            x0 = zeros(obj.amount + obj.manual_control_config.amount, 4);
             cav_measurements(obj.amount, 1) = PlantMeasurement();
 
             % for first iteration use real poses
@@ -115,11 +114,6 @@ classdef CpmLab < Plant
 
                     if ismember(state_list(index).vehicle_id, obj.controlled_vehicle_ids) % measure cav states
                         list_index = obj.indices_in_vehicle_list(cav_index); % use list to prevent breaking distributed control
-                        cav_index = cav_index + 1;
-                        x0(list_index, 1) = state_list(index).pose.x;
-                        x0(list_index, 2) = state_list(index).pose.y;
-                        x0(list_index, 3) = state_list(index).pose.yaw;
-                        x0(list_index, 4) = [state_list(index).speed];
 
                         cav_measurements(list_index) = PlantMeasurement( ...
                             state_list(index).pose.x, ...
@@ -128,14 +122,15 @@ classdef CpmLab < Plant
                             state_list(index).speed, ...
                             initial_steering ...
                         );
+
+                        % increase cav_index
+                        cav_index = cav_index + 1;
                     end
 
                 end
 
-                [~, trim_indices] = obj.measure_node(mpa);
                 obj.pos_init = true;
             else
-                [x0(1:obj.amount, :), trim_indices] = obj.measure_node(mpa); % get cav states from current node
                 cav_measurements = obj.measurements;
             end
 
@@ -150,12 +145,6 @@ classdef CpmLab < Plant
             for index = 1:length(state_list)
 
                 if ismember(state_list(index).vehicle_id, obj.manual_control_config.hdv_ids)
-                    list_index = obj.amount + hdv_index;
-                    x0(list_index, 1) = state_list(index).pose.x;
-                    x0(list_index, 2) = state_list(index).pose.y;
-                    x0(list_index, 3) = state_list(index).pose.yaw;
-                    x0(list_index, 4) = [state_list(index).speed];
-
                     hdv_measurements(hdv_index) = PlantMeasurement( ...
                         state_list(index).pose.x, ...
                         state_list(index).pose.y, ...
