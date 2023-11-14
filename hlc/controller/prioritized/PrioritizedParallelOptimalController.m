@@ -32,15 +32,18 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
             % initialize
             obj.iter_array_tmp = {};
             obj.info_array_tmp = {};
-            obj.prioritizer.compute_unique_priorities(obj.iter.adjacency);
+            unique_priorities = Prioritizer.unique_priorities(obj.iter.adjacency);
+            n_priorities = size(unique_priorities, 2);
 
             vehicle_idx = obj.plant.indices_in_vehicle_list(1);
 
-            for priority_permutation = 1:obj.prioritizer.n_priorities
+            for priority_permutation = 1:n_priorities
 
                 obj.iter = obj.iter_base;
                 obj.info = obj.info_base;
                 obj.iter.priority_permutation = priority_permutation;
+
+                obj.prioritizer.set_priorities(unique_priorities(:, priority_permutation));
 
                 obj.prioritize();
                 obj.reduce_computation_levels();

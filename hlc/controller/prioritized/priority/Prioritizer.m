@@ -19,6 +19,8 @@ classdef (Abstract) Prioritizer < handle
                     prioritizer = ColoringPrioritizer();
                 case PriorityStrategies.constant_priority
                     prioritizer = ConstantPrioritizer();
+                    max_num_agents = 50;
+                    prioritizer.set_priorities(1:max_num_agents);
                 case PriorityStrategies.random_priority
                     prioritizer = RandomPrioritizer();
                 case PriorityStrategies.FCA_priority
@@ -136,6 +138,47 @@ classdef (Abstract) Prioritizer < handle
                         directed_coupling(i, j) = 0;
                     end
 
+                end
+
+            end
+
+        end
+
+        function result = unique_priorities(adjacency)
+
+            arguments (Input)
+                adjacency (:, :) double;
+            end
+
+            arguments (Output)
+                result (:, :) double; % n_vehicles x n_unique_priority_permutations
+            end
+
+            n_vehicles = size(adjacency, 1);
+            result = zeros(n_vehicles, 0);
+            directed_coupling_base = triu(adjacency, 1);
+            [edge_row, edge_col] = find(directed_coupling_base);
+            n_edges = length(edge_row);
+            n_permutations = 2^n_edges;
+
+            for i_permutation = 1:n_permutations
+                flips = dec2bin(i_permutation - 1, n_edges) == '1';
+
+                directed_coupling = directed_coupling_base;
+
+                % Flip edges
+                idx = sub2ind(size(directed_coupling), edge_row(flips), edge_col(flips));
+                directed_coupling(idx) = 0;
+                idx = sub2ind(size(directed_coupling), edge_col(flips), edge_row(flips));
+                directed_coupling(idx) = 1;
+
+                directed_coupling_digraph = digraph(directed_coupling);
+
+                if isdag(directed_coupling_digraph)
+                    topological_order = toposort(directed_coupling_digraph);
+                    priority = zeros(1, n_vehicles);
+                    priority(topological_order) = 1:n_vehicles;
+                    result(:, end + 1) = priority; %#ok<AGROW>
                 end
 
             end
