@@ -16,7 +16,7 @@ function search_path = path_between(iCur, iNext, tree, mpa)
         yaws = maneuver.yaws + yaw;
 
         length_maneuver = length(xs);
-        trims = double(tree.get_trim(iVeh, iCur)) * ones(length_maneuver, 1);
+        trims = tree.get_trim(iVeh, iCur) * ones(length_maneuver, 1);
 
         [xs, ys] = translate_global(yaw, x, y, xs, ys);
 
