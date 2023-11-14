@@ -222,6 +222,12 @@ classdef UnifiedLabApi < Plant
                 cav_measurements = obj.measurements;
             end
 
+            % if there are no manual vehicles return directly
+            if ~obj.manual_control_config.is_active
+                hdv_measurements = [];
+                return
+            end
+
             % Always measure HDV
             hdv_measurements(obj.manual_control_config.amount, 1) = PlantMeasurement();
 
