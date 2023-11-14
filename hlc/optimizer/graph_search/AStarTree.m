@@ -32,6 +32,8 @@ classdef AStarTree < Tree
             %
             % t = AStarTree(x,y,yaw,trim,k,g,h)
             % initialize a new AStarTree with the given values as nodes
+            obj.parent = 0;
+
             if nargin < 1
                 root_ID = 1;
                 return
@@ -79,7 +81,7 @@ classdef AStarTree < Tree
             obj.k(:, IDs) = k;
             obj.g(:, IDs) = g;
             obj.h(:, IDs) = h;
-            obj.parent(IDs, 1) = parent;
+            obj.parent(1, IDs) = parent;
         end
 
         function IDs = add_node(obj, parent, node)
