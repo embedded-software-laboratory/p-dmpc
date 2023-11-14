@@ -92,19 +92,7 @@ classdef FcaPrioritizer < Prioritizer
             %disp(['collisions: ',num2str(collisions)])
             %disp(['priority_index: ',num2str(FCAPrio)])
 
-            directed_coupling = adjacency;
-
-            for iVeh = 1:nVeh
-
-                for jVeh = 1:nVeh
-
-                    if directed_coupling(iVeh, jVeh) && (current_priorities(iVeh) > current_priorities(jVeh))
-                        directed_coupling(iVeh, jVeh) = 0;
-                    end
-
-                end
-
-            end
+            directed_coupling = Prioritizer.directed_coupling_from_priorities(adjacency, current_priorities);
 
         end
 
