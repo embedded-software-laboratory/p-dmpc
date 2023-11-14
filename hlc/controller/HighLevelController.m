@@ -316,7 +316,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % Measurement
                 % -------------------------------------------------------------------------
-                [states_measured, trims_measured] = obj.plant.measure(obj.mpa);
+                [states_measured, trims_measured, cav_measurements, hdv_measurements] = obj.plant.measure(obj.mpa);
 
                 % Control
                 % ----------------------------------------------------------------------

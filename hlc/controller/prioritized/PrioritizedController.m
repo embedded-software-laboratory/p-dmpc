@@ -111,7 +111,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % create struct with state indices that it is not created on every usage
             state_indices = indices();
             % measure vehicles' initial poses and trims
-            [states_measured, trims_measured] = obj.plant.measure(obj.mpa);
+            [states_measured, trims_measured, cav_measurements] = obj.plant.measure(obj.mpa);
 
             for vehicle_index = obj.plant.indices_in_vehicle_list
                 % store state and trim in iteration data
