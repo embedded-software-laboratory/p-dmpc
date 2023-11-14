@@ -90,7 +90,7 @@ classdef CpmLab < Plant
             setup@Plant(obj, options, scenario, state_list.active_vehicle_ids, state_list.active_vehicle_ids(is_controlled));
         end
 
-        function [x0, trim_indices, cav_measurements, hdv_measurements] = measure(obj, mpa)
+        function [cav_measurements, hdv_measurements] = measure(obj, mpa)
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
             if (sample_count > 1)

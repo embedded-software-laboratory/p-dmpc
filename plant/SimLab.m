@@ -60,7 +60,7 @@ classdef SimLab < Plant
 
         end
 
-        function [x0, trim_indices, cav_measurements, hdv_measurements] = measure(obj, mpa)
+        function [cav_measurements, hdv_measurements] = measure(obj, mpa)
             obj.step_timer = tic(); % Keep time to enable realtime plotting in apply
             [x0, trim_indices] = obj.measure_node(mpa);
             cav_measurements = obj.measurements;
