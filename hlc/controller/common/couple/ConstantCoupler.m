@@ -16,7 +16,7 @@ classdef ConstantCoupler < Coupler
             obj.adjacency = adjacency;
         end
 
-        function [adjacency] = couple(obj, ~, ~, ~)
+        function [adjacency] = couple(obj, ~, ~, ~, ~)
             adjacency = obj.adjacency;
         end
 

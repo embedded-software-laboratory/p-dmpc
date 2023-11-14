@@ -10,6 +10,7 @@ function scenario = commonroad_scenario(amount, path_ids)
     scenario.lanelet_boundary = road_data.lanelet_boundary;
     scenario.road_raw_data = road_data.road_raw_data;
     scenario.lanelet_relationships = road_data.lanelet_relationships;
+    scenario.adjacency_lanelets = road_data.adjacency_lanelets;
 
     nVeh = amount;
 

@@ -24,6 +24,7 @@ function scenario = lanelet2_scenario(amount, path_ids, filepath_lanelet2_map)
     scenario.road_raw_data = road_data.road_raw_data;
     scenario.lanelet_relationships = road_data.lanelet_relationships;
     scenario.road_data_file_path = [road_data.road_folder_path, filesep, road_data.road_name];
+    scenario.adjacency_lanelets = road_data.adjacency_lanelets;
 
     nVeh = amount;
 

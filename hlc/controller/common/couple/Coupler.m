@@ -12,7 +12,7 @@ classdef (Abstract) Coupler < handle
     methods (Abstract)
 
         % Returns the adjacency matrix
-        [adjacency] = couple(obj, iter, options, max_mpa_speed)
+        [adjacency] = couple(obj, iter, options, max_mpa_speed, ~)
 
     end
 
