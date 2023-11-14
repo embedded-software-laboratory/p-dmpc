@@ -65,10 +65,18 @@ classdef SimLab < Plant
             [x0, trim_indices] = obj.measure_node(mpa);
         end
 
-        function apply(obj, info, experiment_result, k, ~)
+        function apply(obj, info, experiment_result, k, mpa)
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
                 obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
+
+                obj.measurements(iVeh) = PlantMeasurement( ...
+                    info.next_node(iVeh, NodeInfo.x), ...
+                    info.next_node(iVeh, NodeInfo.y), ...
+                    info.next_node(iVeh, NodeInfo.yaw), ...
+                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).speed, ...
+                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).steering ...
+                );
             end
 
             if obj.should_plot
