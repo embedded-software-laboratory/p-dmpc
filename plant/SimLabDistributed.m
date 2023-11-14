@@ -35,7 +35,7 @@ classdef SimLabDistributed < Plant
             obj.msg_to_be_sent = ros2message("plotting_info/PlottingInfo");
         end
 
-        function [cav_measurements, hdv_measurements] = measure(obj, ~)
+        function [cav_measurements, hdv_measurements] = measure(obj)
             cav_measurements = obj.measurements;
             hdv_measurements = [];
         end

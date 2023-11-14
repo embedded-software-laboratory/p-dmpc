@@ -33,7 +33,7 @@ classdef (Abstract) Plant < handle
     end
 
     methods (Abstract)
-        [cav_measurements, hdv_measurements] = measure(obj, ~)
+        [cav_measurements, hdv_measurements] = measure(obj)
         apply(obj, info, experiment_result, k, mpa)
         got_stop = is_stop(obj)
         end_run(obj)

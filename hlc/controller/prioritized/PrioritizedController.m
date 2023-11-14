@@ -109,7 +109,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % synchronize the prioritized controllers in parallel/distributed execution
 
             % measure vehicles' initial poses and trims
-            [cav_measurements] = obj.plant.measure(obj.mpa);
+            [cav_measurements] = obj.plant.measure();
 
             for vehicle_index = obj.plant.indices_in_vehicle_list
                 % store state and trim in iteration data

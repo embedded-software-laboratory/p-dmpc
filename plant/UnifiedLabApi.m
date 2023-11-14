@@ -145,7 +145,7 @@ classdef UnifiedLabApi < Plant
             disp('Start/Stop signal received. Leave setup.');
         end
 
-        function [cav_measurements, hdv_measurements] = measure(obj, ~)
+        function [cav_measurements, hdv_measurements] = measure(obj)
             disp('Measure');
 
             % Receive new messages. In order to recognize stop signals, we
