@@ -5,7 +5,7 @@ function export_video(experiment_result, optional)
         optional.framerate {mustBeNumeric} = 30;
     end
 
-    options = result.options;
+    options = experiment_result.options;
     scenario = experiment_result.scenario;
     options.options_plot_online.is_video_mode = 1;
 

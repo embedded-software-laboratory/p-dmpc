@@ -14,7 +14,8 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
     scenario = experiment_result.scenario;
 
     nVeh = options.amount;
-    nObst = size(experiment_result.obstacles, 1);
+    obstacles = experiment_result.iteration_data{experiment_result.n_steps}.obstacles;
+    nObst = size(obstacles, 1);
 
     nFigs = numel(step_indices);
 
@@ -48,8 +49,8 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
 
             % Obstacle rectangle
             for obs = 1:nObst
-                patch(experiment_result.obstacles{obs}(1, :) ...
-                    , experiment_result.obstacles{obs}(2, :) ...
+                patch(obstacles{obs}(1, :) ...
+                    , obstacles{obs}(2, :) ...
                     , [0.5 0.5 0.5] ...
                 );
             end

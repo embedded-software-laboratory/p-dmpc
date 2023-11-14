@@ -7,19 +7,19 @@ function plot_computation_time(results, optional)
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    nResults = length(results);
+    n_results = length(results);
 
-    runtimes = zeros(results(1).nSteps, nResults);
-    nVehicles = zeros(1, nResults);
+    runtimes = zeros(results(1).n_steps, n_results);
+    n_vehicles = zeros(1, n_results);
 
     fig_per_result = figure(visible = "off");
     set(0, 'currentfigure', fig_per_result);
 
-    for i = 1:nResults
+    for i = 1:n_results
         % make sure only one controller runtime is stored in the struct
         % assert(size(results(i).controller_runtime, 1) == 1); % TODO
         runtimes(:, i) = squeeze(results(i).timings_general.controller(2, 1, :));
-        nVehicles(i) = results(i).options.amount;
+        n_vehicles(i) = results(i).options.amount;
 
         bar(1:numel(runtimes), runtimes);
         % set labels
@@ -37,14 +37,14 @@ function plot_computation_time(results, optional)
 
     end
 
-    [~, order] = sort(nVehicles);
+    [~, order] = sort(n_vehicles);
 
     runtimes(:, :) = runtimes(:, order);
-    nVehicles(:) = nVehicles(order);
+    n_Vehicles(:) = n_vehicles(order);
 
     % plot with axis on both sides and logarithmic scale
     set(0, 'currentfigure', optional.fig);
-    boxplot(runtimes, nVehicles, 'MedianStyle', 'line');
+    boxplot(runtimes, n_Vehicles, 'MedianStyle', 'line');
     set(gca, 'YScale', 'log');
 
     % set labels

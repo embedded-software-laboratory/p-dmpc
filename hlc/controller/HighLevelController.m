@@ -18,6 +18,7 @@ classdef (Abstract) HighLevelController < handle
         info;
 
         manual_vehicles;
+        timing_per_vehicle (1, :) ControllerTiming;
     end
 
     properties (Access = protected)
@@ -26,7 +27,6 @@ classdef (Abstract) HighLevelController < handle
         % timing_general stores all timings holding for all vehicles
         timing_general (1, 1) ControllerTiming;
         % timing_per_veh stores the timings per vehicle
-        timing_per_vehicle (1, :) ControllerTiming;
 
         coupler
 
@@ -582,7 +582,7 @@ classdef (Abstract) HighLevelController < handle
             obj.experiment_result.total_fallback_times = obj.total_fallback_times;
             obj.experiment_result.timings_general = obj.timing_general.get_all_timings();
 
-            obj.experiment_result.timings_per_vehicle = arrayfun(@(e) e.get_all_timings(), obj.timing_per_vehicle);
+            obj.experiment_result.timings_per_vehicle = arrayfun(@(e) e.get_all_timings(), obj.timing_per_vehicle, 'UniformOutput', false);
 
             if obj.options.should_reduce_result
                 % delete large data fields of to reduce file size
