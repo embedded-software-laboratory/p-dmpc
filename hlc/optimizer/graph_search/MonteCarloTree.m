@@ -1,13 +1,9 @@
 classdef MonteCarloTree < Tree
 
-    properties (SetAccess = private)
-    end
-
     properties (SetAccess = public)
         pose (3, :, :) double;
         trim (1, :, :) uint8;
         cost (1, :) single;
-        parent (1, :) uint32;
         children (:, :) uint32; % 0: impossible; 1: possible, unexpanded; else: child id
         successor_trims (:, :, :) uint8;
         n_nodes (1, 1) uint32 = 0;
@@ -99,7 +95,7 @@ classdef MonteCarloTree < Tree
 
         function trim = get_trim(obj, i_vehicle, ID)
             %% GET_TRIM  Return the trim of the given node.
-            trim = obj.trim(1, i_vehicle, ID);
+            trim = double(obj.trim(1, i_vehicle, ID));
         end
 
         function x = get_x(obj, i_vehicle, ID)
