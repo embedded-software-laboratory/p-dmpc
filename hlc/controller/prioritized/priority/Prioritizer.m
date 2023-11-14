@@ -143,6 +143,10 @@ classdef (Abstract) Prioritizer < handle
         end
 
         function result = unique_priorities(adjacency)
+            % UNIQUE_PRIORITIES  Given the adjacency matrix, this function returns
+            % all the possible unique priority permutations. Unique in
+            % this context means that no two priority permutations can result in
+            % the same topologigal order.
 
             arguments (Input)
                 adjacency (:, :) double;
