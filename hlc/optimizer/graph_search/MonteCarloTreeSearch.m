@@ -2,22 +2,20 @@ classdef MonteCarloTreeSearch < OptimizerInterface
 
     methods
 
-        function obj = MonteCarloTreeSearch(scenario, mpa)
-            obj = obj@OptimizerInterface(scenario, mpa);
+        function obj = MonteCarloTreeSearch()
+            obj = obj@OptimizerInterface();
         end
 
-        function [info_v, optimizer_time] = run_optimizer(obj, iter, ~)
-            optimizer_timer = tic;
+        function info_v = run_optimizer(obj, ~, iter, mpa, ~)
             % execute sub controller for 1-veh scenario
-            info_v = obj.do_graph_search(iter);
-            optimizer_time = toc(optimizer_timer);
+            info_v = obj.do_graph_search(iter, mpa);
         end
 
     end
 
     methods (Access = private)
 
-        function info = do_graph_search(obj, iter)
+        function info = do_graph_search(obj, iter, mpa)
             % DO_GRAPH_SEARCH  Execute Monte Carlo Tree Search.
             %
             % INPUT:
@@ -26,24 +24,24 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             % OUTPUT:
             %   info: ControlResultsInfo object.
             %
-            Hp = obj.scenario.options.Hp;
-            n_expansions_max = 900;
-            n_successor_trims_max = obj.mpa.maximum_branching_factor();
+            assert(iter.amount == 1);
+            Hp = size(iter.v_ref, 2);
+            n_expansions_max = 1000;
+            n_successor_trims_max = mpa.maximum_branching_factor();
             % initialize variable to store control results
             info = ControlResultsInfo(iter.amount, Hp, iter.vehicle_ids);
 
             % Create tree with root node
             trim = iter.trim_indices;
-            successor_trims = find(obj.mpa.transition_matrix_single(trim, :, 1));
+            successor_trims = find(mpa.transition_matrix_single(trim, :, 1));
             info.tree = MonteCarloTree(1, n_successor_trims_max, n_expansions_max);
             info.tree.add_root(iter.x0(1:3), trim, 0, 0, successor_trims);
 
             valid_nodes_at_hp = PriorityQueue();
             shapes_tmp = cell(iter.amount, 0);
 
-            [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter, obj.scenario);
+            [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter, Hp);
 
-            % TODO multiple vehicles
             iVeh = 1;
             n_expansions = 0;
             is_finished = false;
@@ -77,6 +75,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                         , squeeze(iter.reference_trajectory_points(iVeh, i_step, 1:2)) ...
                         , node_id ...
                         , info.tree ...
+                        , mpa ...
                     );
 
                     node_trim = goal_trim;
@@ -85,7 +84,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                     if (i_step ~= Hp)
                         shapes_for_boundary_check = shapes_without_offset;
 
-                        node_successor_trims = find(obj.mpa.transition_matrix_single(goal_trim, :, i_step + 1));
+                        node_successor_trims = find(mpa.transition_matrix_single(goal_trim, :, i_step + 1));
                     else
                         shapes_for_boundary_check = shapes_with_large_offset;
                     end
@@ -130,8 +129,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             end
 
             % return cheapest path
-            y_pred = return_path_to(best_node_id, info.tree, obj.mpa);
-            info.y_predicted = y_pred;
+            info.y_predicted = return_path_to(best_node_id, info.tree, mpa);
             info.shapes = return_path_area(shapes_tmp, info.tree, best_node_id);
             info.tree_path = fliplr(path_to_root(info.tree, best_node_id));
             % Predicted trims in the future Hp time steps. The first entry is the current trims
@@ -146,7 +144,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             %
             % INPUT:
             %   node_id: Id of node to return random successor trim for.
-            %   tree: Tree to search in.
+            %   tree: Tree to expand a node in.
             %
             % OUTPUT:
             %   trim: Random successor trim of node. If no successor trim is available, return 0.
@@ -158,22 +156,21 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                 trim = 0;
             else
                 % choose successor trim randomly
-                % TODO does not work for multiple vehicles
                 trim = tree.successor_trims(trim_positions(randi(n_trims)), :, node_id);
             end
 
         end
 
-        function [goal_pose, goal_cost, shapes, shapes_without_offset, shapes_with_large_offset] = expand_node(obj ...
+        function [goal_pose, goal_cost, shapes, shapes_without_offset, shapes_with_large_offset] = expand_node(~ ...
                 , goal_trim ...
                 , reference_trajectory_point ...
                 , node_id ...
                 , tree ...
+                , mpa ...
             )
-            % TODO multiple vehicles
             start_trim = tree.trim(1, :, node_id);
 
-            maneuver = obj.mpa.maneuvers{start_trim, goal_trim};
+            maneuver = mpa.maneuvers{start_trim, goal_trim};
 
             c = cos(tree.pose(3, :, node_id));
             s = sin(tree.pose(3, :, node_id));
