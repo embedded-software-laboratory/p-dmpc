@@ -1,4 +1,4 @@
-function result = is_hdv_behind(lanelet_id_cav, x_cav, lanelet_id_hdv, x_hdv, lanelets, lanelet_relationships)
+function result = is_hdv_behind(lanelet_id_cav, cav_measurement, lanelet_id_hdv, hdv_measurement, lanelets, lanelet_relationships)
 
     result = false;
 
@@ -78,8 +78,8 @@ function result = is_hdv_behind(lanelet_id_cav, x_cav, lanelet_id_hdv, x_hdv, la
     hdv_on_overlapping_lanelet = ~isempty(overlapping_lanelets);
 
     if hdv_on_same_lanelet || hdv_on_overlapping_lanelet
-        vector_cav_hdv = x_hdv(1:2) - x_cav(1:2);
-        vector_yaw = [cos(x_hdv(3)) sin(x_hdv(3))];
+        vector_cav_hdv = [hdv_measurement.x, hdv_measurement.y] - [cav_measurement.x, cav_measurement.y];
+        vector_yaw = [cos(hdv_measurement.yaw) sin(hdv_measurement.yaw)];
         scalar = dot(vector_yaw, vector_cav_hdv);
 
         if scalar < 0
