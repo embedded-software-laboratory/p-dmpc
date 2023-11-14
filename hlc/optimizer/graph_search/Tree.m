@@ -1,9 +1,9 @@
 classdef Tree < handle
 
-    properties (SetAccess = private)
+    properties (SetAccess = protected)
         % Index of the parent node. The root of the AStarTree as a parent index
         % equal to 0.
-        parent = [0];
+        parent (1, :) uint32;
     end
 
     methods (Abstract)
@@ -27,7 +27,7 @@ classdef Tree < handle
             ID = obj.parent(ID);
         end
 
-        function path_to_root(obj, ID)
+        function result = path_to_root(obj, ID)
             %% PATH_TO_ROOT  Path from node ID to the Tree root.
             result = ID;
 
