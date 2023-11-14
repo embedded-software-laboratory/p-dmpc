@@ -145,7 +145,7 @@ classdef UnifiedLabApi < Plant
             disp('Start/Stop signal received. Leave setup.');
         end
 
-        function [x0, trim_indices, cav_measurements] = measure(obj, ~)
+        function [x0, trim_indices, cav_measurements, hdv_measurements] = measure(obj, ~)
             disp('Measure');
 
             % Receive new messages. In order to recognize stop signals, we
@@ -227,16 +227,31 @@ classdef UnifiedLabApi < Plant
 
             % Always measure HDV
             hdv_index = 1;
+            hdv_measurements(obj.manual_control_config.amount, 1) = PlantMeasurement();
+
+            % since there is no steering info in [rad],
+            % the hdv_steering is assumed to 0
+            hdv_steering = 0;
 
             for index = 1:length(state_list)
 
                 if ismember(double(state_list(index).vehicle_id), obj.manual_control_config.hdv_ids)
                     list_index = obj.amount + hdv_index;
-                    hdv_index = hdv_index + 1;
                     x0(list_index, 1) = state_list(index).pose.x;
                     x0(list_index, 2) = state_list(index).pose.y;
                     x0(list_index, 3) = state_list(index).pose.theta;
                     x0(list_index, 4) = [state_list(index).speed.linear];
+
+                    hdv_measurements(hdv_index) = PlantMeasurement( ...
+                        state_list(index).pose.x, ...
+                        state_list(index).pose.y, ...
+                        state_list(index).pose.yaw, ...
+                        state_list(index).speed.linear, ...
+                        hdv_steering ...
+                    );
+
+                    % increase hdv_index
+                    hdv_index = hdv_index + 1;
                 end
 
             end
