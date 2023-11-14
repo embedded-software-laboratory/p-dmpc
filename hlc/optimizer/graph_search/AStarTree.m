@@ -11,7 +11,7 @@ classdef Tree < handle
     properties (SetAccess = private)
         % Index of the parent node. The root of the Tree as a parent index
         % equal to 0.
-        parent = [0]; %#ok<NBRAK>
+        parent = [0];
     end
 
     properties (SetAccess = public)
