@@ -12,7 +12,7 @@ classdef (Abstract) Coupler < handle
     methods (Abstract)
 
         % Returns the adjacency matrix
-        [adjacency] = couple(obj, iter)
+        [adjacency] = couple(obj, iter, options, max_mpa_speed)
 
     end
 
@@ -32,6 +32,8 @@ classdef (Abstract) Coupler < handle
                     coupler = ConstantCoupler(ones(amount) - eye(amount));
                 case CouplingStrategies.no_coupling
                     coupler = ConstantCoupler(zeros(amount));
+                case CouplingStrategies.distance_coupling
+                    coupler = DistanceCoupler();
             end
 
         end
