@@ -33,7 +33,7 @@ classdef GraphSearch < OptimizerInterface
             k = 0;
             g = 0;
             h = 0;
-            info.tree = Tree(x, y, yaw, trim, k, g, h);
+            info.tree = AStarTree(x, y, yaw, trim, k, g, h);
 
             % Array storing ids of nodes that may be expanded
 

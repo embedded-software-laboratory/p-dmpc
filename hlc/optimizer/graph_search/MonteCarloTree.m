@@ -1,4 +1,4 @@
-classdef MonteCarloTree < handle
+classdef MonteCarloTree < Tree
 
     properties (SetAccess = private)
     end
@@ -62,21 +62,6 @@ classdef MonteCarloTree < handle
             %% SIZE Return the number of nodes in the Tree.
             % result = size(obj.parent, 2);
             result = obj.n_nodes;
-        end
-
-        function ID = get_parent(obj, ID)
-            %% GET_PARENT  Return the ID of the parent of the given node.
-            ID = obj.parent(ID);
-        end
-
-        function result = path_to_root(obj, ID)
-            %% PATH_TO_ROOT  Path from node ID to the Tree root.
-            result = ID;
-
-            while result(end) ~= 1
-                result(end + 1) = obj.parent(result(end)); %#ok<AGROW>
-            end
-
         end
 
         function result = get_node(obj, ID)
