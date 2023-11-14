@@ -18,7 +18,6 @@ classdef (Abstract) HighLevelController < handle
         info;
 
         manual_vehicles;
-        timing_per_vehicle (1, :) ControllerTiming;
     end
 
     properties (Access = protected)
@@ -27,7 +26,7 @@ classdef (Abstract) HighLevelController < handle
         % timing_general stores all timings holding for all vehicles
         timing_general (1, 1) ControllerTiming;
         % timing_per_veh stores the timings per vehicle
-
+        timing_per_vehicle (1, :) ControllerTiming;
         coupler
 
         % old control results used for taking a fallback
