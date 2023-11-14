@@ -17,6 +17,7 @@ classdef ReachableSetCoupler < Coupler
 
             for iVeh = 1:amount
                 [bound_boxes_x(iVeh, :), bound_boxes_y(iVeh, :)] = boundingbox(reachable_sets{iVeh, end});
+                disp('Check line coverage in CI...');
             end
 
             for veh_i = 1:(amount - 1)
