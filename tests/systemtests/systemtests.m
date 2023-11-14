@@ -106,7 +106,7 @@ classdef systemtests < matlab.unittest.TestCase
             options = Config();
             options = options.importFromJson(rawJson);
 
-            options.coupling = CouplerStrategies(coupling);
+            options.coupling = CouplingStrategies(coupling);
             testCase.verifyEmpty(lastwarn);
 
             main(options);

@@ -1,4 +1,4 @@
-classdef CouplerStrategies
+classdef CouplingStrategies
 
     enumeration
         reachable_set_coupling

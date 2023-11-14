@@ -21,16 +21,16 @@ classdef (Abstract) Coupler < handle
         function coupler = get_coupler(coupling, amount)
             %GET_COUPLER creates a coupler according to the set option
             arguments
-                coupling CouplerStrategies;
+                coupling CouplingStrategies;
                 amount double; % options.amount for constant coupling
             end
 
             switch (coupling)
-                case CouplerStrategies.reachable_set_coupling
+                case CouplingStrategies.reachable_set_coupling
                     coupler = ReachableSetCoupler();
-                case CouplerStrategies.full_coupling
+                case CouplingStrategies.full_coupling
                     coupler = ConstantCoupler(ones(amount) - eye(amount));
-                case CouplerStrategies.no_coupling
+                case CouplingStrategies.no_coupling
                     coupler = ConstantCoupler(zeros(amount));
             end
 

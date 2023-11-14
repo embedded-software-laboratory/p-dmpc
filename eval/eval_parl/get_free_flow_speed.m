@@ -13,7 +13,7 @@ function free_flow_speed = get_free_flow_speed(options)
     % prepare simulation options
     options.environment = Environment.Simulation;
     options.should_save_result = true;
-    options.coupling = CouplerStrategies.no_coupling;
+    options.coupling = CouplingStrategies.no_coupling;
 
     results_full_path = FileNameConstructor.get_results_full_path(options, options.amount);
 
