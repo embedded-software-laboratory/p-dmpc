@@ -104,7 +104,6 @@ classdef CpmLab < Plant
 
             % for first iteration use real poses
             if (obj.pos_init == false)
-                cav_index = 1;
 
                 % since there is no steering info in [rad],
                 % the initial_steering is assumed to 0
@@ -112,19 +111,20 @@ classdef CpmLab < Plant
 
                 for index = 1:length(state_list)
 
-                    if ismember(state_list(index).vehicle_id, obj.controlled_vehicle_ids) % measure cav states
-                        list_index = obj.indices_in_vehicle_list(cav_index); % use list to prevent breaking distributed control
+                    % cast the state_list vehicle_id to double
+                    % to be able to compare to defined data type
+                    % in superclass without loss of precision
+                    if ismember(double(state_list(index).vehicle_id), obj.controlled_vehicle_ids) % measure cav states
+                        % index of measured vehicle in vehicle_list
+                        [~, index_in_vehicle_list] = ismember(double(state_list(index).vehicle_id), obj.all_vehicle_ids);
 
-                        cav_measurements(list_index) = PlantMeasurement( ...
+                        cav_measurements(index_in_vehicle_list) = PlantMeasurement( ...
                             state_list(index).pose.x, ...
                             state_list(index).pose.y, ...
                             state_list(index).pose.yaw, ...
                             state_list(index).speed, ...
                             initial_steering ...
                         );
-
-                        % increase cav_index
-                        cav_index = cav_index + 1;
                     end
 
                 end
@@ -135,7 +135,6 @@ classdef CpmLab < Plant
             end
 
             % Always measure HDV
-            hdv_index = 1;
             hdv_measurements(obj.manual_control_config.amount, 1) = PlantMeasurement();
 
             % since there is no steering info in [rad],
@@ -144,17 +143,20 @@ classdef CpmLab < Plant
 
             for index = 1:length(state_list)
 
-                if ismember(state_list(index).vehicle_id, obj.manual_control_config.hdv_ids)
-                    hdv_measurements(hdv_index) = PlantMeasurement( ...
+                % cast the state_list vehicle_id to double
+                % to be able to compare to defined data type
+                % in superclass without loss of precision
+                if ismember(double(state_list(index).vehicle_id), obj.manual_control_config.hdv_ids)
+                    % index of measured vehicle in hdv_list
+                    [~, index_in_vehicle_list] = ismember(double(state_list(index).vehicle_id), obj.manual_control_config.hdv_ids);
+
+                    hdv_measurements(index_in_vehicle_list) = PlantMeasurement( ...
                         state_list(index).pose.x, ...
                         state_list(index).pose.y, ...
                         state_list(index).pose.yaw, ...
                         state_list(index).speed, ...
                         hdv_steering ...
                     );
-
-                    % increase hdv_index
-                    hdv_index = hdv_index + 1;
                 end
 
             end

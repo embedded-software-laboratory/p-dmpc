@@ -199,10 +199,14 @@ classdef UnifiedLabApi < Plant
 
                 for index = 1:length(state_list)
 
+                    % cast the state_list vehicle_id to double
+                    % to be able to compare to defined data type
+                    % in superclass without loss of precision
                     if ismember(double(state_list(index).vehicle_id), obj.controlled_vehicle_ids) % measure cav states
-                        list_index = obj.indices_in_vehicle_list(index); % use list to prevent breaking distributed control
+                        % index of measured vehicle in vehicle_list
+                        [~, index_in_vehicle_list] = ismember(double(state_list(index).vehicle_id), obj.all_vehicle_ids);
 
-                        cav_measurements(list_index) = PlantMeasurement( ...
+                        cav_measurements(index_in_vehicle_list) = PlantMeasurement( ...
                             state_list(index).pose.x, ...
                             state_list(index).pose.y, ...
                             state_list(index).pose.yaw, ...
@@ -219,7 +223,6 @@ classdef UnifiedLabApi < Plant
             end
 
             % Always measure HDV
-            hdv_index = 1;
             hdv_measurements(obj.manual_control_config.amount, 1) = PlantMeasurement();
 
             % since there is no steering info in [rad],
@@ -228,17 +231,20 @@ classdef UnifiedLabApi < Plant
 
             for index = 1:length(state_list)
 
+                % cast the state_list vehicle_id to double
+                % to be able to compare to defined data type
+                % in superclass without loss of precision
                 if ismember(double(state_list(index).vehicle_id), obj.manual_control_config.hdv_ids)
-                    hdv_measurements(hdv_index) = PlantMeasurement( ...
+                    % index of measured vehicle in hdv_list
+                    [~, index_in_vehicle_list] = ismember(double(state_list(index).vehicle_id), obj.manual_control_config.hdv_ids);
+
+                    hdv_measurements(index_in_vehicle_list) = PlantMeasurement( ...
                         state_list(index).pose.x, ...
                         state_list(index).pose.y, ...
                         state_list(index).pose.yaw, ...
                         state_list(index).speed.linear, ...
                         hdv_steering ...
                     );
-
-                    % increase hdv_index
-                    hdv_index = hdv_index + 1;
                 end
 
             end
