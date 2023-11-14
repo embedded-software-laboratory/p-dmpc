@@ -102,9 +102,7 @@ classdef systemtests < matlab.unittest.TestCase
             lastwarn('');
             fprintf('\ncoupler systemtest for %s\n', coupling)
             %load Config from json
-            rawJson = fileread('tests/systemtests/Config_coupler.json');
-            options = Config();
-            options = options.importFromJson(rawJson);
+            options = Config.load_from_file('tests/systemtests/Config_coupler.json');
 
             options.coupling = CouplingStrategies(coupling);
             testCase.verifyEmpty(lastwarn);
