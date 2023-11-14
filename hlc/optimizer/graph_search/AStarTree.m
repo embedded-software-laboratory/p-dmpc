@@ -1,20 +1,15 @@
-classdef Tree < handle
-    %% TREE A class implementing a Tree data structure.
+classdef AStarTree < Tree
+    %% AStarTree A class implementing a Tree data structure.
     %
     % This class implements a Tree data structure. Each node can
     % have one parent, and data in seven arrays x,y,yaw,trim,k,g,h
     %
     % Nodes are accessed through their index. The index of a node is
-    % returned when it is added to the Tree, and corresponds to the
+    % returned when it is added to the AStarTree, and corresponds to the
     % order of addition.
 
-    properties (SetAccess = private)
-        % Index of the parent node. The root of the Tree as a parent index
-        % equal to 0.
-        parent = [0];
-    end
-
     properties (SetAccess = public)
+        % Arrays are of size n_vehicles x n_nodes
         x
         y
         yaw
@@ -28,21 +23,21 @@ classdef Tree < handle
 
         % CONSTRUCTOR
 
-        function [obj, root_ID] = Tree(x, y, yaw, trim, k, g, h)
-            %% TREE  Construct a new Tree
+        function [obj, root_ID] = AStarTree(x, y, yaw, trim, k, g, h)
+            %% AStarTree  Construct a new AStarTree
             %
-            % t = TREE(another_tree) is the copy-constructor for this
-            % class. It returns a new Tree where the node order and content
-            % is duplicated from the Tree argument.
+            % t = AStarTree(another_AStarTree) is the copy-constructor for this
+            % class. It returns a new AStarTree where the node order and content
+            % is duplicated from the AStarTree argument.
             %
-            % t = TREE(x,y,yaw,trim,k,g,h)
-            % initialize a new Tree with the given values as nodes
+            % t = AStarTree(x,y,yaw,trim,k,g,h)
+            % initialize a new AStarTree with the given values as nodes
             if nargin < 1
                 root_ID = 1;
                 return
             end
 
-            if isa(x, 'Tree')
+            if isa(x, 'AStarTree')
                 % Copy constructor
                 obj = x;
             else
@@ -63,11 +58,11 @@ classdef Tree < handle
 
         function IDs = add_nodes(obj, parent, x, y, yaw, trim, k, g, h)
             %% ADD_NODES attach multiple new nodes to a parent node
-            % Tree = Tree.ADD_NODES(parent_index, data) create a new node
+            % AStarTree = AStarTree.ADD_NODES(parent_index, data) create a new node
             % with content 'data', and attach it as a child of the node
-            % with index 'parent_index'. Return the modified Tree.
+            % with index 'parent_index'. Return the modified AStarTree.
             %
-            % [ Tree, ID ] = Tree.ADD_NODES(...) returns the modified Tree and
+            % [ AStarTree, ID ] = AStarTree.ADD_NODES(...) returns the modified AStarTree and
             % the index of the newly created node.
 
             assert( ...
@@ -89,11 +84,11 @@ classdef Tree < handle
 
         function IDs = add_node(obj, parent, node)
             %% ADD_NODES attach multiple new nodes to a parent node
-            % Tree = Tree.ADD_NODE(parent_index, data) create a new node
+            % AStarTree = AStarTree.ADD_NODE(parent_index, data) create a new node
             % with content 'data', and attach it as a child of the node
-            % with index 'parent_index'. Return the modified Tree.
+            % with index 'parent_index'. Return the modified AStarTree.
             %
-            % [ Tree, ID ] = Tree.ADD_NODE(...) returns the modified Tree and
+            % [ AStarTree, ID ] = AStarTree.ADD_NODE(...) returns the modified AStarTree and
             % the index of the newly created node.
 
             assert( ...
@@ -113,18 +108,6 @@ classdef Tree < handle
             obj.parent(IDs, 1) = parent;
         end
 
-        function flag = is_leaf(obj, ID)
-            %% IS_LEAF  Return true if given ID matches a leaf node.
-            % A leaf node is a node that has no children.
-            assert( ...
-                ID >= 1 && ID <= numel(obj.parent) ...
-                , 'No node with ID %d.' ...
-                , ID ...
-            );
-
-            flag = ~any(obj.parent == ID);
-        end
-
         function result = get_node(obj, ID)
             % GET_NODE Return node matrix of desired index ID
             result = node( ...
@@ -141,27 +124,6 @@ classdef Tree < handle
         function result = size(obj)
             %% SIZE Return the number of nodes in the Tree.
             result = size(obj.x, 2);
-        end
-
-        function ID = get_parent(obj, ID)
-            %% GET_PARENT  Return the ID of the parent of the given node.
-            assert( ...
-                ID >= 1 && ID <= numel(obj.parent) ...
-                , 'No node with ID %d.' ...
-                , ID ...
-            );
-
-            ID = obj.parent(ID);
-        end
-
-        function result = path_to_root(obj, ID)
-            %% PATH_TO_ROOT  Path from node ID to the Tree root.
-            result = ID;
-
-            while result(end) ~= 1
-                result(end + 1) = obj.parent(result(end)); %#ok<AGROW>
-            end
-
         end
 
         function result = number_of_vehicles(obj)

@@ -53,7 +53,7 @@ classdef GraphSearchMexPB < OptimizerInterface
             k = 0;
             g = 0;
             h = 0;
-            tree = Tree(x, y, yaw, trim, k, g, h);
+            tree = AStarTree(x, y, yaw, trim, k, g, h);
         end
 
         function [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = do_graph_search(obj, veh_index, iter, vehicle_obstacles, options)
