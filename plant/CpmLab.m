@@ -24,12 +24,11 @@ classdef CpmLab < Plant
             obj.pos_init = false;
         end
 
-        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) CpmLab
                 options (1, 1) Config
-                scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8 % used to validate amount of set vehicle ids
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
@@ -68,7 +67,7 @@ classdef CpmLab < Plant
             % boolean that extracts the controlled_vehicle_ids from active_vehicle_ids
             is_controlled = controlled_vehicle_ids == all_vehicle_ids;
 
-            setup@Plant(obj, options, scenario, state_list.active_vehicle_ids, state_list.active_vehicle_ids(is_controlled));
+            setup@Plant(obj, options, state_list.active_vehicle_ids, state_list.active_vehicle_ids(is_controlled));
         end
 
         function [cav_measurements, hdv_measurements] = measure(obj)

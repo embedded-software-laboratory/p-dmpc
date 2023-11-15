@@ -21,17 +21,16 @@ classdef SimLab < Plant
             visualization_data_queue = obj.visualization_data_queue;
         end
 
-        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) SimLab
                 options (1, 1) Config
-                scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
 
-            setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
+            setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
 
             % create scenario adapter to get scenario
             % with SimLab only BuiltScenario can be used

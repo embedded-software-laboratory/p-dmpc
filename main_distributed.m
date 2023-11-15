@@ -14,7 +14,7 @@ function [experiment_result, scenario] = main_distributed(vehicle_id)
 
     plant = PlantFactory.get_experiment_interface(options.environment);
     % set active vehicle IDs and initialize communication
-    plant.setup(options, scenario, options.path_ids, vehicle_id);
+    plant.setup(options, options.path_ids, vehicle_id);
 
     % In priority-based computation, vehicles communicate via ROS 2.
     % main.m will have deleted the ros2 message types before distributing the code.

@@ -35,12 +35,11 @@ classdef UnifiedLabApi < Plant
             obj.pos_init = false;
         end
 
-        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) UnifiedLabApi
                 options (1, 1) Config
-                scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
@@ -57,7 +56,7 @@ classdef UnifiedLabApi < Plant
             % perform preparation phase (uses dt_period_nanos)
             obj.prepare_api(controlled_vehicle_ids);
 
-            setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
+            setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
         end
 
         function register_map(obj, map_as_string)

@@ -33,7 +33,7 @@ function experiment_result = main(options)
         plant = PlantFactory.get_experiment_interface(options.environment);
 
         % set active vehicle IDs and possibly initialize communication
-        plant.setup(options, scenario, options.path_ids);
+        plant.setup(options, options.path_ids);
 
         if options.is_prioritized
             % In priority-based computation, vehicles communicate via ROS 2.
@@ -63,7 +63,7 @@ function experiment_result = main(options)
 
             spmd (options.amount)
                 % setup plant again, only control one vehicle
-                plant.setup(options, scenario, options.path_ids, options.path_ids(labindex));
+                plant.setup(options, options.path_ids, options.path_ids(labindex));
 
                 hlc_factory = HLCFactory();
                 % have the plant only control its own vehicle by calling setup a second time

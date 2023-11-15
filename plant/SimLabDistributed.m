@@ -15,17 +15,16 @@ classdef SimLabDistributed < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) SimLabDistributed
                 options (1, 1) Config
-                scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8
                 controlled_vehicle_ids (1, 1) uint8 = all_vehicle_ids(1)
             end
 
-            setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
+            setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
 
             % create scenario adapter to get scenario
             % with SimLabDistributed only BuiltScenario can be used
