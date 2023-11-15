@@ -33,6 +33,11 @@ classdef SimLab < Plant
 
             setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
 
+            % create scenario adapter to get scenario
+            % with SimLab only BuiltScenario can be used
+            scenario_adapter = BuiltScenario();
+            scenario_adapter.init(options, obj);
+
             % all vehicles have the same initial speed and steering
             initial_speed = 0;
             initial_steering = 0;
@@ -40,9 +45,9 @@ classdef SimLab < Plant
             % set initial vehicle measurements
             for i_vehicle = 1:options.amount
                 obj.measurements(i_vehicle) = PlantMeasurement( ...
-                    scenario.vehicles(i_vehicle).x_start, ...
-                    scenario.vehicles(i_vehicle).y_start, ...
-                    scenario.vehicles(i_vehicle).yaw_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).x_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).y_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).yaw_start, ...
                     initial_speed, ...
                     initial_steering ...
                 );
@@ -61,7 +66,7 @@ classdef SimLab < Plant
             obj.should_plot = obj.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue
-                obj.plotter = PlotterOnline(options, scenario, obj.indices_in_vehicle_list);
+                obj.plotter = PlotterOnline(options, scenario_adapter.scenario, obj.indices_in_vehicle_list);
             end
 
         end
