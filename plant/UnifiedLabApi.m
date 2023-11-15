@@ -17,7 +17,6 @@ classdef UnifiedLabApi < Plant
         goal_handle % Handle for action client goal
 
         lab_properties
-        map_comm_done = false % true if either the default map was requested or an own one was successfully defined
         is_ros2_prepared = false % ensures that ros2 subscribers/publisher/... are only created once
         got_start = false
         got_stop = false
@@ -34,15 +33,6 @@ classdef UnifiedLabApi < Plant
         function obj = UnifiedLabApi()
             obj = obj@Plant();
             obj.pos_init = false;
-        end
-
-        function map_as_string = receive_map(obj)
-            % ULA allows to receive a default map from the lab.
-            % The return value is the file content of an .osm file as
-            % string.
-            obj.prepare_ros2();
-            map_as_string = obj.set_map_in_lab();
-            obj.map_comm_done = true;
         end
 
         function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
@@ -62,16 +52,32 @@ classdef UnifiedLabApi < Plant
             obj.got_start = false;
             obj.got_stop = false;
 
-            obj.prepare_ros2(); % Call this in case map_as_string was not used before
+            obj.prepare_ros2();
 
             % middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
 
             disp('Setup. Phase 3: Perform preparation phase...');
 
-            if (~obj.map_comm_done) % Map was not already defined in lab
-                obj.set_map_in_lab(fileread(scenario.road_data_file_path));
+            % Request scaling of 1:18
+            disp('Wait for lab nodes to become available...');
+            [connectionStatus, connectionStatustext] = waitForServer(obj.client_scaleRegistration);
+
+            if (~connectionStatus)
+                error(strcat('Scaling service could not be reached. Status text: ', connectionStatustext));
             end
+
+            disp('Scaling node available. Assume all other nodes to be available as well...');
+            scaling_request = ros2message(obj.client_scaleRegistration);
+            scaling_request.entity = 'user';
+            scaling_request.scale = uint16(18);
+            scaling_response = call(obj.client_scaleRegistration, scaling_request);
+
+            if (~scaling_response.ok)
+                error('Registration of scaling was not successful.');
+            end
+
+            disp(strcat('Successfully registered scaling of 1:', num2str(scaling_request.scale)));
 
             % Request lab properties
             lab_properties_request = ros2message(obj.client_labProperties);
@@ -102,6 +108,18 @@ classdef UnifiedLabApi < Plant
 
             obj.goal_handle = sendGoal(obj.actionClient_vehiclesRequest, obj.goal_msg, callbackOpts);
             disp('Sent message to define the vehicle ids. We assume that goal was accepted, so no further test...');
+
+        end
+
+        function register_map(obj, map_as_string)
+            % ULA allows to set a scenario map in the lab.
+            obj.set_map_in_lab(map_as_string);
+        end
+
+        function map_as_string = receive_map(obj)
+            % ULA allows to receive a default map from the lab.
+            % The return value is the file content of an .osm file as string.
+            map_as_string = obj.set_map_in_lab();
         end
 
         function synchronize_start_with_plant(obj)
@@ -327,26 +345,6 @@ classdef UnifiedLabApi < Plant
             % map_as_string: must be a lanelet2 map given as string of .osm
             % file. If empty, the default map of the lab is requested.
             % return: Either the given map or the received map.
-
-            % Request scaling of 1:18
-            disp('Wait for lab nodes to become available...');
-            [connectionStatus, connectionStatustext] = waitForServer(obj.client_scaleRegistration);
-
-            if (~connectionStatus)
-                error(strcat('Scaling service could not be reached. Status text: ', connectionStatustext));
-            end
-
-            disp('Scaling node available. Assume all other nodes to be available as well...');
-            scaling_request = ros2message(obj.client_scaleRegistration);
-            scaling_request.entity = 'user';
-            scaling_request.scale = uint16(18);
-            scaling_response = call(obj.client_scaleRegistration, scaling_request);
-
-            if (~scaling_response.ok)
-                error('Registration of scaling was not successful.');
-            end
-
-            disp(strcat('Successfully registered scaling of 1:', num2str(scaling_request.scale)));
 
             % Request map to use
             map_definition_request = ros2message(obj.client_mapDefinition);

@@ -1,32 +1,22 @@
-function scenario = lanelet2_scenario(amount, path_ids, scenario_type)
+function scenario = lanelet2_scenario(amount, path_ids, filepath_lanelet2_map)
     % Lanelet2_Scenario
 
     scenario = Scenario();
 
-    % get road data
-    if scenario_type == ScenarioType.lab_default
-        disp('Retrieve map from lab via unified lab API later.')
-        return
-
-        %{
+    if nargin > 2
         % ULA is required for that.
         assert(isa(plant, "UnifiedLabApi"));
 
-        % Receive map via ULA interface
-        map_as_string = plant.receive_map();
-
         % Store string in temporary file
         tmp_file_name = 'received_lanelet2_map_via_unifiedLabAPI.osm';
-        writelines(map_as_string, [tempdir, filesep, tmp_file_name]);
+        writelines(filepath_lanelet2_map, [tempdir, filesep, tmp_file_name]);
 
         % Retrieve road data
         road_data = RoadDataLanelet2(false).get_road_data(tmp_file_name, tempdir);
-        %}
-
+    else
+        % Get road data from default location
+        road_data = RoadDataLanelet2(false).get_road_data();
     end
-
-    % Get road data from default location
-    road_data = RoadDataLanelet2(false).get_road_data();
 
     scenario.lanelets = road_data.lanelets;
     scenario.intersection_lanelets = road_data.intersection_lanelets;
@@ -43,15 +33,14 @@ function scenario = lanelet2_scenario(amount, path_ids, scenario_type)
 
         % Generate a ref path using the Lanelet2 Interface and generate_reference_path_loop
         reference_path_loops = {Lanelet2_Interface.generate_reference_path_indices(scenario.road_data_file_path)};
-
-        % FIXME lanelets_index is not passed to `generate_reference_path_loop` as of !179
+        % take loop from all defined loops
         reference_path_loop = reference_path_loops{1};
+        % define starting lanelet
         start_idx = mod(path_ids(iveh) * 2 - 1, width(reference_path_loop));
-
         % shift reference_path_loop depending on start_idx
         lanelets_index = [reference_path_loop(start_idx:end), reference_path_loop(1:start_idx - 1)];
 
-        reference_path_struct = generate_reference_path_loop(path_ids(iveh), scenario.lanelets, lanelets_index);
+        reference_path_struct = generate_reference_path_loop(lanelets_index, scenario.lanelets);
         veh.lanelets_index = reference_path_struct.lanelets_index;
         lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
 
