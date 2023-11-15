@@ -26,6 +26,22 @@ classdef SimLabDistributed < Plant
             end
 
             setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
+
+            % all vehicles have the same initial speed and steering
+            initial_speed = 0;
+            initial_steering = 0;
+
+            % set initial vehicle measurements
+            for i_vehicle = 1:options.amount
+                obj.measurements(i_vehicle) = PlantMeasurement( ...
+                    scenario.vehicles(i_vehicle).x_start, ...
+                    scenario.vehicles(i_vehicle).y_start, ...
+                    scenario.vehicles(i_vehicle).yaw_start, ...
+                    initial_speed, ...
+                    initial_steering ...
+                );
+            end
+
             obj.should_plot = obj.options_plot_online.is_active;
             obj.generate_plotting_info_msgs();
             obj.ros2_node = ros2node(['/plant_', num2str(obj.controlled_vehicle_ids(1))]);

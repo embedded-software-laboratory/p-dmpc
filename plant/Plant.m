@@ -74,24 +74,8 @@ classdef (Abstract) Plant < handle
             obj.controlled_vehicle_ids = controlled_vehicle_ids;
             obj.all_vehicle_ids = all_vehicle_ids;
 
-            % all vehicles have the same initial speed and steering
-            initial_speed = 0;
-            initial_steering = 0;
-
             % construct measurements
             obj.measurements(options.amount, 1) = PlantMeasurement();
-
-            % set initial vehicle measurements
-            for i_vehicle = 1:options.amount
-                obj.measurements(i_vehicle) = PlantMeasurement( ...
-                    scenario.vehicles(i_vehicle).x_start, ...
-                    scenario.vehicles(i_vehicle).y_start, ...
-                    scenario.vehicles(i_vehicle).yaw_start, ...
-                    initial_speed, ...
-                    initial_steering ...
-                );
-            end
-
         end
 
         function receive_map(~)
