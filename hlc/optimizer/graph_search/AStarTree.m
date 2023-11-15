@@ -107,7 +107,7 @@ classdef AStarTree < Tree
             obj.k(:, IDs) = node(1, NodeInfo.k);
             obj.g(:, IDs) = node(1, NodeInfo.g);
             obj.h(:, IDs) = node(1, NodeInfo.h);
-            obj.parent(IDs, 1) = parent;
+            obj.parent(1, IDs) = parent;
         end
 
         function result = get_node(obj, ID)
