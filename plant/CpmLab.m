@@ -64,10 +64,20 @@ classdef CpmLab < Plant
                 length(all_vehicle_ids) + options.manual_control_config.amount ...
             );
 
-            % boolean that extracts the controlled_vehicle_ids from active_vehicle_ids
-            is_controlled = controlled_vehicle_ids == all_vehicle_ids;
+            % subtract the hdv_ids from active_vehicle_ids
+            active_cav_vehicle_ids = setdiff( ...
+                state_list.active_vehicle_ids, ...
+                options.manual_control_config.hdv_ids ...
+            );
 
-            setup@Plant(obj, options, state_list.active_vehicle_ids, state_list.active_vehicle_ids(is_controlled));
+            % boolean that extracts the controlled_vehicle_ids from active_cav_vehicle_ids
+            is_controlled = ismember(all_vehicle_ids, controlled_vehicle_ids);
+
+            % overwrite vehicle ids with information from state_list
+            all_vehicle_ids = active_cav_vehicle_ids;
+            controlled_vehicle_ids = active_cav_vehicle_ids(is_controlled);
+
+            setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
         end
 
         function [cav_measurements, hdv_measurements] = measure(obj)
