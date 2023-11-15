@@ -364,7 +364,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function msg_send_time = publish_predictions(obj, vehicle_idx)
+        function publish_predictions(obj, vehicle_idx)
 
             if ~ismember(vehicle_idx, obj.info.vehs_fallback)
                 % if the selected vehicle should take fallback
@@ -379,14 +379,12 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 );
 
             else
-                msg_send_tic = tic;
                 obj.predictions_communication{vehicle_idx}.send_message( ...
                     obj.k, ...
                     {}, ...
                     obj.info.vehs_fallback, ...
                     obj.iter.priority_permutation ...
                 );
-                msg_send_time = toc(msg_send_tic);
             end
 
         end
