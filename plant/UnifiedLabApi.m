@@ -52,63 +52,14 @@ classdef UnifiedLabApi < Plant
             obj.got_start = false;
             obj.got_stop = false;
 
+            % create ros2 messages, nodes, publishers and subscribers
             obj.prepare_ros2();
 
             % middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
 
-            disp('Setup. Phase 3: Perform preparation phase...');
-
-            % Request scaling of 1:18
-            disp('Wait for lab nodes to become available...');
-            [connectionStatus, connectionStatustext] = waitForServer(obj.client_scaleRegistration);
-
-            if (~connectionStatus)
-                error(strcat('Scaling service could not be reached. Status text: ', connectionStatustext));
-            end
-
-            disp('Scaling node available. Assume all other nodes to be available as well...');
-            scaling_request = ros2message(obj.client_scaleRegistration);
-            scaling_request.entity = 'user';
-            scaling_request.scale = uint16(18);
-            scaling_response = call(obj.client_scaleRegistration, scaling_request);
-
-            if (~scaling_response.ok)
-                error('Registration of scaling was not successful.');
-            end
-
-            disp(strcat('Successfully registered scaling of 1:', num2str(scaling_request.scale)));
-
-            % Request lab properties
-            lab_properties_request = ros2message(obj.client_labProperties);
-            obj.lab_properties = call(obj.client_labProperties, lab_properties_request);
-
-            if (~obj.lab_properties.valid)
-                error('Lab properties request was not successful. Scaling service returned an error.');
-            end
-
-            disp('Successfully received lab properties.');
-
-            % Set vehicle controller period
-            vehicle_controller_period_request = ros2message(obj.publisher_vehicleControllerPeriod);
-            vehicle_controller_period_request.nanosec = uint32(obj.dt_period_nanos);
-            send(obj.publisher_vehicleControllerPeriod, vehicle_controller_period_request);
-
-            disp('Sent request for vehicle controller period.');
-
-            % Request the vehicle ids which shall be used in this experiment (this should be an action, but we use only the initial message)
-            % TODO: This assumes that the assigned vehicles are all vehicles needed in the experiment. Correct?
-            obj.goal_msg.vehicle_ids = int32(obj.controlled_vehicle_ids);
-            callbackOpts = ros2ActionSendGoalOptions(FeedbackFcn = @obj.vehicleRequestActionFeedbackCallback, ResultFcn = @obj.vehicleRequestActionResultCallback); % Currently, we don't use it...
-            [connectionStatus, connectionStatustext] = waitForServer(obj.actionClient_vehiclesRequest);
-
-            if (~connectionStatus)
-                error(strcat('Action server could not be reached. Status text: ', connectionStatustext));
-            end
-
-            obj.goal_handle = sendGoal(obj.actionClient_vehiclesRequest, obj.goal_msg, callbackOpts);
-            disp('Sent message to define the vehicle ids. We assume that goal was accepted, so no further test...');
-
+            % perform preparation phase (uses dt_period_nanos)
+            obj.prepare_api(controlled_vehicle_ids);
         end
 
         function register_map(obj, map_as_string)
@@ -478,6 +429,60 @@ classdef UnifiedLabApi < Plant
             % obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.matlabParticipantLab), 'Visualization', matlabVisualizationTopicName);
 
             obj.is_ros2_prepared = true;
+        end
+
+        function prepare_api(obj, controlled_vehicle_ids)
+            disp('Setup. Phase 3: Perform preparation phase...');
+
+            % Request scaling of 1:18
+            disp('Wait for lab nodes to become available...');
+            [connectionStatus, connectionStatustext] = waitForServer(obj.client_scaleRegistration);
+
+            if (~connectionStatus)
+                error(strcat('Scaling service could not be reached. Status text: ', connectionStatustext));
+            end
+
+            disp('Scaling node available. Assume all other nodes to be available as well...');
+            scaling_request = ros2message(obj.client_scaleRegistration);
+            scaling_request.entity = 'user';
+            scaling_request.scale = uint16(18);
+            scaling_response = call(obj.client_scaleRegistration, scaling_request);
+
+            if (~scaling_response.ok)
+                error('Registration of scaling was not successful.');
+            end
+
+            disp(strcat('Successfully registered scaling of 1:', num2str(scaling_request.scale)));
+
+            % Request lab properties
+            lab_properties_request = ros2message(obj.client_labProperties);
+            obj.lab_properties = call(obj.client_labProperties, lab_properties_request);
+
+            if (~obj.lab_properties.valid)
+                error('Lab properties request was not successful. Scaling service returned an error.');
+            end
+
+            disp('Successfully received lab properties.');
+
+            % Set vehicle controller period
+            vehicle_controller_period_request = ros2message(obj.publisher_vehicleControllerPeriod);
+            vehicle_controller_period_request.nanosec = uint32(obj.dt_period_nanos);
+            send(obj.publisher_vehicleControllerPeriod, vehicle_controller_period_request);
+
+            disp('Sent request for vehicle controller period.');
+
+            % Request the vehicle ids which shall be used in this experiment (this should be an action, but we use only the initial message)
+            % TODO: This assumes that the assigned vehicles are all vehicles needed in the experiment. Correct?
+            obj.goal_msg.vehicle_ids = int32(controlled_vehicle_ids);
+            callbackOpts = ros2ActionSendGoalOptions(FeedbackFcn = @obj.vehicleRequestActionFeedbackCallback, ResultFcn = @obj.vehicleRequestActionResultCallback); % Currently, we don't use it...
+            [connectionStatus, connectionStatustext] = waitForServer(obj.actionClient_vehiclesRequest);
+
+            if (~connectionStatus)
+                error(strcat('Action server could not be reached. Status text: ', connectionStatustext));
+            end
+
+            obj.goal_handle = sendGoal(obj.actionClient_vehiclesRequest, obj.goal_msg, callbackOpts);
+            disp('Sent message to define the vehicle ids. We assume that goal was accepted, so no further test...');
         end
 
         function vehicleRequestActionFeedbackCallback(obj, goalHandle, feedbackMsg)
