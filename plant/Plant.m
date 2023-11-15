@@ -133,19 +133,4 @@ classdef (Abstract) Plant < handle
 
     end
 
-    methods (Access = protected)
-
-        function [x0, trim_indices] = measure_node(obj, mpa)
-            speeds = zeros(obj.amount, 1);
-
-            for iVeh = 1:obj.indices_in_vehicle_list
-                speeds(iVeh) = mpa.trims(obj.cur_node(iVeh, NodeInfo.trim)).speed;
-            end
-
-            x0 = [obj.cur_node(:, NodeInfo.x), obj.cur_node(:, NodeInfo.y), obj.cur_node(:, NodeInfo.yaw), speeds];
-            trim_indices = obj.cur_node(:, NodeInfo.trim);
-        end
-
-    end
-
 end
