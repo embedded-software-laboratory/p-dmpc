@@ -2,9 +2,6 @@ classdef (Abstract) Plant < handle
     % INTERFACEEXPERIMENT    Abstract class used for defining properties and methods used by different experiment setups.
 
     properties (Access = protected)
-        % struct used for every iteration
-        cur_node (:, :) double % (n_veh, NodeInfo.n_cols) created by node.m
-
         % measurement used for every iteration
         measurements (:, 1) PlantMeasurement % (n_veh, 1)
 
