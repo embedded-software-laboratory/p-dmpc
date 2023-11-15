@@ -47,8 +47,6 @@ classdef UnifiedLabApi < Plant
 
             setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
 
-            assert(issorted(obj.controlled_vehicle_ids));
-
             obj.got_start = false;
             obj.got_stop = false;
 
