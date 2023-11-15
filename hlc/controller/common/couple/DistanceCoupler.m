@@ -42,26 +42,14 @@ classdef DistanceCoupler < Coupler
 
     end
 
-    methods (Access = private)
+    methods (Static, Access = private)
 
-        function [is_adjacent] = is_any_lanelet_adjacent(obj, current_lanelet, predicted_lanelets, adjacency_lanelets, i_vehicle_1, i_vehicle_2)
+        function [is_adjacent] = is_any_lanelet_adjacent(current_lanelet, predicted_lanelets, adjacency_lanelets, i_vehicle_1, i_vehicle_2)
             % IS_ANY_LANELET_ADJACENT checks whether the predicted and current lanelets of the vehicles
             %   with the given indices are adjacent to each other
-            is_adjacent = false;
-
-            for lanelet_1 = [current_lanelet(i_vehicle_1), predicted_lanelets{i_vehicle_1, 1}]
-
-                for lanelet_2 = [current_lanelet(i_vehicle_2), predicted_lanelets{i_vehicle_2, 1}]
-
-                    if adjacency_lanelets(lanelet_1, lanelet_2)
-                        is_adjacent = true;
-                        return;
-                    end
-
-                end
-
-            end
-
+            lanelets_1 = unique([current_lanelet(i_vehicle_1), predicted_lanelets{i_vehicle_1, 1}]);
+            lanelets_2 = unique([current_lanelet(i_vehicle_2), predicted_lanelets{i_vehicle_2, 1}]);
+            is_adjacent = any(adjacency_lanelets(lanelets_1, lanelets_2), 'all');
         end
 
     end
