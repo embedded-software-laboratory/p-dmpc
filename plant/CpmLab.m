@@ -37,36 +37,36 @@ classdef CpmLab < Plant
             obj.prepare_dds();
 
             % get middleware period and vehicle ids from vehicle state list message
-            [sample_for_setup, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
+            [initial_samples, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
             if (sample_count == 0)
                 error('No vehicle state list received during CpmLab.setup!');
             end
 
-            state_list = sample_for_setup(end);
+            sample_for_setup = initial_samples(end);
 
-            % state_list.period_ms
+            % sample_for_setup.period_ms
             % data type unsigned long long (IDL)
             % aka uint64_t (C++) aka uint64 (Matlab)
 
-            % take step time from state list
-            options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
+            % take step time from sample_for_setup
+            options.dt_seconds = cast(sample_for_setup.period_ms, "double") / 1e3;
 
             % middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
 
             % validate the amount of active_vehicle_ids
             assert( ...
-                length(state_list.active_vehicle_ids) == ...
+                length(sample_for_setup.active_vehicle_ids) == ...
                 length(all_vehicle_ids) + options.manual_control_config.amount, ...
                 'Amount of active_vehicle_ids (%d) does not match expected amount (%d)!', ...
-                length(state_list.active_vehicle_ids), ...
+                length(sample_for_setup.active_vehicle_ids), ...
                 length(all_vehicle_ids) + options.manual_control_config.amount ...
             );
 
             % subtract the hdv_ids from active_vehicle_ids
             active_cav_vehicle_ids_from_lab = setdiff( ...
-                state_list.active_vehicle_ids, ...
+                sample_for_setup.active_vehicle_ids, ...
                 options.manual_control_config.hdv_ids ...
             );
 
