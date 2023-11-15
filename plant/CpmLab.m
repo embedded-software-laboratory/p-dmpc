@@ -34,27 +34,8 @@ classdef CpmLab < Plant
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
 
-            % Initialize data readers/writers...
-            % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
-            common_cpm_functions_path = fullfile( ...
-                getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
-            );
-            assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
-            addpath(common_cpm_functions_path);
-
-            matlabDomainId = 1;
-            [obj.dds_participant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
-
-            % create Lab participant
-            obj.dds_participant_lab = DDS.DomainParticipant('MatlabLibrary::LocalCommunicationProfile', str2double(getenv('DDS_DOMAIN')));
-
-            % create writer for lab visualization
-            matlabVisualizationTopicName = 'visualization';
-            obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.dds_participant_lab), 'Visualization', matlabVisualizationTopicName);
-
-            % Set reader properties
-            obj.reader_vehicleStateList.WaitSet = true;
-            obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
+            % create data readers/writers...
+            obj.prepare_dds();
 
             % get middleware period and vehicle ids from vehicle state list message
             [sample_for_setup, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
@@ -281,6 +262,29 @@ classdef CpmLab < Plant
             py = trajectory_points(4).py;
             stop_experiment = x_min > px || px > x_max ...
                 || y_min > py || py > y_max;
+        end
+
+        function prepare_dds(obj)
+            % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
+            common_cpm_functions_path = fullfile( ...
+                getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
+            );
+            assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
+            addpath(common_cpm_functions_path);
+
+            matlabDomainId = 1;
+            [obj.dds_participant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
+
+            % create Lab participant
+            obj.dds_participant_lab = DDS.DomainParticipant('MatlabLibrary::LocalCommunicationProfile', str2double(getenv('DDS_DOMAIN')));
+
+            % create writer for lab visualization
+            matlabVisualizationTopicName = 'visualization';
+            obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.dds_participant_lab), 'Visualization', matlabVisualizationTopicName);
+
+            % Set reader properties
+            obj.reader_vehicleStateList.WaitSet = true;
+            obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
         end
 
     end
