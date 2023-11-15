@@ -31,16 +31,6 @@ classdef SimLab < Plant
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
 
-            % check whether visualization data queue is needed and initialize if necessary
-            if (options.is_prioritized ...
-                    && options.compute_in_parallel ...
-                    && options.options_plot_online.is_active ...
-                    && isempty(obj.visualization_data_queue) ...
-                )
-                obj.visualization_data_queue = parallel.pool.DataQueue;
-                obj.use_visualization_data_queue = true;
-            end
-
             setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
 
             % all vehicles have the same initial speed and steering
@@ -56,6 +46,16 @@ classdef SimLab < Plant
                     initial_speed, ...
                     initial_steering ...
                 );
+            end
+
+            % check whether visualization data queue is needed and initialize if necessary
+            if (options.is_prioritized ...
+                    && options.compute_in_parallel ...
+                    && options.options_plot_online.is_active ...
+                    && isempty(obj.visualization_data_queue) ...
+                )
+                obj.visualization_data_queue = parallel.pool.DataQueue;
+                obj.use_visualization_data_queue = true;
             end
 
             obj.should_plot = obj.options_plot_online.is_active;
