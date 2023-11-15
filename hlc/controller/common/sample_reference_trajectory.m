@@ -1,13 +1,16 @@
-function reference_trajectory_struct = sample_reference_trajectory(n_samples, reference_path, x_current, y_current, step_distances)
+function [reference_trajectory_struct, current_point_index] = sample_reference_trajectory(n_samples, reference_path, x_current, y_current, step_distances)
     % Computes points with given distances along a piecewise linear curve.
-    % The first point is the point on the curve closest to the given point
-    % (x_current, y_current). All following points are on the curve with a
-    % distance of 'step_distances(i)' to their predecessor.
+    % The point in current_point_index is the point on the curve closest
+    % to the given point (x_current, y_current). All following points are
+    % on the curve with a distance of 'step_distances(i)' to their predecessor
+    % and are stored in reference_trajectory_struct.
     %
     % Output:
     %   reference_trajectory_struct struct with fields
     %       path (n_samples, 2) [x1 y1; x2 y2; ...]
     %       points_index (n_samples, 1) point indices
+    %   current_point_index Index of point on the curve
+    %       closest to given point (x_current, y_current)
 
     arguments
         n_samples (1, 1) double % number of points created
@@ -27,6 +30,7 @@ function reference_trajectory_struct = sample_reference_trajectory(n_samples, re
         reference_path(:, 1), ...
         reference_path(:, 2) ...
     );
+    current_point_index = point_index; % Keep point index corresponding to the projection of current_x,_y as return value
 
     nLinePieces = size(reference_path, 1);
     current_reference_point = [xp yp];

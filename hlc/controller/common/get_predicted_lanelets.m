@@ -1,9 +1,10 @@
-function [predicted_lanelets] = get_predicted_lanelets(reference_path_points, reference_path_points_index, reference_path_lanelets_index, reference_trajectory_struct)
+function [predicted_lanelets, current_lanelet] = get_predicted_lanelets(reference_path_points, reference_path_points_index, reference_path_lanelets_index, reference_trajectory_struct, current_point_index)
     % GET_PREDICTED_LANELETS This function calculate the predicted lanelets
     % based on vehicle's reference path.
     %
     % OUTPUT:
     %   predicted_lanelets: a row vector contains the predicted lanelets
+    %   current_lanelet: lanelet on which the vehicle currently is
 
     arguments
         % points of the reference path [x1 y1; x2 y2; ...]
@@ -16,6 +17,9 @@ function [predicted_lanelets] = get_predicted_lanelets(reference_path_points, re
         %   trajectory (Hp, 2) [x1 y1; x2 y2; ...]
         %   points_index (Hp, 1) point indices
         reference_trajectory_struct (1, 1) struct
+        % current_point_index Index of point on the reference path
+        %   closest to current point of the vehicle
+        current_point_index (1, 1) double
     end
 
     ref_points_index = reference_trajectory_struct.points_index;
@@ -37,6 +41,8 @@ function [predicted_lanelets] = get_predicted_lanelets(reference_path_points, re
         predicted_lanelets_idx(i_points_index) = sum(ref_points_index(i_points_index) > reference_path_points_index) + 1;
     end
 
+    current_lanelet_idx = sum(current_point_index > reference_path_points_index) + 1;
+
     predicted_lanelets_idx = unique(predicted_lanelets_idx, 'stable'); % use 'stable' to keep the order
 
     if length(predicted_lanelets_idx) == 1
@@ -52,5 +58,6 @@ function [predicted_lanelets] = get_predicted_lanelets(reference_path_points, re
     end
 
     predicted_lanelets = reference_path_lanelets_index(predicted_lanelets_idx);
+    current_lanelet = reference_path_lanelets_index(current_lanelet_idx);
 
 end

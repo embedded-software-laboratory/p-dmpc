@@ -1,7 +1,8 @@
-function [reference_trajectory_struct, v_ref] = get_reference_trajectory(mpa, reference_path, x_current, y_current, trim_current, dt_seconds)
+function [reference_trajectory_struct, v_ref, current_point_index] = get_reference_trajectory(mpa, reference_path, x_current, y_current, trim_current, dt_seconds)
     % get_reference_trajectory This function calculates the reference path and
     % speed for the prediction horizon based on the vehicle's current state and
-    % the total reference path from the scenario
+    % the total reference path from the scenario. As a byproduct it returns
+    % the index of the point on the curve closest to the given point (x_current, y_current)
     %
     % OUTPUT:
     %   reference_trajectory_struct struct with fields
@@ -9,6 +10,9 @@ function [reference_trajectory_struct, v_ref] = get_reference_trajectory(mpa, re
     %       points_index (Hp, 1) point indices
     %
     %   v_ref (Hp, 1) reference speed
+    %
+    %   current_point_index Index of point on the curve
+    %       closest to given point (x_current, y_current)
 
     arguments
         mpa MotionPrimitiveAutomaton
@@ -32,7 +36,7 @@ function [reference_trajectory_struct, v_ref] = get_reference_trajectory(mpa, re
     step_distances = v_ref_intermediate * dt_seconds;
 
     % Find equidistant points on the reference path.
-    reference_trajectory_struct = sample_reference_trajectory( ...
+    [reference_trajectory_struct, current_point_index] = sample_reference_trajectory( ...
         Hp, ... % number of prediction steps
         reference_path, ... % reference_path that is sampled including dt_seconds
         x_current, ... % current x coordinate of the vehicle

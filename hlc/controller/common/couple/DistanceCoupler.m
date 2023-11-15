@@ -18,7 +18,7 @@ classdef DistanceCoupler < Coupler
                     % If the predicted lanelets of both vehicles are not adjacent, skip the distance measurement
                     % (only checked if information of adjacent lanelets exist, i.e., in commonroad or lanelet2 scenarios)
                     if (~isempty(adjacency_lanelets) ...
-                            && ~obj.is_predicted_lanelets_adjacent(iter.predicted_lanelets, adjacency_lanelets, i_vehicle_1, i_vehicle_2))
+                            && ~obj.is_any_lanelet_adjacent(iter.current_lanelet, iter.predicted_lanelets, adjacency_lanelets, i_vehicle_1, i_vehicle_2))
                         continue;
                     end
 
@@ -44,16 +44,16 @@ classdef DistanceCoupler < Coupler
 
     methods (Access = private)
 
-        function [is_adjacent] = is_predicted_lanelets_adjacent(obj, predicted_lanelets, adjacency_lanelets, i_vehicle_1, i_vehicle_2)
-            % IS_PREDICTED_LANELETS_ADJACENT checks whether the predicted lanelets of the vehicles with the given indices
-            %   are adjacent to each other
+        function [is_adjacent] = is_any_lanelet_adjacent(obj, current_lanelet, predicted_lanelets, adjacency_lanelets, i_vehicle_1, i_vehicle_2)
+            % IS_ANY_LANELET_ADJACENT checks whether the predicted and current lanelets of the vehicles
+            %   with the given indices are adjacent to each other
             is_adjacent = false;
 
-            for predicted_lanelet_1 = predicted_lanelets{i_vehicle_1, 1}
+            for lanelet_1 = [current_lanelet(i_vehicle_1), predicted_lanelets{i_vehicle_1, 1}]
 
-                for predicted_lanelet_2 = predicted_lanelets{i_vehicle_2, 1}
+                for lanelet_2 = [current_lanelet(i_vehicle_2), predicted_lanelets{i_vehicle_2, 1}]
 
-                    if adjacency_lanelets(predicted_lanelet_1, predicted_lanelet_2)
+                    if adjacency_lanelets(lanelet_1, lanelet_2)
                         is_adjacent = true;
                         return;
                     end
