@@ -31,16 +31,6 @@ classdef SimLab < Plant
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
 
-            % if [] is passed in, matlab does not choose the default
-            if isempty(all_vehicle_ids)
-                all_vehicle_ids = options.path_ids;
-            end
-
-            % only set controlled ids to all ids after all ids have been set
-            if isempty(controlled_vehicle_ids)
-                controlled_vehicle_ids = all_vehicle_ids;
-            end
-
             % check whether visualization data queue is needed and initialize if necessary
             if (options.is_prioritized ...
                     && options.compute_in_parallel ...
