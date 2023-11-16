@@ -14,14 +14,12 @@ classdef CpmLab < Plant
         dt_period_nanos
         sample
         out_of_map_limits
-        pos_init
     end
 
     methods
 
         function obj = CpmLab()
             obj = obj@Plant();
-            obj.pos_init = false;
         end
 
         function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
@@ -79,6 +77,34 @@ classdef CpmLab < Plant
             controlled_vehicle_ids_from_lab = active_cav_vehicle_ids_from_lab(is_controlled);
 
             setup@Plant(obj, options, all_vehicle_ids_from_lab, controlled_vehicle_ids_from_lab);
+
+            % take list of VehicleStates from sample
+            state_list = sample_for_setup.state_list;
+
+            % since there is no steering info in [rad],
+            % the initial_steering is assumed to 0
+            initial_steering = 0;
+
+            for index = 1:length(state_list)
+
+                % cast the state_list vehicle_id to double
+                % to be able to compare to defined data type
+                % in superclass without loss of precision
+                if ismember(double(state_list(index).vehicle_id), controlled_vehicle_ids) % measure cav states
+                    % index of measured vehicle in vehicle_list
+                    [~, index_in_vehicle_list] = ismember(double(state_list(index).vehicle_id), all_vehicle_ids);
+
+                    obj.measurements(index_in_vehicle_list) = PlantMeasurement( ...
+                        state_list(index).pose.x, ...
+                        state_list(index).pose.y, ...
+                        state_list(index).pose.yaw, ...
+                        state_list(index).speed, ...
+                        initial_steering ...
+                    );
+                end
+
+            end
+
         end
 
         function synchronize_start_with_plant(obj)
@@ -108,47 +134,14 @@ classdef CpmLab < Plant
         end
 
         function [cav_measurements, hdv_measurements] = measure(obj)
+            % take cav_measurements that were applied in the previous step
+            % for the first step they hold the initialized values
+            cav_measurements = obj.measurements;
+
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
             if (sample_count > 1)
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
-            end
-
-            state_list = obj.sample(end).state_list;
-
-            % initialize return variables
-            cav_measurements(obj.amount, 1) = PlantMeasurement();
-
-            % for first iteration use real poses
-            if (obj.pos_init == false)
-
-                % since there is no steering info in [rad],
-                % the initial_steering is assumed to 0
-                initial_steering = 0;
-
-                for index = 1:length(state_list)
-
-                    % cast the state_list vehicle_id to double
-                    % to be able to compare to defined data type
-                    % in superclass without loss of precision
-                    if ismember(double(state_list(index).vehicle_id), obj.controlled_vehicle_ids) % measure cav states
-                        % index of measured vehicle in vehicle_list
-                        [~, index_in_vehicle_list] = ismember(double(state_list(index).vehicle_id), obj.all_vehicle_ids);
-
-                        cav_measurements(index_in_vehicle_list) = PlantMeasurement( ...
-                            state_list(index).pose.x, ...
-                            state_list(index).pose.y, ...
-                            state_list(index).pose.yaw, ...
-                            state_list(index).speed, ...
-                            initial_steering ...
-                        );
-                    end
-
-                end
-
-                obj.pos_init = true;
-            else
-                cav_measurements = obj.measurements;
             end
 
             % if there are no manual vehicles return directly
@@ -157,7 +150,9 @@ classdef CpmLab < Plant
                 return
             end
 
-            % Always measure HDV
+            state_list = obj.sample(end).state_list;
+
+            % initialize return variable
             hdv_measurements(obj.manual_control_config.amount, 1) = PlantMeasurement();
 
             % since there is no steering info in [rad],
