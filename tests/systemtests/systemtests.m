@@ -4,11 +4,11 @@ classdef systemtests < matlab.unittest.TestCase
         priority = {'coloring', 'constant', 'random', 'FCA', 'STAC'};
         scenario_type = {'circle', 'commonroad'};
         parallel = {'sequential', 'parallel'};
-        optimizer_centralized = {["optimal", "None"]
-                                 ["none", "CentralizedOptimalPolymorphic"]
-                                 ["none", "CentralizedNaiveMonteCarloPolymorphicParallel"]};
-        optimizer_priority_based = {["optimal", "None"]
-                                    ["none", "GraphSearchPBOptimal"]};
+        optimizer_centralized = {{'optimal', 'None'}
+                                  {'none', 'CentralizedNaiveMonteCarloPolymorphicParallel'}
+                                  {'none', 'CentralizedOptimalPolymorphic'}};
+        optimizer_priority_based = {{'optimal', 'None'}
+                                     {'none', 'GraphSearchPBOptimal'}};
         weight_strategy = {'constant_weight'
                            'random_weight'
                            'STAC_weight'
@@ -25,8 +25,8 @@ classdef systemtests < matlab.unittest.TestCase
             options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
             options.scenario_type = ScenarioType(scenario_type);
             options.is_prioritized = false;
-            options.matlab_optimizer = MatlabOptimizer(optimizer_centralized(1));
-            options.cpp_optimizer = CppOptimizer(optimizer_centralized(2));
+            options.matlab_optimizer = MatlabOptimizer(optimizer_centralized{1});
+            options.cpp_optimizer = CppOptimizer(optimizer_centralized{2});
 
             testCase.verifyEmpty(lastwarn);
 
@@ -42,8 +42,8 @@ classdef systemtests < matlab.unittest.TestCase
             options.scenario_type = ScenarioType(scenario_type);
             options.is_prioritized = true;
             options.priority = PriorityStrategies.([priority, '_priority']);
-            options.matlab_optimizer = MatlabOptimizer(optimizer_priority_based(1));
-            options.cpp_optimizer = CppOptimizer(optimizer_priority_based(2));
+            options.matlab_optimizer = MatlabOptimizer(optimizer_priority_based{1});
+            options.cpp_optimizer = CppOptimizer(optimizer_priority_based{2});
 
             if strcmp(parallel, 'parallel')
                 options.compute_in_parallel = true;
