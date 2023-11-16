@@ -66,6 +66,4 @@ function scenario = lanelet2_scenario(amount, path_ids, filepath_lanelet2_map)
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
-    scenario.model = BicycleModel(veh.Lf, veh.Lr);
-
 end

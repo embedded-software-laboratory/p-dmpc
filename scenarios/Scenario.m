@@ -2,7 +2,6 @@ classdef Scenario
     % SCENARIO  Scenario class
 
     properties (Access = public)
-        model = []; % instance of MuCar, BicycleModel or VehicleModel
         vehicles = []; % array of Vehicle objects
         obstacles = {}; % (n_obstacle, 1) static obstacles = {[x;y];...}
         dynamic_obstacle_area = {}; % (n_obstacle, Hp) dynamic obstacles = {[x;y],...}

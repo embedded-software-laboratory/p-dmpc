@@ -30,6 +30,4 @@ function scenario = circle_scenario(amount)
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
-    scenario.model = BicycleModel(veh.Lf, veh.Lr);
-
 end
