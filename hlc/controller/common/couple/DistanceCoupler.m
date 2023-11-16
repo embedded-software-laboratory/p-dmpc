@@ -3,18 +3,16 @@ classdef DistanceCoupler < Coupler
     methods
 
         function [adjacency] = couple(obj, iter, options, max_mpa_speed, adjacency_lanelets)
-            amount = size(iter.reachable_sets, 1);
-
-            adjacency = zeros(amount, amount);
+            adjacency = zeros(options.amount, options.amount);
 
             max_distance = 2 * max_mpa_speed * options.dt_seconds * options.Hp;
 
             i_x = indices().x;
             i_y = indices().y;
 
-            for i_vehicle_1 = 1:amount
+            for i_vehicle_1 = 1:options.amount
 
-                for i_vehicle_2 = (i_vehicle_1 + 1):amount
+                for i_vehicle_2 = (i_vehicle_1 + 1):options.amount
                     % If the predicted lanelets of both vehicles are not adjacent, skip the distance measurement
                     % (only checked if information of adjacent lanelets exist, i.e., in commonroad or lanelet2 scenarios)
                     if (~isempty(adjacency_lanelets) ...
