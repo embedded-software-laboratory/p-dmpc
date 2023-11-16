@@ -2,7 +2,7 @@ classdef DistanceCoupler < Coupler
 
     methods
 
-        function [adjacency] = couple(obj, iter, options, max_mpa_speed, adjacency_lanelets)
+        function [adjacency] = couple(obj, options, max_mpa_speed, adjacency_lanelets, iter)
             adjacency = zeros(options.amount, options.amount);
 
             max_distance = 2 * max_mpa_speed * options.dt_seconds * options.Hp;

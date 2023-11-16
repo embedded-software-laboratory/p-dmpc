@@ -391,8 +391,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
         end
 
         function couple(obj)
-            obj.iter.adjacency = obj.coupler.couple(obj.iter, obj.options, obj.mpa.get_max_speed_of_mpa(), obj.scenario_adapter.scenario.adjacency_lanelets);
-            obj.iter.coupling_info = obj.coupler.calculate_coupling_info(obj.k, obj.options, obj.scenario_adapter.scenario, obj.mpa, obj.iter);
+            obj.iter.adjacency = obj.coupler.couple(obj.options, obj.mpa.get_max_speed_of_mpa(), obj.scenario_adapter.scenario.adjacency_lanelets, obj.iter);
+            obj.iter.coupling_info = obj.coupler.calculate_coupling_info(obj.options, obj.mpa, obj.scenario_adapter.scenario, obj.iter, obj.k);
         end
 
         function prioritize(obj)

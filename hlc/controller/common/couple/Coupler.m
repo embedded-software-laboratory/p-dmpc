@@ -12,7 +12,7 @@ classdef (Abstract) Coupler < handle
     methods (Abstract)
 
         % Returns the adjacency matrix
-        [adjacency] = couple(obj, iter, options, max_mpa_speed, ~)
+        [adjacency] = couple(obj, options, max_mpa_speed, adjacency_lanelets, iter)
 
     end
 
@@ -45,7 +45,7 @@ classdef (Abstract) Coupler < handle
         function obj = Coupler()
         end
 
-        function [coupling_info] = calculate_coupling_info(obj, time_step, options, scenario, mpa, iter)
+        function [coupling_info] = calculate_coupling_info(obj, options, mpa, scenario, iter, time_step)
             % Calculates information going beyong the adjacency matrix like distance, stac, etc.
 
             adjacency = iter.adjacency;
