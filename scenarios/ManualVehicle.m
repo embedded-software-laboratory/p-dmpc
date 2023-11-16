@@ -11,7 +11,6 @@ classdef ManualVehicle
         points_index;
         road_raw_data;
         options;
-        model;
         mpa;
     end
 
@@ -27,8 +26,7 @@ classdef ManualVehicle
             obj.options = options;
             obj.road_raw_data = road_raw_data;
             obj.ID = id;
-            obj.model = BicycleModel(obj.Lf, obj.Lr);
-            obj.mpa = MotionPrimitiveAutomaton(obj.model, options);
+            obj.mpa = MotionPrimitiveAutomaton(BicycleModel(obj.Lf, obj.Lr), options);
         end
 
         function reachable_sets = compute_reachable_lane(obj, measurement, lanelet_ids)
