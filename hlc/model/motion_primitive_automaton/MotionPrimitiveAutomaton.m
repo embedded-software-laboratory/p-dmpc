@@ -65,15 +65,15 @@ classdef MotionPrimitiveAutomaton
 
             mpa_full_path = fullfile(folder_target, mpa_instance_name);
 
-            % if the needed MPA is alread exist in the library, simply load
+            % if the needed MPA is already exist in the library, simply load
             % it, otherwise it will be calculated and saved to the library.
             % Note: if MPA properties are changed, then reload all MPAs!
             if isfile(mpa_full_path) && options.is_load_mpa && nargout == 1
                 % if number of function output arguments is not one, do not load offline MPA as the second output is not available offline
-                disp("Loading mpa...");
+                fprintf('Loading MPA... ');
                 load(mpa_full_path, "mpa");
                 obj = mpa;
-                disp('Offline MPA was found and loaded.')
+                fprintf('Offline MPA was found and loaded.\n')
                 return
             end
 
