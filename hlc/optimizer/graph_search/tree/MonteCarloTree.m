@@ -11,8 +11,6 @@ classdef MonteCarloTree < Tree
 
     methods
 
-        % CONSTRUCTOR
-
         function obj = MonteCarloTree(n_vehicles, n_successor_trims_max, n_expansions_max)
 
             arguments
@@ -29,88 +27,79 @@ classdef MonteCarloTree < Tree
             obj.successor_trims = zeros(n_successor_trims_max, n_vehicles, n_expansions_max, 'uint8');
         end
 
-        % METHODS
         function add_root(obj, pose, trim, cost, parent, successor_trims)
-            IDs = 1;
-            obj.pose(:, :, IDs) = pose;
-            obj.trim(:, :, IDs) = trim;
-            obj.cost(1, IDs) = cost;
-            obj.parent(1, IDs) = parent;
-            obj.successor_trims(1:size(successor_trims, 2), :, IDs) = successor_trims;
-            obj.children(1:size(successor_trims, 2), IDs) = 1;
+            i_node = 1;
+            obj.pose(:, :, i_node) = pose;
+            obj.trim(:, :, i_node) = trim;
+            obj.cost(1, i_node) = cost;
+            obj.parent(1, i_node) = parent;
+            obj.successor_trims(1:size(successor_trims, 2), :, i_node) = successor_trims;
+            obj.children(1:size(successor_trims, 2), i_node) = 1;
             obj.n_nodes = 1;
         end
 
-        function ID = add_node(obj, pose, trim, cost, parent, successor_trims)
-            ID = size(obj) + 1;
-            obj.pose(:, :, ID) = pose;
-            obj.trim(:, :, ID) = trim;
-            obj.cost(1, ID) = cost;
-            obj.parent(1, ID) = parent;
-            obj.successor_trims(1:size(successor_trims, 2), :, ID) = successor_trims;
-            obj.children(1:size(successor_trims, 2), ID) = 1;
+        function i_node = add_node(obj, pose, trim, cost, parent, successor_trims)
+            i_node = size(obj) + 1;
+            obj.pose(:, :, i_node) = pose;
+            obj.trim(:, :, i_node) = trim;
+            obj.cost(1, i_node) = cost;
+            obj.parent(1, i_node) = parent;
+            obj.successor_trims(1:size(successor_trims, 2), :, i_node) = successor_trims;
+            obj.children(1:size(successor_trims, 2), i_node) = 1;
             child_position = obj.successor_trims(:, :, parent) == trim;
-            obj.children(child_position, parent) = ID;
+            obj.children(child_position, parent) = i_node;
             obj.n_nodes = obj.n_nodes + 1;
         end
 
         function result = size(obj)
-            %% SIZE Return the number of nodes in the Tree.
-            % result = size(obj.parent, 2);
             result = obj.n_nodes;
         end
 
-        function result = get_node(obj, ID)
-            % GET_NODE Return node matrix of desired index ID
+        function result = get_node(obj, i_node)
             result = node( ...
                 0, ...
-                obj.trim(1, :, ID), ...
-                obj.pose(1, :, ID), ...
-                obj.pose(2, :, ID), ...
-                obj.pose(3, :, ID), ...
-                obj.cost(1, ID), ...
-                obj.cost(1, ID) ...
+                obj.trim(1, :, i_node), ...
+                obj.pose(1, :, i_node), ...
+                obj.pose(2, :, i_node), ...
+                obj.pose(3, :, i_node), ...
+                obj.cost(1, i_node), ...
+                obj.cost(1, i_node) ...
             );
         end
 
-        function remove_edge(obj, node_id, trim)
-            child_position = obj.successor_trims(:, :, node_id) == trim;
-            obj.successor_trims(child_position, :, node_id) = 0;
-            obj.children(child_position, node_id) = 0;
+        function remove_edge(obj, i_node, trim)
+            child_position = obj.successor_trims(:, :, i_node) == trim;
+            obj.successor_trims(child_position, :, i_node) = 0;
+            obj.children(child_position, i_node) = 0;
 
-            if (nnz(obj.children(:, node_id)) == 0) && (node_id ~= 1)
-                obj.remove_node(node_id);
+            if (nnz(obj.children(:, i_node)) == 0) && (i_node ~= 1)
+                obj.remove_node(i_node);
             end
 
         end
 
-        function remove_node(obj, node_id)
-            obj.remove_edge(obj.parent(1, node_id), obj.trim(1, :, node_id));
+        function remove_node(obj, i_node)
+            obj.remove_edge(obj.parent(1, i_node), obj.trim(1, :, i_node));
         end
 
         function result = number_of_vehicles(obj)
-            %% NUMBER_OF_VEHICLES  Return the number of vehicles in the Tree.
             result = size(obj.trim, 2);
         end
 
-        function trim = get_trim(obj, i_vehicle, ID)
-            %% GET_TRIM  Return the trim of the given node.
-            trim = double(obj.trim(1, i_vehicle, ID));
+        function trim = get_trim(obj, i_vehicle, i_node)
+            trim = double(obj.trim(1, i_vehicle, i_node));
         end
 
-        function x = get_x(obj, i_vehicle, ID)
-            %% GET_X  Return the x coordinate of the given node.
-            x = obj.pose(1, i_vehicle, ID);
+        function x = get_x(obj, i_vehicle, i_node)
+            x = obj.pose(1, i_vehicle, i_node);
         end
 
-        function y = get_y(obj, i_vehicle, ID)
-            %% GET_X  Return the y coordinate of the given node.
-            y = obj.pose(2, i_vehicle, ID);
+        function y = get_y(obj, i_vehicle, i_node)
+            y = obj.pose(2, i_vehicle, i_node);
         end
 
-        function yaw = get_yaw(obj, i_vehicle, ID)
-            %% GET_X  Return the yaw coordinate of the given node.
-            yaw = obj.pose(3, i_vehicle, ID);
+        function yaw = get_yaw(obj, i_vehicle, i_node)
+            yaw = obj.pose(3, i_vehicle, i_node);
         end
 
     end
