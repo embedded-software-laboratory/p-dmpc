@@ -49,7 +49,7 @@ classdef Config
         is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
 
         is_force_parallel_vehs_in_same_grp = true; % true/false, if true, vehicles move in parallel will be forced in the same group
-        matlab_optimizer MatlabOptimizer = MatlabOptimizer.none;
+        matlab_optimizer MatlabOptimizer = MatlabOptimizer.optimal;
         cpp_optimizer CppOptimizer = CppOptimizer.None;
         mex_out_of_process_execution = false; % execute mex graph search functions in own process
         is_dry_run (1, 1) logical = false; % whether to do a dry_run or not
