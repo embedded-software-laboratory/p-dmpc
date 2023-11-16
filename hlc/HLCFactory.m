@@ -11,10 +11,10 @@ classdef HLCFactory < handle
         % Optional argument wether to do a dry run of the first timestep beforehand
         % dry_run can massively decrease the time needed for the first
         % timestep during the experiment.
-        function hlc = get_hlc(obj, options, scenario, plant, vehicle_ids, dry_run)
+        function hlc = get_hlc(obj, options, plant, vehicle_ids, dry_run)
 
             if dry_run
-                obj.dry_run_hlc(options, scenario, plant.all_vehicle_ids);
+                obj.dry_run_hlc(options, plant.all_vehicle_ids);
             end
 
             if options.is_prioritized
@@ -52,7 +52,7 @@ classdef HLCFactory < handle
         % Important note: This might take some time depending on how hard to
         % solve the first time step of this scenario is.
 
-        function dry_run_hlc(obj, options, scenario, dry_run_vehicle_ids)
+        function dry_run_hlc(obj, options, dry_run_vehicle_ids)
             disp("Starting dry run of HLC");
 
             % use simulation to avoid communication with a lab
@@ -69,7 +69,7 @@ classdef HLCFactory < handle
             plant = PlantFactory.get_experiment_interface(options.environment);
             plant.setup(options, dry_run_vehicle_ids);
 
-            hlc = obj.get_hlc(options, scenario, plant, dry_run_vehicle_ids, false);
+            hlc = obj.get_hlc(options, plant, dry_run_vehicle_ids, false);
             hlc.run();
 
             disp("Dry Run Completed");

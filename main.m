@@ -67,7 +67,7 @@ function experiment_result = main(options)
 
                 hlc_factory = HLCFactory();
                 % have the plant only control its own vehicle by calling setup a second time
-                hlc = hlc_factory.get_hlc(options, scenario, plant, plant.controlled_vehicle_ids, options.is_dry_run);
+                hlc = hlc_factory.get_hlc(options, plant, plant.controlled_vehicle_ids, options.is_dry_run);
                 experiment_result = hlc.run();
             end
 
@@ -79,7 +79,7 @@ function experiment_result = main(options)
         else
 
             hlc_factory = HLCFactory();
-            hlc = hlc_factory.get_hlc(options, scenario, plant, plant.controlled_vehicle_ids, options.is_dry_run);
+            hlc = hlc_factory.get_hlc(options, plant, plant.controlled_vehicle_ids, options.is_dry_run);
             experiment_result = hlc.run();
         end
 
