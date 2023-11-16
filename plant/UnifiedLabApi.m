@@ -96,31 +96,7 @@ classdef UnifiedLabApi < Plant
         function [cav_measurements, hdv_measurements] = measure(obj)
             disp('Measure');
 
-            % Receive new messages. In order to recognize stop signals, we
-            % have a timeout of 2 seconds and then check again, whether a
-            % stop signal was received...
-            new_sample_received = false;
-
-            while (~new_sample_received)
-
-                try
-                    new_sample = receive(obj.subscription_controllerInvocation, 1);
-                    new_sample_received = true;
-                catch % Timeout
-
-                    if (obj.got_stop)
-                        disp('Stop signal received. Stop waiting for new messages.');
-                        % Set new_sample to the one of the last timestep
-                        % such that we can leave this function
-                        % successfully. Afterwards the calling function
-                        % will detect that obj.got_stop=true.
-                        new_sample = obj.sample;
-                        new_sample_received = true;
-                    end
-
-                end
-
-            end
+            new_sample = obj.receive_new_sample();
 
             % Don't do the check in the first step (see later in this function for setting of pos_init)
             if obj.pos_init && ...
@@ -480,6 +456,35 @@ classdef UnifiedLabApi < Plant
 
             obj.goal_handle = sendGoal(obj.actionClient_vehiclesRequest, obj.goal_msg, callbackOpts);
             disp('Sent message to define the vehicle ids. We assume that goal was accepted, so no further test...');
+        end
+
+        function new_sample = receive_new_sample(obj)
+            % Receive new messages. In order to recognize stop signals, we
+            % have a timeout of 2 seconds and then check again, whether a
+            % stop signal was received...
+            new_sample_received = false;
+
+            while (~new_sample_received)
+
+                try
+                    new_sample = receive(obj.subscription_controllerInvocation, 1);
+                    new_sample_received = true;
+                catch % Timeout
+
+                    if (obj.got_stop)
+                        disp('Stop signal received. Stop waiting for new messages.');
+                        % Set new_sample to the one of the last timestep
+                        % such that we can leave this function
+                        % successfully. Afterwards the calling function
+                        % will detect that obj.got_stop=true.
+                        new_sample = obj.sample;
+                        new_sample_received = true;
+                    end
+
+                end
+
+            end
+
         end
 
         function vehicleRequestActionFeedbackCallback(obj, goalHandle, feedbackMsg)
