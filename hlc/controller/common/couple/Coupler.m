@@ -2,7 +2,6 @@ classdef (Abstract) Coupler < handle
 
     properties (Access = protected)
         intersection_ids
-        previous_intersection_ids
     end
 
     properties (Constant, Access = protected)
@@ -12,7 +11,7 @@ classdef (Abstract) Coupler < handle
     methods (Abstract)
 
         % Returns the adjacency matrix
-        [adjacency] = couple(obj, iter)
+        [adjacency] = couple(obj, options, max_mpa_speed, adjacency_lanelets, iter)
 
     end
 
@@ -32,6 +31,8 @@ classdef (Abstract) Coupler < handle
                     coupler = ConstantCoupler(ones(amount) - eye(amount));
                 case CouplingStrategies.no_coupling
                     coupler = ConstantCoupler(zeros(amount));
+                case CouplingStrategies.distance_coupling
+                    coupler = DistanceCoupler();
             end
 
         end
@@ -43,14 +44,13 @@ classdef (Abstract) Coupler < handle
         function obj = Coupler()
         end
 
-        function [coupling_info] = calculate_coupling_info(obj, time_step, options, scenario, mpa, iter)
+        function [coupling_info] = calculate_coupling_info(obj, options, mpa, scenario, iter, time_step)
             % Calculates information going beyong the adjacency matrix like distance, stac, etc.
 
             adjacency = iter.adjacency;
             amount = options.amount;
             coupling_info = cell(amount, amount);
 
-            obj.previous_intersection_ids = obj.intersection_ids;
             [obj.intersection_ids, ~] = vehicles_at_intersection(time_step, obj.intersection_ids, [], obj.intersection_distance_threshold, iter.x0, scenario.intersection_center, amount);
 
             for veh_i = 1:(amount - 1)

@@ -9,7 +9,7 @@ classdef systemtests < matlab.unittest.TestCase
                            'random_weight'
                            'STAC_weight'
                            'distance_weight'};
-        coupling = {'reachable_set_coupling', 'full_coupling', 'no_coupling'};
+        coupling = {'reachable_set_coupling', 'full_coupling', 'no_coupling', 'distance_coupling'};
     end
 
     methods (Test)
@@ -98,13 +98,14 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        function test_coupler(testCase, coupling)
+        function test_coupler(testCase, scenario_type, coupling)
             lastwarn('');
             fprintf('\ncoupler systemtest for %s\n', coupling)
             %load Config from json
             options = Config.load_from_file('tests/systemtests/Config_coupler.json');
-
             options.coupling = CouplingStrategies(coupling);
+            options.scenario_type = ScenarioType(scenario_type);
+
             testCase.verifyEmpty(lastwarn);
 
             main(options);
