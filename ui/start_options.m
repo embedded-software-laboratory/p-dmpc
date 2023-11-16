@@ -171,6 +171,7 @@ function [labOptions] = start_options()
             labOptions.cpp_optimizer = CppOptimizer.None;
             labOptions.matlab_optimizer = MatlabOptimizer.randomized;
         case "C++"
+            labOptions.matlab_optimizer = MatlabOptimizer.none;
 
             if labOptions.is_prioritized
                 labOptions.cpp_optimizer = CppOptimizer.GraphSearchPBOptimal;
@@ -178,25 +179,9 @@ function [labOptions] = start_options()
                 labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalPolymorphic;
             end
 
-        case "C++ConflictBased"
-            labOptions.cpp_optimizer = CppOptimizer.CentralizedConflictBased;
-        case "C++NodeParallelization"
-            labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalNodeParallelization;
-        case "C++AStarParallelization"
-            labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalAStarParallelization;
-        case "C++NaiveMonteCarlo"
-            labOptions.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphic;
-        case "C++NaiveMonteCarloRootParallelization"
+        case "C++Randomized"
+            labOptions.matlab_optimizer = MatlabOptimizer.none;
             labOptions.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel;
-        case "C++Grouping"
-            labOptions.cpp_optimizer = CppOptimizer.CentralizedGrouping;
-        case "C++Incremental"
-
-            if labOptions.is_prioritized
-                labOptions.cpp_optimizer = CppOptimizer.GraphSearchPBIncrementalOptimal;
-            else
-                labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalIncremental;
-            end
 
         otherwise
             error(['optimizer ', optimizer, ' not implemented/available!']);
@@ -407,23 +392,15 @@ function [list] = list_optimizer_centralized
     list = {
             '1', 'Matlab';
             '2', 'C++';
-            '3', 'C++NodeParallelization';
-            '4', 'C++AStarParallelization';
-            '5', 'C++Grouping';
-            '6', 'C++ConflictBased';
-            '7', 'C++NaiveMonteCarlo';
-            '8', 'C++NaiveMonteCarloRootParallelization';
-            '9', 'C++Incremental';
+            '3', 'C++Randomized';
             };
 end
 
 function [list] = list_optimizer_prioritized
     list = {
             '1', 'Matlab';
-            '2', 'MatlabRandomized';
             '3', 'C++';
-            '4', 'C++Incremental';
-            };
+            }; % '2', 'MatlabRandomized'; % NOT YET IMPLEMENTED
 end
 
 function [list] = list_priority_assignment_methods
