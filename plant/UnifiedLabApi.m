@@ -25,14 +25,12 @@ classdef UnifiedLabApi < Plant
         dt_period_nanos
         sample
         out_of_map_limits
-        pos_init
     end
 
     methods
 
         function obj = UnifiedLabApi()
             obj = obj@Plant();
-            obj.pos_init = false;
         end
 
         function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
@@ -57,6 +55,37 @@ classdef UnifiedLabApi < Plant
             obj.prepare_api(controlled_vehicle_ids);
 
             setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
+
+            % receive sample for initial vehicle states
+            sample_for_setup = obj.receive_new_sample();
+
+            % take list of VehicleStates from sample
+            state_list = sample_for_setup.vehicle_states;
+
+            % since there is no steering info in [rad],
+            % the initial_steering is assumed to 0
+            initial_steering = 0;
+
+            for index = 1:length(state_list)
+
+                % cast the state_list vehicle_id to double
+                % to be able to compare to defined data type
+                % in superclass without loss of precision
+                if ismember(double(state_list(index).vehicle_id), controlled_vehicle_ids) % measure cav states
+                    % index of measured vehicle in vehicle_list
+                    [~, index_in_vehicle_list] = ismember(double(state_list(index).vehicle_id), all_vehicle_ids);
+
+                    obj.measurements(index_in_vehicle_list) = PlantMeasurement( ...
+                        state_list(index).pose.x, ...
+                        state_list(index).pose.y, ...
+                        state_list(index).pose.yaw, ...
+                        state_list(index).speed.linear, ...
+                        initial_steering ...
+                    );
+                end
+
+            end
+
         end
 
         function register_map(obj, map_as_string)
@@ -94,14 +123,16 @@ classdef UnifiedLabApi < Plant
         end
 
         function [cav_measurements, hdv_measurements] = measure(obj)
-            disp('Measure');
+            % take cav_measurements that were applied in the previous step
+            % for the first step they hold the initialized values
+            cav_measurements = obj.measurements;
 
             new_sample = obj.receive_new_sample();
 
-            % Don't do the check in the first step (see later in this function for setting of pos_init)
-            if obj.pos_init && ...
-                    uint64(obj.sample.current_time.sec) * 10^9 + uint64(obj.sample.current_time.nanosec) + uint64(obj.dt_period_nanos) * 1.5 ...
-                    < uint64(new_sample.current_time.sec) * 10^9 + uint64(new_sample.current_time.nanosec)
+            time_old_sample_predicted = uint64(obj.sample.current_time.sec) * 10^9 + uint64(obj.sample.current_time.nanosec) + uint64(obj.dt_period_nanos) * 1.5;
+            time_new_sample = uint64(new_sample.current_time.sec) * 10^9 + uint64(new_sample.current_time.nanosec);
+
+            if time_old_sample_predicted < time_new_sample
                 warning(['The time of the received sample is bigger than expected. Missed deadline? ' ...
                          'Time old: %u sec, %u nanosec. Time received: %u sec, %u nanosec'], ...
                     obj.sample.current_time.sec, obj.sample.current_time.nanosec, ...
@@ -109,42 +140,6 @@ classdef UnifiedLabApi < Plant
             end
 
             obj.sample = new_sample;
-            state_list = obj.sample.vehicle_states;
-
-            % initialize return variables
-            cav_measurements(obj.amount, 1) = PlantMeasurement();
-
-            % for first iteration use real poses
-            if (obj.pos_init == false)
-
-                % since there is no steering info in [rad],
-                % the initial_steering is assumed to 0
-                initial_steering = 0;
-
-                for index = 1:length(state_list)
-
-                    % cast the state_list vehicle_id to double
-                    % to be able to compare to defined data type
-                    % in superclass without loss of precision
-                    if ismember(double(state_list(index).vehicle_id), obj.controlled_vehicle_ids) % measure cav states
-                        % index of measured vehicle in vehicle_list
-                        [~, index_in_vehicle_list] = ismember(double(state_list(index).vehicle_id), obj.all_vehicle_ids);
-
-                        cav_measurements(index_in_vehicle_list) = PlantMeasurement( ...
-                            state_list(index).pose.x, ...
-                            state_list(index).pose.y, ...
-                            state_list(index).pose.yaw, ...
-                            state_list(index).speed.linear, ...
-                            initial_steering ...
-                        );
-                    end
-
-                end
-
-                obj.pos_init = true;
-            else
-                cav_measurements = obj.measurements;
-            end
 
             % if there are no manual vehicles return directly
             if ~obj.manual_control_config.is_active
@@ -152,7 +147,9 @@ classdef UnifiedLabApi < Plant
                 return
             end
 
-            % Always measure HDV
+            state_list = obj.sample.vehicle_states;
+
+            % initialize return variable
             hdv_measurements(obj.manual_control_config.amount, 1) = PlantMeasurement();
 
             % since there is no steering info in [rad],
