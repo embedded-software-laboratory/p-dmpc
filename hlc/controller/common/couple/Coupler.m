@@ -2,7 +2,6 @@ classdef (Abstract) Coupler < handle
 
     properties (Access = protected)
         intersection_ids
-        previous_intersection_ids
     end
 
     properties (Constant, Access = protected)
@@ -52,7 +51,6 @@ classdef (Abstract) Coupler < handle
             amount = options.amount;
             coupling_info = cell(amount, amount);
 
-            obj.previous_intersection_ids = obj.intersection_ids;
             [obj.intersection_ids, ~] = vehicles_at_intersection(time_step, obj.intersection_ids, [], obj.intersection_distance_threshold, iter.x0, scenario.intersection_center, amount);
 
             for veh_i = 1:(amount - 1)
