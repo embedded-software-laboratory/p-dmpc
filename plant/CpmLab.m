@@ -81,6 +81,32 @@ classdef CpmLab < Plant
             setup@Plant(obj, options, all_vehicle_ids_from_lab, controlled_vehicle_ids_from_lab);
         end
 
+        function synchronize_start_with_plant(obj)
+            % Sync start with infrastructure
+            % Send ready signal for all assigned vehicle ids
+            disp('Sending ready signal');
+
+            for iVehicle = obj.controlled_vehicle_ids
+                ready_msg = ReadyStatus;
+                ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
+                ready_stamp = TimeStamp;
+                ready_stamp.nanoseconds = uint64(0);
+                ready_msg.next_start_stamp = ready_stamp;
+                obj.writer_readyStatus.write(ready_msg);
+            end
+
+            % Wait for start or stop signal
+            disp('Waiting for start or stop signal');
+
+            got_start = false;
+            got_stop = false;
+
+            while (~got_stop && ~got_start)
+                [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
+            end
+
+        end
+
         function [cav_measurements, hdv_measurements] = measure(obj)
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
@@ -227,32 +253,6 @@ classdef CpmLab < Plant
 
         function end_run(obj)
             disp('End')
-        end
-
-        function synchronize_start_with_plant(obj)
-            % Sync start with infrastructure
-            % Send ready signal for all assigned vehicle ids
-            disp('Sending ready signal');
-
-            for iVehicle = obj.controlled_vehicle_ids
-                ready_msg = ReadyStatus;
-                ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
-                ready_stamp = TimeStamp;
-                ready_stamp.nanoseconds = uint64(0);
-                ready_msg.next_start_stamp = ready_stamp;
-                obj.writer_readyStatus.write(ready_msg);
-            end
-
-            % Wait for start or stop signal
-            disp('Waiting for start or stop signal');
-
-            got_start = false;
-            got_stop = false;
-
-            while (~got_stop && ~got_start)
-                [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
-            end
-
         end
 
     end
