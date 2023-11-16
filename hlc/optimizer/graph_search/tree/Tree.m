@@ -1,9 +1,7 @@
 classdef Tree < handle
 
     properties (SetAccess = protected)
-        % Index of the parent node. The root of the AStarTree as a parent index
-        % equal to 0.
-        parent (1, :) uint32;
+        parent (1, :) uint32; % Index of the parent node
     end
 
     methods (Abstract)
