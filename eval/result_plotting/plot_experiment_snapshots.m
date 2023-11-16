@@ -8,8 +8,6 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
         optional.colorOffset (1, 1) double = 0
     end
 
-    colors = rwth_color_order();
-
     options = experiment_result.options;
     scenario = experiment_result.scenario;
 
@@ -65,7 +63,7 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
             for iStep = 1:step_idx
                 line(experiment_result.vehicle_path_fullres{v, iStep}(:, 1), ...
                     experiment_result.vehicle_path_fullres{v, iStep}(:, 2), ...
-                    'Color', colors(v + optional.colorOffset, :) ...
+                    'Color', rwth_color_order(v + optional.colorOffset) ...
                 );
             end
 
@@ -75,10 +73,10 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
         for v = 1:nVeh
             line(experiment_result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 1), ...
                 experiment_result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 2), ...
-                'Color', colors(v + optional.colorOffset, :), 'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', colors(v + optional.colorOffset, :), 'MarkerSize', 1);
+                'Color', rwth_color_order(v + optional.colorOffset), 'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', rwth_color_order(v + optional.colorOffset), 'MarkerSize', 1);
             line(experiment_result.trajectory_predictions{v, step_idx}(:, 1), ...
                 experiment_result.trajectory_predictions{v, step_idx}(:, 2), ...
-                'Color', colors(v + optional.colorOffset, :));
+                'Color', rwth_color_order(v + optional.colorOffset));
         end
 
         % Vehicle rectangles
@@ -89,7 +87,7 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
             vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
             patch(vehiclePolygon(1, :) ...
                 , vehiclePolygon(2, :) ...
-                , colors(v + optional.colorOffset, :) ...
+                , rwth_color_order(v + optional.colorOffset) ...
             );
         end
 

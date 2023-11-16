@@ -1,4 +1,9 @@
-function result = rwth_color_order
+function result = rwth_color_order(color_index)
+
+    arguments
+        color_index (1, :) uint8 = [1:11]
+    end
+
     result = [ ...
                   0 84 159 %RWTH blau     RGB
               246 168 0 %RWTH orange   RGB
@@ -13,4 +18,5 @@ function result = rwth_color_order
               255 237 0 %RWTH gelb     RGB
               ];
     result = result ./ 255;
+    result = result(color_index, :);
 end
