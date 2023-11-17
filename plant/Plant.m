@@ -29,19 +29,20 @@ classdef (Abstract) Plant < handle
         indices_in_vehicle_list
     end
 
-    methods (Abstract)
-        [cav_measurements, hdv_measurements] = measure(obj)
-        apply(obj, info, experiment_result, k, mpa)
-        got_stop = is_stop(obj)
-        end_run(obj)
-    end
-
     methods
+
         % get methods for dependent properties
         function indices = get.indices_in_vehicle_list(obj)
             [~, indices] = ismember(obj.controlled_vehicle_ids, obj.all_vehicle_ids);
         end
 
+    end
+
+    methods (Abstract)
+        [cav_measurements, hdv_measurements] = measure(obj)
+        apply(obj, info, experiment_result, k, mpa)
+        got_stop = is_stop(obj)
+        end_run(obj)
     end
 
     methods (Access = public)
