@@ -77,10 +77,17 @@ classdef (Abstract) Plant < handle
             obj.measurements(options.amount, 1) = PlantMeasurement();
         end
 
+        function register_map(~)
+            % Plants may allow to set a specific map.
+            % If so, this function needs to be overwritten.
+            % By default this function is not available.
+            error('This interface does not provide the possibility to register a specific map.');
+        end
+
         function receive_map(~)
-            % InterfaceExperiments may allow to retrieve a lab specific
-            % map. If so, this function needs to be overriden. By default
-            % this function is not available.
+            % Plants may allow to retrieve a lab specific map.
+            % If so, this function needs to be overwritten.
+            % By default this function is not available.
             error('This interface does not provide the possibility to retrieve a lab specific map.');
         end
 
