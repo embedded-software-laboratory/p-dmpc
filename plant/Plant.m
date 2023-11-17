@@ -1,5 +1,5 @@
 classdef (Abstract) Plant < handle
-    % INTERFACEEXPERIMENT    Abstract class used for defining properties and methods used by different experiment setups.
+    % Plant - Abstract class used for defining properties and methods used by different experiment setups.
 
     properties (Access = protected)
         % measurement used for every iteration
@@ -19,7 +19,7 @@ classdef (Abstract) Plant < handle
 
     properties (GetAccess = public, SetAccess = private)
         % public so that the HLC can access them
-        % all active vehicle ids. when running distributedly, these can differ from controlled ids
+        % all active vehicle ids. when running distributed, these can differ from controlled ids
         all_vehicle_ids (1, :) uint8 % uint8 to conform to ids sent by the middleware
         % which vehicles will controlled by this experiment instance
         controlled_vehicle_ids (1, :) uint8
@@ -84,7 +84,7 @@ classdef (Abstract) Plant < handle
 
             % This function does everything in order to run the object
             % later on. If further initialization needs to be done this
-            % method shall be overriden and called in a child class.
+            % method shall be overwritten and called in a child class.
 
             % save options that are required as properties in subclasses
             obj.dt_seconds = options.dt_seconds;
@@ -120,8 +120,8 @@ classdef (Abstract) Plant < handle
             dt_seconds = obj.dt_seconds;
         end
 
-        function synchronize_start_with_plant(obj)
-            % can be overriden in child class if needed
+        function synchronize_start_with_plant(~)
+            % can be overwritten in child class if needed
         end
 
     end
