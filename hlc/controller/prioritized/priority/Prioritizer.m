@@ -36,18 +36,17 @@ classdef (Abstract) Prioritizer < handle
 
     methods (Static)
 
-        function priority_list = get_priority_list(weighted_coupling)
-            [isValid, L] = kahn(weighted_coupling);
-            priority_list = zeros(1, size(L, 2));
+        function result = level_of_vehicle(directed_coupling)
+            % LEVEL_OF_VEHICLE  Given the directed coupling matrix,
+            % this function returns the computation level of each vehicle.
+            [is_valid, L] = kahn(directed_coupling);
+            assert(is_valid);
 
-            if isValid
+            n_vehicles = size(L, 2);
+            result = zeros(1, n_vehicles);
 
-                for iVeh = 1:size(L, 2)
-                    priority_list(iVeh) = find(L(:, iVeh));
-                end
-
-            else
-                priority_list = [];
+            for i_vehicle = 1:n_vehicles
+                result(i_vehicle) = find(L(:, i_vehicle));
             end
 
         end
