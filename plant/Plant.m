@@ -38,6 +38,29 @@ classdef (Abstract) Plant < handle
 
     end
 
+    methods (Static, Access = public)
+
+        function plant = get_plant(environment)
+
+            arguments
+                environment (1, 1) Environment
+            end
+
+            switch (environment)
+                case Environment.Simulation
+                    plant = SimLab();
+                case Environment.SimulationDistributed
+                    plant = SimLabDistributed();
+                case Environment.CpmLab
+                    plant = CpmLab();
+                case Environment.UnifiedLabApi
+                    plant = UnifiedLabApi();
+            end
+
+        end
+
+    end
+
     methods (Abstract)
         [cav_measurements, hdv_measurements] = measure(obj)
         apply(obj, info, experiment_result, k, mpa)

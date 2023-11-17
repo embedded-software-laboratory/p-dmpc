@@ -66,7 +66,7 @@ classdef HLCFactory < handle
             % for the dry run results are not relevant
             options.should_save_result = false;
 
-            plant = PlantFactory.get_experiment_interface(options.environment);
+            plant = Plant.get_plant(options.environment);
             plant.setup(options, dry_run_vehicle_ids);
 
             hlc = obj.get_hlc(options, plant, dry_run_vehicle_ids, false);

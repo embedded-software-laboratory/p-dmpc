@@ -30,7 +30,7 @@ function experiment_result = main(options)
         delete_ros2_msgs();
     else
         % get plant from options
-        plant = PlantFactory.get_experiment_interface(options.environment);
+        plant = Plant.get_plant(options.environment);
 
         % set active vehicle IDs and possibly initialize communication
         plant.setup(options, options.path_ids);

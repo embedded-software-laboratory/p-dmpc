@@ -12,7 +12,7 @@ function [experiment_result, scenario] = main_distributed(vehicle_id)
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
-    plant = PlantFactory.get_experiment_interface(options.environment);
+    plant = Plant.get_plant(options.environment);
     % set active vehicle IDs and initialize communication
     plant.setup(options, options.path_ids, vehicle_id);
 
