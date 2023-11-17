@@ -50,14 +50,14 @@ function experiment_result = main(options)
             get_parallel_pool(options.amount);
 
             do_plot = options.options_plot_online.is_active;
-            can_handle_parallel_plot = isa(plant, 'SimLab');
+            can_handle_parallel_plot = options.environment == Environment.Simulation;
 
             if do_plot
 
                 if can_handle_parallel_plot
                     visualization_data_queue = plant.get_visualization_data_queue;
                     % create central plotter - used by all workers via data queue
-                    plotter = PlotterOnline(options, scenario, plant.indices_in_vehicle_list);
+                    plotter = PlotterOnline(options, scenario, 1:options.amount);
                     afterEach(visualization_data_queue, @plotter.data_queue_callback);
                 else
                     warning('The currently selected environment cannot handle plotting of a parallel execution!');
