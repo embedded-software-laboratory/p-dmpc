@@ -208,6 +208,66 @@ classdef MotionPrimitiveAutomaton
 
         end
 
+        function trim_index = trim_from_values(obj, speed, steering)
+            % get closest trim based on speed and steering values
+
+            trims_steering = [obj.trims.steering];
+
+            % compute the distance to each steering angle
+            steering_distances = abs(trims_steering - steering);
+
+            % first find minimum in distance to steering angles (more important than speed)
+            % if there is more than one speed per steering angle, more than one minimum exist
+            % if the current steering angle is exactly between two steering angles, more than one trim is found
+            is_closest_steering = min(steering_distances) == steering_distances;
+
+            if sum(is_closest_steering) == 1
+                trim_index = find(is_closest_steering);
+                return
+            end
+
+            % second if different absolute steering angles are found
+            % (use the higher steering - overestimate)
+            is_safer_steering = max(abs(trims_steering(is_closest_steering))) == trims_steering;
+
+            is_closest_and_safer_steering = is_closest_steering & is_safer_steering;
+
+            if sum(is_closest_and_safer_steering) == 1
+                trim_index = find(is_closest_and_safer_steering);
+                return
+            end
+
+            trims_speed = [obj.trims.speed];
+
+            % compute distances to each speed
+            speed_distances = abs(trims_speed - speed);
+
+            % third find minimum in distance to speeds
+            is_closest_speed = min(speed_distances(is_closest_steering)) == speed_distances;
+
+            % if the current speed is exactly between two speeds, more than one trim is found
+            is_closest_trim = is_closest_and_safer_steering & is_closest_speed;
+
+            if sum(is_closest_trim) == 1
+                trim_index = find(is_closest_trim);
+                return
+            end
+
+            % fourth if different absolute speeds are found
+            % (use the higher speed - overestimate)
+            is_closest_and_safer_speed = max(trims_speed(is_closest_trim)) == trims_speed;
+
+            is_closest_and_safer_trim = is_closest_trim & is_closest_and_safer_speed;
+
+            if sum(is_closest_and_safer_trim) == 1
+                trim_index = find(is_closest_and_safer_trim);
+                return
+            end
+
+            % if still multiple trims are found, they must be equal
+            trim_index = find(is_closest_and_safer_trim, 1);
+        end
+
         function transition_matrix_single = compute_time_varying_transition_matrix(obj)
             N = size(obj.transition_matrix_single, 3);
             transition_matrix_single = obj.transition_matrix_single;
