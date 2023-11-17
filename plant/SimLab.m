@@ -4,8 +4,9 @@ classdef SimLab < Plant
     properties (Access = private)
         plotter % own plotter to visualize if no visualization_data_queue is given
         visualization_data_queue
-        use_visualization_data_queue
-        should_plot
+
+        use_visualization_data_queue (1, 1) logical = false;
+        should_plot (1, 1) logical = false;
 
         step_timer (1, 1) uint64 % used for tic/toc to measure the time between measure() and apply() to make realtime plotting possible
     end
@@ -14,11 +15,11 @@ classdef SimLab < Plant
 
         function obj = SimLab()
             obj = obj@Plant();
-            obj.use_visualization_data_queue = false;
         end
 
-        function visualization_data_queue = get_visualization_data_queue(obj)
-            visualization_data_queue = obj.visualization_data_queue;
+        function set_visualization_data_queue(obj, visualization_data_queue)
+            % note: parallel.pool.DataQueue does not support arguments validation
+            obj.visualization_data_queue = visualization_data_queue;
         end
 
         function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
@@ -53,12 +54,11 @@ classdef SimLab < Plant
             end
 
             % check whether visualization data queue is needed and initialize if necessary
-            if (options.is_prioritized ...
+            if ( ...
+                    options.is_prioritized ...
                     && options.compute_in_parallel ...
                     && options.options_plot_online.is_active ...
-                    && isempty(obj.visualization_data_queue) ...
                 )
-                obj.visualization_data_queue = parallel.pool.DataQueue;
                 obj.use_visualization_data_queue = true;
             end
 

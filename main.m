@@ -33,11 +33,6 @@ function experiment_result = main(options)
 
         delete_ros2_msgs();
     else
-        % get plant from options
-        plant = Plant.get_plant(options.environment);
-
-        % set active vehicle IDs and possibly initialize communication
-        plant.setup(options, options.path_ids);
 
         if options.is_prioritized
             % In priority-based computation, vehicles communicate via ROS 2.
@@ -55,17 +50,26 @@ function experiment_result = main(options)
             if do_plot
 
                 if can_handle_parallel_plot
-                    visualization_data_queue = plant.get_visualization_data_queue;
+                    visualization_data_queue = parallel.pool.DataQueue;
                     % create central plotter - used by all workers via data queue
                     plotter = PlotterOnline(options, scenario, 1:options.amount);
                     afterEach(visualization_data_queue, @plotter.data_queue_callback);
                 else
+                    % case for UnifiedLabApi (and for CpmLab if combination with Parallel Computing Toolbox would be possible)
                     warning('The currently selected environment cannot handle plotting of a parallel execution!');
                 end
 
             end
 
             spmd (options.amount)
+                % get plant from options
+                plant = Plant.get_plant(options.environment);
+
+                if do_plot && can_handle_parallel_plot
+                    % set visualization_data_queue for plotting
+                    plant.set_visualization_data_queue(visualization_data_queue);
+                end
+
                 % setup plant again, only control one vehicle
                 plant.setup(options, options.path_ids, options.path_ids(labindex));
 
@@ -75,12 +79,17 @@ function experiment_result = main(options)
                 experiment_result = hlc.run();
             end
 
-            if do_plot
+            if do_plot && can_handle_parallel_plot
                 plotter.close_figure();
             end
 
             experiment_result = {experiment_result{:}};
         else
+            % get plant from options
+            plant = Plant.get_plant(options.environment);
+
+            % set active vehicle IDs and possibly initialize communication
+            plant.setup(options, options.path_ids);
 
             hlc_factory = HLCFactory();
             hlc = hlc_factory.get_hlc(options, plant, plant.controlled_vehicle_ids, options.is_dry_run);
