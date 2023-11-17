@@ -149,7 +149,7 @@ classdef (Abstract) Plotter < handle
                 plotting_info (1, 1) PlottingInfo
             end
 
-            priority_list = plotting_info.priorities;
+            priority_list = Prioritizer.get_priority_list(plotting_info.directed_coupling);
 
             nObst = plotting_info.n_obstacles;
             nDynObst = plotting_info.n_dynamic_obstacles;

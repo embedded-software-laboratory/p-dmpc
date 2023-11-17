@@ -398,7 +398,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         function prioritize(obj)
             obj.iter.directed_coupling = obj.prioritizer.prioritize(obj.iter, obj.k, obj.options, obj.scenario_adapter.scenario.intersection_center);
-            obj.iter.priority_list = obj.prioritizer.get_priority_list(obj.iter.directed_coupling);
+            obj.iter.priority_list = Prioritizer.get_priority_list(obj.iter.directed_coupling); % TODO remove from iteration_data and result
         end
 
         function reduce_computation_levels(obj)

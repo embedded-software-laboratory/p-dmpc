@@ -34,9 +34,9 @@ classdef (Abstract) Prioritizer < handle
 
     end
 
-    methods
+    methods (Static)
 
-        function priority_list = get_priority_list(~, weighted_coupling)
+        function priority_list = get_priority_list(weighted_coupling)
             [isValid, L] = kahn(weighted_coupling);
             priority_list = zeros(1, size(L, 2));
 
@@ -51,10 +51,6 @@ classdef (Abstract) Prioritizer < handle
             end
 
         end
-
-    end
-
-    methods (Static)
 
         function directed_coupling = direct_coupling(undirected_coupling, topo_groups)
             % determine directed adjacency

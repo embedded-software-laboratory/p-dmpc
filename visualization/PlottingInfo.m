@@ -33,7 +33,6 @@ classdef PlottingInfo
             obj.tick_now = tick_now;
             obj.trajectory_predictions = experiment_result.trajectory_predictions(:, k);
             obj.ref_trajectory = experiment_result.iteration_data{k}.reference_trajectory_points;
-            obj.priorities = experiment_result.iteration_data{k}.priority_list(:);
             obj.n_obstacles = size(experiment_result.iteration_data{k}.obstacles, 1);
             obj.n_dynamic_obstacles = size(experiment_result.iteration_data{k}.dynamic_obstacle_fullres, 1);
 
