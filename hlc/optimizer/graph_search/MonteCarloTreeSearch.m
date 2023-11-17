@@ -35,7 +35,8 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             trim = iter.trim_indices;
             successor_trims = find(mpa.transition_matrix_single(trim, :, 1));
             info.tree = MonteCarloTree(1, n_successor_trims_max, n_expansions_max);
-            info.tree.add_root(iter.x0(1:3), trim, 0, 0, successor_trims);
+            cost = 0;
+            info.tree.add_root(iter.x0(1:3), trim, cost, successor_trims);
 
             valid_nodes_at_hp = PriorityQueue();
             shapes_tmp = cell(iter.amount, 0);

@@ -27,12 +27,12 @@ classdef MonteCarloTree < Tree
             obj.successor_trims = zeros(n_successor_trims_max, n_vehicles, n_expansions_max, 'uint8');
         end
 
-        function add_root(obj, pose, trim, cost, parent, successor_trims)
+        function add_root(obj, pose, trim, cost, successor_trims)
             i_node = 1;
             obj.pose(:, :, i_node) = pose;
             obj.trim(:, :, i_node) = trim;
             obj.cost(1, i_node) = cost;
-            obj.parent(1, i_node) = parent;
+            obj.parent(1, i_node) = 0;
             obj.successor_trims(1:size(successor_trims, 2), :, i_node) = successor_trims;
             obj.children(1:size(successor_trims, 2), i_node) = 1;
             obj.n_nodes = 1;
