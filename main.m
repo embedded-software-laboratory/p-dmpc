@@ -22,7 +22,11 @@ function experiment_result = main(options)
         disp('Running in Lab...')
     end
 
-    is_prioritized_parallel_in_lab = (options.is_prioritized && (options.environment == Environment.CpmLab || options.environment == Environment.SimulationDistributed) && options.compute_in_parallel);
+    is_prioritized_parallel_in_lab = ( ...
+        options.is_prioritized && ...
+        options.compute_in_parallel && ...
+        (options.environment == Environment.CpmLab || options.environment == Environment.SimulationDistributed) ...
+    );
 
     if is_prioritized_parallel_in_lab
         disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
@@ -41,7 +45,7 @@ function experiment_result = main(options)
             generate_ros2_msgs();
         end
 
-        if options.is_prioritized == true && options.compute_in_parallel
+        if options.is_prioritized && options.compute_in_parallel
             %% simulate distribution locally using the Parallel Computing Toolbox
             get_parallel_pool(options.amount);
 
