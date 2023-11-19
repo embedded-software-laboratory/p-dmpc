@@ -73,9 +73,9 @@ function [belonging_vector, subgraphs_info] = graph_merging_algorithm(M, belongi
                     benefit = sum(M_merged - M_diagonal, 'all'); % calculate benefit (fast)
 
                     if benefit > 0
-                        [isvalid, L] = kahn(M_merged); % check mergeability (slow)
+                        L = kahn(M_merged); % check mergeability (slow)
 
-                        if isvalid && size(L, 1) <= max_num_CLs
+                        if size(L, 1) <= max_num_CLs
                             num_CLs_matrix(subgraph_i, subgraph_j) = size(L, 1);
                             benefit_matrix(subgraph_i, subgraph_j) = benefit;
                         end
