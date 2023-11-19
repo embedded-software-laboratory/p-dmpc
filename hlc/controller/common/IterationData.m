@@ -28,6 +28,7 @@ classdef IterationData
         parl_groups_info % struct, store information of parallel groups
         directed_coupling % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
         directed_coupling_reduced % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
+        directed_coupling_sequential % nVeh-by-nVeh matrix, after graph partitioning
         priority_list
         lanelet_crossing_areas
         vehicles % copy of vehicle list (useful for filtered)
@@ -61,6 +62,7 @@ classdef IterationData
             obj.dynamic_obstacle_fullres = {};
             obj.directed_coupling = zeros(nVeh, nVeh);
             obj.directed_coupling_reduced = zeros(nVeh, nVeh);
+            obj.directed_coupling_sequential = zeros(nVeh, nVeh);
             obj.weighted_coupling = zeros(nVeh, nVeh);
             obj.weighted_coupling_reduced = zeros(nVeh, nVeh);
             obj.priority_list = ones(nVeh, 1);

@@ -10,8 +10,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
     end
 
     properties (Access = protected)
-        CL_based_hierarchy;
-
         prioritizer
         weigher
 
@@ -428,7 +426,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.timing_general.start("group_vehs_time", obj.k);
             % reduce by grouping and cutting edges
             method = 's-t-cut'; % 's-t-cut' or 'MILP'
-            [obj.CL_based_hierarchy, obj.iter.parl_groups_info, obj.iter.belonging_vector ...
+            [obj.iter.directed_coupling_sequential, obj.iter.parl_groups_info, obj.iter.belonging_vector ...
              ] = form_parallel_groups( ...
                 obj.iter.weighted_coupling_reduced, ...
                 obj.iter.coupling_info, ...

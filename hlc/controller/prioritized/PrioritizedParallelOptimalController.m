@@ -48,8 +48,6 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
                 obj.prioritize();
                 obj.reduce_computation_levels();
 
-                obj.info.computation_levels = length(obj.CL_based_hierarchy);
-
                 % plan for vehicle_idx
                 obj.plan_single_vehicle(vehicle_idx);
 

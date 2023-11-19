@@ -34,8 +34,6 @@ classdef PrioritizedParallelController < PrioritizedController
             obj.timing_per_vehicle(vehicle_idx).start('publish_predictions', obj.k);
             obj.publish_predictions(vehicle_idx);
             obj.timing_per_vehicle(vehicle_idx).stop('publish_predictions', obj.k);
-
-            obj.info.computation_levels = length(obj.CL_based_hierarchy);
         end
 
     end
