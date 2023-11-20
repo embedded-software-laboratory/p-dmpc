@@ -25,32 +25,27 @@ classdef (Abstract) OptimizerInterface < handle
                 indices_in_vehicle_list (1, :) double;
             end
 
-            if (~xor(options.matlab_optimizer == MatlabOptimizer.none, options.cpp_optimizer == CppOptimizer.None))
-                error('Exactly one optimizer needs to be selected! Current selection: ' ...
-                    + string(options.matlab_optimizer) + ' (Matlab), ' ...
-                    + string(options.cpp_optimizer) + ' (Cpp)');
-            end
-
-            switch (options.matlab_optimizer)
-                case MatlabOptimizer.optimal
+            switch options.optimizer_type
+                case OptimizerType.MatlabOptimal
                     optimizer = GraphSearch();
-                case MatlabOptimizer.randomized
+                case OptimizerType.MatlabSampled
                     error('The randomized Matlab optimizer is not yet implemented!');
-            end
+                case OptimizerType.CppOptimal
 
-            if options.matlab_optimizer ~= MatlabOptimizer.none
-                return;
-            end
+                    if options.is_prioritized
+                        optimizer = GraphSearchMexPB(options, mpa, scenario, indices_in_vehicle_list);
+                    else
+                        optimizer = GraphSearchMexCentralized(options, mpa, scenario);
+                    end
 
-            switch (options.cpp_optimizer)
-                case CppOptimizer.CentralizedOptimalPolymorphic
-                    optimizer = GraphSearchMexCentralized(options, mpa, scenario);
-                case CppOptimizer.GraphSearchPBOptimal
-                    optimizer = GraphSearchMexPB(options, mpa, scenario, indices_in_vehicle_list);
-                case CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel
-                    optimizer = GraphSearchMexCentralized(options, mpa, scenario);
-                otherwise
-                    error('The selected cpp_optimizer option is not available: ' + string(options.cpp_optimizer));
+                case OptimizerType.CppSampled
+
+                    if options.is_prioritized
+                        error('CppSampled can only be used in centralized execution yet.');
+                    else
+                        optimizer = GraphSearchMexCentralized(options, mpa, scenario);
+                    end
+
             end
 
         end

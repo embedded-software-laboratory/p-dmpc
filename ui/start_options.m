@@ -163,29 +163,7 @@ function [labOptions] = start_options()
 
     labOptions.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
 
-    switch string(optimizer)
-        case "Matlab"
-            labOptions.cpp_optimizer = CppOptimizer.None;
-            labOptions.matlab_optimizer = MatlabOptimizer.optimal;
-        case "MatlabRandomized"
-            labOptions.cpp_optimizer = CppOptimizer.None;
-            labOptions.matlab_optimizer = MatlabOptimizer.randomized;
-        case "C++"
-            labOptions.matlab_optimizer = MatlabOptimizer.none;
-
-            if labOptions.is_prioritized
-                labOptions.cpp_optimizer = CppOptimizer.GraphSearchPBOptimal;
-            else
-                labOptions.cpp_optimizer = CppOptimizer.CentralizedOptimalPolymorphic;
-            end
-
-        case "C++Randomized"
-            labOptions.matlab_optimizer = MatlabOptimizer.none;
-            labOptions.cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel;
-
-        otherwise
-            error(['optimizer ', optimizer, ' not implemented/available!']);
-    end
+    labOptions.optimizer_type = OptimizerType(string(optimizer));
 
     labOptions.amount = str2num(vehicleAmountSelection);
 
@@ -390,17 +368,17 @@ end
 
 function [list] = list_optimizer_centralized
     list = {
-            '1', 'Matlab';
-            '2', 'C++';
-            '3', 'C++Randomized';
+            '1', 'MatlabOptimal';
+            '2', 'CppOptimal';
+            '3', 'CppSampled';
             };
 end
 
 function [list] = list_optimizer_prioritized
     list = {
-            '1', 'Matlab';
-            '3', 'C++';
-            }; % '2', 'MatlabRandomized'; % NOT YET IMPLEMENTED
+            '1', 'MatlabOptimal';
+            '3', 'CppOptimal';
+            }; % '2', 'MatlabSampled'; % NOT YET IMPLEMENTED
 end
 
 function [list] = list_priority_assignment_methods
