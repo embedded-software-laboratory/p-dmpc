@@ -1,7 +1,8 @@
 classdef ControllerTiming < handle
 
     properties (Access = private)
-        controller_start_time (1, 1) uint64 % Start time of HLC
+        controller_start_time_tic (1, 1) uint64 % Start time of HLC for creation of measurements by tic and toc
+        controller_start_time (1, 1) double % Start time of HLC in posix format for unification of timing results
 
         names_of_timings_per_time_step (1, :) string % maps string to column in `timings`
         names_of_timings_once (1, :) string
@@ -13,7 +14,8 @@ classdef ControllerTiming < handle
     methods (Access = public)
 
         function obj = ControllerTiming()
-            obj.controller_start_time = tic;
+            obj.controller_start_time_tic = tic;
+            obj.controller_start_time = posixtime(datetime('now'));
         end
 
         function start(obj, name, time_step)
@@ -28,10 +30,10 @@ classdef ControllerTiming < handle
             % set start time
             if nargin == 2
                 column = obj.name_to_timing_once(name);
-                obj.timings_once(1, column) = toc(obj.controller_start_time);
+                obj.timings_once(1, column) = toc(obj.controller_start_time_tic);
             else
                 column = obj.name_to_timing_per_time_step(name);
-                obj.timings_per_time_step(1, column, time_step) = toc(obj.controller_start_time);
+                obj.timings_per_time_step(1, column, time_step) = toc(obj.controller_start_time_tic);
             end
 
         end
@@ -46,7 +48,7 @@ classdef ControllerTiming < handle
 
             assert(obj.timer_exists(name), "timer does not exist");
 
-            end_time = toc(obj.controller_start_time);
+            end_time = toc(obj.controller_start_time_tic);
 
             % save elapsed time
             if nargin == 2
@@ -80,6 +82,9 @@ classdef ControllerTiming < handle
 
         function timings = get_all_timings(obj)
             timings = struct;
+
+            % save controller_start_time for normalization with other workers/computers in eval
+            timings.controller_start_time = obj.controller_start_time;
 
             % save results from timings_once
             for name = obj.names_of_timings_once

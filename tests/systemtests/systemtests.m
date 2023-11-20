@@ -9,6 +9,7 @@ classdef systemtests < matlab.unittest.TestCase
                            'random_weight'
                            'STAC_weight'
                            'distance_weight'};
+        coupling = {'reachable_set_coupling', 'full_coupling', 'no_coupling', 'distance_coupling'};
     end
 
     methods (Test)
@@ -97,6 +98,20 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
+        function test_coupler(testCase, scenario_type, coupling)
+            lastwarn('');
+            fprintf('\ncoupler systemtest for %s\n', coupling)
+            %load Config from json
+            options = Config.load_from_file('tests/systemtests/Config_coupler.json');
+            options.coupling = CouplingStrategies(coupling);
+            options.scenario_type = ScenarioType(scenario_type);
+
+            testCase.verifyEmpty(lastwarn);
+
+            main(options);
+            testCase.verifyTrue(true);
+        end
+
         function test_plot_default(testCase, scenario_type)
             lastwarn('');
             fprintf('\ndefault evaluation plotting systemtest for %s\n', scenario_type)
@@ -143,6 +158,45 @@ classdef systemtests < matlab.unittest.TestCase
             );
             testCase.verifyTrue(true);
             close all;
+        end
+
+        function test_plot_timing_result(testCase)
+            lastwarn('');
+            fprintf('\nTest plotting of timing results. Note: No experiment is run here but instead only old results are reused.\n')
+            %load Config from json as done in priority_based and load specific result structs of already performed experiments
+            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
+            options.scenario_type = ScenarioType.circle;
+            options.is_prioritized = true;
+            options.compute_in_parallel = true;
+
+            % Load old results created in priority_based
+            result_veh1 = load(FileNameConstructor.get_results_full_path(options, 1));
+            result_veh2 = load(FileNameConstructor.get_results_full_path(options, 2));
+
+            % Test plotting of runtime over multiple experiments
+            results_multiple_experiments = cell(2);
+            results_multiple_experiments{1, 1} = result_veh2.result; % use result of vehicle 2 also as if it was the result in an experiment with only one vehicle
+            results_multiple_experiments{2, 1} = result_veh1.result;
+            results_multiple_experiments{2, 2} = result_veh2.result;
+
+            plot_runtime_multiple_experiments(results_multiple_experiments, do_export = true);
+            testCase.verifyTrue(true);
+            plot_runtime_multiple_experiments(results_multiple_experiments, do_export = false);
+            testCase.verifyTrue(true);
+
+            % Test plotting of runtime of one timestep within one experiment
+            result_one_experiment = cell(1, 2);
+            result_one_experiment{1, 1} = result_veh1.result;
+            result_one_experiment{1, 2} = result_veh2.result;
+            result_one_experiment_normalized = normalize_timing_results(result_one_experiment);
+
+            plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = true);
+            testCase.verifyTrue(true);
+            plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = false);
+            testCase.verifyTrue(true);
+
+            close all;
+
         end
 
     end

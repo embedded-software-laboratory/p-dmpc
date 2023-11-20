@@ -9,6 +9,7 @@ classdef Config
         scenario_type ScenarioType = ScenarioType.commonroad; % one of the follows: {'Circle_scenario', 'Commonroad'}
         priority PriorityStrategies = PriorityStrategies.constant_priority; % defines which priority assignmen strategy is used
         weight WeightStrategies = WeightStrategies.constant_weight; % defines which weighting method is used
+        coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling; % defines which coupler is used
         dt_seconds = 0.2; % scalar, default sample time
         Hp = 6; % scalar, prediction horizon
         mpa_type MpaType = MpaType.single_speed; % mpa type (element of {'single_speed', 'triple_speed', 'realistic'})
@@ -29,7 +30,6 @@ classdef Config
         should_reduce_result = true; % true/false, if true, reduced ExperimentResult will be save to save disk space (useful for a long run of simulation)
         result_name = ''; % string or char, custom file name to save ExperimentResult
 
-        is_free_flow = false; % true/false, if true, vehicles do not need to consider other vehicles.
         fallback_type FallbackType = FallbackType.local_fallback; % one of the following {'no', 'local', 'global'},
 
         path_ids = []; % reference path IDs for selection of paths for the vehicles

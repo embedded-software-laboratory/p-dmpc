@@ -15,21 +15,10 @@ classdef RandomPrioritizer < Prioritizer
             adjacency = iter.adjacency;
 
             priority_rand_stream = RandStream("mt19937ar", "Seed", time_step);
-            directed_coupling = adjacency;
             nVeh = size(adjacency, 1);
             current_priorities = randperm(priority_rand_stream, nVeh, nVeh);
 
-            for iVeh = 1:nVeh
-
-                for jVeh = 1:nVeh
-
-                    if directed_coupling(iVeh, jVeh) && (current_priorities(iVeh) > current_priorities(jVeh))
-                        directed_coupling(iVeh, jVeh) = 0;
-                    end
-
-                end
-
-            end
+            directed_coupling = Prioritizer.directed_coupling_from_priorities(adjacency, current_priorities);
 
         end
 

@@ -8,6 +8,7 @@ classdef IterationData
         x0 % state
         trim_indices % current trim
         v_ref % reference speed
+        current_lanelet % vehicle's current lanelet
         predicted_lanelets % vehicle's predicted lanelets
         predicted_lanelet_boundary % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
         reachable_sets % cells to store instances of MATLAB calss `polyshape`
@@ -46,6 +47,7 @@ classdef IterationData
             obj.x0 = zeros(nVeh, 4);
             obj.trim_indices = zeros(nVeh, 1);
             obj.v_ref = zeros(nVeh, Hp);
+            obj.current_lanelet = zeros(nVeh, 1);
             obj.predicted_lanelets = cell(nVeh, 1);
             obj.predicted_lanelet_boundary = cell(nVeh, 3);
             obj.reachable_sets = cell(nVeh, Hp);

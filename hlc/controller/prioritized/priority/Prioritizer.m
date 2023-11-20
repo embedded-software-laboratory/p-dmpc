@@ -121,6 +121,72 @@ classdef (Abstract) Prioritizer < handle
 
         end
 
+        function directed_coupling = directed_coupling_from_priorities(adjacency, current_priorities)
+            % DIRECTED_COUPLING_FROM_PRIORITIES  Given the adjacency matrix and
+            % the current priorities, this function returns the directed coupling matrix.
+
+            directed_coupling = adjacency;
+            n_agents = size(directed_coupling, 1);
+
+            for i = 1:n_agents
+
+                for j = 1:n_agents
+
+                    if directed_coupling(i, j) && (current_priorities(i) > current_priorities(j))
+                        directed_coupling(i, j) = 0;
+                    end
+
+                end
+
+            end
+
+        end
+
+        function result = unique_priorities(adjacency)
+            % UNIQUE_PRIORITIES  Given the adjacency matrix, this function returns
+            % all the possible unique priority permutations. Unique in
+            % this context means that no two priority permutations can result in
+            % the same topologigal order.
+
+            arguments (Input)
+                adjacency (:, :) double;
+            end
+
+            arguments (Output)
+                result (:, :) double; % n_vehicles x n_unique_priority_permutations
+            end
+
+            n_vehicles = size(adjacency, 1);
+            result = zeros(n_vehicles, 0);
+            directed_coupling_base = triu(adjacency, 1);
+            [edge_row, edge_col] = find(directed_coupling_base);
+            n_edges = length(edge_row);
+            n_permutations = 2^n_edges;
+
+            for i_permutation = 1:n_permutations
+                flips = dec2bin(i_permutation - 1, n_edges) == '1';
+
+                directed_coupling = directed_coupling_base;
+
+                % Flip edges
+                idx = sub2ind(size(directed_coupling), edge_row(flips), edge_col(flips));
+                directed_coupling(idx) = 0;
+                idx = sub2ind(size(directed_coupling), edge_col(flips), edge_row(flips));
+                directed_coupling(idx) = 1;
+
+                directed_coupling_digraph = digraph(directed_coupling);
+
+                if isdag(directed_coupling_digraph)
+                    topological_order = toposort(directed_coupling_digraph);
+                    priority = zeros(1, n_vehicles);
+                    priority(topological_order) = 1:n_vehicles;
+                    result(:, end + 1) = priority; %#ok<AGROW>
+                end
+
+            end
+
+        end
+
     end
 
 end

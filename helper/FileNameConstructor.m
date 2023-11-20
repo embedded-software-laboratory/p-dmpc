@@ -77,8 +77,8 @@ classdef FileNameConstructor
 
             results_folder_name = strrep(strcat(char(options.scenario_type), '_', controller_name), ' ', '_');
 
-            results_folder_path = fullfile(...
-                FileNameConstructor.all_results(), results_folder_name...
+            results_folder_path = fullfile( ...
+                FileNameConstructor.all_results(), results_folder_name ...
             );
 
             if ~isfolder(results_folder_path)
@@ -118,7 +118,7 @@ classdef FileNameConstructor
 
             if isempty(options.result_name)
                 % use default name
-                scenario_name = [scenario_name, 'type_', char(options.mpa_type), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', priority];
+                scenario_name = [scenario_name, 'type_', char(options.mpa_type), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', char(options.coupling), '_', priority];
 
                 veh_ids_str = sprintf('-%d', options.path_ids);
                 scenario_name = [scenario_name, '_ids', veh_ids_str];
@@ -126,10 +126,6 @@ classdef FileNameConstructor
                 if options.is_prioritized
                     scenario_name = [scenario_name, '_maxCLs', num2str(options.max_num_CLs), ...
                                          '_ConsiderVehWithoutROW', options.strategy_consider_veh_without_ROW, '_EnterLaneletCrossingArea', options.strategy_enter_lanelet_crossing_area];
-                end
-
-                if options.is_free_flow
-                    scenario_name = [scenario_name, '_freeFlow'];
                 end
 
                 if options.fallback_type ~= FallbackType.local_fallback

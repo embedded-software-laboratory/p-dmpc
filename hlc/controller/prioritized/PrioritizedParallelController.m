@@ -2,8 +2,8 @@ classdef PrioritizedParallelController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedParallelController(options, scenario, plant)
-            obj = obj@PrioritizedController(options, scenario, plant);
+        function obj = PrioritizedParallelController(options, plant)
+            obj = obj@PrioritizedController(options, plant);
         end
 
     end

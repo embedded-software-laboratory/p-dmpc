@@ -9,8 +9,8 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedParallelOptimalController(options, scenario, plant)
-            obj = obj@PrioritizedController(options, scenario, plant);
+        function obj = PrioritizedParallelOptimalController(options, plant)
+            obj = obj@PrioritizedController(options, plant);
             obj.prioritizer = ConstantPrioritizer();
         end
 
@@ -29,17 +29,21 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
             % set base iteration data
             obj.iter_base = obj.iter;
 
-            % initalize
+            % initialize
             obj.iter_array_tmp = {};
             obj.info_array_tmp = {};
+            unique_priorities = Prioritizer.unique_priorities(obj.iter.adjacency);
+            n_priorities = size(unique_priorities, 2);
 
             vehicle_idx = obj.plant.indices_in_vehicle_list(1);
 
-            for priority_permutation = 1:factorial(obj.options.amount)
+            for priority_permutation = 1:n_priorities
 
                 obj.iter = obj.iter_base;
                 obj.info = obj.info_base;
                 obj.iter.priority_permutation = priority_permutation;
+
+                obj.prioritizer.current_priorities = unique_priorities(:, priority_permutation);
 
                 obj.prioritize();
                 obj.reduce_computation_levels();

@@ -5,8 +5,8 @@ classdef CentralizedController < HighLevelController
 
     methods
 
-        function obj = CentralizedController(options, scenario, plant)
-            obj = obj@HighLevelController(options, scenario, plant);
+        function obj = CentralizedController(options, plant)
+            obj = obj@HighLevelController(options, plant);
         end
 
     end
@@ -19,7 +19,7 @@ classdef CentralizedController < HighLevelController
 
             % construct optimizer
             if obj.options.use_cpp()
-                obj.optimizer = GraphSearchMexCentralized(obj.options, obj.mpa, obj.scenario);
+                obj.optimizer = GraphSearchMexCentralized(obj.options, obj.mpa, obj.scenario_adapter.scenario);
             else
                 obj.optimizer = GraphSearch();
             end
@@ -31,7 +31,7 @@ classdef CentralizedController < HighLevelController
             obj.timing_general.start('coupling', obj.k);
 
             if obj.options.use_cpp()
-                obj.iter.adjacency = obj.coupler.couple(obj.iter);
+                obj.iter.adjacency = obj.coupler.couple(obj.options, obj.mpa.get_max_speed_of_mpa(), obj.scenario_adapter.scenario.adjacency_lanelets, obj.iter);
             end
 
             obj.timing_general.stop('coupling', obj.k);

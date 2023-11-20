@@ -12,16 +12,14 @@ function experiment_result = main(options)
     % create scenario
     scenario = create_scenario(options);
 
+    % write built scenario to disk
+    save('scenario.mat', 'scenario');
+
     % inform where experiment takes place
     if options.environment == Environment.Simulation || options.environment == Environment.SimulationDistributed
         disp('Running in MATLAB simulation...')
     else
         disp('Running in Lab...')
-    end
-
-    % write scenario to disk if distributed (for lab or local debugging with main_distributed())
-    if options.is_prioritized == true
-        save('scenario.mat', 'scenario');
     end
 
     is_prioritized_parallel_in_lab = (options.is_prioritized && (options.environment == Environment.CpmLab || options.environment == Environment.SimulationDistributed) && options.compute_in_parallel);
