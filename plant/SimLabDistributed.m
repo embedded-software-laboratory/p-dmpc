@@ -39,7 +39,7 @@ classdef SimLabDistributed < Plant
             [x0, trim_indices] = obj.measure_node(mpa);
         end
 
-        function apply(obj, info, result, k, ~)
+        function apply(obj, info, experiment_result, k, ~)
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
                 obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
@@ -48,7 +48,7 @@ classdef SimLabDistributed < Plant
             if obj.should_plot
                 % visualize time step
                 tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, result, k, tick_now);
+                plotting_info = PlottingInfo(obj.indices_in_vehicle_list, experiment_result, k, tick_now);
 
                 %filter plotting info for controlled vehicles before
                 %sending

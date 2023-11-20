@@ -1,15 +1,15 @@
-function export_video(result, optional)
-    % EXPORTVIDEO   Export Video from results of simulation.
+function export_video(experiment_result, optional)
+    % EXPORTVIDEO   Export Video from ExperimentResult of simulation.
     arguments
-        result struct;
+        experiment_result ExperimentResult;
         optional.framerate {mustBeNumeric} = 30;
     end
 
-    options = result.options;
-    scenario = result.scenario;
+    options = experiment_result.options;
+    scenario = experiment_result.scenario;
     options.options_plot_online.is_video_mode = 1;
 
-    nSteps = result.nSteps;
+    n_steps = experiment_result.n_steps;
 
     if nargin > 1
         framerate = optional.framerate;
@@ -36,16 +36,16 @@ function export_video(result, optional)
     disp('Exporting video ...');
     wb = waitbar(0, 'Exporting video ...', 'Name', 'Video Export Progress');
 
-    for step_idx = 1:nSteps
+    for step_idx = 1:n_steps
 
         for frame_idx = frame_ticks
-            plotting_info = PlottingInfo(1:options.amount, result, step_idx, frame_idx);
+            plotting_info = PlottingInfo(1:options.amount, experiment_result, step_idx, frame_idx);
             plotter.plot(plotting_info);
             frame = getframe(plotter.get_figure());
             writeVideo(v, frame);
         end
 
-        progress = step_idx / nSteps;
+        progress = step_idx / n_steps;
         time_remaining_seconds = toc(startTimer) * (1 - progress) / progress;
         waitbar(progress, wb, ...
             sprintf('Exporting video. %4.1f sec remaining...', time_remaining_seconds) ...

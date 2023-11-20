@@ -57,8 +57,8 @@ classdef CentralizedController < HighLevelController
                 % undirected couplings with this vehicle will take fallback
                 disp(['Graph search exhausted at time step: ' num2str(obj.k) '.'])
                 % all vehicles fall back
-                obj.info.vehs_fallback = 1:obj.options.amount;
-                obj.info.needs_fallback(obj.info.vehs_fallback) = true;
+                obj.info.vehicles_fallback = 1:obj.options.amount;
+                obj.info.needs_fallback(obj.info.vehicles_fallback) = true;
             else
                 % prepare output data
                 obj.info = store_control_info(obj.info, info_v, obj.options, obj.mpa);

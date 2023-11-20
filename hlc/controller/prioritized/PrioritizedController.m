@@ -345,14 +345,14 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         % local fallback: only vehicles in same subgraph take fallback
                         belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
                         sub_graph_fallback = belonging_vector_total(vehicle_idx);
-                        obj.info.vehs_fallback = [obj.info.vehs_fallback; find(belonging_vector_total == sub_graph_fallback).'];
-                        obj.info.vehs_fallback = unique(obj.info.vehs_fallback, 'stable');
+                        obj.info.vehicles_fallback = [obj.info.vehicles_fallback; find(belonging_vector_total == sub_graph_fallback).'];
+                        obj.info.vehicles_fallback = unique(obj.info.vehicles_fallback, 'stable');
                     case FallbackType.global_fallback
                         % global fallback: all vehicles take fallback
-                        obj.info.vehs_fallback = int32(1):int32(obj.options.amount);
+                        obj.info.vehicles_fallback = int32(1):int32(obj.options.amount);
                     case FallbackType.no_fallback
                         % Fallback is disabled. Simulation will end.
-                        obj.info.vehs_fallback = int32(1):int32(obj.options.amount);
+                        obj.info.vehicles_fallback = int32(1):int32(obj.options.amount);
                     otherwise
                         warning("Please define one of the follows as fallback strategy: 'no_fallback', 'local_fallback', and 'global_fallback'.")
                 end
@@ -367,7 +367,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         function publish_predictions(obj, vehicle_idx)
 
-            if ~ismember(vehicle_idx, obj.info.vehs_fallback)
+            if ~ismember(vehicle_idx, obj.info.vehicles_fallback)
                 % if the selected vehicle should take fallback
 
                 predicted_areas_k = obj.info.shapes(vehicle_idx, :);
@@ -375,7 +375,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.predictions_communication{vehicle_idx}.send_message( ...
                     obj.k, ...
                     predicted_areas_k, ...
-                    obj.info.vehs_fallback, ...
+                    obj.info.vehicles_fallback, ...
                     obj.iter.priority_permutation ...
                 );
 
@@ -383,7 +383,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 obj.predictions_communication{vehicle_idx}.send_message( ...
                     obj.k, ...
                     {}, ...
-                    obj.info.vehs_fallback, ...
+                    obj.info.vehicles_fallback, ...
                     obj.iter.priority_permutation ...
                 );
             end
@@ -541,9 +541,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         priority_permutation = obj.iter.priority_permutation, ...
                         throw_error = true ...
                     );
-                    obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
+                    obj.info.vehicles_fallback = union(obj.info.vehicles_fallback, latest_msg.vehicles_fallback');
 
-                    if ismember(vehicle_idx, obj.info.vehs_fallback)
+                    if ismember(vehicle_idx, obj.info.vehicles_fallback)
                         % if the selected vehicle should take fallback
                         is_fallback_triggered = true;
                         break
@@ -562,9 +562,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     % if the current message is available no less precise
                     % information must be used to consider the vehicle
                     if latest_msg.time_step == obj.k
-                        obj.info.vehs_fallback = union(obj.info.vehs_fallback, latest_msg.vehs_fallback');
+                        obj.info.vehicles_fallback = union(obj.info.vehicles_fallback, latest_msg.vehicles_fallback');
 
-                        if ismember(vehicle_idx, obj.info.vehs_fallback)
+                        if ismember(vehicle_idx, obj.info.vehicles_fallback)
                             is_fallback_triggered = true;
                             break
                         else
@@ -693,7 +693,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             for vehicle_index_hlc = obj.plant.indices_in_vehicle_list
                 % own vehicle and vehicles that are already remembered to take fallback
-                irrelevant_vehicles = union(vehicle_index_hlc, obj.info.vehs_fallback);
+                irrelevant_vehicles = union(vehicle_index_hlc, obj.info.vehicles_fallback);
 
                 if obj.options.fallback_type == FallbackType.local_fallback
                     belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
@@ -710,8 +710,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
                             priority_permutation = obj.iter.priority_permutation, ...
                             throw_error = true ...
                         );
-                        fallback_info_veh_id = latest_msg.vehs_fallback';
-                        obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
+                        fallback_info_veh_id = latest_msg.vehicles_fallback';
+                        obj.info.vehicles_fallback = union(obj.info.vehicles_fallback, fallback_info_veh_id);
                     end
 
                 else
@@ -727,8 +727,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
                             priority_permutation = obj.iter.priority_permutation, ...
                             throw_error = true ...
                         );
-                        fallback_info_veh_id = latest_msg.vehs_fallback';
-                        obj.info.vehs_fallback = union(obj.info.vehs_fallback, fallback_info_veh_id);
+                        fallback_info_veh_id = latest_msg.vehicles_fallback';
+                        obj.info.vehicles_fallback = union(obj.info.vehicles_fallback, fallback_info_veh_id);
                     end
 
                 end
@@ -744,7 +744,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             for vehicle_idx = obj.plant.indices_in_vehicle_list
 
-                if ~ismember(vehicle_idx, obj.info.vehs_fallback)
+                if ~ismember(vehicle_idx, obj.info.vehicles_fallback)
                     continue
                 end
 
@@ -772,7 +772,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     obj.predictions_communication{vehicle_idx}.send_message( ...
                         obj.k, ...
                         obj.info.shapes(vehicle_idx, :), ...
-                        obj.info.vehs_fallback, ...
+                        obj.info.vehicles_fallback, ...
                         obj.iter.priority_permutation ...
                     );
                 end

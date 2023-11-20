@@ -17,7 +17,7 @@ classdef PredictionsCommunication < InterHlcCommunication
                 obj, ...
                 time_step, ...
                 predicted_areas, ...
-                vehs_fallback, ...
+                vehicles_fallback, ...
                 priority_permutation ...
             )
 
@@ -25,7 +25,7 @@ classdef PredictionsCommunication < InterHlcCommunication
                 obj (1, 1) PredictionsCommunication
                 time_step (1, 1) double
                 predicted_areas (1, :) cell
-                vehs_fallback (:, 1) double = []
+                vehicles_fallback (:, 1) double = []
                 priority_permutation (1, 1) double = 0
             end
 
@@ -33,7 +33,7 @@ classdef PredictionsCommunication < InterHlcCommunication
             obj.message_to_be_sent.time_step = int32(time_step);
             obj.message_to_be_sent.vehicle_id = int32(obj.vehicle_id);
             % which vehicles should take fallback
-            obj.message_to_be_sent.vehs_fallback = int32(vehs_fallback);
+            obj.message_to_be_sent.vehicles_fallback = int32(vehicles_fallback);
 
             for i = 1:length(predicted_areas)
                 obj.message_to_be_sent.predicted_areas(i).x = predicted_areas{i}(1, :)';

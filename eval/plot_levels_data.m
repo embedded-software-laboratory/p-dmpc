@@ -34,8 +34,8 @@ function plot_levels_data(data)
     bar_data = [n_levels_med, n_levels_max];
 
     for iPri = 1:nPri
-        nSteps_per_level = histcounts(nLevels_by_pri{iPri}, 1:max_level + 1);
-        percent_steps_per_level(:, iPri) = nSteps_per_level / length(nLevels_by_pri{iPri});
+        n_steps_per_level = histcounts(nLevels_by_pri{iPri}, 1:max_level + 1);
+        percent_steps_per_level(:, iPri) = n_steps_per_level / length(nLevels_by_pri{iPri});
         tmp = nLevels_by_pri{iPri};
         tmp(end + 1:max_entries) = 0;
         nLevels_by_pri{iPri} = tmp;

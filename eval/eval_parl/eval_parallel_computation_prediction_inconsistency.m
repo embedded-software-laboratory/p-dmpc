@@ -43,8 +43,8 @@ function results = eval_parallel_computation_prediction_inconsistency()
                 main(options);
             end
 
-            load(full_path, 'result');
-            results{i, veh_id} = result;
+            load(full_path, 'experiment_result');
+            results{i, veh_id} = experiment_result;
         end
 
     end
@@ -137,21 +137,21 @@ function results_combined = combine_distributed_results(results)
     results_combined = cell(size(results, 1), 1);
 
     for i = 1:size(results, 1)
-        result = results{i, 1};
+        experiment_result = results{i, 1};
 
         for j = 2:size(results, 2)
             trajectory_predictions = {results{i, j}.trajectory_predictions{j, :}};
-            [result.trajectory_predictions{j, :}] = trajectory_predictions{:};
+            [experiment_result.trajectory_predictions{j, :}] = trajectory_predictions{:};
 
-            for k = 1:length(results{i, j}.iteration_structs)
-                result.iteration_structs{k}.referenceTrajectoryPoints(j, :, :) = results{i, j}.iteration_structs{k}.referenceTrajectoryPoints(j, :, :);
-                result.iteration_structs{k}.referenceTrajectoryIndex(j, :) = results{i, j}.iteration_structs{k}.referenceTrajectoryIndex(j, :);
-                result.iteration_structs{k}.v_ref(j, :) = results{i, j}.iteration_structs{k}.v_ref(j, :);
+            for k = 1:length(results{i, j}.iteration_data)
+                experiment_result.iteration_data{k}.referenceTrajectoryPoints(j, :, :) = results{i, j}.iteration_data{k}.referenceTrajectoryPoints(j, :, :);
+                experiment_result.iteration_data{k}.referenceTrajectoryIndex(j, :) = results{i, j}.iteration_data{k}.referenceTrajectoryIndex(j, :);
+                experiment_result.iteration_data{k}.v_ref(j, :) = results{i, j}.iteration_data{k}.v_ref(j, :);
             end
 
         end
 
-        results_combined{i} = result;
+        results_combined{i} = experiment_result;
     end
 
 end
@@ -160,49 +160,49 @@ end
 function export_videos(results, veh_colors, x_lim, y_lim, results_folder_path)
 
     for i = 1:numel(results)
-        result = results{i};
+        experiment_result = results{i};
 
-        result.options.options_plot_online.is_custom_colors = true; % FIXME
-        result.options.options_plot_online.custom_colors = veh_colors; % FIXME
-        result.options.plot_limits(1, :) = x_lim;
-        result.options.plot_limits(2, :) = y_lim;
-        result.options.options_plot_online.plot_xy_labels = false; % FIXME
-        result.options.options_plot_online.plot_xy_ticks = false; % FIXME
-        result.options.options_plot_online.is_dynamic_colors = false; % FIXME
+        experiment_result.options.options_plot_online.is_custom_colors = true; % FIXME
+        experiment_result.options.options_plot_online.custom_colors = veh_colors; % FIXME
+        experiment_result.options.plot_limits(1, :) = x_lim;
+        experiment_result.options.plot_limits(2, :) = y_lim;
+        experiment_result.options.options_plot_online.plot_xy_labels = false; % FIXME
+        experiment_result.options.options_plot_online.plot_xy_ticks = false; % FIXME
+        experiment_result.options.options_plot_online.is_dynamic_colors = false; % FIXME
 
-        result.options.options_plot_online.plot_scenario_name = false; % FIXME
-        result.options.options_plot_online.plot_timesteps = true; % FIXME
+        experiment_result.options.options_plot_online.plot_scenario_name = false; % FIXME
+        experiment_result.options.options_plot_online.plot_timesteps = true; % FIXME
 
-        result.options.options_plot_online.is_video_mode = true;
-        result.options.options_plot_online.plot_coupling = true;
-        result.options.options_plot_online.plot_weight = false;
-        result.options.options_plot_online.plot_priority = false;
+        experiment_result.options.options_plot_online.is_video_mode = true;
+        experiment_result.options.options_plot_online.plot_coupling = true;
+        experiment_result.options.options_plot_online.plot_weight = false;
+        experiment_result.options.options_plot_online.plot_priority = false;
         approaches = {'reachable_set', 'previous_plans'};
         % TODO custom plot functions
         if i == 1
             % plot the reachable sets of vehicles 1 and 2
-            result.options.options_plot_online.plot_reachable_sets = true;
-            result.options.options_plot_online.vehicles_reachable_sets = [1, 2];
-            result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
-            result.options.options_plot_online.vehicles_predicted_occupancy = [3]; % FIXME
-            export_video(result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-view_vehicle_3.mp4']))
+            experiment_result.options.options_plot_online.plot_reachable_sets = true;
+            experiment_result.options.options_plot_online.vehicles_reachable_sets = [1, 2];
+            experiment_result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
+            experiment_result.options.options_plot_online.vehicles_predicted_occupancy = [3]; % FIXME
+            export_video(experiment_result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-view_vehicle_3.mp4']))
             % plot the actual plans of vehicles 1 and 2
-            result.options.options_plot_online.plot_reachable_sets = false;
-            result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
-            result.options.options_plot_online.vehicles_predicted_occupancy = [1, 2, 3]; % FIXME
-            export_video(result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-actual_plans.mp4']))
+            experiment_result.options.options_plot_online.plot_reachable_sets = false;
+            experiment_result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
+            experiment_result.options.options_plot_online.vehicles_predicted_occupancy = [1, 2, 3]; % FIXME
+            export_video(experiment_result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-actual_plans.mp4']))
         else
             % plot the previously predicted occupancies of vehicles 1 and 2
-            result.options.options_plot_online.plot_predicted_occupancy_previous = true; % FIXME
-            result.options.options_plot_online.vehicles_predicted_occupancy_previous = [1, 2]; % FIXME
-            result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
-            result.options.options_plot_online.vehicles_predicted_occupancy = [3]; % FIXME
-            export_video(result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-view_vehicle_3.mp4']))
+            experiment_result.options.options_plot_online.plot_predicted_occupancy_previous = true; % FIXME
+            experiment_result.options.options_plot_online.vehicles_predicted_occupancy_previous = [1, 2]; % FIXME
+            experiment_result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
+            experiment_result.options.options_plot_online.vehicles_predicted_occupancy = [3]; % FIXME
+            export_video(experiment_result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-view_vehicle_3.mp4']))
             % plot the actual plans of vehicles 1 and 2
-            result.options.options_plot_online.plot_predicted_occupancy_previous = false; % FIXME
-            result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
-            result.options.options_plot_online.vehicles_predicted_occupancy = [1, 2, 3]; % FIXME
-            export_video(result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-actual_plans.mp4']))
+            experiment_result.options.options_plot_online.plot_predicted_occupancy_previous = false; % FIXME
+            experiment_result.options.options_plot_online.plot_predicted_occupancy = true; % FIXME
+            experiment_result.options.options_plot_online.vehicles_predicted_occupancy = [1, 2, 3]; % FIXME
+            export_video(experiment_result, framerate = 30, name = fullfile(results_folder_path, [approaches{i}, '-actual_plans.mp4']))
         end
 
     end
@@ -349,7 +349,7 @@ function plot_viewpoint_reachable_set(i_result, results, results_folder_path)
     other_vehs = setdiff(1:nVehs, ego_vehs);
     % plot reachable set
     for v = other_vehs
-        reachable_sets = results{i_result, v}.iteration_structs{step_idx}.reachable_sets(v, :);
+        reachable_sets = results{i_result, v}.iteration_data{step_idx}.reachable_sets(v, :);
         reachable_sets_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets);
         color = rwth_color(v, :);
         plot_cell_arrays(reachable_sets_array, color, true)

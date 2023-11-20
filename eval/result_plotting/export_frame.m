@@ -1,22 +1,22 @@
-function export_frame(result, optional)
-    % EXPORTFRAME   Export frame(s) from results of simulation.
+function export_frame(experiment_result, optional)
+    % EXPORTFRAME   Export frame(s) from ExperimentResult of simulation.
     % INPUT
-    %   result: simulation result
+    %   experiment_result: simulation ExperimentResult
     %
     arguments
-        result struct;
+        experiment_result ExperimentResult;
         optional.iStep {mustBeInteger} = 1;
         optional.frame_name string = 'frame.png';
     end
 
     close all % if not, sometimes color bar will not be shown properly
-    options = result.options;
-    scenario = result.scenario;
+    options = experiment_result.options;
+    scenario = experiment_result.scenario;
 
     plotter = PlotterOnline(options, scenario);
     plotter.set_figure_visibility(false);
     frame_idx = 1;
-    plotting_info = PlottingInfo(result.vehicle_ids, result, optional.iStep, frame_idx);
+    plotting_info = PlottingInfo(experiment_result.iteration_data{frame_export_setup.iStep}.vehicle_ids, experiment_result, optional.iStep, frame_idx);
     plotter.plot(plotting_info);
     set_figure_properties(plotter.get_figure(), ExportFigConfig.video());
     frame = getframe(plotter.get_figure());

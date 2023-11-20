@@ -1,7 +1,7 @@
-function plot_experiment_snapshots(results, step_indices, optional)
+function plot_experiment_snapshots(experiment_result, step_indices, optional)
     % OVERVIEWPLOT  Export plot with multiple snapshots.
     arguments
-        results (1, 1) struct;
+        experiment_result (1, 1) ExperimentResult;
         step_indices (1, :) double
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
@@ -10,11 +10,12 @@ function plot_experiment_snapshots(results, step_indices, optional)
 
     colors = rwth_color_order();
 
-    options = results.options;
-    scenario = results.scenario;
+    options = experiment_result.options;
+    scenario = experiment_result.scenario;
 
     nVeh = options.amount;
-    nObst = size(results.obstacles, 1);
+    obstacles = experiment_result.iteration_data{experiment_result.n_steps}.obstacles;
+    nObst = size(obstacles, 1);
 
     nFigs = numel(step_indices);
 
@@ -48,13 +49,13 @@ function plot_experiment_snapshots(results, step_indices, optional)
 
             % Obstacle rectangle
             for obs = 1:nObst
-                patch(results.obstacles{obs}(1, :) ...
-                    , results.obstacles{obs}(2, :) ...
+                patch(obstacles{obs}(1, :) ...
+                    , obstacles{obs}(2, :) ...
                     , [0.5 0.5 0.5] ...
                 );
             end
 
-            % TODO plot dynamic obstacles from results
+            % TODO plot dynamic obstacles from experiment_result
 
         end
 
@@ -62,8 +63,8 @@ function plot_experiment_snapshots(results, step_indices, optional)
         for v = 1:nVeh
 
             for iStep = 1:step_idx
-                line(results.vehicle_path_fullres{v, iStep}(:, 1), ...
-                    results.vehicle_path_fullres{v, iStep}(:, 2), ...
+                line(experiment_result.vehicle_path_fullres{v, iStep}(:, 1), ...
+                    experiment_result.vehicle_path_fullres{v, iStep}(:, 2), ...
                     'Color', colors(v + optional.colorOffset, :) ...
                 );
             end
@@ -72,18 +73,18 @@ function plot_experiment_snapshots(results, step_indices, optional)
 
         % predicted trajectory
         for v = 1:nVeh
-            line(results.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 1), ...
-                results.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 2), ...
+            line(experiment_result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 1), ...
+                experiment_result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 2), ...
                 'Color', colors(v + optional.colorOffset, :), 'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', colors(v + optional.colorOffset, :), 'MarkerSize', 1);
-            line(results.trajectory_predictions{v, step_idx}(:, 1), ...
-                results.trajectory_predictions{v, step_idx}(:, 2), ...
+            line(experiment_result.trajectory_predictions{v, step_idx}(:, 1), ...
+                experiment_result.trajectory_predictions{v, step_idx}(:, 2), ...
                 'Color', colors(v + optional.colorOffset, :));
         end
 
         % Vehicle rectangles
         for v = 1:nVeh
             veh = scenario.vehicles(v);
-            pos_step = results.vehicle_path_fullres{v, step_idx};
+            pos_step = experiment_result.vehicle_path_fullres{v, step_idx};
             x = pos_step(1, :);
             vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
             patch(vehiclePolygon(1, :) ...

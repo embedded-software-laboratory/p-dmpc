@@ -67,7 +67,7 @@ function [labOptions] = start_options()
         % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Value = previousSelection.strategy_enter_crossing_areaSelection;
 
-        % Whether save result
+        % Whether save ExperimentResult
         ui.SaveresultCheckBox.Value = previousSelection.should_save_result;
 
         % Custom file name
@@ -128,7 +128,7 @@ function [labOptions] = start_options()
     strategy_consider_veh_without_ROWSelection = ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Value;
     % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
     strategy_enter_crossing_areaSelection = ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Value;
-    % Whether save result
+    % Whether save ExperimentResult
     should_save_result = ui.SaveresultCheckBox.Value;
     % Custom file name
     result_name = ui.CustomfilenameEditField.Value;
@@ -248,14 +248,14 @@ function [labOptions] = start_options()
     % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
     labOptions.strategy_enter_lanelet_crossing_area = strategy_enter_crossing_areaSelection;
 
-    % Whether save result
+    % Whether save ExperimentResult
     labOptions.should_save_result = ui.SaveresultCheckBox.Value;
 
     if labOptions.should_save_result
         disp('As required, simulation/Experiment Results will be saved.')
     end
 
-    % Custom file name to save result
+    % Custom file name to save ExperimentResult
     labOptions.result_name = ui.CustomfilenameEditField.Value;
 
     % Validate Config file

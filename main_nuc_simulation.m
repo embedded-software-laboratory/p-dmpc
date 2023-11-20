@@ -1,4 +1,4 @@
-function results = main_nuc_simulation()
+function experiment_results = main_nuc_simulation()
     close all
     clear all
 
@@ -69,9 +69,9 @@ function results = main_nuc_simulation()
 
     [~, ~] = system(command);
 
-    fprintf('Collecting results from remote HLCs...');
+    fprintf('Collecting experiment_results from remote HLCs...');
 
-    % collect all result structs from nucs
+    % collect all ExperimentResults from nucs
     script_path = fullfile(pwd, 'nuc_simulation', 'collect_results.sh');
 
     command = ['bash ', script_path, ' ', num2str(numel(vehicle_ids))];
@@ -80,12 +80,12 @@ function results = main_nuc_simulation()
 
     fprintf(' done.\n')
 
-    % load & merge results
-    fprintf('Merging results into one...');
+    % load & merge experiment_results
+    fprintf('Merging experiment_results into one...');
 
-    results = [];
+    experiment_results = [];
 
-    % get list of all current results
+    % get list of all current experiment_results
     eval_files_folder = dir('/tmp/eval_files_*');
     current_eval_folder = eval_files_folder(end);
     current_eval_folder_dir = [current_eval_folder.folder, filesep, current_eval_folder.name];
@@ -95,53 +95,52 @@ function results = main_nuc_simulation()
     for i_entry = 1:numel(results_list)
         entry = results_list(i_entry);
         load([entry.folder, filesep, entry.name]);
-        results = merge_results(results, result);
+        experiment_results = merge_experiment_results(experiment_results, experiment_result);
     end
 
     fprintf('done.\n');
 
 end
 
-function results = merge_results(results, res)
+function experiment_results = merge_experiment_results(experiment_results, res)
 
     i_veh = find(res.n_expanded(:, 1) ~= 0);
 
-    % if this is the first result just copy
-    if isempty(results)
-        results = res;
-        results.total_fallback_times = zeros(res.options.amount, 1);
-        results.total_fallback_times(i_veh) = res.total_fallback_times;
+    % if this is the first ExperimentResult just copy
+    if isempty(experiment_results)
+        experiment_results = res;
+        experiment_results.total_fallback_times = zeros(res.options.amount, 1);
+        experiment_results.total_fallback_times(i_veh) = res.total_fallback_times;
         return;
     end
 
-    results.iteration_structs = merge_iteration_structs(results.iteration_structs, res.iteration_structs);
-    results.vehicle_path_fullres(i_veh, :) = res.vehicle_path_fullres(i_veh, :);
-    results.trajectory_predictions(i_veh, :) = res.trajectory_predictions(i_veh, :);
+    experiment_results.iteration_data = merge_iteration_data(experiment_results.iteration_data, res.iteration_data);
+    experiment_results.vehicle_path_fullres(i_veh, :) = res.vehicle_path_fullres(i_veh, :);
+    experiment_results.trajectory_predictions(i_veh, :) = res.trajectory_predictions(i_veh, :);
 
     % fallback ids are just locally available
     % therefore merge them as sets
-    for i_step = 1:results.nSteps
-        results.vehs_fallback{i_step} = union(results.vehs_fallback{i_step}, res.vehs_fallback{i_step});
+    for i_step = 1:experiment_results.n_steps
+        experiment_results.vehicles_fallback{i_step} = union(experiment_results.vehicles_fallback{i_step}, res.vehicles_fallback{i_step});
     end
 
     % deadlock as boolean
     % maybe store that beforehand for every vehicle-timestep-combination
-    results.is_deadlock = results.is_deadlock | res.is_deadlock;
-    results.n_expanded(i_veh, :) = res.n_expanded(i_veh, :);
-    % INFO: ignore all coupling info, they are the same on each nuc (dont know why they are safed in result AND in IterationData)
+    experiment_results.n_expanded(i_veh, :) = res.n_expanded(i_veh, :);
+    % INFO: ignore all coupling info, they are the same on each nuc (dont know why they are safed in ExperimentResult AND in IterationData)
 
     % if someone needs one of these:
     % TODO: obstacles
     % TODO: lanelet_crossing_areas
     % TODO: all times need to be checked on how to compute when merged (are they even used anymore)
-    results.total_fallback_times(i_veh) = res.total_fallback_times;
+    experiment_results.total_fallback_times(i_veh) = res.total_fallback_times;
 
     % Timings
-    results.timings_per_vehicle(i_veh) = res.timings_per_vehicle(i_veh);
-    results.timings_general(i_veh) = res.timings_general;
+    experiment_results.timings_per_vehicle(i_veh) = res.timings_per_vehicle(i_veh);
+    experiment_results.timings_general(i_veh) = res.timings_general;
 end
 
-function iter = merge_iteration_structs(iter, iter_in)
+function iter = merge_iteration_data(iter, iter_in)
     n_steps = numel(iter);
     i_veh = find(iter_in{1}.reference_trajectory_index(:, 1) ~= 0);
 

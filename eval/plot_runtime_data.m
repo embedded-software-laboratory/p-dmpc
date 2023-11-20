@@ -12,7 +12,7 @@ function plot_runtime_data(data)
     nSce = data.nSce;
 
     t_total = result.t_total;
-    n_total = result.nSteps;
+    n_total = result.n_steps;
 
     n_x_values = length(x_values);
 
