@@ -210,6 +210,10 @@ classdef MotionPrimitiveAutomaton
 
         function trim_index = trim_from_values(obj, speed, steering)
             % get closest trim based on speed and steering values
+            %
+            % the function prefers a match of the steering angle
+            % over a match of the speed as it is assumed that
+            % an incorrect match of the steering angle is more critical
 
             trims_steering = [obj.trims.steering];
 
