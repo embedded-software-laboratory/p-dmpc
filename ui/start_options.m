@@ -377,8 +377,9 @@ end
 function [list] = list_optimizer_prioritized
     list = {
             '1', 'MatlabOptimal';
+            '2', 'MatlabSampled';
             '3', 'CppOptimal';
-            }; % '2', 'MatlabSampled'; % NOT YET IMPLEMENTED
+            };
 end
 
 function [list] = list_priority_assignment_methods

@@ -29,13 +29,13 @@ classdef (Abstract) OptimizerInterface < handle
                 case OptimizerType.MatlabOptimal
                     optimizer = GraphSearch();
                 case OptimizerType.MatlabSampled
-                    error('The randomized Matlab optimizer is not yet implemented!');
+                    optimizer = MonteCarloTreeSearch();
                 case OptimizerType.CppOptimal
 
                     if options.is_prioritized
-                        optimizer = GraphSearchMexPB(options, mpa, scenario, indices_in_vehicle_list);
+                        optimizer = GraphSearchMexPB(options, mpa, scenario, indices_in_vehicle_list, CppOptimizer.GraphSearchPBOptimal);
                     else
-                        optimizer = GraphSearchMexCentralized(options, mpa, scenario);
+                        optimizer = GraphSearchMexCentralized(options, mpa, scenario, CppOptimizer.CentralizedOptimalPolymorphic);
                     end
 
                 case OptimizerType.CppSampled
@@ -43,7 +43,7 @@ classdef (Abstract) OptimizerInterface < handle
                     if options.is_prioritized
                         error('CppSampled can only be used in centralized execution yet.');
                     else
-                        optimizer = GraphSearchMexCentralized(options, mpa, scenario);
+                        optimizer = GraphSearchMexCentralized(options, mpa, scenario, CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel);
                     end
 
             end

@@ -58,7 +58,6 @@ classdef Config
     properties (Dependent, GetAccess = public, SetAccess = private)
         tick_per_step % number of data points per step
         k_end % total number of steps
-        cpp_optimizer CppOptimizer; % Dependent on the optimizer_type the corresponding cpp interface is selected
     end
 
     methods
@@ -71,33 +70,6 @@ classdef Config
             result = floor(obj.T_end / obj.dt_seconds);
         end
 
-        function cpp_optimizer = get.cpp_optimizer(obj)
-
-            switch obj.optimizer_type
-                case OptimizerType.MatlabOptimal
-                    cpp_optimizer = CppOptimizer.None;
-                case OptimizerType.MatlabSampled
-                    cpp_optimizer = CppOptimizer.None;
-                case OptimizerType.CppOptimal
-
-                    if obj.is_prioritized
-                        cpp_optimizer = CppOptimizer.GraphSearchPBOptimal;
-                    else
-                        cpp_optimizer = CppOptimizer.CentralizedOptimalPolymorphic;
-                    end
-
-                case OptimizerType.CppSampled
-
-                    if obj.is_prioritized
-                        error('CppSampled can only be used in centralized execution yet.');
-                    else
-                        cpp_optimizer = CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel;
-                    end
-
-            end
-
-        end
-
         % empty set methods used by jsondecode
         % dependent properties with public GetAccess are encoded to a json file
         % to automatically decode the json file set methods must be defined
@@ -106,9 +78,6 @@ classdef Config
         end
 
         function obj = set.k_end(obj, ~)
-        end
-
-        function obj = set.cpp_optimizer(obj, ~)
         end
 
     end
@@ -172,7 +141,7 @@ classdef Config
         end
 
         function result = use_cpp(obj)
-            result = obj.cpp_optimizer ~= CppOptimizer.None;
+            result = (obj.optimizer_type == OptimizerType.CppOptimal | obj.optimizer_type == OptimizerType.CppSampled);
         end
 
         function obj = validate(obj)

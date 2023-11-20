@@ -2,14 +2,17 @@ classdef GraphSearchMexPB < OptimizerInterface
 
     properties (Access = protected)
         mexhosts = matlab.mex.MexHost.empty;
+        cpp_optimizer CppOptimizer; % Dependent on the optimizer_type in the config the corresponding cpp interface is selected
     end
 
     methods
 
-        function obj = GraphSearchMexPB(options, mpa, scenario, vehicle_indices)
+        function obj = GraphSearchMexPB(options, mpa, scenario, vehicle_indices, cpp_optimizer)
             obj = obj@OptimizerInterface();
             % When using C++, you don't want to send the scenario over
             % and over again, so it is done in the init function
+
+            obj.cpp_optimizer = cpp_optimizer;
 
             if ~options.mex_out_of_process_execution
                 % if mex is not executed out of the Matlab process
@@ -60,10 +63,10 @@ classdef GraphSearchMexPB < OptimizerInterface
 
             if options.mex_out_of_process_execution
                 [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...
-                    feval(obj.mexhosts(veh_index(1)), 'graph_search_cpp_priority_mex', options.cpp_optimizer, iter, vehicle_obstacles);
+                    feval(obj.mexhosts(veh_index(1)), 'graph_search_cpp_priority_mex', obj.cpp_optimizer, iter, vehicle_obstacles);
             else
                 [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = ...
-                    graph_search_cpp_priority_mex(options.cpp_optimizer, iter, vehicle_obstacles);
+                    graph_search_cpp_priority_mex(obj.cpp_optimizer, iter, vehicle_obstacles);
             end
 
         end

@@ -4,8 +4,8 @@ classdef systemtests < matlab.unittest.TestCase
         priority = {'coloring', 'constant', 'random', 'FCA', 'STAC'};
         scenario_type = {'circle', 'commonroad'};
         parallel = {'sequential', 'parallel'};
-        optimizer_type_centralized = {'MatlabOptimal', 'CppOptimal'}; % 'CppSampled' crashes matlab in tests...
-        optimizer_type_priority_based = {'MatlabOptimal', 'CppOptimal'};
+        optimizer_type_centralized = {'MatlabOptimal', 'CppOptimal'}; % 'CppSampled' crashes matlab in tests
+        optimizer_type_priority_based = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
         weight_strategy = {'constant_weight'
                            'random_weight'
                            'STAC_weight'
