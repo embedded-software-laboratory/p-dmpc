@@ -176,18 +176,18 @@ function export_fig_for_video(experiment_results, results_folder_path)
     % videoExportSetup.framerate = 30;
     timesteps = 14;
 
-    for iStep = timesteps
+    for i_step = timesteps
 
         % after applying our approach
         experiment_result.options.options_plot_online.plot_weight = true;
-        export_frame(experiment_result, iStep = iStep, frame_name = 'coupling_after_our_approach.png')
+        export_frame(experiment_result, i_step = i_step, frame_name = 'coupling_after_our_approach.png')
         % before applying our approach
         experiment_result.options.options_plot_online.plot_weight = false;
-        export_frame(experiment_result, iStep = iStep, frame_name = 'coupling_before_our_approach.png')
+        export_frame(experiment_result, i_step = i_step, frame_name = 'coupling_before_our_approach.png')
 
         fig1 = figure();
         hold on
-        plot_partitioned_graph(experiment_result, 'ShowWeights', true, 'ShowCutEdges', false, i_step = iStep);
+        plot_partitioned_graph(experiment_result, 'ShowWeights', true, 'ShowCutEdges', false, i_step = i_step);
         % title('Before applying our method')
         box on
         file_path_1 = fullfile(results_folder_path, 'graph_before_our_approach.png');
@@ -196,7 +196,7 @@ function export_fig_for_video(experiment_results, results_folder_path)
 
         fig2 = figure();
         hold on
-        plot_partitioned_graph(experiment_result, 'ShowWeights', true, 'ShowCutEdges', true, i_step = iStep);
+        plot_partitioned_graph(experiment_result, 'ShowWeights', true, 'ShowCutEdges', true, i_step = i_step);
         % title('After applying our method')
         box on
         file_path_2 = fullfile(results_folder_path, 'graph_after_our_approach.png');
