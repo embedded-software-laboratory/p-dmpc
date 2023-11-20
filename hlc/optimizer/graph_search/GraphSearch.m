@@ -116,7 +116,7 @@ classdef GraphSearch < OptimizerInterface
 
     end
 
-    methods (Static)
+    methods (Static, Access = private)
 
         function [is_valid, shapes] = eval_edge_exact(iter, options, mpa, tree, iNode, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
             % EVAL_EDGE_EXACT   Evaluate if step is valid.
