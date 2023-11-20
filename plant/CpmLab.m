@@ -65,19 +65,20 @@ classdef CpmLab < Plant
             );
 
             % subtract the hdv_ids from active_vehicle_ids
-            active_cav_vehicle_ids = setdiff( ...
+            active_cav_vehicle_ids_from_lab = setdiff( ...
                 state_list.active_vehicle_ids, ...
                 options.manual_control_config.hdv_ids ...
             );
 
-            % boolean that extracts the controlled_vehicle_ids from active_cav_vehicle_ids
+            % boolean that extracts the controlled lab vehicle_ids
+            % from the active lab cav vehicle_ids
             is_controlled = ismember(all_vehicle_ids, controlled_vehicle_ids);
 
-            % overwrite vehicle ids with information from state_list
-            all_vehicle_ids = active_cav_vehicle_ids;
-            controlled_vehicle_ids = active_cav_vehicle_ids(is_controlled);
+            % use vehicle_ids from lab for superclass
+            all_vehicle_ids_from_lab = active_cav_vehicle_ids_from_lab;
+            controlled_vehicle_ids_from_lab = active_cav_vehicle_ids_from_lab(is_controlled);
 
-            setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
+            setup@Plant(obj, options, all_vehicle_ids_from_lab, controlled_vehicle_ids_from_lab);
         end
 
         function [cav_measurements, hdv_measurements] = measure(obj)
