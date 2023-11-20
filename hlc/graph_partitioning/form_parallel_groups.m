@@ -32,7 +32,7 @@ function [directed_coupling_sequential, subgraphs_info, belonging_vector] = form
     %   subgraphs the vertices belong to. For example,"belonging_vector =
     %   [1;2;2;1;3]" means the 1st subgraph = {1,4}, the 2nd subgraph = {2,3}
     %   and the 3rd subgraph = {5}.
-    directed_coupling_sequential = M;
+    directed_coupling_sequential = zeros(size(M));
 
     if max_num_CLs == 1
         % pure parallel trajectory planning
@@ -45,32 +45,32 @@ function [directed_coupling_sequential, subgraphs_info, belonging_vector] = form
             subgraphs_info(i).vertices = i;
         end
 
-    else
+        return
+    end
 
-        % partition the given graph to subgraphs with a certain upper graph size.
-        % The sum of weights of edges connecting subgraphs is the objective value and should be minimized.
-        [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, coupling_info, max_num_CLs, is_force_parallel_vehs_in_same_grp, method);
+    directed_coupling_sequential(M ~= 0) = 1;
+    % partition the given graph to subgraphs with a certain upper graph size.
+    % The sum of weights of edges connecting subgraphs is the objective value and should be minimized.
+    [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, coupling_info, max_num_CLs, is_force_parallel_vehs_in_same_grp, method);
 
-        % subgraphs is mergeable if the number of computation levels of the
-        % new graph does not exceed the maximum allowed number.
-        [belonging_vector, subgraphs_info] = graph_merging_algorithm(M, belonging_vector, subgraphs_info, max_num_CLs);
+    % subgraphs is mergeable if the number of computation levels of the
+    % new graph does not exceed the maximum allowed number.
+    [belonging_vector, subgraphs_info] = graph_merging_algorithm(M, belonging_vector, subgraphs_info, max_num_CLs);
 
-        %     plot_partitioned_graph(belonging_vector, M, 'ShowWeights', true)
+    %     plot_partitioned_graph(belonging_vector, M, 'ShowWeights', true)
 
-        n_grps = length(subgraphs_info); % one subgraph corresponds to one parallel group
-        directed_coupling = (M ~= 0);
+    n_grps = length(subgraphs_info); % one subgraph corresponds to one parallel group
+    directed_coupling = (M ~= 0);
 
-        CLs_max_grps = max([subgraphs_info.num_CLs]); % max number of computation levels among all parallel groups
+    CLs_max_grps = max([subgraphs_info.num_CLs]); % max number of computation levels among all parallel groups
 
-        % form the parallel groups
-        for grp_i = 1:n_grps
+    % form the parallel groups
+    for grp_i = 1:n_grps
 
-            vertices_in_i = subgraphs_info(grp_i).vertices; % vertices in the group_i
-            directed_coupling_i = directed_coupling(vertices_in_i, vertices_in_i);
-            L = kahn(directed_coupling_i);
-            subgraphs_info(grp_i).L_topology = L;
-
-        end
+        vertices_in_i = subgraphs_info(grp_i).vertices; % vertices in the group_i
+        directed_coupling_i = directed_coupling(vertices_in_i, vertices_in_i);
+        L = kahn(directed_coupling_i);
+        subgraphs_info(grp_i).L_topology = L;
 
     end
 
