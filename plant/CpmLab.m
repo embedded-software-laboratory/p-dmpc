@@ -233,10 +233,6 @@ classdef CpmLab < Plant
 
         end
 
-        function visualize(obj, visualization_command)
-            obj.writer_visualization.write(visualization_command);
-        end
-
         function got_stop = is_stop(obj)
             [~, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
 

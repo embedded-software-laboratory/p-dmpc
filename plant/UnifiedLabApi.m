@@ -227,11 +227,6 @@ classdef UnifiedLabApi < Plant
 
         end
 
-        function visualize(obj, visualization_command)
-            %obj.writer_visualization.write(visualization_command);
-            disp('Visualize called, but what to do?');
-        end
-
         function got_stop = is_stop(obj)
             got_stop = false;
 
