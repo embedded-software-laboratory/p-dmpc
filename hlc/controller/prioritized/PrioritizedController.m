@@ -309,11 +309,17 @@ classdef (Abstract) PrioritizedController < HighLevelController
             filter_self(vehicle_idx) = true;
             iter_v = filter_iter(obj.iter, filter_self);
 
-            all_coupled_vehs_with_HP = find(iter_v.directed_coupling_reduced(:, vehicle_idx) == 1)'; % all coupled vehicles with higher priorities
+            all_coupled_vehs_with_HP = find(iter_v.directed_coupling_reduced(:, vehicle_idx) == 1)';
+            sequential_vehs_with_HP = find(iter_v.directed_coupling_sequential(:, vehicle_idx))';
             all_coupled_vehs_with_LP = find(iter_v.directed_coupling_reduced(vehicle_idx, :) == 1); % all coupled vehicles with lower priorities
 
             % consider vehicles with higher priority
-            [dynamic_obstacle_area_HP, is_fallback_triggered] = consider_vehs_with_HP(obj, vehicle_idx, all_coupled_vehs_with_HP);
+            [dynamic_obstacle_area_HP, is_fallback_triggered] = consider_vehs_with_HP( ...
+                obj, ...
+                vehicle_idx, ...
+                all_coupled_vehs_with_HP, ...
+                sequential_vehs_with_HP ...
+            );
 
             % if vehicle with higher priority triggered fallback, do not plan
             if is_fallback_triggered
@@ -501,7 +507,12 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function [dynamic_obstacle_area, is_fallback_triggered] = consider_vehs_with_HP(obj, vehicle_idx, all_coupled_vehs_with_HP)
+        function [dynamic_obstacle_area, is_fallback_triggered] = consider_vehs_with_HP( ...
+                obj, ...
+                vehicle_idx, ...
+                all_coupled_vehs_with_HP, ...
+                sequential_vehs_with_HP ...
+            )
             % consider_vehs_with_HP considering vehicles with higher priority
             % strategy depends on whether the vehicles are in the same group
             % and if the prediction consistency is should be guaranteed
@@ -514,7 +525,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
             arguments
                 obj (1, 1) PrioritizedController
                 vehicle_idx (1, 1) double % index of the current vehicle
-                all_coupled_vehs_with_HP double % indices of the vehicles with higher priority
+                all_coupled_vehs_with_HP (1, :) double % indices of the vehicles with higher priority
+                % indices of sequentially computing vehicles with higher priority
+                sequential_vehs_with_HP (1, :) double
             end
 
             is_fallback_triggered = false;
@@ -522,67 +535,61 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % preallocate cell array entries
             dynamic_obstacle_area = cell(length(all_coupled_vehs_with_HP), obj.options.Hp);
 
-            grp_idx = arrayfun(@(array) ismember(vehicle_idx, array.vertices), obj.iter.parl_groups_info);
-            all_vehs_same_grp = obj.iter.parl_groups_info(grp_idx).vertices; % all vehicles in the same group
+            parallel_vehs_with_HP = setdiff(all_coupled_vehs_with_HP, sequential_vehs_with_HP);
 
-            % coupled vehicles with higher priorities in the same group
-            coupled_vehs_same_grp_with_HP = intersect(all_coupled_vehs_with_HP, all_vehs_same_grp);
+            for i_vehicle = sequential_vehs_with_HP
+                % if in the same group, read the current message and set the
+                % predicted occupied areas as dynamic obstacles
+                latest_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
+                    obj.plant.all_vehicle_ids(i_vehicle), ...
+                    obj.k, ...
+                    priority_permutation = obj.iter.priority_permutation, ...
+                    throw_error = true ...
+                );
+                obj.info.vehicles_fallback = union(obj.info.vehicles_fallback, latest_msg.vehicles_fallback');
 
-            for i_vehicle = 1:length(all_coupled_vehs_with_HP)
-                veh_with_HP_i = all_coupled_vehs_with_HP(i_vehicle);
+                if ismember(vehicle_idx, obj.info.vehicles_fallback)
+                    % if the selected vehicle should take fallback
+                    is_fallback_triggered = true;
+                    break
+                else
+                    predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
+                    dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
+                end
 
-                if ismember(veh_with_HP_i, coupled_vehs_same_grp_with_HP)
-                    % if in the same group, read the current message and set the
-                    % predicted occupied areas as dynamic obstacles
-                    latest_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
-                        obj.plant.all_vehicle_ids(veh_with_HP_i), ...
-                        obj.k, ...
-                        priority_permutation = obj.iter.priority_permutation, ...
-                        throw_error = true ...
-                    );
+            end
+
+            for i_vehicle = parallel_vehs_with_HP
+                % if they are in different groups, read the latest available
+                % message and check it is from the current time step
+                latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
+                    obj.plant.all_vehicle_ids(i_vehicle) ...
+                );
+
+                % if the current message is available no less precise
+                % information must be used to consider the vehicle
+                if latest_msg.time_step == obj.k
                     obj.info.vehicles_fallback = union(obj.info.vehicles_fallback, latest_msg.vehicles_fallback');
 
                     if ismember(vehicle_idx, obj.info.vehicles_fallback)
-                        % if the selected vehicle should take fallback
                         is_fallback_triggered = true;
                         break
                     else
                         predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
                         dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
+
                     end
 
                 else
-                    % if they are in different groups, read the latest available
-                    % message and check it is from the current time step
-                    latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
-                        obj.plant.all_vehicle_ids(veh_with_HP_i) ...
-                    );
-
-                    % if the current message is available no less precise
-                    % information must be used to consider the vehicle
-                    if latest_msg.time_step == obj.k
-                        obj.info.vehicles_fallback = union(obj.info.vehicles_fallback, latest_msg.vehicles_fallback');
-
-                        if ismember(vehicle_idx, obj.info.vehicles_fallback)
-                            is_fallback_triggered = true;
-                            break
-                        else
-                            predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                            dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
-
-                        end
-
-                    else
-                        % if they are in different groups and message of
-                        % current time step is not available
-                        dynamic_obstacle_area(i_vehicle, :) = obj.consider_parallel_coupling(vehicle_idx, veh_with_HP_i);
-                    end
-
+                    % if they are in different groups and message of
+                    % current time step is not available
+                    dynamic_obstacle_area(i_vehicle, :) = obj.consider_parallel_coupling(vehicle_idx, i_vehicle);
                 end
 
             end
 
             % release preallocated cell array entries
+            % TODO Does this line change anything?
             dynamic_obstacle_area(cellfun(@isempty, dynamic_obstacle_area(:, 1)), :) = [];
 
         end
