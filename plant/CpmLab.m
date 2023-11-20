@@ -86,16 +86,16 @@ classdef CpmLab < Plant
 
             for index = 1:length(state_list)
 
-                % cast the state_list vehicle_id to double
-                % to be able to compare to defined data type
-                % in superclass without loss of precision
-                if ~any(double(state_list(index).vehicle_id) == controlled_vehicle_ids)
+                % data type of state_list vehicle_id is uint8 and
+                % matches the data type of the superclass variable
+                % casting of the data type is not necessary
+                if ~any(state_list(index).vehicle_id == controlled_vehicle_ids)
                     % if vehicle is not controlled, do not use received information
                     continue
                 end
 
                 % boolean with exactly one true entry for the position in all_vehicle_ids
-                is_in_vehicle_list = double(state_list(index).vehicle_id) == all_vehicle_ids;
+                is_in_vehicle_list = state_list(index).vehicle_id == all_vehicle_ids;
 
                 obj.measurements(is_in_vehicle_list) = PlantMeasurement( ...
                     state_list(index).pose.x, ...
@@ -163,16 +163,16 @@ classdef CpmLab < Plant
 
             for index = 1:length(state_list)
 
-                % cast the state_list vehicle_id to double
-                % to be able to compare to defined data type
-                % in superclass without loss of precision
-                if ~any(double(state_list(index).vehicle_id) == obj.manual_control_config.hdv_ids)
+                % data type of state_list vehicle_id is uint8 and
+                % matches the data type of the manual_control_config member
+                % casting of the data type is not necessary
+                if ~any(state_list(index).vehicle_id == obj.manual_control_config.hdv_ids)
                     % if vehicle is no hdv, do not use received information
                     continue
                 end
 
                 % boolean with exactly one true entry for the position in hdv_ids
-                is_in_hdv_list = double(state_list(index).vehicle_id) == obj.manual_control_config.hdv_ids;
+                is_in_hdv_list = state_list(index).vehicle_id == obj.manual_control_config.hdv_ids;
 
                 hdv_measurements(is_in_hdv_list) = PlantMeasurement( ...
                     state_list(index).pose.x, ...

@@ -67,16 +67,17 @@ classdef UnifiedLabApi < Plant
 
             for index = 1:length(state_list)
 
-                % cast the state_list vehicle_id to double
-                % to be able to compare to defined data type
-                % in superclass without loss of precision
-                if ~any(double(state_list(index).vehicle_id) == controlled_vehicle_ids)
+                % cast state_list vehicle_id from int32 to uint8
+                % to match the data type of superclass member
+                % since this class is currently not supported,
+                % it is accepted that higher vehicle ids cannot not be represented
+                if ~any(uint8(state_list(index).vehicle_id) == controlled_vehicle_ids)
                     % if vehicle is not controlled, do not use received information
                     continue
                 end
 
                 % boolean with exactly one true entry for the position in all_vehicle_ids
-                is_in_vehicle_list = double(state_list(index).vehicle_id) == all_vehicle_ids;
+                is_in_vehicle_list = uint8(state_list(index).vehicle_id) == all_vehicle_ids;
 
                 obj.measurements(is_in_vehicle_list) = PlantMeasurement( ...
                     state_list(index).pose.x, ...
@@ -160,16 +161,17 @@ classdef UnifiedLabApi < Plant
 
             for index = 1:length(state_list)
 
-                % cast the state_list vehicle_id to double
-                % to be able to compare to defined data type
-                % in superclass without loss of precision
-                if ~any(double(state_list(index).vehicle_id) == obj.manual_control_config.hdv_ids)
+                % cast state_list vehicle_id from int32 to uint8
+                % to match the data type of the manual_control_config member
+                % since this class is currently not supported,
+                % it is accepted that higher vehicle ids cannot not be represented
+                if ~any(uint8(state_list(index).vehicle_id) == obj.manual_control_config.hdv_ids)
                     % if vehicle is no hdv, do not use received information
                     continue
                 end
 
                 % boolean with exactly one true entry for the position in hdv_ids
-                is_in_hdv_list = double(state_list(index).vehicle_id) == obj.manual_control_config.hdv_ids;
+                is_in_hdv_list = uint8(state_list(index).vehicle_id) == obj.manual_control_config.hdv_ids;
 
                 hdv_measurements(is_in_hdv_list) = PlantMeasurement( ...
                     state_list(index).pose.x, ...
