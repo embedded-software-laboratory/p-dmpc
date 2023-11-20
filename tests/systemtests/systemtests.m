@@ -4,7 +4,8 @@ classdef systemtests < matlab.unittest.TestCase
         priority = {'coloring', 'constant', 'random', 'FCA', 'STAC'};
         scenario_type = {'circle', 'commonroad'};
         parallel = {'sequential', 'parallel'};
-        use_cpp = {true, false}
+        optimizer_type_centralized = {'MatlabOptimal', 'CppOptimal'}; % 'CppSampled' crashes matlab in tests
+        optimizer_type_priority_based = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
         weight_strategy = {'constant_weight'
                            'random_weight'
                            'STAC_weight'
@@ -14,19 +15,14 @@ classdef systemtests < matlab.unittest.TestCase
 
     methods (Test)
 
-        function centralized(testCase, scenario_type, use_cpp)
+        function test_centralized(testCase, scenario_type, optimizer_type_centralized)
             lastwarn('');
             fprintf('\ncentralized systemtest for %s\n', scenario_type);
             %load Config from json
             options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
             options.scenario_type = ScenarioType(scenario_type);
             options.is_prioritized = false;
-
-            if use_cpp
-                options.cpp_optimizer = CppOptimizer.CentralizedOptimalPolymorphic;
-            else
-                options.cpp_optimizer = CppOptimizer.None;
-            end
+            options.optimizer_type = OptimizerType(optimizer_type_centralized);
 
             testCase.verifyEmpty(lastwarn);
 
@@ -34,20 +30,14 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        function priority_based(testCase, scenario_type, parallel, priority, use_cpp)
+        function test_priority_based(testCase, scenario_type, parallel, optimizer_type_priority_based)
             lastwarn('');
-            fprintf('\nprioritized %s systemtest for %s with %s priority\n', parallel, scenario_type, priority);
+            fprintf('\nprioritized %s systemtest for %s\n', parallel, scenario_type);
             %load Config from json
             options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
             options.scenario_type = ScenarioType(scenario_type);
             options.is_prioritized = true;
-            options.priority = PriorityStrategies.([priority, '_priority']);
-
-            if use_cpp
-                options.cpp_optimizer = CppOptimizer.GraphSearchPBOptimal;
-            else
-                options.cpp_optimizer = CppOptimizer.None;
-            end
+            options.optimizer_type = OptimizerType(optimizer_type_priority_based);
 
             if strcmp(parallel, 'parallel')
                 options.compute_in_parallel = true;
@@ -61,7 +51,22 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        function grouping(testCase)
+        function test_prioritizer(testCase, scenario_type, priority)
+            lastwarn('');
+            fprintf('\ntest priority %s for %s\n', priority, scenario_type);
+            %load Config from json
+            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
+            options.scenario_type = ScenarioType(scenario_type);
+            options.is_prioritized = true;
+            options.priority = PriorityStrategies.([priority, '_priority']);
+
+            testCase.verifyEmpty(lastwarn);
+
+            main(options);
+            testCase.verifyTrue(true);
+        end
+
+        function test_grouping(testCase)
             lastwarn('');
             fprintf('\nTesting grouping algorithm\n');
             %load Config from json
@@ -71,7 +76,7 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        function visualization(testCase, scenario_type)
+        function test_visualization(testCase, scenario_type)
             lastwarn('');
             fprintf('\nvisualization systemtest for %s\n', scenario_type)
             %load Config from json
