@@ -135,39 +135,39 @@ classdef systemtests < matlab.unittest.TestCase
                 experiment_result.options, ...
                 experiment_result.options.amount ... %gen_scenario_name uses options.amount as default
             );
-            full_result = load(output_path);
+            full_result = load(output_path, 'experiment_result').experiment_result;
 
             %verify without exporting
-            plot_default(full_result.experiment_result, do_export = false);
+            plot_default(full_result, do_export = false);
             testCase.verifyTrue(true);
 
             %verify and check export too
-            plot_default(full_result.experiment_result, do_export = true);
+            plot_default(full_result, do_export = true);
             testCase.verifyTrue(true);
 
             % verify export_video
-            export_video(full_result.experiment_result);
+            export_video(full_result);
 
             % verify other result plotting functions
             step_indices = [1, 5, 9];
             plot_experiment_snapshots( ...
-                full_result.experiment_result, ...
+                full_result, ...
                 step_indices, ...
                 do_export = false ...
             );
             testCase.verifyTrue(true);
             plot_experiment_snapshots( ...
-                full_result.experiment_result, ...
+                full_result, ...
                 step_indices, ...
                 do_export = true ...
             );
             testCase.verifyTrue(true);
 
-            plot_partitioned_graph(full_result.result);
+            plot_partitioned_graph(full_result);
             testCase.verifyTrue(true);
 
             plot_partitioned_graph( ...
-                full_result.result, ...
+                full_result, ...
                 show_weights = true, ...
                 show_cut_edges = true, ...
                 do_export = false, ...
@@ -188,14 +188,14 @@ classdef systemtests < matlab.unittest.TestCase
             options.compute_in_parallel = true;
 
             % Load old results created in priority_based
-            result_veh1 = load(FileNameConstructor.get_results_full_path(options, 1));
-            result_veh2 = load(FileNameConstructor.get_results_full_path(options, 2));
+            result_veh1 = load(FileNameConstructor.get_results_full_path(options, 1)).experiment_result;
+            result_veh2 = load(FileNameConstructor.get_results_full_path(options, 2)).experiment_result;
 
             % Test plotting of runtime over multiple experiments
             results_multiple_experiments = cell(2);
-            results_multiple_experiments{1, 1} = result_veh2.experiment_result; % use result of vehicle 2 also as if it was the result in an experiment with only one vehicle
-            results_multiple_experiments{2, 1} = result_veh1.experiment_result;
-            results_multiple_experiments{2, 2} = result_veh2.experiment_result;
+            results_multiple_experiments{1, 1} = result_veh2; % use result of vehicle 2 also as if it was the result in an experiment with only one vehicle
+            results_multiple_experiments{2, 1} = result_veh1;
+            results_multiple_experiments{2, 2} = result_veh2;
 
             plot_runtime_multiple_experiments(results_multiple_experiments, do_export = true);
             testCase.verifyTrue(true);
@@ -204,8 +204,8 @@ classdef systemtests < matlab.unittest.TestCase
 
             % Test plotting of runtime of one timestep within one experiment
             result_one_experiment = cell(1, 2);
-            result_one_experiment{1, 1} = result_veh1.experiment_result;
-            result_one_experiment{1, 2} = result_veh2.experiment_result;
+            result_one_experiment{1, 1} = result_veh1;
+            result_one_experiment{1, 2} = result_veh2;
             result_one_experiment_normalized = normalize_timing_results(result_one_experiment);
 
             plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = true);

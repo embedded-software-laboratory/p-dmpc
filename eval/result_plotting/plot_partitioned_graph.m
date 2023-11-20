@@ -1,16 +1,16 @@
 function plot_partitioned_graph(experiment_result, optional)
 
     arguments
-        experiment_result (1, 1) struct
-        optional.show_weights (1, 1) logical = false
-        optional.show_cut_edges (1, 1) logical = false
-        optional.i_step (1, 1) uint16 = size(experiment_result.belonging_vector, 2)
+        experiment_result (1, 1) ExperimentResult;
+        optional.show_weights (1, 1) logical = false;
+        optional.show_cut_edges (1, 1) logical = false;
+        optional.i_step (1, 1) uint16 = experiment_result.n_steps;
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
     end
 
-    belonging_vector = experiment_result.belonging_vector(:, optional.i_step);
-    edge_weights = experiment_result.iteration_structs{optional.i_step}.weighted_coupling_reduced;
+    belonging_vector = experiment_result.iteration_data{optional.i_step}.belonging_vector;
+    edge_weights = experiment_result.iteration_data{optional.i_step}.weighted_coupling_reduced;
 
     if issymmetric(edge_weights)
         % undirected graph if the edge-weights matrix is symmetric
