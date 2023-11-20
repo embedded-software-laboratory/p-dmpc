@@ -20,7 +20,6 @@ classdef UnifiedLabApi < Plant
         is_ros2_prepared = false % ensures that ros2 subscribers/publisher/... are only created once
         got_start = false
         got_stop = false
-        writer_visualization % WHY?
 
         dt_period_nanos
         sample
@@ -387,11 +386,6 @@ classdef UnifiedLabApi < Plant
             [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'ula_interfaces/VehiclesRequest');
             % Since matlab does not provide support for actions, we use a normal message via the action bridge node
             % obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'ula_interfaces/VehicleIDs');
-
-            % % NEEDED???
-            % % create writer for lab visualization
-            % matlabVisualizationTopicName = 'visualization';
-            % obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.matlabParticipantLab), 'Visualization', matlabVisualizationTopicName);
 
             obj.is_ros2_prepared = true;
         end

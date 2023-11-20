@@ -7,7 +7,6 @@ classdef CpmLab < Plant
         reader_vehicleStateList
         writer_vehicleCommandTrajectory
         writer_vehicleCommandDirect
-        writer_visualization
         reader_systemTrigger
         writer_readyStatus
         trigger_stop
@@ -278,10 +277,6 @@ classdef CpmLab < Plant
 
             % create Lab participant
             obj.dds_participant_lab = DDS.DomainParticipant('MatlabLibrary::LocalCommunicationProfile', str2double(getenv('DDS_DOMAIN')));
-
-            % create writer for lab visualization
-            matlabVisualizationTopicName = 'visualization';
-            obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.dds_participant_lab), 'Visualization', matlabVisualizationTopicName);
 
             % Set reader properties
             obj.reader_vehicleStateList.WaitSet = true;
