@@ -102,11 +102,11 @@ classdef (Abstract) HighLevelController < handle
         function init(obj)
             % initialize high level controller itself
 
-            % initialize ExperimentResult object
-            obj.experiment_result = ExperimentResult(obj);
-
             % construct mpa
             obj.mpa = MotionPrimitiveAutomaton(obj.scenario_adapter.scenario.model, obj.options);
+
+            % initialize ExperimentResult object
+            obj.experiment_result = ExperimentResult(obj.options, obj.scenario_adapter.scenario, obj.mpa);
 
             % initialize iteration data
             obj.iter = IterationData(obj.options, obj.scenario_adapter.scenario, obj.plant.all_vehicle_ids);
@@ -580,7 +580,11 @@ classdef (Abstract) HighLevelController < handle
             obj.experiment_result.total_fallback_times = obj.total_fallback_times;
             obj.experiment_result.timings_general = obj.timing_general.get_all_timings();
 
-            obj.experiment_result.timings_per_vehicle = arrayfun(@(e) e.get_all_timings(), obj.timing_per_vehicle, 'UniformOutput', false);
+            for iVeh = obj.plant.indices_in_vehicle_list
+                tpv(iVeh) = obj.timing_per_vehicle(iVeh).get_all_timings();
+            end
+
+            obj.experiment_result.timings_per_vehicle = tpv;
 
             if obj.options.should_reduce_result
                 % delete large data fields of to reduce file size

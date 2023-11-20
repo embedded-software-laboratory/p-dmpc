@@ -175,9 +175,9 @@ classdef systemtests < matlab.unittest.TestCase
 
             % Test plotting of runtime over multiple experiments
             results_multiple_experiments = cell(2);
-            results_multiple_experiments{1, 1} = result_veh2.result; % use result of vehicle 2 also as if it was the result in an experiment with only one vehicle
-            results_multiple_experiments{2, 1} = result_veh1.result;
-            results_multiple_experiments{2, 2} = result_veh2.result;
+            results_multiple_experiments{1, 1} = result_veh2.experiment_result; % use result of vehicle 2 also as if it was the result in an experiment with only one vehicle
+            results_multiple_experiments{2, 1} = result_veh1.experiment_result;
+            results_multiple_experiments{2, 2} = result_veh2.experiment_result;
 
             plot_runtime_multiple_experiments(results_multiple_experiments, do_export = true);
             testCase.verifyTrue(true);
@@ -186,8 +186,8 @@ classdef systemtests < matlab.unittest.TestCase
 
             % Test plotting of runtime of one timestep within one experiment
             result_one_experiment = cell(1, 2);
-            result_one_experiment{1, 1} = result_veh1.result;
-            result_one_experiment{1, 2} = result_veh2.result;
+            result_one_experiment{1, 1} = result_veh1.experiment_result;
+            result_one_experiment{1, 2} = result_veh2.experiment_result;
             result_one_experiment_normalized = normalize_timing_results(result_one_experiment);
 
             plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = true);

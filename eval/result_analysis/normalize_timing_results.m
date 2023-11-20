@@ -1,22 +1,22 @@
-function results = normalize_timing_results(results)
+function experiment_results = normalize_timing_results(experiment_results)
     %NORMALIZE_TIMING_RESULTS normalizes the timing results of one experiment by the controller_start_time of each timing object
 
     arguments
-        results (1, :) cell; % cell array with the result structs of all vehicles
+        experiment_results (1, :) cell; % cell array with the result structs of all vehicles
     end
 
     % find minimum controller start time
     min_start_time = realmax;
 
-    for veh_i = 1:results{1, 1}.options.amount
-        min_start_time = min(min_start_time, results{1, veh_i}.timings_per_vehicle(veh_i).controller_start_time);
-        min_start_time = min(min_start_time, results{1, veh_i}.timings_general.controller_start_time);
+    for veh_i = 1:experiment_results{1, 1}.options.amount
+        min_start_time = min(min_start_time, experiment_results{1, veh_i}.timings_per_vehicle(veh_i).controller_start_time);
+        min_start_time = min(min_start_time, experiment_results{1, veh_i}.timings_general.controller_start_time);
     end
 
     % normalize according to min_start_time
-    for veh_i = 1:results{1, 1}.options.amount
-        results{1, veh_i}.timings_per_vehicle = normalize_one_timing_result(results{1, veh_i}.timings_per_vehicle, min_start_time, veh_i);
-        results{1, veh_i}.timings_general = normalize_one_timing_result(results{1, veh_i}.timings_general, min_start_time, 1);
+    for veh_i = 1:experiment_results{1, 1}.options.amount
+        experiment_results{1, veh_i}.timings_per_vehicle = normalize_one_timing_result(experiment_results{1, veh_i}.timings_per_vehicle, min_start_time, veh_i);
+        experiment_results{1, veh_i}.timings_general = normalize_one_timing_result(experiment_results{1, veh_i}.timings_general, min_start_time, 1);
     end
 
 end

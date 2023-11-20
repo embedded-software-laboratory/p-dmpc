@@ -1,15 +1,15 @@
-function plot_computation_time(results, optional)
+function plot_computation_time(experiment_results, optional)
 
     arguments
-        results (:, :) struct; % TODO object; TODO (variable, but clear) array meaning
+        experiment_results (:, :) ExperimentResult; % TODO object; TODO (variable, but clear) array meaning
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    n_results = length(results);
+    n_results = length(experiment_results);
 
-    runtimes = zeros(results(1).n_steps, n_results);
+    runtimes = zeros(experiment_results(1).n_steps, n_results);
     n_vehicles = zeros(1, n_results);
 
     fig_per_result = figure(visible = "off");
@@ -17,9 +17,9 @@ function plot_computation_time(results, optional)
 
     for i = 1:n_results
         % make sure only one controller runtime is stored in the struct
-        % assert(size(results(i).controller_runtime, 1) == 1); % TODO
-        runtimes(:, i) = squeeze(results(i).timings_general.controller(2, 1, :));
-        n_vehicles(i) = results(i).options.amount;
+        % assert(size(experiment_results(i).controller_runtime, 1) == 1); % TODO
+        runtimes(:, i) = squeeze(experiment_results(i).timings_general.controller(2, 1, :));
+        n_vehicles(i) = experiment_results(i).options.amount;
 
         bar(1:numel(runtimes), runtimes);
         % set labels
@@ -28,7 +28,7 @@ function plot_computation_time(results, optional)
 
         if optional.do_export
 
-            results_folder = FileNameConstructor.gen_results_folder_path(results(i).options);
+            results_folder = FileNameConstructor.gen_results_folder_path(experiment_results(i).options);
             filepath = fullfile(results_folder, sprintf('computation_time_result_%d.pdf', i));
             set_figure_properties(fig_per_result, ExportFigConfig.paper('paperheight', 12))
             export_fig(fig_per_result, filepath);

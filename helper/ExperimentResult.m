@@ -25,22 +25,27 @@ classdef ExperimentResult
 
     methods
 
-        function obj = ExperimentResult(hlc)
-            scenario = hlc.scenario;
+        function obj = ExperimentResult(options, scenario, mpa)
+
+            arguments
+                options (1, 1) Config;
+                scenario (1, 1) Scenario;
+                mpa (1, 1) MotionPrimitiveAutomaton;
+            end
 
             obj.scenario = scenario;
-            obj.options = hlc.options;
+            obj.options = options;
             obj.iteration_data = cell(0, 1);
-            obj.mpa = hlc.mpa;
-            obj.trajectory_predictions = cell(obj.options.amount, 0);
+            obj.mpa = mpa;
+            obj.trajectory_predictions = cell(options.amount, 0);
             obj.output_path = '';
             obj.total_fallback_times = 0;
 
             obj.timings_general = cell(0, 1);
             obj.timings_per_vehicle = cell(0, 1);
 
-            obj.vehicle_path_fullres = cell(obj.options.amount, 0);
-            obj.n_expanded = zeros(obj.options.amount, 0);
+            obj.vehicle_path_fullres = cell(options.amount, 0);
+            obj.n_expanded = zeros(options.amount, 0);
             obj.vehicles_fallback = cell(0, 1);
             obj.computation_levels = zeros(1, 0);
 
