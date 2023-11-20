@@ -3,13 +3,13 @@ classdef CpmLab < Plant
 
     properties (Access = private)
         dds_participant
-        dds_participant_lab
         reader_vehicleStateList
         writer_vehicleCommandTrajectory
         writer_vehicleCommandDirect
         reader_systemTrigger
         writer_readyStatus
         trigger_stop
+
         dt_period_nanos
         sample
         out_of_map_limits
@@ -274,9 +274,6 @@ classdef CpmLab < Plant
 
             matlabDomainId = 1;
             [obj.dds_participant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
-
-            % create Lab participant
-            obj.dds_participant_lab = DDS.DomainParticipant('MatlabLibrary::LocalCommunicationProfile', str2double(getenv('DDS_DOMAIN')));
 
             % Set reader properties
             obj.reader_vehicleStateList.WaitSet = true;
