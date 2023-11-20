@@ -17,7 +17,6 @@ classdef UnifiedLabApi < Plant
         goal_handle % Handle for action client goal
 
         lab_properties
-        is_ros2_prepared = false % ensures that ros2 subscribers/publisher/... are only created once
         got_start = false
         got_stop = false
 
@@ -346,10 +345,6 @@ classdef UnifiedLabApi < Plant
 
         function prepare_ros2(obj)
 
-            if (obj.is_ros2_prepared) % Only perform once.
-                return;
-            end
-
             disp('Setup. Phase 1: Generation of ROS2 messages...');
 
             % generated message types if not already existing
@@ -394,8 +389,6 @@ classdef UnifiedLabApi < Plant
             [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'ula_interfaces/VehiclesRequest');
             % Since matlab does not provide support for actions, we use a normal message via the action bridge node
             % obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'ula_interfaces/VehicleIDs');
-
-            obj.is_ros2_prepared = true;
         end
 
         function prepare_api(obj, controlled_vehicle_ids)
