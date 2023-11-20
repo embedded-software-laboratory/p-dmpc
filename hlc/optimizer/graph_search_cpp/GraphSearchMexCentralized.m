@@ -33,7 +33,7 @@ classdef GraphSearchMexCentralized < OptimizerInterface
             k = 0;
             g = 0;
             h = 0;
-            tree = Tree(x, y, yaw, trim, k, g, h);
+            tree = AStarTree(x, y, yaw, trim, k, g, h);
         end
 
     end

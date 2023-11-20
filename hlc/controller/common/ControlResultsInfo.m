@@ -3,7 +3,7 @@ classdef ControlResultsInfo
     %   Detailed explanation goes here
 
     properties
-        tree (:, 1) % object of the class `Tree`
+        tree (:, 1) % array of trees
         tree_path (:, :) double % tree path
         n_expanded (:, 1) double % number of times that nodes are expended during graph search
         next_node % next node information

@@ -1,4 +1,4 @@
-function [new_open_nodes] = expand_node(options ,mpa, iter, iNode, info)
+function [new_open_nodes] = expand_node(options, mpa, iter, iNode, info)
     % EXPAND_NODE   Expand node in search tree and return succeeding nodes.
     trim_tuple = mpa.trim_tuple;
     trim_length = length(mpa.trims) * ones(1, iter.amount);
@@ -17,12 +17,16 @@ function [new_open_nodes] = expand_node(options ,mpa, iter, iNode, info)
     % The calculation is now done via transition_matrix_single.
     % see !127
     per_vehicle_trims = cell(1, iter.amount);
+
     for iVehicle = 1:iter.amount
         per_vehicle_trims{iVehicle} = find(mpa.transition_matrix_single(curTrim(iVehicle), :, k_exp));
+
         if iVehicle > 1
-            per_vehicle_trims{iVehicle} = (per_vehicle_trims{iVehicle} - 1) * prod(trim_length(1:iVehicle-1));
+            per_vehicle_trims{iVehicle} = (per_vehicle_trims{iVehicle} - 1) * prod(trim_length(1:iVehicle - 1));
         end
+
     end
+
     successor_trim_ids = sum(cartprod(per_vehicle_trims{:}), 2);
     nTrims = numel(successor_trim_ids);
 
