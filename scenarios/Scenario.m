@@ -35,8 +35,6 @@ classdef Scenario
             xlim(options.plot_limits(1, :));
             ylim(options.plot_limits(2, :));
 
-            colors = rwth_color_order();
-
             for iVeh = 1:numel(obj.vehicles)
                 veh = obj.vehicles(iVeh);
                 % reference trajectory
@@ -47,7 +45,7 @@ classdef Scenario
                 );
 
                 % vehicle rectangle
-                veh.plot(colors(iVeh, :));
+                veh.plot(rwth_color_order(iVeh));
             end
 
             % Obstacles
