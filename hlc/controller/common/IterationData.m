@@ -5,7 +5,7 @@ classdef IterationData
         reference_trajectory_points (:, :, 2) double % n_vehicles x Hp x (px,py)
 
         priority_permutation % permutation index for multiple priorities
-        x0 (:, 4) % state
+        x0 (:, 4) % state: (x, y, yaw, speed)
         trim_indices % current trim
         v_ref % reference speed
         current_lanelet % vehicle's current lanelet
