@@ -219,7 +219,7 @@ classdef PlotterOnline < Plotter
             plotting_info.tick_now = msg.tick_now;
             plotting_info.weighted_coupling_reduced = reshape(msg.weighted_coupling_reduced, obj.options.amount, obj.options.amount)';
             plotting_info.directed_coupling = reshape(msg.directed_coupling, obj.options.amount, obj.options.amount)';
-            plotting_info.belonging_vector = msg.belonging_vector;
+            plotting_info.directed_coupling_sequential = reshape(msg.directed_coupling_sequential, obj.options.amount, obj.options.amount)';
             plotting_info.is_virtual_obstacle = reshape(msg.is_virtual_obstacle, obj.options.amount, obj.options.amount)';
         end
 
@@ -236,8 +236,6 @@ classdef PlotterOnline < Plotter
             complete_plotting_info.trajectory_predictions = trajectory_predictions;
             complete_plotting_info.ref_trajectory = ref_trajectory;
             complete_plotting_info.priorities = cellfun(@(x) x.priorities, plotting_info_collection)';
-
-            complete_plotting_info.belonging_vector = cellfun(@(x) x.belonging_vector, plotting_info_collection)';
 
             n_obstacles = 0;
 

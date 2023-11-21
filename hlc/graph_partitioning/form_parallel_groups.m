@@ -1,4 +1,4 @@
-function [directed_coupling_sequential, subgraphs_info, belonging_vector] = form_parallel_groups(M, coupling_info, max_num_CLs, is_force_parallel_vehs_in_same_grp, method)
+function [directed_coupling_sequential, subgraphs_info] = form_parallel_groups(M, coupling_info, max_num_CLs, is_force_parallel_vehs_in_same_grp, method)
     % TODO Substitute with cut method.
     % function result = sequential_coupling(weighted_coupling)
 
@@ -27,11 +27,6 @@ function [directed_coupling_sequential, subgraphs_info, belonging_vector] = form
     %
     %   subgraphs_info: information of all the subgraphs, such as vertices, number
     %   of computation levels
-    %
-    %   belonging_vector: a column vector whose values indicate which
-    %   subgraphs the vertices belong to. For example,"belonging_vector =
-    %   [1;2;2;1;3]" means the 1st subgraph = {1,4}, the 2nd subgraph = {2,3}
-    %   and the 3rd subgraph = {5}.
     directed_coupling_sequential = zeros(size(M));
 
     if max_num_CLs == 1
