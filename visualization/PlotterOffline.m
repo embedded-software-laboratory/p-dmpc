@@ -3,7 +3,7 @@ classdef PlotterOffline < Plotter
     %   From a ExperimentResult object, the different time steps can be plotted and iterated forwards and backwards.
 
     properties
-        experiment_result (1, 1) ExperimentResult % ExperimentResult to plot
+        experiment_result ExperimentResult % ExperimentResult to plot
     end
 
     properties (Access = private)

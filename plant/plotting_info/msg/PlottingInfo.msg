@@ -1,6 +1,5 @@
 float64[]   trajectory_predictions          # L x 4
 float64[]   ref_trajectory                  # 1 x Hp x 2
-int32       priorities                      # 1
 int32       n_obstacles                     # 1 (= 0)
 int32       n_dynamic_obstacles             # 1 (= 0)
 int32       step                            # 1

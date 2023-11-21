@@ -211,7 +211,6 @@ classdef PlotterOnline < Plotter
             plotting_info.trajectory_predictions = reshape(msg.trajectory_predictions, 4, numel(msg.trajectory_predictions) / 4)';
             plotting_info.ref_trajectory = zeros(1, obj.options.Hp, 2);
             plotting_info.ref_trajectory(1, :, :) = reshape(msg.ref_trajectory, numel(msg.ref_trajectory) / 2, 2);
-            plotting_info.priorities = msg.priorities;
             plotting_info.n_obstacles = msg.n_obstacles;
             plotting_info.n_dynamic_obstacles = msg.n_dynamic_obstacles;
             plotting_info.step = msg.step;
@@ -235,7 +234,6 @@ classdef PlotterOnline < Plotter
 
             complete_plotting_info.trajectory_predictions = trajectory_predictions;
             complete_plotting_info.ref_trajectory = ref_trajectory;
-            complete_plotting_info.priorities = cellfun(@(x) x.priorities, plotting_info_collection)';
 
             n_obstacles = 0;
 

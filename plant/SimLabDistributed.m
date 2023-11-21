@@ -92,7 +92,6 @@ classdef SimLabDistributed < Plant
             % all matrices must be converted into list to comply with ros 2 message format
             obj.msg_to_be_sent.trajectory_predictions = reshape(plotting_info.trajectory_predictions', 1, []);
             obj.msg_to_be_sent.ref_trajectory = reshape(squeeze(plotting_info.ref_trajectory), 1, []);
-            obj.msg_to_be_sent.priorities = int32(plotting_info.priorities);
             obj.msg_to_be_sent.n_obstacles = int32(0);
             obj.msg_to_be_sent.n_dynamic_obstacles = int32(0);
             obj.msg_to_be_sent.step = int32(plotting_info.step);

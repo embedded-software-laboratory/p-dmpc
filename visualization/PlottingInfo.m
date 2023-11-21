@@ -3,7 +3,6 @@ classdef PlottingInfo
     properties
         trajectory_predictions
         ref_trajectory
-        priorities
         n_obstacles
         n_dynamic_obstacles
         obstacles
@@ -68,7 +67,6 @@ classdef PlottingInfo
             filter_self(obj.veh_indices(1)) = true;
             obj.trajectory_predictions = obj.trajectory_predictions{filter_self'};
             obj.ref_trajectory = obj.ref_trajectory(filter_self, :, :);
-            obj.priorities = obj.priorities(filter_self');
 
             if plot_options.plot_reachable_sets
                 obj.reachable_sets = obj.reachable_sets{filter_self, :};
