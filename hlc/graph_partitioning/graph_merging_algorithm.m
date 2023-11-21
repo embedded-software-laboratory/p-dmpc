@@ -1,4 +1,4 @@
-function [belonging_vector, subgraphs_info] = graph_merging_algorithm(M, belonging_vector, subgraphs_info, max_num_CLs)
+function subgraphs_info = graph_merging_algorithm(M, belonging_vector, subgraphs_info, max_num_CLs)
     % GRAPH_MERGING_ALGORITHM Find connected subgraph pairs that can be merged to
     % one bigger graph while still not exceeding the maximum allowed
     % computation levels. This algorithm gaurantees to find the optimal merging
@@ -10,11 +10,6 @@ function [belonging_vector, subgraphs_info] = graph_merging_algorithm(M, belongi
     %   Can be either the adjacency matrix or the edge-weights matrix of the
     %   target graph. Edge-weights will not be considered if M is the dajacency
     %   matrix.
-    %
-    %   belonging_vector: a column vector whose values indicate which
-    %   subgraphs the vertices belong to. For example,"belonging_vector =
-    %   [1;2;2;1;3]" means the 1st subgraph = {1,4}, the 2nd subgraph = {2,3}
-    %   and the 3rd subgraph = {5}.
     %
     %   subgraph_info: information of all the subgraphs, such as vertices, number
     %   of computation levels

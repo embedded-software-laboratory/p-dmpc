@@ -1,4 +1,4 @@
-function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, coupling_info, max_num_CLs, is_force_parallel_vehs_in_same_grp, method)
+function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, coupling_info, max_num_CLs, method)
     % GRAPH_PARTITIONING_ALGORITHM Partition the given edge-weighted directed acyclic graph (DAG) while ensuring
     % the size of each subgraph do not exceed the defined maximum graph size.
     %
@@ -8,13 +8,7 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, co
     %   target graph. Edge-weights will not be considered if M is the dajacency
     %   matrix.
     %
-    %   coupling_info: couling information of each coupling pair
-    %
     %   max_num_CLs: maximum number of computation levels
-    %
-    %   is_force_parallel_vehs_in_same_grp:
-    %       boolean whether to force parallel driving vehicles
-    %       being in the same group
     %
     %   method: either 's-t-cut' or 'MILP'
     %
@@ -27,52 +21,49 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, co
     %   subgraph_info: information of all the subgraphs, such as vertices, number
     %   of computation levels
 
+    % Force parallely driving vehicles to be coupled sequentially
     multiple_vehs_drive_parallel = {};
     entries = find(M);
     amount = size(M, 1);
 
-    if is_force_parallel_vehs_in_same_grp
+    if ~isempty(entries) && ~isempty([coupling_info{:}]) % in case is isnt a commonroad scenario or there are no couplings
+        used_coupling_info = [coupling_info{entries}];
+        % find all vehicles that drive in parallel
+        parallel_pairs = find([used_coupling_info.is_move_side_by_side]);
+        parallel_pairs_entries = entries(parallel_pairs);
+        used_coupling_info_parallel = used_coupling_info(parallel_pairs);
+        % sort according to the STAC so that parallel pair with higher STAC will be considered earlier
+        [~, order] = sort([used_coupling_info_parallel.stac]);
+        parallel_pairs_entries = parallel_pairs_entries(order);
+        rows = mod(parallel_pairs_entries, amount);
+        cols = ceil(parallel_pairs_entries / amount);
+        vehs_drive_parallel = [rows, cols];
+    else
+        vehs_drive_parallel = [];
+    end
 
-        if ~isempty(entries) && ~isempty([coupling_info{:}]) % in case is isnt a commonroad scenario or there are no couplings
-            used_coupling_info = [coupling_info{entries}];
-            % find all vehicles that drive in parallel
-            parallel_pairs = find([used_coupling_info.is_move_side_by_side]);
-            parallel_pairs_entries = entries(parallel_pairs);
-            used_coupling_info_parallel = used_coupling_info(parallel_pairs);
-            % sort according to the STAC so that parallel pair with higher STAC will be considered earlier
-            [~, order] = sort([used_coupling_info_parallel.stac]);
-            parallel_pairs_entries = parallel_pairs_entries(order);
-            rows = mod(parallel_pairs_entries, amount);
-            cols = ceil(parallel_pairs_entries / amount);
-            vehs_drive_parallel = [rows, cols];
+    % Deal with multiple vehicles drive in parallel
+    for iParl = 1:size(vehs_drive_parallel, 1)
+        vehs_drive_parallel_i = vehs_drive_parallel(iParl, :);
+        find_cell_idx = find(cellfun(@(c) any(ismember(vehs_drive_parallel_i, c)), multiple_vehs_drive_parallel));
+
+        if isempty(find_cell_idx) && length(vehs_drive_parallel_i) <= max_num_CLs
+            % Add to a new parallel dirving group
+            multiple_vehs_drive_parallel{end + 1} = vehs_drive_parallel_i;
         else
-            vehs_drive_parallel = [];
-        end
-
-        % Deal with multiple vehicles drive in parallel
-        for iParl = 1:size(vehs_drive_parallel, 1)
-            vehs_drive_parallel_i = vehs_drive_parallel(iParl, :);
-            find_cell_idx = find(cellfun(@(c) any(ismember(vehs_drive_parallel_i, c)), multiple_vehs_drive_parallel));
-
-            if isempty(find_cell_idx) && length(vehs_drive_parallel_i) <= max_num_CLs
-                % Add to a new parallel dirving group
-                multiple_vehs_drive_parallel{end + 1} = vehs_drive_parallel_i;
-            else
-                new_members = sort(unique([multiple_vehs_drive_parallel{find_cell_idx}, vehs_drive_parallel_i]), 'ascend');
-                % Check if the allowed number computation levels is exceeded
-                if length(new_members) <= max_num_CLs
-                    % Add to the existing parallel driving group
-                    if length(find_cell_idx) == 1
-                        multiple_vehs_drive_parallel{find_cell_idx} = new_members;
-                    else
-                        find_cell_idx = sort(find_cell_idx, 'ascend');
-                        multiple_vehs_drive_parallel{find_cell_idx(1)} = new_members;
-                        % delete others
-                        to_delete = false(1, length(multiple_vehs_drive_parallel));
-                        to_delete(find_cell_idx(2:end)) = true;
-                        multiple_vehs_drive_parallel = multiple_vehs_drive_parallel(~to_delete);
-                    end
-
+            new_members = sort(unique([multiple_vehs_drive_parallel{find_cell_idx}, vehs_drive_parallel_i]), 'ascend');
+            % Check if the allowed number computation levels is exceeded
+            if length(new_members) <= max_num_CLs
+                % Add to the existing parallel driving group
+                if length(find_cell_idx) == 1
+                    multiple_vehs_drive_parallel{find_cell_idx} = new_members;
+                else
+                    find_cell_idx = sort(find_cell_idx, 'ascend');
+                    multiple_vehs_drive_parallel{find_cell_idx(1)} = new_members;
+                    % delete others
+                    to_delete = false(1, length(multiple_vehs_drive_parallel));
+                    to_delete(find_cell_idx(2:end)) = true;
+                    multiple_vehs_drive_parallel = multiple_vehs_drive_parallel(~to_delete);
                 end
 
             end
