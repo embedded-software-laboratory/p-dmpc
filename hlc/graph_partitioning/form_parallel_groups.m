@@ -30,16 +30,7 @@ function directed_coupling_sequential = form_parallel_groups(M, coupling_info, m
     directed_coupling_sequential = zeros(size(M));
 
     if max_num_CLs == 1
-        % pure parallel trajectory planning
-        nVeh = length(M);
-
-        belonging_vector = 1:nVeh;
-        subgraphs_info(nVeh) = struct('vertices', [], 'num_CLs', [], 'path_info', []);
-
-        for i = 1:nVeh
-            subgraphs_info(i).vertices = i;
-        end
-
+        % No sequential couplings
         return
     end
 
