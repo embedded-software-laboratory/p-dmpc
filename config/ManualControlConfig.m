@@ -1,10 +1,14 @@
 classdef ManualControlConfig
-    %MANUALCONTROLCONFIG Configuration specificed to Manual Control Scenarios
+    % ManualControlConfig Configuration specified to Manual Control Scenarios
 
     properties
-        is_active = false; % whether manual vehicles should be considered
-        amount = 0;
-        hdv_ids = []; % vehicle ID of manually controlled vehicle (MCV) TODO: assing manually
+        % whether manual vehicles should be considered
+        is_active (1, 1) logical = false;
+        % amount of manually controlled vehicles
+        amount (1, 1) double = 0;
+        % vehicle ids of manually controlled vehicle (MCV)
+        % data type is related to *vehicle_ids in Plant.m
+        hdv_ids (1, :) uint8 = [];
     end
 
     methods

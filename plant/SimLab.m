@@ -4,8 +4,9 @@ classdef SimLab < Plant
     properties (Access = private)
         plotter % own plotter to visualize if no visualization_data_queue is given
         visualization_data_queue
-        use_visualization_data_queue
-        should_plot
+
+        use_visualization_data_queue (1, 1) logical = false;
+        should_plot (1, 1) logical = false;
 
         step_timer (1, 1) uint64 % used for tic/toc to measure the time between measure() and apply() to make realtime plotting possible
     end
@@ -14,61 +15,77 @@ classdef SimLab < Plant
 
         function obj = SimLab()
             obj = obj@Plant();
-            obj.use_visualization_data_queue = false;
         end
 
-        function visualization_data_queue = get_visualization_data_queue(obj)
-            visualization_data_queue = obj.visualization_data_queue;
+        function set_visualization_data_queue(obj, visualization_data_queue)
+            % note: parallel.pool.DataQueue does not support arguments validation
+            obj.visualization_data_queue = visualization_data_queue;
         end
 
-        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) SimLab
                 options (1, 1) Config
-                scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
 
-            % if [] is passed in, matlab does not choose the default
-            if isempty(all_vehicle_ids)
-                all_vehicle_ids = options.path_ids;
-            end
+            setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
 
-            % only set controlled ids to all ids after all ids have been set
-            if isempty(controlled_vehicle_ids)
-                controlled_vehicle_ids = all_vehicle_ids;
+            % create scenario adapter to get scenario
+            % with SimLab only BuiltScenario can be used
+            scenario_adapter = BuiltScenario();
+            scenario_adapter.init(options, obj);
+
+            % all vehicles have the same initial speed and steering
+            initial_speed = 0;
+            initial_steering = 0;
+
+            % set initial vehicle measurements
+            for i_vehicle = 1:options.amount
+                obj.measurements(i_vehicle) = PlantMeasurement( ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).x_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).y_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).yaw_start, ...
+                    initial_speed, ...
+                    initial_steering ...
+                );
             end
 
             % check whether visualization data queue is needed and initialize if necessary
-            if (options.is_prioritized ...
+            if ( ...
+                    options.is_prioritized ...
                     && options.compute_in_parallel ...
                     && options.options_plot_online.is_active ...
-                    && isempty(obj.visualization_data_queue) ...
                 )
-                obj.visualization_data_queue = parallel.pool.DataQueue;
                 obj.use_visualization_data_queue = true;
             end
 
-            setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
             obj.should_plot = obj.options_plot_online.is_active;
 
             if obj.should_plot && ~obj.use_visualization_data_queue
-                obj.plotter = PlotterOnline(options, scenario, obj.indices_in_vehicle_list);
+                obj.plotter = PlotterOnline(options, scenario_adapter.scenario, obj.indices_in_vehicle_list);
             end
 
         end
 
-        function [x0, trim_indices] = measure(obj, mpa)
+        function [cav_measurements, hdv_measurements] = measure(obj)
             obj.step_timer = tic(); % Keep time to enable realtime plotting in apply
-            [x0, trim_indices] = obj.measure_node(mpa);
+            cav_measurements = obj.measurements;
+            hdv_measurements = [];
         end
 
-        function apply(obj, info, experiment_result, k, ~)
+        function apply(obj, info, experiment_result, k, mpa)
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
-                obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
+                obj.measurements(iVeh) = PlantMeasurement( ...
+                    info.next_node(iVeh, NodeInfo.x), ...
+                    info.next_node(iVeh, NodeInfo.y), ...
+                    info.next_node(iVeh, NodeInfo.yaw), ...
+                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).speed, ...
+                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).steering ...
+                );
             end
 
             if obj.should_plot

@@ -3,140 +3,184 @@ classdef CpmLab < Plant
 
     properties (Access = private)
         dds_participant
-        dds_participant_lab
         reader_vehicleStateList
         writer_vehicleCommandTrajectory
         writer_vehicleCommandDirect
-        writer_visualization
         reader_systemTrigger
         writer_readyStatus
         trigger_stop
+
         dt_period_nanos
         sample
         out_of_map_limits
-        pos_init
     end
 
     methods
 
         function obj = CpmLab()
             obj = obj@Plant();
-            obj.pos_init = false;
         end
 
-        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) CpmLab
                 options (1, 1) Config
-                scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8 % used to validate amount of set vehicle ids
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
             end
 
-            % Initialize data readers/writers...
-            % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
-            common_cpm_functions_path = fullfile( ...
-                getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
-            );
-            assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
-            addpath(common_cpm_functions_path);
-
-            matlabDomainId = 1;
-            [obj.dds_participant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
-
-            % create Lab participant
-            obj.dds_participant_lab = DDS.DomainParticipant('MatlabLibrary::LocalCommunicationProfile', str2double(getenv('DDS_DOMAIN')));
-
-            % create writer for lab visualization
-            matlabVisualizationTopicName = 'visualization';
-            obj.writer_visualization = DDS.DataWriter(DDS.Publisher(obj.dds_participant_lab), 'Visualization', matlabVisualizationTopicName);
-
-            % Set reader properties
-            obj.reader_vehicleStateList.WaitSet = true;
-            obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
+            % create data readers/writers...
+            obj.prepare_dds();
 
             % get middleware period and vehicle ids from vehicle state list message
-            [sample_for_setup, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
+            [initial_samples, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
             if (sample_count == 0)
                 error('No vehicle state list received during CpmLab.setup!');
             end
 
-            state_list = sample_for_setup(end);
+            sample_for_setup = initial_samples(end);
 
-            % state_list.period_ms
+            % sample_for_setup.period_ms
             % data type unsigned long long (IDL)
             % aka uint64_t (C++) aka uint64 (Matlab)
 
-            % take step time from state list
-            options.dt_seconds = cast(state_list.period_ms, "double") / 1e3;
+            % take step time from sample_for_setup
+            options.dt_seconds = cast(sample_for_setup.period_ms, "double") / 1e3;
 
             % middleware period for valid_after stamp
             obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
 
             % validate the amount of active_vehicle_ids
             assert( ...
-                length(state_list.active_vehicle_ids) == ...
+                length(sample_for_setup.active_vehicle_ids) == ...
                 length(all_vehicle_ids) + options.manual_control_config.amount, ...
                 'Amount of active_vehicle_ids (%d) does not match expected amount (%d)!', ...
-                length(state_list.active_vehicle_ids), ...
+                length(sample_for_setup.active_vehicle_ids), ...
                 length(all_vehicle_ids) + options.manual_control_config.amount ...
             );
 
-            % boolean that extracts the controlled_vehicle_ids from active_vehicle_ids
-            is_controlled = controlled_vehicle_ids == all_vehicle_ids;
+            % subtract the hdv_ids from active_vehicle_ids
+            active_cav_vehicle_ids_from_lab = setdiff( ...
+                sample_for_setup.active_vehicle_ids, ...
+                options.manual_control_config.hdv_ids ...
+            );
 
-            setup@Plant(obj, options, scenario, state_list.active_vehicle_ids, state_list.active_vehicle_ids(is_controlled));
+            % boolean that extracts the controlled lab vehicle_ids
+            % from the active lab cav vehicle_ids
+            is_controlled = ismember(all_vehicle_ids, controlled_vehicle_ids);
+
+            % use vehicle_ids from lab for superclass
+            all_vehicle_ids_from_lab = active_cav_vehicle_ids_from_lab;
+            controlled_vehicle_ids_from_lab = active_cav_vehicle_ids_from_lab(is_controlled);
+
+            setup@Plant(obj, options, all_vehicle_ids_from_lab, controlled_vehicle_ids_from_lab);
+
+            % take list of VehicleStates from sample
+            state_list = sample_for_setup.state_list;
+
+            % since there is no steering info in [rad],
+            % the initial_steering is assumed to 0
+            initial_steering = 0;
+
+            for index = 1:length(state_list)
+
+                % data type of state_list vehicle_id is uint8 and
+                % matches the data type of the superclass variable
+                % casting of the data type is not necessary
+                if ~any(state_list(index).vehicle_id == controlled_vehicle_ids)
+                    % if vehicle is not controlled, do not use received information
+                    continue
+                end
+
+                % boolean with exactly one true entry for the position in all_vehicle_ids
+                is_in_vehicle_list = state_list(index).vehicle_id == all_vehicle_ids;
+
+                obj.measurements(is_in_vehicle_list) = PlantMeasurement( ...
+                    state_list(index).pose.x, ...
+                    state_list(index).pose.y, ...
+                    state_list(index).pose.yaw, ...
+                    state_list(index).speed, ...
+                    initial_steering ...
+                );
+
+            end
+
         end
 
-        function [x0, trim_indices] = measure(obj, mpa)
+        function synchronize_start_with_plant(obj)
+            % Sync start with infrastructure
+            % Send ready signal for all assigned vehicle ids
+            disp('Sending ready signal');
+
+            for iVehicle = obj.controlled_vehicle_ids
+                ready_msg = ReadyStatus;
+                ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
+                ready_stamp = TimeStamp;
+                ready_stamp.nanoseconds = uint64(0);
+                ready_msg.next_start_stamp = ready_stamp;
+                obj.writer_readyStatus.write(ready_msg);
+            end
+
+            % Wait for start or stop signal
+            disp('Waiting for start or stop signal');
+
+            got_start = false;
+            got_stop = false;
+
+            while (~got_stop && ~got_start)
+                [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
+            end
+
+        end
+
+        function [cav_measurements, hdv_measurements] = measure(obj)
+            % take cav_measurements that were applied in the previous step
+            % for the first step they hold the initialized values
+            cav_measurements = obj.measurements;
+
             [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
 
             if (sample_count > 1)
                 warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
             end
 
-            state_list = obj.sample(end).state_list;
-
-            x0 = zeros(obj.amount + obj.manual_control_config.amount, 4);
-
-            % for first iteration use real poses
-            if (obj.pos_init == false)
-                cav_index = 1;
-
-                for index = 1:length(state_list)
-
-                    if ismember(state_list(index).vehicle_id, obj.controlled_vehicle_ids) % measure cav states
-                        list_index = obj.indices_in_vehicle_list(cav_index); % use list to prevent breaking distributed control
-                        cav_index = cav_index + 1;
-                        x0(list_index, 1) = state_list(index).pose.x;
-                        x0(list_index, 2) = state_list(index).pose.y;
-                        x0(list_index, 3) = state_list(index).pose.yaw;
-                        x0(list_index, 4) = [state_list(index).speed];
-                    end
-
-                end
-
-                [~, trim_indices] = obj.measure_node(mpa);
-                obj.pos_init = true;
-            else
-                [x0(1:obj.amount, :), trim_indices] = obj.measure_node(mpa); % get cav states from current node
+            % if there are no manual vehicles return directly
+            if ~obj.manual_control_config.is_active
+                hdv_measurements = [];
+                return
             end
 
-            % Always measure HDV
-            hdv_index = 1;
+            state_list = obj.sample(end).state_list;
+
+            % initialize return variable
+            hdv_measurements(obj.manual_control_config.amount, 1) = PlantMeasurement();
+
+            % since there is no steering info in [rad],
+            % the hdv_steering is assumed to 0
+            hdv_steering = 0;
 
             for index = 1:length(state_list)
 
-                if ismember(state_list(index).vehicle_id, obj.manual_control_config.hdv_ids)
-                    list_index = obj.amount + hdv_index;
-                    hdv_index = hdv_index + 1;
-                    x0(list_index, 1) = state_list(index).pose.x;
-                    x0(list_index, 2) = state_list(index).pose.y;
-                    x0(list_index, 3) = state_list(index).pose.yaw;
-                    x0(list_index, 4) = [state_list(index).speed];
+                % data type of state_list vehicle_id is uint8 and
+                % matches the data type of the manual_control_config member
+                % casting of the data type is not necessary
+                if ~any(state_list(index).vehicle_id == obj.manual_control_config.hdv_ids)
+                    % if vehicle is no hdv, do not use received information
+                    continue
                 end
+
+                % boolean with exactly one true entry for the position in hdv_ids
+                is_in_hdv_list = state_list(index).vehicle_id == obj.manual_control_config.hdv_ids;
+
+                hdv_measurements(is_in_hdv_list) = PlantMeasurement( ...
+                    state_list(index).pose.x, ...
+                    state_list(index).pose.y, ...
+                    state_list(index).pose.yaw, ...
+                    state_list(index).speed, ...
+                    hdv_steering ...
+                );
 
             end
 
@@ -146,7 +190,13 @@ classdef CpmLab < Plant
             y_pred = info.y_predicted;
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
-                obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
+                obj.measurements(iVeh) = PlantMeasurement( ...
+                    info.next_node(iVeh, NodeInfo.x), ...
+                    info.next_node(iVeh, NodeInfo.y), ...
+                    info.next_node(iVeh, NodeInfo.yaw), ...
+                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).speed, ...
+                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).steering ...
+                );
             end
 
             % calculate vehicle control messages
@@ -188,10 +238,6 @@ classdef CpmLab < Plant
 
         end
 
-        function visualize(obj, visualization_command)
-            obj.writer_visualization.write(visualization_command);
-        end
-
         function got_stop = is_stop(obj)
             [~, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
 
@@ -203,32 +249,6 @@ classdef CpmLab < Plant
 
         function end_run(obj)
             disp('End')
-        end
-
-        function synchronize_start_with_plant(obj)
-            % Sync start with infrastructure
-            % Send ready signal for all assigned vehicle ids
-            disp('Sending ready signal');
-
-            for iVehicle = obj.controlled_vehicle_ids
-                ready_msg = ReadyStatus;
-                ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
-                ready_stamp = TimeStamp;
-                ready_stamp.nanoseconds = uint64(0);
-                ready_msg.next_start_stamp = ready_stamp;
-                obj.writer_readyStatus.write(ready_msg);
-            end
-
-            % Wait for start or stop signal
-            disp('Waiting for start or stop signal');
-
-            got_start = false;
-            got_stop = false;
-
-            while (~got_stop && ~got_start)
-                [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
-            end
-
         end
 
     end
@@ -248,6 +268,22 @@ classdef CpmLab < Plant
             py = trajectory_points(4).py;
             stop_experiment = x_min > px || px > x_max ...
                 || y_min > py || py > y_max;
+        end
+
+        function prepare_dds(obj)
+            % getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
+            common_cpm_functions_path = fullfile( ...
+                getenv('HOME'), 'dev/software/high_level_controller/examples/matlab' ...
+            );
+            assert(isfolder(common_cpm_functions_path), 'Missing folder "%s".', common_cpm_functions_path);
+            addpath(common_cpm_functions_path);
+
+            matlabDomainId = 1;
+            [obj.dds_participant, obj.reader_vehicleStateList, obj.writer_vehicleCommandTrajectory, ~, obj.reader_systemTrigger, obj.writer_readyStatus, obj.trigger_stop, obj.writer_vehicleCommandDirect] = init_script(matlabDomainId); % #ok<ASGLU>
+
+            % Set reader properties
+            obj.reader_vehicleStateList.WaitSet = true;
+            obj.reader_vehicleStateList.WaitSetTimeout = 5; % [s]
         end
 
     end

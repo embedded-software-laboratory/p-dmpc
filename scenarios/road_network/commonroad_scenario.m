@@ -44,6 +44,4 @@ function scenario = commonroad_scenario(amount, path_ids)
         scenario.vehicles = [scenario.vehicles, veh];
     end
 
-    scenario.model = BicycleModel(veh.Lf, veh.Lr);
-
 end

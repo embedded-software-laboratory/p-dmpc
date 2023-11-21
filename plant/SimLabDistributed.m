@@ -15,17 +15,37 @@ classdef SimLabDistributed < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) SimLabDistributed
                 options (1, 1) Config
-                scenario (1, 1) Scenario
                 all_vehicle_ids (1, :) uint8
                 controlled_vehicle_ids (1, 1) uint8 = all_vehicle_ids(1)
             end
 
-            setup@Plant(obj, options, scenario, all_vehicle_ids, controlled_vehicle_ids);
+            setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
+
+            % create scenario adapter to get scenario
+            % with SimLabDistributed only BuiltScenario can be used
+            scenario_adapter = BuiltScenario();
+            scenario_adapter.init(options, obj);
+
+            % all vehicles have the same initial speed and steering
+            initial_speed = 0;
+            initial_steering = 0;
+
+            % set initial vehicle measurements
+            for i_vehicle = 1:options.amount
+                obj.measurements(i_vehicle) = PlantMeasurement( ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).x_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).y_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).yaw_start, ...
+                    initial_speed, ...
+                    initial_steering ...
+                );
+            end
+
             obj.should_plot = obj.options_plot_online.is_active;
             obj.generate_plotting_info_msgs();
             obj.ros2_node = ros2node(['/plant_', num2str(obj.controlled_vehicle_ids(1))]);
@@ -35,14 +55,21 @@ classdef SimLabDistributed < Plant
             obj.msg_to_be_sent = ros2message("plotting_info/PlottingInfo");
         end
 
-        function [x0, trim_indices] = measure(obj, mpa)
-            [x0, trim_indices] = obj.measure_node(mpa);
+        function [cav_measurements, hdv_measurements] = measure(obj)
+            cav_measurements = obj.measurements;
+            hdv_measurements = [];
         end
 
-        function apply(obj, info, experiment_result, k, ~)
+        function apply(obj, info, experiment_result, k, mpa)
             % simulate change of state
             for iVeh = obj.indices_in_vehicle_list
-                obj.cur_node(iVeh, :) = info.next_node(iVeh, :);
+                obj.measurements(iVeh) = PlantMeasurement( ...
+                    info.next_node(iVeh, NodeInfo.x), ...
+                    info.next_node(iVeh, NodeInfo.y), ...
+                    info.next_node(iVeh, NodeInfo.yaw), ...
+                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).speed, ...
+                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).steering ...
+                );
             end
 
             if obj.should_plot

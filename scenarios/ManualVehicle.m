@@ -11,7 +11,6 @@ classdef ManualVehicle
         points_index;
         road_raw_data;
         options;
-        model;
         mpa;
     end
 
@@ -27,14 +26,13 @@ classdef ManualVehicle
             obj.options = options;
             obj.road_raw_data = road_raw_data;
             obj.ID = id;
-            obj.model = BicycleModel(obj.Lf, obj.Lr);
-            obj.mpa = MotionPrimitiveAutomaton(obj.model, options);
+            obj.mpa = MotionPrimitiveAutomaton(BicycleModel(obj.Lf, obj.Lr), options);
         end
 
-        function reachable_sets = compute_reachable_lane(obj, x, lanelet_ids)
+        function reachable_sets = compute_reachable_lane(obj, measurement, lanelet_ids)
             local_reachable_sets = obj.mpa.local_reachable_sets;
             lanelet_struct = obj.road_raw_data.lanelet;
-            reachable_sets = get_reachable_sets(x(1), x(2), x(3), local_reachable_sets(1, :), cell(1, 3), obj.options);
+            reachable_sets = get_reachable_sets(measurement.x, measurement.y, measurement.yaw, local_reachable_sets(1, :), cell(1, 3), obj.options);
             lanelets_poly = polyshape;
 
             for id = lanelet_ids
