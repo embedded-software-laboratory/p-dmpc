@@ -1,4 +1,4 @@
-function [directed_coupling_sequential, subgraphs_info] = form_parallel_groups(M, coupling_info, max_num_CLs, is_force_parallel_vehs_in_same_grp, method)
+function directed_coupling_sequential = form_parallel_groups(M, coupling_info, max_num_CLs, is_force_parallel_vehs_in_same_grp, method)
     % TODO Substitute with cut method.
     % function result = sequential_coupling(weighted_coupling)
 
