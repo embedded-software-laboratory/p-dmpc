@@ -6,10 +6,11 @@ classdef Config
         is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
         compute_in_parallel = false; % true/false, is use parallel(distributed) computation
-        scenario_type ScenarioType = ScenarioType.commonroad; % one of the follows: {'Circle_scenario', 'Commonroad'}
-        priority PriorityStrategies = PriorityStrategies.constant_priority; % defines which priority assignmen strategy is used
-        weight WeightStrategies = WeightStrategies.distance_weight; % defines which weighting method is used
-        coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling; % defines which coupler is used
+        scenario_type ScenarioType = ScenarioType.commonroad;
+        coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling;
+        priority PriorityStrategies = PriorityStrategies.constant_priority;
+        weight WeightStrategies = WeightStrategies.distance_weight;
+        cut CutStrategies = CutStrategies.iterative_min_cut;
         dt_seconds = 0.2; % scalar, default sample time
         Hp = 6; % scalar, prediction horizon
         mpa_type MpaType = MpaType.single_speed; % mpa type (element of {'single_speed', 'triple_speed', 'realistic'})

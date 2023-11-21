@@ -12,6 +12,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
     properties (Access = protected)
         prioritizer
         weigher
+        cutter
 
         consider_parallel_coupling (1, 1) function_handle = @()[];
     end
@@ -23,6 +24,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             obj.prioritizer = Prioritizer.get_prioritizer(obj.options.priority);
             obj.weigher = Weigher.get_weigher(obj.options.weight);
+            obj.cutter = Cutter.get_cutter(options.cut);
 
             if obj.options.isDealPredictionInconsistency
                 obj.consider_parallel_coupling = @obj.parallel_coupling_reachability;
@@ -431,12 +433,10 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             obj.timing_general.start("group_vehs_time", obj.k);
             % reduce by grouping and cutting edges
-            method = 's-t-cut'; % 's-t-cut' or 'MILP'
-            obj.iter.directed_coupling_sequential = form_parallel_groups( ...
+            obj.iter.directed_coupling_sequential = obj.cutter.cut( ...
                 obj.iter.weighted_coupling_reduced, ...
                 obj.iter.coupling_info, ...
-                obj.options.max_num_CLs, ...
-                method ...
+                obj.options.max_num_CLs ...
             );
             obj.timing_general.stop("group_vehs_time", obj.k);
 
