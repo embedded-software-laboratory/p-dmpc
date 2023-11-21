@@ -104,11 +104,11 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs", ResearchGate, Preprint, 2023, doi: 10.13140/RG.2.2.24697.13923
+P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs," 2023 IEEE Intelligent Vehicles Symposium (IV), Anchorage, AK, USA, 2023, doi: 10.1109/IV55152.2023.10186623.
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
-[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://dx.doi.org/10.13140/RG.2.2.24697.13923)
+[![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.1109/IV55152.2023.10186623)
 [![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v2.0)
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/kDIVu0tv9Ro)
 </summary>
