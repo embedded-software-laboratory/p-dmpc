@@ -34,5 +34,7 @@ function get_parallel_pool(no_of_workers)
 end
 
 function create_parpool(no_of_workers)
-    parpool('local', no_of_workers);
+    cluster = parcluster("Processes");
+    cluster.NumWorkers = no_of_workers;
+    parpool(cluster);
 end
