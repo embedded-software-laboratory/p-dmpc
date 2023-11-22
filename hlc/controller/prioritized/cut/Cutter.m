@@ -56,8 +56,9 @@ classdef (Abstract) Cutter
     methods (Access = protected)
 
         function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(obj, M, coupling_info, max_num_CLs)
-            % GRAPH_PARTITIONING_ALGORITHM Partition the given edge-weighted directed acyclic graph (DAG) while ensuring
-            % the size of each subgraph do not exceed the defined maximum graph size.
+            % GRAPH_PARTITIONING_ALGORITHM Partition the given edge-weighted
+            % directed acyclic graph (DAG) M while ensuring
+            % the size of each subgraph does not exceed the maximum depth max_num_CLs.
             %
             % INPUT:
             %   M: a square unsymmetric matrix that defines the target undirected graph to be partitioned.
@@ -65,7 +66,7 @@ classdef (Abstract) Cutter
             %   target graph. Edge-weights will not be considered if M is the dajacency
             %   matrix.
             %
-            %   max_num_CLs: maximum number of computation levels
+            %   max_num_CLs: maximum depth (number of computation levels)
             %
             % OUTPUT:
             %   belonging_vector: a column vector whose values indicate which
