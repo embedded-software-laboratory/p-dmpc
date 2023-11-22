@@ -27,7 +27,6 @@ classdef IterationData
         directed_coupling % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
         directed_coupling_reduced % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
         directed_coupling_sequential % nVeh-by-nVeh matrix, after graph partitioning
-        priority_list
         lanelet_crossing_areas
         vehicles % copy of vehicle list (useful for filtered)
         vehicle_ids
@@ -63,7 +62,6 @@ classdef IterationData
             obj.directed_coupling_sequential = zeros(nVeh, nVeh);
             obj.weighted_coupling = zeros(nVeh, nVeh);
             obj.weighted_coupling_reduced = zeros(nVeh, nVeh);
-            obj.priority_list = ones(nVeh, 1);
             obj.obstacles = scenario.obstacles;
             obj.lanelet_crossing_areas = repmat({{}}, nVeh, 1);
             obj.amount = nVeh;
