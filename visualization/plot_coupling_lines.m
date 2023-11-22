@@ -4,7 +4,7 @@ function plot_coupling_lines(weighted_coupling_reduced, directed_coupling_sequen
     arguments
         weighted_coupling_reduced (:, :) double;
         directed_coupling_sequential (:, :) double;
-        x0 (:, :) double; % vehicle states
+        x0 (:, 4) double; % vehicle states
         % a struct to control the visualization of coupling lines
         coupling_visu (1, 1) struct;
         % a matrix whose value indicate whether the coupling is handled by virtual obstacles
