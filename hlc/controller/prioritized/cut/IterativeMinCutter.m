@@ -161,7 +161,7 @@ classdef IterativeMinCutter < Cutter
 
             % find all minimum cut pahses that has at least one valid cut path
             % and choose the one with the lowest cost among them
-            [cost, lowest_cost_idx_local] = min([cutting_info(valid_minimum_cut_phases_idx).cost]);
+            [~, lowest_cost_idx_local] = min([cutting_info(valid_minimum_cut_phases_idx).cost]);
             lowest_cost_idx = valid_minimum_cut_phases_idx(lowest_cost_idx_local);
 
             if ~isempty(lowest_cost_idx)
