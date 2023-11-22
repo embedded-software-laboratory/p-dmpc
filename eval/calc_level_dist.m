@@ -1,4 +1,4 @@
-function [lvl_dist] = calc_level_dist(c)
+function lvl_dist = calc_level_dist(c)
     %CALC_LEVEL_DIST    Calculate the distribution of number of levels according to different priority assignment.
 
     nV = size(c, 1);
@@ -10,7 +10,7 @@ function [lvl_dist] = calc_level_dist(c)
     Pm = perms(prios);
     nP = size(Pm, 1);
 
-    x = [];
+    lvl_dist = zeros(1, nP);
 
     for ip = 1:nP
         % save directed coupling graph (DAG) in cdag
@@ -36,10 +36,9 @@ function [lvl_dist] = calc_level_dist(c)
 
         end
 
-        kahn(cdag);
-        nLevel = size(L, 1);
-        x = [x, nLevel];
+        L = kahn(cdag);
+        lvl_dist(ip) = size(L, 1);
+
     end
 
-    lvl_dist = x;
 end
