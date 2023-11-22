@@ -522,7 +522,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
             arguments
                 obj (1, 1) PrioritizedController
                 vehicle_idx (1, 1) double % index of the current vehicle
-                all_coupled_vehs_with_HP (1, :) double % indices of the vehicles with higher priority
+                % indices of the vehicles with higher priority
+                all_coupled_vehs_with_HP (1, :) double
                 % indices of sequentially computing vehicles with higher priority
                 sequential_vehs_with_HP (1, :) double
             end
