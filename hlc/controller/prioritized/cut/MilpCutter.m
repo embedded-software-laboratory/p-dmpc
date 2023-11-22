@@ -27,10 +27,6 @@ classdef MilpCutter < Cutter
             %   subgraph a vertex belongs to. For example,"belonging_vector =
             %   [1;2;2;1;3]" means the following three subgraphs: {1,4}, {2,3} and {5}.
             %
-            %   cost: objective value to be minimized. The number of cut edges if M
-            %   is adjacency matrix; Or the sum of cut edge-weights if M is
-            %   edge-weights matrix.
-            %
             % EXAMPLE:
             %   M = [0, .2, .1,  0;
             %        0,  0,  0, .5;
@@ -41,16 +37,16 @@ classdef MilpCutter < Cutter
             %
             %   % Without additional constraints
             %   % Since vertices {1,2,4} are in the same subset after cutting, the results are therefore unsatisfied if the maximum computation levels is 2.
-            %   [belonging_vector_1, cost_1] = min_cut_MILP(M)
+            %   belonging_vector_1 = min_cut_MILP(M)
             %
             %   % Next, add additional constraint that vertices {1,2,4} and {1,3,4} must not be in
             %   % the same subset
             %   must_not_in_same_subset = {[1,2,4],[1,3,4]};
-            %   [belonging_vector_2, cost_2] = min_cut_MILP(M, must_not_in_same_subset)
+            %   belonging_vector_2 = min_cut_MILP(M, must_not_in_same_subset)
             %
             %   % If vertices {1,2} must be in the same subset:
             %   must_in_same_subset = [1,2];
-            %   [belonging_vector_3, cost_3] = min_cut_MILP(M, must_not_in_same_subset, must_in_same_subset)
+            %   belonging_vector_3 = min_cut_MILP(M, must_not_in_same_subset, must_in_same_subset)
 
             assert(length(must_in_same_subset) <= 1)
 
