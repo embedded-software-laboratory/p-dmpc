@@ -239,14 +239,6 @@ classdef (Abstract) Cutter
             %
             %
 
-            n_vertices = length(M);
-
-            % get maximum allowed computation levels
-            if nargin == 3
-                % set to half the number of the vertices
-                max_num_CLs = round(n_vertices / 2);
-            end
-
             n_graphs = length(subgraphs_info); % number of graphs
             %     subgraph_IDs = 1:n_graphs;
             %
