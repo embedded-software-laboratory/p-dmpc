@@ -5,8 +5,8 @@ function experiment_result = main(options)
         options (1, 1) Config = start_options();
     end
 
-    if verLessThan('matlab', '9.12')
-        warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
+    if isMATLABReleaseOlderThan('R2023b')
+        warning("Code is developed in MATLAB R2023b, prepare for backward incompatibilities.")
     end
 
     % create scenario
@@ -84,7 +84,7 @@ function experiment_result = main(options)
         end
 
         % setup plant again, only control one vehicle
-        plant.setup(options, options.path_ids, options.path_ids(labindex));
+        plant.setup(options, options.path_ids, options.path_ids(spmdIndex));
 
         hlc_factory = HLCFactory();
         % have the plant only control its own vehicle by calling setup a second time
@@ -96,6 +96,6 @@ function experiment_result = main(options)
         plotter.close_figure();
     end
 
-    experiment_result = {experiment_result{:}};
+    experiment_result = experiment_result(:);
 
 end
