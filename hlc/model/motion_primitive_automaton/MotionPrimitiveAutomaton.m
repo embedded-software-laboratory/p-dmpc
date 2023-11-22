@@ -232,7 +232,12 @@ classdef MotionPrimitiveAutomaton
 
             % second if different absolute steering angles are found
             % (use the higher steering - overestimate)
-            is_safer_steering = max(abs(trims_steering(is_closest_steering))) == trims_steering;
+            % get highest steering angle independent of the sign
+            [max_closest_steering, index_max_closest_steering] = max(abs(trims_steering(is_closest_steering)));
+            % get the sign of the highest steering angle
+            sign_max_closest_steering = sign(trims_steering(index_max_closest_steering));
+            % find all steering angles that are equal to the highest steering angle
+            is_safer_steering = sign_max_closest_steering * max_closest_steering == trims_steering;
 
             is_closest_and_safer_steering = is_closest_steering & is_safer_steering;
 
