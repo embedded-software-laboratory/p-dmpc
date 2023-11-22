@@ -26,9 +26,5 @@
         "is_video_mode": true
     },
     "is_prioritized": true,
-    "strategy_enter_lanelet_crossing_area": "2",
-    "manual_control_config": {
-        "hdv_ids": [],
-        "amount": 0
-    }
+    "strategy_enter_lanelet_crossing_area": "2"
 }

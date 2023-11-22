@@ -1,11 +1,12 @@
 {
-    "amount": 2,
+    "amount": 3,
     "path_ids": [
         18,
+        19,
         20
     ],
-    "T_end": 5,
-    "max_num_CLs": 1,
+    "T_end": 4,
+    "max_num_CLs": 2,
     "mpa_type": "single_speed",
     "should_save_result": true,
     "should_reduce_result": true,
@@ -13,10 +14,5 @@
     "is_load_mpa": true,
     "options_plot_online": {
         "is_active": false
-    },
-    "manual_control_config": {
-        "hdv_ids": [],
-        "amount": 0
-    },
-    "is_prioritized": true
+    }
 }
