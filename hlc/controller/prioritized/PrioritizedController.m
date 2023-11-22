@@ -552,7 +552,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     break
                 else
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                    dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
+                    i_all_coupled_vehicles_with_HP = all_coupled_vehs_with_HP == i_vehicle;
+                    dynamic_obstacle_area(i_all_coupled_vehicles_with_HP, :) = predicted_areas_i;
                 end
 
             end
@@ -564,6 +565,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     obj.plant.all_vehicle_ids(i_vehicle) ...
                 );
 
+                i_all_coupled_vehicles_with_HP = all_coupled_vehs_with_HP == i_vehicle;
                 % if the current message is available no less precise
                 % information must be used to consider the vehicle
                 if latest_msg.time_step == obj.k
@@ -574,14 +576,14 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         break
                     else
                         predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                        dynamic_obstacle_area(i_vehicle, :) = predicted_areas_i;
-
+                        dynamic_obstacle_area(i_all_coupled_vehicles_with_HP, :) = predicted_areas_i;
                     end
 
                 else
                     % if they are in different groups and message of
                     % current time step is not available
-                    dynamic_obstacle_area(i_vehicle, :) = obj.consider_parallel_coupling(vehicle_idx, i_vehicle);
+                    dynamic_obstacle_area(i_all_coupled_vehicles_with_HP, :) = ...
+                        obj.consider_parallel_coupling(vehicle_idx, i_vehicle);
                 end
 
             end
