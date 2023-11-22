@@ -2,8 +2,8 @@ function [experiment_result, scenario] = main_distributed(vehicle_id)
 
     %startup();
 
-    if verLessThan('matlab', '9.12')
-        warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
+    if isMATLABReleaseOlderThan('R2023b')
+        warning("Code is developed in MATLAB R2023b, prepare for backward incompatibilities.")
     end
 
     % read config from disk
