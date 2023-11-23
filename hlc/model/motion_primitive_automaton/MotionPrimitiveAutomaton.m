@@ -217,6 +217,19 @@ classdef MotionPrimitiveAutomaton
             trims_speed = [obj.trims.speed];
             trims_steering = [obj.trims.steering];
 
+            % if the steering is 0 no different steering should be associated
+            if steering == 0
+                % get the trim indices that have a steering of 0
+                indices_no_steering = find(trims_steering == 0);
+                % calculate the speed distances to each trim
+                speed_distances = abs(trims_speed - speed);
+                % get the index of the trim with the minimum speed distances
+                [~, index_min_distance] = min(speed_distances(indices_no_steering));
+                % return the trim_index without steering and the lowest speed distance
+                trim_index = indices_no_steering(index_min_distance);
+                return
+            end
+
             % get center and scale to normalize speed
             trims_speed_center = min(trims_speed);
             trims_speed_scale = max(trims_speed) - min(trims_speed);
