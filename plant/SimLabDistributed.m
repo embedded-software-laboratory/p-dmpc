@@ -49,9 +49,9 @@ classdef SimLabDistributed < Plant
             obj.should_plot = obj.options_plot_online.is_active;
             obj.generate_plotting_info_msgs();
             obj.ros2_node = ros2node(['/plant_', num2str(obj.controlled_vehicle_ids(1))]);
-            qos_options = struct("History", "keeplast", "Depth", 40, "Reliability", "reliable", "Durability", "transientlocal");
+            qos_config = struct("History", "keeplast", "Depth", 40, "Reliability", "reliable", "Durability", "transientlocal");
             topic_name_publish = ['/plant_plotting'];
-            obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "plotting_info/PlottingInfo", qos_options);
+            obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "plotting_info/PlottingInfo", qos_config);
             obj.msg_to_be_sent = ros2message("plotting_info/PlottingInfo");
         end
 

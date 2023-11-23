@@ -73,7 +73,7 @@ classdef MotionPrimitiveAutomaton
                 fprintf('Loading MPA... ');
                 load(mpa_full_path, "mpa");
                 obj = mpa;
-                fprintf('Offline MPA was found and loaded.\n')
+                fprintf('done.\n')
                 return
             end
 
