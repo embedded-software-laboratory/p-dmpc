@@ -50,7 +50,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             timer = tic;
             fprintf('Creating ROS2 objects... ');
             obj.create_ros2_objects();
-            fprintf('done (%2.2f s).\n', toc(timer));
+            fprintf('done (%.2f s).\n', toc(timer));
 
             % initialize the communication network of ROS 2
             obj.init_communication();
