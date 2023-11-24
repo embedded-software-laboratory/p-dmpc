@@ -592,7 +592,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
             end
 
             % release preallocated cell array entries
-            % TODO Does this line change anything?
             dynamic_obstacle_area(cellfun(@isempty, dynamic_obstacle_area(:, 1)), :) = [];
 
         end
