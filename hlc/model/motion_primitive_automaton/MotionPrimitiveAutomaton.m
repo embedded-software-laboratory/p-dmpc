@@ -27,7 +27,7 @@ classdef MotionPrimitiveAutomaton
 
     methods
 
-        function [obj, trimsInfo] = MotionPrimitiveAutomaton(model, options)
+        function obj = MotionPrimitiveAutomaton(model, options)
 
             arguments
                 model (1, 1) VehicleModel
@@ -174,11 +174,11 @@ classdef MotionPrimitiveAutomaton
 
             if options.is_use_dynamic_programming
                 % use dynamic programming
-                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
+                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, ~] = ...
                     reachability_analysis_offline_DP(obj, options.Hp, is_calculate_reachable_sets_of_CP);
             else
                 % otherwise use brute-force algorithm
-                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
+                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, ~] = ...
                     reachability_analysis_offline(obj, options.Hp, is_calculate_reachable_sets_of_CP);
             end
 
