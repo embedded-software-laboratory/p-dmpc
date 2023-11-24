@@ -1,0 +1,22 @@
+{
+    "Config.load_from_file": {
+        "inputs": [
+            {
+                "name": "filename",
+                "kind": "required",
+                "type": [
+                    "char",
+                    "filepath=*.json"
+                ]
+            }
+        ],
+        "outputs": [
+            {
+                "name": "config",
+                "type": [
+                    "Config"
+                ]
+            }
+        ]
+    }
+}
