@@ -311,16 +311,19 @@ classdef (Abstract) PrioritizedController < HighLevelController
             filter_self(vehicle_idx) = true;
             iter_v = filter_iter(obj.iter, filter_self);
 
-            all_coupled_vehs_with_HP = find(iter_v.directed_coupling_reduced(:, vehicle_idx) == 1)';
-            sequential_vehs_with_HP = find(iter_v.directed_coupling_sequential(:, vehicle_idx))';
-            all_coupled_vehs_with_LP = find(iter_v.directed_coupling_reduced(vehicle_idx, :) == 1); % all coupled vehicles with lower priorities
+            % coupled vehicles with higher priorities
+            predecessors = find(iter_v.directed_coupling_reduced(:, vehicle_idx) == 1)';
+            % coupled vehicles with higher priorities that vehicl_idx computes in sequence with
+            predecessors_sequential = find(iter_v.directed_coupling_sequential(:, vehicle_idx))';
+            % coupled vehicles with lower priorities
+            successors = find(iter_v.directed_coupling_reduced(vehicle_idx, :) == 1);
 
             % consider vehicles with higher priority
-            [dynamic_obstacle_area_HP, is_fallback_triggered] = consider_vehs_with_HP( ...
+            [dynamic_obstacle_area_predecessors, is_fallback_triggered] = consider_predecessors( ...
                 obj, ...
                 vehicle_idx, ...
-                all_coupled_vehs_with_HP, ...
-                sequential_vehs_with_HP ...
+                predecessors, ...
+                predecessors_sequential ...
             );
 
             % if vehicle with higher priority triggered fallback, do not plan
@@ -329,11 +332,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
             end
 
             % consider coupled vehicles with lower priorities
-            [obstacles_LP, dynamic_obstacle_area_LP] = obj.consider_vehs_with_LP(vehicle_idx, all_coupled_vehs_with_LP);
+            [obstacles_successors, dynamic_obstacle_area_successors] = obj.consider_successors(vehicle_idx, successors);
 
             % add obstacles for considering other vehicles
-            iter_v.obstacles = [iter_v.obstacles; obstacles_LP];
-            iter_v.dynamic_obstacle_area = [iter_v.dynamic_obstacle_area; dynamic_obstacle_area_HP; dynamic_obstacle_area_LP];
+            iter_v.obstacles = [iter_v.obstacles; obstacles_successors];
+            iter_v.dynamic_obstacle_area = [iter_v.dynamic_obstacle_area; dynamic_obstacle_area_predecessors; dynamic_obstacle_area_successors];
 
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
@@ -504,15 +507,15 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function [dynamic_obstacle_area, is_fallback_triggered] = consider_vehs_with_HP( ...
+        function [dynamic_obstacle_area, is_fallback_triggered] = consider_predecessors( ...
                 obj, ...
                 vehicle_idx, ...
-                all_coupled_vehs_with_HP, ...
-                sequential_vehs_with_HP ...
+                predecessors, ...
+                predecessors_sequential ...
             )
-            % consider_vehs_with_HP considering vehicles with higher priority
+            % consider_predecessors considering vehicles with higher priority
             % strategy depends on whether the vehicles are in the same group
-            % and if the prediction consistency is should be guaranteed
+            % and if prediction consistency should be guaranteed
             %
             % Output:
             %   dynamic_obstacle_area (1, Hp) cell of areas [x; y]
@@ -522,20 +525,20 @@ classdef (Abstract) PrioritizedController < HighLevelController
             arguments
                 obj (1, 1) PrioritizedController
                 vehicle_idx (1, 1) double % index of the current vehicle
-                % indices of the vehicles with higher priority
-                all_coupled_vehs_with_HP (1, :) double
+                % indices of coupled vehicles with higher priority
+                predecessors (1, :) double
                 % indices of sequentially computing vehicles with higher priority
-                sequential_vehs_with_HP (1, :) double
+                predecessors_sequential (1, :) double
             end
 
             is_fallback_triggered = false;
 
             % preallocate cell array entries
-            dynamic_obstacle_area = cell(length(all_coupled_vehs_with_HP), obj.options.Hp);
+            dynamic_obstacle_area = cell(length(predecessors), obj.options.Hp);
 
-            parallel_vehs_with_HP = setdiff(all_coupled_vehs_with_HP, sequential_vehs_with_HP);
+            predecessors_parallel = setdiff(predecessors, predecessors_sequential);
 
-            for i_vehicle = sequential_vehs_with_HP
+            for i_vehicle = predecessors_sequential
                 % if in the same group, read the current message and set the
                 % predicted occupied areas as dynamic obstacles
                 latest_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
@@ -552,20 +555,20 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     break
                 else
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                    i_all_coupled_vehicles_with_HP = all_coupled_vehs_with_HP == i_vehicle;
+                    i_all_coupled_vehicles_with_HP = predecessors == i_vehicle;
                     dynamic_obstacle_area(i_all_coupled_vehicles_with_HP, :) = predicted_areas_i;
                 end
 
             end
 
-            for i_vehicle = parallel_vehs_with_HP
+            for i_vehicle = predecessors_parallel
                 % if they are in different groups, read the latest available
                 % message and check it is from the current time step
                 latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
                     obj.plant.all_vehicle_ids(i_vehicle) ...
                 );
 
-                i_all_coupled_vehicles_with_HP = all_coupled_vehs_with_HP == i_vehicle;
+                i_all_coupled_vehicles_with_HP = predecessors == i_vehicle;
                 % if the current message is available no less precise
                 % information must be used to consider the vehicle
                 if latest_msg.time_step == obj.k
@@ -594,9 +597,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function [obstacles, dynamic_obstacle_area] = consider_vehs_with_LP(obj, vehicle_idx, all_coupling_vehs_without_ROW)
-            % CONSIDER_VEHS_WITH_LP Strategies to let vehicle with the right-of-way
-            % consider vehicle without the right-of-way
+        function [obstacles, dynamic_obstacle_area] = consider_successors(obj, vehicle_idx, successors)
+            % consider_successors Consider coupled vehicles with lower priority
             % '1': do not consider
             % '2': consider currently occupied area as static obstacle
             % '3': consider the occupied area of emergency braking maneuver as static obstacle
@@ -610,15 +612,15 @@ classdef (Abstract) PrioritizedController < HighLevelController
             arguments
                 obj (1, 1) PrioritizedController
                 vehicle_idx (1, 1) double % index of the current vehicle
-                all_coupling_vehs_without_ROW double % indices of the vehicles with lower priority
+                successors double % indices of the vehicles with lower priority
             end
 
             % preallocate cell array entries
-            obstacles = cell(length(all_coupling_vehs_without_ROW), 1);
-            dynamic_obstacle_area = cell(length(all_coupling_vehs_without_ROW), obj.options.Hp);
+            obstacles = cell(length(successors), 1);
+            dynamic_obstacle_area = cell(length(successors), obj.options.Hp);
 
-            for i_LP = 1:length(all_coupling_vehs_without_ROW)
-                veh_without_ROW = all_coupling_vehs_without_ROW(i_LP);
+            for i_successor = 1:length(successors)
+                successor_vehicle = successors(i_successor);
 
                 % strategies to let vehicle with the right-of-way consider vehicle without the right-of-way
                 switch obj.options.strategy_consider_veh_without_ROW
@@ -627,7 +629,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                     case '2'
                         % consider currently occupied area as static obstacle
-                        obstacles{i_LP} = obj.iter.occupied_areas{veh_without_ROW}.normal_offset;
+                        obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
 
                     case '3'
                         % consider the occupied area of emergency braking maneuver
@@ -641,29 +643,29 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         if ( ...
                                 obj.options.scenario_type ~= ScenarioType.circle && ...
                                 obj.options.priority == PriorityStrategies.STAC_priority && ...
-                                obj.iter.directed_coupling_reduced(vehicle_idx, veh_without_ROW) == 1 && ...
-                                obj.iter.coupling_info{vehicle_idx, veh_without_ROW}.collision_type == CollisionType.from_side && ...
-                                obj.iter.coupling_info{vehicle_idx, veh_without_ROW}.lanelet_relationship == LaneletRelationshipType.crossing ...
+                                obj.iter.directed_coupling_reduced(vehicle_idx, successor_vehicle) == 1 && ...
+                                obj.iter.coupling_info{vehicle_idx, successor_vehicle}.collision_type == CollisionType.from_side && ...
+                                obj.iter.coupling_info{vehicle_idx, successor_vehicle}.lanelet_relationship == LaneletRelationshipType.crossing ...
                             )
                             % the emergency braking maneuver is only considered if
                             % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
-                            obstacles{i_LP} = obj.iter.emergency_maneuvers{veh_without_ROW}.braking_area;
+                            obstacles{i_successor} = obj.iter.emergency_maneuvers{successor_vehicle}.braking_area;
                             continue
                         end
 
-                        obstacles{i_LP} = obj.iter.occupied_areas{veh_without_ROW}.normal_offset;
+                        obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
 
                     case '4'
                         % consider one-step reachable sets as static obstacle
-                        reachable_sets = obj.iter.reachable_sets{veh_without_ROW, 1};
+                        reachable_sets = obj.iter.reachable_sets{successor_vehicle, 1};
                         % get boundary of the polygon
                         [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
-                        obstacles{i_LP} = [x_reachable_sets'; y_reachable_sets'];
+                        obstacles{i_successor} = [x_reachable_sets'; y_reachable_sets'];
 
                     case '5'
                         % consider old trajectory as dynamic obstacle
                         latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
-                            obj.plant.all_vehicle_ids(veh_without_ROW) ...
+                            obj.plant.all_vehicle_ids(successor_vehicle) ...
                         );
 
                         if latest_msg.time_step <= 0
@@ -675,11 +677,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         shift_step = obj.k - latest_msg.time_step; % times that the prediction should be shifted and the last prediction should be repeated
 
                         if shift_step > 1
-                            disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_idx) ', considered vehicle: ' num2str(veh_without_ROW)])
+                            disp(['shift step is ' num2str(shift_step) ', ego vehicle: ' num2str(vehicle_idx) ', considered vehicle: ' num2str(successor_vehicle)])
                         end
 
                         predicted_areas = del_first_rpt_last(predicted_areas(:)', shift_step);
-                        dynamic_obstacle_area(i_LP, :) = predicted_areas;
+                        dynamic_obstacle_area(i_successor, :) = predicted_areas;
 
                     otherwise
                         warning("Please specify one of the following strategies to let vehicle with a higher priority also consider vehicle with a lower priority: '1', '2', '3', '4', '5'.")
