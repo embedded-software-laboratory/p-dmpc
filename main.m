@@ -5,8 +5,8 @@ function experiment_result = main(options)
         options (1, 1) Config = start_options();
     end
 
-    if isMATLABReleaseOlderThan('R2023b')
-        warning("Code is developed in MATLAB R2023b, prepare for backward incompatibilities.")
+    if isMATLABReleaseOlderThan('R2023a')
+        warning("Code is developed in MATLAB R2023a, prepare for backward incompatibilities.")
     end
 
     % create scenario
