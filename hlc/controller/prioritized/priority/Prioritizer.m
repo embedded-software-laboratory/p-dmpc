@@ -36,8 +36,8 @@ classdef (Abstract) Prioritizer < handle
 
     methods (Static)
 
-        function result = level_of_vehicle(directed_coupling)
-            % LEVEL_OF_VEHICLE  Given the directed coupling matrix,
+        function result = computation_levels_of_vehicles(directed_coupling)
+            % COMPUTATION_LEVELS_OF_VEHICLES  Given the directed coupling matrix,
             % this function returns the computation level of each vehicle.
             L = kahn(directed_coupling);
 
