@@ -562,6 +562,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
             end
 
             for i_vehicle = predecessors_parallel
+
+                if is_fallback_triggered
+                    break
+                end
+
                 % if they are in different groups, read the latest available
                 % message and check it is from the current time step
                 latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
