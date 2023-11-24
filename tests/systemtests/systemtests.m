@@ -7,8 +7,8 @@ classdef systemtests < matlab.unittest.TestCase
         optimizer_prioritized = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
         parallel = {'sequential', 'parallel'};
         coupling = {'reachable_set', 'full', 'no', 'distance'};
-        priority = {'coloring', 'constant', 'random', 'FCA', 'STAC'};
-        weight = {'constant', 'random', 'STAC', 'distance'};
+        priority = {'coloring', 'constant', 'random', 'FCA'};
+        weight = {'constant', 'random', 'distance'};
     end
 
     methods (Test, ParameterCombination = 'pairwise')
@@ -21,6 +21,7 @@ classdef systemtests < matlab.unittest.TestCase
             options.scenario_type = ScenarioType(scenario);
             options.is_prioritized = false;
             options.optimizer_type = OptimizerType(optimizer_centralized);
+            options.validate();
 
             testCase.verifyEmpty(lastwarn);
 
@@ -48,6 +49,7 @@ classdef systemtests < matlab.unittest.TestCase
             options.coupling = CouplingStrategies([coupling, '_coupling']);
             options.priority = PriorityStrategies([priority, '_priority']);
             options.weight = WeightStrategies([weight, '_weight']);
+            options.validate();
 
             testCase.verifyEmpty(lastwarn);
 
@@ -58,6 +60,16 @@ classdef systemtests < matlab.unittest.TestCase
     end
 
     methods (Test)
+
+        function test_prioritized_STAC(testCase)
+            lastwarn('');
+            %load Config from json
+            options = Config.load_from_file('tests/systemtests/Config_systemtests_prioritized_stac.json');
+            options.validate();
+            testCase.verifyEmpty(lastwarn);
+            main(options);
+            testCase.verifyTrue(true);
+        end
 
         function test_visualization(testCase, scenario)
             lastwarn('');

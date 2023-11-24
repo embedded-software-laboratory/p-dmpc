@@ -85,6 +85,8 @@ classdef StacPrioritizer < Prioritizer
 
             end
 
+            assert(digraph(directed_coupling).isdag, 'Coupling is not a DAG!');
+
         end
 
     end
