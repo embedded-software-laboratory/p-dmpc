@@ -66,6 +66,8 @@ classdef (Abstract) Cutter
             %   target graph. Edge-weights will not be considered if M is the dajacency
             %   matrix.
             %
+            %   coupling_info: coupling information of each coupling pair
+            %
             %   max_num_CLs: maximum depth (number of computation levels)
             %
             % OUTPUT:
