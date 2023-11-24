@@ -14,7 +14,6 @@ classdef TrafficCommunication < InterHlcCommunication
                 message_type ...
             )
 
-            % create communication class to connect to ROS2 network
             arguments
                 vehicle_id (1, 1) double
                 ros2_node (1, 1) ros2node
