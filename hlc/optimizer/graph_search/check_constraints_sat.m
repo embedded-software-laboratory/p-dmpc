@@ -1,5 +1,5 @@
-function collision = collision_with(iter, index, shapes, shapes_for_lanelet_check, iStep)
-    % COLLISION_WITH    Determine whether position has is a collision.
+function collision = check_constraints_sat(iter, index, shapes, shapes_for_lanelet_check, iStep)
+    % check_constraints_sat    Determine whether position has a collision.
 
     collision = false;
 

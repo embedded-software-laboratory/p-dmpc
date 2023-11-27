@@ -1,5 +1,10 @@
 classdef GraphSearch < OptimizerInterface
 
+    properties
+        set_up_constraints (1, 1) function_handle = @()[];
+        check_constraints (1, 1) function_handle = @()[];
+    end
+
     methods
 
         function obj = GraphSearch()
@@ -188,7 +193,7 @@ classdef GraphSearch < OptimizerInterface
                     case 'sat'
                         % check if collides with other vehicles' predicted trajectory or lanelets
 
-                        if collision_with(iter, iVeh, shapes, shapes_for_boundary_check, iStep)
+                        if check_constraints_sat(iter, iVeh, shapes, shapes_for_boundary_check, iStep)
                             is_valid = false;
                             return;
                         end
