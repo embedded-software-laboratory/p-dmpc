@@ -1,0 +1,47 @@
+function has_collision = check_constraints_interx( ...
+        iter, ...
+        ~, ...
+        shapes, ...
+        shapes_for_boundary_check, ...
+        iStep, ...
+        vehicle_obstacles, ...
+        shapes_without_offset, ...
+        lanelet_crossing_areas, ...
+        lanelet_boundary, ...
+        hdv_obstacles ...
+    )
+    % check_constraints_interx    Determine whether position has a collision.
+    assert(iter.amount == 1) % if not 1, code adaption is needed
+    has_collision = false;
+    % Note1: Shape must be closed!
+    % Note2: The collision check order is important.
+    % Normally, check collision with lanelet boundary last would be better.
+    if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
+        % check collision with vehicle obstacles
+        has_collision = true;
+        return
+    end
+
+    if InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
+        % check collision with crossing area of lanelets
+        has_collision = true;
+        return
+    end
+
+    is_hdv_obstacle = ~all(all(isnan(hdv_obstacles{iStep})));
+
+    if (is_hdv_obstacle && ...
+            InterX(shapes{iVeh}, hdv_obstacles{iStep}) ...
+        )
+        % check collision with manual vehicle obstacles
+        has_collision = true;
+        return
+    end
+
+    % check collision with lanelet obstacles
+    if InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
+        has_collision = true;
+        return
+    end
+
+end
