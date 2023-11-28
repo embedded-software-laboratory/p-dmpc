@@ -28,8 +28,11 @@ classdef (Abstract) OptimizerInterface < handle
             switch options.optimizer_type
                 case OptimizerType.MatlabOptimal
                     optimizer = GraphSearch();
+                    OptimizerInterface.set_constraint_checker(optimizer, options);
                 case OptimizerType.MatlabSampled
                     optimizer = MonteCarloTreeSearch();
+                    OptimizerInterface.set_constraint_checker(optimizer, options);
+
                 case OptimizerType.CppOptimal
 
                     if options.is_prioritized
@@ -46,6 +49,20 @@ classdef (Abstract) OptimizerInterface < handle
                         optimizer = GraphSearchMexCentralized(options, mpa, scenario, CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel);
                     end
 
+            end
+
+        end
+
+        function set_constraint_checker(optimizer, options)
+
+            if (options.scenario_type == ScenarioType.circle ...
+                    || ~options.is_prioritized)
+                % SAT collision check for circle scenario, and for centralized
+                optimizer.set_up_constraints = @(~, ~)deal([]);
+                optimizer.are_constraints_satisfied = @are_constraints_satisfied_sat;
+            else
+                optimizer.set_up_constraints = @vectorize_all_obstacles;
+                optimizer.are_constraints_satisfied = @are_constraints_satisfied_interx;
             end
 
         end
