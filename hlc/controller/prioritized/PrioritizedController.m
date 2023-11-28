@@ -335,14 +335,13 @@ classdef (Abstract) PrioritizedController < HighLevelController
             info_v = obj.optimizer.run_optimizer(vehicle_idx, iter_v, obj.mpa, obj.options);
             obj.timing_per_vehicle(vehicle_idx).stop('optimizer', obj.k);
 
-            obj.timing_per_vehicle(vehicle_idx).start('fallback', obj.k);
-
             if info_v.is_exhausted
                 info_v = handle_graph_search_exhaustion(info_v, obj.options, iter_v, obj.mpa);
             end
 
             if info_v.needs_fallback
                 % if graph search is exhausted, this vehicles and all its weakly coupled vehicles will use their fallback trajectories
+                obj.info.needs_fallback(vehicle_idx) = true;
 
                 switch obj.options.fallback_type
                     case FallbackType.local_fallback
@@ -364,8 +363,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
             else
                 obj.info = store_control_info(obj.info, info_v, obj.options, obj.mpa);
             end
-
-            obj.timing_per_vehicle(vehicle_idx).stop('fallback', obj.k);
 
         end
 

@@ -357,10 +357,16 @@ classdef (Abstract) HighLevelController < handle
                 obj.controller();
 
                 % handle fallback of controller
+
+                obj.timing_general.start('fallback', obj.k);
+
                 if ~obj.handle_fallback()
+                    obj.timing_general.stop('fallback', obj.k);
                     % if fallback is not handled break the main control loop
                     break
                 end
+
+                obj.timing_general.stop('fallback', obj.k);
 
                 obj.info_old = obj.info; % save variable in case of fallback
 
@@ -489,8 +495,8 @@ classdef (Abstract) HighLevelController < handle
             end
 
             % print information about occurred fallback
-            str_trigger_vehicles = sprintf(' %d', find(obj.info.needs_fallback));
-            str_fallback_vehicles = sprintf(' %d', obj.info.vehicles_fallback);
+            str_trigger_vehicles = sprintf(' %2d', find(obj.info.needs_fallback));
+            str_fallback_vehicles = sprintf(' %2d', obj.info.vehicles_fallback);
             fprintf('%s triggered by%s affects%s\n', ...
                 obj.options.fallback_type, ...
                 str_trigger_vehicles, ...
