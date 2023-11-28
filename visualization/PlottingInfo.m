@@ -54,7 +54,10 @@ classdef PlottingInfo
 
             obj.directed_coupling = experiment_result.iteration_data{k}.directed_coupling;
 
-            obj.is_virtual_obstacle = false(experiment_result.options.amount, experiment_result.options.amount);
+            obj.is_virtual_obstacle = ( ...
+                experiment_result.iteration_data{k}.directed_coupling ~= ...
+                experiment_result.iteration_data{k}.directed_coupling_reduced ...
+            );
 
             obj.weighted_coupling_reduced = experiment_result.iteration_data{k}.weighted_coupling_reduced;
 
