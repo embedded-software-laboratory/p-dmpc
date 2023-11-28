@@ -30,7 +30,7 @@ classdef Config
 
         path_ids = []; % reference path IDs for selection of paths for the vehicles
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
-        is_allow_non_convex = true; % true/false, whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
+        are_any_obstacles_non_convex = true; % true/false, whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
         recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
         time_per_tick = 0.01;
         offset = 0.01;
@@ -184,7 +184,7 @@ classdef Config
 
             % enforce non convex reachable sets for non circle scenarios
             if obj.scenario_type ~= ScenarioType.circle
-                obj.is_allow_non_convex = true;
+                obj.are_any_obstacles_non_convex = true;
             end
 
             % limit maximum number of computation levels
