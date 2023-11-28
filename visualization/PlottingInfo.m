@@ -54,30 +54,14 @@ classdef PlottingInfo
 
             obj.directed_coupling = experiment_result.iteration_data{k}.directed_coupling;
 
-            obj.is_virtual_obstacle = false(experiment_result.options.amount, experiment_result.options.amount);
+            obj.is_virtual_obstacle = ( ...
+                experiment_result.iteration_data{k}.directed_coupling ~= ...
+                experiment_result.iteration_data{k}.directed_coupling_reduced ...
+            );
 
-            if ~isempty(experiment_result.iteration_data{k}.weighted_coupling_reduced)
-                obj.weighted_coupling_reduced = experiment_result.iteration_data{k}.weighted_coupling_reduced;
+            obj.weighted_coupling_reduced = experiment_result.iteration_data{k}.weighted_coupling_reduced;
 
-                if ( ...
-                        experiment_result.options.is_prioritized && ...
-                        experiment_result.options.scenario_type == ScenarioType.commonroad ...
-                    )
-
-                    coupling_info_k = experiment_result.iteration_data{k}.coupling_info;
-                    populated_coupling_info_entries = find(~cellfun(@isempty, coupling_info_k));
-                    populated_coupling_infos = [coupling_info_k{populated_coupling_info_entries}];
-
-                    if ~isempty(populated_coupling_infos)
-                        is_virtual_obstacle_filter = [populated_coupling_infos.is_virtual_obstacle];
-                        obj.is_virtual_obstacle(populated_coupling_info_entries(is_virtual_obstacle_filter)) = true;
-                    end
-
-                end
-
-                obj.belonging_vector = experiment_result.iteration_data{k}.belonging_vector(:);
-
-            end
+            obj.belonging_vector = experiment_result.iteration_data{k}.belonging_vector(:);
 
         end
 
