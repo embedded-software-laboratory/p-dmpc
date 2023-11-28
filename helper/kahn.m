@@ -1,4 +1,4 @@
-function [valid, L] = kahn(A)
+function L = kahn(A)
     % KAHN  Kahn's topological sorting algorithm.
 
     % init
@@ -25,5 +25,5 @@ function [valid, L] = kahn(A)
     end
 
     % check results
-    valid = isequal(sum(sum(L, 1)), a);
+    assert(isequal(sum(sum(L, 1)), a));
 end

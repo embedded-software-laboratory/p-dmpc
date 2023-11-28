@@ -1,31 +1,24 @@
-function plot_coupling_lines(M, x0, varargin)
+function plot_coupling_lines(weighted_coupling_reduced, directed_coupling_sequential, x0, coupling_visu, optional)
     % PLOT_COUPLING_LINES This function visualizes the coupling between
-    % each coupled pair. Red lines for coupling of two vehicles inside the same
-    % group, while blue dashed lines are used if they are in the different
-    % groups.
-    %
-    % INPUT:
-    %   M: directed adjacency matrix or edge-weights matrix
-    %
-    %   x0: states
-    %
-    %   belonging_vector (optional input, use [] as input if not fit): a column
-    %   vector whose value indicate which group each vehicle belongs to.For
-    %   example,"belonging_vector = [1;2;2;1;3]" means the 1st subgraph =
-    %   {1,4}, the 2nd subgraph = {2,3} and the 3rd subgraph = {5}
-    %
-    %   ShowWeights: logical, is show value of weights
-    %
+    % each coupled pair.
+    arguments
+        weighted_coupling_reduced (:, :) double;
+        directed_coupling_sequential (:, :) double;
+        x0 (:, 4) double; % vehicle states
+        % a struct to control the visualization of coupling lines
+        coupling_visu (1, 1) struct;
+        % a matrix whose value indicate whether the coupling is handled by virtual obstacles
+        optional.is_virtual_obstacle (:, :) logical = false(size(weighted_coupling_reduced));
+    end
 
-    % Process optional input and Name-Value pair options
-    [M, x0, belonging_vector, is_virtual_obstacle, coupling_visu] = parse_inputs(M, x0, varargin{:});
+    is_virtual_obstacle = optional.is_virtual_obstacle;
 
     % if the given matrix is adjacency matrix but not edge-weights matrix
-    if all(M == 1 | M == 0, "all")
+    if all(weighted_coupling_reduced == 1 | weighted_coupling_reduced == 0, "all")
         coupling_visu.isShowValue = false;
     end
 
-    nVeh = length(M);
+    nVeh = length(weighted_coupling_reduced);
 
     color_main = [0 0 0];
     color_minor = 0.4 * [1 1 1];
@@ -33,7 +26,7 @@ function plot_coupling_lines(M, x0, varargin)
     for v = 1:nVeh
         x = x0(v, :);
         % plot directed coupling
-        adjacent_vehicles = find(M(v, :) ~= 0);
+        adjacent_vehicles = find(weighted_coupling_reduced(v, :));
 
         % find_couplings that are handly by virtual obstacles
         coupling_is_virtual_obstacle = find(is_virtual_obstacle(v, :));
@@ -58,9 +51,9 @@ function plot_coupling_lines(M, x0, varargin)
             % plot adjacency
             MaxHeadSize = 0.7 * norm([adj_x(1) - x(1), adj_x(2) - x(2)]); % to keep the arrow size
 
-            is_coupling_parallel = (~isempty(belonging_vector) && belonging_vector(v) ~= belonging_vector(adj_v));
+            is_coupling_sequential = directed_coupling_sequential(v, adj_v);
 
-            if is_coupling_parallel
+            if ~is_coupling_sequential
                 plot_arrow(x', (adj_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_main, ':', MaxHeadSize);
             else
                 plot_arrow(x', (adj_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_main, '-', MaxHeadSize);
@@ -70,7 +63,7 @@ function plot_coupling_lines(M, x0, varargin)
                 % plot coupling weights
                 text( ...
                     (x(1) + adj_x(1)) / 2, (x(2) + adj_x(2)) / 2 ...
-                    , num2str(round(M(v, adj_v), 2)) ...
+                    , num2str(round(weighted_coupling_reduced(v, adj_v), 2)) ...
                     , 'FontSize', coupling_visu.FontSize ...
                     , 'LineWidth', coupling_visu.LineWidth ...
                     , 'Color', color_main ...
@@ -82,31 +75,6 @@ function plot_coupling_lines(M, x0, varargin)
 
     end
 
-end
-
-%% local function
-function [M, x0, belonging_vector, is_virtual_obstacle, coupling_visu] = parse_inputs(M, x0, varargin)
-    % Process optional input and Name-Value pair options
-
-    default_belonging_vector = ones(1, length(M)); % default all vehicles are in the same group
-    default_is_virtual_obstacle = false(size(M));
-    default_coupling_visu = struct('FontSize', 12, 'LineWidth', 1, 'isShowLine', false, 'isShowValue', false);
-
-    p = inputParser;
-    addRequired(p, 'M', @(x) ismatrix(x) && (isnumeric(x) || islogical(x))); % must be numerical matrix
-    addRequired(p, 'x0', @(x) isstruct(x) || ismatrix(x) && (isnumeric(x))); % must be numerical matrix
-    addOptional(p, 'belonging_vector', default_belonging_vector, @(x) (isnumeric(x) && isvector(x)) || isempty(x)); % must be numerical vector or empty
-    addOptional(p, 'is_virtual_obstacle', default_is_virtual_obstacle, @(x) ismatrix(x) && (isnumeric(x) || islogical(x))); % must be numeric or logical matrix
-    addOptional(p, 'coupling_visu', default_coupling_visu, @(x) isstruct(x) || isempty(x)); % must be struct or empty
-
-    parse(p, M, x0, varargin{:}); % start parsing
-
-    % get parsed inputs
-    M = p.Results.M;
-    x0 = p.Results.x0;
-    belonging_vector = p.Results.belonging_vector;
-    is_virtual_obstacle = p.Results.is_virtual_obstacle;
-    coupling_visu = p.Results.coupling_visu;
 end
 
 %% local function to plot one arrow between vehicles

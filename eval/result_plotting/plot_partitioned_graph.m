@@ -3,13 +3,13 @@ function plot_partitioned_graph(experiment_result, optional)
     arguments
         experiment_result (1, 1) ExperimentResult;
         optional.show_weights (1, 1) logical = false;
-        optional.show_cut_edges (1, 1) logical = false;
+        optional.show_cut_edges (1, 1) logical = true;
         optional.i_step (1, 1) uint16 = experiment_result.n_steps;
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
     end
 
-    belonging_vector = experiment_result.iteration_data{optional.i_step}.belonging_vector;
+    directed_coupling_sequential = experiment_result.iteration_data{optional.i_step}.directed_coupling_sequential;
     edge_weights = experiment_result.iteration_data{optional.i_step}.weighted_coupling_reduced;
 
     if issymmetric(edge_weights)
@@ -23,9 +23,10 @@ function plot_partitioned_graph(experiment_result, optional)
     line_style = cell(1, size(G.Edges.EndNodes, 1));
     edge_color = zeros(size(G.Edges.EndNodes, 1), 3); % default edge color
 
-    for iE = 1:size(G.Edges.EndNodes, 1)
-        is_sequential_coupling = ( ...
-            belonging_vector(G.Edges.EndNodes(iE, 1)) == belonging_vector(G.Edges.EndNodes(iE, 2)) ...
+    for iE = 1:G.numedges
+        is_sequential_coupling = directed_coupling_sequential( ...
+            G.Edges.EndNodes(iE, 1), ...
+            G.Edges.EndNodes(iE, 2) ...
         );
         is_solid_line = is_sequential_coupling || ~optional.show_cut_edges;
 

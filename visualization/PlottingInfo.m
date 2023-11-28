@@ -3,7 +3,6 @@ classdef PlottingInfo
     properties
         trajectory_predictions
         ref_trajectory
-        priorities
         n_obstacles
         n_dynamic_obstacles
         obstacles
@@ -16,7 +15,7 @@ classdef PlottingInfo
         lanelet_crossing_areas
         weighted_coupling_reduced
         directed_coupling
-        belonging_vector = []
+        directed_coupling_sequential
         is_virtual_obstacle
     end
 
@@ -33,7 +32,6 @@ classdef PlottingInfo
             obj.tick_now = tick_now;
             obj.trajectory_predictions = experiment_result.trajectory_predictions(:, k);
             obj.ref_trajectory = experiment_result.iteration_data{k}.reference_trajectory_points;
-            obj.priorities = experiment_result.iteration_data{k}.priority_list(:);
             obj.n_obstacles = size(experiment_result.iteration_data{k}.obstacles, 1);
             obj.n_dynamic_obstacles = size(experiment_result.iteration_data{k}.dynamic_obstacle_fullres, 1);
 
@@ -53,6 +51,7 @@ classdef PlottingInfo
             end
 
             obj.directed_coupling = experiment_result.iteration_data{k}.directed_coupling;
+            obj.directed_coupling_sequential = experiment_result.iteration_data{k}.directed_coupling_sequential;
 
             obj.is_virtual_obstacle = ( ...
                 experiment_result.iteration_data{k}.directed_coupling ~= ...
@@ -61,8 +60,6 @@ classdef PlottingInfo
 
             obj.weighted_coupling_reduced = experiment_result.iteration_data{k}.weighted_coupling_reduced;
 
-            obj.belonging_vector = experiment_result.iteration_data{k}.belonging_vector(:);
-
         end
 
         function obj = filter(obj, overall_amount_of_veh, plot_options)
@@ -70,8 +67,6 @@ classdef PlottingInfo
             filter_self(obj.veh_indices(1)) = true;
             obj.trajectory_predictions = obj.trajectory_predictions{filter_self'};
             obj.ref_trajectory = obj.ref_trajectory(filter_self, :, :);
-            obj.priorities = obj.priorities(filter_self');
-            obj.belonging_vector = obj.belonging_vector(filter_self);
 
             if plot_options.plot_reachable_sets
                 obj.reachable_sets = obj.reachable_sets{filter_self, :};

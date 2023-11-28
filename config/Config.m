@@ -6,10 +6,11 @@ classdef Config
         is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
         compute_in_parallel = false; % true/false, is use parallel(distributed) computation
-        scenario_type ScenarioType = ScenarioType.commonroad; % one of the follows: {'Circle_scenario', 'Commonroad'}
-        priority PriorityStrategies = PriorityStrategies.constant_priority; % defines which priority assignmen strategy is used
-        weight WeightStrategies = WeightStrategies.constant_weight; % defines which weighting method is used
-        coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling; % defines which coupler is used
+        scenario_type ScenarioType = ScenarioType.commonroad;
+        coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling;
+        priority PriorityStrategies = PriorityStrategies.constant_priority;
+        weight WeightStrategies = WeightStrategies.distance_weight;
+        cut CutStrategies = CutStrategies.iterative_min_cut;
         dt_seconds = 0.2; % scalar, default sample time
         Hp = 6; % scalar, prediction horizon
         mpa_type MpaType = MpaType.single_speed; % mpa type (element of {'single_speed', 'triple_speed', 'realistic'})
@@ -48,7 +49,6 @@ classdef Config
         options_plot_online OptionsPlotOnline = OptionsPlotOnline(); % setup for online plotting
         is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
 
-        is_force_parallel_vehs_in_same_grp = true; % true/false, if true, vehicles move in parallel will be forced in the same group
         optimizer_type OptimizerType = OptimizerType.MatlabOptimal; % optimizer that shall be used
         mex_out_of_process_execution = false; % execute mex graph search functions in own process
         is_dry_run (1, 1) logical = false; % whether to do a dry_run or not

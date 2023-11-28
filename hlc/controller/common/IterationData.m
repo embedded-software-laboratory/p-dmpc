@@ -24,11 +24,9 @@ classdef IterationData
         weighted_coupling % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
         weighted_coupling_reduced % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas
         coupling_info % couling information of each coupling pair
-        belonging_vector % a column vector whose value indicate which group each vehicle belongs to
-        parl_groups_info % struct, store information of parallel groups
         directed_coupling % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
         directed_coupling_reduced % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
-        priority_list
+        directed_coupling_sequential % nVeh-by-nVeh matrix, after graph partitioning
         lanelet_crossing_areas
         vehicles % copy of vehicle list (useful for filtered)
         vehicle_ids
@@ -61,10 +59,9 @@ classdef IterationData
             obj.dynamic_obstacle_fullres = {};
             obj.directed_coupling = zeros(nVeh, nVeh);
             obj.directed_coupling_reduced = zeros(nVeh, nVeh);
+            obj.directed_coupling_sequential = zeros(nVeh, nVeh);
             obj.weighted_coupling = zeros(nVeh, nVeh);
             obj.weighted_coupling_reduced = zeros(nVeh, nVeh);
-            obj.priority_list = ones(nVeh, 1);
-            obj.belonging_vector = ones(nVeh, 1);
             obj.obstacles = scenario.obstacles;
             obj.lanelet_crossing_areas = repmat({{}}, nVeh, 1);
             obj.amount = nVeh;
