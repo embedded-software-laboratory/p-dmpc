@@ -10,12 +10,13 @@ classdef (Abstract) PrioritizedController < HighLevelController
     end
 
     properties (Access = protected)
+        ros2_node ros2node; % (1, 1)
+
         prioritizer
         weigher
         cutter
 
         consider_parallel_coupling (1, 1) function_handle = @()[];
-        ros2_node ros2node; % (1, 1)
     end
 
     methods
