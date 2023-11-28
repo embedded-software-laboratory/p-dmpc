@@ -55,14 +55,12 @@ classdef (Abstract) OptimizerInterface < handle
 
         function set_constraint_checker(optimizer, options)
 
-            if (options.scenario_type == ScenarioType.circle ...
-                    || ~options.is_prioritized)
-                % SAT collision check for circle scenario, and for centralized
-                optimizer.set_up_constraints = @(~, ~)deal([]);
-                optimizer.are_constraints_satisfied = @are_constraints_satisfied_sat;
-            else
+            if options.are_any_obstacles_non_convex
                 optimizer.set_up_constraints = @vectorize_all_obstacles;
                 optimizer.are_constraints_satisfied = @are_constraints_satisfied_interx;
+            else
+                optimizer.set_up_constraints = @(~, ~)deal([]);
+                optimizer.are_constraints_satisfied = @are_constraints_satisfied_sat;
             end
 
         end
