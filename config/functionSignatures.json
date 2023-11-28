@@ -9,14 +9,6 @@
                     "filepath=*.json"
                 ]
             }
-        ],
-        "outputs": [
-            {
-                "name": "config",
-                "type": [
-                    "Config"
-                ]
-            }
         ]
     }
 }
