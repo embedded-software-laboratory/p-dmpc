@@ -444,7 +444,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         end
 
-        function dynamic_obstacle_area = parallel_coupling_reachability(obj, ~, veh_with_HP_i)
+        function dynamic_obstacle_area = parallel_coupling_reachability(obj, ~, i_predecessor)
             % collisions with coupled vehicles with higher priorities in
             % different groups will be avoided by considering
             % their reachable sets as dynamic obstacles
@@ -455,18 +455,18 @@ classdef (Abstract) PrioritizedController < HighLevelController
             arguments
                 obj (1, 1) PrioritizedController
                 ~% index of the current vehicle
-                veh_with_HP_i (1, 1) double % index of the vehicle with higher priority
+                i_predecessor (1, 1) double % index of the vehicle with higher priority
             end
 
             % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
-            reachable_sets_i = obj.iter.reachable_sets(veh_with_HP_i, :);
+            reachable_sets_i = obj.iter.reachable_sets(i_predecessor, :);
             % turn polyshape to plain array (repeat the first row to enclosed the shape)
             reachable_sets_i_cell_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
             dynamic_obstacle_area = reachable_sets_i_cell_array;
 
         end
 
-        function dynamic_obstacle_area = parallel_coupling_previous_trajectory(obj, vehicle_idx, veh_with_HP_i)
+        function dynamic_obstacle_area = parallel_coupling_previous_trajectory(obj, vehicle_idx, i_predecessor)
             % collisions with coupled vehicles with higher priorities in
             % different groups will be avoided by considering
             % their one-step delayed predicted trajectories as dynamic obstacle
@@ -477,7 +477,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             arguments
                 obj (1, 1) PrioritizedController
                 vehicle_idx (1, 1) double % index of the current vehicle
-                veh_with_HP_i (1, 1) double % index of the vehicle with higher priority
+                i_predecessor (1, 1) double % index of the vehicle with higher priority
             end
 
             % initialize the returned variable with dimension 0 that it does
@@ -490,7 +490,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
             % the old trajectories are available from the second time step onwards
             old_msg = obj.predictions_communication{vehicle_idx}.read_message( ...
-                obj.plant.all_vehicle_ids(veh_with_HP_i), ...
+                obj.plant.all_vehicle_ids(i_predecessor), ...
                 obj.k - 1, ...
                 priority_permutation = obj.iter.priority_permutation, ...
                 throw_error = true ...
@@ -555,8 +555,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     break
                 else
                     predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                    i_all_coupled_vehicles_with_HP = predecessors == i_vehicle;
-                    dynamic_obstacle_area(i_all_coupled_vehicles_with_HP, :) = predicted_areas_i;
+                    i_predecessor = predecessors == i_vehicle;
+                    dynamic_obstacle_area(i_predecessor, :) = predicted_areas_i;
                 end
 
             end
@@ -573,7 +573,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     obj.plant.all_vehicle_ids(i_vehicle) ...
                 );
 
-                i_all_coupled_vehicles_with_HP = predecessors == i_vehicle;
+                i_predecessor = predecessors == i_vehicle;
                 % if the current message is available no less precise
                 % information must be used to consider the vehicle
                 if latest_msg.time_step == obj.k
@@ -584,13 +584,13 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         break
                     else
                         predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                        dynamic_obstacle_area(i_all_coupled_vehicles_with_HP, :) = predicted_areas_i;
+                        dynamic_obstacle_area(i_predecessor, :) = predicted_areas_i;
                     end
 
                 else
                     % if they are in different groups and message of
                     % current time step is not available
-                    dynamic_obstacle_area(i_all_coupled_vehicles_with_HP, :) = ...
+                    dynamic_obstacle_area(i_predecessor, :) = ...
                         obj.consider_parallel_coupling(vehicle_idx, i_vehicle);
                 end
 
