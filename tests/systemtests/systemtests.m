@@ -25,8 +25,16 @@ classdef systemtests < matlab.unittest.TestCase
 
             testCase.verifyEmpty(lastwarn);
 
-            main(options);
+            experiment_result = main(options);
             testCase.verifyTrue(true);
+
+            output_path = FileNameConstructor.get_results_full_path(experiment_result.options);
+            expected_result_output_path = get_expected_result_path(output_path);
+            testCase.verifyTrue(contains(expected_result_output_path, 'tests/systemtests/expected_results'), "expected result's path is wrong");
+
+            expected_result = load(expected_result_output_path).experiment_result;
+            testCase.verifyTrue(expected_result.is_equal(experiment_result), "did not match expected result");
+
         end
 
         function test_prioritized(testCase, scenario, mpa, computation_mode, optimizer_prioritized, coupling, priority, weight)
@@ -49,8 +57,15 @@ classdef systemtests < matlab.unittest.TestCase
 
             testCase.verifyEmpty(lastwarn);
 
-            main(options);
+            experiment_result = main(options);
             testCase.verifyTrue(true);
+
+            output_path = FileNameConstructor.get_results_full_path(experiment_result.options);
+            expected_result_output_path = get_expected_result_path(output_path);
+            testCase.verifyTrue(contains(expected_result_output_path, 'tests/systemtests/expected_results'), "expected result's path is wrong");
+
+            expected_result = load(expected_result_output_path).experiment_result;
+            testCase.verifyTrue(expected_result.is_equal(experiment_result), "did not match expected result");
         end
 
     end
@@ -66,8 +81,15 @@ classdef systemtests < matlab.unittest.TestCase
 
             options = options.validate();
 
-            main(options);
+            experiment_result = main(options);
             testCase.verifyTrue(true);
+
+            output_path = FileNameConstructor.get_results_full_path(experiment_result.options);
+            expected_result_output_path = get_expected_result_path(output_path);
+            testCase.verifyTrue(contains(expected_result_output_path, 'tests/systemtests/expected_results'), "expected result's path is wrong");
+
+            expected_result = load(expected_result_output_path).experiment_result;
+            testCase.verifyTrue(expected_result.is_equal(experiment_result), "did not match expected result");
         end
 
         function test_plot_default(testCase, scenario)

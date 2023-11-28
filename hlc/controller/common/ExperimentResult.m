@@ -49,7 +49,7 @@ classdef ExperimentResult
             equal = obj.n_steps == compare_obj.n_steps;
 
             for i_step = 1:obj.n_steps
-                equal = equal && obj.iteration_data{i_step}.is_equal(compare_obj.iteration_data{i_step});
+                equal = equal && obj.iteration_data(i_step).is_equal(compare_obj.iteration_data(i_step));
 
                 if (~equal)
                     return;
