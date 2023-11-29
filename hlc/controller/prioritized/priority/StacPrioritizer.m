@@ -26,10 +26,6 @@ classdef StacPrioritizer < Prioritizer
             directed_coupling = adjacency;
             amount = options.amount;
 
-            if ((time_step == 1) && ~(options.scenario_type == ScenarioType.commonroad))
-                warning('STAC Priority only available for Commonroad scenarios! May behave unexpectedly!')
-            end
-
             obj.previous_intersection_ids = obj.intersection_ids;
             [obj.intersection_ids, obj.intersection_entry_times] = vehicles_at_intersection(time_step, obj.intersection_ids, obj.intersection_entry_times, obj.intersection_distance_threshold, iter.x0, intersection_center, amount);
 
