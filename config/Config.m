@@ -206,11 +206,6 @@ classdef Config
                 'STAC Priority not available for Full Coupling!' ...
             );
 
-            % enforce non convex reachable sets for non circle scenarios
-            if obj.scenario_type ~= ScenarioType.circle
-                obj.are_any_obstacles_non_convex = true;
-            end
-
             % limit maximum number of computation levels
             obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
 
