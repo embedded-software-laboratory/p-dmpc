@@ -10,6 +10,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
     end
 
     properties (Access = protected)
+        ros2_node ros2node; % (1, 1)
+
         prioritizer
         weigher
         cutter
@@ -49,51 +51,38 @@ classdef (Abstract) PrioritizedController < HighLevelController
             timer = tic;
             fprintf('Creating ROS2 objects... ');
             obj.create_ros2_objects();
-            fprintf('in %f seconds.\n', toc(timer));
+            fprintf('done (%.2f s).\n', toc(timer));
 
             % initialize the communication network of ROS 2
             obj.init_communication();
         end
 
         function create_ros2_objects(obj)
+            vehicle_indices_string = sprintf('_%02d', obj.plant.indices_in_vehicle_list);
+            obj.ros2_node = ros2node(['hlc', vehicle_indices_string]);
 
             for vehicle_index = obj.plant.indices_in_vehicle_list
                 vehicle_id = obj.plant.all_vehicle_ids(vehicle_index);
 
                 % create instance of the communication class
-                obj.traffic_communication{vehicle_index} = TrafficCommunication();
-                obj.predictions_communication{vehicle_index} = PredictionsCommunication();
-                obj.solution_cost_communication{vehicle_index} = SolutionCostCommunication();
-
-                % create node and store topic name and message type
-                obj.traffic_communication{vehicle_index}.initialize( ...
+                obj.traffic_communication{vehicle_index} = TrafficCommunication( ...
                     vehicle_id, ...
-                    'traffic', ...
+                    obj.ros2_node, ...
                     '/vehicle_traffic', ...
                     'veh_msgs/Traffic' ...
                 );
-                obj.predictions_communication{vehicle_index}.initialize( ...
+                obj.predictions_communication{vehicle_index} = PredictionsCommunication( ...
                     vehicle_id, ...
-                    'prediction', ...
+                    obj.ros2_node, ...
                     '/vehicle_prediction', ...
                     'veh_msgs/Predictions' ...
                 );
-                obj.solution_cost_communication{vehicle_index}.initialize( ...
+                obj.solution_cost_communication{vehicle_index} = SolutionCostCommunication( ...
                     vehicle_id, ...
-                    'solution_cost', ...
+                    obj.ros2_node, ...
                     '/vehicle_solution_cost', ...
                     'veh_msgs/SolutionCost' ...
                 );
-
-                % create publishers
-                obj.traffic_communication{vehicle_index}.create_publisher();
-                obj.predictions_communication{vehicle_index}.create_publisher();
-                obj.solution_cost_communication{vehicle_index}.create_publisher();
-
-                % create subscribers
-                obj.traffic_communication{vehicle_index}.create_subscriber();
-                obj.predictions_communication{vehicle_index}.create_subscriber();
-                obj.solution_cost_communication{vehicle_index}.create_subscriber();
             end
 
             if length(obj.plant.indices_in_vehicle_list) == 1
@@ -797,6 +786,8 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % delete ros2 objects
             obj.traffic_communication = {};
             obj.predictions_communication = {};
+            obj.solution_cost_communication = {};
+            delete(obj.ros2_node);
             % clean up hlc in reverse order than constructing
             clean_up@HighLevelController(obj);
         end
