@@ -556,32 +556,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     break
                 end
 
-                % if they are in different groups, read the latest available
-                % message and check it is from the current time step
-                latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
-                    obj.plant.all_vehicle_ids(i_vehicle) ...
-                );
-
+                % if they are in different groups, use the message
+                % from the previous time step for reprodicibility
                 i_predecessor = predecessors == i_vehicle;
-                % if the current message is available no less precise
-                % information must be used to consider the vehicle
-                if latest_msg.time_step == obj.k
-                    obj.info.vehicles_fallback = union(obj.info.vehicles_fallback, latest_msg.vehicles_fallback');
-
-                    if ismember(vehicle_idx, obj.info.vehicles_fallback)
-                        is_fallback_triggered = true;
-                        break
-                    else
-                        predicted_areas_i = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                        dynamic_obstacle_area(i_predecessor, :) = predicted_areas_i;
-                    end
-
-                else
-                    % if they are in different groups and message of
-                    % current time step is not available
-                    dynamic_obstacle_area(i_predecessor, :) = ...
-                        obj.consider_parallel_coupling(vehicle_idx, i_vehicle);
-                end
+                dynamic_obstacle_area(i_predecessor, :) = ...
+                    obj.consider_parallel_coupling(vehicle_idx, i_vehicle);
 
             end
 
