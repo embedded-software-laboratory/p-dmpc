@@ -176,14 +176,18 @@ classdef systemtests < matlab.unittest.TestCase
 
         function test_plot_timing_result(testCase)
             lastwarn('');
-            fprintf('\nTest plotting of timing results. Note: No experiment is run here but instead only old results are reused.\n')
+            fprintf('\nTest plotting of timing results.\n')
             %load Config from json as done in priority_based and load specific result structs of already performed experiments
-            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
-            options.scenario_type = ScenarioType.circle;
-            options.is_prioritized = true;
-            options.compute_in_parallel = true;
+            options = Config.load_from_file('tests/systemtests/Config_plot_timing_result.json');
 
-            % Load old results created in priority_based
+            testCase.verifyEmpty(lastwarn);
+
+            %let main run
+            main(options);
+
+            testCase.verifyTrue(true);
+
+            % Load results
             result_veh1 = load(FileNameConstructor.get_results_full_path(options, 1)).experiment_result;
             result_veh2 = load(FileNameConstructor.get_results_full_path(options, 2)).experiment_result;
 

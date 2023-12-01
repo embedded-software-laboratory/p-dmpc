@@ -1,0 +1,20 @@
+{
+    "amount": 2,
+    "path_ids": [
+        18,
+        19
+    ],
+    "T_end": 4,
+    "max_num_CLs": 2,
+    "mpa_type": "single_speed",
+    "should_save_result": true,
+    "should_reduce_result": true,
+    "is_save_mpa": true,
+    "is_load_mpa": true,
+    "options_plot_online": {
+        "is_active": false
+    },
+    "scenario_type": "circle",
+    "is_prioritized": true,
+    "compute_in_parallel": true
+}
