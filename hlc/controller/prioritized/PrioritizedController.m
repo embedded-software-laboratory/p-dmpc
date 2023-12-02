@@ -348,14 +348,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         sub_graph_fallback = belonging_vector_total(vehicle_idx);
                         obj.info.vehicles_fallback = [obj.info.vehicles_fallback; find(belonging_vector_total == sub_graph_fallback).'];
                         obj.info.vehicles_fallback = unique(obj.info.vehicles_fallback, 'stable');
-                    case FallbackType.global_fallback
-                        % global fallback: all vehicles take fallback
-                        obj.info.vehicles_fallback = int32(1):int32(obj.options.amount);
                     case FallbackType.no_fallback
                         % Fallback is disabled. Simulation will end.
                         obj.info.vehicles_fallback = int32(1):int32(obj.options.amount);
-                    otherwise
-                        warning("Please define one of the follows as fallback strategy: 'no_fallback', 'local_fallback', and 'global_fallback'.")
                 end
 
             else
