@@ -946,7 +946,6 @@ classdef MotionPrimitiveAutomaton
             %       left_area_without_offset (2, :) double [x; y]
             %       right_area_without_offset (2, :) double [x; y]
             %       braking_area_without_offset (2, :) double [x; y]
-            %       braking_area (2, :) double [x; y]
 
             arguments
                 obj MotionPrimitiveAutomaton
@@ -968,10 +967,6 @@ classdef MotionPrimitiveAutomaton
             braking_area_without_offset = obj.emergency_maneuvers{trim}.braking_without_offset;
             [turn_braking_area_without_offset_x, turn_braking_area_without_offset_y] = translate_global(yaw, x, y, braking_area_without_offset(1, :), braking_area_without_offset(2, :));
             transformed_emergency_maneuvers.braking_area_without_offset = [turn_braking_area_without_offset_x; turn_braking_area_without_offset_y];
-            % emergency braking maneuver (with normal offset)
-            braking_area = obj.emergency_maneuvers{trim}.braking_with_offset;
-            [turn_braking_area_x, turn_braking_area_y] = translate_global(yaw, x, y, braking_area(1, :), braking_area(2, :));
-            transformed_emergency_maneuvers.braking_area = [turn_braking_area_x; turn_braking_area_y];
         end
 
         function transformed_reachable_sets = reachable_sets_at_pose(obj, x, y, yaw, trim)

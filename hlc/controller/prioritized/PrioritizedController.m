@@ -598,30 +598,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         % consider currently occupied area as static obstacle
                         obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
 
-                    case '3'
-                        % consider the occupied area of emergency braking maneuver
-                        % as static obstacle (only if their couplings are not
-                        % ignored by forbidding one vehicle entering their lanelet
-                        % crossing area, and they have side-impact collision
-                        % possibility). Cases that vehicles drive successively are not
-                        % included to avoid that vehicles behind push vehicles in
-                        % front to move forward.
-
-                        if ( ...
-                                obj.options.scenario_type ~= ScenarioType.circle && ...
-                                obj.options.priority == PriorityStrategies.STAC_priority && ...
-                                obj.iter.directed_coupling_reduced(vehicle_idx, successor_vehicle) == 1 && ...
-                                obj.iter.coupling_info{vehicle_idx, successor_vehicle}.collision_type == CollisionType.from_side && ...
-                                obj.iter.coupling_info{vehicle_idx, successor_vehicle}.lanelet_relationship == LaneletRelationshipType.crossing ...
-                            )
-                            % the emergency braking maneuver is only considered if
-                            % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
-                            obstacles{i_successor} = obj.iter.emergency_maneuvers{successor_vehicle}.braking_area;
-                            continue
-                        end
-
-                        obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
-
                     case '4'
                         % consider one-step reachable sets as static obstacle
                         reachable_sets = obj.iter.reachable_sets{successor_vehicle, 1};
