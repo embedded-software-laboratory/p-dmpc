@@ -598,13 +598,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         % consider currently occupied area as static obstacle
                         obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
 
-                    case '4'
-                        % consider one-step reachable sets as static obstacle
-                        reachable_sets = obj.iter.reachable_sets{successor_vehicle, 1};
-                        % get boundary of the polygon
-                        [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
-                        obstacles{i_successor} = [x_reachable_sets'; y_reachable_sets'];
-
                     case ConstraintFromSuccessor.area_of_previous_trajectory
                         % consider old trajectory as dynamic obstacle
                         latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
