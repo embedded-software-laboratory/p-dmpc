@@ -31,7 +31,7 @@ classdef Config
         should_reduce_result = true; % true/false, if true, reduced ExperimentResult will be save to save disk space (useful for a long run of simulation)
         result_name = ''; % string or char, custom file name to save ExperimentResult
 
-        fallback_type FallbackType = FallbackType.local_fallback; % one of the following {'no', 'local', 'global'},
+        fallback_type FallbackType = FallbackType.local_fallback;
 
         path_ids = []; % reference path IDs for selection of paths for the vehicles
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
