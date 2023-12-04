@@ -566,11 +566,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         function [obstacles, dynamic_obstacle_area] = consider_successors(obj, vehicle_idx, successors)
             % consider_successors Consider coupled vehicles with lower priority
-            % '1': do not consider
-            % '2': consider currently occupied area as static obstacle
-            % '3': consider the occupied area of emergency braking maneuver as static obstacle
-            % '4': consider one-step reachable sets as static obstacle
-            % '5': consider old trajectory as dynamic obstacle
             %
             % Output:
             %   obstacles (:, 1) cell of areas [x; y]
@@ -585,6 +580,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % preallocate cell array entries
             obstacles = cell(length(successors), 1);
             dynamic_obstacle_area = cell(length(successors), obj.options.Hp);
+            state_indices = indices();
 
             for i_successor = 1:length(successors)
                 successor_vehicle = successors(i_successor);
@@ -595,8 +591,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         % do not consider
 
                     case ConstraintFromSuccessor.area_of_standstill
-                        % consider currently occupied area as static obstacle
-                        obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
+                        % consider currently occupied area as static obstacle,
+                        % if the vehicle is at standstill
+                        if abs(obj.iter.x0(successor_vehicle, state_indices.speed)) < 0.01
+                            obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
+                        end
 
                     case ConstraintFromSuccessor.area_of_previous_trajectory
                         % consider old trajectory as dynamic obstacle
