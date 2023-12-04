@@ -590,11 +590,11 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 successor_vehicle = successors(i_successor);
 
                 % strategies to let vehicle with the right-of-way consider vehicle without the right-of-way
-                switch obj.options.strategy_consider_veh_without_ROW
-                    case '1'
+                switch obj.options.constraint_from_successor
+                    case ConstraintFromSuccessor.none
                         % do not consider
 
-                    case '2'
+                    case ConstraintFromSuccessor.area_of_standstill
                         % consider currently occupied area as static obstacle
                         obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
 
@@ -629,7 +629,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
                         [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
                         obstacles{i_successor} = [x_reachable_sets'; y_reachable_sets'];
 
-                    case '5'
+                    case ConstraintFromSuccessor.area_of_previous_trajectory
                         % consider old trajectory as dynamic obstacle
                         latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
                             obj.plant.all_vehicle_ids(successor_vehicle) ...
@@ -649,9 +649,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                         predicted_areas = del_first_rpt_last(predicted_areas(:)', shift_step);
                         dynamic_obstacle_area(i_successor, :) = predicted_areas;
-
-                    otherwise
-                        warning("Please specify one of the following strategies to let vehicle with a higher priority also consider vehicle with a lower priority: '1', '2', '3', '4', '5'.")
                 end
 
             end

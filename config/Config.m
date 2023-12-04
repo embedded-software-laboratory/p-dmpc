@@ -16,12 +16,7 @@ classdef Config
         mpa_type MpaType = MpaType.single_speed; % mpa type (element of {'single_speed', 'triple_speed', 'realistic'})
         T_end = 20; % scalar, simulation duration
         max_num_CLs = 99; % integer, maximum allowerd number of computation levels
-        strategy_consider_veh_without_ROW = '2'; % one of the following: {'1', '2', '3', '4', '5'}, strategy of letting higher - priority vehicles consider their coupled vehicles with lower priorities
-        % '1': do not consider
-        % '2': consider currently occupied area as static obstacle
-        % '3': consider the occupied area of emergency braking maneuver as static obstacle
-        % '4': consider one-step reachable sets as static obstacle
-        % '5': consider old trajectory as dynamic obstacle
+        constraint_from_successor ConstraintFromSuccessor = ConstraintFromSuccessor.area_of_standstill;
         strategy_enter_lanelet_crossing_area = '1'; % one of the following: {'1', '2', '3', '4'}, strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
         % '1': no constraint on entering the crossing area
         % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection

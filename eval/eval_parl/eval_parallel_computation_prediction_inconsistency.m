@@ -19,7 +19,7 @@ function results = eval_parallel_computation_prediction_inconsistency()
     options.compute_in_parallel = false;
     options.should_save_result = true;
     options.should_reduce_result = false;
-    options.strategy_consider_veh_without_ROW = '1';
+    options.constraint_from_successor = ConstraintFromSuccessor.none;
     options.strategy_enter_lanelet_crossing_area = '1';
 
     % TODO create fitting scenario
