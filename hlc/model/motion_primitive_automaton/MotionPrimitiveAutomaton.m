@@ -69,7 +69,7 @@ classdef MotionPrimitiveAutomaton
             % it, otherwise it will be built and saved to the library.
             % Note: if MPA properties are changed, then rebuild all MPAs!
 
-            if options.is_load_mpa && isfile(mpa_full_path)
+            if isfile(mpa_full_path)
 
                 try
                     fprintf('Loading MPA... ');
@@ -184,8 +184,13 @@ classdef MotionPrimitiveAutomaton
 
             obj.offline_reachability_computation_time = toc(offline_RA);
 
-            if options.is_save_mpa
-                save_mpa(obj, mpa_full_path); % save mpa to library
+            if ~options.compute_in_parallel
+                % save mpa to library
+                % If computing in parallel on one machine, this causes file
+                % access conflicts.
+                % If computing in parallel on multiple machines, we can
+                % save the MPA beforehand and transmit it to the machines.
+                save_mpa(obj, mpa_full_path);
             end
 
         end

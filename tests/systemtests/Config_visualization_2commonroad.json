@@ -10,8 +10,6 @@
     "mpa_type": "single_speed",
     "should_save_result": false,
     "should_reduce_result": false,
-    "is_save_mpa": false,
-    "is_load_mpa": true,
     "options_plot_online": {
         "is_active": true,
         "plot_vehicle_id": true,

@@ -37,10 +37,6 @@ classdef Config
         plot_limits = [0, 4.5; 0, 4]; % default fallback if not defined
         is_use_dynamic_programming = true; % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
 
-        % MPA
-        is_save_mpa = true; % true/false, the offline computed MPA will be saved if true
-        is_load_mpa = true; % true/false, the offline computed MPA  will be load if exists
-
         options_plot_online OptionsPlotOnline = OptionsPlotOnline(); % setup for online plotting
         is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
 

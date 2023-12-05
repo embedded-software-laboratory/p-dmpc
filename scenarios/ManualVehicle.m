@@ -19,7 +19,6 @@ classdef ManualVehicle
         function obj = ManualVehicle(id, options, road_raw_data)
             options.mpa_type = MpaType.single_speed;
             options.is_prioritized = true;
-            options.is_save_mpa = true;
             options.is_use_dynamic_programming = true;
             options.recursive_feasibility = false;
             options.is_bounded_reachable_set_used = true;
