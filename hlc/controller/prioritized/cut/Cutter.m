@@ -45,7 +45,7 @@ classdef (Abstract) Cutter
                 directed_coupling_sequential(parallel_vertices, subgraphs_info(i_graph).vertices) = 0;
             end
 
-            directed_coupling_sequential = Cutter.sequentialize_edges_irrelevant_to_CLs( ...
+            directed_coupling_sequential = Cutter.sequentialize_edges( ...
                 M, ...
                 directed_coupling_sequential, ...
                 max_num_CLs ...
@@ -225,14 +225,14 @@ classdef (Abstract) Cutter
 
     methods (Static, Access = private)
 
-        function directed_coupling_sequential = sequentialize_edges_irrelevant_to_CLs( ...
+        function directed_coupling_sequential = sequentialize_edges( ...
                 directed_coupling_weighted, ...
                 directed_coupling_sequential, ...
                 max_num_CLs ...
             )
-            % sequentialize_edges_irrelevant_to_CLs Sequentializes edges.
+            % sequentialize_edges Sequentializes edges.
             % Since we cut vertices during the graph partitioning algorithm, there
-            % might exist edges than can be sequential instead of parallel without
+            % might exist edges that can be sequential instead of parallel without
             % increasing the number of computation levels.
             % This function sequentializes those edges.
 
@@ -248,7 +248,7 @@ classdef (Abstract) Cutter
             row = row(order_by_weight);
             col = col(order_by_weight);
 
-            level_of_vehicle = Prioritizer.computation_levels_of_vehicles(directed_coupling_sequential);
+            levels_of_vehicles = Prioritizer.computation_levels_of_vehicles(directed_coupling_sequential);
 
             directed_graph = digraph(logical(directed_coupling_sequential));
 
@@ -256,8 +256,8 @@ classdef (Abstract) Cutter
 
                 vertex_starting = row(i_parallel_edge);
                 vertex_ending = col(i_parallel_edge);
-                level_starting = level_of_vehicle(vertex_starting);
-                level_ending = level_of_vehicle(vertex_ending);
+                level_starting = levels_of_vehicles(vertex_starting);
+                level_ending = levels_of_vehicles(vertex_ending);
 
                 % Option 1: check whether the ending vertex is in a lower
                 % computation level
@@ -270,15 +270,15 @@ classdef (Abstract) Cutter
                 % Option 2: check whether the ending vertex can be moved to a
                 % level that is lower than the starting vertex
                 vertices_ordered_after = directed_graph.bfsearch(vertex_ending);
-                level_after_ending = max(level_of_vehicle(vertices_ordered_after));
+                level_after_ending = max(levels_of_vehicles(vertices_ordered_after));
                 added_levels = (level_starting - level_ending + 1);
                 computation_levels_if_sequential = level_after_ending + added_levels;
 
                 if computation_levels_if_sequential <= max_num_CLs
                     directed_graph = directed_graph.addedge(vertex_starting, vertex_ending);
 
-                    level_of_vehicle([vertex_ending; vertices_ordered_after]) = ...
-                        level_of_vehicle([vertex_ending; vertices_ordered_after]) ...
+                    levels_of_vehicles([vertex_ending; vertices_ordered_after]) = ...
+                        levels_of_vehicles([vertex_ending; vertices_ordered_after]) ...
                         + added_levels;
                 end
 
