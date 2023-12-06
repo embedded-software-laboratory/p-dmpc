@@ -593,7 +593,9 @@ classdef (Abstract) PrioritizedController < HighLevelController
                     case ConstraintFromSuccessor.area_of_standstill
                         % consider currently occupied area as static obstacle,
                         % if the vehicle is at standstill
-                        if abs(obj.iter.x0(successor_vehicle, state_indices.speed)) < 0.01
+                        standstill_speed_meter_per_second = 0.01;
+
+                        if abs(obj.iter.x0(successor_vehicle, state_indices.speed)) < standstill_speed_meter_per_second
                             obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
                         end
 
