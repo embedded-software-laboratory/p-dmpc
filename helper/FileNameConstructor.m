@@ -125,7 +125,8 @@ classdef FileNameConstructor
 
                 if options.is_prioritized
                     scenario_name = [scenario_name, '_maxCLs', num2str(options.max_num_CLs), ...
-                                         '_ConsiderVehWithoutROW', options.strategy_consider_veh_without_ROW, '_EnterLaneletCrossingArea', options.strategy_enter_lanelet_crossing_area];
+                                         '_constraint-from-successor-', char(options.constraint_from_successor), ...
+                                         '_EnterLaneletCrossingArea', options.strategy_enter_lanelet_crossing_area];
                 end
 
                 if options.fallback_type ~= FallbackType.local_fallback

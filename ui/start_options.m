@@ -17,6 +17,11 @@ function [labOptions] = start_options()
     priorityAssignmentMethod = list_priority_assignment_methods();
     ui.PriorityAssignmentMethodListBox.Items = priorityAssignmentMethod(:, 2);
 
+    % Constraints from successor (lower-priority vehicles)
+    constraint_from_successor = list_constraint_from_successor();
+    ui.ConstraintFromSuccessorListBox.Items = constraint_from_successor(:, 2);
+    ui.ConstraintFromSuccessorListBox.Value = constraint_from_successor(2, 2);
+
     % vehicleAmount
     vehicleAmount = list_vehicle_amount();
     ui.AmountofVehiclesListBox.Items = vehicleAmount(:, 1);
@@ -62,7 +67,7 @@ function [labOptions] = start_options()
         ui.MaxComputationLevelsSpinner.Value = previousSelection.max_num_CLsSelection;
 
         % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
-        ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Value = previousSelection.strategy_consider_veh_without_ROWSelection;
+        ui.ConstraintFromSuccessorListBox.Value = previousSelection.constraint_from_successorSelection;
 
         % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Value = previousSelection.strategy_enter_crossing_areaSelection;
@@ -125,7 +130,7 @@ function [labOptions] = start_options()
     % maximum allowed number of computation levels
     max_num_CLsSelection = ui.MaxComputationLevelsSpinner.Value;
     % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
-    strategy_consider_veh_without_ROWSelection = ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Value;
+    constraint_from_successorSelection = ui.ConstraintFromSuccessorListBox.Value;
     % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
     strategy_enter_crossing_areaSelection = ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Value;
     % Whether save ExperimentResult
@@ -135,7 +140,7 @@ function [labOptions] = start_options()
 
     save([tempdir 'scenarioControllerSelection'], 'optimizer', 'is_manual_control', 'hdv_amount_selection', 'hdv_ids', ...
         'environmentSelection', 'scenarioSelection', 'controlStrategySelection', 'priorityAssignmentMethodSelection', 'vehicleAmountSelection', 'visualizationSelection', ...
-        'isParlSelection', 'dtSelection', 'HpSelection', 'mpa_typeSelection', 'T_endSelection', 'max_num_CLsSelection', 'path_ids', 'strategy_consider_veh_without_ROWSelection', 'strategy_enter_crossing_areaSelection', ...
+        'isParlSelection', 'dtSelection', 'HpSelection', 'mpa_typeSelection', 'T_endSelection', 'max_num_CLsSelection', 'path_ids', 'constraint_from_successorSelection', 'strategy_enter_crossing_areaSelection', ...
         'should_save_result', 'result_name');
 
     %% Convert to legacy/outputs
@@ -158,14 +163,14 @@ function [labOptions] = start_options()
     labOptions.environment = get_environment_selection(ui, true);
 
     controlStrategyHelper = controlStrategy{ ...
-                                                strcmp({controlStrategy{:, 2}}, controlStrategySelection), ...
+                                                strcmp(controlStrategy(:, 2), controlStrategySelection), ...
                                                 2};
 
     labOptions.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
 
     labOptions.optimizer_type = OptimizerType(string(optimizer));
 
-    labOptions.amount = str2num(vehicleAmountSelection);
+    labOptions.amount = str2double(vehicleAmountSelection);
 
     path_ids = ui.CustomReferencePathsEditField.Value;
 
@@ -180,18 +185,18 @@ function [labOptions] = start_options()
     labOptions.options_plot_online.is_active = strcmp(visualizationSelection, 'yes');
 
     isParlHelper = compute_in_parallel{ ...
-                                           strcmp({compute_in_parallel{:, 2}}, isParlSelection), ...
+                                           strcmp(compute_in_parallel(:, 2), isParlSelection), ...
                                            2};
 
     labOptions.compute_in_parallel = strcmp(isParlHelper, 'yes');
 
     scenario = list_scenario(ui); % Update scenario since the selected options may differ now
     labOptions.scenario_type = scenario{ ...
-                                            strcmp({scenario{:, 2}}, scenarioSelection), ...
+                                            strcmp(scenario(:, 2), scenarioSelection), ...
                                             1};
 
     labOptions.priority = priorityAssignmentMethod{ ...
-                                                       strcmp({priorityAssignmentMethod{:, 2}}, priorityAssignmentMethodSelection), ...
+                                                       strcmp(priorityAssignmentMethod(:, 2), priorityAssignmentMethodSelection), ...
                                                        1};
 
     % sample time [s]
@@ -210,7 +215,10 @@ function [labOptions] = start_options()
     labOptions.max_num_CLs = max_num_CLsSelection;
 
     % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
-    labOptions.strategy_consider_veh_without_ROW = strategy_consider_veh_without_ROWSelection;
+    labOptions.constraint_from_successor = constraint_from_successor{ ...
+                                                                         strcmp(constraint_from_successor(:, 2), constraint_from_successorSelection), ...
+                                                                         1 ...
+                                                                     };
 
     % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
     labOptions.strategy_enter_lanelet_crossing_area = strategy_enter_crossing_areaSelection;
@@ -265,11 +273,6 @@ function out = get_add_hdv_selection(ui)
     out = ui.AddHDVsCheckBox.Value;
 end
 
-function out = get_pb_non_coop_selection(ui)
-    % true if pb_non-coop lab selected
-    out = strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop');
-end
-
 function setEnvironmentElementsVisibility(ui)
     % if lab mode is selected
     is_lab_selection = (get_environment_selection(ui, true) == Environment.CpmLab ...
@@ -307,7 +310,7 @@ function callbackPBSelected(ui)
 
     if strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop')
         ui.MaxComputationLevelsSpinner.Enable = 'on';
-        ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'on';
+        ui.ConstraintFromSuccessorListBox.Enable = 'on';
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'on';
         ui.ParallelComputationDistributedExecutionListBox.Enable = 'on';
 
@@ -315,9 +318,10 @@ function callbackPBSelected(ui)
 
         list_optimizer = list_optimizer_prioritized();
         ui.OptimizerListBox.Items = list_optimizer(:, 2);
+        ui.OptimizerListBox.Value = list_optimizer(1, 2);
     else
         ui.MaxComputationLevelsSpinner.Enable = 'off';
-        ui.HowShouldVehiclewiththeRightofWayConsiderVehicleWithoutListBox.Enable = 'off';
+        ui.ConstraintFromSuccessorListBox.Enable = 'off';
         ui.VehiclewithoutrightofwayEntersLaneletCrossingAreaListBox.Enable = 'off';
 
         % centralized can never be run in parallel
@@ -329,6 +333,7 @@ function callbackPBSelected(ui)
 
         list_optimizer = list_optimizer_centralized();
         ui.OptimizerListBox.Items = list_optimizer(:, 2);
+        ui.OptimizerListBox.Value = list_optimizer(1, 2);
     end
 
 end
@@ -389,6 +394,14 @@ function [list] = list_priority_assignment_methods
                 PriorityStrategies.random_priority, 'Random Priority'; ...
                 PriorityStrategies.FCA_priority, 'FCA Priority'; ...
                 PriorityStrategies.STAC_priority, 'STAC Priority'
+            };
+end
+
+function [list] = list_constraint_from_successor
+    list = { ...
+                ConstraintFromSuccessor.none, 'None'; ...
+                ConstraintFromSuccessor.area_of_standstill, 'Area of standstill'; ...
+                ConstraintFromSuccessor.area_of_previous_trajectory, 'Area of previous trajectory'
             };
 end
 

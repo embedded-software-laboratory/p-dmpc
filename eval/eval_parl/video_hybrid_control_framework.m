@@ -14,7 +14,7 @@ options.is_prioritized = true;
 options.should_save_result = true;
 options.should_reduce_result = false;
 options.is_plot_online = true;
-options.strategy_consider_veh_without_ROW = '3';
+options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
 
 name = {'unboundedRSs', 'boundedRSs', 'laneletCrossingAreas', 'fullRun20Vehs30s', 'fullRun17VehsDeadlockRandomWeight'};
 i = 1;

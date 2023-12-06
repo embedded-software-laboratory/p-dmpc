@@ -92,7 +92,8 @@ classdef ControlResultsInfo
         function obj = handle_graph_search_exhaustion(obj, options, iter, mpa)
             trim = iter.trim_indices;
 
-            if mpa.trims(trim).speed == 0 && ~strcmp(options.strategy_consider_veh_without_ROW, '1')
+            if mpa.trims(trim).speed == 0 ...
+                    && ~(options.constraint_from_successor == ConstraintFromSuccessor.none)
                 % if a vehicle at a standstill cannot find a feasible
                 % trajectory, it will keep at a standstill without
                 % triggering a fallback. This kind of graph search is

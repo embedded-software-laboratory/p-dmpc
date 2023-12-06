@@ -566,11 +566,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
         function [obstacles, dynamic_obstacle_area] = consider_successors(obj, vehicle_idx, successors)
             % consider_successors Consider coupled vehicles with lower priority
-            % '1': do not consider
-            % '2': consider currently occupied area as static obstacle
-            % '3': consider the occupied area of emergency braking maneuver as static obstacle
-            % '4': consider one-step reachable sets as static obstacle
-            % '5': consider old trajectory as dynamic obstacle
             %
             % Output:
             %   obstacles (:, 1) cell of areas [x; y]
@@ -585,51 +580,26 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % preallocate cell array entries
             obstacles = cell(length(successors), 1);
             dynamic_obstacle_area = cell(length(successors), obj.options.Hp);
+            state_indices = indices();
 
             for i_successor = 1:length(successors)
                 successor_vehicle = successors(i_successor);
 
                 % strategies to let vehicle with the right-of-way consider vehicle without the right-of-way
-                switch obj.options.strategy_consider_veh_without_ROW
-                    case '1'
+                switch obj.options.constraint_from_successor
+                    case ConstraintFromSuccessor.none
                         % do not consider
 
-                    case '2'
-                        % consider currently occupied area as static obstacle
-                        obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
+                    case ConstraintFromSuccessor.area_of_standstill
+                        % consider currently occupied area as static obstacle,
+                        % if the vehicle is at standstill
+                        standstill_speed_meter_per_second = 0.01;
 
-                    case '3'
-                        % consider the occupied area of emergency braking maneuver
-                        % as static obstacle (only if their couplings are not
-                        % ignored by forbidding one vehicle entering their lanelet
-                        % crossing area, and they have side-impact collision
-                        % possibility). Cases that vehicles drive successively are not
-                        % included to avoid that vehicles behind push vehicles in
-                        % front to move forward.
-
-                        if ( ...
-                                obj.options.scenario_type ~= ScenarioType.circle && ...
-                                obj.options.priority == PriorityStrategies.STAC_priority && ...
-                                obj.iter.directed_coupling_reduced(vehicle_idx, successor_vehicle) == 1 && ...
-                                obj.iter.coupling_info{vehicle_idx, successor_vehicle}.collision_type == CollisionType.from_side && ...
-                                obj.iter.coupling_info{vehicle_idx, successor_vehicle}.lanelet_relationship == LaneletRelationshipType.crossing ...
-                            )
-                            % the emergency braking maneuver is only considered if
-                            % two coupled vehicles at crossing-adjacent lanelets have side-impact collision that is not ignored
-                            obstacles{i_successor} = obj.iter.emergency_maneuvers{successor_vehicle}.braking_area;
-                            continue
+                        if abs(obj.iter.x0(successor_vehicle, state_indices.speed)) < standstill_speed_meter_per_second
+                            obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
                         end
 
-                        obstacles{i_successor} = obj.iter.occupied_areas{successor_vehicle}.normal_offset;
-
-                    case '4'
-                        % consider one-step reachable sets as static obstacle
-                        reachable_sets = obj.iter.reachable_sets{successor_vehicle, 1};
-                        % get boundary of the polygon
-                        [x_reachable_sets, y_reachable_sets] = boundary(reachable_sets);
-                        obstacles{i_successor} = [x_reachable_sets'; y_reachable_sets'];
-
-                    case '5'
+                    case ConstraintFromSuccessor.area_of_previous_trajectory
                         % consider old trajectory as dynamic obstacle
                         latest_msg = obj.predictions_communication{vehicle_idx}.read_latest_message( ...
                             obj.plant.all_vehicle_ids(successor_vehicle) ...
@@ -649,9 +619,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
                         predicted_areas = del_first_rpt_last(predicted_areas(:)', shift_step);
                         dynamic_obstacle_area(i_successor, :) = predicted_areas;
-
-                    otherwise
-                        warning("Please specify one of the following strategies to let vehicle with a higher priority also consider vehicle with a lower priority: '1', '2', '3', '4', '5'.")
                 end
 
             end
