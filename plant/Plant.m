@@ -48,9 +48,7 @@ classdef (Abstract) Plant < handle
 
             switch (environment)
                 case Environment.Simulation
-                    plant = SimLab();
-                case Environment.SimulationDistributed
-                    plant = SimLabDistributed();
+                    plant = Simulation();
                 case Environment.CpmLab
                     plant = CpmLab();
                 case Environment.UnifiedLabApi

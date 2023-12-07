@@ -8,13 +8,18 @@ classdef HLCFactory < handle
         function obj = HLCFactory()
         end
 
-        % Optional argument wether to do a dry run of the first timestep beforehand
-        % dry_run can massively decrease the time needed for the first
-        % timestep during the experiment.
-        function hlc = get_hlc(obj, options, plant, vehicle_ids, dry_run)
+        function hlc = get_hlc(obj, options, plant, vehicle_ids, do_dry_run)
+            arguments
+                obj
+                options
+                plant
+                vehicle_ids
+                do_dry_run = true;
+            end
 
-            if dry_run
-                obj.dry_run_hlc(options, plant.all_vehicle_ids);
+            if false % do_dry_run
+                % FIXME does not work in parallel
+                obj.dry_run_hlc(options, plant.controlled_vehicle_ids);
             end
 
             if options.is_prioritized
@@ -53,7 +58,7 @@ classdef HLCFactory < handle
         % solve the first time step of this scenario is.
 
         function dry_run_hlc(obj, options, dry_run_vehicle_ids)
-            disp("Starting dry run of HLC");
+            fprintf("Dry run of HLC...");
 
             % use simulation to avoid communication with a lab
             options.environment = Environment.Simulation;
@@ -72,7 +77,7 @@ classdef HLCFactory < handle
             hlc = obj.get_hlc(options, plant, dry_run_vehicle_ids, false);
             hlc.run();
 
-            disp("Dry Run Completed");
+            fprintf(" done.\n");
         end
 
     end

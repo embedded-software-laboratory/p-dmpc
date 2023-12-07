@@ -3,6 +3,7 @@ function delete_ros2_msgs()
     %generates the ros2 msg types.
 
     delete_ros2_msgs_helper("hlc/communication/cust1/matlab_msg_gen");
+    % TODO move PlottingInfo.msg to hlc, so it is included here.
 end
 
 function delete_ros2_msgs_helper(dir_path)

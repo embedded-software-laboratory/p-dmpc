@@ -42,7 +42,6 @@ classdef Config
 
         optimizer_type OptimizerType = OptimizerType.MatlabOptimal; % optimizer that shall be used
         mex_out_of_process_execution = false; % execute mex graph search functions in own process
-        is_dry_run (1, 1) logical = false; % whether to do a dry_run or not
 
     end
 
@@ -174,15 +173,6 @@ classdef Config
                     obj.is_prioritized == true, ...
                     'You are trying to run a centralized controller in the lab!' ...
                 )
-            end
-
-            % set dry run flag
-            if ( ...
-                    obj.environment == Environment.CpmLab || ...
-                    obj.environment == Environment.UnifiedLabApi || ...
-                    obj.environment == Environment.SimulationDistributed ...
-                )
-                obj.is_dry_run = true;
             end
 
             % if prioritized controller runs sequentially with more than 1 vehicle

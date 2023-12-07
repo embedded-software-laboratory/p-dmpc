@@ -378,8 +378,10 @@ classdef (Abstract) Plotter < handle
 
         function close_figure(obj)
             %CLOSE_FIGURE Close the used plotting figure.
+            try %#ok<TRYNC>
+                close(obj.fig);
+            end
 
-            close(obj.fig);
         end
 
     end
