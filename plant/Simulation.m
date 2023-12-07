@@ -134,7 +134,7 @@ classdef Simulation < Plant
             obj.msg_to_be_sent.tick_now = int32(plotting_info.tick_now);
             obj.msg_to_be_sent.weighted_coupling_reduced = reshape(plotting_info.weighted_coupling_reduced', 1, []);
             obj.msg_to_be_sent.directed_coupling = uint8(reshape(plotting_info.directed_coupling', 1, []));
-            obj.msg_to_be_sent.directed_coupling_sequential = uint8(reshape(plotting_info.directed_coupling_sequential', 1, []));
+            obj.msg_to_be_sent.directed_coupling_sequential = uint8(reshape(full(plotting_info.directed_coupling_sequential'), 1, []));
             obj.msg_to_be_sent.is_virtual_obstacle = int32(reshape(plotting_info.is_virtual_obstacle', 1, []));
         end
 

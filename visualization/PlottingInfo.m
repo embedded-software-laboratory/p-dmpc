@@ -46,9 +46,7 @@ classdef PlottingInfo
 
             obj.reachable_sets = experiment_result.iteration_data{k}.reachable_sets;
 
-            if isfield(experiment_result, "lanelet_crossing_areas")
-                obj.lanelet_crossing_areas = experiment_result.iteration_data{k}.lanelet_crossing_areas(:);
-            end
+            obj.lanelet_crossing_areas = experiment_result.iteration_data{k}.lanelet_crossing_areas(:);
 
             obj.directed_coupling = experiment_result.iteration_data{k}.directed_coupling;
             obj.directed_coupling_sequential = experiment_result.iteration_data{k}.directed_coupling_sequential;

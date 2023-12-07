@@ -222,11 +222,14 @@ classdef PlotterOnline < Plotter
 
             for i = 1:length(plotting_info_collection)
                 info = plotting_info_collection{i};
-                trajectory_predictions{i, 1} = info.trajectory_predictions;
                 ref_trajectory(i, :, :) = info.ref_trajectory(1, :, :);
             end
 
-            complete_plotting_info.trajectory_predictions = trajectory_predictions;
+            complete_plotting_info.trajectory_predictions = cellfun( ...
+                @(x) x.trajectory_predictions, ...
+                plotting_info_collection, ...
+                UniformOutput = false ...
+            )';
             complete_plotting_info.ref_trajectory = ref_trajectory;
 
             n_obstacles = 0;
@@ -248,12 +251,7 @@ classdef PlotterOnline < Plotter
             complete_plotting_info.dynamic_obstacles_shape = cellfun(@(x) x.dynamic_obstacles_shape, plotting_info_collection, 'UniformOutput', false);
 
             if obj.plot_options.plot_reachable_sets
-
-                for i = 1:length(plotting_info_collection)
-                    info = plotting_info_collection{i};
-                    complete_plotting_info.reachable_sets{i, :} = info.reachable_sets;
-                end
-
+                complete_plotting_info.reachable_sets = cellfun(@(x) x.reachable_sets, plotting_info_collection, 'UniformOutput', false);
             end
 
             if obj.plot_options.plot_lanelet_crossing_areas
