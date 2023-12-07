@@ -89,7 +89,7 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
 
                 for i_solution = 1:n_solutions
 
-                    if ismember(obj.plant.indices_in_vehicle_list(1), obj.info_array_tmp{i_solution}.vehs_fallback)
+                    if ismember(obj.plant.indices_in_vehicle_list(1), obj.info_array_tmp{i_solution}.vehicles_fallback)
                         fallback_solutions(i_solution) = true;
                         % in case of fallback use maximum cost
                         g_end = 1e9;

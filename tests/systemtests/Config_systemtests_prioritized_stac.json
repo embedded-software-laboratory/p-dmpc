@@ -1,8 +1,9 @@
 {
-    "amount": 2,
+    "amount": 3,
     "path_ids": [
         18,
-        19
+        19,
+        20
     ],
     "T_end": 4,
     "max_num_CLs": 2,
@@ -12,7 +13,11 @@
     "options_plot_online": {
         "is_active": false
     },
-    "scenario_type": "circle",
+    "scenario_type": "commonroad",
     "is_prioritized": true,
-    "compute_in_parallel": true
+    "compute_in_parallel": false,
+    "optimizer_type": "MatlabOptimal",
+    "coupling": "reachable_set_coupling",
+    "priority": "STAC_priority",
+    "weight": "STAC_weight"
 }

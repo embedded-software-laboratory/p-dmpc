@@ -1,28 +1,27 @@
 classdef systemtests < matlab.unittest.TestCase
 
     properties (TestParameter)
-        priority = {'coloring', 'constant', 'random', 'FCA', 'STAC'};
-        scenario_type = {'circle', 'commonroad'};
+        scenario = {'circle', 'commonroad'};
+        mpa = {'single_speed', 'triple_speed', 'realistic'};
+        optimizer_centralized = {'MatlabOptimal', 'CppOptimal'}; % 'CppSampled' crashes matlab in tests
+        optimizer_prioritized = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
         parallel = {'sequential', 'parallel'};
-        optimizer_type_centralized = {'MatlabOptimal', 'CppOptimal'}; % 'CppSampled' crashes matlab in tests
-        optimizer_type_priority_based = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
-        weight_strategy = {'constant_weight'
-                           'random_weight'
-                           'STAC_weight'
-                           'distance_weight'};
-        coupling = {'reachable_set_coupling', 'full_coupling', 'no_coupling', 'distance_coupling'};
+        coupling = {'reachable_set', 'full', 'no', 'distance'};
+        priority = {'coloring', 'constant', 'random', 'FCA'};
+        weight = {'constant', 'random', 'distance'};
     end
 
-    methods (Test)
+    methods (Test, ParameterCombination = 'pairwise')
 
-        function test_centralized(testCase, scenario_type, optimizer_type_centralized)
+        function test_centralized(testCase, scenario, optimizer_centralized)
             lastwarn('');
-            fprintf('\ncentralized systemtest for %s\n', scenario_type);
+            fprintf('\ncentralized systemtest for %s\n', scenario);
             %load Config from json
-            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
-            options.scenario_type = ScenarioType(scenario_type);
+            options = Config.load_from_file('tests/systemtests/Config_systemtests_centralized.json');
+            options.scenario_type = ScenarioType(scenario);
             options.is_prioritized = false;
-            options.optimizer_type = OptimizerType(optimizer_type_centralized);
+            options.optimizer_type = OptimizerType(optimizer_centralized);
+            options.validate();
 
             testCase.verifyEmpty(lastwarn);
 
@@ -30,14 +29,14 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        function test_priority_based(testCase, scenario_type, parallel, optimizer_type_priority_based)
+        function test_prioritized(testCase, scenario, mpa, parallel, optimizer_prioritized, coupling, priority, weight)
             lastwarn('');
-            fprintf('\nprioritized %s systemtest for %s\n', parallel, scenario_type);
             %load Config from json
-            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
-            options.scenario_type = ScenarioType(scenario_type);
+            options = Config.load_from_file('tests/systemtests/Config_systemtests_prioritized.json');
+
+            options.scenario_type = ScenarioType(scenario);
+            options.mpa_type = MpaType(mpa);
             options.is_prioritized = true;
-            options.optimizer_type = OptimizerType(optimizer_type_priority_based);
 
             if strcmp(parallel, 'parallel')
                 options.compute_in_parallel = true;
@@ -45,20 +44,12 @@ classdef systemtests < matlab.unittest.TestCase
                 options.compute_in_parallel = false;
             end
 
-            testCase.verifyEmpty(lastwarn);
+            options.optimizer_type = OptimizerType(optimizer_prioritized);
 
-            main(options);
-            testCase.verifyTrue(true);
-        end
-
-        function test_prioritizer(testCase, scenario_type, priority)
-            lastwarn('');
-            fprintf('\ntest priority %s for %s\n', priority, scenario_type);
-            %load Config from json
-            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
-            options.scenario_type = ScenarioType(scenario_type);
-            options.is_prioritized = true;
-            options.priority = PriorityStrategies.([priority, '_priority']);
+            options.coupling = CouplingStrategies([coupling, '_coupling']);
+            options.priority = PriorityStrategies([priority, '_priority']);
+            options.weight = WeightStrategies([weight, '_weight']);
+            options.validate();
 
             testCase.verifyEmpty(lastwarn);
 
@@ -66,63 +57,39 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        function test_grouping(testCase)
-            lastwarn('');
-            fprintf('\nTesting grouping algorithm\n');
-            %load Config from json
-            options = Config.load_from_file('tests/systemtests/Config_grouping.json');
+    end
 
+    methods (Test)
+
+        function test_prioritized_STAC(testCase)
+            lastwarn('');
+            %load Config from json
+            options = Config.load_from_file('tests/systemtests/Config_systemtests_prioritized_stac.json');
+            options.validate();
+            testCase.verifyEmpty(lastwarn);
             main(options);
             testCase.verifyTrue(true);
         end
 
-        function test_visualization(testCase, scenario_type)
+        function test_visualization(testCase, scenario)
             lastwarn('');
-            fprintf('\nvisualization systemtest for %s\n', scenario_type)
+            fprintf('\nvisualization systemtest for %s\n', scenario)
             %load Config from json
-            options = Config.load_from_file(['tests/systemtests/Config_visualization_2', char(scenario_type), '.json']);
+            options = Config.load_from_file(['tests/systemtests/Config_visualization_2', char(scenario), '.json']);
             testCase.verifyEmpty(lastwarn);
 
-            main(options);
-            testCase.verifyTrue(true);
-        end
-
-        function test_weigher(testCase, scenario_type, weight_strategy)
-            lastwarn('');
-            fprintf('\nweigher systemtest for %s\n', scenario_type)
-            %load Config from json
-            options = Config.load_from_file('tests/systemtests/Config_systemtests.json');
-            options.scenario_type = ScenarioType(scenario_type);
-            options.is_prioritized = true;
-            options.max_num_CLs = 1;
-            options.weight = WeightStrategies(weight_strategy);
-
-            testCase.verifyEmpty(lastwarn);
+            options = options.validate();
 
             main(options);
             testCase.verifyTrue(true);
         end
 
-        function test_coupler(testCase, scenario_type, coupling)
+        function test_plot_default(testCase, scenario)
             lastwarn('');
-            fprintf('\ncoupler systemtest for %s\n', coupling)
-            %load Config from json
-            options = Config.load_from_file('tests/systemtests/Config_coupler.json');
-            options.coupling = CouplingStrategies(coupling);
-            options.scenario_type = ScenarioType(scenario_type);
-
-            testCase.verifyEmpty(lastwarn);
-
-            main(options);
-            testCase.verifyTrue(true);
-        end
-
-        function test_plot_default(testCase, scenario_type)
-            lastwarn('');
-            fprintf('\ndefault evaluation plotting systemtest for %s\n', scenario_type)
+            fprintf('\ndefault evaluation plotting systemtest for %s\n', scenario)
             %load Config from json
             options = Config.load_from_file('tests/systemtests/Config_plot_default_results.json');
-            options.scenario_type = ScenarioType(scenario_type);
+            options.scenario_type = ScenarioType(scenario);
 
             testCase.verifyEmpty(lastwarn);
 
@@ -133,16 +100,16 @@ classdef systemtests < matlab.unittest.TestCase
 
             load(experiment_result.output_path, 'experiment_result');
 
-            %verify without exporting
-            plot_default(experiment_result, do_export = false);
-            testCase.verifyTrue(true);
-
             %verify and check export too
             plot_default(experiment_result, do_export = true);
             testCase.verifyTrue(true);
 
             % verify export_video
-            export_video(experiment_result);
+            export_video( ...
+                experiment_result, ...
+                step_start = 5, ...
+                step_end = 7 ...
+            );
 
             % verify other result plotting functions
             step_indices = [1, 5, 9];
@@ -166,6 +133,7 @@ classdef systemtests < matlab.unittest.TestCase
                 experiment_result, ...
                 show_weights = true, ...
                 show_cut_edges = false, ...
+                i_step = 9, ...
                 do_export = false, ...
                 fig = figure(Visible = 'off') ...
             );

@@ -5,8 +5,8 @@ function experiment_result = main(options)
         options (1, 1) Config = start_options();
     end
 
-    if verLessThan('matlab', '9.12')
-        warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
+    if isMATLABReleaseOlderThan('R2023a')
+        warning("Code is developed in MATLAB R2023a, prepare for backward incompatibilities.")
     end
 
     % create scenario
@@ -51,51 +51,51 @@ function experiment_result = main(options)
         hlc = hlc_factory.get_hlc(options, plant, plant.controlled_vehicle_ids, options.is_dry_run);
         experiment_result = hlc.run();
 
-        return
-    end
+    else
 
-    % simulate distribution locally using the Parallel Computing Toolbox
-    get_parallel_pool(options.amount);
+        % simulate distribution locally using the Parallel Computing Toolbox
+        get_parallel_pool(options.amount);
 
-    do_plot = options.options_plot_online.is_active;
-    can_handle_parallel_plot = options.environment == Environment.Simulation;
+        do_plot = options.options_plot_online.is_active;
+        can_handle_parallel_plot = options.environment == Environment.Simulation;
 
-    if do_plot
+        if do_plot
 
-        if can_handle_parallel_plot
-            visualization_data_queue = parallel.pool.DataQueue;
-            % create central plotter - used by all workers via data queue
-            plotter = PlotterOnline(options, scenario, 1:options.amount);
-            afterEach(visualization_data_queue, @plotter.data_queue_callback);
-        else
-            % case for UnifiedLabApi (and for CpmLab if combination with Parallel Computing Toolbox would be possible)
-            warning('The currently selected environment cannot handle plotting of a parallel execution!');
+            if can_handle_parallel_plot
+                visualization_data_queue = parallel.pool.DataQueue;
+                % create central plotter - used by all workers via data queue
+                plotter = PlotterOnline(options, scenario, 1:options.amount);
+                afterEach(visualization_data_queue, @plotter.data_queue_callback);
+            else
+                % case for UnifiedLabApi (and for CpmLab if combination with Parallel Computing Toolbox would be possible)
+                warning('The currently selected environment cannot handle plotting of a parallel execution!');
+            end
+
         end
 
-    end
+        spmd (options.amount)
+            % get plant from options
+            plant = Plant.get_plant(options.environment);
 
-    spmd (options.amount)
-        % get plant from options
-        plant = Plant.get_plant(options.environment);
+            if do_plot && can_handle_parallel_plot
+                % set visualization_data_queue for plotting
+                plant.set_visualization_data_queue(visualization_data_queue);
+            end
+
+            % setup plant again, only control one vehicle
+            plant.setup(options, options.path_ids, options.path_ids(spmdIndex));
+
+            hlc_factory = HLCFactory();
+            % have the plant only control its own vehicle by calling setup a second time
+            hlc = hlc_factory.get_hlc(options, plant, plant.controlled_vehicle_ids, options.is_dry_run);
+            experiment_result = hlc.run();
+        end
 
         if do_plot && can_handle_parallel_plot
-            % set visualization_data_queue for plotting
-            plant.set_visualization_data_queue(visualization_data_queue);
+            plotter.close_figure();
         end
 
-        % setup plant again, only control one vehicle
-        plant.setup(options, options.path_ids, options.path_ids(labindex));
-
-        hlc_factory = HLCFactory();
-        % have the plant only control its own vehicle by calling setup a second time
-        hlc = hlc_factory.get_hlc(options, plant, plant.controlled_vehicle_ids, options.is_dry_run);
-        experiment_result = hlc.run();
+        experiment_result = experiment_result(:);
     end
-
-    if do_plot && can_handle_parallel_plot
-        plotter.close_figure();
-    end
-
-    experiment_result = {experiment_result{:}};
 
 end

@@ -27,7 +27,7 @@ classdef MotionPrimitiveAutomaton
 
     methods
 
-        function [obj, trimsInfo] = MotionPrimitiveAutomaton(model, options)
+        function obj = MotionPrimitiveAutomaton(model, options)
 
             arguments
                 model (1, 1) VehicleModel
@@ -66,15 +66,21 @@ classdef MotionPrimitiveAutomaton
             mpa_full_path = fullfile(folder_target, mpa_instance_name);
 
             % if the needed MPA is already exist in the library, simply load
-            % it, otherwise it will be calculated and saved to the library.
-            % Note: if MPA properties are changed, then reload all MPAs!
-            if isfile(mpa_full_path) && options.is_load_mpa && nargout == 1
-                % if number of function output arguments is not one, do not load offline MPA as the second output is not available offline
-                fprintf('Loading MPA... ');
-                load(mpa_full_path, "mpa");
-                obj = mpa;
-                fprintf('done.\n')
-                return
+            % it, otherwise it will be built and saved to the library.
+            % Note: if MPA properties are changed, then rebuild all MPAs!
+
+            if isfile(mpa_full_path)
+
+                try
+                    fprintf('Loading MPA... ');
+                    load(mpa_full_path, "mpa");
+                    obj = mpa;
+                    fprintf('done.\n')
+                    return
+                catch
+                    fprintf('could not load, building new MPA.\n')
+                end
+
             end
 
             obj.recursive_feasibility = options.recursive_feasibility;
@@ -168,18 +174,23 @@ classdef MotionPrimitiveAutomaton
 
             if options.is_use_dynamic_programming
                 % use dynamic programming
-                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
+                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, ~] = ...
                     reachability_analysis_offline_DP(obj, options.Hp, is_calculate_reachable_sets_of_CP);
             else
                 % otherwise use brute-force algorithm
-                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
+                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, ~] = ...
                     reachability_analysis_offline(obj, options.Hp, is_calculate_reachable_sets_of_CP);
             end
 
             obj.offline_reachability_computation_time = toc(offline_RA);
 
-            if options.is_save_mpa
-                save_mpa(obj, mpa_full_path); % save mpa to library
+            if ~options.compute_in_parallel
+                % save mpa to library
+                % If computing in parallel on one machine, this causes file
+                % access conflicts.
+                % If computing in parallel on multiple machines, we can
+                % save the MPA beforehand and transmit it to the machines.
+                save_mpa(obj, mpa_full_path);
             end
 
         end
@@ -446,13 +457,11 @@ classdef MotionPrimitiveAutomaton
             threshold_Hp = 10;
 
             if Hp > threshold_Hp
-                disp(['Computing reachable sets now...' newline ...
-                          'Since the prediction horizon is ' num2str(Hp) ' (more than ' num2str(threshold_Hp) '), it may take several minutes.'])
+                fprintf(['Computing reachable sets now...' newline ...
+                             'Since the prediction horizon is ' num2str(Hp) ' (more than ' num2str(threshold_Hp) '), it may take several minutes.'])
             else
-                disp('Computing local offline reachable sets now...')
+                fprintf('Computing local offline reachable sets now...')
             end
-
-            disp('Note this only needs to be done once as later they will be saved to motion-primitive-automaton library.')
 
             Hp_half = ceil(Hp / 2); % for time step greater then half of the prediction horizon, dynamic programming is used to save computation time
 
@@ -677,7 +686,7 @@ classdef MotionPrimitiveAutomaton
 
             duration_computation = toc(offline_computation_start);
             textprogressbar('done');
-            disp(['Finished in ' num2str(duration_computation) ' seconds.'])
+            fprintf('done (%.2f s).\n', duration_computation);
 
         end
 

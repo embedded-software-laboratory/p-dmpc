@@ -39,7 +39,9 @@ classdef TrafficCommunication < InterHlcCommunication
                 time_step, ...
                 current_pose, ...
                 current_trim_index, ...
+                current_lanelet, ...
                 predicted_lanelets, ...
+                reference_trajectory_points, ...
                 occupied_areas, ...
                 reachable_sets, ...
                 is_fallback ...
@@ -50,7 +52,9 @@ classdef TrafficCommunication < InterHlcCommunication
                 time_step (1, 1) double
                 current_pose (1, 4) double
                 current_trim_index (1, 1) double
+                current_lanelet (1, 1) double
                 predicted_lanelets (1, :) double
+                reference_trajectory_points (:, 2) double
                 occupied_areas (1, 1) struct
                 reachable_sets (1, :) cell
                 is_fallback (1, 1) logical = false
@@ -64,7 +68,11 @@ classdef TrafficCommunication < InterHlcCommunication
             obj.message_to_be_sent.current_pose.heading = current_pose(obj.pose_indices.heading);
             obj.message_to_be_sent.current_pose.speed = current_pose(obj.pose_indices.speed);
             obj.message_to_be_sent.current_trim_index = int32(current_trim_index);
+            obj.message_to_be_sent.current_lanelet = int32(current_lanelet);
             obj.message_to_be_sent.predicted_lanelets = int32(predicted_lanelets);
+
+            obj.message_to_be_sent.reference_trajectory_points.x = reference_trajectory_points(:, 1);
+            obj.message_to_be_sent.reference_trajectory_points.y = reference_trajectory_points(:, 2);
 
             % whether vehicle should take fallback
             obj.message_to_be_sent.is_fallback = is_fallback;
