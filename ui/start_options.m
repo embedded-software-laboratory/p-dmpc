@@ -1,4 +1,4 @@
-function [labOptions] = start_options()
+function config = start_options()
     disp('App is executed, select your configuration there')
     %% Create UI and populate
     ui = CPMStartOptionsUI();
@@ -162,88 +162,88 @@ function [labOptions] = start_options()
 
     %% Convert to legacy/outputs
     % initialize
-    labOptions = Config();
+    config = Config();
 
-    labOptions.environment = get_environment_selection(ui, true);
+    config.environment = get_environment_selection(ui, true);
 
     controlStrategyHelper = controlStrategy{ ...
                                                 strcmp(controlStrategy(:, 2), controlStrategySelection), ...
                                                 2};
 
-    labOptions.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
+    config.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
 
-    labOptions.optimizer_type = OptimizerType(string(optimizer));
+    config.optimizer_type = OptimizerType(string(optimizer));
 
-    labOptions.amount = vehicleAmountSelection;
+    config.amount = vehicleAmountSelection;
 
     path_ids = ui.CustomReferencePathsEditField.Value;
 
     if path_ids ~= ""
         path_ids(~isstrprop(path_ids, 'digit')) = ' '; %replace non-numeric characters with empty space
-        labOptions.path_ids = str2double(strsplit(strtrim(path_ids)));
+        config.path_ids = str2double(strsplit(strtrim(path_ids)));
     else
-        labOptions.path_ids = [];
+        config.path_ids = [];
     end
 
-    labOptions.options_plot_online = OptionsPlotOnline();
-    labOptions.options_plot_online.is_active = strcmp(visualizationSelection, 'yes');
+    config.options_plot_online = OptionsPlotOnline();
+    config.options_plot_online.is_active = strcmp(visualizationSelection, 'yes');
 
     isParlHelper = compute_in_parallel{ ...
                                            strcmp(compute_in_parallel(:, 2), isParlSelection), ...
                                            2};
 
-    labOptions.compute_in_parallel = strcmp(isParlHelper, 'thread parallel') ...
+    config.compute_in_parallel = strcmp(isParlHelper, 'thread parallel') ...
         || strcmp(isParlHelper, 'physically parallel');
 
     % hacky way to get nuc simulation
     if strcmp(isParlHelper, 'physically parallel') ...
-            && labOptions.environment == Environment.Simulation
-        labOptions.environment = Environment.SimulationDistributed;
+            && config.environment == Environment.Simulation
+        config.environment = Environment.SimulationDistributed;
     end
 
     scenario = list_scenario(ui); % Update scenario since the selected options may differ now
-    labOptions.scenario_type = scenario{ ...
-                                            strcmp(scenario(:, 2), scenarioSelection), ...
-                                            1};
+    config.scenario_type = scenario{ ...
+                                        strcmp(scenario(:, 2), scenarioSelection), ...
+                                        1};
 
-    labOptions.priority = priorityAssignmentMethod{ ...
-                                                       strcmp(priorityAssignmentMethod(:, 2), priorityAssignmentMethodSelection), ...
-                                                       1};
+    config.priority = priorityAssignmentMethod{ ...
+                                                   strcmp(priorityAssignmentMethod(:, 2), priorityAssignmentMethodSelection), ...
+                                                   1};
 
-    labOptions.coupling = CouplingStrategies(coupling_strategy);
-    labOptions.weight = WeightStrategies(weight_strategy);
-    labOptions.cut = CutStrategies(cut_strategy);
+    config.coupling = CouplingStrategies(coupling_strategy);
+    config.weight = WeightStrategies(weight_strategy);
+    config.cut = CutStrategies(cut_strategy);
 
     % sample time [s]
-    labOptions.dt_seconds = dtSelection;
+    config.dt_seconds = dtSelection;
 
     % predicion horizon
-    labOptions.Hp = HpSelection;
+    config.Hp = HpSelection;
 
     % MPA type
-    labOptions.mpa_type = mpa_typeSelection;
+    config.mpa_type = mpa_typeSelection;
 
     % simulation duration [s]
-    labOptions.T_end = T_endSelection;
+    config.T_end = T_endSelection;
 
     % maximum allowed number of computation levels
-    labOptions.max_num_CLs = max_num_CLsSelection;
+    config.max_num_CLs = max_num_CLsSelection;
 
     % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
-    labOptions.constraint_from_successor = constraint_from_successor{ ...
-                                                                         strcmp(constraint_from_successor(:, 2), constraint_from_successorSelection), ...
-                                                                         1 ...
-                                                                     };
+    config.constraint_from_successor = constraint_from_successor{ ...
+                                                                     strcmp(constraint_from_successor(:, 2), constraint_from_successorSelection), ...
+                                                                     1 ...
+                                                                 };
 
     % Validate Config file
-    labOptions = labOptions.validate();
+    config = config.validate();
 
     % Write Config to disk
-    encodedJSON = jsonencode(labOptions);
+    encodedJSON = jsonencode(config);
     fid = fopen('Config.json', 'w');
     fprintf(fid, encodedJSON);
     fclose('all');
-    % save('config.mat','labOptions');
+    % save('config.mat','config');
 
     % close app
     ui.delete;
