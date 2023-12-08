@@ -39,16 +39,7 @@ function experiment_result = main(options)
     on_cleanup_function = onCleanup(@plotter.close_figure);
 
     if ~options.is_prioritized || options.computation_mode == ComputationMode.sequential
-        % get plant from options
-        plant = Plant.get_plant(options.environment);
-
-        % set active vehicle IDs and possibly initialize communication
-        plant.setup(options, options.path_ids);
-
-        hlc_factory = HLCFactory();
-        hlc = hlc_factory.get_hlc(options, plant, plant.controlled_vehicle_ids);
-        experiment_result = hlc.run();
-
+        run_hlc(options, 1:options.amount);
     else
 
         % simulate distribution locally using the Parallel Computing Toolbox
