@@ -1,10 +1,10 @@
 classdef CouplingStrategies
 
     enumeration
-        reachable_set_coupling
-        full_coupling
         no_coupling
+        reachable_set_coupling
         distance_coupling
+        full_coupling
     end
 
 end
