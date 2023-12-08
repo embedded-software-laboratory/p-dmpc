@@ -46,17 +46,6 @@ function [labOptions] = start_options()
     ui.ConstraintFromSuccessorDropDown.Items = constraint_from_successor(:, 2);
     ui.ConstraintFromSuccessorDropDown.Value = constraint_from_successor(2, 2);
 
-    % Constraints for successors at the lanelet crossing area
-    ui.ConstraintsforsuccessorsatthelaneletcrossingareaDropDown.Items = ...
-        { ...
-         'None'; ...
-         'Intersecting lanelets'; ...
-         'Intersecting and merging lanelets'; ...
-         'Intersecting and merging lanelets at the intersection'; ...
-     };
-    ui.ConstraintsforsuccessorsatthelaneletcrossingareaDropDown.Value = 'None';
-    ui.ConstraintsforsuccessorsatthelaneletcrossingareaDropDown.ItemsData = {1, 2, 4, 3};
-
     % compute_in_parallel
     compute_in_parallel = list_is_parl();
     ui.ComputationmodeListBox.Items = compute_in_parallel(:, 2);
@@ -99,9 +88,6 @@ function [labOptions] = start_options()
 
         % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
         ui.ConstraintFromSuccessorDropDown.Value = previousSelection.constraint_from_successorSelection;
-
-        % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
-        ui.ConstraintsforsuccessorsatthelaneletcrossingareaDropDown.Value = previousSelection.strategy_enter_crossing_areaSelection;
 
         callbackPBSelected(ui);
 
@@ -155,8 +141,6 @@ function [labOptions] = start_options()
     max_num_CLsSelection = ui.MaxComputationLevelsSpinner.Value;
     % Stategy to let vehicle with the right-of-way consider vehicle without the right-of-way
     constraint_from_successorSelection = ui.ConstraintFromSuccessorDropDown.Value;
-    % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
-    strategy_enter_crossing_areaSelection = ui.ConstraintsforsuccessorsatthelaneletcrossingareaDropDown.Value;
 
     save([tempdir 'scenarioControllerSelection'], ...
         'optimizer', ...
@@ -173,8 +157,7 @@ function [labOptions] = start_options()
         'T_endSelection', ...
         'max_num_CLsSelection', ...
         'path_ids', ...
-        'constraint_from_successorSelection', ...
-        'strategy_enter_crossing_areaSelection' ...
+        'constraint_from_successorSelection' ...
     );
 
     %% Convert to legacy/outputs
@@ -252,9 +235,6 @@ function [labOptions] = start_options()
                                                                          1 ...
                                                                      };
 
-    % Strategy to let vehicle without the right-of-way enter the crossing area of its lanelet with lanelet of its coupled vehicle
-    labOptions.strategy_enter_lanelet_crossing_area = strategy_enter_crossing_areaSelection;
-
     % Validate Config file
     labOptions = labOptions.validate();
 
@@ -306,7 +286,6 @@ function callbackPBSelected(ui)
     if strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop')
         ui.MaxComputationLevelsSpinner.Enable = 'on';
         ui.ConstraintFromSuccessorDropDown.Enable = 'on';
-        ui.ConstraintsforsuccessorsatthelaneletcrossingareaDropDown.Enable = 'on';
         ui.ComputationmodeListBox.Enable = 'on';
 
         ui.Label_4.Visible = 'Off';
@@ -317,7 +296,6 @@ function callbackPBSelected(ui)
     else
         ui.MaxComputationLevelsSpinner.Enable = 'off';
         ui.ConstraintFromSuccessorDropDown.Enable = 'off';
-        ui.ConstraintsforsuccessorsatthelaneletcrossingareaDropDown.Enable = 'off';
 
         % centralized can never be run in parallel
         ui.ComputationmodeListBox.Enable = 'off';
