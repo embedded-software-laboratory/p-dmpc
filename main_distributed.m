@@ -28,7 +28,7 @@ function [experiment_result, scenario] = main_distributed(vehicle_id)
         hlc = factory.get_hlc(options, plant, vehicle_id);
         experiment_result = hlc.run();
     else
-        warning("Use main_distributed.m only for pb-scenarios.")
+        warning("Use main_distributed.m only for prioritized scenarios.")
     end
 
 end
