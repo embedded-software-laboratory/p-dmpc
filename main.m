@@ -2,7 +2,7 @@ function experiment_result = main(options)
     % MAIN  main function for graph-based receding horizon control
 
     arguments
-        options (1, 1) Config = start_options();
+        options (1, 1) Config = config_gui();
     end
 
     if isMATLABReleaseOlderThan('R2023a')

@@ -1,7 +1,7 @@
-function config = start_options()
+function config = config_gui()
     disp('App is executed, select your configuration there')
     %% Create UI and populate
-    ui = CPMStartOptionsUI();
+    ui = ConfigGui();
 
     % Simulation
     % scenario
@@ -49,6 +49,7 @@ function config = start_options()
     % compute_in_parallel
     compute_in_parallel = list_is_parl();
     ui.ComputationmodeListBox.Items = compute_in_parallel(:, 2);
+    ui.ComputationmodeListBox.Value = compute_in_parallel(1, 2);
 
     % change visibility of vehicle ID selection depending on environment selection
     %ui.ControlStrategyListBox.ValueChangedFcn = @(~, ~) setVisualizationVisibility(ui);
@@ -288,8 +289,6 @@ function callbackPBSelected(ui)
         ui.ConstraintFromSuccessorDropDown.Enable = 'on';
         ui.ComputationmodeListBox.Enable = 'on';
 
-        ui.Label_4.Visible = 'Off';
-
         list_optimizer = list_optimizer_prioritized();
         ui.OptimizerDropDown.Items = list_optimizer(:, 2);
         ui.OptimizerDropDown.Value = list_optimizer(1, 2);
@@ -299,10 +298,8 @@ function callbackPBSelected(ui)
 
         % centralized can never be run in parallel
         ui.ComputationmodeListBox.Enable = 'off';
-        ui.ComputationmodeListBox.Value = 'no';
-
-        ui.Label_4.Text = sprintf("If not priority-based, the maximum allowed number of computation levels is irrelevant.");
-        ui.Label_4.Visible = 'On';
+        compute_in_parallel = list_is_parl();
+        ui.ComputationmodeListBox.Value = compute_in_parallel(1, 2);
 
         list_optimizer = list_optimizer_centralized();
         ui.OptimizerDropDown.Items = list_optimizer(:, 2);
