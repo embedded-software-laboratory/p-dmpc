@@ -54,7 +54,6 @@ classdef Simulation < Plant
             obj.should_plot = obj.options_plot_online.is_active;
             obj.should_sync = options.computation_mode == ComputationMode.sequential ...
                 && obj.should_plot;
-            Simulation.generate_plotting_info_msgs();
             % TODO Object creation in HLC factory. One ros2node
             obj.ros2_node = ros2node(['/plant_', num2str(obj.controlled_vehicle_ids(1))]);
 
@@ -66,8 +65,8 @@ classdef Simulation < Plant
             );
             % TODO visualization in separate class
             topic_name_publish = '/plotting';
-            obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "plotting_info/PlottingInfo", qos_config);
-            obj.msg_to_be_sent = ros2message("plotting_info/PlottingInfo");
+            obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/PlottingInfo", qos_config);
+            obj.msg_to_be_sent = ros2message("veh_msgs/PlottingInfo");
 
             obj.subscriber = ros2subscriber( ...
                 obj.ros2_node, ...
@@ -151,33 +150,6 @@ classdef Simulation < Plant
 
         function sync_callback(obj, msg)
             obj.highest_sync_step = double(max(obj.highest_sync_step, double(msg.data)));
-        end
-
-    end
-
-    methods (Static)
-
-        function generate_plotting_info_msgs()
-            % generate message needed for plotting via ros
-            msgList = ros2("msg", "list"); % get all ROS 2 message types
-            % check if message type is present
-            if ((sum(cellfun(@(c)strcmp(c, 'plotting_info/PlottingInfo'), msgList)) == 0))
-                [file_path, ~, ~] = fileparts(mfilename('fullpath'));
-                disp('Generating ROS 2 custom message type for distributed plotting...')
-
-                try
-                    ros2genmsg(file_path);
-                catch ME
-                    disp(['If all environments for ros2genmsg() are prepared but still failed, try to move the whole folder to a ' ...
-                          'shallower path and run again if you use Windows machine, which sadly has a max path limit constraint.'])
-                    throw(ME)
-                end
-
-            else
-                disp(['No generation of ROS 2 custom message type for distributed plotting, since at least "plotting_info/PlottingInfo" ' ...
-                      'message exists. If message types are missing regenerate all by removing the folder matlab_msg_gen...'])
-            end
-
         end
 
     end

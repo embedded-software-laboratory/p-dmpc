@@ -3,7 +3,6 @@ function delete_ros2_msgs()
     %generates the ros2 msg types.
 
     delete_ros2_msgs_helper("hlc/communication/cust1/matlab_msg_gen");
-    % TODO move PlottingInfo.msg to hlc, so it is included here.
 end
 
 function delete_ros2_msgs_helper(dir_path)
@@ -11,7 +10,7 @@ function delete_ros2_msgs_helper(dir_path)
     if exist(dir_path, 'dir')
 
         try
-            fprintf(strcat(dir_path, " exists. Try to delete... "));
+            fprintf(strcat(dir_path, " exists. Deleting... "));
             rmdir(dir_path, 's');
 
             % By calling the following command, MATLAB updates its internal
@@ -21,7 +20,7 @@ function delete_ros2_msgs_helper(dir_path)
             % information, e.g., in generate_ros2_msgs().
             ros.internal.CustomMessageRegistry.getInstance('ros2', true);
 
-            disp("Successful.")
+            fprintf("done.\n");
         catch
             fprintf("\n");
             warning(strcat("Unable to delete ", dir_path, ". Please delete manually!"));
