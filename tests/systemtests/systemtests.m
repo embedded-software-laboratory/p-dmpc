@@ -5,7 +5,7 @@ classdef systemtests < matlab.unittest.TestCase
         mpa = {'single_speed', 'triple_speed', 'realistic'};
         optimizer_centralized = {'MatlabOptimal', 'CppOptimal'}; % 'CppSampled' crashes matlab in tests
         optimizer_prioritized = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
-        parallel = {'sequential', 'parallel'};
+        computation_mode = {'sequential', 'parallel_threads'};
         coupling = {'reachable_set', 'full', 'no', 'distance'};
         priority = {'coloring', 'constant', 'random', 'FCA'};
         weight = {'constant', 'random', 'distance'};
@@ -29,7 +29,7 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        function test_prioritized(testCase, scenario, mpa, parallel, optimizer_prioritized, coupling, priority, weight)
+        function test_prioritized(testCase, scenario, mpa, computation_mode, optimizer_prioritized, coupling, priority, weight)
             lastwarn('');
             %load Config from json
             options = Config.load_from_file('tests/systemtests/Config_systemtests_prioritized.json');
@@ -38,11 +38,7 @@ classdef systemtests < matlab.unittest.TestCase
             options.mpa_type = MpaType(mpa);
             options.is_prioritized = true;
 
-            if strcmp(parallel, 'parallel')
-                options.compute_in_parallel = true;
-            elseif strcmp(parallel, 'sequential')
-                options.compute_in_parallel = false;
-            end
+            options.computation_mode = ComputationMode(computation_mode);
 
             options.optimizer_type = OptimizerType(optimizer_prioritized);
 

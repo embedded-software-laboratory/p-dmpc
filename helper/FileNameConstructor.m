@@ -22,15 +22,9 @@ classdef FileNameConstructor
         function controller_name = get_controller_name(options)
 
             if options.is_prioritized
-
-                if options.compute_in_parallel
-                    controller_name = strcat('par. PB-', 'RHGS-', char(options.priority));
-                else
-                    controller_name = strcat('seq. PB-', 'RHGS-', char(options.priority));
-                end
-
+                controller_name = strcat('prioritized-', 'RHGS');
             else
-                controller_name = strcat('centralized-', 'RHGS-', char(options.priority));
+                controller_name = strcat('centralized-', 'RHGS');
             end
 
         end
@@ -112,7 +106,7 @@ classdef FileNameConstructor
 
             scenario_name = '';
 
-            if options.compute_in_parallel
+            if options.computation_mode ~= ComputationMode.sequential
                 scenario_name = ['veh_', num2str(options.path_ids(i_vehicles)), '_'];
             end
 

@@ -184,12 +184,10 @@ classdef MotionPrimitiveAutomaton
 
             obj.offline_reachability_computation_time = toc(offline_RA);
 
-            if ~options.compute_in_parallel
+            if options.computation_mode ~= ComputationMode.parallel_threads
                 % save mpa to library
                 % If computing in parallel on one machine, this causes file
                 % access conflicts.
-                % If computing in parallel on multiple machines, we can
-                % save the MPA beforehand and transmit it to the machines.
                 save_mpa(obj, mpa_full_path);
             end
 

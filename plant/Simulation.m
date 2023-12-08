@@ -52,7 +52,8 @@ classdef Simulation < Plant
             end
 
             obj.should_plot = obj.options_plot_online.is_active;
-            obj.should_sync = ~options.compute_in_parallel && obj.should_plot;
+            obj.should_sync = options.computation_mode == ComputationMode.sequential ...
+                && obj.should_plot;
             Simulation.generate_plotting_info_msgs();
             % TODO Object creation in HLC factory. One ros2node
             obj.ros2_node = ros2node(['/plant_', num2str(obj.controlled_vehicle_ids(1))]);

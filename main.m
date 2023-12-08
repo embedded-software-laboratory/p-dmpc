@@ -22,13 +22,7 @@ function experiment_result = main(options)
         disp('Running in Lab...')
     end
 
-    is_prioritized_parallel_in_lab = ( ...
-        options.is_prioritized && ...
-        options.compute_in_parallel && ...
-        (options.environment == Environment.CpmLab) ... % FIXME We need an option for local/physical parallel computation. This currently does not see NUC simulation
-    );
-
-    if is_prioritized_parallel_in_lab
+    if options.computation_mode == ComputationMode.parallel_physically
         delete_ros2_msgs();
         disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
         return
@@ -44,7 +38,7 @@ function experiment_result = main(options)
     plotter = PlotterOnline(options, scenario);
     on_cleanup_function = onCleanup(@plotter.close_figure);
 
-    if ~options.is_prioritized || ~options.compute_in_parallel
+    if ~options.is_prioritized || options.computation_mode == ComputationMode.sequential
         % get plant from options
         plant = Plant.get_plant(options.environment);
 

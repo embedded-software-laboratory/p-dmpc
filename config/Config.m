@@ -5,7 +5,7 @@ classdef Config
         manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
         is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
-        compute_in_parallel = false; % true/false, is use parallel(distributed) computation
+        computation_mode ComputationMode = ComputationMode.sequential;
         scenario_type ScenarioType = ScenarioType.commonroad;
         coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling;
         priority PriorityStrategies = PriorityStrategies.constant_priority;
@@ -41,7 +41,6 @@ classdef Config
         is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
 
         optimizer_type OptimizerType = OptimizerType.MatlabOptimal; % optimizer that shall be used
-        mex_out_of_process_execution = false; % execute mex graph search functions in own process
 
     end
 
@@ -51,6 +50,8 @@ classdef Config
         % whether to allow non-convex polygons; the separating axis theorem
         % works only for convex polygons.
         are_any_obstacles_non_convex;
+        % execute mex graph search functions in own process
+        mex_out_of_process_execution
     end
 
     methods
@@ -81,6 +82,19 @@ classdef Config
 
         end
 
+        function mex_out_of_process_execution = get.mex_out_of_process_execution(obj)
+            % if prioritized controller runs sequentially with more than 1 vehicle
+            % activate out of process execution for mex function
+            if obj.amount > 1 ...
+                    && obj.is_prioritized ...
+                    && obj.computation_mode == ComputationMode.sequential
+                mex_out_of_process_execution = true;
+            else
+                mex_out_of_process_execution = false;
+            end
+
+        end
+
         % empty set methods used by jsondecode
         % dependent properties with public GetAccess are encoded to a json file
         % to automatically decode the json file set methods must be defined
@@ -92,6 +106,9 @@ classdef Config
         end
 
         function obj = set.are_any_obstacles_non_convex(obj, ~)
+        end
+
+        function obj = set.mex_out_of_process_execution(obj, ~)
         end
 
     end
@@ -173,12 +190,6 @@ classdef Config
                     obj.is_prioritized == true, ...
                     'You are trying to run a centralized controller in the lab!' ...
                 )
-            end
-
-            % if prioritized controller runs sequentially with more than 1 vehicle
-            % activate out of process execution for mex function
-            if obj.amount > 1 && obj.is_prioritized && ~obj.compute_in_parallel
-                obj.mex_out_of_process_execution = true;
             end
 
             % forbid usage of StacPrioritizer or StacWeigher for circle scenarios

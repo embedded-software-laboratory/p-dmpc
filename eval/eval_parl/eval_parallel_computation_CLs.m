@@ -7,7 +7,6 @@ function eval_parallel_computation_CLs()
     options.mpa_type = MpaType.single_speed;
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
-    options.compute_in_parallel = false;
     options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
     options.strategy_enter_lanelet_crossing_area = '1';
     options.dt_seconds = 0.2;
@@ -17,7 +16,6 @@ function eval_parallel_computation_CLs()
     options.Hp = 7;
     options.T_end = 4;
     options.amount = 20;
-    options.compute_in_parallel = false; % avoid to use distributed computation
 
     random_times = 10;
     CLs_s = [1, 2, 4, 6, options.amount];

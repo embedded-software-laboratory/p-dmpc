@@ -49,9 +49,13 @@ classdef PlotterOnline < Plotter
                 Durability = "volatile" ...
             );
 
-            if ~options.is_prioritized || ~options.compute_in_parallel
+            if ~options.is_prioritized ...
+                    || options.computation_mode == ComputationMode.sequential
+                % In cenralized or sequential mode, the main function is busy
+                % running the HLCs, so we plot in the callback
                 callback = @obj.collect_data_and_plot;
             else
+                % In parallel mode, we plot in the main function
                 callback = @obj.collect_data;
             end
 
