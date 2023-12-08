@@ -1,11 +1,5 @@
 function [n_steps, t] = compute_deadlock_free_runtime(experiment_result)
     % COMPUTE_DEADLOCK_FREE_RUNTIME computes the deadlock-free runtime of a experiment_result
-    % struct
-
-    % TODO detect deadlock from standstill
-    % option 1: "heuristic" -- stopping for certain time
-    % option 2: check all permutations of priorities for involved
-    % vehicles. If no movement, then deadlock
     arguments
         experiment_result (1, 1) ExperimentResult
     end
