@@ -2,8 +2,8 @@ classdef PrioritizedParallelController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedParallelController(options, plant)
-            obj = obj@PrioritizedController(options, plant);
+        function obj = PrioritizedParallelController(options, plant, ros2_node)
+            obj = obj@PrioritizedController(options, plant, ros2_node);
         end
 
     end

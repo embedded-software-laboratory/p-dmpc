@@ -2,8 +2,8 @@ classdef PrioritizedSequentialController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedSequentialController(options, plant)
-            obj = obj@PrioritizedController(options, plant);
+        function obj = PrioritizedSequentialController(options, plant, ros2_node)
+            obj = obj@PrioritizedController(options, plant, ros2_node);
         end
 
     end

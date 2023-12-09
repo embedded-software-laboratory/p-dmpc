@@ -20,13 +20,14 @@ classdef Simulation < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids, ros2_node)
 
             arguments
                 obj (1, 1) Simulation
                 options (1, 1) Config
                 all_vehicle_ids (1, :) uint8
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
+                ros2_node ros2node = ros2node(['/plant_', num2str(controlled_vehicle_ids(1))])
             end
 
             setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
@@ -54,8 +55,8 @@ classdef Simulation < Plant
             obj.should_plot = obj.options_plot_online.is_active;
             obj.should_sync = options.computation_mode == ComputationMode.sequential ...
                 && obj.should_plot;
-            % TODO Object creation in HLC factory. One ros2node
-            obj.ros2_node = ros2node(['/plant_', num2str(obj.controlled_vehicle_ids(1))]);
+
+            obj.ros2_node = ros2_node;
 
             qos_config = struct( ...
                 History = "keeplast", ...
@@ -63,7 +64,7 @@ classdef Simulation < Plant
                 Reliability = "reliable", ...
                 Durability = "volatile" ...
             );
-            % TODO visualization in separate class
+
             topic_name_publish = '/plotting';
             obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/PlottingInfo", qos_config);
             obj.msg_to_be_sent = ros2message("veh_msgs/PlottingInfo");

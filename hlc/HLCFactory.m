@@ -8,14 +8,22 @@ classdef HLCFactory < handle
         function obj = HLCFactory()
         end
 
-        function hlc = get_hlc(obj, options, plant, vehicle_ids, do_dry_run)
+        function hlc = get_hlc(obj, options, controlled_vehicle_indices, do_dry_run)
+
             arguments
                 obj
                 options
-                plant
-                vehicle_ids
-                do_dry_run = true;
+                controlled_vehicle_indices
+                do_dry_run
             end
+
+            plant = Plant.get_plant(options.environment);
+
+            % Create ROS2 node for this HLC
+            vehicle_indices_string = sprintf('_%02d', controlled_vehicle_indices);
+            ros2_node = ros2node(['hlc', vehicle_indices_string]);
+
+            plant.setup(options, options.path_ids, options.path_ids(controlled_vehicle_indices), ros2_node);
 
             if false % do_dry_run
                 % FIXME does not work in parallel
@@ -24,13 +32,13 @@ classdef HLCFactory < handle
 
             if options.is_prioritized
 
-                if length(vehicle_ids) == 1
+                if length(plant.controlled_vehicle_ids) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    hlc = PrioritizedParallelController(options, plant);
+                    hlc = PrioritizedParallelController(options, plant, ros2_node);
                 else
                     % PB Controller controlling all vehicles
-                    hlc = PrioritizedSequentialController(options, plant);
+                    hlc = PrioritizedSequentialController(options, plant, ros2_node);
                 end
 
             else

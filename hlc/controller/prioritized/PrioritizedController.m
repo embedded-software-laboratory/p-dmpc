@@ -21,8 +21,10 @@ classdef (Abstract) PrioritizedController < HighLevelController
 
     methods
 
-        function obj = PrioritizedController(options, plant)
+        function obj = PrioritizedController(options, plant, ros2_node)
             obj = obj@HighLevelController(options, plant);
+
+            obj.ros2_node = ros2_node;
 
             obj.prioritizer = Prioritizer.get_prioritizer(obj.options.priority);
             obj.weigher = Weigher.get_weigher(obj.options.weight);
@@ -58,8 +60,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
         end
 
         function create_ros2_objects(obj)
-            vehicle_indices_string = sprintf('_%02d', obj.plant.indices_in_vehicle_list);
-            obj.ros2_node = ros2node(['hlc', vehicle_indices_string]);
 
             for vehicle_index = obj.plant.indices_in_vehicle_list
                 vehicle_id = obj.plant.all_vehicle_ids(vehicle_index);
