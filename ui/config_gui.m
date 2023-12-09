@@ -1,5 +1,5 @@
 function config = config_gui()
-    disp('App is executed, select your configuration there')
+    fprintf('Select your configuration... ')
     %% Create UI and populate
     ui = ConfigGui();
 
@@ -113,7 +113,7 @@ function config = config_gui()
         pause(0.1)
     end
 
-    disp('Configuration Setup App finished, extracting data')
+    fprintf('extracting data... ')
 
     %% Extract Choices & Save for next time
     environmentSelection = get_environment_selection(ui);
@@ -148,7 +148,10 @@ function config = config_gui()
         'environmentSelection', ...
         'scenarioSelection', ...
         'controlStrategySelection', ...
+        'coupling_strategy', ...
         'priorityAssignmentMethodSelection', ...
+        'weight_strategy', ...
+        'cut_strategy', ...
         'vehicleAmountSelection', ...
         'visualizationSelection', ...
         'isParlSelection', ...
@@ -248,6 +251,8 @@ function config = config_gui()
 
     % close app
     ui.delete;
+
+    fprintf('done.\n')
 end
 
 function out = get_environment_selection(ui, output_as_enum)
