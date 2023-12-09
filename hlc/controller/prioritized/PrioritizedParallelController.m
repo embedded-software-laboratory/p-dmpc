@@ -12,7 +12,7 @@ classdef PrioritizedParallelController < PrioritizedController
 
         function controller(obj)
             % PB_CONTROLLER_PARL Plan trajectory for one time step using a
-            % priority-based controller. Vehicles inside one group plan in sequence and
+            % prioritized controller. Vehicles inside one group plan in sequence and
             % between groups plan in pararllel. Controller simulates multiple
             % distributed controllers in a for-loop.
 
