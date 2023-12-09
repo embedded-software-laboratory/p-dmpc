@@ -39,7 +39,12 @@ function experiment_result = main(options)
     on_cleanup_function = onCleanup(@plotter.close_figure);
 
     if ~options.is_prioritized || options.computation_mode == ComputationMode.sequential
-        run_hlc(options, 1:options.amount);
+        experiment_result = run_hlc(options, 1:options.amount);
+
+        if options.options_plot_online.is_active
+            plotter.plotting_loop();
+        end
+
     else
         % simulate distribution locally using the Parallel Computing Toolbox
         get_parallel_pool(options.amount);
@@ -62,7 +67,6 @@ end
 
 function experiment_result = run_hlc(options, i_vehicle)
     hlc_factory = HLCFactory();
-    % have the plant only control its own vehicle by calling setup a second time
     do_dry_run = false;
     hlc = hlc_factory.get_hlc(options, i_vehicle, do_dry_run);
     experiment_result = hlc.run();

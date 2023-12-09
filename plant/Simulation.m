@@ -16,7 +16,6 @@ classdef Simulation < Plant
     methods
 
         function obj = Simulation()
-            disp('using distributed simulation')
             obj = obj@Plant();
         end
 
@@ -53,8 +52,8 @@ classdef Simulation < Plant
             end
 
             obj.should_plot = obj.options_plot_online.is_active;
-            obj.should_sync = options.computation_mode == ComputationMode.sequential ...
-                && obj.should_plot;
+
+            obj.should_sync = false;
 
             obj.ros2_node = ros2_node;
 
@@ -80,6 +79,8 @@ classdef Simulation < Plant
 
         function [cav_measurements, hdv_measurements] = measure(obj)
 
+            % We need to observe if this functionality is useful. If not, we
+            % can remove it
             if obj.should_sync
                 % wait for all vehicles to finish their computation
                 while obj.highest_sync_step < obj.k
@@ -144,9 +145,14 @@ classdef Simulation < Plant
         end
 
         function end_run(obj)
-            disp('End')
-            obj.msg_to_be_sent.step = int32(-1);
-            send(obj.publisher, obj.msg_to_be_sent); % send end message
+            disp('End.')
+
+            for i_vehicle = obj.indices_in_vehicle_list
+                obj.msg_to_be_sent.step = int32(-1);
+                obj.msg_to_be_sent.veh_indices = int32(i_vehicle);
+                send(obj.publisher, obj.msg_to_be_sent);
+            end
+
         end
 
         function sync_callback(obj, msg)
