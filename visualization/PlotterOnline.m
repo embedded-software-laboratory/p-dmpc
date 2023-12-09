@@ -112,6 +112,8 @@ classdef PlotterOnline < Plotter
                 obj.plot_collected_data();
             end
 
+            obj.close_figure();
+
         end
 
         function plot_collected_data(obj)

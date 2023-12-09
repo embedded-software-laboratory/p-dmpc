@@ -80,8 +80,8 @@ classdef Simulation < Plant
         function [cav_measurements, hdv_measurements] = measure(obj)
 
             % We need to observe if this functionality is useful. If not, we
-            % can remove it
-            if obj.should_sync
+            % can remove it. Syncing is done via plotter.
+            if obj.should_sync && obj.should_plot
                 % wait for all vehicles to finish their computation
                 while obj.highest_sync_step < obj.k
                     pause(10 * 1e-3)

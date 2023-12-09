@@ -29,14 +29,14 @@ function experiment_result = main(options)
     end
 
     if options.is_prioritized
-        % In priority-based computation, vehicles communicate via ROS 2.
+        % In prioritized computation, vehicles communicate via ROS 2.
         % Generate the ros2 msgs types.
         generate_ros2_msgs();
     end
 
-    % TODO: sync, but not plot when plotting is not desired
-    plotter = PlotterOnline(options, scenario);
-    on_cleanup_function = onCleanup(@plotter.close_figure);
+    if options.options_plot_online.is_active
+        plotter = PlotterOnline(options, scenario);
+    end
 
     if ~options.is_prioritized || options.computation_mode == ComputationMode.sequential
         experiment_result = run_hlc(options, 1:options.amount);
