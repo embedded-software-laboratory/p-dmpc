@@ -47,7 +47,7 @@ classdef (Abstract) PrioritizedController < HighLevelController
             % construct optimizer
             obj.optimizer = OptimizerInterface.get_optimizer(obj.options, obj.mpa, obj.scenario_adapter.scenario, obj.plant.indices_in_vehicle_list);
 
-            % in priority-based computation, vehicles communicate via ROS 2
+            % in prioritized computation, vehicles communicate via ROS 2
             timer = tic;
             fprintf('Creating ROS2 objects... ');
             obj.create_ros2_objects();
