@@ -1,9 +1,9 @@
 function are_satisfied = are_constraints_satisfied_sat( ...
         iter, ...
-        iVeh, ...
+        i_vehicle, ...
         shapes, ...
         shapes_for_boundary_check, ...
-        iStep, ...
+        i_step, ...
         ~, ...
         ~, ...
         ~, ...
@@ -14,13 +14,9 @@ function are_satisfied = are_constraints_satisfied_sat( ...
 
     are_satisfied = true;
 
-    obstacles = iter.obstacles;
+    for i = 1:numel(iter.obstacles)
 
-    nobs = numel(obstacles);
-
-    for i = 1:nobs
-
-        if intersect_sat(shapes{iVeh}, obstacles{i})
+        if intersect_sat(shapes{i_vehicle}, iter.obstacles{i})
             are_satisfied = false;
             return;
         end
@@ -31,7 +27,7 @@ function are_satisfied = are_constraints_satisfied_sat( ...
 
         for i = 1:size(iter.dynamic_obstacle_area, 1)
 
-            if intersect_sat(shapes{iVeh}, iter.dynamic_obstacle_area{i, iStep})
+            if intersect_sat(shapes{i_vehicle}, iter.dynamic_obstacle_area{i, i_step})
                 are_satisfied = false;
                 return;
             end
@@ -40,18 +36,18 @@ function are_satisfied = are_constraints_satisfied_sat( ...
 
     end
 
-    for i = (iVeh - 1):-1:1
+    for i = (i_vehicle - 1):-1:1
         % check if polygons intersect
-        if intersect_sat(shapes{i}, shapes{iVeh})
+        if intersect_sat(shapes{i}, shapes{i_vehicle})
             are_satisfied = false;
             return;
         end
 
     end
 
-    if ~isempty(iter.predicted_lanelet_boundary(iVeh, :))
+    if ~isempty(iter.predicted_lanelet_boundary(i_vehicle, :))
 
-        if intersect_lanelet_boundary(shapes_for_boundary_check{iVeh}, iter.predicted_lanelet_boundary(iVeh, :))
+        if intersect_lanelet_boundary(shapes_for_boundary_check{i_vehicle}, iter.predicted_lanelet_boundary(i_vehicle, :))
             are_satisfied = false;
             return;
         end
@@ -62,7 +58,7 @@ function are_satisfied = are_constraints_satisfied_sat( ...
 
         for i = find(iter.hdv_adjacency)
 
-            if intersect_sat(shapes{iVeh}, iter.hdv_reachable_sets{i, iStep})
+            if intersect_sat(shapes{i_vehicle}, iter.hdv_reachable_sets{i, i_step})
                 are_satisfied = false;
                 return;
             end
