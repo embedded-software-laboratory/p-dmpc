@@ -1,8 +1,9 @@
 {
-    "amount": 2,
+    "amount": 3,
     "path_ids": [
         18,
-        19
+        19,
+        20
     ],
     "T_end": 4,
     "max_num_CLs": 2,
