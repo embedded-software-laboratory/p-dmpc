@@ -1,5 +1,10 @@
 classdef GraphSearch < OptimizerInterface
 
+    properties
+        set_up_constraints (1, 1) function_handle = @()[];
+        are_constraints_satisfied (1, 1) function_handle = @()[];
+    end
+
     methods
 
         function obj = GraphSearch()
@@ -15,7 +20,7 @@ classdef GraphSearch < OptimizerInterface
 
     methods (Access = private)
 
-        function info = do_graph_search(~, iter, mpa, options)
+        function info = do_graph_search(obj, iter, mpa, options)
             % GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
             %
             % OUTPUT:
@@ -40,21 +45,8 @@ classdef GraphSearch < OptimizerInterface
             pq = PriorityQueue();
             pq.push(1, 0);
 
-            if options.is_allow_non_convex && iter.amount == 1
-                % currently two methods for intersecting check are available:
-                % 1. separating axis theorem (SAT) works only for convex polygons
-                % 2. InterX: works for both convex and non-convex polygons
-                method = 'InterX';
-                % if 'InterX' is used, all obstacles can be vectorized to speed up the collision checking
-                [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter, options.Hp);
-            else
-                method = 'sat';
-                % vectorization is currently not supported for 'sat'
-                vehicle_obstacles = [];
-                hdv_obstacles = [];
-                lanelet_boundary = [];
-                lanelet_crossing_areas = [];
-            end
+            [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas] ...
+                = obj.set_up_constraints(iter, options.Hp);
 
             % Expand leaves of tree until depth or target is reached or until there
             % are no leaves
@@ -69,7 +61,17 @@ classdef GraphSearch < OptimizerInterface
                 end
 
                 % Eval edge
-                [is_valid, shapes] = GraphSearch.eval_edge_exact(iter, options, mpa, info.tree, cur_node_id, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
+                [is_valid, shapes] = obj.eval_edge_exact( ...
+                    iter, ...
+                    options, ...
+                    mpa, ...
+                    info.tree, ...
+                    cur_node_id, ...
+                    vehicle_obstacles, ...
+                    hdv_obstacles, ...
+                    lanelet_boundary, ...
+                    lanelet_crossing_areas ...
+                );
 
                 if ~is_valid
                     continue
@@ -108,33 +110,25 @@ classdef GraphSearch < OptimizerInterface
 
         end
 
-    end
-
-    methods (Static, Access = private)
-
-        function [is_valid, shapes] = eval_edge_exact(iter, options, mpa, tree, iNode, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method)
-            % EVAL_EDGE_EXACT   Evaluate if step is valid.
-            %
-            % INPUT:
-            %   options: instance of the class Config
-            %
-            %   tree: instance of the class Tree
-            %
-            %   iNode: tree node to be checked
-            %
-            %   method: string, method to check collision, currently two methods are available:
-            %       1. 'sat': separating axis theorem
-            %       2. 'InterX': an algorithm to fast check intersection of curves
+        function [is_valid, shapes] = eval_edge_exact( ...
+                obj, ...
+                iter, ...
+                options, ...
+                mpa, ...
+                tree, ...
+                iNode, ...
+                vehicle_obstacles, ...
+                hdv_obstacles, ...
+                lanelet_boundary, ...
+                lanelet_crossing_areas ...
+            )
+            % EVAL_EDGE_EXACT   Evaluate if edge to vertex is valid.
             %
             % OUTPUT:
             %   is_valid: logical, indicates whether the selected node is collision-free
             %
             %   shapes: occupied area of the vehicle if the selected node is chosen
             %
-
-            if nargin < 8
-                method = 'sat'; % use the default method, separating axis theorem, to check if collide
-            end
 
             is_valid = true;
             % maneuver shapes correspond to movement TO node
@@ -182,52 +176,24 @@ classdef GraphSearch < OptimizerInterface
                     shapes_for_boundary_check{iVeh} = shapes_without_offset{iVeh};
                 end
 
-                iStep = cK;
+                i_step = cK;
 
-                switch method
-                    case 'sat'
-                        % check if collides with other vehicles' predicted trajectory or lanelets
+                % check if collides with other vehicles' predicted trajectory or lanelets
+                is_valid = obj.are_constraints_satisfied( ...
+                    iter, ...
+                    iVeh, ...
+                    shapes, ...
+                    shapes_for_boundary_check, ...
+                    i_step, ...
+                    vehicle_obstacles, ...
+                    shapes_without_offset, ...
+                    lanelet_crossing_areas, ...
+                    lanelet_boundary, ...
+                    hdv_obstacles ...
+                );
 
-                        if collision_with(iter, iVeh, shapes, shapes_for_boundary_check, iStep)
-                            is_valid = false;
-                            return;
-                        end
-
-                    case 'InterX'
-                        assert(iter.amount == 1) % if not 1, code adaption is needed
-                        % Note1: Shape must be closed!
-                        % Note2: The collision check order is important.
-                        % Normally, check collision with lanelet boundary last would be better.
-                        if InterX(shapes{iVeh}, vehicle_obstacles{iStep})
-                            % check collision with vehicle obstacles
-                            is_valid = false;
-                            return
-                        end
-
-                        if options.amount > 1 && InterX(shapes_without_offset{iVeh}, lanelet_crossing_areas)
-                            % check collision with crossing area of lanelets
-                            is_valid = false;
-                            return
-                        end
-
-                        is_hdv_obstacle = ~all(all(isnan(hdv_obstacles{iStep})));
-
-                        if (is_hdv_obstacle && ...
-                                InterX(shapes{iVeh}, hdv_obstacles{iStep}) ...
-                            )
-                            % check collision with manual vehicle obstacles
-                            is_valid = false;
-                            return
-                        end
-
-                        % check collision with lanelet obstacles
-                        if InterX(shapes_for_boundary_check{iVeh}, lanelet_boundary)
-                            is_valid = false;
-                            return
-                        end
-
-                    otherwise
-                        error("Please specify one of the following mthodes to check collision: 'sat', 'InterX'.")
+                if ~is_valid
+                    return;
                 end
 
             end

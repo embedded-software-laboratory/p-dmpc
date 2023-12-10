@@ -48,7 +48,7 @@ classdef FileNameConstructor
 
             mpa_instance_name = ['MPA_', 'type_', char(options.mpa_type), '_Hp', num2str(options.Hp), '_T', num2str(options.dt_seconds)];
 
-            if options.is_allow_non_convex
+            if options.are_any_obstacles_non_convex
                 mpa_instance_name = [mpa_instance_name, '_non-convex'];
             end
 

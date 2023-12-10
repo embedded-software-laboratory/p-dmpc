@@ -30,7 +30,7 @@ classdef Config
 
         path_ids = []; % reference path IDs for selection of paths for the vehicles
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
-        is_allow_non_convex = true; % true/false, whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
+
         recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
         time_per_tick = 0.01;
         offset = 0.01;
@@ -47,8 +47,11 @@ classdef Config
     end
 
     properties (Dependent, GetAccess = public, SetAccess = private)
-        tick_per_step % number of data points per step
-        k_end % total number of steps
+        tick_per_step; % number of data points per step
+        k_end; % total number of steps
+        % whether to allow non-convex polygons; the separating axis theorem
+        % works only for convex polygons.
+        are_any_obstacles_non_convex;
     end
 
     methods
@@ -61,6 +64,24 @@ classdef Config
             result = floor(obj.T_end / obj.dt_seconds);
         end
 
+        function result = get.are_any_obstacles_non_convex(obj)
+
+            if (obj.scenario_type == ScenarioType.circle ...
+                    || ~obj.is_prioritized)
+                % InterX only checks intersections of line segments. In the circle
+                % scenario, reachable sets are large and therefore checking the
+                % intersection of line segments is not sufficient to guarantee
+                % avoidance of reachable sets in parallel planning.
+                result = false;
+            else
+                % In road scenarios, reachable sets are always non-convex.
+                % The separating axis theorem does not work, the error we make
+                % with InterX is negligible due to small sizes of reachable sets.
+                result = true;
+            end
+
+        end
+
         % empty set methods used by jsondecode
         % dependent properties with public GetAccess are encoded to a json file
         % to automatically decode the json file set methods must be defined
@@ -69,6 +90,9 @@ classdef Config
         end
 
         function obj = set.k_end(obj, ~)
+        end
+
+        function obj = set.are_any_obstacles_non_convex(obj, ~)
         end
 
     end
@@ -181,11 +205,6 @@ classdef Config
                 && (obj.coupling == CouplingStrategies.full_coupling)), ...
                 'STAC Priority not available for Full Coupling!' ...
             );
-
-            % enforce non convex reachable sets for non circle scenarios
-            if obj.scenario_type ~= ScenarioType.circle
-                obj.is_allow_non_convex = true;
-            end
 
             % limit maximum number of computation levels
             obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
