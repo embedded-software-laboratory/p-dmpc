@@ -14,7 +14,6 @@ classdef ExperimentResult
         timings_per_vehicle
 
         %hlc info parts
-        vehicle_path_fullres % path of all vehicles in iteration steps, TODO: can be optimized
         n_expanded % number of expansions in search tree during graph search
         vehicles_fallback % which vehicles should use their fallback trajectories
         computation_levels % TODO: should be calculated from directed_coupling ,scalar
@@ -44,7 +43,6 @@ classdef ExperimentResult
             obj.timings_general = cell(0, 1);
             obj.timings_per_vehicle = cell(0, 1);
 
-            obj.vehicle_path_fullres = cell(options.amount, 0);
             obj.n_expanded = zeros(options.amount, 0);
             obj.vehicles_fallback = cell(0, 1);
             obj.computation_levels = zeros(1, 0);

@@ -53,21 +53,15 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
                 );
             end
 
-            % TODO plot dynamic obstacles from experiment_result
-
         end
 
         % past trajectory
-        for v = 1:nVeh
-
-            for iStep = 1:step_idx
-                line(experiment_result.vehicle_path_fullres{v, iStep}(:, 1), ...
-                    experiment_result.vehicle_path_fullres{v, iStep}(:, 2), ...
-                    'Color', rwth_color_order(v + optional.colorOffset) ...
-                );
-            end
-
-        end
+        plot_trajectories( ...
+            experiment_result, ...
+            fig = optional.fig, ...
+            do_export = false, ...
+            time_span = [1, step_idx] ...
+        );
 
         % predicted trajectory
         for v = 1:nVeh
@@ -82,9 +76,8 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
         % Vehicle rectangles
         for v = 1:nVeh
             veh = scenario.vehicles(v);
-            pos_step = experiment_result.vehicle_path_fullres{v, step_idx};
-            x = pos_step(1, :);
-            vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+            state = experiment_result.iteration_data{step_idx}.x0(v, :);
+            vehiclePolygon = transformed_rectangle(state(1), state(2), state(3), veh.Length, veh.Width);
             patch(vehiclePolygon(1, :) ...
                 , vehiclePolygon(2, :) ...
                 , rwth_color_order(v + optional.colorOffset) ...

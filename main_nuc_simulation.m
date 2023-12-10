@@ -115,7 +115,6 @@ function experiment_results = merge_experiment_results(experiment_results, res)
     end
 
     experiment_results.iteration_data = merge_iteration_data(experiment_results.iteration_data, res.iteration_data);
-    experiment_results.vehicle_path_fullres(i_veh, :) = res.vehicle_path_fullres(i_veh, :);
     experiment_results.trajectory_predictions(i_veh, :) = res.trajectory_predictions(i_veh, :);
 
     % fallback ids are just locally available

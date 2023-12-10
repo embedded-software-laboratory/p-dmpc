@@ -1,5 +1,5 @@
 classdef (Abstract) HighLevelController < handle
-    %TODO check for private/protected vars
+
     properties (Access = public)
         % config
         options;
@@ -342,8 +342,8 @@ classdef (Abstract) HighLevelController < handle
                 % ----------------------------------------------------------------------
 
                 % update the traffic situation
-                obj.update_hdv_traffic_info(cav_measurements, hdv_measurements);
                 obj.update_controlled_vehicles_traffic_info(cav_measurements);
+                obj.update_hdv_traffic_info(cav_measurements, hdv_measurements);
 
                 obj.timing_general.stop("traffic_situation_update", obj.k);
 
@@ -434,13 +434,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % update reduced coupling adjacency for cav/hdv-pairs
                 for iVeh = obj.plant.indices_in_vehicle_list
-                    % determine CAV lanelet id based on CAV's position
-                    % TODO isn't the lanelet_id_cav already available?
-                    lanelet_id_cav = map_position_to_closest_lanelets( ...
-                        obj.scenario_adapter.scenario.lanelets, ...
-                        cav_measurements(iVeh).x, ...
-                        cav_measurements(iVeh).y ...
-                    );
+                    lanelet_id_cav = obj.iter.current_lanelet(iVeh);
 
                     % note coupling if HDV is not behind CAV
                     % if HDV is behind CAV and coupling is noted
@@ -550,7 +544,6 @@ classdef (Abstract) HighLevelController < handle
 
             % store graph search results
             obj.experiment_result.trajectory_predictions(:, obj.k) = obj.info.y_predicted;
-            obj.experiment_result.vehicle_path_fullres(:, obj.k) = obj.info.vehicle_fullres_path;
             obj.experiment_result.n_expanded(:, obj.k) = obj.info.n_expanded;
             obj.experiment_result.vehicles_fallback{obj.k} = obj.info.vehicles_fallback;
 

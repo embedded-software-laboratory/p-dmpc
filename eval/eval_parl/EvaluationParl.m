@@ -190,7 +190,7 @@ classdef EvaluationParl
                 for iIter = obj.steps_ignored:obj.n_steps
                     i = iIter - obj.steps_ignored + 1;
                     obj.reference_paths{iVeh}(:, i) = reshape(experiment_result.iteration_data{iIter}.reference_trajectory_points(iVeh, 1, :), 2, []);
-                    obj.real_paths{iVeh}(:, i) = experiment_result.vehicle_path_fullres{iVeh, iIter}(end, 1:2)';
+                    obj.real_paths{iVeh}(:, i) = experiment_result.vehicle_path_fullres{iVeh, iIter}(end, 1:2)'; % FIXME
                     obj.path_tracking_errors{iVeh}(:, i) = sqrt(sum((obj.real_paths{iVeh}(:, i) - obj.reference_paths{iVeh}(:, i)).^2, 1));
                 end
 
