@@ -5,13 +5,12 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
         step_indices (1, :) double
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
-        optional.colorOffset (1, 1) double = 0
     end
 
     options = experiment_result.options;
     scenario = experiment_result.scenario;
 
-    nVeh = options.amount;
+    n_vehicles = options.amount;
     obstacles = experiment_result.iteration_data{experiment_result.n_steps}.obstacles;
     nObst = size(obstacles, 1);
 
@@ -64,23 +63,21 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
         );
 
         % predicted trajectory
-        for v = 1:nVeh
-            line(experiment_result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 1), ...
-                experiment_result.trajectory_predictions{v, step_idx}([1:options.tick_per_step + 1:end, end], 2), ...
-                'Color', rwth_color_order(v + optional.colorOffset), 'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', rwth_color_order(v + optional.colorOffset), 'MarkerSize', 1);
-            line(experiment_result.trajectory_predictions{v, step_idx}(:, 1), ...
-                experiment_result.trajectory_predictions{v, step_idx}(:, 2), ...
-                'Color', rwth_color_order(v + optional.colorOffset));
-        end
+        for i_vehicle = 1:n_vehicles
+            line(experiment_result.trajectory_predictions{i_vehicle, step_idx}([1:options.tick_per_step + 1:end, end], 1), ...
+                experiment_result.trajectory_predictions{i_vehicle, step_idx}([1:options.tick_per_step + 1:end, end], 2), ...
+                'Color', rwth_color_order(i_vehicle), 'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', rwth_color_order(i_vehicle), 'MarkerSize', 1);
+            line(experiment_result.trajectory_predictions{i_vehicle, step_idx}(:, 1), ...
+                experiment_result.trajectory_predictions{i_vehicle, step_idx}(:, 2), ...
+                'Color', rwth_color_order(i_vehicle));
 
-        % Vehicle rectangles
-        for v = 1:nVeh
-            veh = scenario.vehicles(v);
-            state = experiment_result.iteration_data{step_idx}.x0(v, :);
+            % Vehicle rectangles
+            veh = scenario.vehicles(i_vehicle);
+            state = experiment_result.iteration_data{step_idx}.x0(i_vehicle, :);
             vehiclePolygon = transformed_rectangle(state(1), state(2), state(3), veh.Length, veh.Width);
             patch(vehiclePolygon(1, :) ...
                 , vehiclePolygon(2, :) ...
-                , rwth_color_order(v + optional.colorOffset) ...
+                , rwth_color_order(i_vehicle) ...
             );
         end
 
