@@ -154,25 +154,30 @@ classdef systemtests < matlab.unittest.TestCase
             % Load results
             result_veh1 = load(FileNameConstructor.get_results_full_path(options, 1)).experiment_result;
             result_veh2 = load(FileNameConstructor.get_results_full_path(options, 2)).experiment_result;
+            result_veh3 = load(FileNameConstructor.get_results_full_path(options, 3)).experiment_result;
 
             % Test plotting of runtime over multiple experiments
-            results_multiple_experiments = cell(2);
+            results_multiple_experiments = cell(3, 3);
             results_multiple_experiments{1, 1} = result_veh2; % use result of vehicle 2 also as if it was the result in an experiment with only one vehicle
             results_multiple_experiments{2, 1} = result_veh1;
             results_multiple_experiments{2, 2} = result_veh2;
+            results_multiple_experiments{3, 1} = result_veh1;
+            results_multiple_experiments{3, 2} = result_veh2;
+            results_multiple_experiments{3, 3} = result_veh3;
 
-            plot_runtime_multiple_experiments(results_multiple_experiments, do_export = true);
+            plot_runtime_multiple_experiments(results_multiple_experiments);
             testCase.verifyTrue(true);
             plot_runtime_multiple_experiments(results_multiple_experiments, do_export = false);
             testCase.verifyTrue(true);
 
             % Test plotting of runtime of one timestep within one experiment
-            result_one_experiment = cell(1, 2);
+            result_one_experiment = cell(1, 3);
             result_one_experiment{1, 1} = result_veh1;
             result_one_experiment{1, 2} = result_veh2;
+            result_one_experiment{1, 3} = result_veh3;
             result_one_experiment_normalized = normalize_timing_results(result_one_experiment);
 
-            plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = true);
+            plot_runtime_for_step(result_one_experiment_normalized, 5);
             testCase.verifyTrue(true);
             plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = false);
             testCase.verifyTrue(true);
