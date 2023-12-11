@@ -8,7 +8,6 @@ classdef ControlResultsInfo
         n_expanded (:, 1) double % number of times that nodes are expended during graph search
         next_node % next node information
         shapes (:, :) cell % predicted occupied areas of all prediction horizons
-        vehicle_fullres_path (:, 1) cell % predicted trajectory of the next time step
         predicted_trims (:, :) double % predicted trims of all prediction horizon (including the current trim)
         trim_indices (:, 1) double % predicted trim of the next time step
         y_predicted (:, 1) cell % predicted trajectory
@@ -30,8 +29,7 @@ classdef ControlResultsInfo
     methods
 
         function obj = ControlResultsInfo(nVeh, Hp, controller_ID)
-            %UNTITLED Construct an instance of this class
-            %   Detailed explanation goes here
+
             if nargin == 2
                 obj.controller_ID = 1:nVeh; % default controller ID
                 warning('Default controller ID is used.')
@@ -46,7 +44,6 @@ classdef ControlResultsInfo
             obj.n_expanded = zeros(nVeh, 1);
             obj.next_node = node(-1, zeros(nVeh, 1), zeros(nVeh, 1), zeros(nVeh, 1), zeros(nVeh, 1), -1, -1);
             obj.shapes = cell(nVeh, Hp);
-            obj.vehicle_fullres_path = cell(nVeh, 1); %TODO not used
             obj.predicted_trims = zeros(nVeh, Hp + 1);
             obj.y_predicted = cell(nVeh, 1);
             obj.computation_levels = inf;
@@ -56,9 +53,8 @@ classdef ControlResultsInfo
             %obj.u = zeros(nVeh,1);
         end
 
-        function obj = store_control_info(obj, info_v, options, mpa)
-            % Store the control information, such as `tree`, `tree_path`,
-            % `n_expanded`, `next_node`, `shapes`, `vehicle_fullres_path`, `predicted_trims`, `y_predicted`
+        function obj = store_control_info(obj, info_v, options)
+
             if options.is_prioritized
                 vehicle_idx = find(obj.controller_ID == info_v.controller_ID);
                 obj.tree{vehicle_idx} = info_v.tree;
@@ -66,9 +62,7 @@ classdef ControlResultsInfo
                 obj.n_expanded(vehicle_idx, 1) = info_v.n_expanded;
                 obj.next_node = set_node(obj.next_node, vehicle_idx, info_v.tree.get_node(info_v.tree_path(2)));
                 obj.shapes(vehicle_idx, :) = info_v.shapes(:);
-                obj.vehicle_fullres_path(vehicle_idx) = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, mpa);
                 obj.predicted_trims(vehicle_idx, :) = info_v.predicted_trims; % store the planned trims in the future Hp time steps
-                %             obj.trim_indices(vehicle_idx) = info_v.trim_indices; % dependent variable
                 obj.y_predicted(vehicle_idx) = info_v.y_predicted; % store the information of the predicted output
                 obj.is_exhausted(vehicle_idx) = info_v.is_exhausted;
 
@@ -78,9 +72,7 @@ classdef ControlResultsInfo
                 obj.n_expanded = info_v.n_expanded;
                 obj.next_node = set_node(obj.next_node, 1:options.amount, info_v.tree.get_node(info_v.tree_path(2)));
                 obj.shapes = info_v.shapes;
-                obj.vehicle_fullres_path = path_between(info_v.tree_path(1), info_v.tree_path(2), info_v.tree, mpa)';
                 obj.predicted_trims = info_v.predicted_trims; % store the planned trims in the future Hp time steps
-                %                     obj.trim_indices = info_v.trim_indices; % dependent variable
                 obj.y_predicted = info_v.y_predicted(:); % store the information of the predicted output
                 obj.is_exhausted = info_v.is_exhausted;
             end
