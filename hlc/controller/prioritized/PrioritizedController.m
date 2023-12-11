@@ -85,12 +85,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
                 );
             end
 
-            if length(obj.plant.indices_in_vehicle_list) == 1
-                % wait for all subscribers to be created in distributed case,
-                % because otherwise early sent messages will be lost.
-                pause(5.0);
-            end
-
         end
 
         function init_communication(obj)
