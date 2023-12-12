@@ -165,7 +165,7 @@ classdef systemtests < matlab.unittest.TestCase
             results_multiple_experiments{3, 2} = result_veh2;
             results_multiple_experiments{3, 3} = result_veh3;
 
-            plot_runtime_multiple_experiments(results_multiple_experiments);
+            plot_runtime_multiple_experiments(results_multiple_experiments, do_export = true);
             testCase.verifyTrue(true);
             plot_runtime_multiple_experiments(results_multiple_experiments, do_export = false);
             testCase.verifyTrue(true);
@@ -177,7 +177,7 @@ classdef systemtests < matlab.unittest.TestCase
             result_one_experiment{1, 3} = result_veh3;
             result_one_experiment_normalized = normalize_timing_results(result_one_experiment);
 
-            plot_runtime_for_step(result_one_experiment_normalized, 5);
+            plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = true);
             testCase.verifyTrue(true);
             plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = false);
             testCase.verifyTrue(true);
