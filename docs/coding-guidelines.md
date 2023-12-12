@@ -3,7 +3,7 @@
     - don't abbreviate (parallel, not: parl)
     - don't put types in names (not: int_houses, i for Interface e.g. IHouse)
     - put units in variable names (delay_seconds)
-    - avoid nesting, e.g. with guard clauses (`if (~necessary) continue; end`)
+    - avoid nesting, e.g., with guard clauses (`if (~necessary) continue; end`)
 - Code naming conventions
     - Classnames are `CamelCase`
     - Everything else is `snake_case`
@@ -35,6 +35,8 @@
 - Use formatter and spell checker, see recommendations
 - End each `function` with an `end`
 - use `arguments` block for function input checks and easier-to-read code without documentation
+- use `Name = Value` style instead of `'Name', Value` for name-value pairs
+- Optional function parameter struct is named `optional`
 
 # C++
 - private members start with underscore, i.e., _member
