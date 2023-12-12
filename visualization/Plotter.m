@@ -12,7 +12,7 @@ classdef (Abstract) Plotter < handle
 
         options (1, 1) Config % Config object
         scenario (1, 1) Scenario % scenario object
-        veh_indices (1, :) int32 % indices of vehicles for which this plotter instance is responsible
+        vehicle_indices (1, :) int32 % indices of vehicles for which this plotter instance is responsible
         time_step (1, 1) int64 % keep track wich time step is currently plotted
 
         hotkey_description (1, :) string % hotkey description text to show
@@ -33,7 +33,7 @@ classdef (Abstract) Plotter < handle
     methods
 
         function result = get.nVeh(obj)
-            result = length(obj.veh_indices);
+            result = length(obj.vehicle_indices);
         end
 
         function result = get.strategy(obj)
@@ -59,13 +59,13 @@ classdef (Abstract) Plotter < handle
 
         end
 
-        function obj = Plotter(options, scenario, veh_indices)
+        function obj = Plotter(options, scenario, vehicle_indices)
             %PLOTTER Create a Plotter object.
             %   Initialize all class members for the first time step and create a figure.
             arguments
                 options (1, 1) Config
                 scenario (1, 1) Scenario
-                veh_indices (1, :) int32 = 1:options.amount
+                vehicle_indices (1, :) int32 = 1:options.amount
             end
 
             % Initialize variable for key press callback.
@@ -76,7 +76,7 @@ classdef (Abstract) Plotter < handle
             obj.scenario = scenario;
             obj.plot_options = options.options_plot_online;
             obj.export_fig_config = ExportFigConfig().video();
-            obj.veh_indices = veh_indices;
+            obj.vehicle_indices = vehicle_indices;
             obj.time_step = 1;
             % Deactivate coupling lines for distributed plotting.
             if obj.nVeh == 1
@@ -198,7 +198,7 @@ classdef (Abstract) Plotter < handle
             end
 
             %%
-            for i_vehicle = obj.veh_indices
+            for i_vehicle = obj.vehicle_indices
                 % Sampled reference trajectory points
                 line( ...
                     plotting_info.ref_trajectory(i_vehicle, :, 1), ...
@@ -346,7 +346,7 @@ classdef (Abstract) Plotter < handle
             arguments
                 obj (1, 1) Plotter
                 plotting_info (1, 1) PlottingInfo
-                vehicle_indices (1, :) int32 = obj.veh_indices;
+                vehicle_indices (1, :) int32 = obj.vehicle_indices;
             end
 
             is_plottable = ~cellfun(@isempty, plotting_info.reachable_sets);
@@ -375,7 +375,7 @@ classdef (Abstract) Plotter < handle
             arguments
                 obj (1, 1) Plotter
                 plotting_info (1, 1) PlottingInfo
-                vehicle_indices (1, :) int32 = obj.veh_indices;
+                vehicle_indices (1, :) int32 = obj.vehicle_indices;
             end
 
             if isempty(plotting_info.lanelet_crossing_areas)

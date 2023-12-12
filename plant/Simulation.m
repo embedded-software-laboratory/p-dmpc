@@ -132,7 +132,7 @@ classdef Simulation < Plant
             obj.msg_to_be_sent.n_obstacles = int32(0);
             obj.msg_to_be_sent.n_dynamic_obstacles = int32(0);
             obj.msg_to_be_sent.step = int32(plotting_info.step);
-            obj.msg_to_be_sent.veh_indices = int32(plotting_info.veh_indices);
+            obj.msg_to_be_sent.vehicle_indices = int32(plotting_info.vehicle_indices);
             obj.msg_to_be_sent.tick_now = int32(plotting_info.tick_now);
             obj.msg_to_be_sent.weighted_coupling_reduced = reshape(plotting_info.weighted_coupling_reduced', 1, []);
             obj.msg_to_be_sent.directed_coupling = uint8(reshape(plotting_info.directed_coupling', 1, []));
@@ -149,7 +149,7 @@ classdef Simulation < Plant
 
             for i_vehicle = obj.indices_in_vehicle_list
                 obj.msg_to_be_sent.step = int32(-1);
-                obj.msg_to_be_sent.veh_indices = int32(i_vehicle);
+                obj.msg_to_be_sent.vehicle_indices = int32(i_vehicle);
                 send(obj.publisher, obj.msg_to_be_sent);
             end
 

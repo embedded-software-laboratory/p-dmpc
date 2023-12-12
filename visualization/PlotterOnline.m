@@ -24,16 +24,16 @@ classdef PlotterOnline < Plotter
 
     methods
 
-        function obj = PlotterOnline(options, scenario, veh_indices)
+        function obj = PlotterOnline(options, scenario, vehicle_indices)
             %PLOTTERONLINE Construct an instance of PlotterOnline
             %   Specify the scenario and optionally the vehicle indices to plot.
             arguments
                 options (1, 1) Config
                 scenario (1, 1) Scenario
-                veh_indices (1, :) int32 = 1:options.amount
+                vehicle_indices (1, :) int32 = 1:options.amount
             end
 
-            obj@Plotter(options, scenario, veh_indices);
+            obj@Plotter(options, scenario, vehicle_indices);
             obj.paused = false;
             set(obj.fig, 'WindowKeyPressFcn', @obj.keyPressCallback);
 
@@ -164,7 +164,7 @@ classdef PlotterOnline < Plotter
             end
 
             if msg.step == -1
-                fprintf('Vehicle %d finished\n', msg.veh_indices(1));
+                fprintf('Vehicle %d finished\n', msg.vehicle_indices(1));
                 obj.n_finished = obj.n_finished + 1;
 
                 if obj.n_finished == obj.nVeh
@@ -180,7 +180,7 @@ classdef PlotterOnline < Plotter
 
             % save info
             field_name = strcat('step', num2str(plotting_info.step));
-            obj.plotting_info_collection.(field_name){plotting_info.veh_indices(1)} = plotting_info;
+            obj.plotting_info_collection.(field_name){plotting_info.vehicle_indices(1)} = plotting_info;
 
             obj.max_time_step = max(obj.max_time_step, plotting_info.step);
 
@@ -213,7 +213,7 @@ classdef PlotterOnline < Plotter
             plotting_info.n_obstacles = msg.n_obstacles;
             plotting_info.n_dynamic_obstacles = msg.n_dynamic_obstacles;
             plotting_info.step = msg.step;
-            plotting_info.veh_indices = msg.veh_indices;
+            plotting_info.vehicle_indices = msg.vehicle_indices;
             plotting_info.tick_now = msg.tick_now;
             plotting_info.weighted_coupling_reduced = reshape(msg.weighted_coupling_reduced, obj.options.amount, obj.options.amount)';
             plotting_info.directed_coupling = reshape(msg.directed_coupling, obj.options.amount, obj.options.amount)';
@@ -223,7 +223,7 @@ classdef PlotterOnline < Plotter
 
         function complete_plotting_info = merge_plotting_infos(obj, plotting_info_collection)
             complete_plotting_info = plotting_info_collection{1};
-            complete_plotting_info.veh_indices = cellfun(@(x) x.veh_indices(1), plotting_info_collection);
+            complete_plotting_info.vehicle_indices = cellfun(@(x) x.vehicle_indices(1), plotting_info_collection);
 
             for i = 1:length(plotting_info_collection)
                 info = plotting_info_collection{i};
