@@ -19,14 +19,23 @@ classdef Simulation < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids, ros2_node)
+        function set_ros2_node(obj, ros2_node)
+
+            arguments
+                obj (1, 1) Simulation
+                ros2_node (1, 1) ros2node
+            end
+
+            obj.ros2_node = ros2_node;
+        end
+
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) Simulation
                 options (1, 1) Config
                 all_vehicle_ids (1, :) uint8
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
-                ros2_node ros2node = ros2node(['/plant_', num2str(controlled_vehicle_ids(1))])
             end
 
             setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
@@ -54,8 +63,6 @@ classdef Simulation < Plant
             obj.should_plot = obj.options_plot_online.is_active;
 
             obj.should_sync = false;
-
-            obj.ros2_node = ros2_node;
 
             qos_config = struct( ...
                 History = "keeplast", ...

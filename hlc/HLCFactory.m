@@ -17,17 +17,16 @@ classdef HLCFactory < handle
                 do_dry_run
             end
 
-            plant = Plant.get_plant(options.environment);
-
             % Create ROS2 node for this HLC
             vehicle_indices_string = sprintf('_%02d', controlled_vehicle_indices);
             ros2_node = ros2node(['hlc', vehicle_indices_string]);
 
-            plant.setup(options, options.path_ids, options.path_ids(controlled_vehicle_indices), ros2_node);
+            plant = Plant.get_plant(options.environment, ros2_node);
+            plant.setup(options, options.path_ids, options.path_ids(controlled_vehicle_indices));
 
             if false % do_dry_run
                 % FIXME does not work in parallel
-                obj.dry_run_hlc(options, plant.controlled_vehicle_ids);
+                obj.dry_run_hlc(options, plant.controlled_vehicle_ids, ros2_node);
             end
 
             if options.is_prioritized
@@ -65,7 +64,7 @@ classdef HLCFactory < handle
         % Important note: This might take some time depending on how hard to
         % solve the first time step of this scenario is.
 
-        function dry_run_hlc(obj, options, dry_run_vehicle_ids)
+        function dry_run_hlc(obj, options, dry_run_vehicle_ids, ros2_node)
             fprintf("Dry run of HLC...");
 
             % use simulation to avoid communication with a lab
@@ -79,7 +78,7 @@ classdef HLCFactory < handle
             % for the dry run results are not relevant
             options.should_save_result = false;
 
-            plant = Plant.get_plant(options.environment);
+            plant = Plant.get_plant(options.environment, ros2_node);
             plant.setup(options, dry_run_vehicle_ids);
 
             hlc = obj.get_hlc(options, plant, dry_run_vehicle_ids, false);

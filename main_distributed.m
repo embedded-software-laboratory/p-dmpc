@@ -12,10 +12,6 @@ function [experiment_result, scenario] = main_distributed(vehicle_id)
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
-    plant = Plant.get_plant(options.environment);
-    % set active vehicle IDs and initialize communication
-    plant.setup(options, options.path_ids, vehicle_id);
-
     % In prioritized computation, vehicles communicate via ROS 2.
     % main.m will have deleted the ros2 message types before distributing the code.
     % Therefore, the the ros2 message types need to be created here before experiment setup.

@@ -40,15 +40,18 @@ classdef (Abstract) Plant < handle
 
     methods (Static, Access = public)
 
-        function plant = get_plant(environment)
+        function plant = get_plant(environment, ros2_node)
 
             arguments
                 environment (1, 1) Environment
+                ros2_node = []
             end
 
             switch (environment)
                 case Environment.Simulation
+                    assert(~isempty(ros2_node))
                     plant = Simulation();
+                    plant.set_ros2_node(ros2_node);
                 case Environment.CpmLab
                     plant = CpmLab();
                 case Environment.UnifiedLabApi

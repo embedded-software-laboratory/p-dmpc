@@ -31,14 +31,13 @@ classdef UnifiedLabApi < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids, ~)
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) UnifiedLabApi
                 options (1, 1) Config
                 all_vehicle_ids (1, :) uint8
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
-                ~
             end
 
             obj.got_start = false;

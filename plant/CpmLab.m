@@ -21,14 +21,13 @@ classdef CpmLab < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids, ~)
+        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
 
             arguments
                 obj (1, 1) CpmLab
                 options (1, 1) Config
                 all_vehicle_ids (1, :) uint8 % used to validate amount of set vehicle ids
                 controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
-                ~
             end
 
             % create data readers/writers...
