@@ -59,7 +59,7 @@ function experiment_result = main(options)
             plotter.plotting_loop();
         end
 
-        experiment_result = fetchOutputs(future, 'UniformOutput', false);
+        experiment_result = fetchOutputs(future, UniformOutput = false);
 
     end
 

@@ -17,9 +17,9 @@ function [reference_path_struct] = generate_reference_path_loop(lanelets_index, 
 
     lanelets_target = lanelets(reference_path_struct.lanelets_index);
 
-    reference_path_x = cellfun(@(c)c(:, LaneletInfo.cx), lanelets_target, 'UniformOutput', false);
+    reference_path_x = cellfun(@(c)c(:, LaneletInfo.cx), lanelets_target, UniformOutput = false);
     reference_path_x = vertcat(reference_path_x{:});
-    reference_path_y = cellfun(@(c)c(:, LaneletInfo.cy), lanelets_target, 'UniformOutput', false);
+    reference_path_y = cellfun(@(c)c(:, LaneletInfo.cy), lanelets_target, UniformOutput = false);
     reference_path_y = vertcat(reference_path_y{:});
 
     path = [reference_path_x, reference_path_y];

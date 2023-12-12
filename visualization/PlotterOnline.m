@@ -244,7 +244,7 @@ classdef PlotterOnline < Plotter
             end
 
             complete_plotting_info.n_obstacles = n_obstacles;
-            complete_plotting_info.obstacles = cellfun(@(x) x.obstacles, plotting_info_collection, 'UniformOutput', false);
+            complete_plotting_info.obstacles = cellfun(@(x) x.obstacles, plotting_info_collection, UniformOutput = false);
             n_dynamic_obstacles = 0;
 
             for x = plotting_info_collection
@@ -252,15 +252,15 @@ classdef PlotterOnline < Plotter
             end
 
             complete_plotting_info.n_dynamic_obstacles = n_dynamic_obstacles;
-            complete_plotting_info.dynamic_obstacles = cellfun(@(x) x.dynamic_obstacles, plotting_info_collection, 'UniformOutput', false);
-            complete_plotting_info.dynamic_obstacles_shape = cellfun(@(x) x.dynamic_obstacles_shape, plotting_info_collection, 'UniformOutput', false);
+            complete_plotting_info.dynamic_obstacles = cellfun(@(x) x.dynamic_obstacles, plotting_info_collection, UniformOutput = false);
+            complete_plotting_info.dynamic_obstacles_shape = cellfun(@(x) x.dynamic_obstacles_shape, plotting_info_collection, UniformOutput = false);
 
             if obj.plot_options.plot_reachable_sets
-                complete_plotting_info.reachable_sets = cellfun(@(x) x.reachable_sets, plotting_info_collection, 'UniformOutput', false);
+                complete_plotting_info.reachable_sets = cellfun(@(x) x.reachable_sets, plotting_info_collection, UniformOutput = false);
             end
 
             if obj.plot_options.plot_lanelet_crossing_areas
-                complete_plotting_info.lanelet_crossing_areas = cellfun(@(x) x.lanelet_crossing_areas, plotting_info_collection, 'UniformOutput', false);
+                complete_plotting_info.lanelet_crossing_areas = cellfun(@(x) x.lanelet_crossing_areas, plotting_info_collection, UniformOutput = false);
             end
 
         end

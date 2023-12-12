@@ -248,7 +248,7 @@ classdef EvaluationParl
         function obj = get_average_speeds(obj)
             % Calculates the average speed of each vehicle
             % note that we use reference path but not real path
-            reference_paths_diff = cellfun(@(c) diff(c, 1, 2), obj.reference_paths, 'UniformOutput', false);
+            reference_paths_diff = cellfun(@(c) diff(c, 1, 2), obj.reference_paths, UniformOutput = false);
             distances = cellfun(@(c) sum(sqrt(c(1, :).^2 + c(2, :).^2)), reference_paths_diff);
             obj.average_speed_each_veh = distances ./ obj.t_total;
             obj.average_speed = mean(obj.average_speed_each_veh);
