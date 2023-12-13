@@ -131,7 +131,7 @@ function plot_levels_data(data)
         result.options ...
     );
     filename = 'computation-levels-graph.pdf';
-    % TODO paper size to guarantee legend does not cover graph
+    % legend currently might cover graph
     set_figure_properties(figHandle, ExportFigConfig.paper('paperheight', 15, 'paperwidth', 15))
     export_fig(figHandle, fullfile(folder_path, filename));
     close(figHandle);

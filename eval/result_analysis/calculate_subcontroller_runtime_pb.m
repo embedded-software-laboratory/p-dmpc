@@ -6,7 +6,6 @@ function runtimes = calculate_subcontroller_runtime_pb(experiment_result)
         experiment_result (1, 1) ExperimentResult;
     end
 
-    %TODO calculate subcontroller_runtime from other timings
     [nVeh, n_steps] = size(experiment_result.subcontroller_runtime);
     runtimes = zeros(1, n_steps);
 

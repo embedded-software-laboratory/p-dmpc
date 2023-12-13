@@ -3,7 +3,6 @@ function result = is_hdv_behind(lanelet_id_cav, cav_measurement, lanelet_id_hdv,
     result = false;
 
     % tolerance is used to decide whether two lanelet point are equal
-    % TODO test if tolerance finds all equal lanelet points
     tolerance = 1e-6;
 
     % initialize array for predecessor lanelets

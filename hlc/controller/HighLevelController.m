@@ -283,7 +283,6 @@ classdef (Abstract) HighLevelController < handle
                 return
             end
 
-            % TODO alternative for clear mex on Mac with ARM chip
             warning('Memory allocation of mex functions is not freed.')
         end
 
@@ -512,8 +511,6 @@ classdef (Abstract) HighLevelController < handle
 
             % calculate deadlock
             % if a vehicle stops for more than a defined time, assume deadlock
-            % TODO check if deadlocked vehicles are coupled. Sometimes single
-            % vehicles stop because trajectory planner fails to work as intended
 
             % vehicles that stop at the current time step
             is_vehicle_stopped = ismember(obj.info.trim_indices, obj.mpa.trims_stop);
@@ -527,7 +524,6 @@ classdef (Abstract) HighLevelController < handle
             threshold_stop_steps = 3 * obj.options.Hp;
             is_vehicle_deadlocked = (obj.vehs_stop_duration > threshold_stop_steps);
 
-            % TODO n_coupled_deadlocked_vehicles
             if any(is_vehicle_deadlocked)
                 str_vehicles_deadlocked = sprintf('%4d', find(is_vehicle_deadlocked));
                 str_steps_deadlocked = sprintf('%4d', obj.vehs_stop_duration(is_vehicle_deadlocked));

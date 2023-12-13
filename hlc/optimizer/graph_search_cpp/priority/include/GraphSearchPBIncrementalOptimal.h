@@ -67,7 +67,6 @@ namespace GraphBasedPlanning {
 					Printer::println("old");
 				} else {
 					// reset inc search
-					// TODO Future Work: Implement rollback instead of reset
 					_root->reset_k_offset();
 					delete _root;
 					assert(heap.empty());
@@ -131,7 +130,6 @@ namespace GraphBasedPlanning {
 		            });
 		        } else {
 		            // reset inc search
-		            // TODO Future Work: Implement rollback instead of reset
 		            root->reset_k_offset();
 		            delete root;
 		            assert(heap.empty());
@@ -325,7 +323,7 @@ namespace GraphBasedPlanning {
 				vehicles_obstacle = this->_mpa->template calc_vehicles_obstacles_without_offset<1>(node);
 				if (check_lanelet && !this->lanelet_interaction_valid(vehicles_obstacle[0], 0)) {
 					// collides with lanelet boundaries. Thus, not relevant for this or following iterations.
-					// TODO BUG? bad trajectory quality if the following workaround line is removed
+					// BUG? bad trajectory quality if the following workaround line is removed
 					// node->set_heap_handle(blocked_nodes.push(node));
 					return false;
 				}

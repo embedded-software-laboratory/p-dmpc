@@ -5,11 +5,11 @@
 #include <queue>
 #include <vector>
 
-#include "VehicleObstaclesData.h"
 #include "ConfigData.h"
 #include "MPA.h"
 #include "PriorityBasedGraphSearch.h"
 #include "VehicleData.h"
+#include "VehicleObstaclesData.h"
 
 namespace GraphBasedPlanning {
 	template <SCENARIO_TYPE scenario_type>
@@ -19,7 +19,8 @@ namespace GraphBasedPlanning {
 		std::priority_queue<PriorityBasedNode *, std::vector<PriorityBasedNode *>, typename PriorityBasedNode::priority_queue_comparison> _pq;
 
 	   public:
-		GraphSearchPBOptimal(std::shared_ptr<GraphBasedPlanning::ConfigData const> const &config, std::shared_ptr<GraphBasedPlanning::MPA const> const &mpa, std::array<VehicleData<scenario_type>, 1> const &&vehicle_data, VehicleObstaclesData const&& vehicle_obstacles_data)
+		GraphSearchPBOptimal(std::shared_ptr<GraphBasedPlanning::ConfigData const> const &config, std::shared_ptr<GraphBasedPlanning::MPA const> const &mpa, std::array<VehicleData<scenario_type>, 1> const &&vehicle_data,
+		    VehicleObstaclesData const &&vehicle_obstacles_data)
 		    : PriorityBasedGraphSearch<scenario_type>(config, mpa, std::forward<decltype(vehicle_data)>(vehicle_data), std::forward<decltype(vehicle_obstacles_data)>(vehicle_obstacles_data)) {}
 		PriorityBasedNode const *search(PriorityBasedNode const root) final {
 			_root = new PriorityBasedNode(root);
@@ -37,9 +38,8 @@ namespace GraphBasedPlanning {
 						continue;
 					}
 
-					// TODO laneletcrossingarea against area without offset
-
-					// TODO HDV Reachable sets against area normal offset
+					// #98 laneletcrossingarea against area without offset
+					// #98 HDV Reachable sets against area normal offset
 
 					std::array<std::vector<vec2>, 1> vehicles_obstacle;
 					if (current_node->k() < this->_config->n_hp()) {
