@@ -41,7 +41,7 @@ classdef HLCFactory < handle
                 if length(plant.vehicle_indices_controlled) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    hlc = PrioritizedParallelController(options, plant, ros2_node);
+                    hlc = PrioritizedController(options, plant, ros2_node);
                 else
                     % PB Controller controlling all vehicles
                     hlc = PrioritizedSequentialController(options, plant, ros2_node);

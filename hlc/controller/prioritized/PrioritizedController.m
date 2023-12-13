@@ -1,4 +1,4 @@
-classdef (Abstract) PrioritizedController < HighLevelController
+classdef PrioritizedController < HighLevelController
 
     properties (Access = public)
         % instances of communication classes stored in a cell array
@@ -299,6 +299,31 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.timing_general.stop('reduce_computation_levels', obj.k);
             obj.timing_general.stop('create_coupling_graph', obj.k);
 
+        end
+
+        function controller(obj)
+            % CONTROLLER Plan trajectory for one time step using a
+            % prioritized controller. Vehicles inside one group plan in sequence and
+            % between groups plan in parallel.
+
+            % initialize variable to store control results
+            obj.info = ControlResultsInfo( ...
+                obj.options.amount, ...
+                obj.options.Hp, ...
+                obj.plant.all_vehicle_ids ...
+            );
+
+            vehicle_idx = obj.plant.indices_in_vehicle_list(1);
+
+            % plan for vehicle_idx
+            obj.timing_per_vehicle(vehicle_idx).start('plan_single_vehicle', obj.k);
+            obj.plan_single_vehicle(vehicle_idx);
+            obj.timing_per_vehicle(vehicle_idx).stop('plan_single_vehicle', obj.k);
+
+            %% Send own data to other vehicles
+            obj.timing_per_vehicle(vehicle_idx).start('publish_predictions', obj.k);
+            obj.publish_predictions(vehicle_idx);
+            obj.timing_per_vehicle(vehicle_idx).stop('publish_predictions', obj.k);
         end
 
         function plan_single_vehicle(obj, vehicle_idx)
