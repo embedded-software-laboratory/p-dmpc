@@ -37,7 +37,6 @@ classdef (Abstract) HighLevelController < handle
         % member variable that is used to execute steps on error
         is_run_succeeded (1, 1) logical = false
 
-        got_stop;
         vehicles_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
         total_fallback_times; % total times of fallbacks
         vehs_stop_duration;
@@ -51,6 +50,11 @@ classdef (Abstract) HighLevelController < handle
     methods
         % Set default settings
         function obj = HighLevelController(options, plant)
+
+            if nargin == 0
+                return
+            end
+
             % remove step time from options to avoid usage
             % before it is received from the plant
             options.dt_seconds = [];
@@ -60,7 +64,6 @@ classdef (Abstract) HighLevelController < handle
             obj.plant = plant;
 
             obj.k = 0;
-            obj.got_stop = false;
             obj.total_fallback_times = 0;
 
             obj.coupler = Coupler.get_coupler(obj.options.coupling, obj.options.amount);
@@ -81,11 +84,17 @@ classdef (Abstract) HighLevelController < handle
             % initialize the controller and its adapters
             obj.main_init();
 
+            % synchronize with other controllers
+            obj.synchronize_start_with_other_controllers();
+
+            % synchronize with plant
+            obj.synchronize_start_with_plant();
+
             % start controllers main control loop
             obj.main_control_loop();
 
             % set to true if the controller ran properly
-            obj.is_run_succeeded = true;
+            obj.set_run_succeeded(true);
 
             % This triggers obj.end_run such that the returned experiment_result contains all information.
             % It is only reached if onCleanup was not already destroyed before because of an error.
@@ -98,6 +107,10 @@ classdef (Abstract) HighLevelController < handle
     end
 
     methods (Access = protected)
+
+        function set_run_succeeded(obj, is_run_succeeded)
+            obj.is_run_succeeded = is_run_succeeded;
+        end
 
         function init(obj)
             % initialize high level controller itself
@@ -156,6 +169,8 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function update_controlled_vehicles_traffic_info(obj, cav_measurements)
+
+            obj.timing_general.start("update_controlled_vehicles_traffic_info", obj.k);
 
             for iVeh = obj.plant.vehicle_indices_controlled
                 % states of controlled vehicles can be measured directly
@@ -255,9 +270,15 @@ classdef (Abstract) HighLevelController < handle
 
             end
 
+            obj.timing_general.stop("update_controlled_vehicles_traffic_info", obj.k);
+
         end
 
         function create_coupling_graph(~)
+            % method that can be overwritten by child classes if necessary
+        end
+
+        function synchronize_start_with_other_controllers(~)
             % method that can be overwritten by child classes if necessary
         end
 
@@ -286,10 +307,6 @@ classdef (Abstract) HighLevelController < handle
             warning('Memory allocation of mex functions is not freed.')
         end
 
-    end
-
-    methods (Access = private)
-
         function main_init(obj)
             % this function initializes sequentially
             % the main components of the high level controller
@@ -311,91 +328,79 @@ classdef (Abstract) HighLevelController < handle
             % initialize high level controller itself
             obj.init();
 
-            % synchronize with plant
-            obj.plant.synchronize_start_with_plant();
-
             % stop initialization timer
             obj.timing_general.stop("hlc_init_all");
+        end
+
+        % end
+
+        % methods (Access = private)
+
+        function synchronize_start_with_plant(obj)
+            obj.plant.synchronize_start_with_plant();
         end
 
         function main_control_loop(obj)
 
             %% Main control loop
-            while (~obj.got_stop)
+            while (~obj.should_stop())
                 % increment interation counter
-                obj.k = obj.k + 1;
+                obj.increment_time_step();
 
                 if mod(obj.k, 10) == 0
                     % only display 0, 10, 20, ...
                     disp(['>>> Time step ' num2str(obj.k)])
                 end
 
-                obj.timing_general.start("hlc_step", obj.k);
-                obj.timing_general.start("traffic_situation_update", obj.k);
-
                 % Measurement
                 % -------------------------------------------------------------------------
-                [cav_measurements, hdv_measurements] = obj.plant.measure();
+                obj.update_traffic();
 
                 % Control
                 % ----------------------------------------------------------------------
 
-                % update the traffic situation
-                obj.update_controlled_vehicles_traffic_info(cav_measurements);
-                obj.update_hdv_traffic_info(cav_measurements, hdv_measurements);
-
-                obj.timing_general.stop("traffic_situation_update", obj.k);
-
-                % The controller computes plans
-                obj.timing_general.start("controller", obj.k);
-
                 % determine couplings between the controlled vehicles
                 obj.create_coupling_graph();
 
-                %% controller %%
+                % controller
                 obj.controller();
 
                 % handle fallback of controller
 
-                obj.timing_general.start('fallback', obj.k);
-
                 if ~obj.handle_fallback()
-                    obj.timing_general.stop('fallback', obj.k);
                     % if fallback is not handled break the main control loop
                     break
                 end
 
-                obj.timing_general.stop('fallback', obj.k);
-
-                obj.info_old = obj.info; % save variable in case of fallback
-
-                % stop timer of current time step
-                obj.timing_general.stop("controller", obj.k);
-                obj.timing_general.stop("hlc_step", obj.k);
-
                 % store results from iteration in ExperimentResult
+                obj.store_control_info();
                 obj.store_iteration_results();
-
-                % reset iter obstacles to scenario default/static obstacles
-                obj.iter.obstacles = obj.scenario_adapter.scenario.obstacles;
-                % important: reset lanelet crossing areas
-                obj.iter.lanelet_crossing_areas = repmat({{}}, obj.options.amount, 1);
+                obj.reset_control_loop_data();
 
                 % Apply control action
                 % -------------------------------------------------------------------------
-                obj.plant.apply(obj.info, obj.experiment_result, obj.k, obj.mpa);
-
-                % Check for stop signal
-                % -------------------------------------------------------------------------
-                obj.got_stop = obj.plant.is_stop() || obj.got_stop;
-
-                if ~obj.got_stop && obj.k >= obj.options.k_end
-                    disp('The HLC will be stopped as the defined experiment duration is reached.')
-                    obj.got_stop = true;
-                end
+                obj.apply();
 
             end
 
+        end
+
+        function increment_time_step(obj)
+            obj.k = obj.k + 1;
+        end
+
+        function update_traffic(obj)
+
+            [cav_measurements, hdv_measurements] = obj.measure();
+            % update the traffic situation
+            obj.update_controlled_vehicles_traffic_info(cav_measurements);
+            obj.update_hdv_traffic_info(cav_measurements, hdv_measurements);
+        end
+
+        function [cav_measurements, hdv_measurements] = measure(obj)
+            obj.timing_general.start("measure", obj.k);
+            [cav_measurements, hdv_measurements] = obj.plant.measure();
+            obj.timing_general.stop("measure", obj.k);
         end
 
         function update_hdv_traffic_info(obj, cav_measurements, hdv_measurements)
@@ -506,6 +511,19 @@ classdef (Abstract) HighLevelController < handle
             is_fallback_handled = true;
         end
 
+        function store_control_info(obj)
+            % store control results info of previous time step
+            obj.info_old = obj.info;
+
+        end
+
+        function reset_control_loop_data(obj)
+            % reset iter obstacles to scenario default/static obstacles
+            obj.iter.obstacles = obj.scenario_adapter.scenario.obstacles;
+            % important: reset lanelet crossing areas
+            obj.iter.lanelet_crossing_areas = repmat({{}}, obj.options.amount, 1);
+        end
+
         function store_iteration_results(obj)
             % store iteration results like iter and info in the ExperimentResult object
 
@@ -548,6 +566,25 @@ classdef (Abstract) HighLevelController < handle
 
         end
 
+        function apply(obj)
+            obj.plant.apply(obj.info, obj.experiment_result, obj.k, obj.mpa);
+        end
+
+        function result = should_stop(obj)
+            % Check for stop signal
+            % -------------------------------------------------------------------------
+            if obj.plant.should_stop()
+                result = true;
+                disp('HLC stopped by plant adapter.');
+            elseif obj.k >= obj.options.k_end
+                result = true;
+                disp('HLC stopped as the experiment is finished.')
+            else
+                result = false;
+            end
+
+        end
+
         function end_run(obj)
             % end run of controller
             % this function is executed in every case
@@ -559,7 +596,8 @@ classdef (Abstract) HighLevelController < handle
                 obj.options.should_save_result = true;
 
                 % define output path on error
-                obj.experiment_result.output_path = 'results/unfinished_result.mat';
+                vehicle_indices_string = sprintf('_%02d', obj.plant.vehicle_indices_controlled);
+                obj.experiment_result.output_path = ['results/unfinished_result', vehicle_indices_string, '.mat'];
             else
                 % define output path on success
                 obj.experiment_result.output_path = FileNameConstructor.get_results_full_path( ...

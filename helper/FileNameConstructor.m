@@ -106,9 +106,7 @@ classdef FileNameConstructor
 
             scenario_name = '';
 
-            if options.computation_mode ~= ComputationMode.sequential
-                scenario_name = ['veh_', num2str(i_vehicles), '_'];
-            end
+            scenario_name = ['veh_', num2str(i_vehicles), '_'];
 
             if isempty(options.result_name)
                 % use default name

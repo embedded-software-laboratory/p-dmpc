@@ -3,6 +3,7 @@ classdef HLCFactory < handle
     properties (Access = public)
     end
 
+    % TODO all functions could be static
     methods
 
         function obj = HLCFactory()
@@ -18,6 +19,7 @@ classdef HLCFactory < handle
                 % CpmLab:       IDs of the vehicles
                 controlled_vehicles
                 optional.do_dry_run = false
+                optional.ros2_node = []
             end
 
             if options.environment == Environment.Simulation
@@ -38,16 +40,36 @@ classdef HLCFactory < handle
 
             if options.is_prioritized
 
-                if length(plant.vehicle_indices_controlled) == 1
-                    % PB Controller for exactly 1 vehicle. Communicates
+                if length(controlled_vehicles) == 1
+                    % Prioritized controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
+                    if isempty(ros2_node)
+                        ros2_node = ros2node(sprintf('hlc_%02d', controlled_vehicles));
+                    end
+
+                    plant = Plant.get_plant(options.environment, ros2_node);
+                    plant.setup(options, controlled_vehicles);
                     hlc = PrioritizedController(options, plant, ros2_node);
                 else
-                    % PB Controller controlling all vehicles
-                    hlc = PrioritizedSequentialController(options, plant, ros2_node);
+                    % Prioritized controller controlling all vehicles
+                    hlc = PrioritizedSequentialController();
+                    ros2_node = ros2node(sprintf('hlc_seq'));
+
+                    for i_vehicle = controlled_vehicles
+                        sub_hlc = obj.get_hlc(options, i_vehicle, ros2_node = ros2_node);
+                        hlc.add_hlc(sub_hlc);
+                    end
+
                 end
 
             else
+                % Centralized Controller controlling all vehicles
+                vehicle_indices_string = sprintf('_%02d', controlled_vehicles);
+                ros2_node = ros2node(['hlc', vehicle_indices_string]);
+
+                plant = Plant.get_plant(options.environment, ros2_node);
+                plant.setup(options, options.path_ids, options.path_ids(controlled_vehicles));
+
                 hlc = CentralizedController(options, plant);
             end
 

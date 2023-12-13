@@ -153,8 +153,8 @@ classdef Simulation < Plant
             obj.msg_to_be_sent.is_virtual_obstacle = int32(reshape(plotting_info.is_virtual_obstacle', 1, []));
         end
 
-        function got_stop = is_stop(~)
-            got_stop = false;
+        function result = should_stop(~)
+            result = false;
         end
 
         function end_run(obj)
