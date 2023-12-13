@@ -275,7 +275,7 @@ function plot_footprints(i_result, results, results_folder_path)
 
     nVehs = options.amount;
 
-    plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
+    plot_lanelets(scenario.road_raw_data.lanelet);
 
     for v = 1:nVehs
         visualized_steps_num = [12, 5];
@@ -343,7 +343,7 @@ function plot_viewpoint_reachable_set(i_result, results, results_folder_path)
     tick_now = 1;
     step_idx = 5;
 
-    plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
+    plot_lanelets(scenario.road_raw_data.lanelet);
     ego_vehs = 3;
     other_vehs = setdiff(1:nVehs, ego_vehs);
     % plot reachable set
@@ -412,7 +412,7 @@ function plot_viewpoint_previous_occupancy(i_result, results, results_folder_pat
     tick_now = 1;
     step_idx = 5;
 
-    plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
+    plot_lanelets(scenario.road_raw_data.lanelet);
 
     ego_vehs = 3;
     other_vehs = setdiff(1:nVehs, ego_vehs);
@@ -481,7 +481,7 @@ function plot_actual_plans(i_result, results, results_folder_path)
     tick_now = 1;
     step_idx = 5;
 
-    plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
+    plot_lanelets(scenario.road_raw_data.lanelet);
 
     % plot predicted occupied areas of all vehicle
     for v = 1:nVehs

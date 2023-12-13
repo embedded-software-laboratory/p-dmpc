@@ -150,7 +150,7 @@ function eval_coloring_paper()
     % plot lanelets map
     figure_handle = figure();
 
-    plot_lanelets(scenarios(1).road_raw_data.lanelet, scenarios(1).options.scenario_type);
+    plot_lanelets(scenarios(1).road_raw_data.lanelet);
     axis equal;
     xlabel('$x$ [m]', 'Interpreter', 'latex');
     ylabel('$y$ [m]', 'Interpreter', 'latex');

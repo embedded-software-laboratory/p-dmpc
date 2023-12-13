@@ -101,7 +101,7 @@ classdef (Abstract) Plotter < handle
             );
 
             if ~isempty(scenario.road_raw_data) && ~isempty(scenario.road_raw_data.lanelet)
-                plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
+                plot_lanelets(scenario.road_raw_data.lanelet);
             end
 
             % Define a colormap
@@ -156,8 +156,6 @@ classdef (Abstract) Plotter < handle
 
             %% Simulation state / scenario plot
 
-            % find all the plots with property "LineWidth 1", which are different to plot_lanelets (default "LineWidth 0.5")
-            % at every time step, delete all these plots while keep plot_lanelets
             h = findobj(Tag = "temporary");
             delete(h);
             h = findobj(Tag = "circle");
