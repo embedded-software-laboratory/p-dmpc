@@ -381,6 +381,7 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function update_traffic(obj)
+            obj.timing.start("control_loop", obj.k);
 
             [cav_measurements, hdv_measurements] = obj.measure();
             % update the traffic situation
@@ -559,6 +560,7 @@ classdef (Abstract) HighLevelController < handle
 
         function apply(obj)
             obj.plant.apply(obj.info, obj.experiment_result, obj.k, obj.mpa);
+            obj.timing.stop('control_loop', obj.k);
         end
 
         function result = should_stop(obj)

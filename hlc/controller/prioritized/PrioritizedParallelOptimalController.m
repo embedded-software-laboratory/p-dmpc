@@ -71,9 +71,9 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
 
         function create_coupling_graph(obj)
             obj.update_other_vehicles_traffic_info();
-            obj.timing_general.start("determine_couplings_time", obj.k);
+            obj.timing.start('couple', obj.k);
             obj.couple();
-            obj.timing_general.stop("determine_couplings_time", obj.k);
+            obj.timing.stop('couple', obj.k);
         end
 
     end

@@ -24,13 +24,13 @@ classdef CentralizedController < HighLevelController
 
         function create_coupling_graph(obj)
 
-            obj.timing_general.start('coupling', obj.k);
+            obj.timing.start('coupling', obj.k);
 
             if obj.options.use_cpp()
                 obj.iter.adjacency = obj.coupler.couple(obj.options, obj.mpa.get_max_speed_of_mpa(), obj.scenario_adapter.scenario.adjacency_lanelets, obj.iter);
             end
 
-            obj.timing_general.stop('coupling', obj.k);
+            obj.timing.stop('coupling', obj.k);
 
         end
 
@@ -38,11 +38,11 @@ classdef CentralizedController < HighLevelController
             % initialize variable to store control results
             obj.info = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_indices);
 
-            obj.timing_general.start('optimizer', obj.k);
+            obj.timing.start('optimizer', obj.k);
             info_v = obj.optimizer.run_optimizer(obj.plant.vehicle_indices_controlled, obj.iter, obj.mpa, obj.options);
-            obj.timing_general.stop('optimizer', obj.k);
+            obj.timing.stop('optimizer', obj.k);
 
-            obj.timing_general.start('fallback', obj.k);
+            obj.timing.start('fallback', obj.k);
 
             if info_v.is_exhausted
                 info_v = handle_graph_search_exhaustion(info_v, obj.options, obj.iter, obj.mpa);
@@ -60,7 +60,7 @@ classdef CentralizedController < HighLevelController
                 obj.info = store_control_info(obj.info, info_v, obj.options);
             end
 
-            obj.timing_general.stop('fallback', obj.k);
+            obj.timing.stop('fallback', obj.k);
 
         end
 

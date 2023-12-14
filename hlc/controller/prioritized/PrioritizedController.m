@@ -268,22 +268,22 @@ classdef PrioritizedController < HighLevelController
         end
 
         function create_coupling_graph(obj)
-            obj.timing.start('create_coupling_graph', obj.k);
 
+            obj.timing.start('receive_from_others', obj.k);
             obj.update_other_vehicles_traffic_info();
+            obj.timing.stop('receive_from_others', obj.k);
 
-            obj.timing.start('coupling', obj.k);
+            obj.timing.start('couple', obj.k);
             obj.couple();
-            obj.timing.stop("coupling", obj.k);
+            obj.timing.stop('couple', obj.k);
 
-            obj.timing.start("prioritization", obj.k);
+            obj.timing.start('prioritize', obj.k);
             obj.prioritize();
-            obj.timing.stop("prioritization", obj.k);
+            obj.timing.stop('prioritize', obj.k);
 
             obj.timing.start('reduce_computation_levels', obj.k);
             obj.reduce_computation_levels();
             obj.timing.stop('reduce_computation_levels', obj.k);
-            obj.timing.stop('create_coupling_graph', obj.k);
 
         end
 
@@ -314,7 +314,6 @@ classdef PrioritizedController < HighLevelController
             i_vehicle = obj.plant.indices_in_vehicle_list;
             filter_self = false(1, obj.options.amount);
             filter_self(i_vehicle) = true;
-            % TODO do we still need to filter? can we not just construct iter as needed?
             iter_v = filter_iter(obj.iter, filter_self);
 
             % coupled vehicles with higher priorities
@@ -327,7 +326,6 @@ classdef PrioritizedController < HighLevelController
             % consider vehicles with higher priority
             [dynamic_obstacle_area_predecessors, is_fallback_triggered] = consider_predecessors( ...
                 obj, ...
-                i_vehicle, ...
                 predecessors, ...
                 predecessors_sequential ...
             );
@@ -338,7 +336,7 @@ classdef PrioritizedController < HighLevelController
             end
 
             % consider coupled vehicles with lower priorities
-            [obstacles_successors, dynamic_obstacle_area_successors] = obj.consider_successors(i_vehicle, successors);
+            [obstacles_successors, dynamic_obstacle_area_successors] = obj.consider_successors(successors);
 
             % add obstacles for considering other vehicles
             iter_v.obstacles = [iter_v.obstacles; obstacles_successors];
@@ -346,9 +344,9 @@ classdef PrioritizedController < HighLevelController
 
             %% Plan for vehicle i_vehicle
             % execute sub controller for 1-veh scenario
-            obj.timing.start('optimizer', obj.k);
+            obj.timing.start('optimize', obj.k);
             info_v = obj.optimizer.run_optimizer(i_vehicle, iter_v, obj.mpa, obj.options);
-            obj.timing.stop('optimizer', obj.k);
+            obj.timing.stop('optimize', obj.k);
 
             if info_v.is_exhausted
                 info_v = handle_graph_search_exhaustion(info_v, obj.options, iter_v, obj.mpa);
@@ -414,7 +412,9 @@ classdef PrioritizedController < HighLevelController
 
         function reduce_computation_levels(obj)
             % weigh
+            obj.timing.start('weigh', obj.k);
             obj.iter.weighted_coupling = obj.weigher.weigh(obj.iter, obj.k, obj.options, obj.mpa.get_max_speed_of_mpa());
+            obj.timing.stop('weigh', obj.k);
 
             % reduce by replacing with lanelet crossing area obstacles
             obj.iter.directed_coupling_reduced = obj.iter.directed_coupling;
@@ -436,17 +436,17 @@ classdef PrioritizedController < HighLevelController
 
             end
 
-            obj.timing.start("cut", obj.k);
+            obj.timing.start('cut', obj.k);
             % reduce by grouping and cutting edges
             obj.iter.directed_coupling_sequential = obj.cutter.cut( ...
                 obj.iter.weighted_coupling_reduced, ...
                 obj.options.max_num_CLs ...
             );
-            obj.timing.stop("cut", obj.k);
+            obj.timing.stop('cut', obj.k);
 
         end
 
-        function dynamic_obstacle_area = parallel_coupling_reachability(obj, ~, j_predecessor)
+        function dynamic_obstacle_area = parallel_coupling_reachability(obj, j_predecessor)
             % collisions with coupled vehicles with higher priorities in
             % different groups will be avoided by considering
             % their reachable sets as dynamic obstacles
@@ -456,7 +456,6 @@ classdef PrioritizedController < HighLevelController
 
             arguments
                 obj (1, 1) PrioritizedController
-                ~% index of the current vehicle
                 j_predecessor (1, 1) double % index of the vehicle with higher priority
             end
 
@@ -572,7 +571,7 @@ classdef PrioritizedController < HighLevelController
                 % from the previous time step for reprodicibility
                 j_predecessor = predecessors == j_vehicle;
                 dynamic_obstacle_area(j_predecessor, :) = ...
-                    obj.consider_parallel_coupling(i_vehicle, j_vehicle);
+                    obj.consider_parallel_coupling(j_vehicle);
 
             end
 
@@ -701,7 +700,6 @@ classdef PrioritizedController < HighLevelController
             end
 
             % initialize
-            % TODO control results info for one vehicle
             info_v = ControlResultsInfo(1, obj.options.Hp, i_vehicle);
 
             info_v.tree = obj.info_old.tree{i_vehicle};
