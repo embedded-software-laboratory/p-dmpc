@@ -35,7 +35,7 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
             unique_priorities = Prioritizer.unique_priorities(obj.iter.adjacency);
             n_priorities = size(unique_priorities, 2);
 
-            vehicle_idx = obj.plant.vehicle_indices_controlled(1);
+            i_vehicle = obj.plant.vehicle_indices_controlled;
 
             for priority_permutation = 1:n_priorities
 
@@ -48,11 +48,11 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
                 obj.prioritize();
                 obj.reduce_computation_levels();
 
-                % plan for vehicle_idx
-                obj.plan_single_vehicle(vehicle_idx);
+                % plan for i_vehicle
+                obj.plan(i_vehicle);
 
                 %% Send own data to other vehicles
-                obj.publish_predictions(vehicle_idx);
+                obj.publish_predictions(i_vehicle);
 
                 % temporarily store data
                 obj.iter_array_tmp{obj.iter.priority_permutation} = obj.iter;
