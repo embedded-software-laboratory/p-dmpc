@@ -210,9 +210,9 @@ classdef EvaluationParl
             end
 
             % Calculate the total runtime per step
-            assert(abs(experiment_result.n_steps - length(experiment_result.timings_general.traffic_situation_update)) <= 1)
+            assert(abs(experiment_result.n_steps - length(experiment_result.timing.traffic_situation_update)) <= 1)
             %TODO: runtime_subcontroller_max can be calculated from 'controller' field in timings
-            obj.runtime_total_per_step = experiment_result.timings_general.traffic_situation_update(obj.steps_ignored:obj.n_steps)' + experiment_result.runtime_subcontroller_max(obj.steps_ignored:obj.n_steps)';
+            obj.runtime_total_per_step = experiment_result.timing.traffic_situation_update(obj.steps_ignored:obj.n_steps)' + experiment_result.runtime_subcontroller_max(obj.steps_ignored:obj.n_steps)';
 
             % Find outliers
             outliers = find(isoutlier(obj.runtime_total_per_step));
@@ -233,11 +233,11 @@ classdef EvaluationParl
 
             %TODO: add coupling time values to list and then perform operation
 
-            obj.runtime_determine_couplings = max(cellfun(@(e) e.timer.determine_couplings, experiment_result.iteration_data(obj.steps_ignored:obj.n_steps)) + experiment_result.timings_general.traffic_situation_update(obj.steps_ignored:obj.n_steps));
-            obj.runtime_determine_couplings_average = mean(cellfun(@(e) e.timer.determine_couplings, experiment_result.iteration_data(obj.steps_ignored:obj.n_steps)) + experiment_result.timings_general.traffic_situation_update(obj.steps_ignored:obj.n_steps));
+            obj.runtime_determine_couplings = max(cellfun(@(e) e.timer.determine_couplings, experiment_result.iteration_data(obj.steps_ignored:obj.n_steps)) + experiment_result.timing.traffic_situation_update(obj.steps_ignored:obj.n_steps));
+            obj.runtime_determine_couplings_average = mean(cellfun(@(e) e.timer.determine_couplings, experiment_result.iteration_data(obj.steps_ignored:obj.n_steps)) + experiment_result.timing.traffic_situation_update(obj.steps_ignored:obj.n_steps));
             % in order to assign priorities, determination of couplings is needed
-            obj.runtime_assign_priority = max(cellfun(@(e) e.timer.assign_priority, experiment_result.iteration_data(obj.steps_ignored:obj.n_steps)) + experiment_result.timings_general.traffic_situation_update(obj.steps_ignored:obj.n_steps));
-            obj.runtime_assign_priority_average = mean(cellfun(@(e) e.timer.assign_priority, experiment_result.iteration_data(obj.steps_ignored:obj.n_steps)) + experiment_result.timings_general.traffic_situation_update(obj.steps_ignored:obj.n_steps));
+            obj.runtime_assign_priority = max(cellfun(@(e) e.timer.assign_priority, experiment_result.iteration_data(obj.steps_ignored:obj.n_steps)) + experiment_result.timing.traffic_situation_update(obj.steps_ignored:obj.n_steps));
+            obj.runtime_assign_priority_average = mean(cellfun(@(e) e.timer.assign_priority, experiment_result.iteration_data(obj.steps_ignored:obj.n_steps)) + experiment_result.timing.traffic_situation_update(obj.steps_ignored:obj.n_steps));
             obj.runtime_group_vehs = max(cellfun(@(e) e.timer.group_vehs, experiment_result.iteration_data(obj.steps_ignored:obj.n_steps)));
             obj.runtime_group_vehs_average = mean(cellfun(@(e) e.timer.group_vehs, experiment_result.iteration_data(obj.steps_ignored:obj.n_steps)));
 

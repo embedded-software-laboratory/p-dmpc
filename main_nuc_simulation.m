@@ -109,8 +109,7 @@ function experiment_results = merge_experiment_results(experiment_results, res)
     experiment_results.total_fallback_times(i_veh) = res.total_fallback_times;
 
     % Timings
-    experiment_results.timings_per_vehicle(i_veh) = res.timings_per_vehicle(i_veh);
-    experiment_results.timings_general(i_veh) = res.timings_general;
+    experiment_results.timing(i_veh) = res.timing;
 end
 
 function iter = merge_iteration_data(iter, iter_in)

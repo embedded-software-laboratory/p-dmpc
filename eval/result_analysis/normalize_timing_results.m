@@ -9,14 +9,12 @@ function experiment_results = normalize_timing_results(experiment_results)
     min_start_time = realmax;
 
     for veh_i = 1:experiment_results{1, 1}.options.amount
-        min_start_time = min(min_start_time, experiment_results{1, veh_i}.timings_per_vehicle(veh_i).controller_start_time);
-        min_start_time = min(min_start_time, experiment_results{1, veh_i}.timings_general.controller_start_time);
+        min_start_time = min(min_start_time, experiment_results{1, veh_i}.timing.controller_start_time);
     end
 
     % normalize according to min_start_time
     for veh_i = 1:experiment_results{1, 1}.options.amount
-        experiment_results{1, veh_i}.timings_per_vehicle = normalize_one_timing_result(experiment_results{1, veh_i}.timings_per_vehicle, min_start_time, veh_i);
-        experiment_results{1, veh_i}.timings_general = normalize_one_timing_result(experiment_results{1, veh_i}.timings_general, min_start_time, 1);
+        experiment_results{1, veh_i}.timing = normalize_one_timing_result(experiment_results{1, veh_i}.timing, min_start_time, 1);
     end
 
 end

@@ -16,7 +16,7 @@ function plot_computation_time(experiment_results, optional)
     set(0, 'currentfigure', fig_per_result);
 
     for i = 1:n_results
-        runtimes(:, i) = squeeze(experiment_results(i).timings_general.controller(2, 1, :));
+        runtimes(:, i) = squeeze(experiment_results(i).timing.controller(2, 1, :));
         n_vehicles(i) = experiment_results(i).options.amount;
 
         bar(1:numel(runtimes), runtimes);

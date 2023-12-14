@@ -13,23 +13,23 @@ function plot_runtime_for_step(results, k, optional)
     options = results{1, 1}.options;
 
     % Configure, which field names in the timing object are relevant, dependent on the used controller
-    if options.is_prioritized && options.computation_mode ~= ComputationMode.sequential
-        field_names = [ ...
-                           "hlc_step", ...
-                           "traffic_situation_update", ...
-                           "optimizer", ...
-                           "fallback", ...
-                           "publish_predictions" ...
-                       ]; %"plan_single_vehicle", ...
-    else
+    if ~(options.is_prioritized && options.computation_mode ~= ComputationMode.sequential)
         error('The graph is currently only supported for results of prioritized, distributed execution.');
     end
+
+    field_names = [ ...
+                       "hlc_step", ...
+                       "traffic_situation_update", ...
+                       "optimizer", ...
+                       "fallback", ...
+                       "publish_predictions" ...
+                   ]; %"plan_single_vehicle", ...
 
     % Find minimum in start of first measurement, i.e., "hlc_init", to normalize time by that.
     t0 = realmax;
 
     for veh_i = 1:options.amount
-        t0 = min(t0, results{veh_i}.timings_general.hlc_step(1, 1, k));
+        t0 = min(t0, results{veh_i}.timing.hlc_step(1, 1, k));
     end
 
     figure_handle = figure();
@@ -39,11 +39,7 @@ function plot_runtime_for_step(results, k, optional)
 
         for veh_i = 1:options.amount
 
-            if isfield(results{1, veh_i}.timings_per_vehicle(veh_i), field_name)
-                timings = results{1, veh_i}.timings_per_vehicle(veh_i);
-            else
-                timings = results{1, veh_i}.timings_general(1);
-            end
+            timings = results{1, veh_i}.timing(1);
 
             t_start = timings.(field_name)(1, 1, k) - t0; % Normalize (see above)
             duration = timings.(field_name)(2, 1, k);

@@ -162,7 +162,10 @@ classdef PrioritizedController < HighLevelController
             % for synchronization read from all other controllers
             % to ensure that they are ready
             % loop over vehicles that read messages
-            other_vehicles = setdiff(1:obj.options.amount, obj.plant.vehicle_indices_controlled);
+            other_vehicles = setdiff( ...
+                1:obj.options.amount, ...
+                obj.plant.vehicle_indices_controlled ...
+            );
 
             for j_vehicle = other_vehicles
                 % loop over controllers that are subscribed
@@ -186,17 +189,17 @@ classdef PrioritizedController < HighLevelController
             % compute vehicles traffic info in HighLevelController
             update_controlled_vehicles_traffic_info@HighLevelController(obj, cav_measurements);
 
-            iVeh = obj.plant.vehicle_indices_controlled;
+            vehicle_index = obj.plant.vehicle_indices_controlled;
             % Send data to sync obj.iter for all vehicles
             obj.traffic_communication.send_message( ...
                 obj.k, ...
-                obj.iter.x0(iVeh, :), ...
-                obj.iter.trim_indices(iVeh), ...
-                obj.iter.current_lanelet(iVeh), ...
-                obj.iter.predicted_lanelets{iVeh}, ...
-                squeeze(obj.iter.reference_trajectory_points(iVeh, :, :)), ...
-                obj.iter.occupied_areas{iVeh}, ...
-                obj.iter.reachable_sets(iVeh, :) ...
+                obj.iter.x0(vehicle_index, :), ...
+                obj.iter.trim_indices(vehicle_index), ...
+                obj.iter.current_lanelet(vehicle_index), ...
+                obj.iter.predicted_lanelets{vehicle_index}, ...
+                squeeze(obj.iter.reference_trajectory_points(vehicle_index, :, :)), ...
+                obj.iter.occupied_areas{vehicle_index}, ...
+                obj.iter.reachable_sets(vehicle_index, :) ...
             );
 
         end
@@ -209,7 +212,10 @@ classdef PrioritizedController < HighLevelController
             state_index = indices();
 
             % read messages from other vehicles
-            other_vehicle_indices = setdiff(1:obj.options.amount, obj.plant.vehicle_indices_controlled);
+            other_vehicle_indices = setdiff( ...
+                1:obj.options.amount, ...
+                obj.plant.vehicle_indices_controlled ...
+            );
 
             % loop over vehicle from which the messages are read
             for j_vehicle = other_vehicle_indices
@@ -262,22 +268,22 @@ classdef PrioritizedController < HighLevelController
         end
 
         function create_coupling_graph(obj)
-            obj.timing_general.start('create_coupling_graph', obj.k);
+            obj.timing.start('create_coupling_graph', obj.k);
 
             obj.update_other_vehicles_traffic_info();
 
-            obj.timing_general.start('coupling', obj.k);
+            obj.timing.start('coupling', obj.k);
             obj.couple();
-            obj.timing_general.stop("coupling", obj.k);
+            obj.timing.stop("coupling", obj.k);
 
-            obj.timing_general.start("prioritization", obj.k);
+            obj.timing.start("prioritization", obj.k);
             obj.prioritize();
-            obj.timing_general.stop("prioritization", obj.k);
+            obj.timing.stop("prioritization", obj.k);
 
-            obj.timing_general.start('reduce_computation_levels', obj.k);
+            obj.timing.start('reduce_computation_levels', obj.k);
             obj.reduce_computation_levels();
-            obj.timing_general.stop('reduce_computation_levels', obj.k);
-            obj.timing_general.stop('create_coupling_graph', obj.k);
+            obj.timing.stop('reduce_computation_levels', obj.k);
+            obj.timing.stop('create_coupling_graph', obj.k);
 
         end
 
@@ -296,16 +302,16 @@ classdef PrioritizedController < HighLevelController
             vehicle_idx = obj.plant.vehicle_indices_controlled;
 
             % plan for vehicle_idx
-            obj.timing_per_vehicle(vehicle_idx).start('plan_single_vehicle', obj.k);
+            obj.timing.start('plan_single_vehicle', obj.k);
             obj.plan_single_vehicle(vehicle_idx);
-            obj.timing_per_vehicle(vehicle_idx).stop('plan_single_vehicle', obj.k);
+            obj.timing.stop('plan_single_vehicle', obj.k);
 
             % TODO remove timing_per_vehicle
 
             %% Send own data to other vehicles
-            obj.timing_per_vehicle(vehicle_idx).start('publish_predictions', obj.k);
+            obj.timing.start('publish_predictions', obj.k);
             obj.publish_predictions;
-            obj.timing_per_vehicle(vehicle_idx).stop('publish_predictions', obj.k);
+            obj.timing.stop('publish_predictions', obj.k);
         end
 
         function plan_single_vehicle(obj, vehicle_idx)
@@ -344,9 +350,9 @@ classdef PrioritizedController < HighLevelController
 
             %% Plan for vehicle vehicle_idx
             % execute sub controller for 1-veh scenario
-            obj.timing_per_vehicle(vehicle_idx).start('optimizer', obj.k);
+            obj.timing.start('optimizer', obj.k);
             info_v = obj.optimizer.run_optimizer(vehicle_idx, iter_v, obj.mpa, obj.options);
-            obj.timing_per_vehicle(vehicle_idx).stop('optimizer', obj.k);
+            obj.timing.stop('optimizer', obj.k);
 
             if info_v.is_exhausted
                 info_v = handle_graph_search_exhaustion(info_v, obj.options, iter_v, obj.mpa);
@@ -434,13 +440,13 @@ classdef PrioritizedController < HighLevelController
 
             end
 
-            obj.timing_general.start("group_vehs_time", obj.k);
+            obj.timing.start("group_vehs_time", obj.k);
             % reduce by grouping and cutting edges
             obj.iter.directed_coupling_sequential = obj.cutter.cut( ...
                 obj.iter.weighted_coupling_reduced, ...
                 obj.options.max_num_CLs ...
             );
-            obj.timing_general.stop("group_vehs_time", obj.k);
+            obj.timing.stop("group_vehs_time", obj.k);
 
         end
 

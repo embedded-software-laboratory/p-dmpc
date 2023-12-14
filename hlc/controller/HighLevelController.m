@@ -21,12 +21,7 @@ classdef (Abstract) HighLevelController < handle
     end
 
     properties (Access = protected)
-        % Until the PrioritizedSequentialController does not own a list of PrioritizedControllers as planned for the future,
-        % the HighLevelController maintains two timing variables:
-        % timing_general stores all timings holding for all vehicles
-        timing_general (1, 1) ControllerTiming;
-        % timing_per_veh stores the timings per vehicle
-        timing_per_vehicle (1, :) ControllerTiming;
+        timing (1, 1) ControllerTiming;
         coupler
 
         % old control results used for taking a fallback
@@ -67,11 +62,7 @@ classdef (Abstract) HighLevelController < handle
             obj.total_fallback_times = 0;
 
             obj.coupler = Coupler.get_coupler(obj.options.coupling, obj.options.amount);
-            obj.timing_general = ControllerTiming();
-
-            for iVeh = obj.plant.vehicle_indices_controlled
-                obj.timing_per_vehicle(iVeh) = ControllerTiming();
-            end
+            obj.timing = ControllerTiming();
 
         end
 
@@ -170,7 +161,7 @@ classdef (Abstract) HighLevelController < handle
 
         function update_controlled_vehicles_traffic_info(obj, cav_measurements)
 
-            obj.timing_general.start("update_controlled_vehicles_traffic_info", obj.k);
+            obj.timing.start("update_controlled_vehicles_traffic_info", obj.k);
 
             for iVeh = obj.plant.vehicle_indices_controlled
                 % states of controlled vehicles can be measured directly
@@ -270,7 +261,7 @@ classdef (Abstract) HighLevelController < handle
 
             end
 
-            obj.timing_general.stop("update_controlled_vehicles_traffic_info", obj.k);
+            obj.timing.stop("update_controlled_vehicles_traffic_info", obj.k);
 
         end
 
@@ -317,7 +308,7 @@ classdef (Abstract) HighLevelController < handle
             warning('off', 'MATLAB:polyshape:repairedBySimplify')
 
             % start initialization timer
-            obj.timing_general.start("hlc_init_all");
+            obj.timing.start("hlc_init_all");
 
             % receive step time from the plant
             obj.options.dt_seconds = obj.plant.get_step_time();
@@ -329,7 +320,7 @@ classdef (Abstract) HighLevelController < handle
             obj.init();
 
             % stop initialization timer
-            obj.timing_general.stop("hlc_init_all");
+            obj.timing.stop("hlc_init_all");
         end
 
         % end
@@ -398,9 +389,9 @@ classdef (Abstract) HighLevelController < handle
         end
 
         function [cav_measurements, hdv_measurements] = measure(obj)
-            obj.timing_general.start("measure", obj.k);
+            obj.timing.start("measure", obj.k);
             [cav_measurements, hdv_measurements] = obj.plant.measure();
-            obj.timing_general.stop("measure", obj.k);
+            obj.timing.stop("measure", obj.k);
         end
 
         function update_hdv_traffic_info(obj, cav_measurements, hdv_measurements)
@@ -626,6 +617,7 @@ classdef (Abstract) HighLevelController < handle
             obj.experiment_result.mpa = obj.mpa;
             obj.experiment_result.scenario = obj.scenario_adapter.scenario;
             obj.experiment_result.total_fallback_times = obj.total_fallback_times;
+            < << < << < HEAD
             obj.experiment_result.timings_general = obj.timing_general.get_all_timings();
 
             for iVeh = obj.plant.vehicle_indices_controlled
@@ -640,6 +632,9 @@ classdef (Abstract) HighLevelController < handle
             end
 
             obj.experiment_result.timings_per_vehicle = aggregated_timings_per_vehicle;
+            = == = == =
+            obj.experiment_result.timing = obj.timing.get_all_timings();
+            > >> > >> > 09ed5c2e ([hlc] rm timing_per_vehicle)
 
             if obj.options.should_reduce_result
                 % delete large data fields of to reduce file size

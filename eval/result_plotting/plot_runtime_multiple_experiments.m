@@ -20,7 +20,7 @@ function plot_runtime_multiple_experiments(experiment_results, optional)
         times_per_vehicle = nan(n_steps - 1, i_experiment); % assume triangular matrix
 
         for i_vehicle = 1:i_experiment % assume triangular matrix
-            times_per_vehicle(:, i_vehicle) = experiment_results{i_experiment, i_vehicle}.timings_general.hlc_step(2, :, 2:n_steps);
+            times_per_vehicle(:, i_vehicle) = experiment_results{i_experiment, i_vehicle}.timing.hlc_step(2, :, 2:n_steps);
         end
 
         time_med(i_experiment) = median(times_per_vehicle, "all");
