@@ -20,8 +20,8 @@ function [experiment_result, scenario] = main_distributed(vehicle_id)
     % get HLC
     factory = HLCFactory();
 
-    if options.is_prioritized == true
-        hlc = factory.get_hlc(options, plant, vehicle_id);
+    if options.is_prioritized
+        hlc = factory.get_hlc(options, vehicle_id);
         experiment_result = hlc.run();
     else
         warning("Use main_distributed.m only for prioritized scenarios.")

@@ -31,14 +31,15 @@ classdef UnifiedLabApi < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, vehicle_ids_controlled)
 
             arguments
                 obj (1, 1) UnifiedLabApi
                 options (1, 1) Config
-                all_vehicle_ids (1, :) uint8
-                controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
+                vehicle_ids_controlled (1, :) uint8
             end
+
+            % FIXME what does the ULA need? IDs, indices, all, controlled?
 
             obj.got_start = false;
             obj.got_stop = false;
@@ -50,9 +51,9 @@ classdef UnifiedLabApi < Plant
             obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
 
             % perform preparation phase (uses dt_period_nanos)
-            obj.prepare_api(controlled_vehicle_ids);
+            obj.prepare_api(vehicle_ids_controlled);
 
-            setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
+            setup@Plant(obj, options);
 
             % receive sample for initial vehicle states
             sample_for_setup = obj.receive_new_sample();
@@ -70,7 +71,7 @@ classdef UnifiedLabApi < Plant
                 % to match the data type of superclass member
                 % since this class is currently not supported,
                 % it is accepted that higher vehicle ids cannot not be represented
-                if ~any(uint8(state_list(index).vehicle_id) == controlled_vehicle_ids)
+                if ~any(uint8(state_list(index).vehicle_id) == vehicle_ids_controlled)
                     % if vehicle is not controlled, do not use received information
                     continue
                 end
@@ -107,14 +108,14 @@ classdef UnifiedLabApi < Plant
             ready_msg.entity = 'scenario';
             send(obj.publisher_readyState, ready_msg);
 
-            for veh_id = obj.controlled_vehicle_ids
+            for veh_id = obj.vehicle_ids_controlled
                 ready_msg = ros2message(obj.publisher_readyState);
                 ready_msg.entity = 'vehicle_controller';
                 ready_msg.id = int32(veh_id);
                 send(obj.publisher_readyState, ready_msg);
             end
 
-            disp(strcat('Successfully sent ready messages for the scenario and the following vehicle ids: ', num2str(obj.controlled_vehicle_ids)));
+            disp(strcat('Successfully sent ready messages for the scenario and the following vehicle ids: ', num2str(obj.vehicle_ids_controlled)));
 
             % Wait until the callback function on_experiment_state_change registered a start/stop signal
             while (~obj.got_stop && ~obj.got_start)
@@ -187,7 +188,7 @@ classdef UnifiedLabApi < Plant
         function apply(obj, info, ~, ~, mpa)
             y_pred = info.y_predicted;
             % simulate change of state
-            for iVeh = obj.indices_in_vehicle_list
+            for iVeh = obj.vehicle_indices_controlled
                 obj.measurements(iVeh) = PlantMeasurement( ...
                     info.next_node(iVeh, NodeInfo.x), ...
                     info.next_node(iVeh, NodeInfo.y), ...
@@ -200,7 +201,7 @@ classdef UnifiedLabApi < Plant
             % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.amount, 1);
 
-            for iVeh = obj.indices_in_vehicle_list
+            for iVeh = obj.vehicle_indices_controlled
                 n_traj_pts = obj.Hp;
                 n_predicted_points = size(y_pred{iVeh}, 1);
                 idx_predicted_points = 1:n_predicted_points / n_traj_pts:n_predicted_points;
@@ -391,7 +392,7 @@ classdef UnifiedLabApi < Plant
             % obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'ula_interfaces/VehicleIDs');
         end
 
-        function prepare_api(obj, controlled_vehicle_ids)
+        function prepare_api(obj, vehicle_ids_controlled)
             disp('Setup. Phase 3: Perform preparation phase...');
 
             % Request scaling of 1:18
@@ -433,7 +434,7 @@ classdef UnifiedLabApi < Plant
 
             % Request the vehicle ids which shall be used in this experiment (this should be an action, but we use only the initial message)
             % TODO: This assumes that the assigned vehicles are all vehicles needed in the experiment. Correct?
-            obj.goal_msg.vehicle_ids = int32(controlled_vehicle_ids);
+            obj.goal_msg.vehicle_ids = int32(vehicle_ids_controlled);
             callbackOpts = ros2ActionSendGoalOptions(FeedbackFcn = @obj.vehicleRequestActionFeedbackCallback, ResultFcn = @obj.vehicleRequestActionResultCallback); % Currently, we don't use it...
             [connectionStatus, connectionStatustext] = waitForServer(obj.actionClient_vehiclesRequest);
 

@@ -1,6 +1,11 @@
 classdef Simulation < Plant
     % Simulation    Instance of experiment interface used for simulation in matlab.
 
+    properties (Access = protected)
+
+        options_plot_online
+    end
+
     properties (Access = private)
         should_plot
         ros2_node
@@ -29,16 +34,16 @@ classdef Simulation < Plant
             obj.ros2_node = ros2_node;
         end
 
-        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, vehicle_indices_controlled)
 
             arguments
                 obj (1, 1) Simulation
                 options (1, 1) Config
-                all_vehicle_ids (1, :) uint8
-                controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
+                vehicle_indices_controlled (1, :) uint8
             end
 
-            setup@Plant(obj, options, all_vehicle_ids, controlled_vehicle_ids);
+            setup@Plant(obj, options);
+            obj.vehicle_indices_controlled = vehicle_indices_controlled;
 
             % create scenario adapter to get scenario
             % with Simulation only BuiltScenario can be used
@@ -60,6 +65,7 @@ classdef Simulation < Plant
                 );
             end
 
+            obj.options_plot_online = options.options_plot_online;
             obj.should_plot = obj.options_plot_online.is_active;
 
             obj.should_sync = false;
@@ -103,7 +109,7 @@ classdef Simulation < Plant
         function apply(obj, info, experiment_result, k, mpa)
 
             % simulate change of state
-            for iVeh = obj.indices_in_vehicle_list
+            for iVeh = obj.vehicle_indices_controlled
                 obj.measurements(iVeh) = PlantMeasurement( ...
                     info.next_node(iVeh, NodeInfo.x), ...
                     info.next_node(iVeh, NodeInfo.y), ...
@@ -154,7 +160,7 @@ classdef Simulation < Plant
         function end_run(obj)
             disp('End.')
 
-            for i_vehicle = obj.indices_in_vehicle_list
+            for i_vehicle = obj.vehicle_indices_controlled
                 obj.msg_to_be_sent.step = int32(-1);
                 obj.msg_to_be_sent.vehicle_indices = int32(i_vehicle);
                 send(obj.publisher, obj.msg_to_be_sent);

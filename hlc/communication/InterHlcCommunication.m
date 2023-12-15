@@ -4,7 +4,7 @@ classdef (Abstract) InterHlcCommunication < handle
     properties
         ros2_publisher (1, 1) % ros2 publisher
         ros2_subscriber (1, 1) % ros2 subscriber
-        vehicle_id (1, 1) double % vehicle id
+        vehicle_index (1, 1) double % vehicle index
         message_to_be_sent (1, 1) struct % initialize message type
         messages_stored (1, :) struct % list with message structs
     end
@@ -16,14 +16,14 @@ classdef (Abstract) InterHlcCommunication < handle
     methods
 
         function obj = InterHlcCommunication( ...
-                vehicle_id, ...
+                vehicle_index, ...
                 ros2_node, ...
                 topic_name, ...
                 message_type ...
             )
 
             arguments
-                vehicle_id (1, 1) double
+                vehicle_index (1, 1) double
                 ros2_node (1, 1) ros2node
                 topic_name (1, :) char
                 message_type (1, :) char
@@ -31,7 +31,7 @@ classdef (Abstract) InterHlcCommunication < handle
 
             % store vehicle id to associate a message
             % with the controlled vehicle
-            obj.vehicle_id = vehicle_id;
+            obj.vehicle_index = vehicle_index;
             % create ros2 message structure
             % (faster than creating every time step)
             obj.message_to_be_sent = ros2message(message_type);
@@ -110,7 +110,7 @@ classdef (Abstract) InterHlcCommunication < handle
             % that are not older than two time steps
             % this limits the queue length to 2 * (n_vehicle-1)
 
-            if int32(obj.vehicle_id) == message_received.vehicle_id
+            if int32(obj.vehicle_index) == message_received.vehicle_index
                 % if triggered by own message, do nothing
                 return
             end
@@ -139,7 +139,7 @@ classdef (Abstract) InterHlcCommunication < handle
 
         function latest_msg = read_message( ...
                 obj, ...
-                vehicle_id_subscribed, ...
+                vehicle_index_subscribed, ...
                 time_step, ...
                 optional ...
             )
@@ -147,7 +147,7 @@ classdef (Abstract) InterHlcCommunication < handle
 
             arguments
                 obj (1, 1) InterHlcCommunication
-                vehicle_id_subscribed (1, 1) double
+                vehicle_index_subscribed (1, 1) double
                 time_step (1, 1) double
                 optional.throw_error (1, 1) logical = true
                 optional.timeout (1, 1) double = 100.0
@@ -179,7 +179,7 @@ classdef (Abstract) InterHlcCommunication < handle
                 end
 
                 % find messages by vehicle id and time step
-                is_found_message = obj.is_found_message(vehicle_id_subscribed, time_step, optional.priority_permutation);
+                is_found_message = obj.is_found_message(vehicle_index_subscribed, time_step, optional.priority_permutation);
 
                 % jump to next loop iteration if no message is found
                 if ~any(is_found_message)
@@ -195,20 +195,20 @@ classdef (Abstract) InterHlcCommunication < handle
             if optional.throw_error
                 error(['Unable to receive the current message ', ...
                        'of step %d from vehicle %d within %d seconds'], ...
-                    time_step, vehicle_id_subscribed, optional.timeout)
+                    time_step, vehicle_index_subscribed, optional.timeout)
             end
 
         end
 
         function latest_msg = read_latest_message( ...
                 obj, ...
-                vehicle_id_subscribed ...
+                vehicle_index_subscribed ...
             )
             % read latest available message from the given subscriber
 
             arguments
                 obj (1, 1) InterHlcCommunication
-                vehicle_id_subscribed (1, 1) double
+                vehicle_index_subscribed (1, 1) double
             end
 
             % initialize returned message
@@ -220,8 +220,8 @@ classdef (Abstract) InterHlcCommunication < handle
             end
 
             is_found_message = ...
-                [obj.messages_stored.vehicle_id] == ...
-                int32(vehicle_id_subscribed);
+                [obj.messages_stored.vehicle_index] == ...
+                int32(vehicle_index_subscribed);
 
             if ~any(is_found_message)
                 return
@@ -241,29 +241,29 @@ classdef (Abstract) InterHlcCommunication < handle
             )
 
             tf = ...
-                ([obj.messages_stored.vehicle_id] == ...
-                message_received.vehicle_id) & ...
+                ([obj.messages_stored.vehicle_index] == ...
+                message_received.vehicle_index) & ...
                 ([obj.messages_stored.time_step] == ...
                 message_received.time_step);
         end
 
         function tf = is_found_message( ...
                 obj, ...
-                vehicle_id_subscribed, ...
+                vehicle_index_subscribed, ...
                 time_step, ...
                 ~ ...
             )
 
             arguments
                 obj (1, 1) InterHlcCommunication
-                vehicle_id_subscribed (1, 1) double
+                vehicle_index_subscribed (1, 1) double
                 time_step (1, 1) double
                 ~
             end
 
             tf = ...
-                [obj.messages_stored.vehicle_id] == ...
-                int32(vehicle_id_subscribed) & ...
+                [obj.messages_stored.vehicle_index] == ...
+                int32(vehicle_index_subscribed) & ...
                 [obj.messages_stored.time_step] == ...
                 int32(time_step);
 

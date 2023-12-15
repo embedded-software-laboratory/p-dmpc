@@ -210,38 +210,40 @@ classdef Config
             % limit maximum number of computation levels
             obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
 
-            % set default path ids if no path ids were defined
-            if isempty(obj.path_ids)
+            if obj.scenario_type == ScenarioType.commonroad
+                % set default path ids if no path ids were defined
+                if isempty(obj.path_ids)
 
-                switch obj.amount
-                    case 1
-                        obj.path_ids = 18;
-                    case 2
-                        obj.path_ids = [18, 20];
-                    case 3
-                        obj.path_ids = [18, 19, 20];
-                    case 4
-                        obj.path_ids = [17, 18, 19, 20];
-                    otherwise
-                        path_id_max = 41; % maximum defined path id
-                        obj.path_ids = randperm(RandStream("mt19937ar"), path_id_max, obj.amount);
+                    switch obj.amount
+                        case 1
+                            obj.path_ids = 18;
+                        case 2
+                            obj.path_ids = [18, 20];
+                        case 3
+                            obj.path_ids = [18, 19, 20];
+                        case 4
+                            obj.path_ids = [17, 18, 19, 20];
+                        otherwise
+                            path_id_max = 41; % maximum defined path id
+                            obj.path_ids = randperm(RandStream("mt19937ar"), path_id_max, obj.amount);
+                    end
+
                 end
 
+                % validate amount of path ids
+                assert( ...
+                    length(obj.path_ids) == obj.amount, ...
+                    'Amount of path_ids (%d) does not match amount of vehicles (%d)!', ...
+                    length(obj.path_ids), ...
+                    obj.amount ...
+                )
+
+                % validate that path_ids are unique
+                assert( ...
+                    length(obj.path_ids) == length(unique(obj.path_ids, 'stable')), ...
+                    'Path_ids must be unique!' ...
+                );
             end
-
-            % validate amount of path ids
-            assert( ...
-                length(obj.path_ids) == obj.amount, ...
-                'Amount of path_ids (%d) does not match amount of vehicles (%d)!', ...
-                length(obj.path_ids), ...
-                obj.amount ...
-            )
-
-            % validate that path_ids are unique
-            assert( ...
-                length(obj.path_ids) == length(unique(obj.path_ids, 'stable')), ...
-                'Path_ids must be unique!' ...
-            );
 
             % validate manual control config
             if ~obj.manual_control_config.is_active

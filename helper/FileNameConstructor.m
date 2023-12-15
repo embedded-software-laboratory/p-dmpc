@@ -107,15 +107,17 @@ classdef FileNameConstructor
             scenario_name = '';
 
             if options.computation_mode ~= ComputationMode.sequential
-                scenario_name = ['veh_', num2str(options.path_ids(i_vehicles)), '_'];
+                scenario_name = ['veh_', num2str(i_vehicles), '_'];
             end
 
             if isempty(options.result_name)
                 % use default name
                 scenario_name = [scenario_name, 'type_', char(options.mpa_type), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', char(options.coupling), '_', priority];
 
-                veh_ids_str = sprintf('-%d', options.path_ids);
-                scenario_name = [scenario_name, '_ids', veh_ids_str];
+                if options.scenario_type == ScenarioType.commonroad
+                    path_ids_str = sprintf('-%02d', options.path_ids);
+                    scenario_name = [scenario_name, '_ids', path_ids_str];
+                end
 
                 if options.is_prioritized
                     scenario_name = [scenario_name, '_maxCLs', num2str(options.max_num_CLs), ...

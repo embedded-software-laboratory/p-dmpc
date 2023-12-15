@@ -67,7 +67,6 @@ end
 
 function experiment_result = run_hlc(options, i_vehicle)
     hlc_factory = HLCFactory();
-    do_dry_run = false;
-    hlc = hlc_factory.get_hlc(options, i_vehicle, do_dry_run);
+    hlc = hlc_factory.get_hlc(options, i_vehicle);
     experiment_result = hlc.run();
 end

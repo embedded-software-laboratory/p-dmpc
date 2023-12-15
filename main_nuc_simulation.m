@@ -8,14 +8,14 @@ function experiment_results = main_nuc_simulation()
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
-    vehicle_ids = options.path_ids;
+    vehicle_indices = 1:options.amount;
 
     fprintf('Starting remote HLCs...');
     script_path = fullfile(pwd, 'nuc_simulation', 'deploy_remote_hlcs.sh'); % assumes script is in curent directory
 
     command = ['bash ', script_path];
 
-    for i_veh = vehicle_ids
+    for i_veh = vehicle_indices
         % hand over vehicle ids as arguments
         command = [command, ' ', num2str(i_veh)];
     end
@@ -39,7 +39,7 @@ function experiment_results = main_nuc_simulation()
     % stop session on all remote hlcs
     script_path = fullfile(pwd, 'nuc_simulation', 'stop_remote_hlcs.sh');
 
-    command = ['bash ', script_path, ' ', num2str(numel(vehicle_ids))];
+    command = ['bash ', script_path, ' ', num2str(numel(vehicle_indices))];
 
     [~, ~] = system(command);
 
@@ -48,7 +48,7 @@ function experiment_results = main_nuc_simulation()
     % collect all ExperimentResults from nucs
     script_path = fullfile(pwd, 'nuc_simulation', 'collect_results.sh');
 
-    command = ['bash ', script_path, ' ', num2str(numel(vehicle_ids))];
+    command = ['bash ', script_path, ' ', num2str(numel(vehicle_indices))];
 
     [~, ~] = system(command);
 

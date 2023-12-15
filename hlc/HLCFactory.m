@@ -8,30 +8,37 @@ classdef HLCFactory < handle
         function obj = HLCFactory()
         end
 
-        function hlc = get_hlc(obj, options, controlled_vehicle_indices, do_dry_run)
+        function hlc = get_hlc(obj, options, controlled_vehicles, optional)
 
             arguments
                 obj
                 options
-                controlled_vehicle_indices
-                do_dry_run
+                % controlled_vehicles Depending on the Plant, these can be
+                % Simulation:   indices of the vehicles
+                % CpmLab:       IDs of the vehicles
+                controlled_vehicles
+                optional.do_dry_run = false
             end
 
-            % Create ROS2 node for this HLC
-            vehicle_indices_string = sprintf('_%02d', controlled_vehicle_indices);
-            ros2_node = ros2node(['hlc', vehicle_indices_string]);
+            if options.environment == Environment.Simulation
+                % Create ROS2 node for this HLC
+                vehicle_ids_string = sprintf('_%02d', controlled_vehicles);
+                ros2_node = ros2node(['hlc', vehicle_ids_string]);
+            else
+                ros2_node = [];
+            end
 
             plant = Plant.get_plant(options.environment, ros2_node);
-            plant.setup(options, options.path_ids, options.path_ids(controlled_vehicle_indices));
+            plant.setup(options, controlled_vehicles);
 
-            if false % do_dry_run
+            if optional.do_dry_run
                 % FIXME does not work in parallel
-                obj.dry_run_hlc(options, plant.controlled_vehicle_ids, ros2_node);
+                obj.dry_run_hlc(options, plant.vehicle_indices_controlled, ros2_node);
             end
 
             if options.is_prioritized
 
-                if length(plant.controlled_vehicle_ids) == 1
+                if length(plant.vehicle_indices_controlled) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
                     hlc = PrioritizedParallelController(options, plant, ros2_node);
@@ -81,7 +88,7 @@ classdef HLCFactory < handle
             plant = Plant.get_plant(options.environment, ros2_node);
             plant.setup(options, dry_run_vehicle_ids);
 
-            hlc = obj.get_hlc(options, plant, dry_run_vehicle_ids, false);
+            hlc = obj.get_hlc(options, dry_run_vehicle_ids, do_dry_run = true);
             hlc.run();
 
             fprintf(" done.\n");

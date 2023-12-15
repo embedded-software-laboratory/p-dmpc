@@ -12,30 +12,12 @@ classdef (Abstract) Plant < handle
         Hp (1, 1) double
         manual_control_config ManualControlConfig % (1, 1)
 
-        % used by simulation
-        options_plot_online OptionsPlotOnline % (1, 1)
-
     end
 
-    properties (GetAccess = public, SetAccess = private)
+    properties (GetAccess = public, SetAccess = protected)
         % public so that the HLC can access them
-        % all active vehicle ids. when running distributed, these can differ from controlled ids
-        all_vehicle_ids (1, :) uint8 % uint8 to conform to ids sent by the middleware
-        % which vehicles will controlled by this experiment instance
-        controlled_vehicle_ids (1, :) uint8
-    end
-
-    properties (Dependent, GetAccess = public)
-        indices_in_vehicle_list
-    end
-
-    methods
-
-        % get methods for dependent properties
-        function indices = get.indices_in_vehicle_list(obj)
-            [~, indices] = ismember(obj.controlled_vehicle_ids, obj.all_vehicle_ids);
-        end
-
+        all_vehicle_indices (1, :) double
+        vehicle_indices_controlled (1, :) double
     end
 
     methods (Static, Access = public)
@@ -74,13 +56,11 @@ classdef (Abstract) Plant < handle
         function obj = Plant()
         end
 
-        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options)
 
             arguments
                 obj (1, 1) Plant
                 options (1, 1) Config
-                all_vehicle_ids (1, :) uint8
-                controlled_vehicle_ids (1, :) uint8
             end
 
             % This function does everything in order to run the object
@@ -92,11 +72,8 @@ classdef (Abstract) Plant < handle
             obj.amount = options.amount;
             obj.Hp = options.Hp;
             obj.manual_control_config = options.manual_control_config;
-            obj.options_plot_online = options.options_plot_online;
 
-            % save vehicle_ids as properties
-            obj.controlled_vehicle_ids = controlled_vehicle_ids;
-            obj.all_vehicle_ids = all_vehicle_ids;
+            obj.all_vehicle_indices = 1:options.amount;
 
             % construct measurements
             obj.measurements(options.amount, 1) = PlantMeasurement();
