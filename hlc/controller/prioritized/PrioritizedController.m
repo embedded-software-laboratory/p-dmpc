@@ -311,7 +311,7 @@ classdef PrioritizedController < HighLevelController
         function plan(obj)
 
             % only keep self
-            i_vehicle = obj.plant.indices_in_vehicle_list;
+            i_vehicle = obj.plant.vehicle_indices_controlled;
             filter_self = false(1, obj.options.amount);
             filter_self(i_vehicle) = true;
             iter_v = filter_iter(obj.iter, filter_self);

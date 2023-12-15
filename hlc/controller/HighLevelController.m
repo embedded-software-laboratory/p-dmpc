@@ -619,24 +619,8 @@ classdef (Abstract) HighLevelController < handle
             obj.experiment_result.mpa = obj.mpa;
             obj.experiment_result.scenario = obj.scenario_adapter.scenario;
             obj.experiment_result.total_fallback_times = obj.total_fallback_times;
-            < << < << < HEAD
-            obj.experiment_result.timings_general = obj.timing_general.get_all_timings();
-
-            for iVeh = obj.plant.vehicle_indices_controlled
-
-                timing_per_vehicle_iVeh = obj.timing_per_vehicle(iVeh).get_all_timings();
-                timings_fieldnames = fieldnames(timing_per_vehicle_iVeh);
-
-                for iFieldname = 1:size(timings_fieldnames)
-                    aggregated_timings_per_vehicle(iVeh).(timings_fieldnames{iFieldname}) = timing_per_vehicle_iVeh.(timings_fieldnames{iFieldname});
-                end
-
-            end
-
-            obj.experiment_result.timings_per_vehicle = aggregated_timings_per_vehicle;
-            = == = == =
+            
             obj.experiment_result.timing = obj.timing.get_all_timings();
-            > >> > >> > 09ed5c2e ([hlc] rm timing_per_vehicle)
 
             if obj.options.should_reduce_result
                 % delete large data fields of to reduce file size
