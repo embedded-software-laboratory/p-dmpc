@@ -1,7 +1,7 @@
 classdef PrioritizedSequentialController < HighLevelController
 
     properties (Access = protected)
-        hlcs (1, :) PrioritizedController
+        hlcs (1, :) % PrioritizedController
     end
 
     methods
@@ -10,6 +10,16 @@ classdef PrioritizedSequentialController < HighLevelController
         end
 
         function add_hlc(obj, hlc)
+            if isempty(obj.hlcs)
+                % Set correct data type of hlcs
+                if isa(hlc,'PrioritizedOptimalController')
+                    % test for PrioritizedOptimalController first, since
+                    % the child is also a parent
+                    obj.hlcs = PrioritizedOptimalController.empty;
+                elseif isa(hlc, 'PrioritizedController')
+                    obj.hlcs = PrioritizedController.empty;
+                end
+            end
             obj.hlcs(end + 1) = hlc;
         end
 
@@ -63,7 +73,7 @@ classdef PrioritizedSequentialController < HighLevelController
             % between groups plan in parallel. Controller simulates multiple
             % distributed controllers in a for-loop.
 
-            level_matrix = kahn(obj.merged_coupling_graph());
+            level_matrix = kahn(obj.merged_graph("directed_coupling_sequential"));
 
             for i_level = 1:size(level_matrix, 1)
 
@@ -77,14 +87,13 @@ classdef PrioritizedSequentialController < HighLevelController
 
         end
 
-        function directed_coupling_sequential = merged_coupling_graph(obj)
+        function result = merged_graph(obj, graph_name)
 
-            directed_coupling_sequential = zeros(length(obj.hlcs), length(obj.hlcs));
+            result = zeros(length(obj.hlcs), length(obj.hlcs));
 
             % currently unnecessary as all coupling graphs are the same
             for hlc = obj.hlcs
-                directed_coupling_sequential = directed_coupling_sequential ...
-                    | hlc.iter.directed_coupling_sequential;
+                result = result | hlc.iter.(graph_name);
             end
 
         end
