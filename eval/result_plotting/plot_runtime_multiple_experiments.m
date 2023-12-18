@@ -1,14 +1,16 @@
 function plot_runtime_multiple_experiments(experiment_results, optional)
-    %PLOT_RUNTIME_MULTIPLE_EXPERIMENTS draws median and max in a stacked bar plot for multiple experiments with different numbers of vehicles
+    %PLOT_RUNTIME_MULTIPLE_EXPERIMENTS draws median and max in a stacked
+    % bar plot for multiple experiments with different numbers of vehicles
     arguments
-        % cell array with the result structs of all vehicles (columns= different results of vehicles, rows= different experiments)
+        % cell array with the result structs of all vehicles
+        % (columns= different results of vehicles, rows= different experiments)
         % the first row needs to contain one vehicle, the second two vehicles, ...
         experiment_results (:, :) cell;
         optional.do_export (1, 1) logical = true;
     end
 
+    % assume we have in the first experiment one vehicle and in the last n_experiments vehicles
     n_experiments = size(experiment_results, 1);
-    n_vehicles_max = n_experiments; % assume we have in the first experiment one vehicle and in the last n_experiments vehicles
 
     time_med = nan(1, n_experiments);
     time_max = nan(1, n_experiments);

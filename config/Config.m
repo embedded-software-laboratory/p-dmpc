@@ -5,7 +5,7 @@ classdef Config
         manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
         is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
-        compute_in_parallel = false; % true/false, is use parallel(distributed) computation
+        computation_mode ComputationMode = ComputationMode.sequential;
         scenario_type ScenarioType = ScenarioType.commonroad;
         coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling;
         priority PriorityStrategies = PriorityStrategies.constant_priority;
@@ -41,8 +41,6 @@ classdef Config
         is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
 
         optimizer_type OptimizerType = OptimizerType.MatlabOptimal; % optimizer that shall be used
-        mex_out_of_process_execution = false; % execute mex graph search functions in own process
-        is_dry_run (1, 1) logical = false; % whether to do a dry_run or not
 
     end
 
@@ -52,6 +50,8 @@ classdef Config
         % whether to allow non-convex polygons; the separating axis theorem
         % works only for convex polygons.
         are_any_obstacles_non_convex;
+        % execute mex graph search functions in own process
+        mex_out_of_process_execution
     end
 
     methods
@@ -82,6 +82,19 @@ classdef Config
 
         end
 
+        function mex_out_of_process_execution = get.mex_out_of_process_execution(obj)
+            % if prioritized controller runs sequentially with more than 1 vehicle
+            % activate out of process execution for mex function
+            if obj.amount > 1 ...
+                    && obj.is_prioritized ...
+                    && obj.computation_mode == ComputationMode.sequential
+                mex_out_of_process_execution = true;
+            else
+                mex_out_of_process_execution = false;
+            end
+
+        end
+
         % empty set methods used by jsondecode
         % dependent properties with public GetAccess are encoded to a json file
         % to automatically decode the json file set methods must be defined
@@ -93,6 +106,9 @@ classdef Config
         end
 
         function obj = set.are_any_obstacles_non_convex(obj, ~)
+        end
+
+        function obj = set.mex_out_of_process_execution(obj, ~)
         end
 
     end
@@ -176,21 +192,6 @@ classdef Config
                 )
             end
 
-            % set dry run flag
-            if ( ...
-                    obj.environment == Environment.CpmLab || ...
-                    obj.environment == Environment.UnifiedLabApi || ...
-                    obj.environment == Environment.SimulationDistributed ...
-                )
-                obj.is_dry_run = true;
-            end
-
-            % if prioritized controller runs sequentially with more than 1 vehicle
-            % activate out of process execution for mex function
-            if obj.amount > 1 && obj.is_prioritized && ~obj.compute_in_parallel
-                obj.mex_out_of_process_execution = true;
-            end
-
             % forbid usage of StacPrioritizer or StacWeigher for circle scenarios
             assert( ...
                 ~( ...
@@ -209,38 +210,40 @@ classdef Config
             % limit maximum number of computation levels
             obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
 
-            % set default path ids if no path ids were defined
-            if isempty(obj.path_ids)
+            if obj.scenario_type == ScenarioType.commonroad
+                % set default path ids if no path ids were defined
+                if isempty(obj.path_ids)
 
-                switch obj.amount
-                    case 1
-                        obj.path_ids = 18;
-                    case 2
-                        obj.path_ids = [18, 20];
-                    case 3
-                        obj.path_ids = [18, 19, 20];
-                    case 4
-                        obj.path_ids = [17, 18, 19, 20];
-                    otherwise
-                        path_id_max = 41; % maximum defined path id
-                        obj.path_ids = randperm(RandStream("mt19937ar"), path_id_max, obj.amount);
+                    switch obj.amount
+                        case 1
+                            obj.path_ids = 18;
+                        case 2
+                            obj.path_ids = [18, 20];
+                        case 3
+                            obj.path_ids = [18, 19, 20];
+                        case 4
+                            obj.path_ids = [17, 18, 19, 20];
+                        otherwise
+                            path_id_max = 41; % maximum defined path id
+                            obj.path_ids = randperm(RandStream("mt19937ar"), path_id_max, obj.amount);
+                    end
+
                 end
 
+                % validate amount of path ids
+                assert( ...
+                    length(obj.path_ids) == obj.amount, ...
+                    'Amount of path_ids (%d) does not match amount of vehicles (%d)!', ...
+                    length(obj.path_ids), ...
+                    obj.amount ...
+                )
+
+                % validate that path_ids are unique
+                assert( ...
+                    length(obj.path_ids) == length(unique(obj.path_ids, 'stable')), ...
+                    'Path_ids must be unique!' ...
+                );
             end
-
-            % validate amount of path ids
-            assert( ...
-                length(obj.path_ids) == obj.amount, ...
-                'Amount of path_ids (%d) does not match amount of vehicles (%d)!', ...
-                length(obj.path_ids), ...
-                obj.amount ...
-            )
-
-            % validate that path_ids are unique
-            assert( ...
-                length(obj.path_ids) == length(unique(obj.path_ids, 'stable')), ...
-                'Path_ids must be unique!' ...
-            );
 
             % validate manual control config
             if ~obj.manual_control_config.is_active

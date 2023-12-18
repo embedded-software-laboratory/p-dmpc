@@ -15,19 +15,37 @@ classdef CpmLab < Plant
         out_of_map_limits
     end
 
+    properties (GetAccess = public, SetAccess = private)
+        % all active vehicle ids. when running distributed, these can differ from controlled ids
+        all_vehicle_ids (1, :) uint8 % uint8 to conform to ids sent by the middleware
+    end
+
+    properties (Dependent, GetAccess = public)
+        % which vehicles will controlled by this experiment instance
+        vehicle_ids_controlled (1, :) uint8
+    end
+
+    methods
+
+        % get methods for dependent properties
+        function ids = get.vehicle_ids_controlled(obj)
+            ids = obj.all_vehicle_ids(obj.vehicle_indices_controlled);
+        end
+
+    end
+
     methods
 
         function obj = CpmLab()
             obj = obj@Plant();
         end
 
-        function setup(obj, options, all_vehicle_ids, controlled_vehicle_ids)
+        function setup(obj, options, vehicle_ids_controlled)
 
             arguments
                 obj (1, 1) CpmLab
                 options (1, 1) Config
-                all_vehicle_ids (1, :) uint8 % used to validate amount of set vehicle ids
-                controlled_vehicle_ids (1, :) uint8 = all_vehicle_ids
+                vehicle_ids_controlled (1, :) uint8
             end
 
             % create data readers/writers...
@@ -55,27 +73,26 @@ classdef CpmLab < Plant
             % validate the amount of active_vehicle_ids
             assert( ...
                 length(sample_for_setup.active_vehicle_ids) == ...
-                length(all_vehicle_ids) + options.manual_control_config.amount, ...
+                options.amount + options.manual_control_config.amount, ...
                 'Amount of active_vehicle_ids (%d) does not match expected amount (%d)!', ...
                 length(sample_for_setup.active_vehicle_ids), ...
-                length(all_vehicle_ids) + options.manual_control_config.amount ...
+                options.amount + options.manual_control_config.amount ...
             );
 
             % subtract the hdv_ids from active_vehicle_ids
-            active_cav_vehicle_ids_from_lab = setdiff( ...
+            obj.all_vehicle_ids = setdiff( ...
                 sample_for_setup.active_vehicle_ids, ...
                 options.manual_control_config.hdv_ids ...
             );
 
             % boolean that extracts the controlled lab vehicle_ids
             % from the active lab cav vehicle_ids
-            is_controlled = ismember(all_vehicle_ids, controlled_vehicle_ids);
+            is_controlled = ismember(obj.all_vehicle_ids, vehicle_ids_controlled);
 
             % use vehicle_ids from lab for superclass
-            all_vehicle_ids_from_lab = active_cav_vehicle_ids_from_lab;
-            controlled_vehicle_ids_from_lab = active_cav_vehicle_ids_from_lab(is_controlled);
+            obj.vehicle_indices_controlled = find(is_controlled);
 
-            setup@Plant(obj, options, all_vehicle_ids_from_lab, controlled_vehicle_ids_from_lab);
+            setup@Plant(obj, options);
 
             % take list of VehicleStates from sample
             state_list = sample_for_setup.state_list;
@@ -89,13 +106,13 @@ classdef CpmLab < Plant
                 % data type of state_list vehicle_id is uint8 and
                 % matches the data type of the superclass variable
                 % casting of the data type is not necessary
-                if ~any(state_list(index).vehicle_id == controlled_vehicle_ids)
+                if ~any(state_list(index).vehicle_id == vehicle_ids_controlled)
                     % if vehicle is not controlled, do not use received information
                     continue
                 end
 
                 % boolean with exactly one true entry for the position in all_vehicle_ids
-                is_in_vehicle_list = state_list(index).vehicle_id == all_vehicle_ids;
+                is_in_vehicle_list = obj.all_vehicle_ids == state_list(index).vehicle_id;
 
                 obj.measurements(is_in_vehicle_list) = PlantMeasurement( ...
                     state_list(index).pose.x, ...
@@ -114,7 +131,7 @@ classdef CpmLab < Plant
             % Send ready signal for all assigned vehicle ids
             disp('Sending ready signal');
 
-            for iVehicle = obj.controlled_vehicle_ids
+            for iVehicle = obj.vehicle_ids_controlled
                 ready_msg = ReadyStatus;
                 ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
                 ready_stamp = TimeStamp;
@@ -189,7 +206,7 @@ classdef CpmLab < Plant
         function apply(obj, info, ~, ~, mpa)
             y_pred = info.y_predicted;
             % simulate change of state
-            for iVeh = obj.indices_in_vehicle_list
+            for iVeh = obj.vehicle_indices_controlled
                 obj.measurements(iVeh) = PlantMeasurement( ...
                     info.next_node(iVeh, NodeInfo.x), ...
                     info.next_node(iVeh, NodeInfo.y), ...
@@ -202,7 +219,7 @@ classdef CpmLab < Plant
             % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.amount, 1);
 
-            for iVeh = obj.indices_in_vehicle_list
+            for iVeh = obj.vehicle_indices_controlled
                 n_traj_pts = obj.Hp;
                 n_predicted_points = size(y_pred{iVeh}, 1);
                 idx_predicted_points = 1:n_predicted_points / n_traj_pts:n_predicted_points;
@@ -247,7 +264,7 @@ classdef CpmLab < Plant
 
         end
 
-        function end_run(obj)
+        function end_run(~)
             disp('End')
         end
 
@@ -255,7 +272,7 @@ classdef CpmLab < Plant
 
     methods (Access = private)
         % helper function
-        function stop_experiment = is_veh_at_map_border(obj, trajectory_points)
+        function stop_experiment = is_veh_at_map_border(~, trajectory_points)
             % Vehicle command timeout is 1000 ms after the last valid_after_stamp,
             % so vehicle initiates stop between third and fourth trajectory point
             % vhlength = 0.25;

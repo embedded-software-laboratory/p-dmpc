@@ -123,8 +123,8 @@ classdef IterativeMinCutter < Cutter
                 cutting_info(count).cost = cost_tmp;
                 % calculate the number of valid cut paths, which equals to the
                 % number of cut paths that must be cut (defined by `must_not_in_same_subset`)
-                check_if_in_part_t = cellfun(@(c) sum(ismember(c, vertices_in_point_t)) ~= 0, must_not_in_same_subset, 'UniformOutput', false);
-                check_if_fully_in_part_t = cellfun(@(c) sum(ismember(c, vertices_in_point_t)) == length(c), must_not_in_same_subset, 'UniformOutput', false);
+                check_if_in_part_t = cellfun(@(c) sum(ismember(c, vertices_in_point_t)) ~= 0, must_not_in_same_subset, UniformOutput = false);
+                check_if_fully_in_part_t = cellfun(@(c) sum(ismember(c, vertices_in_point_t)) == length(c), must_not_in_same_subset, UniformOutput = false);
 
                 num_valid_cut_paths = nnz(cell2mat(check_if_in_part_t)) - nnz(cell2mat(check_if_fully_in_part_t));
                 cutting_info(count).num_valid_cut_paths = num_valid_cut_paths;

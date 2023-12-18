@@ -12,6 +12,7 @@ function config = config_gui()
     % controlStrategy
     controlStrategy = list_control_strategy();
     ui.ControlStrategyListBox.Items = controlStrategy(:, 2);
+    ui.ControlStrategyListBox.Value = controlStrategy(1, 2);
     ui.ControlStrategyListBox.ValueChangedFcn = @(~, ~) callbackPBSelected(ui);
 
     % Coupler
@@ -46,10 +47,10 @@ function config = config_gui()
     ui.ConstraintFromSuccessorDropDown.Items = constraint_from_successor(:, 2);
     ui.ConstraintFromSuccessorDropDown.Value = constraint_from_successor(2, 2);
 
-    % compute_in_parallel
-    compute_in_parallel = list_is_parl();
-    ui.ComputationmodeListBox.Items = compute_in_parallel(:, 2);
-    ui.ComputationmodeListBox.Value = compute_in_parallel(1, 2);
+    % Computation mode
+    computation_mode = list_computation_mode();
+    ui.ComputationmodeListBox.Items = computation_mode(:, 2);
+    ui.ComputationmodeListBox.Value = computation_mode(1, 2);
 
     % change visibility of vehicle ID selection depending on environment selection
     %ui.ControlStrategyListBox.ValueChangedFcn = @(~, ~) setVisualizationVisibility(ui);
@@ -59,7 +60,7 @@ function config = config_gui()
     try %#ok<TRYNC>
         previousSelection = load([tempdir 'scenarioControllerSelection']);
         ui.EnvironmentButtonGroup.SelectedObject = ui.EnvironmentButtonGroup.Buttons(previousSelection.environmentSelection);
-        ui.ComputationmodeListBox.Value = previousSelection.isParlSelection;
+        ui.ComputationmodeListBox.Value = previousSelection.computation_mode_selection;
         ui.CustomReferencePathsEditField.Value = previousSelection.path_ids;
 
         ui.ScenarioDropDown.Value = previousSelection.scenarioSelection;
@@ -126,7 +127,7 @@ function config = config_gui()
     cut_strategy = ui.CutterDropDown.Value;
     vehicleAmountSelection = ui.NumberofvehiclesEditField.Value;
     visualizationSelection = ui.VisualizeListBox.Value;
-    isParlSelection = ui.ComputationmodeListBox.Value;
+    computation_mode_selection = ui.ComputationmodeListBox.Value;
     path_ids = ui.CustomReferencePathsEditField.Value;
     optimizer = ui.OptimizerDropDown.Value;
 
@@ -154,7 +155,7 @@ function config = config_gui()
         'cut_strategy', ...
         'vehicleAmountSelection', ...
         'visualizationSelection', ...
-        'isParlSelection', ...
+        'computation_mode_selection', ...
         'dtSelection', ...
         'HpSelection', ...
         'mpa_typeSelection', ...
@@ -174,7 +175,7 @@ function config = config_gui()
                                                 strcmp(controlStrategy(:, 2), controlStrategySelection), ...
                                                 2};
 
-    config.is_prioritized = (strcmp(controlStrategyHelper, 'pb non-coop'));
+    config.is_prioritized = (strcmp(controlStrategyHelper, 'prioritized'));
 
     config.optimizer_type = OptimizerType(string(optimizer));
 
@@ -192,18 +193,10 @@ function config = config_gui()
     config.options_plot_online = OptionsPlotOnline();
     config.options_plot_online.is_active = strcmp(visualizationSelection, 'yes');
 
-    isParlHelper = compute_in_parallel{ ...
-                                           strcmp(compute_in_parallel(:, 2), isParlSelection), ...
-                                           2};
-
-    config.compute_in_parallel = strcmp(isParlHelper, 'thread parallel') ...
-        || strcmp(isParlHelper, 'physically parallel');
-
-    % hacky way to get nuc simulation
-    if strcmp(isParlHelper, 'physically parallel') ...
-            && config.environment == Environment.Simulation
-        config.environment = Environment.SimulationDistributed;
-    end
+    config.computation_mode = computation_mode{ ...
+                                                   strcmp(computation_mode(:, 2), computation_mode_selection), ...
+                                                   1 ...
+                                               };
 
     scenario = list_scenario(ui); % Update scenario since the selected options may differ now
     config.scenario_type = scenario{ ...
@@ -289,7 +282,7 @@ end
 % callback function if parallel computation is selected/unselected
 function callbackPBSelected(ui)
 
-    if strcmp(ui.ControlStrategyListBox.Value, 'pb non-coop')
+    if strcmp(ui.ControlStrategyListBox.Value, 'prioritized')
         ui.MaxComputationLevelsSpinner.Enable = 'on';
         ui.ConstraintFromSuccessorDropDown.Enable = 'on';
         ui.ComputationmodeListBox.Enable = 'on';
@@ -303,8 +296,8 @@ function callbackPBSelected(ui)
 
         % centralized can never be run in parallel
         ui.ComputationmodeListBox.Enable = 'off';
-        compute_in_parallel = list_is_parl();
-        ui.ComputationmodeListBox.Value = compute_in_parallel(1, 2);
+        computation_mode = list_computation_mode();
+        ui.ComputationmodeListBox.Value = computation_mode(1, 2);
 
         list_optimizer = list_optimizer_centralized();
         ui.OptimizerDropDown.Items = list_optimizer(:, 2);
@@ -313,11 +306,11 @@ function callbackPBSelected(ui)
 
 end
 
-function [list] = list_is_parl
+function [list] = list_computation_mode
     list = { ...
-                '1', 'sequential, logically parallel'; ...
-                '2', 'thread parallel'; ...
-                '3', 'physically parallel'; ...
+                ComputationMode.sequential, 'sequential, logically parallel'; ...
+                ComputationMode.parallel_threads, 'thread parallel'; ...
+                ComputationMode.parallel_physically, 'physically parallel'; ...
             };
 end
 
@@ -342,8 +335,8 @@ end
 
 function [list] = list_control_strategy
     list = { ...
-                '1', 'centralized'; ...
-                '2', 'pb non-coop'; ...
+                '1', 'prioritized'; ...
+                '2', 'centralized'; ...
             };
 end
 

@@ -12,16 +12,16 @@ classdef PlotterOffline < Plotter
 
     methods
 
-        function obj = PlotterOffline(experiment_result, delta_t_s, veh_indices)
+        function obj = PlotterOffline(experiment_result, delta_t_s, vehicle_indices)
             %PLOTTEROFFLINE Construct an instance of PlotterOffline
             %   Specify the ExperimentResults to view and optionally the time step for playback and the vehicle indices to plot.
             arguments
                 experiment_result (1, 1) ExperimentResult
                 delta_t_s (1, 1) double = experiment_result.options.dt_seconds
-                veh_indices (1, :) int32 = 1:experiment_result.options.amount
+                vehicle_indices (1, :) int32 = 1:experiment_result.options.amount
             end
 
-            obj@Plotter(experiment_result.options, experiment_result.scenario, veh_indices);
+            obj@Plotter(experiment_result.options, experiment_result.scenario, vehicle_indices);
             obj.experiment_result = experiment_result;
             obj.delta_t_s = delta_t_s;
             obj.paused = true;
@@ -60,7 +60,7 @@ classdef PlotterOffline < Plotter
         function plot(obj)
             %PLOT  Plot the simulation state at the current time step.
 
-            plotting_info = PlottingInfo(obj.veh_indices, obj.experiment_result, obj.time_step, 1);
+            plotting_info = PlottingInfo(obj.vehicle_indices, obj.experiment_result, obj.time_step, 1);
             plot@Plotter(obj, plotting_info);
         end
 

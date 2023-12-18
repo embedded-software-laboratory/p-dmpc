@@ -18,7 +18,7 @@ classdef CentralizedController < HighLevelController
             init@HighLevelController(obj);
 
             % construct optimizer
-            obj.optimizer = OptimizerInterface.get_optimizer(obj.options, obj.mpa, obj.scenario_adapter.scenario, obj.plant.indices_in_vehicle_list);
+            obj.optimizer = OptimizerInterface.get_optimizer(obj.options, obj.mpa, obj.scenario_adapter.scenario, obj.plant.vehicle_indices_controlled);
 
         end
 
@@ -36,10 +36,10 @@ classdef CentralizedController < HighLevelController
 
         function controller(obj)
             % initialize variable to store control results
-            obj.info = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_ids);
+            obj.info = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_indices);
 
             obj.timing_general.start('optimizer', obj.k);
-            info_v = obj.optimizer.run_optimizer(obj.plant.indices_in_vehicle_list, obj.iter, obj.mpa, obj.options);
+            info_v = obj.optimizer.run_optimizer(obj.plant.vehicle_indices_controlled, obj.iter, obj.mpa, obj.options);
             obj.timing_general.stop('optimizer', obj.k);
 
             obj.timing_general.start('fallback', obj.k);
@@ -65,7 +65,6 @@ classdef CentralizedController < HighLevelController
         end
 
         function plan_for_fallback(~)
-            % TODO must be implemented! (see issue #142)
             error(['No fallback handling for centralized controller', ...
                    ' implemented yet!'])
         end

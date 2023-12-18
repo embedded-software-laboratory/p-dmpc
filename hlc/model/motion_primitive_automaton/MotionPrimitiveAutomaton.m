@@ -184,12 +184,10 @@ classdef MotionPrimitiveAutomaton
 
             obj.offline_reachability_computation_time = toc(offline_RA);
 
-            if ~options.compute_in_parallel
+            if options.computation_mode ~= ComputationMode.parallel_threads
                 % save mpa to library
                 % If computing in parallel on one machine, this causes file
                 % access conflicts.
-                % If computing in parallel on multiple machines, we can
-                % save the MPA beforehand and transmit it to the machines.
                 save_mpa(obj, mpa_full_path);
             end
 
@@ -411,7 +409,7 @@ classdef MotionPrimitiveAutomaton
 
                     if is_calculate_reachable_sets_of_CP
                         % calculate trajectory and convexified reachable sets of the center point
-                        center_trajectory{i, t} = cellfun(@(c) [c.xs; c.ys], trimsInfo(i, t).maneuvers, 'UniformOutput', false);
+                        center_trajectory{i, t} = cellfun(@(c) [c.xs; c.ys], trimsInfo(i, t).maneuvers, UniformOutput = false);
                         center_tra_xy = [center_trajectory{i, t}{:}];
                         idx_center_tra_conv = convhull(center_tra_xy(1, :), center_tra_xy(2, :));
                         reachable_sets_CP{i, t} = polyshape(center_tra_xy(1, idx_center_tra_conv), center_tra_xy(2, idx_center_tra_conv));
@@ -555,7 +553,7 @@ classdef MotionPrimitiveAutomaton
 
                     if is_calculate_reachable_sets_of_CP
                         % calculate trajectory and convexified reachable sets of the center point
-                        center_trajectory{i, t} = cellfun(@(c) [c.xs; c.ys], trimsInfo(i, t).maneuvers, 'UniformOutput', false);
+                        center_trajectory{i, t} = cellfun(@(c) [c.xs; c.ys], trimsInfo(i, t).maneuvers, UniformOutput = false);
                         center_tra_xy = [center_trajectory{i, t}{:}];
                         idx_center_tra_conv = convhull(center_tra_xy(1, :), center_tra_xy(2, :));
                         reachable_sets_CP{i, t} = polyshape(center_tra_xy(1, idx_center_tra_conv), center_tra_xy(2, idx_center_tra_conv));

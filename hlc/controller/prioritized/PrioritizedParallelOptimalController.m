@@ -23,7 +23,7 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
             obj.info_base = ControlResultsInfo( ...
                 obj.options.amount, ...
                 obj.options.Hp, ...
-                obj.plant.all_vehicle_ids ...
+                obj.plant.all_vehicle_indices ...
             );
 
             % set base iteration data
@@ -35,7 +35,7 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
             unique_priorities = Prioritizer.unique_priorities(obj.iter.adjacency);
             n_priorities = size(unique_priorities, 2);
 
-            vehicle_idx = obj.plant.indices_in_vehicle_list(1);
+            vehicle_idx = obj.plant.vehicle_indices_controlled(1);
 
             for priority_permutation = 1:n_priorities
 
@@ -89,13 +89,13 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
 
                 for i_solution = 1:n_solutions
 
-                    if ismember(obj.plant.indices_in_vehicle_list(1), obj.info_array_tmp{i_solution}.vehicles_fallback)
+                    if ismember(obj.plant.vehicle_indices_controlled(1), obj.info_array_tmp{i_solution}.vehicles_fallback)
                         fallback_solutions(i_solution) = true;
                         % in case of fallback use maximum cost
                         g_end = 1e9;
                     else
                         % prefer solutions that are computed and have a low cost to come value in the last step
-                        g_end = obj.info_array_tmp{i_solution}.tree{obj.plant.indices_in_vehicle_list(1)}.g(obj.info_array_tmp{i_solution}.tree_path(obj.plant.indices_in_vehicle_list(1), end));
+                        g_end = obj.info_array_tmp{i_solution}.tree{obj.plant.vehicle_indices_controlled(1)}.g(obj.info_array_tmp{i_solution}.tree_path(obj.plant.vehicle_indices_controlled(1), end));
                     end
 
                     solution_cost(i_solution) = g_end;
@@ -103,15 +103,15 @@ classdef PrioritizedParallelOptimalController < PrioritizedController
                 end
 
                 % broadcast info about solution
-                obj.solution_cost_communication{obj.plant.indices_in_vehicle_list(1)}.send_message(obj.k, solution_cost);
+                obj.solution_cost_communication{obj.plant.vehicle_indices_controlled(1)}.send_message(obj.k, solution_cost);
 
                 % receive info about solutions
-                other_vehicles = setdiff(1:obj.options.amount, obj.plant.indices_in_vehicle_list);
+                other_vehicles = setdiff(1:obj.options.amount, obj.plant.vehicle_indices_controlled);
 
                 for kVeh = other_vehicles
                     % loop over vehicle from which the messages are read
-                    latest_msg_i = obj.solution_cost_communication{obj.plant.indices_in_vehicle_list(1)}.read_message( ...
-                        obj.plant.all_vehicle_ids(kVeh), ...
+                    latest_msg_i = obj.solution_cost_communication{obj.plant.vehicle_indices_controlled(1)}.read_message( ...
+                        kVeh, ...
                         obj.k, ...
                         throw_error = true ...
                     );

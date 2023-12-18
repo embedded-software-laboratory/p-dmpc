@@ -27,7 +27,7 @@ function [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_a
     % Preprocess intersecting areas of lanelets
     % Add column [nan;nan] to separate different obstacles
     check_closeness(iter.lanelet_crossing_areas)
-    lanelet_crossing_areas_tmp = cellfun(@(c)[c, [nan; nan]], iter.lanelet_crossing_areas, 'UniformOutput', false);
+    lanelet_crossing_areas_tmp = cellfun(@(c)[c, [nan; nan]], iter.lanelet_crossing_areas, UniformOutput = false);
     lanelet_crossing_areas = [lanelet_crossing_areas_tmp{:}];
 
     % Preprocess lanelet boundary
@@ -35,7 +35,7 @@ function [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_a
     % Note that lanelet boundaries are considered as open curves
     % transform nested structure to one cell array
     scenario_vehicles_lanelet_boundary_cell = iter.predicted_lanelet_boundary(:, 1:2);
-    lanelet_boundary_tmp = cellfun(@(c)[c, [nan; nan]], scenario_vehicles_lanelet_boundary_cell, 'UniformOutput', false);
+    lanelet_boundary_tmp = cellfun(@(c)[c, [nan; nan]], scenario_vehicles_lanelet_boundary_cell, UniformOutput = false);
 
     lanelet_boundary = [lanelet_boundary_tmp{:}];
 
@@ -64,8 +64,8 @@ function [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_a
 
         veh_obstacles_polygons_tmp = [current_occupied_areas(:)', predicted_occpuied_areas(:)'];
 
-        veh_obstacles_polygons = cellfun(@(c)[c, [nan; nan]], veh_obstacles_polygons_tmp, 'UniformOutput', false);
-        hdv_obstacles_polygons = cellfun(@(c)[c, [nan; nan]], hdv_reachable_sets(:)', 'UniformOutput', false);
+        veh_obstacles_polygons = cellfun(@(c)[c, [nan; nan]], veh_obstacles_polygons_tmp, UniformOutput = false);
+        hdv_obstacles_polygons = cellfun(@(c)[c, [nan; nan]], hdv_reachable_sets(:)', UniformOutput = false);
 
         % all obstacles, include static obstacles, dynamic obstacles and lanelet boundaries
         vehicle_obstacles{iStep} = [veh_obstacles_polygons{:}];

@@ -15,7 +15,6 @@
     },
     "scenario_type": "commonroad",
     "is_prioritized": true,
-    "compute_in_parallel": false,
     "optimizer_type": "MatlabOptimal",
     "coupling": "reachable_set_coupling",
     "priority": "STAC_priority",

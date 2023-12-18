@@ -66,7 +66,7 @@ classdef (Abstract) HighLevelController < handle
             obj.coupler = Coupler.get_coupler(obj.options.coupling, obj.options.amount);
             obj.timing_general = ControllerTiming();
 
-            for iVeh = obj.plant.indices_in_vehicle_list
+            for iVeh = obj.plant.vehicle_indices_controlled
                 obj.timing_per_vehicle(iVeh) = ControllerTiming();
             end
 
@@ -106,8 +106,8 @@ classdef (Abstract) HighLevelController < handle
             % if more than one vehicle is controlled assume that they all have
             % the same dimensions and take the dimensions of the first one
             bicycle_model = BicycleModel( ...
-                obj.scenario_adapter.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).Lf, ...
-                obj.scenario_adapter.scenario.vehicles(obj.plant.indices_in_vehicle_list(1)).Lr ...
+                obj.scenario_adapter.scenario.vehicles(obj.plant.vehicle_indices_controlled(1)).Lf, ...
+                obj.scenario_adapter.scenario.vehicles(obj.plant.vehicle_indices_controlled(1)).Lr ...
             );
 
             % construct mpa
@@ -117,16 +117,16 @@ classdef (Abstract) HighLevelController < handle
             obj.experiment_result = ExperimentResult(obj.options, obj.scenario_adapter.scenario, obj.mpa);
 
             % initialize iteration data
-            obj.iter = IterationData(obj.options, obj.scenario_adapter.scenario, obj.plant.all_vehicle_ids);
+            obj.iter = IterationData(obj.options, obj.scenario_adapter.scenario, obj.plant.all_vehicle_indices);
 
             % create old control results info in case of fallback at first time step
-            obj.info_old = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_ids);
+            obj.info_old = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_indices);
 
             % measure vehicles' initial poses and trims
             [cav_measurements] = obj.plant.measure();
 
             % fill control results info for each controlled vehicle with measurement information
-            for vehicle_idx = obj.plant.indices_in_vehicle_list
+            for vehicle_idx = obj.plant.vehicle_indices_controlled
                 % get initial pose from measurement
                 initial_pose = [ ...
                                     cav_measurements(vehicle_idx).x, ...
@@ -157,7 +157,7 @@ classdef (Abstract) HighLevelController < handle
 
         function update_controlled_vehicles_traffic_info(obj, cav_measurements)
 
-            for iVeh = obj.plant.indices_in_vehicle_list
+            for iVeh = obj.plant.vehicle_indices_controlled
                 % states of controlled vehicles can be measured directly
                 obj.iter.x0(iVeh, :) = [ ...
                                             cav_measurements(iVeh).x, ...
@@ -249,7 +249,7 @@ classdef (Abstract) HighLevelController < handle
                 if ~obj.options.are_any_obstacles_non_convex
                     obj.iter.reachable_sets(iVeh, :) = cellfun(@(c) convhull(c), ...
                         obj.iter.reachable_sets(iVeh, :), ...
-                        'UniformOutput', false ...
+                        UniformOutput = false ...
                     );
                 end
 
@@ -429,11 +429,11 @@ classdef (Abstract) HighLevelController < handle
                 obj.iter.hdv_reachable_sets(iHdv, ~empty_sets) = cellfun(@(c) ...
                     [c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)'], ...
                     reachable_sets(~empty_sets), ...
-                    'UniformOutput', false ...
+                    UniformOutput = false ...
                 );
 
                 % update reduced coupling adjacency for cav/hdv-pairs
-                for iVeh = obj.plant.indices_in_vehicle_list
+                for iVeh = obj.plant.vehicle_indices_controlled
                     lanelet_id_cav = obj.iter.current_lanelet(iVeh);
 
                     % note coupling if HDV is not behind CAV
@@ -568,7 +568,7 @@ classdef (Abstract) HighLevelController < handle
                 % define output path on success
                 obj.experiment_result.output_path = FileNameConstructor.get_results_full_path( ...
                     obj.options, ...
-                    obj.plant.indices_in_vehicle_list ...
+                    obj.plant.vehicle_indices_controlled ...
                 );
             end
 
@@ -594,7 +594,7 @@ classdef (Abstract) HighLevelController < handle
             obj.experiment_result.total_fallback_times = obj.total_fallback_times;
             obj.experiment_result.timings_general = obj.timing_general.get_all_timings();
 
-            for iVeh = obj.plant.indices_in_vehicle_list
+            for iVeh = obj.plant.vehicle_indices_controlled
 
                 timing_per_vehicle_iVeh = obj.timing_per_vehicle(iVeh).get_all_timings();
                 timings_fieldnames = fieldnames(timing_per_vehicle_iVeh);

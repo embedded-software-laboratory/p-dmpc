@@ -2,8 +2,8 @@ classdef PrioritizedSequentialController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedSequentialController(options, plant)
-            obj = obj@PrioritizedController(options, plant);
+        function obj = PrioritizedSequentialController(options, plant, ros2_node)
+            obj = obj@PrioritizedController(options, plant, ros2_node);
         end
 
     end
@@ -20,7 +20,7 @@ classdef PrioritizedSequentialController < PrioritizedController
             obj.info = ControlResultsInfo( ...
                 obj.options.amount, ...
                 obj.options.Hp, ...
-                obj.plant.all_vehicle_ids ...
+                obj.plant.all_vehicle_indices ...
             );
 
             level_matrix = kahn(obj.iter.directed_coupling_sequential);

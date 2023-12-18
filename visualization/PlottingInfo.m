@@ -10,7 +10,7 @@ classdef PlottingInfo
         dynamic_obstacles_shape
         reachable_sets
         step
-        veh_indices % vehicles to which the plot info belong
+        vehicle_indices % vehicles to which the plot info belong
         tick_now
         lanelet_crossing_areas
         weighted_coupling_reduced
@@ -21,13 +21,13 @@ classdef PlottingInfo
 
     methods
 
-        function obj = PlottingInfo(veh_indices, experiment_result, k, tick_now)
+        function obj = PlottingInfo(vehicle_indices, experiment_result, k, tick_now)
 
             if nargin == 0
                 return;
             end
 
-            obj.veh_indices = veh_indices;
+            obj.vehicle_indices = vehicle_indices;
             obj.step = k;
             obj.tick_now = tick_now;
             obj.trajectory_predictions = experiment_result.trajectory_predictions(:, k);
@@ -46,9 +46,7 @@ classdef PlottingInfo
 
             obj.reachable_sets = experiment_result.iteration_data{k}.reachable_sets;
 
-            if isfield(experiment_result, "lanelet_crossing_areas")
-                obj.lanelet_crossing_areas = experiment_result.iteration_data{k}.lanelet_crossing_areas(:);
-            end
+            obj.lanelet_crossing_areas = experiment_result.iteration_data{k}.lanelet_crossing_areas(:);
 
             obj.directed_coupling = experiment_result.iteration_data{k}.directed_coupling;
             obj.directed_coupling_sequential = experiment_result.iteration_data{k}.directed_coupling_sequential;
@@ -64,7 +62,7 @@ classdef PlottingInfo
 
         function obj = filter(obj, overall_amount_of_veh, plot_options)
             filter_self = false(1, overall_amount_of_veh);
-            filter_self(obj.veh_indices(1)) = true;
+            filter_self(obj.vehicle_indices(1)) = true;
             obj.trajectory_predictions = obj.trajectory_predictions{filter_self'};
             obj.ref_trajectory = obj.ref_trajectory(filter_self, :, :);
 

@@ -12,10 +12,6 @@ function [experiment_result, scenario] = main_distributed(vehicle_id)
     % read scenario from disk
     scenario = load('scenario.mat', 'scenario').scenario;
 
-    plant = Plant.get_plant(options.environment);
-    % set active vehicle IDs and initialize communication
-    plant.setup(options, options.path_ids, vehicle_id);
-
     % In prioritized computation, vehicles communicate via ROS 2.
     % main.m will have deleted the ros2 message types before distributing the code.
     % Therefore, the the ros2 message types need to be created here before experiment setup.
@@ -24,11 +20,11 @@ function [experiment_result, scenario] = main_distributed(vehicle_id)
     % get HLC
     factory = HLCFactory();
 
-    if options.is_prioritized == true
-        hlc = factory.get_hlc(options, plant, vehicle_id, options.is_dry_run);
+    if options.is_prioritized
+        hlc = factory.get_hlc(options, vehicle_id);
         experiment_result = hlc.run();
     else
-        warning("Use main_distributed.m only for pb-scenarios.")
+        warning("Use main_distributed.m only for prioritized scenarios.")
     end
 
 end

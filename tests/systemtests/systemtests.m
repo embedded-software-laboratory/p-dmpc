@@ -5,7 +5,7 @@ classdef systemtests < matlab.unittest.TestCase
         mpa = {'single_speed', 'triple_speed', 'realistic'};
         optimizer_centralized = {'MatlabOptimal', 'CppOptimal'}; % 'CppSampled' crashes matlab in tests
         optimizer_prioritized = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
-        parallel = {'sequential', 'parallel'};
+        computation_mode = {'sequential', 'parallel_threads'};
         coupling = {'reachable_set', 'full', 'no', 'distance'};
         priority = {'coloring', 'constant', 'random', 'FCA'};
         weight = {'constant', 'random', 'distance'};
@@ -29,7 +29,7 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        function test_prioritized(testCase, scenario, mpa, parallel, optimizer_prioritized, coupling, priority, weight)
+        function test_prioritized(testCase, scenario, mpa, computation_mode, optimizer_prioritized, coupling, priority, weight)
             lastwarn('');
             %load Config from json
             options = Config.load_from_file('tests/systemtests/Config_systemtests_prioritized.json');
@@ -38,11 +38,7 @@ classdef systemtests < matlab.unittest.TestCase
             options.mpa_type = MpaType(mpa);
             options.is_prioritized = true;
 
-            if strcmp(parallel, 'parallel')
-                options.compute_in_parallel = true;
-            elseif strcmp(parallel, 'sequential')
-                options.compute_in_parallel = false;
-            end
+            options.computation_mode = ComputationMode(computation_mode);
 
             options.optimizer_type = OptimizerType(optimizer_prioritized);
 
@@ -158,12 +154,16 @@ classdef systemtests < matlab.unittest.TestCase
             % Load results
             result_veh1 = load(FileNameConstructor.get_results_full_path(options, 1)).experiment_result;
             result_veh2 = load(FileNameConstructor.get_results_full_path(options, 2)).experiment_result;
+            result_veh3 = load(FileNameConstructor.get_results_full_path(options, 3)).experiment_result;
 
             % Test plotting of runtime over multiple experiments
-            results_multiple_experiments = cell(2);
+            results_multiple_experiments = cell(3, 3);
             results_multiple_experiments{1, 1} = result_veh2; % use result of vehicle 2 also as if it was the result in an experiment with only one vehicle
             results_multiple_experiments{2, 1} = result_veh1;
             results_multiple_experiments{2, 2} = result_veh2;
+            results_multiple_experiments{3, 1} = result_veh1;
+            results_multiple_experiments{3, 2} = result_veh2;
+            results_multiple_experiments{3, 3} = result_veh3;
 
             plot_runtime_multiple_experiments(results_multiple_experiments, do_export = true);
             testCase.verifyTrue(true);
@@ -171,9 +171,10 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
 
             % Test plotting of runtime of one timestep within one experiment
-            result_one_experiment = cell(1, 2);
+            result_one_experiment = cell(1, 3);
             result_one_experiment{1, 1} = result_veh1;
             result_one_experiment{1, 2} = result_veh2;
+            result_one_experiment{1, 3} = result_veh3;
             result_one_experiment_normalized = normalize_timing_results(result_one_experiment);
 
             plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = true);

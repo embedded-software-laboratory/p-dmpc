@@ -23,11 +23,11 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
     % Note that the last point of each lanelet boundary is deleted for a
     % smooth transition between two lanelet boundaries
 
-    left_bound_cell = cellfun(@(c)c{1}(1:end - 1, :)', predicted_lanelet_boundaries, 'UniformOutput', false);
+    left_bound_cell = cellfun(@(c)c{1}(1:end - 1, :)', predicted_lanelet_boundaries, UniformOutput = false);
     left_bound = [left_bound_cell{:}];
     left_bound = [left_bound, predicted_lanelet_boundaries{end}{1}(end, :)']; % add the endpoint
 
-    right_bound_cell = cellfun(@(c)c{2}(1:end - 1, :)', predicted_lanelet_boundaries, 'UniformOutput', false);
+    right_bound_cell = cellfun(@(c)c{2}(1:end - 1, :)', predicted_lanelet_boundaries, UniformOutput = false);
     right_bound = [right_bound_cell{:}];
     right_bound = [right_bound, predicted_lanelet_boundaries{end}{2}(end, :)']; % add the endpoint
 

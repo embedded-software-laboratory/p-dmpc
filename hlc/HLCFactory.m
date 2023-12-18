@@ -8,24 +8,43 @@ classdef HLCFactory < handle
         function obj = HLCFactory()
         end
 
-        % Optional argument wether to do a dry run of the first timestep beforehand
-        % dry_run can massively decrease the time needed for the first
-        % timestep during the experiment.
-        function hlc = get_hlc(obj, options, plant, vehicle_ids, dry_run)
+        function hlc = get_hlc(obj, options, controlled_vehicles, optional)
 
-            if dry_run
-                obj.dry_run_hlc(options, plant.all_vehicle_ids);
+            arguments
+                obj
+                options
+                % controlled_vehicles Depending on the Plant, these can be
+                % Simulation:   indices of the vehicles
+                % CpmLab:       IDs of the vehicles
+                controlled_vehicles
+                optional.do_dry_run = false
+            end
+
+            if options.environment == Environment.Simulation
+                % Create ROS2 node for this HLC
+                vehicle_ids_string = sprintf('_%02d', controlled_vehicles);
+                ros2_node = ros2node(['hlc', vehicle_ids_string]);
+            else
+                ros2_node = [];
+            end
+
+            plant = Plant.get_plant(options.environment, ros2_node);
+            plant.setup(options, controlled_vehicles);
+
+            if optional.do_dry_run
+                % FIXME does not work in parallel
+                obj.dry_run_hlc(options, plant.vehicle_indices_controlled, ros2_node);
             end
 
             if options.is_prioritized
 
-                if length(vehicle_ids) == 1
+                if length(plant.vehicle_indices_controlled) == 1
                     % PB Controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    hlc = PrioritizedParallelController(options, plant);
+                    hlc = PrioritizedParallelController(options, plant, ros2_node);
                 else
                     % PB Controller controlling all vehicles
-                    hlc = PrioritizedSequentialController(options, plant);
+                    hlc = PrioritizedSequentialController(options, plant, ros2_node);
                 end
 
             else
@@ -52,8 +71,8 @@ classdef HLCFactory < handle
         % Important note: This might take some time depending on how hard to
         % solve the first time step of this scenario is.
 
-        function dry_run_hlc(obj, options, dry_run_vehicle_ids)
-            disp("Starting dry run of HLC");
+        function dry_run_hlc(obj, options, dry_run_vehicle_ids, ros2_node)
+            fprintf("Dry run of HLC...");
 
             % use simulation to avoid communication with a lab
             options.environment = Environment.Simulation;
@@ -66,13 +85,13 @@ classdef HLCFactory < handle
             % for the dry run results are not relevant
             options.should_save_result = false;
 
-            plant = Plant.get_plant(options.environment);
+            plant = Plant.get_plant(options.environment, ros2_node);
             plant.setup(options, dry_run_vehicle_ids);
 
-            hlc = obj.get_hlc(options, plant, dry_run_vehicle_ids, false);
+            hlc = obj.get_hlc(options, dry_run_vehicle_ids, do_dry_run = true);
             hlc.run();
 
-            disp("Dry Run Completed");
+            fprintf(" done.\n");
         end
 
     end
