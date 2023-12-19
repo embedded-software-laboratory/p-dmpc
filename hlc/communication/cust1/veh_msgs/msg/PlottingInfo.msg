@@ -5,7 +5,7 @@ int32       n_dynamic_obstacles             # 1 (= 0)
 int32       step                            # 1
 int32       vehicle_indices                     # 1
 int32       tick_now                        # 1 (= 1)
-float64[]   weighted_coupling_reduced       # N x N
 uint8[]     directed_coupling               # N x N
 uint8[]     directed_coupling_sequential    # N x N
-int32[]     is_virtual_obstacle             # N x N (boolean matrix extracted from coupling_info)
+uint8[]     weighted_coupling               # N x N
+uint8[]     directed_coupling_reduced       # N x N

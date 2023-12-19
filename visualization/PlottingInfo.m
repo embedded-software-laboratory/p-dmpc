@@ -13,10 +13,10 @@ classdef PlottingInfo
         vehicle_indices % vehicles to which the plot info belong
         tick_now
         lanelet_crossing_areas
-        weighted_coupling_reduced
         directed_coupling
+        weighted_coupling
+        directed_coupling_reduced
         directed_coupling_sequential
-        is_virtual_obstacle
     end
 
     methods
@@ -51,12 +51,9 @@ classdef PlottingInfo
             obj.directed_coupling = experiment_result.iteration_data{k}.directed_coupling;
             obj.directed_coupling_sequential = experiment_result.iteration_data{k}.directed_coupling_sequential;
 
-            obj.is_virtual_obstacle = ( ...
-                experiment_result.iteration_data{k}.directed_coupling ~= ...
-                experiment_result.iteration_data{k}.directed_coupling_reduced ...
-            );
+            obj.weighted_coupling = experiment_result.iteration_data{k}.weighted_coupling;
 
-            obj.weighted_coupling_reduced = experiment_result.iteration_data{k}.weighted_coupling_reduced;
+            obj.directed_coupling_reduced = experiment_result.iteration_data{k}.directed_coupling_reduced;
 
         end
 
