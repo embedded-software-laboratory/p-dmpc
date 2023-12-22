@@ -13,6 +13,9 @@ classdef CpmLab < Plant
         dt_period_nanos
         sample
         out_of_map_limits
+
+        time_now (1, 1) uint64 = 0;
+        init_completed = false
     end
 
     properties (GetAccess = public, SetAccess = private)
@@ -40,12 +43,12 @@ classdef CpmLab < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, options, vehicle_ids_controlled)
+        function setup(obj, options, vehicle_indices_controlled)
 
             arguments
                 obj (1, 1) CpmLab
                 options (1, 1) Config
-                vehicle_ids_controlled (1, :) uint8
+                vehicle_indices_controlled (1, :) uint8
             end
 
             % create data readers/writers...
@@ -81,16 +84,11 @@ classdef CpmLab < Plant
 
             % subtract the hdv_ids from active_vehicle_ids
             obj.all_vehicle_ids = setdiff( ...
-                sample_for_setup.active_vehicle_ids, ...
+                cast(sample_for_setup.active_vehicle_ids, "uint8"), ...
                 options.manual_control_config.hdv_ids ...
             );
 
-            % boolean that extracts the controlled lab vehicle_ids
-            % from the active lab cav vehicle_ids
-            is_controlled = ismember(obj.all_vehicle_ids, vehicle_ids_controlled);
-
-            % use vehicle_ids from lab for superclass
-            obj.vehicle_indices_controlled = find(is_controlled);
+            obj.vehicle_indices_controlled = vehicle_indices_controlled;
 
             setup@Plant(obj, options);
 
@@ -106,7 +104,7 @@ classdef CpmLab < Plant
                 % data type of state_list vehicle_id is uint8 and
                 % matches the data type of the superclass variable
                 % casting of the data type is not necessary
-                if ~any(state_list(index).vehicle_id == vehicle_ids_controlled)
+                if ~any(state_list(index).vehicle_id == obj.vehicle_ids_controlled)
                     % if vehicle is not controlled, do not use received information
                     continue
                 end
@@ -128,27 +126,28 @@ classdef CpmLab < Plant
 
         function synchronize_start_with_plant(obj)
             % Sync start with infrastructure
-            % Send ready signal for all assigned vehicle ids
-            disp('Sending ready signal');
-
-            for iVehicle = obj.vehicle_ids_controlled
-                ready_msg = ReadyStatus;
-                ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
-                ready_stamp = TimeStamp;
-                ready_stamp.nanoseconds = uint64(0);
-                ready_msg.next_start_stamp = ready_stamp;
-                obj.writer_readyStatus.write(ready_msg);
-            end
-
-            % Wait for start or stop signal
-            disp('Waiting for start or stop signal');
+            disp('Sending ready signal, waiting for start or stop signal');
 
             got_start = false;
             got_stop = false;
 
             while (~got_stop && ~got_start)
+
+                for iVehicle = obj.vehicle_ids_controlled
+                    ready_msg = ReadyStatus;
+                    ready_msg.source_id = strcat('hlc_', num2str(iVehicle));
+                    ready_stamp = TimeStamp;
+                    ready_stamp.nanoseconds = uint64(0);
+                    ready_msg.next_start_stamp = ready_stamp;
+                    obj.writer_readyStatus.write(ready_msg);
+                end
+
                 [got_start, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
+
             end
+
+            obj.time_now = 0;
+            obj.init_completed = true;
 
         end
 
@@ -157,10 +156,16 @@ classdef CpmLab < Plant
             % for the first step they hold the initialized values
             cav_measurements = obj.measurements;
 
-            [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
+            if ~obj.time_now || ~obj.init_completed
+                [obj.sample, ~, sample_count, ~] = obj.reader_vehicleStateList.take();
+                obj.time_now = uint64(obj.sample(end).t_now);
 
-            if (sample_count > 1)
-                warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
+                if (sample_count > 1)
+                    warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
+                end
+
+            else
+                obj.time_now = obj.time_now + uint64(obj.dt_period_nanos);
             end
 
             % if there are no manual vehicles return directly
@@ -218,6 +223,9 @@ classdef CpmLab < Plant
 
             % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.amount, 1);
+            % time offset to account for slow start of MATLABs JIT
+            % compilation
+            time_offset = uint64(3 * 1e9);
 
             for iVeh = obj.vehicle_indices_controlled
                 n_traj_pts = obj.Hp;
@@ -228,7 +236,11 @@ classdef CpmLab < Plant
                 for i_traj_pt = 1:n_traj_pts
                     i_predicted_points = idx_predicted_points(i_traj_pt);
                     trajectory_points(i_traj_pt).t.nanoseconds = ...
-                        uint64(obj.sample(end).t_now + i_traj_pt * obj.dt_period_nanos);
+                        uint64( ...
+                        obj.time_now ...
+                        + i_traj_pt * obj.dt_period_nanos ...
+                        + time_offset ...
+                    );
                     trajectory_points(i_traj_pt).px = y_pred{iVeh}(i_predicted_points, 1);
                     trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points, 2);
 
@@ -246,9 +258,15 @@ classdef CpmLab < Plant
                 vehicle_command_trajectory.vehicle_id = uint8(obj.all_vehicle_ids(iVeh));
                 vehicle_command_trajectory.trajectory_points = trajectory_points;
                 vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
-                    uint64(obj.sample(end).t_now);
+                    uint64(posixtime(datetime('now')));
+
                 vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
-                    uint64(obj.sample(end).t_now + obj.dt_period_nanos + 1);
+                    uint64( ...
+                    obj.time_now ...
+                    + obj.dt_period_nanos ...
+                    + time_offset ...
+                    + 1 ... % to guarantee interpolating is possible
+                );
 
                 obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
             end
