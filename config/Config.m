@@ -10,7 +10,7 @@ classdef Config
         coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling;
         priority PriorityStrategies = PriorityStrategies.constant_priority;
         weight WeightStrategies = WeightStrategies.distance_weight;
-        cut CutStrategies = CutStrategies.iterative_min_cut;
+        cut CutStrategies = CutStrategies.greedy_cut;
         dt_seconds = 0.2; % scalar, default sample time
         Hp = 6; % scalar, prediction horizon
         mpa_type MpaType = MpaType.single_speed; % mpa type (element of {'single_speed', 'triple_speed', 'realistic'})

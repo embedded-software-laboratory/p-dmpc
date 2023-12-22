@@ -1,4 +1,4 @@
-function [stac, distance_to_collision_i, distance_to_collision_j, collision_type, lanelet_relationship, is_move_side_by_side] = calculate_stac(veh_i, veh_j, dt_seconds, scenario, mpa, iter)
+function [stac, distance_to_collision_i, distance_to_collision_j, collision_type, lanelet_relationship] = calculate_stac(veh_i, veh_j, dt_seconds, scenario, mpa, iter)
     % CALCULATE_STAC        calculate the shortest time to achieve collision.
     %                       As co-product: save distance to collision point,
     %                       collision type and lanelet relationship type

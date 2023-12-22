@@ -32,7 +32,7 @@ function config = config_gui()
     ui.WeigherDropDown.Value = default_weigher;
 
     % Cutter
-    default_cutter = CutStrategies.iterative_min_cut;
+    default_cutter = CutStrategies.greedy_cut;
     [~, cut_strategies] = enumeration(default_cutter);
     ui.CutterDropDown.Items = cut_strategies;
     ui.CutterDropDown.Value = default_cutter;
