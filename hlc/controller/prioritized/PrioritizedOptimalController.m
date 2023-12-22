@@ -5,7 +5,7 @@ classdef PrioritizedOptimalController < PrioritizedController
         info_base
         iter_array_tmp (1, :) cell
         info_array_tmp (1, :) cell
-        solution_cost (1, :) double
+        solution_cost (:, 1) double
     end
 
     methods
@@ -33,10 +33,11 @@ classdef PrioritizedOptimalController < PrioritizedController
                 );
                 obj.solve_permutation();
 
-                obj.send_solution_cost();
-                obj.receive_solution_cost();
             end
 
+            obj.compute_solution_cost();
+            obj.send_solution_cost();
+            obj.receive_solution_cost();
             obj.choose_solution();
 
         end
@@ -66,7 +67,6 @@ classdef PrioritizedOptimalController < PrioritizedController
             % initialize
             obj.iter_array_tmp = {};
             obj.info_array_tmp = {};
-            obj.solution_cost = [];
         end
 
         function prepare_permutation(obj, current_priorities, priority_permutation)
@@ -85,7 +85,7 @@ classdef PrioritizedOptimalController < PrioritizedController
 
             obj.plan();
 
-            %% Send own data to other vehicles
+            % Send own data to other vehicles
             obj.publish_predictions();
 
             % temporarily store data
@@ -93,33 +93,44 @@ classdef PrioritizedOptimalController < PrioritizedController
             obj.info_array_tmp{obj.iter.priority_permutation} = obj.info;
         end
 
-        function send_solution_cost(obj)
+        function compute_solution_cost(obj)
 
-            if ismember( ...
-                    obj.plant.vehicle_indices_controlled(1), ...
-                    obj.info_array_tmp{obj.iter.priority_permutation}.vehicles_fallback ...
-                )
-                % in case of fallback use maximum cost
-                g_end = 1e9;
-            else
-                % prefer solutions that are computed and have a low cost to come value in the last step
-                g_end = obj.info_array_tmp{obj.iter.priority_permutation}.tree{obj.plant.vehicle_indices_controlled(1)}.g( ...
-                    obj.info_array_tmp{obj.iter.priority_permutation}.tree_path(obj.plant.vehicle_indices_controlled(1), end) ...
-                );
+            n_solutions = length(obj.iter_array_tmp);
+            obj.solution_cost = NaN(1, n_solutions);
+
+            for i_solution = 1:n_solutions
+
+                if ismember( ...
+                        obj.plant.vehicle_indices_controlled, ...
+                        obj.info_array_tmp{i_solution}.vehicles_fallback ...
+                    )
+                    % in case of fallback use maximum cost
+                    g_end = 1e9;
+                else
+                    % prefer solutions that are computed and have a low cost to come value in the last step
+                    g_end = obj.info_array_tmp{i_solution}.tree{obj.plant.vehicle_indices_controlled}.g( ...
+                        obj.info_array_tmp{i_solution}.tree_path(obj.plant.vehicle_indices_controlled, end) ...
+                    );
+                end
+
+                obj.solution_cost(i_solution) = g_end;
+
             end
 
-            obj.solution_cost(obj.iter.priority_permutation) = g_end;
+        end
+
+        function send_solution_cost(obj)
 
             % broadcast info about solution
             obj.solution_cost_communication.send_message( ...
                 obj.k, ...
-                obj.solution_cost(obj.iter.priority_permutation) ...
+                obj.solution_cost ...
             );
         end
 
         function receive_solution_cost(obj)
             % receive info about solutions
-            other_vehicles = setdiff(...
+            other_vehicles = setdiff( ...
                 1:obj.options.amount, ...
                 obj.plant.vehicle_indices_controlled ...
             );
@@ -132,9 +143,7 @@ classdef PrioritizedOptimalController < PrioritizedController
                     throw_error = true ...
                 );
                 % calculate objective value
-                obj.solution_cost(obj.iter.priority_permutation) = ...
-                    obj.solution_cost(obj.iter.priority_permutation) ...
-                    + latest_msg_j.solution_cost;
+                obj.solution_cost = obj.solution_cost + latest_msg_j.solution_cost;
             end
 
         end

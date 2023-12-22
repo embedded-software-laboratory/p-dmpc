@@ -36,26 +36,23 @@ classdef PrioritizedOptimalSequentialController < PrioritizedSequentialControlle
                 level_matrix = kahn(obj.merged_graph("directed_coupling_sequential"));
 
                 for i_level = 1:size(level_matrix, 1)
-
                     vehicles_in_level = find(level_matrix(i_level, :));
 
                     for i_vehicle = vehicles_in_level
-
                         obj.hlcs(i_vehicle).solve_permutation();
-
-                        obj.hlcs(i_vehicle).send_solution_cost();
-
                     end
 
-                end
-
-                for hlc = obj.hlcs
-                    hlc.receive_solution_cost();
                 end
 
             end
 
             for hlc = obj.hlcs
+                hlc.compute_solution_cost();
+                hlc.send_solution_cost();
+            end
+
+            for hlc = obj.hlcs
+                hlc.receive_solution_cost();
                 hlc.choose_solution();
             end
 
