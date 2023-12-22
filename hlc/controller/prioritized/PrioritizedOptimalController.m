@@ -12,7 +12,6 @@ classdef PrioritizedOptimalController < PrioritizedController
 
         function obj = PrioritizedOptimalController(options, plant, ros2_node)
             obj = obj@PrioritizedController(options, plant, ros2_node);
-            obj.prioritizer = ConstantPrioritizer();
         end
 
     end

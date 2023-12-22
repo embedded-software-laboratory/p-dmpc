@@ -25,9 +25,8 @@ classdef (Abstract) Prioritizer < handle
                     prioritizer = FcaPrioritizer();
                 case PriorityStrategies.STAC_priority
                     prioritizer = StacPrioritizer();
-                otherwise
+                case PriorityStrategies.optimal_priority
                     prioritizer = ConstantPrioritizer();
-                    warning('Unavailable Priority Strategy chosen. Using Constant Priority.');
             end
 
         end
