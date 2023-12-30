@@ -68,7 +68,7 @@ classdef HLCFactory < handle
                 ros2_node = ros2node(['hlc', vehicle_indices_string]);
 
                 plant = Plant.get_plant(options.environment, ros2_node);
-                plant.setup(options, options.path_ids, options.path_ids(controlled_vehicles));
+                plant.setup(options, controlled_vehicles);
 
                 hlc = CentralizedController(options, plant);
             end

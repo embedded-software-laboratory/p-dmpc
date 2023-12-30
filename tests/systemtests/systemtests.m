@@ -90,7 +90,12 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyEmpty(lastwarn);
 
             %let main run and read result file
-            experiment_result = main(options);
+            experiment_results = main(options);
+            experiment_result = experiment_results{1};
+
+            for i = 1:size(experiment_results)
+                merge_experiment_results(experiment_result, experiment_results{i})
+            end
 
             testCase.verifyTrue(true);
 
