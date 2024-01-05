@@ -27,6 +27,7 @@ classdef Config
         fallback_type FallbackType = FallbackType.local_fallback;
 
         path_ids = []; % reference path IDs for selection of paths for the vehicles
+        scenario_file (1, :) char = 'scenario.mat'; % file the scenario is loaded from
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
 
         recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
