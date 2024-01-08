@@ -53,6 +53,8 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             n_expansions = 0;
             is_finished = false;
 
+            seed = RandStream('mt19937ar');
+
             while (n_expansions < n_expansions_max) && ~is_finished
                 % expand randomly for Hp steps
                 node_id = 1;
@@ -61,7 +63,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                     is_valid = false;
                     n_expansions = n_expansions + 1;
                     % Select node to expand randomly
-                    goal_trim = obj.random_trim(node_id, info.tree);
+                    goal_trim = obj.random_trim(node_id, info.tree, seed);
 
                     if goal_trim == 0
                         is_finished = true;
@@ -149,7 +151,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
 
         end
 
-        function trim = random_trim(~, node_id, tree)
+        function trim = random_trim(~, node_id, tree, seed)
             % RANDOM_TRIM  Return random successor trim for given node.
             %
             % INPUT:
@@ -166,7 +168,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                 trim = 0;
             else
                 % choose successor trim randomly
-                trim = tree.successor_trims(trim_positions(randi(n_trims)), :, node_id);
+                trim = tree.successor_trims(trim_positions(randi(seed, n_trims)), :, node_id);
             end
 
         end
