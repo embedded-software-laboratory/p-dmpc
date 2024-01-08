@@ -91,15 +91,15 @@ classdef systemtests < matlab.unittest.TestCase
 
             %let main run and read result file
             experiment_results = main(options);
-            experiment_result = experiment_results{1};
-
-            for i = 1:size(experiment_results)
-                merge_experiment_results(experiment_result, experiment_results{i})
-            end
 
             testCase.verifyTrue(true);
 
-            load(experiment_result.output_path, 'experiment_result');
+            load(experiment_results{1}.output_path, 'experiment_result');
+
+            for i = 2:size(experiment_results, 2)
+                res_tmp = load(experiment_results{i}.output_path);
+                experiment_result = merge_experiment_results(experiment_result, res_tmp.experiment_result);
+            end
 
             %verify and check export too
             plot_default(experiment_result, do_export = true);

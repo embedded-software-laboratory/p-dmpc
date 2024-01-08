@@ -1,32 +1,33 @@
-function plot_computation_time(experiment_results, optional)
+function plot_computation_time(experiment_result, optional)
 
     arguments
-        experiment_results (:, :) ExperimentResult;
+        experiment_result (1, 1) ExperimentResult;
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    n_results = length(experiment_results);
+    n_results = size(experiment_result.n_expanded, 1);
 
-    runtimes = zeros(experiment_results(1).n_steps, n_results);
+    runtimes = zeros(experiment_result.n_steps, n_results);
     n_vehicles = zeros(1, n_results);
 
-    fig_per_result = figure(visible = "off");
-    set(0, 'currentfigure', fig_per_result);
-
     for i = 1:n_results
-        runtimes(:, i) = squeeze(experiment_results(i).timing.controller(2, 1, :));
-        n_vehicles(i) = experiment_results(i).options.amount;
+        fig_per_result = figure(visible = "off");
+        set(0, 'currentfigure', fig_per_result);
+        % make sure only one controller runtime is stored in the struct
+        % assert(size(experiment_result(i).controller_runtime, 1) == 1); % TODO
+        runtimes(:, i) = squeeze(experiment_result.timing(i).control_loop(2, 1, :));
+        n_vehicles(i) = experiment_result.options.amount;
 
-        bar(1:numel(runtimes), runtimes);
+        bar(1:size(runtimes, 1), runtimes);
         % set labels
         xlabel('Time step $k$', 'Interpreter', 'LaTex');
         ylabel('Computation Time [s]', 'Interpreter', 'LaTex');
 
         if optional.do_export
 
-            results_folder = FileNameConstructor.gen_results_folder_path(experiment_results(i).options);
+            results_folder = FileNameConstructor.gen_results_folder_path(experiment_result.options);
             filepath = fullfile(results_folder, sprintf('computation_time_result_%d.pdf', i));
             set_figure_properties(fig_per_result, ExportFigConfig.paper('paperheight', 12))
             export_fig(fig_per_result, filepath);
