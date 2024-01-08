@@ -22,20 +22,18 @@ classdef HLCFactory < handle
                 optional.ros2_node = []
             end
 
-            if options.environment == Environment.Simulation
+            if isempty(optional.ros2_node)
                 % Create ROS2 node for this HLC
                 vehicle_ids_string = sprintf('_%02d', controlled_vehicles);
-                ros2_node = ros2node(['hlc', vehicle_ids_string]);
-            else
-                ros2_node = [];
+                optional.ros2_node = ros2node(['hlc', vehicle_ids_string]);
             end
 
-            plant = Plant.get_plant(options.environment, ros2_node);
+            plant = Plant.get_plant(options.environment, optional.ros2_node);
             plant.setup(options, controlled_vehicles);
 
             if optional.do_dry_run
                 % FIXME does not work in parallel
-                obj.dry_run_hlc(options, plant.vehicle_indices_controlled, ros2_node);
+                obj.dry_run_hlc(options, plant.vehicle_indices_controlled, optional.ros2_node);
             end
 
             if options.is_prioritized
@@ -43,20 +41,17 @@ classdef HLCFactory < handle
                 if length(controlled_vehicles) == 1
                     % Prioritized controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    if isempty(ros2_node)
-                        ros2_node = ros2node(sprintf('hlc_%02d', controlled_vehicles));
-                    end
-
-                    plant = Plant.get_plant(options.environment, ros2_node);
-                    plant.setup(options, controlled_vehicles);
-                    hlc = PrioritizedController(options, plant, ros2_node);
+                    hlc = PrioritizedController(options, plant, optional.ros2_node);
                 else
                     % Prioritized controller controlling all vehicles
                     hlc = PrioritizedSequentialController();
-                    ros2_node = ros2node(sprintf('hlc_seq'));
 
                     for i_vehicle = controlled_vehicles
-                        sub_hlc = obj.get_hlc(options, i_vehicle, ros2_node = ros2_node);
+                        sub_hlc = obj.get_hlc( ...
+                            options, ...
+                            i_vehicle, ...
+                            ros2_node = optional.ros2_node ...
+                        );
                         hlc.add_hlc(sub_hlc);
                     end
 
@@ -64,12 +59,6 @@ classdef HLCFactory < handle
 
             else
                 % Centralized Controller controlling all vehicles
-                vehicle_indices_string = sprintf('_%02d', controlled_vehicles);
-                ros2_node = ros2node(['hlc', vehicle_indices_string]);
-
-                plant = Plant.get_plant(options.environment, ros2_node);
-                plant.setup(options, controlled_vehicles);
-
                 hlc = CentralizedController(options, plant);
             end
 
