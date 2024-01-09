@@ -1,7 +1,7 @@
 function plot_computation_time(experiment_results, optional)
 
     arguments
-        experiment_results (:, :) ExperimentResult; % TODO object; TODO (variable, but clear) array meaning
+        experiment_results (:, :) ExperimentResult;
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
@@ -16,8 +16,6 @@ function plot_computation_time(experiment_results, optional)
     set(0, 'currentfigure', fig_per_result);
 
     for i = 1:n_results
-        % make sure only one controller runtime is stored in the struct
-        % assert(size(experiment_results(i).controller_runtime, 1) == 1); % TODO
         runtimes(:, i) = squeeze(experiment_results(i).timings_general.controller(2, 1, :));
         n_vehicles(i) = experiment_results(i).options.amount;
 

@@ -88,13 +88,13 @@ classdef (Abstract) RoadData
             figure()
             plotRoadSetup;
 
-            plot_lanelets(road_data.road_raw_data.lanelet, ScenarioType.commonroad);
+            plot_lanelets(road_data.road_raw_data.lanelet);
 
             %% plot lanelet boundaries
             figure()
             plotRoadSetup;
             lanelet_boundary_poly = cellfun(@(c)[c{3}], road_data.lanelet_boundary);
-            plot_lanelets(road_data.road_raw_data.lanelet, ScenarioType.commonroad);
+            plot_lanelets(road_data.road_raw_data.lanelet);
             plot(lanelet_boundary_poly)
 
             %% local function

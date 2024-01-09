@@ -83,7 +83,7 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
 
         % lanelets
         if ~isempty(scenario.road_raw_data) && ~isempty(scenario.road_raw_data.lanelet)
-            plot_lanelets(scenario.road_raw_data.lanelet, options.scenario_type);
+            plot_lanelets(scenario.road_raw_data.lanelet);
         end
 
         daspect([1 1 1]);

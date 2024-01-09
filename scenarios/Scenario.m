@@ -56,7 +56,7 @@ classdef Scenario
 
             % lanelets
             if ~isempty(obj.road_raw_data) && ~isempty(obj.road_raw_data.lanelet)
-                plot_lanelets(obj.road_raw_data.lanelet, options.scenario_type);
+                plot_lanelets(obj.road_raw_data.lanelet);
             end
 
             xlabel('$x$ [m]')

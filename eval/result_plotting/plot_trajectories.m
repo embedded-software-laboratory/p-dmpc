@@ -1,7 +1,7 @@
 function plot_trajectories(experiment_result, optional)
 
     arguments
-        experiment_result (1, 1) ExperimentResult; % TODO object; TODO (variable, but clear) array meaning
+        experiment_result (1, 1) ExperimentResult;
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
@@ -17,7 +17,6 @@ function plot_trajectories(experiment_result, optional)
     hold on;
     axis equal;
 
-    % TODO legend
     for i_vehicle = 1:size(x, 1)
         plot(x(i_vehicle, :), y(i_vehicle, :));
     end
