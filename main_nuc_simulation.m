@@ -69,7 +69,7 @@ function experiment_results = main_nuc_simulation()
     for i_entry = 1:numel(results_list)
         entry = results_list(i_entry);
         load([entry.folder, filesep, entry.name]);
-        experiment_results = merge_experiment_results(experiment_results, experiment_result);
+        experiment_results = merge_two_experiment_results(experiment_results, experiment_result);
     end
 
     fprintf('done.\n');

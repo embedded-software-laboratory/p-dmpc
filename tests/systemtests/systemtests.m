@@ -94,16 +94,20 @@ classdef systemtests < matlab.unittest.TestCase
 
             testCase.verifyTrue(true);
 
-            load(experiment_results{1}.output_path, 'experiment_result');
+            loaded_results = ExperimentResult.empty(0, length(experiment_results));
 
-            for i = 2:size(experiment_results, 2)
-                res_tmp = load(experiment_results{i}.output_path);
-                experiment_result = merge_experiment_results(experiment_result, res_tmp.experiment_result);
+            %test loading of experiment_results
+            for i = 1:length(experiment_results)
+                loaded_results(i) = load(experiment_results{i}.output_path).experiment_result;
             end
 
-            %verify and check export too
-            plot_default(experiment_result, do_export = true);
             testCase.verifyTrue(true);
+
+            %verify and check export too
+            plot_default(loaded_results, do_export = true);
+            testCase.verifyTrue(true);
+
+            experiment_result = merge_experiment_results(loaded_results);
 
             % verify export_video
             export_video( ...
