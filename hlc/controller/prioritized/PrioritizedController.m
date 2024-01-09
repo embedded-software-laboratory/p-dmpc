@@ -735,7 +735,6 @@ classdef (Abstract) PrioritizedController < HighLevelController
             obj.traffic_communication = {};
             obj.predictions_communication = {};
             obj.solution_cost_communication = {};
-            delete(obj.ros2_node);
             % clean up hlc in reverse order than constructing
             clean_up@HighLevelController(obj);
         end
