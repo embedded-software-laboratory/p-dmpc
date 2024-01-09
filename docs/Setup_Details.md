@@ -166,7 +166,7 @@ If the link already exist,
     1. Install dependencies: `sudo apt-get install build-essential g++ python-dev autotools-dev libicu-dev libbz2-dev libboost-all-dev`
     2. Download [boost_1_76_0.tar.bz2](https://www.boost.org/users/history/version_1_76_0.html): `wget https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2`
     3. Extract it: `tar -xvjf boost_1_76_0.tar.bz2` and change directory: `cd boost_1_76_0`
-    4. Prepare installation: `./bootstrap.sh --prefix=/usr/local`
+    4. Prepare installation: `./bootstrap.sh --prefix=/usr/local`. If there are multiple boost versions on your system, you might want to install boost in a local folder like `install` instead of `/usr/local`.
     5. Install libraries (header only and build required): `sudo ./b2 install`
     6. Remove files no longer needed: <br>
     `sudo cd ..` <br>
@@ -199,7 +199,7 @@ If the link already exist,
 - Installation:
     1. Make build directory and change to it </br> `mkdir build` </br> `cd build`
     2. Configure the project and specify the installation directory </br> (default installation destinations are in '/usr/local') </br>
-    `cmake .. -DCMAKE_INSTALL_PREFIX=<install-dir>`
+    `cmake .. -DCMAKE_INSTALL_PREFIX=<install-dir>`. If you installed the needed boost version in a local folder like `install` as mentioned above (step 4 of Ubuntu Boost Installation), you furthermore need to specify this folder here by using `-DBOOST_ROOT=<your-installation-location-of-boost>`
     3. Build the target install to install the libraries </br>
     (sudo rights are required for write access at the destinations) </br>
     `sudo cmake --build . --target install`
@@ -270,6 +270,9 @@ This can be done with the [doskey](https://blog.doubleslash.de/effizienter-arbei
 Boost warning massage during the build process
 - > #pragma message: This header is deprecated. Use \<iterator> instead.
 - The message occurs for boost versions 1.74, 1.75, and 1.76 since the graph library uses the headers (https://github.com/boostorg/graph/issues/228)
+
+Mex file cannot find `liblanelet2_<>.so`
+- Although rosless lanelet2 was installed under `/usr/local/lib` on some computers MATLAB does not find it. Before you then start matlab (from a terminal) run `export LD_LIBRARY_PATH=/usr/local/lib`. The same problem may arise with the boost library when installing in a local folder, e.g., `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path-to-your-install-folder>/lib`.
 
 # Requirements Remarks
 Mathworks [Platform Road Map](https://de.mathworks.com/support/requirements/platform-road-map.html) shows an overview of supported OS for Matlab and Simulink.
