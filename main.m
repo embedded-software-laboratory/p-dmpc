@@ -65,7 +65,7 @@ function [result, scenario] = main(varargin)
     else
         hlc_factory = HLCFactory();
         hlc_factory.set_scenario(scenario);
-        dry_run = (scenario.options.environment == Environment.CpmLab); % TODO: dry run also for unified testbed interface?
+        dry_run = (scenario.options.environment == Environment.CpmLab);
 
         if scenario.options.use_cpp
             optimizer(Function.CheckMexFunction);
@@ -79,6 +79,7 @@ function [result, scenario] = main(varargin)
             can_handle_parallel_plot = isa(plant, 'SimLab');
 
             if do_plot
+
                 if can_handle_parallel_plot
                     visualization_data_queue = plant.set_visualization_data_queue;
                     % create central plotter - used by all workers via data queue
@@ -87,6 +88,7 @@ function [result, scenario] = main(varargin)
                 else
                     warning('The currently selected environment cannot handle plotting of a parallel execution!');
                 end
+
             end
 
             spmd (scenario.options.amount)
