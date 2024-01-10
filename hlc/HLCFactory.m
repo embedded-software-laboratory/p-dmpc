@@ -20,7 +20,8 @@ classdef HLCFactory < handle
                 optional.do_dry_run = false
             end
 
-            if options.environment == Environment.Simulation
+            if options.environment == Environment.Simulation ...
+                    || options.environment == Environment.UnifiedTestbedInterface
                 % Create ROS2 node for this HLC
                 vehicle_ids_string = sprintf('_%02d', controlled_vehicles);
                 ros2_node = ros2node(['hlc', vehicle_ids_string]);

@@ -260,7 +260,7 @@ function out = get_environment_selection(ui, output_as_enum)
         elseif isequal([0 1 0], out)
             out = Environment.Simulation;
         elseif isequal([0 0 1], out)
-            out = Environment.UnifiedLabApi;
+            out = Environment.UnifiedTestbedInterface;
         end
 
     end
@@ -270,7 +270,7 @@ end
 function setEnvironmentElementsVisibility(ui)
     % if lab mode is selected
     is_lab_selection = (get_environment_selection(ui, true) == Environment.CpmLab ...
-        || get_environment_selection(ui, true) == Environment.UnifiedLabApi);
+        || get_environment_selection(ui, true) == Environment.UnifiedTestbedInterface);
 
     % sample time is automatically set in the lab
     ui.SampleTimesSpinner.Enable = ~is_lab_selection;
@@ -315,19 +315,19 @@ function [list] = list_computation_mode
 end
 
 function [list] = list_scenario(ui)
-    is_unified_lab_interface_selected = get_environment_selection(ui, true) == Environment.UnifiedLabApi;
+    is_unified_testbed_interface_selected = get_environment_selection(ui, true) == Environment.UnifiedTestbedInterface;
 
-    if is_unified_lab_interface_selected % Only allow lanelet2 maps here
+    if is_unified_testbed_interface_selected % Only allow lanelet2 maps here
         list = { ...
                     'Lanelet2', 'Lanelet2'; ...
-                    'Lab_default', 'Lab Default (ULA only)' ...
+                    'Testbed_default', 'Testbed Default (UTI only)' ...
                 };
     else
         list = { ...
                     ScenarioType.circle, 'Circle'; ...
                     ScenarioType.commonroad, 'Commonroad'; ...
                     ScenarioType.lanelet2, 'Lanelet2'; ...
-                    ScenarioType.lab_default, 'Lab Default' ...
+                    ScenarioType.testbed_default, 'Testbed Default' ...
                 };
     end
 

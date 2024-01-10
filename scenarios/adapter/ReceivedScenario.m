@@ -24,7 +24,7 @@ classdef ReceivedScenario < ScenarioAdapter
                 plant (1, 1) Plant
             end
 
-            if isa(plant, "UnifiedLabApi")
+            if isa(plant, "UnifiedTestbedInterface")
                 filepath_lanelet2_map = plant.receive_map();
             else
                 filepath_lanelet2_map = 'lab_reduced.osm';
@@ -42,7 +42,7 @@ classdef ReceivedScenario < ScenarioAdapter
 
         function map_as_string = receive_map(~)
             % receiving the map for the scenario
-            % the functionality is currently part of UnifiedLabApi
+            % the functionality is currently part of UnifiedTestbedInterface
             map_as_string = [];
         end
 

@@ -22,7 +22,7 @@ classdef (Abstract) ScenarioAdapter < handle
                 scenario_type (1, 1) ScenarioType
             end
 
-            if scenario_type == ScenarioType.lab_default
+            if scenario_type == ScenarioType.testbed_default
                 scenario_adapter = ReceivedScenario();
                 return
             end

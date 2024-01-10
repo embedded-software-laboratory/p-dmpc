@@ -9,6 +9,10 @@ function scenario = create_scenario(options)
             scenario = commonroad_scenario(options.amount, options.path_ids);
         case ScenarioType.lanelet2
             scenario = lanelet2_scenario(options.amount, options.path_ids);
+        case ScenarioType.testbed_default
+            scenario = Scenario();
+            disp('Scenario is created later after map is retrieved via UnifiedTestbedInterface');
+
     end
 
 end
