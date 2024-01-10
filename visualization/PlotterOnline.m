@@ -211,7 +211,6 @@ classdef PlotterOnline < Plotter
             plotting_info.ref_trajectory = zeros(1, obj.options.Hp, 2);
             plotting_info.ref_trajectory(1, :, :) = reshape(msg.ref_trajectory, numel(msg.ref_trajectory) / 2, 2);
             plotting_info.n_obstacles = msg.n_obstacles;
-            plotting_info.n_dynamic_obstacles = msg.n_dynamic_obstacles;
             plotting_info.step = msg.step;
             plotting_info.vehicle_indices = msg.vehicle_indices;
             plotting_info.tick_now = msg.tick_now;
@@ -245,15 +244,6 @@ classdef PlotterOnline < Plotter
 
             complete_plotting_info.n_obstacles = n_obstacles;
             complete_plotting_info.obstacles = cellfun(@(x) x.obstacles, plotting_info_collection, UniformOutput = false);
-            n_dynamic_obstacles = 0;
-
-            for x = plotting_info_collection
-                n_dynamic_obstacles = n_dynamic_obstacles + x{1}.n_dynamic_obstacles;
-            end
-
-            complete_plotting_info.n_dynamic_obstacles = n_dynamic_obstacles;
-            complete_plotting_info.dynamic_obstacles = cellfun(@(x) x.dynamic_obstacles, plotting_info_collection, UniformOutput = false);
-            complete_plotting_info.dynamic_obstacles_shape = cellfun(@(x) x.dynamic_obstacles_shape, plotting_info_collection, UniformOutput = false);
 
             if obj.plot_options.plot_reachable_sets
                 complete_plotting_info.reachable_sets = cellfun(@(x) x.reachable_sets, plotting_info_collection, UniformOutput = false);

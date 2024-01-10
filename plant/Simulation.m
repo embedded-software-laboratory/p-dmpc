@@ -143,7 +143,6 @@ classdef Simulation < Plant
             obj.msg_to_be_sent.trajectory_predictions = reshape(plotting_info.trajectory_predictions', 1, []);
             obj.msg_to_be_sent.ref_trajectory = reshape(squeeze(plotting_info.ref_trajectory), 1, []);
             obj.msg_to_be_sent.n_obstacles = int32(0);
-            obj.msg_to_be_sent.n_dynamic_obstacles = int32(0);
             obj.msg_to_be_sent.step = int32(plotting_info.step);
             obj.msg_to_be_sent.vehicle_indices = int32(plotting_info.vehicle_indices);
             obj.msg_to_be_sent.tick_now = int32(plotting_info.tick_now);

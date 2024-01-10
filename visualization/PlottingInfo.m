@@ -4,10 +4,7 @@ classdef PlottingInfo
         trajectory_predictions
         ref_trajectory
         n_obstacles
-        n_dynamic_obstacles
         obstacles
-        dynamic_obstacles
-        dynamic_obstacles_shape
         reachable_sets
         step
         vehicle_indices % vehicles to which the plot info belong
@@ -33,15 +30,9 @@ classdef PlottingInfo
             obj.trajectory_predictions = experiment_result.trajectory_predictions(:, k);
             obj.ref_trajectory = experiment_result.iteration_data{k}.reference_trajectory_points;
             obj.n_obstacles = size(experiment_result.iteration_data{k}.obstacles, 1);
-            obj.n_dynamic_obstacles = size(experiment_result.iteration_data{k}.dynamic_obstacle_fullres, 1);
 
             if obj.n_obstacles > 0
                 obj.obstacles = experiment_result.iteration_data{k}.obstacles;
-            end
-
-            if obj.n_dynamic_obstacles > 0
-                obj.dynamic_obstacles = experiment_result.iteration_data{k}.dynamic_obstacle_fullres{:, k};
-                obj.dynamic_obstacles_shape = experiment_result.iteration_data{k}.dynamic_obstacle_shape;
             end
 
             obj.reachable_sets = experiment_result.iteration_data{k}.reachable_sets;

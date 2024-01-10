@@ -18,8 +18,6 @@ classdef IterationData
 
         obstacles
         dynamic_obstacle_area % (nObs x Hp) cell of areas [x; y]
-        dynamic_obstacle_shape % (1 x 2) array [Length, Width] for all obstacles
-        dynamic_obstacle_fullres % (nObs x ?) cell array
         lanelet_crossing_areas
 
         adjacency % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
@@ -59,8 +57,6 @@ classdef IterationData
             obj.adjacency = zeros(nVeh, nVeh);
             obj.hdv_adjacency = zeros(nVeh, hdv_amount);
             obj.dynamic_obstacle_area = scenario.dynamic_obstacle_area;
-            obj.dynamic_obstacle_shape = {};
-            obj.dynamic_obstacle_fullres = {};
             obj.directed_coupling = zeros(nVeh, nVeh);
             obj.directed_coupling_reduced = zeros(nVeh, nVeh);
             obj.directed_coupling_sequential = zeros(nVeh, nVeh);
