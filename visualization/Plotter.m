@@ -43,11 +43,11 @@ classdef (Abstract) Plotter < handle
 
         function result = get.hotkey_position(obj)
 
-            if obj.scenario.options.scenario_name == ScenarioType.commonroad
+            if obj.scenario.options.scenario_type == ScenarioType.commonroad
                 result = diag(obj.scenario.options.plot_limits) + [-1.6; 0];
-            elseif contains(obj.scenario.options.scenario_name, 'circle') && obj.scenario.options.amount <= 2
+            elseif obj.scenario.options.scenario_type == ScenarioType.circle && obj.scenario.options.amount <= 2
                 result = obj.scenario.options.plot_limits(:, 1) + [0; -0.25];
-            elseif contains(obj.scenario.options.scenario_name, 'circle') && obj.scenario.options.amount > 2
+            elseif obj.scenario.options.scenario_type == ScenarioType.circle && obj.scenario.options.amount > 2
                 result = diag(obj.scenario.options.plot_limits) + [-2.1; 0];
             else
                 % To be defined according to the specific scenario.
@@ -96,7 +96,7 @@ classdef (Abstract) Plotter < handle
             );
 
             if ~isempty(scenario.road_raw_data) && ~isempty(scenario.road_raw_data.lanelet)
-                plot_lanelets(scenario.road_raw_data.lanelet, obj.scenario.options.scenario_name);
+                plot_lanelets(scenario.road_raw_data.lanelet, obj.scenario.options.scenario_type);
             end
 
             % Define a colormap
@@ -149,7 +149,7 @@ classdef (Abstract) Plotter < handle
                 xlim(obj.scenario.options.plot_limits(1, :));
                 ylim(obj.scenario.options.plot_limits(2, :));
                 daspect([1 1 1])
-                plot_lanelets(obj.scenario.road_raw_data.lanelet, obj.scenario.options.scenario_name);
+                plot_lanelets(obj.scenario.road_raw_data.lanelet, obj.scenario.options.scenario_type);
             end
 
             find_text_hotkey = findobj('Tag', 'hotkey');
@@ -279,8 +279,8 @@ classdef (Abstract) Plotter < handle
                 x0 = cellfun(@(c)c(plotting_info.tick_now, :), plotting_info.trajectory_predictions, 'UniformOutput', false);
                 x0 = cell2mat(x0);
 
-                if ~isempty(plotting_info.coupling_weights_reduced)
-                    plot_coupling_lines(plotting_info.coupling_weights_reduced, x0, plotting_info.belonging_vector, plotting_info.coupling_info, coupling_visu)
+                if ~isempty(plotting_info.weighted_coupling_reduced)
+                    plot_coupling_lines(plotting_info.weighted_coupling_reduced, x0, plotting_info.belonging_vector, plotting_info.coupling_info, coupling_visu)
                 else
                     plot_coupling_lines(plotting_info.directed_coupling, x0, [], [], coupling_visu)
                 end
@@ -313,7 +313,7 @@ classdef (Abstract) Plotter < handle
             end
 
             t = title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs', ...
-                obj.scenario.options.scenario_name, ...
+                obj.scenario.options.scenario_type, ...
                 'Graph Search', ...
                 obj.strategy, ...
                 plotting_info.step, ...

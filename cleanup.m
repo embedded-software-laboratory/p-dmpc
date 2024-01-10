@@ -4,7 +4,7 @@ function cleanup()
     % version.
     rmdir_helper("commun/cust1/matlab_msg_gen");
     rmdir_helper("commun/cust2/matlab_msg_gen");
-    rmdir_helper("commun/unified_lab_api/matlab_msg_gen");
+    rmdir_helper("commun/unified_testbed_interface/matlab_msg_gen");
     rmfile_helper("lanelets/lanelet2/generate_lanelet2_ref_path_loop_indices_mex.mexa64");
     rmfile_helper("lanelets/lanelet2/load_lanelet2_map_matlab_mex.mexa64");
     rmfile_helper("mex/priority_queue_interface_mex.mexa64");

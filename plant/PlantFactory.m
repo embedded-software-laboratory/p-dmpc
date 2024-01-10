@@ -8,8 +8,8 @@ classdef PlantFactory
                     plant = CpmLab();
                 case Environment.Simulation
                     plant = SimLab();
-                case Environment.UnifiedLabApi
-                    plant = UnifiedLabApi();
+                case Environment.UnifiedTestbedInterface
+                    plant = UnifiedTestbedInterface();
             end
         end
     end

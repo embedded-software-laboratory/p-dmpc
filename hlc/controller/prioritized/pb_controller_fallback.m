@@ -7,7 +7,7 @@ function info = pb_controller_fallback(iter, info, info_old, scenario, indices_i
 
         if ismember(vehicle_idx, info.vehs_fallback)
             % initialize
-            info_v = ControllResultsInfo(1, scenario.options.Hp, scenario.vehicles(vehicle_idx).ID);
+            info_v = ControlResultsInfo(1, scenario.options.Hp, scenario.vehicles(vehicle_idx).ID);
 
             info_v.tree = info_old.tree{vehicle_idx};
             info_v.tree_path = del_first_rpt_last(info_old.tree_path(vehicle_idx, :));

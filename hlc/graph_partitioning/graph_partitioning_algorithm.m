@@ -14,7 +14,7 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
     %
     %   method: either 's-t-cut' or 'MILP'
     %
-    %   options: instance of the class `OptionsMain`
+    %   options: instance of the class `Config`
     %
     % OUTPUT:
     %   belonging_vector: a column vector whose values indicate which
@@ -26,16 +26,23 @@ function [belonging_vector, subgraphs_info] = graph_partitioning_algorithm(M, ma
     %   of computation levels
 
     multiple_vehs_drive_parallel = {};
+    entries = find(M);
+    amount = size(M, 1);
 
     if options.is_force_parallel_vehs_in_same_grp
 
-        if ~isempty([coupling_info.veh_with_ROW])
+        if ~isempty(entries) && ~isempty([coupling_info{:}]) % in case is isnt a commonroad scenario or there are no couplings
+            used_coupling_info = [coupling_info{entries}];
             % find all vehicles that drive in parallel
-            coupling_info = coupling_info([coupling_info.is_move_side_by_side]);
+            parallel_pairs = find([used_coupling_info.is_move_side_by_side]);
+            parallel_pairs_entries = entries(parallel_pairs);
+            used_coupling_info_parallel = used_coupling_info(parallel_pairs);
             % sort according to the STAC so that parallel pair with higher STAC will be considered earlier
-            [~, order] = sort([coupling_info.STAC]);
-            coupling_info = coupling_info(order);
-            vehs_drive_parallel = [coupling_info.veh_with_ROW; coupling_info.veh_without_ROW]';
+            [~, order] = sort([used_coupling_info_parallel.stac]);
+            parallel_pairs_entries = parallel_pairs_entries(order);
+            rows = mod(parallel_pairs_entries, amount);
+            cols = ceil(parallel_pairs_entries / amount);
+            vehs_drive_parallel = [rows, cols];
         else
             vehs_drive_parallel = [];
         end

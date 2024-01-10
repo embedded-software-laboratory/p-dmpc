@@ -39,7 +39,7 @@ function scenario = create_scenario(options, random_seed, plant)
         options.veh_ids = sort(vehicle_ids);
         options.is_manual_control = 0;
     else
-        disp('Running in CPM Lab or via Unified Lab API...')
+        disp('Running in CPM Lab or via Unified Testbed Interface...')
         vehicle_ids = options.veh_ids;
         options.is_prioritized = true;
 
@@ -55,15 +55,19 @@ function scenario = create_scenario(options, random_seed, plant)
     end
 
     %% Setup Scenario
-    switch options.scenario_name
+    switch options.scenario_type
         case ScenarioType.circle
             scenario = circle_scenario(options);
         case ScenarioType.commonroad
             scenario = commonroad(options, vehicle_ids);
-        case 'Lanelet2'
+        case ScenarioType.lanelet2
             scenario = lanelet2_scenario(options, vehicle_ids, plant);
-        case 'Lab_default'
+        case ScenarioType.lab_default
             scenario = lanelet2_scenario(options, vehicle_ids, plant);
+        case ScenarioType.lanelet2_ids3c_circle
+            scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant);
+        case ScenarioType.lanelet2_ids3c_circle_in_cpm
+            scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant);
     end
 
     initial_state = find([scenario.mpa.trims.speed] == 0 & [scenario.mpa.trims.steering] == 0, 1);

@@ -34,25 +34,30 @@ function plot_coupling_lines(M, x0, varargin)
         x = x0(v, :);
         % plot directed coupling
         adjacent_vehicles = find(M(v, :) ~= 0);
+        if ~isempty(coupling_info) % in case it isnt a commonroad scenario
+            all_adjacent_vehicles = find(~cellfun(@isempty, coupling_info(v, :)));
+        else
+            all_adjacent_vehicles = [];
+        end
 
         % plot couplings that are ignored by letting vehicles without
         % right-of-way not enter the lanelet crossing area
-        if ~isempty(coupling_info)
-            find_self = [coupling_info.veh_with_ROW] == v;
-            find_ignored = [coupling_info.is_ignored] == true;
-            find_targrt = all([find_self; find_ignored], 1);
 
-            if any(find_targrt)
-                all_adjacent_vehicles = [coupling_info(find_targrt).veh_without_ROW];
-                coupling_ignored = setdiff(all_adjacent_vehicles, adjacent_vehicles);
+        if any(all_adjacent_vehicles)
+            redundant_entries = setdiff(all_adjacent_vehicles, adjacent_vehicles);
+            redundant_coupling_infos = [coupling_info{v, redundant_entries}];
 
-                for i_ignored = coupling_ignored(:)'
-                    ignored_x = x0(i_ignored, :);
-                    MaxHeadSize = 0.7 * norm([ignored_x(1) - x(1), ignored_x(2) - x(2)]); % to keep the arrow size
-                    % couplings that are ignored will be shown in grey solid lines
-                    plot_arrow(x', (ignored_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_minor, '-', MaxHeadSize);
-                end
+            if ~isempty(redundant_coupling_infos)
+                coupling_ignored = redundant_entries(redundant_coupling_infos.is_ignored);
+            else
+                coupling_ignored = [];
+            end
 
+            for i_ignored = coupling_ignored
+                ignored_x = x0(i_ignored, :);
+                MaxHeadSize = 0.7 * norm([ignored_x(1) - x(1), ignored_x(2) - x(2)]); % to keep the arrow size
+                % couplings that are ignored will be shown in grey solid lines
+                plot_arrow(x', (ignored_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_minor, '-', MaxHeadSize);
             end
 
         end
@@ -95,7 +100,7 @@ function [M, x0, belonging_vector, coupling_info, coupling_visu] = parse_inputs(
     addRequired(p, 'M', @(x) ismatrix(x) && (isnumeric(x) || islogical(x))); % must be numerical matrix
     addRequired(p, 'x0', @(x) isstruct(x) || ismatrix(x) && (isnumeric(x))); % must be numerical matrix
     addOptional(p, 'belonging_vector', default_belonging_vector, @(x) (isnumeric(x) && isvector(x)) || isempty(x)); % must be numerical vector or empty
-    addOptional(p, 'coupling_info', default_coupling_info, @(x) isstruct(x) || isempty(x)); % must be struct or empty
+    addOptional(p, 'coupling_info', default_coupling_info, @(x) iscell(x) || isempty(x)); % must be cell array or empty
     addOptional(p, 'coupling_visu', default_coupling_visu, @(x) isstruct(x) || isempty(x)); % must be struct or empty
 
     parse(p, M, x0, varargin{:}); % start parsing

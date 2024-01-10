@@ -36,7 +36,7 @@ function plot_scenario(result, filename)
 
     % lanelets
     if ~isempty(scenario.road_raw_data.lanelet)
-        plot_lanelets(scenario.road_raw_data.lanelet, scenario.options.scenario_name);
+        plot_lanelets(scenario.road_raw_data.lanelet, scenario.options.scenario_type);
     end
 
     xlabel('$x$ [m]')

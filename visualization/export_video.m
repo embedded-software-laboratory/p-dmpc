@@ -27,7 +27,7 @@ function export_video(result, video_export_setup)
         plotter.plotOnline(plotting_info);
         set_figure_properties(plotter.get_figure(), ExportFigConfig.video());
         frame = getframe(plotter.get_figure());
-        imwrite(frame.cdata, ['output\video_', scenario.options.scenario_name, '.png']);
+        imwrite(frame.cdata, ['output\video_', char(scenario.options.scenario_type), '.png']);
         return
     end
 

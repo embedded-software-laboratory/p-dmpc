@@ -1,9 +1,9 @@
 %% export video
 %% two vehicles, parallel planning, visualize reachable sets
 % prepare simulation options
-options = OptionsMain;
+options = Config;
 options.environment = Environment.Simulation;
-options.scenario_name = ScenarioType.commonroad;
+options.scenario_type = ScenarioType.commonroad;
 options.trim_set = 9;
 options.Hp = 6;
 
