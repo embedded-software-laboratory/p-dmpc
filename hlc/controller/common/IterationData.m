@@ -11,22 +11,27 @@ classdef IterationData
         current_lanelet % vehicle's current lanelet
         predicted_lanelets % vehicle's predicted lanelets
         predicted_lanelet_boundary % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
-        reachable_sets % cells to store instances of MATLAB calss `polyshape`
-        hdv_reachable_sets % reachable sets of hdvs
+
         occupied_areas % currently occupied areas with normal offset of vehicles
         emergency_maneuvers % occupied area of emergency braking maneuver
-        adjacency % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
-        hdv_adjacency % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
+        reachable_sets % cells to store instances of MATLAB calss `polyshape`
+
         obstacles
         dynamic_obstacle_area % (nObs x Hp) cell of areas [x; y]
         dynamic_obstacle_shape % (1 x 2) array [Length, Width] for all obstacles
         dynamic_obstacle_fullres % (nObs x ?) cell array
+        lanelet_crossing_areas
+
+        adjacency % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
         weighted_coupling % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
         coupling_info % couling information of each coupling pair
         directed_coupling % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
         directed_coupling_reduced % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
         directed_coupling_sequential % nVeh-by-nVeh matrix, after graph partitioning
-        lanelet_crossing_areas
+
+        hdv_reachable_sets % reachable sets of hdvs
+        hdv_adjacency % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
+
         vehicles % copy of vehicle list (useful for filtered)
         vehicle_ids
         amount % number of involved vehicles (useful for filtered)
