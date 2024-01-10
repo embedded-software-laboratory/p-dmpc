@@ -72,7 +72,6 @@ function experiment_result = main(options)
 end
 
 function experiment_result = run_hlc(options, i_vehicle)
-    hlc_factory = HLCFactory();
-    hlc = hlc_factory.get_hlc(options, i_vehicle);
+    hlc = HlcFactory.get_hlc(options, i_vehicle);
     experiment_result = hlc.run();
 end

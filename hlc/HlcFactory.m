@@ -1,18 +1,13 @@
-classdef HLCFactory < handle
+classdef HlcFactory
 
     properties (Access = public)
     end
 
-    % TODO all functions could be static
-    methods
+    methods (Static)
 
-        function obj = HLCFactory()
-        end
-
-        function hlc = get_hlc(obj, options, controlled_vehicles, optional)
+        function hlc = get_hlc(options, controlled_vehicles, optional)
 
             arguments
-                obj
                 options
                 % controlled_vehicles Depending on the Plant, these can be
                 % Simulation:   indices of the vehicles
@@ -33,7 +28,7 @@ classdef HLCFactory < handle
 
             if optional.do_dry_run
                 % FIXME does not work in parallel
-                obj.dry_run_hlc(options, plant.vehicle_indices_controlled, optional.ros2_node);
+                HlcFactory.dry_run_hlc(options, plant.vehicle_indices_controlled, optional.ros2_node);
             end
 
             if options.is_prioritized
@@ -56,7 +51,7 @@ classdef HLCFactory < handle
                     end
 
                     for i_vehicle = controlled_vehicles
-                        sub_hlc = obj.get_hlc( ...
+                        sub_hlc = HlcFactory.get_hlc( ...
                             options, ...
                             i_vehicle, ...
                             ros2_node = optional.ros2_node ...
@@ -91,7 +86,7 @@ classdef HLCFactory < handle
         % Important note: This might take some time depending on how hard to
         % solve the first time step of this scenario is.
 
-        function dry_run_hlc(obj, options, dry_run_vehicle_ids, ros2_node)
+        function dry_run_hlc(options, dry_run_vehicle_ids, ros2_node)
             fprintf("Dry run of HLC...");
 
             % use simulation to avoid communication with a lab
@@ -108,7 +103,7 @@ classdef HLCFactory < handle
             plant = Plant.get_plant(options.environment, ros2_node);
             plant.setup(options, dry_run_vehicle_ids);
 
-            hlc = obj.get_hlc(options, dry_run_vehicle_ids, do_dry_run = true);
+            hlc = HlcFactory.get_hlc(options, dry_run_vehicle_ids, do_dry_run = true);
             hlc.run();
 
             fprintf(" done.\n");
