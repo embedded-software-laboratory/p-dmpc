@@ -1,31 +1,58 @@
-function scenarios = commonroad_random(options, nVeh, seed)
-% commonroad_random - generate a random scenario
-%   scenarios = commonroad_random(options, nVeh, seed)
-%  options: OptionsMain object (vehicle ids are ignored)
-%  nVeh: number of vehicles (can be array)
-%  seed: random seed (can be array)
-arguments
-    options (1,1) Config
-    nVeh (1,:) double
-    seed (1,:) double
-end
-disp('Creating scenarios...')
-scenarios(length(nVeh),length(seed)) = Scenario();
-options_copy = copy(options);
-for iVeh = 1:length(nVeh)
-    for iSeed = 1:length(seed)
-        options = copy(options_copy);
-        options.amount = nVeh(iVeh);
-        random_stream = RandStream('mt19937ar','Seed',seed(iSeed));
-        veh_ids = sort(randsample(random_stream,1:40,options.amount),'ascend');
-        options.veh_ids = veh_ids;
-        scenario = commonroad(options, options.veh_ids);
-        scenario.random_stream = random_stream;
-        for idVeh = 1:options.amount
-            % initialize vehicle ids of all vehicles
-            scenario.vehicles(idVeh).ID = scenario.options.veh_ids(idVeh);
-        end
-        scenarios(iVeh,iSeed) = scenario;
+function [options_array, scenario_array] = commonroad_random(amounts, seeds, options)
+    % commonroad_random - generate multiple options with commonroad scenarios
+    % with random path_ids based on passed seeds and passed amounts
+    %
+    % Output:
+    %   options_array (n_amounts, n_seeds) Config
+    %   scenario_array (n_amounts, n_seeds) Scenario
+
+    arguments
+        amounts (1, :) double
+        seeds (1, :) double
+        % options based on which the output arguments are created
+        options (1, 1) Config = Config();
     end
-end
+
+    % validate passed options
+    options = options.validate();
+
+    assert( ...
+        options.scenario_type == ScenarioType.commonroad, ...
+        'Scenario type must be commonroad! Argument or default type is not correct!' ...
+    )
+
+    path_id_max = 41; % maximum defined path id
+
+    fprintf('Creating options and if requested scenarios... ');
+    options_array(length(amounts), length(seeds)) = Config();
+    scenario_array(length(amounts), length(seeds)) = Scenario();
+
+    for i_amount = 1:length(amounts)
+
+        for i_seed = 1:length(seeds)
+            random_stream = RandStream('mt19937ar', 'Seed', seeds(i_seed));
+
+            options_random = options;
+            options_random.amount = amounts(i_amount);
+            options_random.path_ids = randperm(random_stream, path_id_max, options_random.amount);
+
+            % validate modified options
+            options_random = options_random.validate();
+
+            options_array(i_amount, i_seed) = options_random;
+
+            if nargout == 1
+                % do not create scenarios if they were not requested
+                continue
+            end
+
+            scenario = commonroad_scenario(options_random.amount, options_random.path_ids);
+
+            scenario_array(i_amount, i_seed) = scenario;
+        end
+
+    end
+
+    fprintf('done\n');
+
 end

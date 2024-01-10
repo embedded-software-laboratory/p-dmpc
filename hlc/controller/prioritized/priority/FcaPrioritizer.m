@@ -8,7 +8,7 @@ classdef FcaPrioritizer < Prioritizer
         function obj = FcaPrioritizer()
         end
 
-        function [directed_coupling] = prioritize(~, scenario, iter)
+        function [directed_coupling] = prioritize(~, iter, ~, options, ~)
             adjacency = iter.adjacency;
 
             %% assign priorities to vehicles based on future collision assessment
@@ -18,15 +18,15 @@ classdef FcaPrioritizer < Prioritizer
             collisions = zeros(1, nVeh);
 
             veh = Vehicle();
-            x_locals = [-1, -1, 1, 1] * (veh.Length / 2 + scenario.options.offset);
-            y_locals = [-1, 1, 1, -1] * (veh.Width / 2 + scenario.options.offset);
+            x_locals = [-1, -1, 1, 1] * (veh.Length / 2 + options.offset);
+            y_locals = [-1, 1, 1, -1] * (veh.Width / 2 + options.offset);
 
             for nveh = 1:nVeh - 1
                 % position of nveh
                 nveh_x = iter.reference_trajectory_points(nveh, :, 1);
                 nveh_y = iter.reference_trajectory_points(nveh, :, 2);
-                refPath_n = [nveh_x; nveh_y]';
-                nveh_yaw = calculate_yaw(refPath_n);
+                reference_path_n = [nveh_x; nveh_y]';
+                nveh_yaw = calculate_yaw(reference_path_n);
                 % check adjacent vehicles
                 veh_adjacent = find(adjacency(nveh, :));
 
@@ -69,8 +69,8 @@ classdef FcaPrioritizer < Prioritizer
                         % position of iveh
                         iveh_x = iter.reference_trajectory_points(iveh, :, 1);
                         iveh_y = iter.reference_trajectory_points(iveh, :, 2);
-                        refPath_i = [iveh_x; iveh_y]';
-                        iveh_yaw = calculate_yaw(refPath_i);
+                        reference_path_i = [iveh_x; iveh_y]';
+                        iveh_yaw = calculate_yaw(reference_path_i);
 
                         % shape of iveh
                         [x_globals_i, y_globals_i] = translate_global(iveh_yaw(istep), iveh_x(istep), iveh_y(istep), x_locals, y_locals);
@@ -88,26 +88,12 @@ classdef FcaPrioritizer < Prioritizer
 
             end
 
-            [~, FCAPrio] = sort(collisions, 'descend'); % ordered vehicle index w.r.t. priority
+            [~, current_priorities] = sort(collisions, 'descend'); % ordered vehicle index w.r.t. priority
             %disp(['collisions: ',num2str(collisions)])
             %disp(['priority_index: ',num2str(FCAPrio)])
 
-            directed_coupling = adjacency;
+            directed_coupling = Prioritizer.directed_coupling_from_priorities(adjacency, current_priorities);
 
-            for iVeh = 1:nVeh
-
-                for jVeh = 1:nVeh
-
-                    if directed_coupling(iVeh, jVeh) && (FCAPrio(iVeh) > FCAPrio(jVeh))
-                        directed_coupling(iVeh, jVeh) = 0;
-                    end
-
-                end
-
-            end
-
-            [isDAG, ~] = kahn(directed_coupling);
-            assert(isDAG, 'Coupling matrix is not a DAG');
         end
 
     end

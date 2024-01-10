@@ -4,33 +4,29 @@ function eval_parallel_computation_CLs()
     options = Config();
     options.environment = Environment.Simulation;
     options.scenario_type = ScenarioType.commonroad;
-    options.trim_set = 9;
+    options.mpa_type = MpaType.single_speed;
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
-    options.compute_in_parallel = false;
-    options.allow_priority_inheritance = false;
-    options.strategy_consider_veh_without_ROW = '3';
+    options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
     options.strategy_enter_lanelet_crossing_area = '1';
-    options.dt = 0.2;
+    options.dt_seconds = 0.2;
     options.options_plot_online.is_active = false;
 
     options.should_save_result = true;
     options.Hp = 7;
     options.T_end = 4;
     options.amount = 20;
-    options.compute_in_parallel = false; % avoid to use distributed computation
 
     random_times = 10;
     CLs_s = [1, 2, 4, 6, options.amount];
     e_CLs = cell(random_times, length(CLs_s));
-    results = cell(random_times, length(CLs_s));
+    experiment_results = cell(random_times, length(CLs_s));
     n_simulations = numel(e_CLs);
     count = 0;
 
     random_seed = RandStream('mt19937ar');
 
     for i = 1:random_times
-        options.random_idx = i;
 
         for j = 1:length(CLs_s)
 
@@ -41,7 +37,7 @@ function eval_parallel_computation_CLs()
             end
 
             options.max_num_CLs = CLs_s(j);
-            options.veh_ids = sort(randsample(random_seed, 1:40, options.amount), 'ascend');
+            options.path_ids = sort(randsample(random_seed, 1:40, options.amount), 'ascend');
 
             full_path = FileNameConstructor.get_results_full_path(options, options.amount);
 
@@ -49,13 +45,13 @@ function eval_parallel_computation_CLs()
                 disp('File already exists.')
             else
                 % run simulation
-                [~, ~] = main(options);
+                main(options);
             end
 
             % data processing
             e_CLs{i, j} = EvaluationParl(options);
-            load(full_path, 'result')
-            results{i, j} = result;
+            load(full_path, 'experiment_result')
+            experiment_results{i, j} = experiment_result;
 
             % display progress
             count = count + 1;
@@ -87,7 +83,7 @@ function eval_parallel_computation_CLs()
 
     % export video
     disp('--------Exporting frames--------')
-    export_fig_for_video(results, results_folder_path)
+    export_fig_for_video(experiment_results, results_folder_path)
     disp('--------Frames exported--------')
 
 end
@@ -165,33 +161,31 @@ function plot_different_num_CLs(e_CLs, free_flow_speed, CLs_s, results_folder_pa
 end
 
 %% export videos
-function export_fig_for_video(results, results_folder_path)
+function export_fig_for_video(experiment_results, results_folder_path)
     i_CLs = 3; % number of computation levels: 4
     i_random = 1;
-    result = results{i_random, i_CLs};
+    experiment_result = experiment_results{i_random, i_CLs};
 
-    result.scenario.options.options_plot_online.is_video_mode = true;
-    result.scenario.options.options_plot_online.plot_coupling = true;
-    result.scenario.options.options_plot_online.plot_weight = true;
-    result.scenario.options.options_plot_online.plot_priority = true;
+    experiment_result.options.options_plot_online.is_video_mode = true;
+    experiment_result.options.options_plot_online.plot_coupling = true;
+    experiment_result.options.options_plot_online.plot_weight = true;
+    experiment_result.options.options_plot_online.plot_priority = true;
 
     % videoExportSetup.framerate = 30;
     timesteps = 14;
 
-    for iStep = timesteps
+    for i_step = timesteps
 
         % after applying our approach
-        result.scenario.options.options_plot_online.plot_weight = true;
-        export_frame(result, iStep = iStep, frame_name = 'coupling_after_our_approach.png')
+        experiment_result.options.options_plot_online.plot_weight = true;
+        export_frame(experiment_result, i_step = i_step, frame_name = 'coupling_after_our_approach.png')
         % before applying our approach
-        result.scenario.options.options_plot_online.plot_weight = false;
-        belonging_vector = result.belonging_vector(:, iStep);
-        result.belonging_vector(:, iStep) = 1;
-        export_frame(result, iStep = iStep, frame_name = 'coupling_before_our_approach.png')
+        experiment_result.options.options_plot_online.plot_weight = false;
+        export_frame(experiment_result, i_step = i_step, frame_name = 'coupling_before_our_approach.png')
 
         fig1 = figure();
         hold on
-        plot_partitioned_graph(belonging_vector', result.iteration_structs{iStep}.coupling_weights_reduced, 'ShowWeights', true, 'ShowCutEdges', false)
+        plot_partitioned_graph(experiment_result, 'ShowWeights', true, 'ShowCutEdges', false, i_step = i_step);
         % title('Before applying our method')
         box on
         file_path_1 = fullfile(results_folder_path, 'graph_before_our_approach.png');
@@ -200,7 +194,7 @@ function export_fig_for_video(results, results_folder_path)
 
         fig2 = figure();
         hold on
-        plot_partitioned_graph(belonging_vector', result.iteration_structs{iStep}.coupling_weights, 'ShowWeights', true, 'ShowCutEdges', true)
+        plot_partitioned_graph(experiment_result, 'ShowWeights', true, 'ShowCutEdges', true, i_step = i_step);
         % title('After applying our method')
         box on
         file_path_2 = fullfile(results_folder_path, 'graph_after_our_approach.png');

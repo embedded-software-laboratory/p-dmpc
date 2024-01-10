@@ -1,17 +1,15 @@
 {
     "scenario_type": "commonroad",
     "amount": 2,
-    "veh_ids": [
+    "path_ids": [
         26,
         37
     ],
     "T_end": 5,
     "max_num_CLs": 4,
-    "trim_set": 6,
+    "mpa_type": "single_speed",
     "should_save_result": false,
     "should_reduce_result": false,
-    "is_save_mpa": false,
-    "is_load_mpa": true,
     "options_plot_online": {
         "is_active": true,
         "plot_vehicle_id": true,
@@ -26,10 +24,5 @@
         "is_video_mode": true
     },
     "is_prioritized": true,
-    "strategy_enter_lanelet_crossing_area": "2",
-    "is_manual_control": false,
-    "manual_control_config": {
-        "hdv_ids": [],
-        "amount": 0
-    }
+    "strategy_enter_lanelet_crossing_area": "2"
 }

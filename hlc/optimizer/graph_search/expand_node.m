@@ -1,7 +1,7 @@
-function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
+function [new_open_nodes] = expand_node(options, mpa, iter, iNode, info)
     % EXPAND_NODE   Expand node in search tree and return succeeding nodes.
-    trim_tuple = scenario.mpa.trim_tuple;
-    trim_length = length(scenario.mpa.trims) * ones(1, iter.amount);
+    trim_tuple = mpa.trim_tuple;
+    trim_length = length(mpa.trims) * ones(1, iter.amount);
 
     curX = info.tree.x(:, iNode);
     curY = info.tree.y(:, iNode);
@@ -11,9 +11,23 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     curG = info.tree.g(:, iNode);
 
     k_exp = curK + 1;
-    cur_trim_id = tuple2index(curTrim(:), trim_length);
-    successor_trim_ids = find(scenario.mpa.transition_matrix(cur_trim_id, :, k_exp));
 
+    % The reduction of the MPA has the consequence that the transition_matrix remains empty.
+    % expand_node.m, however, needs this to calculate the successor_trim_ids.
+    % The calculation is now done via transition_matrix_single.
+    % see !127
+    per_vehicle_trims = cell(1, iter.amount);
+
+    for iVehicle = 1:iter.amount
+        per_vehicle_trims{iVehicle} = find(mpa.transition_matrix_single(curTrim(iVehicle), :, k_exp));
+
+        if iVehicle > 1
+            per_vehicle_trims{iVehicle} = (per_vehicle_trims{iVehicle} - 1) * prod(trim_length(1:iVehicle - 1));
+        end
+
+    end
+
+    successor_trim_ids = sum(cartprod(per_vehicle_trims{:}), 2);
     nTrims = numel(successor_trim_ids);
 
     expX = zeros(iter.amount, nTrims);
@@ -24,7 +38,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
     expG = curG * ones(1, nTrims);
     expH = zeros(1, nTrims);
 
-    time_steps_to_go = scenario.options.Hp - k_exp;
+    time_steps_to_go = options.Hp - k_exp;
 
     for iTrim = 1:nTrims
         id = successor_trim_ids(iTrim);
@@ -35,7 +49,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             itrim2 = expTrim(iVeh, iTrim);
 
             % if current vehicle is manual vehicle and its MPA is already initialized, choose the corresponding MPA
-            maneuver = scenario.mpa.maneuvers{itrim1, itrim2};
+            maneuver = mpa.maneuvers{itrim1, itrim2};
 
             c = cos(curYaw(iVeh));
             s = sin(curYaw(iVeh));
@@ -45,7 +59,7 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
             expYaw(iVeh, iTrim) = curYaw(iVeh) + maneuver.dyaw;
 
             % Cost to come
-            % iter.reference is of size (scenario.options.amount,scenario.options.Hp,2)
+            % iter.reference is of size (options.amount,options.Hp,2)
             % Distance to reference trajectory points squared to conform with
             % J = (x-x_ref)' Q (x-x_ref)
             expG(iTrim) = expG(iTrim) + norm([expX(iVeh, iTrim) - iter.reference_trajectory_points(iVeh, k_exp, 1); expY(iVeh, iTrim) - iter.reference_trajectory_points(iVeh, k_exp, 2)])^2;
@@ -57,14 +71,14 @@ function [new_open_nodes] = expand_node(scenario, iter, iNode, info)
 
             for i_t = 1:time_steps_to_go
                 d_traveled_max = d_traveled_max ...
-                    + scenario.options.dt * iter.v_ref(iVeh, k_exp + i_t);
+                    + options.dt_seconds * iter.v_ref(iVeh, k_exp + i_t);
                 expH(iTrim) = expH(iTrim) + (max(0, (norm([expX(iVeh, iTrim) - iter.reference_trajectory_points(iVeh, k_exp + i_t, 1); expY(iVeh, iTrim) - iter.reference_trajectory_points(iVeh, k_exp + i_t, 2)]) - d_traveled_max))^2);
 
             end
 
             %             % vectorize the for-loop that calculates the cost-to-go (if
             %             needed)
-            %             distancesTraveledMax = cumsum(scenario.options.dt*iter.vRef(iVeh,k_exp+1:end));
+            %             distancesTraveledMax = cumsum(options.dt_seconds*iter.vRef(iVeh,k_exp+1:end));
             %             distancesXy = [expX(iVeh,iTrim);expY(iVeh,iTrim)] - [iter.reference_trajectory_points(iVeh,k_exp+1:end,1);iter.reference_trajectory_points(iVeh,k_exp+1:end,2)];
             %             straightLineDistances = sqrt(sum(distancesXy.^2,1));
             %             expH(iTrim) = sum((distancesTraveledMax-straightLineDistances).^2);

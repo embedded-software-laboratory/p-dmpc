@@ -1,0 +1,635 @@
+classdef (Abstract) HighLevelController < handle
+
+    properties (Access = public)
+        % config
+        options;
+
+        % Adapter for creating the scenario
+        scenario_adapter;
+
+        % Adapter for the lab
+        % or one for a local simulation
+        plant;
+
+        optimizer;
+        mpa;
+        experiment_result;
+        k;
+        iter;
+        info;
+
+    end
+
+    properties (Access = protected)
+        % Until the PrioritizedSequentialController does not own a list of PrioritizedControllers as planned for the future,
+        % the HighLevelController maintains two timing variables:
+        % timing_general stores all timings holding for all vehicles
+        timing_general (1, 1) ControllerTiming;
+        % timing_per_veh stores the timings per vehicle
+        timing_per_vehicle (1, :) ControllerTiming;
+        coupler
+
+        % old control results used for taking a fallback
+        info_old
+    end
+
+    properties (Access = private)
+        % member variable that is used to execute steps on error
+        is_run_succeeded (1, 1) logical = false
+
+        got_stop;
+        vehicles_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
+        total_fallback_times; % total times of fallbacks
+        vehs_stop_duration;
+    end
+
+    methods (Abstract = true, Access = protected)
+        controller(obj);
+        plan_for_fallback(obj);
+    end
+
+    methods
+        % Set default settings
+        function obj = HighLevelController(options, plant)
+            % remove step time from options to avoid usage
+            % before it is received from the plant
+            options.dt_seconds = [];
+
+            obj.options = options;
+            obj.scenario_adapter = ScenarioAdapter.get_scenario_adapter(options.scenario_type);
+            obj.plant = plant;
+
+            obj.k = 0;
+            obj.got_stop = false;
+            obj.total_fallback_times = 0;
+
+            obj.coupler = Coupler.get_coupler(obj.options.coupling, obj.options.amount);
+            obj.timing_general = ControllerTiming();
+
+            for iVeh = obj.plant.vehicle_indices_controlled
+                obj.timing_per_vehicle(iVeh) = ControllerTiming();
+            end
+
+        end
+
+        function experiment_result = run(obj)
+            % run the controller
+
+            % object that executes the specified function on destruction
+            cleanupObj = onCleanup(@obj.end_run);
+
+            % initialize the controller and its adapters
+            obj.main_init();
+
+            % start controllers main control loop
+            obj.main_control_loop();
+
+            % set to true if the controller ran properly
+            obj.is_run_succeeded = true;
+
+            % This triggers obj.end_run such that the returned experiment_result contains all information.
+            % It is only reached if onCleanup was not already destroyed before because of an error.
+            delete(cleanupObj);
+
+            % specify returned variables
+            experiment_result = obj.experiment_result;
+        end
+
+    end
+
+    methods (Access = protected)
+
+        function init(obj)
+            % initialize high level controller itself
+
+            % create vehicle model from information of controlled vehicle
+            % if more than one vehicle is controlled assume that they all have
+            % the same dimensions and take the dimensions of the first one
+            bicycle_model = BicycleModel( ...
+                obj.scenario_adapter.scenario.vehicles(obj.plant.vehicle_indices_controlled(1)).Lf, ...
+                obj.scenario_adapter.scenario.vehicles(obj.plant.vehicle_indices_controlled(1)).Lr ...
+            );
+
+            % construct mpa
+            obj.mpa = MotionPrimitiveAutomaton(bicycle_model, obj.options);
+
+            % initialize ExperimentResult object
+            obj.experiment_result = ExperimentResult(obj.options, obj.scenario_adapter.scenario, obj.mpa);
+
+            % initialize iteration data
+            obj.iter = IterationData(obj.options, obj.scenario_adapter.scenario, obj.plant.all_vehicle_indices);
+
+            % create old control results info in case of fallback at first time step
+            obj.info_old = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_indices);
+
+            % measure vehicles' initial poses and trims
+            [cav_measurements] = obj.plant.measure();
+
+            % fill control results info for each controlled vehicle with measurement information
+            for vehicle_idx = obj.plant.vehicle_indices_controlled
+                % get initial pose from measurement
+                initial_pose = [ ...
+                                    cav_measurements(vehicle_idx).x, ...
+                                    cav_measurements(vehicle_idx).y, ...
+                                    cav_measurements(vehicle_idx).yaw, ...
+                                ];
+                % find initial trim of the controlled vehicle
+                initial_trim = obj.mpa.trim_from_values( ...
+                    cav_measurements(vehicle_idx).speed, ...
+                    cav_measurements(vehicle_idx).steering ...
+                );
+
+                % initialize info_old
+                obj.info_old.tree{vehicle_idx} = AStarTree(initial_pose(1), initial_pose(2), initial_pose(3), initial_trim, 1, inf, inf);
+                obj.info_old.tree_path(vehicle_idx, :) = ones(1, obj.options.Hp + 1);
+                obj.info_old.y_predicted(vehicle_idx) = {repmat( ...
+                                                             [initial_pose(1), initial_pose(2), initial_pose(3), initial_trim], ...
+                                                             (obj.options.tick_per_step + 1) * obj.options.Hp, ...
+                                                             1 ...
+                                                         )};
+            end
+
+            % record the number of time steps that vehicles
+            % consecutively stop and take fallback
+            obj.vehs_stop_duration = zeros(obj.options.amount, 1);
+            obj.vehicles_fallback_times = zeros(1, obj.options.amount);
+        end
+
+        function update_controlled_vehicles_traffic_info(obj, cav_measurements)
+
+            for iVeh = obj.plant.vehicle_indices_controlled
+                % states of controlled vehicles can be measured directly
+                obj.iter.x0(iVeh, :) = [ ...
+                                            cav_measurements(iVeh).x, ...
+                                            cav_measurements(iVeh).y, ...
+                                            cav_measurements(iVeh).yaw, ...
+                                            cav_measurements(iVeh).speed ...
+                                        ];
+
+                % get own trim
+                obj.iter.trim_indices(iVeh) = obj.mpa.trim_from_values( ...
+                    cav_measurements(iVeh).speed, ...
+                    cav_measurements(iVeh).steering ...
+                );
+
+                % get vehicles currently occupied areas
+                obj.iter.occupied_areas{iVeh} = get_occupied_areas( ...
+                    cav_measurements(iVeh).x, ...
+                    cav_measurements(iVeh).y, ...
+                    cav_measurements(iVeh).yaw, ...
+                    obj.scenario_adapter.scenario.vehicles(iVeh).Length, ...
+                    obj.scenario_adapter.scenario.vehicles(iVeh).Width, ...
+                    obj.options.offset ...
+                );
+
+                % get occupied area of emergency maneuvers for vehicle iVeh
+                obj.iter.emergency_maneuvers{iVeh} = obj.mpa.emergency_maneuvers_at_pose( ...
+                    cav_measurements(iVeh).x, ...
+                    cav_measurements(iVeh).y, ...
+                    cav_measurements(iVeh).yaw, ...
+                    obj.iter.trim_indices(iVeh) ...
+                );
+
+                % compute reachable sets for vehicle iVeh
+                obj.iter.reachable_sets(iVeh, :) = obj.mpa.reachable_sets_at_pose( ...
+                    cav_measurements(iVeh).x, ...
+                    cav_measurements(iVeh).y, ...
+                    cav_measurements(iVeh).yaw, ...
+                    obj.iter.trim_indices(iVeh) ...
+                );
+
+                % compute the reference path and speed
+                [reference_trajectory_struct, v_ref, current_point_index] = get_reference_trajectory( ...
+                    obj.mpa, ...
+                    obj.scenario_adapter.scenario.vehicles(iVeh).reference_path, ...
+                    cav_measurements(iVeh).x, ...
+                    cav_measurements(iVeh).y, ...
+                    obj.iter.trim_indices(iVeh), ...
+                    obj.options.dt_seconds ...
+                );
+
+                % reference speed
+                obj.iter.v_ref(iVeh, :) = v_ref;
+                % equidistant points on the reference trajectory.
+                obj.iter.reference_trajectory_points(iVeh, :, :) = reference_trajectory_struct.path;
+                obj.iter.reference_trajectory_index(iVeh, :, :) = reference_trajectory_struct.points_index;
+
+                if obj.options.scenario_type ~= ScenarioType.circle
+
+                    % compute the predicted lanelets of vehicle iVeh
+                    [predicted_lanelets, current_lanelet] = get_predicted_lanelets( ...
+                        obj.scenario_adapter.scenario.vehicles(iVeh).reference_path, ...
+                        obj.scenario_adapter.scenario.vehicles(iVeh).points_index, ...
+                        obj.scenario_adapter.scenario.vehicles(iVeh).lanelets_index, ...
+                        reference_trajectory_struct, ...
+                        current_point_index ...
+                    );
+                    obj.iter.predicted_lanelets{iVeh} = predicted_lanelets;
+                    obj.iter.current_lanelet(iVeh) = current_lanelet;
+
+                    % calculate the predicted lanelet boundary of vehicle iVeh based on its predicted lanelets
+                    obj.iter.predicted_lanelet_boundary(iVeh, :) = get_lanelets_boundary( ...
+                        predicted_lanelets, ...
+                        obj.scenario_adapter.scenario.lanelet_boundary, ...
+                        obj.scenario_adapter.scenario.vehicles(iVeh).lanelets_index, ...
+                        obj.scenario_adapter.scenario.vehicles(iVeh).is_loop ...
+                    );
+
+                    % constrain the reachable sets by the boundaries of the predicted lanelets
+                    if obj.options.is_bounded_reachable_set_used
+                        obj.iter.reachable_sets(iVeh, :) = bound_reachable_sets( ...
+                            obj.iter.reachable_sets(iVeh, :), ...
+                            obj.iter.predicted_lanelet_boundary{iVeh, 3} ...
+                        );
+                    end
+
+                end
+
+                % force convex reachable sets if non-convex polygons are not allowed
+                if ~obj.options.are_any_obstacles_non_convex
+                    obj.iter.reachable_sets(iVeh, :) = cellfun(@(c) convhull(c), ...
+                        obj.iter.reachable_sets(iVeh, :), ...
+                        UniformOutput = false ...
+                    );
+                end
+
+            end
+
+        end
+
+        function create_coupling_graph(~)
+            % method that can be overwritten by child classes if necessary
+        end
+
+        function check_others_fallback(~)
+            % method that can be overwritten by child classes if necessary
+        end
+
+        function clean_up(~)
+            % release memory allocated by mex functions
+
+            % clear mex on all other computers
+            if ~ismac()
+                clear mex %#ok
+                return
+            end
+
+            % clear mex does not work on Mac with ARM chip
+            [~, cmdout] = system('sysctl machdep.cpu.brand_string');
+            matches = regexp(cmdout, 'machdep.cpu.brand_string: Apple M[1-9]( Pro| Max)?', 'match');
+
+            if isempty(matches)
+                clear mex %#ok
+                return
+            end
+
+            warning('Memory allocation of mex functions is not freed.')
+        end
+
+    end
+
+    methods (Access = private)
+
+        function main_init(obj)
+            % this function initializes sequentially
+            % the main components of the high level controller
+            % future: the function initializes the plant and the scenario
+
+            % turn off warning if intersections are detected and fixed, collinear points or
+            % overlapping points are removed when using MATLAB function `polyshape`
+            warning('off', 'MATLAB:polyshape:repairedBySimplify')
+
+            % start initialization timer
+            obj.timing_general.start("hlc_init_all");
+
+            % receive step time from the plant
+            obj.options.dt_seconds = obj.plant.get_step_time();
+
+            % initialize scenario adapter
+            obj.scenario_adapter.init(obj.options, obj.plant);
+
+            % initialize high level controller itself
+            obj.init();
+
+            % synchronize with plant
+            obj.plant.synchronize_start_with_plant();
+
+            % stop initialization timer
+            obj.timing_general.stop("hlc_init_all");
+        end
+
+        function main_control_loop(obj)
+
+            %% Main control loop
+            while (~obj.got_stop)
+                % increment interation counter
+                obj.k = obj.k + 1;
+
+                if mod(obj.k, 10) == 0
+                    % only display 0, 10, 20, ...
+                    disp(['>>> Time step ' num2str(obj.k)])
+                end
+
+                obj.timing_general.start("hlc_step", obj.k);
+                obj.timing_general.start("traffic_situation_update", obj.k);
+
+                % Measurement
+                % -------------------------------------------------------------------------
+                [cav_measurements, hdv_measurements] = obj.plant.measure();
+
+                % Control
+                % ----------------------------------------------------------------------
+
+                % update the traffic situation
+                obj.update_controlled_vehicles_traffic_info(cav_measurements);
+                obj.update_hdv_traffic_info(cav_measurements, hdv_measurements);
+
+                obj.timing_general.stop("traffic_situation_update", obj.k);
+
+                % The controller computes plans
+                obj.timing_general.start("controller", obj.k);
+
+                % determine couplings between the controlled vehicles
+                obj.create_coupling_graph();
+
+                %% controller %%
+                obj.controller();
+
+                % handle fallback of controller
+
+                obj.timing_general.start('fallback', obj.k);
+
+                if ~obj.handle_fallback()
+                    obj.timing_general.stop('fallback', obj.k);
+                    % if fallback is not handled break the main control loop
+                    break
+                end
+
+                obj.timing_general.stop('fallback', obj.k);
+
+                obj.info_old = obj.info; % save variable in case of fallback
+
+                % stop timer of current time step
+                obj.timing_general.stop("controller", obj.k);
+                obj.timing_general.stop("hlc_step", obj.k);
+
+                % store results from iteration in ExperimentResult
+                obj.store_iteration_results();
+
+                % reset iter obstacles to scenario default/static obstacles
+                obj.iter.obstacles = obj.scenario_adapter.scenario.obstacles;
+                % important: reset lanelet crossing areas
+                obj.iter.lanelet_crossing_areas = repmat({{}}, obj.options.amount, 1);
+
+                % Apply control action
+                % -------------------------------------------------------------------------
+                obj.plant.apply(obj.info, obj.experiment_result, obj.k, obj.mpa);
+
+                % Check for stop signal
+                % -------------------------------------------------------------------------
+                obj.got_stop = obj.plant.is_stop() || obj.got_stop;
+
+                if ~obj.got_stop && obj.k >= obj.options.k_end
+                    disp('The HLC will be stopped as the defined experiment duration is reached.')
+                    obj.got_stop = true;
+                end
+
+            end
+
+        end
+
+        function update_hdv_traffic_info(obj, cav_measurements, hdv_measurements)
+            % compute information about traffic situation and coupling with HDVs
+            % computed variables are hdv_adjacency, hdv_reachable_sets
+
+            % calculate adjacency between CAVs and HDVs and HDV reachable sets
+            for iHdv = 1:obj.options.manual_control_config.amount
+
+                % determine HDV lanelet id based on HDV's position
+                lanelet_id_hdv = map_position_to_closest_lanelets( ...
+                    obj.scenario_adapter.scenario.lanelets, ...
+                    hdv_measurements(iHdv).x, ...
+                    hdv_measurements(iHdv).y ...
+                );
+
+                % calculate the intersection of reachable sets with the current and
+                % the successor lanelet (returned as cell array of polyshape objects
+                % for each step in the prediction horizon)
+                reachable_sets = obj.scenario_adapter.manual_vehicles(iHdv).compute_reachable_lane( ...
+                    hdv_measurements(iHdv), ...
+                    lanelet_id_hdv ...
+                );
+
+                % determine empty polyshape objects
+                empty_sets = cellfun(@(c) c.NumRegions == 0, reachable_sets);
+                % fill empty reachable sets with a cell array containing an empty array
+                obj.iter.hdv_reachable_sets(iHdv, empty_sets) = {[]};
+                % convert polyshape in plain array (repeat first point to enclose the shape)
+                obj.iter.hdv_reachable_sets(iHdv, ~empty_sets) = cellfun(@(c) ...
+                    [c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)'], ...
+                    reachable_sets(~empty_sets), ...
+                    UniformOutput = false ...
+                );
+
+                % update reduced coupling adjacency for cav/hdv-pairs
+                for iVeh = obj.plant.vehicle_indices_controlled
+                    lanelet_id_cav = obj.iter.current_lanelet(iVeh);
+
+                    % note coupling if HDV is not behind CAV
+                    % if HDV is behind CAV and coupling is noted
+                    % the optimizer will probably not find a solution
+                    % since the CAV is totally in HDV's reachable set
+                    obj.iter.hdv_adjacency(iVeh, iHdv) = ~is_hdv_behind( ...
+                        lanelet_id_cav, ...
+                        cav_measurements(iHdv), ...
+                        lanelet_id_hdv, ...
+                        hdv_measurements(iHdv), ...
+                        obj.scenario_adapter.scenario.lanelets, ...
+                        obj.scenario_adapter.scenario.lanelet_relationships ...
+                    );
+                end
+
+            end
+
+        end
+
+        function is_fallback_handled = handle_fallback(obj)
+            % handle the fallback of the controller
+            % if fallback is disabled return
+            % boolean to break the main control loop
+
+            % check fallback of other controllers
+            obj.check_others_fallback();
+
+            % boolean that is used to break the main control loop
+            % initialize it with value false
+            is_fallback_handled = false;
+
+            if isempty(obj.info.vehicles_fallback)
+                % increase counter of vehicles that take fallback
+                obj.vehicles_fallback_times(obj.info.vehicles_fallback) = ...
+                    obj.vehicles_fallback_times(obj.info.vehicles_fallback) + 1;
+
+                % reset fallback counter of vehicles that have no fallback
+                obj.vehicles_fallback_times(setdiff( ...
+                    1:obj.options.amount, ...
+                    obj.info.vehicles_fallback ...
+                )) = 0;
+
+                % if no fallback occurs return that fallback is handled
+                is_fallback_handled = true;
+                return
+            end
+
+            if obj.options.fallback_type == FallbackType.no_fallback
+                % disabled fallback
+                disp('Fallback is disabled. Simulation ends.')
+                return
+            end
+
+            % print information about occurred fallback
+            str_trigger_vehicles = sprintf(' %2d', find(obj.info.needs_fallback));
+            str_fallback_vehicles = sprintf(' %2d', obj.info.vehicles_fallback);
+            fprintf('%s triggered by%s affects%s\n', ...
+                obj.options.fallback_type, ...
+                str_trigger_vehicles, ...
+                str_fallback_vehicles ...
+            )
+
+            % plan for fallback case
+            obj.plan_for_fallback();
+
+            % increase counter of total fallbacks
+            obj.total_fallback_times = obj.total_fallback_times + 1;
+
+            % if fallback is handled return that
+            is_fallback_handled = true;
+        end
+
+        function store_iteration_results(obj)
+            % store iteration results like iter and info in the ExperimentResult object
+
+            % calculate deadlock
+            % if a vehicle stops for more than a defined time, assume deadlock
+
+            % vehicles that stop at the current time step
+            is_vehicle_stopped = ismember(obj.info.trim_indices, obj.mpa.trims_stop);
+            % increase couter of vehicles that stop
+            obj.vehs_stop_duration(is_vehicle_stopped) = ...
+                obj.vehs_stop_duration(is_vehicle_stopped) + 1;
+            % reset vehicles that do not stop anymore
+            obj.vehs_stop_duration(~is_vehicle_stopped) = 0;
+
+            % check for deadlock
+            threshold_stop_steps = 3 * obj.options.Hp;
+            is_vehicle_deadlocked = (obj.vehs_stop_duration > threshold_stop_steps);
+
+            if any(is_vehicle_deadlocked)
+                str_vehicles_deadlocked = sprintf('%4d', find(is_vehicle_deadlocked));
+                str_steps_deadlocked = sprintf('%4d', obj.vehs_stop_duration(is_vehicle_deadlocked));
+                fprintf('Deadlock vehicle:%s\n', str_vehicles_deadlocked);
+                fprintf('       For steps:%s\n', str_steps_deadlocked);
+            end
+
+            % update total number of steps and total runtime
+            obj.experiment_result.n_steps = obj.k;
+            obj.experiment_result.t_total = obj.k * obj.options.dt_seconds;
+
+            % store iteration data
+            obj.experiment_result.iteration_data{obj.k} = obj.iter;
+
+            % store graph search results
+            obj.experiment_result.trajectory_predictions(:, obj.k) = obj.info.y_predicted;
+            obj.experiment_result.n_expanded(:, obj.k) = obj.info.n_expanded;
+            obj.experiment_result.vehicles_fallback{obj.k} = obj.info.vehicles_fallback;
+
+            % store graph search timings
+            obj.experiment_result.computation_levels(obj.k) = obj.info.computation_levels;
+
+        end
+
+        function end_run(obj)
+            % end run of controller
+            % this function is executed in every case
+
+            % if the controller did not succeed
+            if ~obj.is_run_succeeded
+                % force saving of unfinished ExperimentResult object for inspection
+                disp("Saving of unfinished results on error.")
+                obj.options.should_save_result = true;
+
+                % define output path on error
+                obj.experiment_result.output_path = 'results/unfinished_result.mat';
+            else
+                % define output path on success
+                obj.experiment_result.output_path = FileNameConstructor.get_results_full_path( ...
+                    obj.options, ...
+                    obj.plant.vehicle_indices_controlled ...
+                );
+            end
+
+            % save finished or unfinished ExperimentResult
+            obj.save_results();
+
+            % run plant's end_run function
+            obj.plant.end_run();
+
+            % clean up controller
+            obj.clean_up();
+        end
+
+        function save_results(obj)
+            % save ExperimentResult object at end of experiment
+
+            % print information about final values of counter
+            fprintf('Total times of fallback: %d\n', obj.total_fallback_times);
+            fprintf('Total runtime: %f seconds\n', obj.experiment_result.t_total);
+
+            obj.experiment_result.mpa = obj.mpa;
+            obj.experiment_result.scenario = obj.scenario_adapter.scenario;
+            obj.experiment_result.total_fallback_times = obj.total_fallback_times;
+            obj.experiment_result.timings_general = obj.timing_general.get_all_timings();
+
+            for iVeh = obj.plant.vehicle_indices_controlled
+
+                timing_per_vehicle_iVeh = obj.timing_per_vehicle(iVeh).get_all_timings();
+                timings_fieldnames = fieldnames(timing_per_vehicle_iVeh);
+
+                for iFieldname = 1:size(timings_fieldnames)
+                    aggregated_timings_per_vehicle(iVeh).(timings_fieldnames{iFieldname}) = timing_per_vehicle_iVeh.(timings_fieldnames{iFieldname});
+                end
+
+            end
+
+            obj.experiment_result.timings_per_vehicle = aggregated_timings_per_vehicle;
+
+            if obj.options.should_reduce_result
+                % delete large data fields of to reduce file size
+
+                obj.experiment_result.mpa = [];
+
+                for i_step = 1:length(obj.experiment_result.iteration_data)
+                    obj.experiment_result.iteration_data{i_step}.predicted_lanelets = [];
+                    obj.experiment_result.iteration_data{i_step}.predicted_lanelet_boundary = [];
+                    obj.experiment_result.iteration_data{i_step}.reachable_sets = [];
+                    obj.experiment_result.iteration_data{i_step}.emergency_maneuvers = [];
+                    obj.experiment_result.iteration_data{i_step}.occupied_areas = [];
+                end
+
+            end
+
+            if ~obj.options.should_save_result
+                % return ExperimentResult object should not be saved
+                fprintf('As required, experiment_result was not saved\n');
+                return
+            end
+
+            experiment_result = obj.experiment_result;
+            save(obj.experiment_result.output_path, 'experiment_result');
+            fprintf('Results were saved in: %s\n', obj.experiment_result.output_path);
+
+        end
+
+    end
+
+end

@@ -14,11 +14,11 @@ classdef Lanelet2_Interface
                 = load_lanelet2_map_matlab_mex(convertCharsToStrings(filename));
         end
 
-        function indices = generate_ref_path_indices(filename)
+        function indices = generate_reference_path_indices(filename)
             % filename: path to .osm file containing a lanelet2 map
             % return: an array of (matlab) indices defining a random cycle
             %         on the given map
-            indices = generate_lanelet2_ref_path_loop_indices_mex(convertCharsToStrings(filename));
+            indices = generate_lanelet2_reference_path_loop_indices_mex(convertCharsToStrings(filename));
         end
 
         function indices = generate_lanelet2_ref_path_separate_segments_indices(filename, segment_ids)

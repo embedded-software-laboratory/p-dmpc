@@ -21,18 +21,18 @@ classdef OptionsPlotOnline
         function obj = OptionsPlotOnline()
         end
 
-        function obj = assign_data(obj, struct)
-            fn = fieldnames(struct);
+        function obj = jsondecode(obj, json_struct)
+            % for each loop requires fields as row vector
+            fields = string(fieldnames(json_struct)).';
 
-            for i_field = 1:length(fn)
-                field = fn{i_field};
+            for field = fields
 
                 if ~isprop(obj, field)
                     warning('Cannot set property %s for class OptionsPlotOnline as it does not exist', field);
                     continue;
                 end
 
-                obj.(field) = struct.(field);
+                obj.(field) = json_struct.(field);
             end
 
         end

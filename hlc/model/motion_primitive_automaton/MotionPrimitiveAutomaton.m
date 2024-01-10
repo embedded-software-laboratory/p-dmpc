@@ -27,7 +27,13 @@ classdef MotionPrimitiveAutomaton
 
     methods
 
-        function [obj, trimsInfo] = MotionPrimitiveAutomaton(model, options)
+        function obj = MotionPrimitiveAutomaton(model, options)
+
+            arguments
+                model (1, 1) VehicleModel
+                options (1, 1) Config
+            end
+
             % Constructor
             % trim_inputs is a matrix of size (nTrims x nu)
             % trim_adjacency is a matrix of size (nTrims x nTrims),
@@ -36,8 +42,8 @@ classdef MotionPrimitiveAutomaton
 
             max_acceleration_m_s2 = 0.64;
             max_deceleration_m_s2 = 0.64;
-            max_acceleration_per_dt = max_acceleration_m_s2 * options.dt;
-            max_deceleration_per_dt = max_deceleration_m_s2 * options.dt;
+            max_acceleration_per_dt = max_acceleration_m_s2 * options.dt_seconds;
+            max_deceleration_per_dt = max_deceleration_m_s2 * options.dt_seconds;
 
             if options.is_prioritized
                 nVeh_mpa = 1;
@@ -59,22 +65,27 @@ classdef MotionPrimitiveAutomaton
 
             mpa_full_path = fullfile(folder_target, mpa_instance_name);
 
-            % if the needed MPA is alread exist in the library, simply load
-            % it, otherwise it will be calculated and saved to the library.
-            % Note: if MPA properties are changed, then reload all MPAs!
-            if isfile(mpa_full_path) && options.is_load_mpa && nargout == 1
-                % if number of function output arguments is not one, do not load offline MPA as the second output is not available offline
-                disp("Loading mpa...");
-                load(mpa_full_path, "mpa");
-                disp("Finished loading mpa...");
-                obj = mpa;
-                disp('Offline MPA was found and loaded.')
-                return
+            % if the needed MPA is already exist in the library, simply load
+            % it, otherwise it will be built and saved to the library.
+            % Note: if MPA properties are changed, then rebuild all MPAs!
+
+            if isfile(mpa_full_path)
+
+                try
+                    fprintf('Loading MPA... ');
+                    load(mpa_full_path, "mpa");
+                    obj = mpa;
+                    fprintf('done.\n')
+                    return
+                catch
+                    fprintf('could not load, building new MPA.\n')
+                end
+
             end
 
             obj.recursive_feasibility = options.recursive_feasibility;
 
-            [trim_inputs, trim_adjacency] = choose_trims(options.trim_set, max_acceleration_per_dt, max_deceleration_per_dt);
+            [trim_inputs, trim_adjacency] = choose_trims(options.mpa_type, max_acceleration_per_dt, max_deceleration_per_dt);
             n_trims = length(trim_inputs);
 
             obj.transition_matrix_single = zeros([size(trim_adjacency), options.Hp]);
@@ -126,16 +137,6 @@ classdef MotionPrimitiveAutomaton
                 obj.shortest_paths_to_equilibrium{i, 1} = get_shortest_path_to_equilibrium(obj, i);
             end
 
-            %             % transform maneuver area to polyshape which is required when using
-            %             % MATLAB function `union`
-            %             for i=1:n_trims
-            %                 child_trims = find(obj.transition_matrix_single(i,:,1));
-            %                 for idx=1:length(child_trims)
-            %                     j = child_trims(idx);
-            %
-            %                 end
-            %             end
-
             % get emergency trims and maneuvers
             [obj.emergency_trims, obj.emergency_maneuvers] = get_emergency_maneuvers(obj);
 
@@ -173,29 +174,28 @@ classdef MotionPrimitiveAutomaton
 
             if options.is_use_dynamic_programming
                 % use dynamic programming
-                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
+                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, ~] = ...
                     reachability_analysis_offline_DP(obj, options.Hp, is_calculate_reachable_sets_of_CP);
             else
                 % otherwise use brute-force algorithm
-                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, trimsInfo] = ...
+                [obj.local_reachable_sets, obj.local_reachable_sets_conv, obj.local_center_trajectory, obj.local_reachable_sets_CP, ~] = ...
                     reachability_analysis_offline(obj, options.Hp, is_calculate_reachable_sets_of_CP);
             end
 
             obj.offline_reachability_computation_time = toc(offline_RA);
 
-            if options.is_save_mpa
-                save_mpa(obj, mpa_full_path); % save mpa to library
+            if options.computation_mode ~= ComputationMode.parallel_threads
+                % save mpa to library
+                % If computing in parallel on one machine, this causes file
+                % access conflicts.
+                save_mpa(obj, mpa_full_path);
             end
 
         end
 
         function max_speed = get_max_speed_of_mpa(obj)
-            % returns maximum speed of mpa (nSamples x 1)
-            % TODO replace with more reasonable version.
-            N = size(obj.transition_matrix_single, 3);
+            % returns maximum speed of mpa (1 x 1)
             max_speed = max([obj.trims(:).speed]);
-            max_speed = max_speed * ones(N, 1);
-            max_speed(end) = max_speed(end) / 2;
         end
 
         function max_speed = get_max_speed(obj, cur_trim_id)
@@ -215,6 +215,51 @@ classdef MotionPrimitiveAutomaton
                 max_speed(k) = max_speed_next;
             end
 
+        end
+
+        function trim_index = trim_from_values(obj, speed, steering)
+            % get closest trim based on speed and steering values
+            %
+            % the function uses a 2D norm to find the closest trim
+            % therefore speed and steering are normalized to a range of [0, 1]
+
+            trims_speed = [obj.trims.speed];
+            trims_steering = [obj.trims.steering];
+
+            % if the steering is 0 no different steering should be associated
+            if steering == 0
+                % get the trim indices that have a steering of 0
+                indices_no_steering = find(trims_steering == 0);
+                % calculate the speed distances to each trim
+                speed_distances = abs(trims_speed - speed);
+                % get the index of the trim with the minimum speed distances
+                [~, index_min_distance] = min(speed_distances(indices_no_steering));
+                % return the trim_index without steering and the lowest speed distance
+                trim_index = indices_no_steering(index_min_distance);
+                return
+            end
+
+            % get center and scale to normalize speed
+            trims_speed_center = min(trims_speed);
+            trims_speed_scale = max(trims_speed) - min(trims_speed);
+
+            % get center and scale to normalize steering
+            trims_steering_center = min(trims_steering);
+            trims_steering_scale = max(trims_steering) - min(trims_steering);
+
+            % normalize trims speed and steering
+            trims_speed_norm = (trims_speed - trims_speed_center) / trims_speed_scale;
+            trims_steering_norm = (trims_steering - trims_steering_center) / trims_steering_scale;
+
+            % normalize input speed and steering to the trims ranges
+            speed_norm = (speed - trims_speed_center) / trims_speed_scale;
+            steering_norm = (steering - trims_steering_center) / trims_steering_scale;
+
+            % calculate the distance to each trim
+            trims_distances = vecnorm([trims_speed_norm - speed_norm; trims_steering_norm - steering_norm], 2, 1);
+
+            % find closest trim by the minimum distance
+            [~, trim_index] = min(trims_distances);
         end
 
         function transition_matrix_single = compute_time_varying_transition_matrix(obj)
@@ -364,7 +409,7 @@ classdef MotionPrimitiveAutomaton
 
                     if is_calculate_reachable_sets_of_CP
                         % calculate trajectory and convexified reachable sets of the center point
-                        center_trajectory{i, t} = cellfun(@(c) [c.xs; c.ys], trimsInfo(i, t).maneuvers, 'UniformOutput', false);
+                        center_trajectory{i, t} = cellfun(@(c) [c.xs; c.ys], trimsInfo(i, t).maneuvers, UniformOutput = false);
                         center_tra_xy = [center_trajectory{i, t}{:}];
                         idx_center_tra_conv = convhull(center_tra_xy(1, :), center_tra_xy(2, :));
                         reachable_sets_CP{i, t} = polyshape(center_tra_xy(1, idx_center_tra_conv), center_tra_xy(2, idx_center_tra_conv));
@@ -410,13 +455,11 @@ classdef MotionPrimitiveAutomaton
             threshold_Hp = 10;
 
             if Hp > threshold_Hp
-                disp(['Computing reachable sets now...' newline ...
-                          'Since the prediction horizon is ' num2str(Hp) ' (more than ' num2str(threshold_Hp) '), it may take several minutes.'])
+                fprintf(['Computing reachable sets now...' newline ...
+                             'Since the prediction horizon is ' num2str(Hp) ' (more than ' num2str(threshold_Hp) '), it may take several minutes.'])
             else
-                disp('Computing local offline reachable sets now...')
+                fprintf('Computing local offline reachable sets now...')
             end
-
-            disp('Note this only needs to be done once as later they will be saved to motion-primitive-automaton library.')
 
             Hp_half = ceil(Hp / 2); % for time step greater then half of the prediction horizon, dynamic programming is used to save computation time
 
@@ -510,7 +553,7 @@ classdef MotionPrimitiveAutomaton
 
                     if is_calculate_reachable_sets_of_CP
                         % calculate trajectory and convexified reachable sets of the center point
-                        center_trajectory{i, t} = cellfun(@(c) [c.xs; c.ys], trimsInfo(i, t).maneuvers, 'UniformOutput', false);
+                        center_trajectory{i, t} = cellfun(@(c) [c.xs; c.ys], trimsInfo(i, t).maneuvers, UniformOutput = false);
                         center_tra_xy = [center_trajectory{i, t}{:}];
                         idx_center_tra_conv = convhull(center_tra_xy(1, :), center_tra_xy(2, :));
                         reachable_sets_CP{i, t} = polyshape(center_tra_xy(1, idx_center_tra_conv), center_tra_xy(2, idx_center_tra_conv));
@@ -641,7 +684,7 @@ classdef MotionPrimitiveAutomaton
 
             duration_computation = toc(offline_computation_start);
             textprogressbar('done');
-            disp(['Finished in ' num2str(duration_computation) ' seconds.'])
+            fprintf('done (%.2f s).\n', duration_computation);
 
         end
 
@@ -786,101 +829,6 @@ classdef MotionPrimitiveAutomaton
 
         end
 
-        function [time_to_catch, waiting_time, distance_traveled_leader_total, distance_traveled_follower_total] = get_the_shortest_time_to_catch(obj, trim_leader, trim_follower, distance, time_step)
-            % Calculatet the shortest time to achieve a collision by
-            % letting the leader take an emergency braking and the follower
-            % take an full acceleration.
-            % The total traveled distances of the leader and the follower are also returned.
-            distance_remaining = distance;
-            time_to_catch = 0;
-            waiting_time = 0; % time that the leader stops and waits for the follower
-            distance_traveled_leader_total = 0;
-            distance_traveled_follower_total = 0;
-            speed_leader = obj.trims(trim_leader).speed;
-            speed_follower = obj.trims(trim_follower).speed;
-
-            % get the shortest path from the current trim to the equilibrium trim
-            shortest_path_to_equilibrium = obj.shortest_paths_to_equilibrium{trim_leader};
-
-            % get the shortest path to the trims with the maximum speed
-            shortest_path_to_max_speed = obj.shortest_paths_to_max_speed{trim_follower};
-            trim_max_speed = shortest_path_to_max_speed(end);
-            max_speed = obj.trims(trim_max_speed).speed;
-
-            count_trim = 2; % start from the second trim in the path since the first one is the current trim
-
-            distance_traveled = @(v0, a, t) v0 * t +1/2 * a * t^2; % calculate distance based on the initial speed and constant acceleration
-            is_catch = false;
-
-            while ~is_catch
-
-                if speed_leader ~= 0
-                    % leader continue to decelerate
-                    trim_leader_next = shortest_path_to_equilibrium(count_trim);
-                    speed_leader_next = obj.trims(trim_leader_next).speed;
-                    a_leader = (speed_leader_next - speed_leader) / time_step; % acceleration (negative value)
-                    % assert(a_leader<=0)
-                    % traveled distance of the current time step (assume linear acceleration)
-                    distance_traveled_leader_tmp = distance_traveled(speed_leader, a_leader, time_step);
-                else
-                    speed_leader_next = 0;
-                    a_leader = 0;
-                    distance_traveled_leader_tmp = 0;
-                end
-
-                if speed_follower ~= max_speed
-                    % follower continue to accelerate
-                    trim_follower_next = shortest_path_to_max_speed(count_trim);
-                    speed_follower_next = obj.trims(trim_follower_next).speed;
-                    a_follower = (speed_follower_next - speed_follower) / time_step; % acceleration (positive value)
-                    % assert(a_follower>=0)
-                    distance_traveled_follower_tmp = distance_traveled(speed_follower, a_follower, time_step);
-                else
-                    speed_follower_next = max_speed;
-                    a_follower = 0;
-                    distance_traveled_follower_tmp = distance_traveled(speed_follower, a_follower, time_step);
-                end
-
-                % remaining distance for the follower to catch the leader
-                distance_left_tmp = distance_remaining - distance_traveled_follower_tmp + distance_traveled_leader_tmp;
-
-                if distance_left_tmp <= 0
-                    % the follower catchs the leader at this time step
-                    is_catch = true;
-                    % solve the quadratic equation to get the accumulating time of this time step
-                    r = roots([1/2 * (a_follower - a_leader), speed_follower - speed_leader, -distance_remaining]);
-                    assert(isreal(r) == true)
-                    time_accumulate = max(r); % choose the positive one
-                    % update the traveled distance of the current time step
-                    distance_traveled_leader_tmp = speed_leader + 0.5 * a_leader * time_accumulate^2;
-                    distance_traveled_follower_tmp = distance_traveled_leader_tmp + distance_remaining;
-
-                else
-                    % accumulating time equals to the time step
-                    time_accumulate = time_step;
-                    % update the remaining distance
-                    distance_remaining = distance_left_tmp;
-                end
-
-                % update the STAC
-                time_to_catch = time_to_catch + time_accumulate;
-                % update the total traveled distance
-                distance_traveled_leader_total = distance_traveled_leader_total + distance_traveled_leader_tmp;
-                distance_traveled_follower_total = distance_traveled_follower_total + distance_traveled_follower_tmp;
-                % update speeds
-                speed_leader = speed_leader_next; % update the current speed for the next iteration
-                speed_follower = speed_follower_next; % update the current speed for the next iteration
-                % update the waiting time
-                if speed_leader == 0 && speed_leader_next == 0
-                    waiting_time = waiting_time + time_accumulate;
-                end
-
-                % update counter
-                count_trim = count_trim + 1;
-            end
-
-        end
-
         function shortest_path_to_max_speed = get_shortest_path_to_max_speed(obj, trim_current)
             % Returns the shortest path in the trim graph from the current trim to the trim with maximum speed
             % compute the shortest path from the current trim to the trim(s) with maximum speed
@@ -994,6 +942,206 @@ classdef MotionPrimitiveAutomaton
 
             end
 
+        end
+
+        function transformed_emergency_maneuvers = emergency_maneuvers_at_pose(obj, x, y, yaw, trim)
+            % the function takes the local emergency maneuvers for the current
+            % trim and translates it to the current position (x, y) and yaw
+            %
+            % Output:
+            %   transformed_emergency_maneuvers (1, 1) struct with the fields
+            %       left_area_without_offset (2, :) double [x; y]
+            %       right_area_without_offset (2, :) double [x; y]
+            %       braking_area_without_offset (2, :) double [x; y]
+
+            arguments
+                obj MotionPrimitiveAutomaton
+                x (1, 1) double % current x coordinate
+                y (1, 1) double % current y coordinate
+                yaw (1, 1) double % current yaw
+                trim (1, 1) double % current trim
+            end
+
+            % emergency left maneuver (without offset)
+            turn_left_area_without_offset = obj.emergency_maneuvers{trim}.left{1};
+            [turn_left_area_without_offset_x, turn_left_area_without_offset_y] = translate_global(yaw, x, y, turn_left_area_without_offset(1, :), turn_left_area_without_offset(2, :));
+            transformed_emergency_maneuvers.left_area_without_offset = [turn_left_area_without_offset_x; turn_left_area_without_offset_y];
+            % emergency right maneuver (without offset)
+            turn_right_area_without_offset = obj.emergency_maneuvers{trim}.right{1};
+            [turn_right_area_without_offset_x, turn_right_area_without_offset_y] = translate_global(yaw, x, y, turn_right_area_without_offset(1, :), turn_right_area_without_offset(2, :));
+            transformed_emergency_maneuvers.right_area_without_offset = [turn_right_area_without_offset_x; turn_right_area_without_offset_y];
+            % emergency braking maneuver (without offset)
+            braking_area_without_offset = obj.emergency_maneuvers{trim}.braking_without_offset;
+            [turn_braking_area_without_offset_x, turn_braking_area_without_offset_y] = translate_global(yaw, x, y, braking_area_without_offset(1, :), braking_area_without_offset(2, :));
+            transformed_emergency_maneuvers.braking_area_without_offset = [turn_braking_area_without_offset_x; turn_braking_area_without_offset_y];
+        end
+
+        function transformed_reachable_sets = reachable_sets_at_pose(obj, x, y, yaw, trim)
+            % the function takes the local reachable sets for the current trim
+            % and translates it to the current position (x, y) and yaw
+            %
+            % Output:
+            %   transformed_reachable_sets (1, Hp) cell of polyshape objects
+
+            arguments
+                obj MotionPrimitiveAutomaton
+                x (1, 1) double % current x coordinate
+                y (1, 1) double % current y coordinate
+                yaw (1, 1) double % current yaw
+                trim (1, 1) double % current trim
+            end
+
+            local_reachable_sets_trim = obj.local_reachable_sets_conv(trim, :);
+
+            Hp = size(local_reachable_sets_trim, 2);
+            transformed_reachable_sets = cell(1, Hp);
+
+            % get the full reachable sets in global frame as polyshape
+            for t = 1:Hp
+                % translate the local reachable sets to global coordinates
+                [reachable_set_x, reachable_set_y] = translate_global( ...
+                    yaw, ...
+                    x, ...
+                    y, ...
+                    local_reachable_sets_trim{t}.Vertices(:, 1)', ...
+                    local_reachable_sets_trim{t}.Vertices(:, 2)' ...
+                );
+
+                transformed_reachable_sets{t} = polyshape( ...
+                    reachable_set_x, ...
+                    reachable_set_y, ...
+                    'Simplify', false ...
+                );
+            end
+
+        end
+
+        function result = maximum_branching_factor(obj)
+            % Returns the maximum branching factor of the motion primitive automaton
+            result = max(sum(obj.transition_matrix_single, 2), [], 'all');
+        end
+
+        function plot(obj, optional)
+
+            arguments
+                obj (1, 1) MotionPrimitiveAutomaton;
+                optional.y_lim (1, 2) double = [-0.1, 1.0];
+                optional.x_lim (1, 2) double = rad2deg(pi / 5 * [-1, 1]);
+                optional.k (1, 1) double = 1;
+                optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
+                optional.with_labels (1, 1) logical = true;
+            end
+
+            set(0, "CurrentFigure", optional.fig);
+
+            trim_inputs = obj.trims;
+
+            trim_adjacency = obj.transition_matrix_single(:, :, optional.k);
+
+            angle = rad2deg([trim_inputs.steering]);
+            speed = [trim_inputs.speed];
+            G = digraph(trim_adjacency, 'omitSelfLoops');
+
+            plot(G, 'XData', angle, 'YData', speed, ...
+                ArrowSize = 5, ...
+                MarkerSize = 3, ...
+                NodeColor = rwth_color_order(1), ...
+                EdgeColor = rwth_color_order_50(1), ...
+                EdgeAlpha = 1 ...
+            );
+
+            if optional.with_labels
+                xlabel('Steering Angle $\delta$ [$^{\circ}$]', Interpreter = 'latex');
+                ylabel('Speed $\mathrm{v}$ [m/s]', Interpreter = 'latex');
+            end
+
+            if isfield(optional, 'x_lim')
+                xlim(optional.x_lim);
+            end
+
+            if isfield(optional, 'y_lim')
+                ylim(optional.y_lim);
+            end
+
+            grid on
+
+        end
+
+        function plot_over_time(obj, optional)
+
+            arguments
+                obj (1, 1) MotionPrimitiveAutomaton;
+                optional.y_lim (1, 2) double = [-0.1, 1.1];
+                optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
+            end
+
+            set(0, "CurrentFigure", optional.fig);
+
+            Hp = size(obj.transition_matrix_single, 3);
+            tiledLayoutHandle = tiledlayout( ...
+                1, Hp, ...
+                TileSpacing = 'compact', ...
+                Padding = 'compact' ...
+            );
+
+            for k = 1:Hp
+                nexttile
+                obj.plot(fig = optional.fig, ...
+                    k = k, ...
+                    with_labels = false, ...
+                    y_lim = optional.y_lim ...
+                );
+                title(sprintf("$t=k+%d$", k - 1), 'Interpreter', 'latex');
+            end
+
+            xlabel(tiledLayoutHandle, 'Steering Angle $\delta$ [$^{\circ}$]', ...
+                Interpreter = 'latex' ...
+            );
+            ylabel(tiledLayoutHandle, 'Speed $\mathrm{v}$ [m/s]', ...
+                Interpreter = 'latex' ...
+            );
+
+        end
+
+        function plot_local_reachable_sets(obj, optional)
+            % PLOT_LOCAL_REACHABLE_SETS Visualize the reachable sets starting from
+            % different root trims.
+
+            arguments
+                obj (1, 1) MotionPrimitiveAutomaton;
+                optional.fig (1, 1) matlab.ui.Figure = figure(Name = "ReachableSets", Visible = "on");
+            end
+
+            set(0, "CurrentFigure", optional.fig);
+
+            n_trims = size(obj.local_reachable_sets, 1);
+            Hp = size(obj.local_reachable_sets, 2);
+
+            t_fig = tiledlayout(n_trims, Hp, TileSpacing = 'compact');
+
+            for i = 1:n_trims
+
+                for t = 1:Hp
+                    nexttile;
+                    plot(obj.local_reachable_sets{i, t})
+                    hold on
+                    plot(obj.local_reachable_sets_conv{i, t})
+
+                    if t == 1
+                        ylabel(['root trim ', num2str(i)])
+                    end
+
+                    axis square
+                    grid on
+                    xlim([-0.2, 1.5]);
+                    ylim([-1.4 1.4]);
+                end
+
+            end
+
+            xlabel(t_fig, 'x [m]')
+            ylabel(t_fig, 'y [m]')
+            title(t_fig, 'Reachable Sets of Different Root Trims')
         end
 
     end

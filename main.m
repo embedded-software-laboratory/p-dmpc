@@ -1,112 +1,72 @@
-function [result, scenario] = main(varargin)
-    % MAIN  main function for graph-based receeding horizon control
+function experiment_result = main(options)
+    % MAIN  main function for graph-based receding horizon control
 
-    if verLessThan('matlab', '9.12')
-        warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
+    arguments
+        options (1, 1) Config = config_gui();
     end
 
-    % check if Config object is given as input
-    options = read_object_from_input(varargin, 'Config');
-    % check if Scenario object is given as input
-    scenario = read_object_from_input(varargin, 'Scenario');
+    if isMATLABReleaseOlderThan('R2023a')
+        warning("Code is developed in MATLAB R2023a, prepare for backward incompatibilities.")
+    end
 
-    % If scenario/options are not given, determine from UI
-    if isempty(scenario)
+    % create scenario
+    scenario = create_scenario(options);
 
-        if isempty(options)
+    % write built scenario to disk
+    save('scenario.mat', 'scenario');
 
-            try
-                options = start_options();
-            catch ME
-                warning(ME.message);
-                return
-            end
-
-        end
-
-        plant = PlantFactory.get_experiment_interface(options.environment);
-        % create scenario
-        random_seed = RandStream('mt19937ar');
-        scenario = create_scenario(options, random_seed, plant);
+    % inform where experiment takes place
+    if options.environment == Environment.Simulation
+        disp('Running in MATLAB simulation...')
     else
-        plant = PlantFactory.get_experiment_interface(scenario.options.environment);
+        disp('Running in Lab...')
     end
 
-    % write scenario to disk if distributed (for lab or local debugging with main_distributed())
-    if scenario.options.is_prioritized == true
-        save('scenario.mat', 'scenario');
-    end
-
-    is_prioritized_parallel_in_lab = (scenario.options.is_prioritized && scenario.options.environment == Environment.CpmLab && scenario.options.compute_in_parallel);
-
-    if is_prioritized_parallel_in_lab
+    if options.computation_mode == ComputationMode.parallel_physically
+        delete_ros2_msgs();
         disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
+        return
+    end
 
-        if exist("commun/cust1/matlab_msg_gen", 'dir')
+    if options.is_prioritized
+        % In prioritized computation, vehicles communicate via ROS 2.
+        % Generate the ros2 msgs types.
+        generate_ros2_msgs();
+    end
 
-            try
-                rmdir("commun/cust1/matlab_msg_gen", 's');
-            catch
-                warning("Unable to delete commun/cust1/matlab_msg_gen. Please delete manually");
-            end
+    if options.options_plot_online.is_active
+        plotter = PlotterOnline(options, scenario);
+    end
 
-        end
+    if ~options.is_prioritized || options.computation_mode == ComputationMode.sequential
+        experiment_result = run_hlc(options, 1:options.amount);
 
-        if exist("commun/cust2/matlab_msg_gen", "dir")
-
-            try
-                rmdir("commun/cust2/matlab_msg_gen", 's');
-            catch
-                warning("Unable to delete commun/cust2/matlab_msg_gen. Please delete manually");
-            end
-
+        if options.options_plot_online.is_active
+            plotter.plotting_loop();
         end
 
     else
-        hlc_factory = HLCFactory();
-        hlc_factory.set_scenario(scenario);
-        dry_run = (scenario.options.environment == Environment.CpmLab);
+        % simulate distribution locally using the Parallel Computing Toolbox
+        get_parallel_pool(options.amount);
 
-        if scenario.options.use_cpp
-            optimizer(Function.CheckMexFunction);
+        future(1:options.amount) = parallel.FevalFuture;
+
+        for i_vehicle = 1:options.amount
+            future(i_vehicle) = parfeval(@run_hlc, 1, options, i_vehicle);
         end
 
-        if scenario.options.is_prioritized == true && scenario.options.compute_in_parallel
-            %% simulate distribution locally using the Parallel Computing Toolbox
-            get_parallel_pool(scenario.options.amount);
-
-            do_plot = scenario.options.options_plot_online.is_active;
-            can_handle_parallel_plot = isa(plant, 'SimLab');
-
-            if do_plot
-
-                if can_handle_parallel_plot
-                    visualization_data_queue = plant.set_visualization_data_queue;
-                    % create central plotter - used by all workers via data queue
-                    plotter = PlotterOnline(hlc_factory.scenario);
-                    afterEach(visualization_data_queue, @plotter.data_queue_callback);
-                else
-                    warning('The currently selected environment cannot handle plotting of a parallel execution!');
-                end
-
-            end
-
-            spmd (scenario.options.amount)
-                hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, plant);
-                [result, scenario] = hlc.run();
-            end
-
-            if do_plot
-                plotter.close_figure();
-            end
-
-            result = {result{:}};
-            scenario = {scenario{:}};
-        else
-            hlc = hlc_factory.get_hlc(scenario.options.veh_ids, dry_run, plant);
-            [result, scenario] = hlc.run();
+        if options.options_plot_online.is_active
+            plotter.plotting_loop();
         end
+
+        experiment_result = fetchOutputs(future, UniformOutput = false);
 
     end
 
+end
+
+function experiment_result = run_hlc(options, i_vehicle)
+    hlc_factory = HLCFactory();
+    hlc = hlc_factory.get_hlc(options, i_vehicle);
+    experiment_result = hlc.run();
 end

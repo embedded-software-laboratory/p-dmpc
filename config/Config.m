@@ -1,118 +1,139 @@
-classdef Config < matlab.mixin.Copyable
+classdef Config
 
     properties
-        environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
-        is_manual_control = false; % true/false, are manually controlled vehicles involved
+        environment Environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
         manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
         is_prioritized = true; % true/false, is prioritize vehicles
         amount = 20; % integer, number of vehicles, does not include manual vehicles
-        compute_in_parallel = false; % true/false, is use parallel(distributed) computation
-        scenario_type ScenarioType = ScenarioType.commonroad; % one of the follows: {'Circle_scenario', 'Commonroad'}
-        priority PriorityStrategies = PriorityStrategies.constant_priority; % defines which priority assignmen strategy is used
-        weight WeightStrategies = WeightStrategies.constant_weight; % defines which weighting method is used
-        dt = 0.2; % scalar, sample time
+        computation_mode ComputationMode = ComputationMode.sequential;
+        scenario_type ScenarioType = ScenarioType.commonroad;
+        coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling;
+        priority PriorityStrategies = PriorityStrategies.constant_priority;
+        weight WeightStrategies = WeightStrategies.distance_weight;
+        cut CutStrategies = CutStrategies.greedy_cut;
+        dt_seconds = 0.2; % scalar, default sample time
         Hp = 6; % scalar, prediction horizon
-        trim_set = 7; % scalar, ID of trim primitives
+        mpa_type MpaType = MpaType.single_speed; % mpa type (element of {'single_speed', 'triple_speed', 'realistic'})
         T_end = 20; % scalar, simulation duration
         max_num_CLs = 99; % integer, maximum allowerd number of computation levels
-        strategy_consider_veh_without_ROW = '2'; % one of the following: {'1', '2', '3', '4', '5'}, strategy of letting higher - priority vehicles consider their coupled vehicles with lower priorities
-        % '1': do not consider
-        % '2': consider currently occupied area as static obstacle
-        % '3': consider the occupied area of emergency braking maneuver as static obstacle
-        % '4': consider one-step reachable sets as static obstacle
-        % '5': consider old trajectory as dynamic obstacle
+        constraint_from_successor ConstraintFromSuccessor = ConstraintFromSuccessor.area_of_standstill;
         strategy_enter_lanelet_crossing_area = '1'; % one of the following: {'1', '2', '3', '4'}, strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
         % '1': no constraint on entering the crossing area
         % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
         % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
         % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-        should_save_result = false; % true/false, is save result
-        should_reduce_result = true; % true/false, if true, reduced result will be save to save disk space (useful for a long run of simulation)
-        result_name = ''; % string or char, custom file name to save result
-        allow_priority_inheritance = false; % true/false, is allow vehicles to inherit the right-of-way from their front vehicles
+        should_save_result = true; % true/false, is save ExperimentResult
+        should_reduce_result = true; % true/false, if true, reduced ExperimentResult will be save to save disk space (useful for a long run of simulation)
+        result_name = ''; % string or char, custom file name to save ExperimentResult
 
-        is_eval = false; % true/false,
-        is_free_flow = false; % true/false, if true, vehicles do not need to consider other vehicles.
-        fallback_type FallbackType = FallbackType.local_fallback; % one of the following {'no', 'local', 'global'},
-        % 'no' for disable fallback;
-        % 'global' means once a vehicle triggers fallback, all other vehicles must also take fallback.
-        % 'local' means once a vehicle triggers fallback, only vehicles that have direct or undirected couplings with it will take fallabck.
+        fallback_type FallbackType = FallbackType.local_fallback;
 
-        veh_ids = []; % vehicle IDs only of autonomous vehicles
-        random_idx = []; % integer, random choose different vehicles
+        path_ids = []; % reference path IDs for selection of paths for the vehicles
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
-        is_allow_non_convex = true; % true/false, whether to allow non-convex polygons; if true, the separating axis theorem cannot be used since it works only for convex polygons. `InterX.m` can be used instead.
+
         recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
         time_per_tick = 0.01;
         offset = 0.01;
-        plot_limits = [-10, 10; -10, 10]; % default fallback if not defined
+        plot_limits = [0, 4.5; 0, 4]; % default fallback if not defined
         is_use_dynamic_programming = true; % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
 
-        % MPA
-        is_save_mpa = true; % true/false, the offline computed MPA will be saved if true
-        is_load_mpa = true; % true/false, the offline computed MPA  will be load if exists
+        options_plot_online OptionsPlotOnline = OptionsPlotOnline(); % setup for online plotting
+        is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
 
-        options_plot_online = OptionsPlotOnline(); % setup for online plotting
-        bound_reachable_sets = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
-
-        is_force_parallel_vehs_in_same_grp = true; % true/false, if true, vehicles move in parallel will be forced in the same group
-        reference_path = struct('lanelets_index', [], 'start_point', []); % custom reference path
-        use_cpp = false;
-        mex_out_of_process_execution = false; % execute mex graph search functions in own process
+        optimizer_type OptimizerType = OptimizerType.MatlabOptimal; % optimizer that shall be used
 
     end
 
-    properties (Dependent)
-        tick_per_step % number of data points per step
-        k_end % total number of steps
-        Hu % control horizon
+    properties (Dependent, GetAccess = public, SetAccess = private)
+        tick_per_step; % number of data points per step
+        k_end; % total number of steps
+        % whether to allow non-convex polygons; the separating axis theorem
+        % works only for convex polygons.
+        are_any_obstacles_non_convex;
+        % execute mex graph search functions in own process
+        mex_out_of_process_execution
     end
 
     methods
 
-        function obj = Config()
+        function result = get.tick_per_step(obj)
+            result = round(obj.dt_seconds / obj.time_per_tick);
         end
 
-        function obj = assign_data(obj, struct)
-            fn = fieldnames(struct);
+        function result = get.k_end(obj)
+            result = floor(obj.T_end / obj.dt_seconds);
+        end
 
-            for i_field = 1:length(fn)
-                field = fn{i_field};
+        function result = get.are_any_obstacles_non_convex(obj)
 
-                if ~isprop(obj, field)
-                    warning('Cannot set property %s for class Config as it does not exist', field);
-                    continue;
-                end
-
-                if findprop(obj, field).Dependent
-                    warning('Cannot set property %s for class Config as it is a dependent property', field);
-                    continue;
-                end
-
-                if strcmp(field, 'manual_control_config')
-                    obj.manual_control_config = ManualControlConfig();
-                    obj.manual_control_config = obj.manual_control_config.assign_data(struct.manual_control_config);
-                elseif strcmp(field, 'options_plot_online')
-                    obj.options_plot_online = OptionsPlotOnline();
-                    obj.options_plot_online = obj.options_plot_online.assign_data(struct.options_plot_online);
-                else
-                    obj.(field) = struct.(field);
-                end
-
+            if (obj.scenario_type == ScenarioType.circle ...
+                    || ~obj.is_prioritized)
+                % InterX only checks intersections of line segments. In the circle
+                % scenario, reachable sets are large and therefore checking the
+                % intersection of line segments is not sufficient to guarantee
+                % avoidance of reachable sets in parallel planning.
+                result = false;
+            else
+                % In road scenarios, reachable sets are always non-convex.
+                % The separating axis theorem does not work, the error we make
+                % with InterX is negligible due to small sizes of reachable sets.
+                result = true;
             end
 
         end
 
-        function result = get.tick_per_step(obj)
-            result = round(obj.dt / obj.time_per_tick);
+        function mex_out_of_process_execution = get.mex_out_of_process_execution(obj)
+            % if prioritized controller runs sequentially with more than 1 vehicle
+            % activate out of process execution for mex function
+            if obj.amount > 1 ...
+                    && obj.is_prioritized ...
+                    && obj.computation_mode == ComputationMode.sequential
+                mex_out_of_process_execution = true;
+            else
+                mex_out_of_process_execution = false;
+            end
+
         end
 
-        function result = get.k_end(obj)
-            result = floor(obj.T_end / obj.dt);
+        % empty set methods used by jsondecode
+        % dependent properties with public GetAccess are encoded to a json file
+        % to automatically decode the json file set methods must be defined
+
+        function obj = set.tick_per_step(obj, ~)
         end
 
-        function result = get.Hu(obj)
-            result = obj.Hp;
+        function obj = set.k_end(obj, ~)
+        end
+
+        function obj = set.are_any_obstacles_non_convex(obj, ~)
+        end
+
+        function obj = set.mex_out_of_process_execution(obj, ~)
+        end
+
+    end
+
+    methods (Static)
+
+        function obj = load_from_file(json_file_path)
+
+            [~, ~, file_extension] = fileparts(json_file_path);
+
+            assert( ...
+                strcmp(file_extension, '.json'), ...
+                'Input must be a json file!' ...
+            );
+
+            obj = Config();
+            obj = obj.importFromJson(fileread(json_file_path));
+
+        end
+
+    end
+
+    methods (Access = public)
+
+        function obj = Config()
         end
 
         function result = exportAsJson(obj)
@@ -120,7 +141,130 @@ classdef Config < matlab.mixin.Copyable
         end
 
         function result = importFromJson(obj, json)
-            result = assign_data(obj, jsondecode(json));
+            % custom classes must provide jsondecode by its own
+            result = jsondecode(obj, jsondecode(json));
+        end
+
+        function obj = jsondecode(obj, json_struct)
+            % for each loop requires fields as row vector
+            fields = string(fieldnames(json_struct)).';
+
+            for field = fields
+
+                if ~isprop(obj, field)
+                    warning('Cannot set property %s for class Config as it does not exist', field);
+                    continue;
+                end
+
+                % custom classes must provide jsondecode by its own
+                if strcmp(field, "manual_control_config")
+                    obj.manual_control_config = ManualControlConfig();
+                    obj.manual_control_config = obj.manual_control_config.jsondecode(json_struct.manual_control_config);
+                elseif strcmp(field, "options_plot_online")
+                    obj.options_plot_online = OptionsPlotOnline();
+                    obj.options_plot_online = obj.options_plot_online.jsondecode(json_struct.options_plot_online);
+                else
+                    obj.(field) = json_struct.(field);
+                end
+
+            end
+
+        end
+
+        function result = use_cpp(obj)
+            result = (obj.optimizer_type == OptimizerType.CppOptimal | obj.optimizer_type == OptimizerType.CppSampled);
+        end
+
+        function obj = validate(obj)
+
+            % throw error if centralized controller should run in lab
+            if ( ...
+                    obj.environment == Environment.CpmLab || ...
+                    obj.environment == Environment.UnifiedLabApi ...
+                )
+                assert( ...
+                    isunix && ~ismac, ...
+                    'The lab interfaces can only be used on a Linux system!' ...
+                )
+                assert( ...
+                    obj.is_prioritized == true, ...
+                    'You are trying to run a centralized controller in the lab!' ...
+                )
+            end
+
+            % forbid usage of StacPrioritizer or StacWeigher for circle scenarios
+            assert( ...
+                ~( ...
+                (obj.priority == PriorityStrategies.STAC_priority ...
+                || obj.weight == WeightStrategies.STAC_weight) ...
+                && (obj.scenario_type == ScenarioType.circle)), ...
+                'STAC Priority and STAC Weight not available for Circle scenarios!' ...
+            );
+            assert( ...
+                ~( ...
+                (obj.priority == PriorityStrategies.STAC_priority) ...
+                && (obj.coupling == CouplingStrategies.full_coupling)), ...
+                'STAC Priority not available for Full Coupling!' ...
+            );
+
+            % limit maximum number of computation levels
+            obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
+
+            if obj.scenario_type == ScenarioType.commonroad
+                % set default path ids if no path ids were defined
+                if isempty(obj.path_ids)
+
+                    switch obj.amount
+                        case 1
+                            obj.path_ids = 18;
+                        case 2
+                            obj.path_ids = [18, 20];
+                        case 3
+                            obj.path_ids = [18, 19, 20];
+                        case 4
+                            obj.path_ids = [17, 18, 19, 20];
+                        otherwise
+                            path_id_max = 41; % maximum defined path id
+                            obj.path_ids = randperm(RandStream("mt19937ar"), path_id_max, obj.amount);
+                    end
+
+                end
+
+                % validate amount of path ids
+                assert( ...
+                    length(obj.path_ids) == obj.amount, ...
+                    'Amount of path_ids (%d) does not match amount of vehicles (%d)!', ...
+                    length(obj.path_ids), ...
+                    obj.amount ...
+                )
+
+                % validate that path_ids are unique
+                assert( ...
+                    length(obj.path_ids) == length(unique(obj.path_ids, 'stable')), ...
+                    'Path_ids must be unique!' ...
+                );
+            end
+
+            % validate manual control config
+            if ~obj.manual_control_config.is_active
+                % set values for inactive manual control config
+                obj.manual_control_config.amount = 0;
+                obj.manual_control_config.hdv_ids = [];
+            else
+                % check if chosen amount matches with typed in hdv ids
+                assert( ...
+                    length(obj.manual_control_config.hdv_ids) == obj.manual_control_config.amount, ...
+                    'Amount of hdv_ids (%d) does not match amount of manual vehicles (%d)!', ...
+                    length(obj.manual_control_config.hdv_ids), ...
+                    obj.manual_control_config.amount ...
+                )
+            end
+
+            % specify different plot limits for circle scenario with 2 vehicles
+            if obj.scenario_type == ScenarioType.circle && obj.amount <= 2
+                obj.plot_limits = [0, 4.5; 1.5, 2.5];
+            end
+
         end
 
     end

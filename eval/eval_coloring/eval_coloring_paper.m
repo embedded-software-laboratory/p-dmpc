@@ -62,13 +62,18 @@ function eval_coloring_paper()
     tcomp = zeros(1, length(n_agents));
     tcomp_helper = zeros(1, n_runs);
 
+    prioritizer = ColoringPrioritizer();
+    iter = struct;
+
     for n = range
         adjacency = triu(randi([0 1], n_agents(n), n_agents(n)), 1);
         adjacency = adjacency + adjacency';
 
+        iter.adjacency = adjacency;
+
         for i = 1:n_runs
             tstart = tic;
-            [isDAG, topo_groups] = topological_sorting_coloring(adjacency); %#ok<ASGLU>
+            prioritizer.prioritize(iter, [], [], []);
             tcomp_helper(i) = toc(tstart);
         end
 
@@ -92,10 +97,11 @@ function eval_coloring_paper()
     fprintf("\nEvaluate computation time for priority assignment algorithm in 8-vehicle scenario at intersection\n")
     n = 100;
     tcomp_s = zeros(1, n);
+    iter.adjacency = c;
 
     for i = 1:n
         tstart = tic;
-        [isDAG, topo_groups] = topological_sorting_coloring(c); %#ok<ASGLU>
+        prioritizer.prioritize(iter, [], [], []);
         tcomp_s(i) = toc(tstart);
     end
 
@@ -116,14 +122,13 @@ function eval_coloring_paper()
                                       };
 
     options = Config;
-    options.trim_set = 9;
+    options.mpa_type = MpaType.single_speed;
     options.T_end = 180;
     options.Hp = 8;
     options.is_prioritized = true;
     options.environment = Environment.Simulation;
     options.options_plot_online.is_active = false;
-    options.strategy_consider_veh_without_ROW = '2'; % '2': consider currently occupied area as static obstacle
-    options.allow_priority_inheritance = true;
+    options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
     options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area
     options.should_save_result = 1;
     options.should_reduce_result = 1;
@@ -145,7 +150,7 @@ function eval_coloring_paper()
     % plot lanelets map
     figure_handle = figure();
 
-    plot_lanelets(scenarios(1).road_raw_data.lanelet, scenarios(1).options.scenario_type);
+    plot_lanelets(scenarios(1).road_raw_data.lanelet);
     axis equal;
     xlabel('$x$ [m]', 'Interpreter', 'latex');
     ylabel('$y$ [m]', 'Interpreter', 'latex');

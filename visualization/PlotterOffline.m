@@ -1,9 +1,9 @@
 classdef PlotterOffline < Plotter
-    %PLOTTEROFFLINE Plotter class for offline result analysis.
-    %   From a results object, the different time steps can be plotted and iterated forwards and backwards.
+    %PLOTTEROFFLINE Plotter class for offline ExperimentResult analysis.
+    %   From a ExperimentResult object, the different time steps can be plotted and iterated forwards and backwards.
 
     properties
-        result (1, 1) struct % results to plot
+        experiment_result ExperimentResult % (1, 1) ExperimentResult to plot
     end
 
     properties (Access = private)
@@ -12,17 +12,17 @@ classdef PlotterOffline < Plotter
 
     methods
 
-        function obj = PlotterOffline(result, delta_t_s, veh_indices)
+        function obj = PlotterOffline(experiment_result, delta_t_s, vehicle_indices)
             %PLOTTEROFFLINE Construct an instance of PlotterOffline
-            %   Specify the results to view and optionally the time step for playback and the vehicle indices to plot.
+            %   Specify the ExperimentResults to view and optionally the time step for playback and the vehicle indices to plot.
             arguments
-                result (1, 1) struct
-                delta_t_s (1, 1) double = result.scenario.options.dt
-                veh_indices (1, :) int32 = 1:result.scenario.options.amount
+                experiment_result (1, 1) ExperimentResult
+                delta_t_s (1, 1) double = experiment_result.options.dt_seconds
+                vehicle_indices (1, :) int32 = 1:experiment_result.options.amount
             end
 
-            obj@Plotter(result.scenario, veh_indices);
-            obj.result = result;
+            obj@Plotter(experiment_result.options, experiment_result.scenario, vehicle_indices);
+            obj.experiment_result = experiment_result;
             obj.delta_t_s = delta_t_s;
             obj.paused = true;
             obj.hotkey_description(obj.number_base_hotkeys) = sprintf("{\\its}: change playback speed (%0.3gs)", delta_t_s);
@@ -33,14 +33,14 @@ classdef PlotterOffline < Plotter
 
         function start(obj)
             %START Start plotting.
-            %   Show the first time step and enable playback and manual iteration through the results.
+            %   Show the first time step and enable playback and manual iteration through the ExperimentResults.
 
             obj.plot();
             % Keep plotter alive until plotting is aborted.
             while ~obj.abort
                 pause(obj.delta_t_s);
                 % Pause playback on last time step.
-                if ~obj.paused && obj.time_step == obj.result.nSteps
+                if ~obj.paused && obj.time_step == obj.experiment_result.n_steps
                     obj.paused = true;
                     obj.update_hotkey_description();
                     obj.plot();
@@ -60,7 +60,7 @@ classdef PlotterOffline < Plotter
         function plot(obj)
             %PLOT  Plot the simulation state at the current time step.
 
-            plotting_info = PlottingInfo(obj.veh_indices, obj.result, obj.time_step, 1);
+            plotting_info = PlottingInfo(obj.vehicle_indices, obj.experiment_result, obj.time_step, 1);
             plot@Plotter(obj, plotting_info);
         end
 
@@ -88,7 +88,7 @@ classdef PlotterOffline < Plotter
                 obj.hotkey_description(obj.number_base_hotkeys + 3) = "{\color{gray}{\itpos1}: jump to first time step}";
             end
 
-            if initial || obj.time_step < obj.result.nSteps
+            if initial || obj.time_step < obj.experiment_result.n_steps
                 obj.hotkey_description(obj.number_base_hotkeys + 2) = "{\color{black}{\itrightarrow}: 1 time step forward}";
                 obj.hotkey_description(obj.number_base_hotkeys + 4) = "{\color{black}{\itend}: jump to last time step}";
             else
@@ -98,7 +98,7 @@ classdef PlotterOffline < Plotter
 
             update_hotkey_description@Plotter(obj);
 
-            if obj.paused && obj.time_step == obj.result.nSteps
+            if obj.paused && obj.time_step == obj.experiment_result.n_steps
                 obj.hotkey_description(11) = "{\color{gray}{\itspace}: start simulation}";
             end
 
@@ -109,7 +109,7 @@ classdef PlotterOffline < Plotter
             %   Plot the hotkey descriptions next to the scenario plot, specific for 1- or 2-circle scenario, else
             %   general plotting routine.
 
-            if obj.scenario.options.scenario_type == ScenarioType.circle && obj.scenario.options.amount <= 2
+            if obj.options.scenario_type == ScenarioType.circle && obj.options.amount <= 2
                 position = obj.hotkey_position;
                 text(position(1), position(2), obj.hotkey_description(1:obj.number_base_hotkeys - 2), ...
                     'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'Tag', 'hotkey');
@@ -133,10 +133,10 @@ classdef PlotterOffline < Plotter
             switch eventdata.Key
                 case 'rightarrow'
 
-                    if obj.time_step < obj.result.nSteps
+                    if obj.time_step < obj.experiment_result.n_steps
                         obj.time_step = obj.time_step + 1;
                     else
-                        fprintf("Cannot increase time step as the maximum time step of %i is reached.\n", obj.result.nSteps);
+                        fprintf("Cannot increase time step as the maximum time step of %i is reached.\n", obj.experiment_result.n_steps);
                     end
 
                 case 'leftarrow'
@@ -151,7 +151,7 @@ classdef PlotterOffline < Plotter
                     obj.time_step = 1;
                     disp("Jumping to first time step.")
                 case 'end'
-                    obj.time_step = obj.result.nSteps;
+                    obj.time_step = obj.experiment_result.n_steps;
                     disp("Jumping to last time step.")
                 case 's'
                     new_delta_t_s = input("Enter a new time step playback duration in seconds (s to cancel):\n", "s");

@@ -2,8 +2,8 @@ classdef PrioritizedSequentialController < PrioritizedController
 
     methods
 
-        function obj = PrioritizedSequentialController(scenario, vehicle_ids)
-            obj = obj@PrioritizedController(scenario, vehicle_ids);
+        function obj = PrioritizedSequentialController(options, plant, ros2_node)
+            obj = obj@PrioritizedController(options, plant, ros2_node);
         end
 
     end
@@ -12,43 +12,35 @@ classdef PrioritizedSequentialController < PrioritizedController
 
         function controller(obj)
             % PB_CONTROLLER_PARL Plan trajectory for one time step using a
-            % priority-based controller. Vehicles inside one group plan in sequence and
-            % between groups plan in pararllel. Controller simulates multiple
+            % prioritized controller. Vehicles inside one group plan in sequence and
+            % between groups plan in parallel. Controller simulates multiple
             % distributed controllers in a for-loop.
 
-            runtime_others = obj.init_step();
+            % initialize variable to store control results
+            obj.info = ControlResultsInfo( ...
+                obj.options.amount, ...
+                obj.options.Hp, ...
+                obj.plant.all_vehicle_indices ...
+            );
 
-            msg_send_time = zeros(1, obj.amount);
-            runtime_planning = zeros(1, obj.amount);
+            level_matrix = kahn(obj.iter.directed_coupling_sequential);
 
-            for level_j = 1:length(obj.CL_based_hierarchy)
-                vehs_level_i = obj.CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
+            for i_level = 1:size(level_matrix, 1)
 
-                for vehicle_idx = vehs_level_i
+                vehicles_in_level = find(level_matrix(i_level, :));
 
-                    if ismember(vehicle_idx, obj.info.vehs_fallback)
-                        % jump to next vehicle if the selected vehicle should take fallback
-                        obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
-                        continue
-                    end
-
-                    % plan for vehicle_idx
-                    runtime_planning(vehicle_idx) = obj.plan_single_vehicle(vehicle_idx);
-                end
-
-                % Communicate data to other vehicles
-                for vehicle_k = vehs_level_i
-                    msg_send_time(vehicle_k) = obj.publish_predictions(vehicle_k);
+                for i_vehicle = vehicles_in_level
+                    % plan for i_vehicle
+                    obj.timing_per_vehicle(i_vehicle).start('plan_single_vehicle', obj.k);
+                    obj.plan_single_vehicle(i_vehicle);
+                    obj.timing_per_vehicle(i_vehicle).stop('plan_single_vehicle', obj.k);
+                    obj.timing_per_vehicle(i_vehicle).start('publish_predictions', obj.k);
+                    obj.publish_predictions(i_vehicle);
+                    obj.timing_per_vehicle(i_vehicle).stop('publish_predictions', obj.k);
                 end
 
             end
 
-            % Calculate the total runtime of each group
-            obj.info = get_run_time_total_all_grps(obj.info, ...
-                obj.iter.parl_groups_info, obj.CL_based_hierarchy, ...
-                msg_send_time, runtime_others, runtime_planning);
-
-            obj.iter.lanelet_crossing_areas = obj.lanelet_crossing_areas;
         end
 
     end

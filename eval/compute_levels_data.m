@@ -17,26 +17,27 @@ function [data] = compute_levels_data(res)
     nVeh_list = zeros(1, nVeh);
 
     for iVeh = 1:nVeh
-        nVeh_list(iVeh) = res{iVeh, 1, 1}.scenario.options.amount;
+        nVeh_list(iVeh) = res{iVeh, 1, 1}.options.amount;
 
         for iPri = 1:nPri
 
             for iSce = 1:nSce
-                result = res{iVeh, iPri, iSce};
+                experiment_result = res{iVeh, iPri, iSce};
 
                 % get number of steps until deadlock
-                [nSteps, ~] = compute_deadlock_free_runtime(result);
+                [n_steps, ~] = compute_deadlock_free_runtime(experiment_result);
 
-                if ~(nSteps == result.nSteps)
+                if ~(n_steps == experiment_result.n_steps)
                     continue;
                 end
 
-                scenario_tmp = result.scenario;
+                options_tmp = experiment_result.options;
+                scenario_tmp = experiment_result.scenario;
 
-                for iStep = nSteps:-1:1
+                for iStep = n_steps:-1:1
                     % no adjacency given in 1-veh scenarios
-                    if scenario_tmp.options.amount > 1
-                        iter_tmp = result.iteration_structs{iStep};
+                    if options_tmp.amount > 1
+                        iter_tmp = experiment_result.iteration_data{iStep};
 
                         % assign priorities using different algorithms
                         [~, ~, ~, fca_prios] = FcaPriority().priority(scenario_tmp, iter_tmp);
@@ -49,7 +50,7 @@ function [data] = compute_levels_data(res)
                         n_random = max(random_prios);
                         n_constant = max(constant_prios);
                         n_coloring = max(coloring_prios);
-                        disp(['Scenario ', num2str(iVeh), '/', num2str(iPri), '/', num2str(iSce), ' Step ', num2str(nSteps - iStep), ' of ', num2str(nSteps)]);
+                        disp(['Scenario ', num2str(iVeh), '/', num2str(iPri), '/', num2str(iSce), ' Step ', num2str(n_steps - iStep), ' of ', num2str(n_steps)]);
                     else
                         [n_fca, n_random, n_constant, n_coloring] = deal(1);
                     end

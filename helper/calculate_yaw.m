@@ -1,36 +1,28 @@
-function yaw = calculate_yaw(refPath)
-
-    nrefPoints = length(refPath);
-    yaw = zeros(nrefPoints, 1);
-
-    dx1 = refPath(2, 1) - refPath(1, 1);
-    dy1 = refPath(2, 2) - refPath(1, 2);
-
-    if dx1 < 0
-        yaw(1, 1) = atan(dy1 / dx1) + pi;
-    else
-        yaw(1, 1) = atan(dy1 / dx1);
+function yaw = calculate_yaw(reference_path)
+    % calculate_yaw - Calculates the yaw angle of the reference path
+    arguments
+        % path with
+        % first column x-coordinates
+        % second column y-coordinates
+        reference_path (:, 2) double
     end
 
-    for i = 2:nrefPoints - 1
-        dxi = refPath(i + 1, 1) - refPath(i - 1, 1);
-        dyi = refPath(i + 1, 2) - refPath(i - 1, 2);
+    yaw = zeros(length(reference_path), 1);
 
-        if dxi < 0
-            yaw(i, 1) = atan(dyi / dxi) + pi;
-        else
-            yaw(i, 1) = atan(dyi / dxi);
-        end
+    % calculate intermediate yaws by using the previous and the next reference point
+    dpos = reference_path(3:end, :) - reference_path(1:end - 2, :);
+    yaw(2:end - 1) = atan2(dpos(:, 2), dpos(:, 1));
 
-    end
+    % calculate first yaw by using the current and the next reference point
+    yaw(1) = atan2( ...
+        reference_path(2, 2) - reference_path(1, 2), ...
+        reference_path(2, 1) - reference_path(1, 1) ...
+    );
 
-    dx_end = refPath(nrefPoints, 1) - refPath(nrefPoints - 1, 1);
-    dy_end = refPath(nrefPoints, 2) - refPath(nrefPoints - 1, 2);
-
-    if dx_end < 0
-        yaw(nrefPoints, 1) = atan(dy_end / dx_end) + pi;
-    else
-        yaw(nrefPoints, 1) = atan(dy_end / dx_end);
-    end
+    % calculate last yaw by using the previous and the current reference point
+    yaw(end) = atan2( ...
+        reference_path(end, 2) - reference_path(end - 1, 2), ...
+        reference_path(end, 1) - reference_path(end - 1, 1) ...
+    );
 
 end

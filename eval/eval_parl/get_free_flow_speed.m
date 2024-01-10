@@ -1,17 +1,19 @@
 function free_flow_speed = get_free_flow_speed(options)
+
     arguments
-        options (1,1) Config;
+        options (1, 1) Config;
     end
+
     %GET_FREE_FLOW_SPEED Free flow speed is the speed that vehicles could travel if they are not hindered by others
     % Inputs
-    %   dt: sample time [s]
+    %   dt_seconds: sample time [s]
     % Outputs
     %   free_flow_speed: free flow speed [m/s]
 
     % prepare simulation options
     options.environment = Environment.Simulation;
     options.should_save_result = true;
-    options.is_free_flow = true; % TODO: Remove all couplings instead of using this flag
+    options.coupling = CouplingStrategies.no_coupling;
 
     results_full_path = FileNameConstructor.get_results_full_path(options, options.amount);
 
@@ -19,13 +21,13 @@ function free_flow_speed = get_free_flow_speed(options)
         disp('File already exists.')
     else
         % run simulation
-        [~, ~] = main(options);
+        main(options);
     end
 
     % evaluate
     evaluation = EvaluationParl(results_full_path);
 
     free_flow_speed = evaluation.average_speed;
-    disp(['Free-flow speed for sample time ' num2str(options.dt) ' s: ' num2str(free_flow_speed) ' m/s.'])
+    disp(['Free-flow speed for sample time ' num2str(options.dt_seconds) ' s: ' num2str(free_flow_speed) ' m/s.'])
 
 end

@@ -7,47 +7,35 @@ stages:
     name: registry.git-ce.rwth-aachen.de/cpm/coincar/software/graph_based_planning/matlab:latest
     entrypoint: [""]
 
-.matlab_with_test_summary:
+.matlab_with_test_coverage:
   extends: .matlab_defaults
   variables:
     TEST_FOLDER:
-      description: "Folder to execute all tests for."
+      description: "Folder in which tests are located."
+    COVERAGE_FOLDER:
+      description: "Folder to compute code coverage for."
   stage: Test
   script:
     - matlab -batch
        "openProject('graph_based_planning.prj');
-        results = execute_tests($TEST_FOLDER, false);
-        assertSuccess(results);"
-  artifacts:
-    when: always
-    reports:
-      junit: tests/coverage/junitReport.xml
-  tags:
-    - docker
-
-.matlab_with_test_coverage:
-  extends: .matlab_with_test_summary
-  variables:
-    TEST_FOLDER:
-      description: "Folder to execute all unittests for."
-    COVERAGE_FOLDER:
-      description: "Folder to compute code coverage for."
-  script:
-    - matlab -batch
-       "openProject('graph_based_planning.prj');
-        [results, coverage] = execute_tests($TEST_FOLDER, true, $COVERAGE_FOLDER);
+        [results, coverage] = execute_tests($TEST_FOLDER, $COVERAGE_FOLDER);
         fprintf('Code coverage %s%%\n', coverage);
         assertSuccess(results);"
   coverage: /Code coverage ([\.\d]*)%/
   artifacts:
     when: always
     reports:
+      junit: tests/coverage/junitReport.xml
       coverage_report:
         coverage_format: cobertura
         path: tests/coverage/coverageReport.xml
+    paths:
+    - tests/coverage/htmlReport/
+  tags:
+    - docker
 
 
-Startup Unittest:
+build:
   extends: .matlab_defaults
   stage: Build
   script:
@@ -57,25 +45,26 @@ Startup Unittest:
         lastwarn('', '');
         openProject('graph_based_planning.prj');
         [warnMsg, warnId] = lastwarn();
-        if(~isempty(warnId))
-            error(warnMsg, warnId);
-        end"
+        display(warnMsg);
+        assert(isempty(warnId));"
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   tags:
     - docker
+  artifacts:
+    paths:
+    - hlc/optimizer/graph_search/priority_queue/priority_queue_interface_mex.mexa64
+    - hlc/optimizer/graph_search_cpp/graph_search_cpp_centralized_mex.mexa64
+    - hlc/optimizer/graph_search_cpp/graph_search_cpp_priority_mex.mexa64
+    - scenarios/road_network/lanelets/lanelet2/generate_lanelet2_ref_path_loop_indices_mex.mexa64
+    - scenarios/road_network/lanelets/lanelet2/load_lanelet2_map_matlab_mex.mexa64
+    expire_in: 1 hour
 
-Unittests:
-  extends: .matlab_with_test_coverage
-  parallel:
-    matrix:
-      - FOLDER: [helper, hlc]
-  variables:
-    TEST_FOLDER: "'tests/unittests/$FOLDER'"
-    COVERAGE_FOLDER: "'$FOLDER'"
-
-Systemtests:
+test:
   extends: .matlab_with_test_coverage
   variables:
-    TEST_FOLDER: "'tests/systemtests/systemtests.m'"
-    COVERAGE_FOLDER: "{'config', 'helper', 'hlc', 'manual_control', 'plant', 'scenarios', 'ui', 'visualization'}"
+    TEST_FOLDER: "'tests'"
+    COVERAGE_FOLDER: "{'config', 'eval/result_analysis', 'eval/result_plotting', 'helper', 'hlc', 'plant', 'scenarios', 'visualization'}"
+  needs:
+  - job: build
+    artifacts: true
