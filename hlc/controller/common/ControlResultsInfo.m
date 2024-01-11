@@ -15,7 +15,6 @@ classdef ControlResultsInfo
         vehicles_fallback (:, 1) int32 % vehicles that need to take fallback
         is_exhausted (:, 1) logical % whether graph search is exhausted
         needs_fallback % vehicle at a stillstand but the graph search is still exhausted
-        u (:, 1) double % control input
     end
 
     properties (Dependent)
@@ -50,7 +49,6 @@ classdef ControlResultsInfo
             obj.vehicles_fallback = int32.empty;
             obj.is_exhausted = false(nVeh, 1);
             obj.needs_fallback = false(nVeh, 1);
-            %obj.u = zeros(nVeh,1);
         end
 
         function obj = store_control_info(obj, info_v, options)
