@@ -27,7 +27,7 @@ function [data] = compute_runtime_data(res)
                 avg_speed_step = zeros(n_total_deadlock_free, 1);
 
                 for iStep = 1:n_total_deadlock_free
-                    iter = experiment_result.iteration_data{iStep};
+                    iter = experiment_result.iteration_data(iStep);
                     speeds = [experiment_result.mpa.trims(iter.trim_indices).speed];
                     avg_speed_step(iStep) = mean(speeds);
                 end

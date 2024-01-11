@@ -1,15 +1,16 @@
 classdef ExperimentResult
 
     properties
-        scenario % scenario of simulation
-        options % config of the simulation
-        iteration_data % iteration steps
-        mpa % MotionPrimitiveAutomation used
+        scenario Scenario % scenario of simulation
+        options Config % config of the simulation
+        mpa MotionPrimitiveAutomaton % MotionPrimitiveAutomation used
+
+        iteration_data IterationData % iteration steps
+
+        control_results_info ControlResultsInfo
         trajectory_predictions % predicted trajectory for all vehicles and iteration steps
         output_path % output_path of the ExperimentResult file
         total_fallback_times % total times of fallback
-
-        timing
 
         %hlc info parts
         n_expanded % number of expansions in search tree during graph search
@@ -18,6 +19,9 @@ classdef ExperimentResult
 
         n_steps % total number of steps
         t_total % total runtime
+
+        timing
+
     end
 
     methods
@@ -32,7 +36,6 @@ classdef ExperimentResult
 
             obj.scenario = scenario;
             obj.options = options;
-            obj.iteration_data = cell(0, 1);
             obj.mpa = mpa;
             obj.trajectory_predictions = cell(options.amount, 0);
             obj.output_path = '';

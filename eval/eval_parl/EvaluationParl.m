@@ -113,8 +113,8 @@ classdef EvaluationParl
 
             for k = 1:experiment_result.n_steps
                 % calculate number of couplings
-                experiment_result.num_couplings(k) = nnz(experiment_result.iteration_data{k}.directed_coupling);
-                experiment_result.num_couplings_ignored(k) = nnz(experiment_result.iteration_data{k}.directed_coupling) - nnz(experiment_result.iteration_data{k}.directed_coupling_reduced);
+                experiment_result.num_couplings(k) = nnz(experiment_result.iteration_data(k).directed_coupling);
+                experiment_result.num_couplings_ignored(k) = nnz(experiment_result.iteration_data(k).directed_coupling) - nnz(experiment_result.iteration_data(k).directed_coupling_reduced);
 
                 % initialize counter
                 % number of couplings between parallel groups
@@ -122,14 +122,14 @@ classdef EvaluationParl
                 % reduced number of couplings between groups by using lanelet crossing lanelets
                 experiment_result.num_couplings_between_grps_ignored(k) = 0;
 
-                [row_coupling, col_coupling] = find(experiment_result.iteration_data{k}.directed_coupling);
+                [row_coupling, col_coupling] = find(experiment_result.iteration_data(k).directed_coupling);
                 n_couplings = length(row_coupling);
 
                 for i_coupling = 1:n_couplings
                     veh_i = row_coupling(i_coupling);
                     veh_j = col_coupling(i_coupling);
                     veh_ij = [veh_i, veh_j];
-                    is_same_grp = any(cellfun(@(c) all(ismember(veh_ij, c)), {experiment_result.iteration_data{k}.parl_groups_info.vertices}));
+                    is_same_grp = any(cellfun(@(c) all(ismember(veh_ij, c)), {experiment_result.iteration_data(k).parl_groups_info.vertices}));
 
                     if is_same_grp
                         continue
@@ -138,8 +138,8 @@ classdef EvaluationParl
                     experiment_result.num_couplings_between_grps(k) = experiment_result.num_couplings_between_grps(k) + 1;
 
                     if ( ...
-                            ~(experiment_result.iteration_data{k}.directed_coupling(veh_i, veh_j) == 1) || ...
-                            ~(experiment_result.iteration_data{k}.directed_coupling_reduced(veh_i, veh_j) == 0) ...
+                            ~(experiment_result.iteration_data(k).directed_coupling(veh_i, veh_j) == 1) || ...
+                            ~(experiment_result.iteration_data(k).directed_coupling_reduced(veh_i, veh_j) == 0) ...
                         )
                         continue
                     end
@@ -189,7 +189,7 @@ classdef EvaluationParl
 
                 for iIter = obj.steps_ignored:obj.n_steps
                     i = iIter - obj.steps_ignored + 1;
-                    obj.reference_paths{iVeh}(:, i) = reshape(experiment_result.iteration_data{iIter}.reference_trajectory_points(iVeh, 1, :), 2, []);
+                    obj.reference_paths{iVeh}(:, i) = reshape(experiment_result.iteration_data(iIter).reference_trajectory_points(iVeh, 1, :), 2, []);
                     obj.real_paths{iVeh}(:, i) = experiment_result.vehicle_path_fullres{iVeh, iIter}(end, 1:2)'; % FIXME
                     obj.path_tracking_errors{iVeh}(:, i) = sqrt(sum((obj.real_paths{iVeh}(:, i) - obj.reference_paths{iVeh}(:, i)).^2, 1));
                 end

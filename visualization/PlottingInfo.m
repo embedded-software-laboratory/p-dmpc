@@ -28,23 +28,23 @@ classdef PlottingInfo
             obj.step = k;
             obj.tick_now = tick_now;
             obj.trajectory_predictions = experiment_result.trajectory_predictions(:, k);
-            obj.ref_trajectory = experiment_result.iteration_data{k}.reference_trajectory_points;
-            obj.n_obstacles = size(experiment_result.iteration_data{k}.obstacles, 1);
+            obj.ref_trajectory = experiment_result.iteration_data(k).reference_trajectory_points;
+            obj.n_obstacles = size(experiment_result.iteration_data(k).obstacles, 1);
 
             if obj.n_obstacles > 0
-                obj.obstacles = experiment_result.iteration_data{k}.obstacles;
+                obj.obstacles = experiment_result.iteration_data(k).obstacles;
             end
 
-            obj.reachable_sets = experiment_result.iteration_data{k}.reachable_sets;
+            obj.reachable_sets = experiment_result.iteration_data(k).reachable_sets;
 
-            obj.lanelet_crossing_areas = experiment_result.iteration_data{k}.lanelet_crossing_areas(:);
+            obj.lanelet_crossing_areas = experiment_result.iteration_data(k).lanelet_crossing_areas(:);
 
-            obj.directed_coupling = experiment_result.iteration_data{k}.directed_coupling;
-            obj.directed_coupling_sequential = experiment_result.iteration_data{k}.directed_coupling_sequential;
+            obj.directed_coupling = experiment_result.iteration_data(k).directed_coupling;
+            obj.directed_coupling_sequential = experiment_result.iteration_data(k).directed_coupling_sequential;
 
-            obj.weighted_coupling = experiment_result.iteration_data{k}.weighted_coupling;
+            obj.weighted_coupling = experiment_result.iteration_data(k).weighted_coupling;
 
-            obj.directed_coupling_reduced = experiment_result.iteration_data{k}.directed_coupling_reduced;
+            obj.directed_coupling_reduced = experiment_result.iteration_data(k).directed_coupling_reduced;
 
         end
 

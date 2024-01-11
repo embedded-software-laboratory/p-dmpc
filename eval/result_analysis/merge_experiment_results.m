@@ -60,13 +60,13 @@ end
 
 function iter = merge_two_iteration_data_objects(iter, other_iter)
     n_steps = numel(iter);
-    i_veh = find(other_iter{1}.reference_trajectory_index(:, 1) ~= 0);
+    i_veh = find(other_iter(1).reference_trajectory_index(:, 1) ~= 0);
 
     % merge iteration struct for every timestep
     for i_step = 1:n_steps
-        iter{i_step}.reference_trajectory_points(i_veh, :, :) = other_iter{i_step}.reference_trajectory_points(i_veh, :, :);
-        iter{i_step}.reference_trajectory_index(i_veh, :, :) = other_iter{i_step}.reference_trajectory_index(i_veh, :, :);
-        iter{i_step}.v_ref(i_veh, :) = other_iter{i_step}.v_ref(i_veh, :);
+        iter(i_step).reference_trajectory_points(i_veh, :, :) = other_iter(i_step).reference_trajectory_points(i_veh, :, :);
+        iter(i_step).reference_trajectory_index(i_veh, :, :) = other_iter(i_step).reference_trajectory_index(i_veh, :, :);
+        iter(i_step).v_ref(i_veh, :) = other_iter(i_step).v_ref(i_veh, :);
     end
 
 end

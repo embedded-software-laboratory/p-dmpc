@@ -143,9 +143,9 @@ function results_combined = combine_distributed_results(results)
             [experiment_result.trajectory_predictions{j, :}] = trajectory_predictions{:};
 
             for k = 1:length(results{i, j}.iteration_data)
-                experiment_result.iteration_data{k}.referenceTrajectoryPoints(j, :, :) = results{i, j}.iteration_data{k}.referenceTrajectoryPoints(j, :, :);
-                experiment_result.iteration_data{k}.referenceTrajectoryIndex(j, :) = results{i, j}.iteration_data{k}.referenceTrajectoryIndex(j, :);
-                experiment_result.iteration_data{k}.v_ref(j, :) = results{i, j}.iteration_data{k}.v_ref(j, :);
+                experiment_result.iteration_data(k).referenceTrajectoryPoints(j, :, :) = results{i, j}.iteration_data(k).referenceTrajectoryPoints(j, :, :);
+                experiment_result.iteration_data(k).referenceTrajectoryIndex(j, :) = results{i, j}.iteration_data(k).referenceTrajectoryIndex(j, :);
+                experiment_result.iteration_data(k).v_ref(j, :) = results{i, j}.iteration_data(k).v_ref(j, :);
             end
 
         end
@@ -348,7 +348,7 @@ function plot_viewpoint_reachable_set(i_result, results, results_folder_path)
     other_vehs = setdiff(1:nVehs, ego_vehs);
     % plot reachable set
     for v = other_vehs
-        reachable_sets = results{i_result, v}.iteration_data{step_idx}.reachable_sets(v, :);
+        reachable_sets = results{i_result, v}.iteration_data(step_idx).reachable_sets(v, :);
         reachable_sets_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets);
         color = rwth_color(v, :);
         plot_cell_arrays(reachable_sets_array, color, true)

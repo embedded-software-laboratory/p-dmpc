@@ -16,7 +16,7 @@ function export_frame(experiment_result, optional)
     plotter = PlotterOnline(options, scenario);
     plotter.set_figure_visibility(false);
     frame_idx = 1;
-    plotting_info = PlottingInfo(experiment_result.iteration_data{frame_export_setup.iStep}.vehicle_ids, experiment_result, optional.iStep, frame_idx);
+    plotting_info = PlottingInfo(experiment_result.iteration_data(frame_export_setup.iStep).vehicle_ids, experiment_result, optional.iStep, frame_idx);
     plotter.plot(plotting_info);
     set_figure_properties(plotter.get_figure(), ExportFigConfig.video());
     frame = getframe(plotter.get_figure());

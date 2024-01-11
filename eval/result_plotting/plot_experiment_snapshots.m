@@ -11,7 +11,7 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
     scenario = experiment_result.scenario;
 
     n_vehicles = options.amount;
-    obstacles = experiment_result.iteration_data{experiment_result.n_steps}.obstacles;
+    obstacles = experiment_result.iteration_data(experiment_result.n_steps).obstacles;
     nObst = size(obstacles, 1);
 
     nFigs = numel(step_indices);
@@ -73,7 +73,7 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
 
             % Vehicle rectangles
             veh = scenario.vehicles(i_vehicle);
-            state = experiment_result.iteration_data{step_idx}.x0(i_vehicle, :);
+            state = experiment_result.iteration_data(step_idx).x0(i_vehicle, :);
             vehiclePolygon = transformed_rectangle(state(1), state(2), state(3), veh.Length, veh.Width);
             patch(vehiclePolygon(1, :) ...
                 , vehiclePolygon(2, :) ...

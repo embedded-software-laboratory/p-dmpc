@@ -10,7 +10,7 @@ function plot_trajectories(experiment_result, optional)
 
     set(0, 'currentfigure', optional.fig);
 
-    iteration_data = [experiment_result.iteration_data{optional.time_span}];
+    iteration_data = [experiment_result.iteration_data(optional.time_span)];
     pose_and_trim = [iteration_data.x0];
     x = pose_and_trim(:, 1:4:end);
     y = pose_and_trim(:, 2:4:end);
