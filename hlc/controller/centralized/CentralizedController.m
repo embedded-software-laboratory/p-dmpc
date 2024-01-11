@@ -44,9 +44,7 @@ classdef CentralizedController < HighLevelController
 
             obj.timing.start('fallback', obj.k);
 
-            if info_v.is_exhausted
-                info_v = handle_graph_search_exhaustion(info_v, obj.options, obj.iter, obj.mpa);
-            end
+            info_v.needs_fallback = info_v.is_exhausted;
 
             if info_v.needs_fallback
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or

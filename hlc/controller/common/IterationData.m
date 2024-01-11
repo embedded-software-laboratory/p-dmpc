@@ -30,7 +30,6 @@ classdef IterationData
         hdv_reachable_sets % reachable sets of hdvs
         hdv_adjacency % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
 
-        vehicles % copy of vehicle list (useful for filtered)
         vehicle_ids
         amount % number of involved vehicles (useful for filtered)
     end
@@ -64,7 +63,6 @@ classdef IterationData
             obj.obstacles = scenario.obstacles;
             obj.lanelet_crossing_areas = repmat({{}}, nVeh, 1);
             obj.amount = nVeh;
-            obj.vehicles = scenario.vehicles;
             obj.vehicle_ids = vehicle_ids;
             obj.coupling_info = cell(nVeh, nVeh);
         end

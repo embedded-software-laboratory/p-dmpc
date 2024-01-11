@@ -349,7 +349,7 @@ classdef PrioritizedController < HighLevelController
             obj.timing.stop('optimize', obj.k);
 
             if info_v.is_exhausted
-                info_v = handle_graph_search_exhaustion(info_v, obj.options, iter_v, obj.mpa);
+                info_v = obj.handle_graph_search_exhaustion(info_v, iter_v);
             end
 
             if info_v.needs_fallback
@@ -638,6 +638,47 @@ classdef PrioritizedController < HighLevelController
             % release preallocated cell array entries
             obstacles(cellfun(@isempty, obstacles), :) = [];
             dynamic_obstacle_area(cellfun(@isempty, dynamic_obstacle_area(:, 1)), :) = [];
+
+        end
+
+        function info_v = handle_graph_search_exhaustion(obj, info_v, iter)
+            trim = iter.trim_indices;
+
+            if obj.mpa.trims(trim).speed == 0 ...
+                    && ~(obj.options.constraint_from_successor == ConstraintFromSuccessor.none)
+                % If a vehicle at a standstill cannot find a feasible
+                % trajectory, but higher-priority vehicles avoid at least its
+                % standstill position, it will stay there without
+                % triggering a fallback. This behavior can happen when the
+                % reachable set of a higher-priority vehicle cannot be avoided.
+                Hp = obj.options.Hp;
+                x = iter.x0(:, 1);
+                y = iter.x0(:, 2);
+                yaw = iter.x0(:, 3);
+                info_v.tree_path = ones(size(x, 1), Hp + 1);
+                y_pred = {repmat( ...
+                              [x, y, yaw, trim], ...
+                              (obj.options.tick_per_step + 1) * Hp, ...
+                              1 ...
+                          )};
+                info_v.y_predicted = y_pred;
+
+                vehiclePolygon = transformed_rectangle( ...
+                    x, ...
+                    y, ...
+                    yaw, ...
+                    obj.scenario_adapter.scenario.vehicles.Length, ...
+                    obj.scenario_adapter.scenario.vehicles.Width ...
+                );
+                shape_veh = {[vehiclePolygon, vehiclePolygon(:, 1)]}; % close shape
+
+                info_v.shapes = repmat(shape_veh, 1, Hp);
+                % Predicted trims in the future Hp time steps. The first entry is the current trims
+                info_v.predicted_trims = repmat(trim, 1, Hp + 1);
+                info_v.needs_fallback = false;
+            else
+                info_v.needs_fallback = true;
+            end
 
         end
 

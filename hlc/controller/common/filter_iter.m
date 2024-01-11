@@ -10,7 +10,6 @@ function iter = filter_iter(iter, vehicle_filter) % TODO: Add new fields
     iter.predicted_lanelet_boundary = iter.predicted_lanelet_boundary(vehicle_filter, :);
     iter.reachable_sets = iter.reachable_sets(vehicle_filter, :);
     iter.lanelet_crossing_areas = iter.lanelet_crossing_areas{vehicle_filter};
-    iter.vehicles = iter.vehicles(vehicle_filter);
     iter.vehicle_ids = iter.vehicle_ids(vehicle_filter);
     iter.amount = sum(vehicle_filter);
     iter.hdv_adjacency = iter.hdv_adjacency(vehicle_filter, :);
