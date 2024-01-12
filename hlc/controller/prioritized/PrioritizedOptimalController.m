@@ -104,15 +104,15 @@ classdef PrioritizedOptimalController < PrioritizedController
                         obj.info_array_tmp{i_solution}.vehicles_fallback ...
                     )
                     % in case of fallback use maximum cost
-                    g_end = 1e9;
+                    cost_value = 1e9;
                 else
                     % prefer solutions that are computed and have a low cost to come value in the last step
-                    g_end = obj.info_array_tmp{i_solution}.tree{obj.plant.vehicle_indices_controlled}.g( ...
+                    cost_value = obj.info_array_tmp{i_solution}.tree{obj.plant.vehicle_indices_controlled}.get_cost( ...
                         obj.info_array_tmp{i_solution}.tree_path(obj.plant.vehicle_indices_controlled, end) ...
                     );
                 end
 
-                obj.solution_cost(i_solution) = g_end;
+                obj.solution_cost(i_solution) = cost_value;
 
             end
 
