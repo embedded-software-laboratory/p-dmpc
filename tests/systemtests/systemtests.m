@@ -7,7 +7,7 @@ classdef systemtests < matlab.unittest.TestCase
         optimizer_prioritized = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
         computation_mode = {'sequential', 'parallel_threads'};
         coupling = {'reachable_set', 'full', 'no', 'distance'};
-        priority = {'coloring', 'constant', 'random', 'FCA'};
+        priority = {'coloring', 'constant', 'random', 'FCA', 'optimal'};
         weight = {'constant', 'random', 'distance'};
     end
 
@@ -159,10 +159,10 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyTrue(true);
 
             results_multiple_experiments = [
-                experiment_result_1
-                experiment_result_2
-                experiment_result_3
-            ];
+                                            experiment_result_1
+                                            experiment_result_2
+                                            experiment_result_3
+                                            ];
             plot_computation_time_over_vehicle_number(results_multiple_experiments, do_export = true);
             testCase.verifyTrue(true);
             plot_computation_time_over_vehicle_number(results_multiple_experiments, do_export = false);
