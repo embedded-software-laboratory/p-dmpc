@@ -9,8 +9,6 @@ function plot_default(experiment_result, optional)
     plot_mpa_over_time(experiment_result.mpa, experiment_result.options, do_export = optional.do_export);
     plot_mpa_local_reachable_sets(experiment_result.mpa, experiment_result.options, do_export = optional.do_export);
 
-    plot_computation_time(experiment_result, do_export = optional.do_export);
-
     plot_trajectories(experiment_result, do_export = optional.do_export);
 
     plot_scenario(experiment_result.scenario, experiment_result.options, do_export = optional.do_export);

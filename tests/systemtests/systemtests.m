@@ -91,10 +91,7 @@ classdef systemtests < matlab.unittest.TestCase
 
             %let main run and read result file
             experiment_result = main(options);
-
             testCase.verifyTrue(true);
-
-            load(experiment_result.output_path, 'experiment_result');
 
             %verify and check export too
             plot_default(experiment_result, do_export = true);
@@ -147,35 +144,32 @@ classdef systemtests < matlab.unittest.TestCase
             testCase.verifyEmpty(lastwarn);
 
             %let main run
-            main(options);
+            experiment_result_3 = main(options);
+
+            n_vehicles = 2;
+            options.amount = n_vehicles;
+            options.path_ids = options.path_ids(1:n_vehicles);
+            experiment_result_2 = main(options);
+
+            n_vehicles = 1;
+            options.amount = n_vehicles;
+            options.path_ids = options.path_ids(1:n_vehicles);
+            experiment_result_1 = main(options);
 
             testCase.verifyTrue(true);
 
-            % Load results
-            result_veh1 = load(FileNameConstructor.get_results_full_path(options, 1)).experiment_result;
-            result_veh2 = load(FileNameConstructor.get_results_full_path(options, 2)).experiment_result;
-            result_veh3 = load(FileNameConstructor.get_results_full_path(options, 3)).experiment_result;
-
-            % Test plotting of runtime over multiple experiments
-            results_multiple_experiments = cell(3, 3);
-            results_multiple_experiments{1, 1} = result_veh2; % use result of vehicle 2 also as if it was the result in an experiment with only one vehicle
-            results_multiple_experiments{2, 1} = result_veh1;
-            results_multiple_experiments{2, 2} = result_veh2;
-            results_multiple_experiments{3, 1} = result_veh1;
-            results_multiple_experiments{3, 2} = result_veh2;
-            results_multiple_experiments{3, 3} = result_veh3;
-
-            plot_runtime_multiple_experiments(results_multiple_experiments, do_export = true);
+            results_multiple_experiments = [
+                experiment_result_1
+                experiment_result_2
+                experiment_result_3
+            ];
+            plot_computation_time_over_vehicle_number(results_multiple_experiments, do_export = true);
             testCase.verifyTrue(true);
-            plot_runtime_multiple_experiments(results_multiple_experiments, do_export = false);
+            plot_computation_time_over_vehicle_number(results_multiple_experiments, do_export = false);
             testCase.verifyTrue(true);
 
             % Test plotting of runtime of one timestep within one experiment
-            result_one_experiment = cell(1, 3);
-            result_one_experiment{1, 1} = result_veh1;
-            result_one_experiment{1, 2} = result_veh2;
-            result_one_experiment{1, 3} = result_veh3;
-            result_one_experiment_normalized = normalize_timing_results(result_one_experiment);
+            result_one_experiment_normalized = normalize_timing_results(experiment_result_3);
 
             plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = true);
             testCase.verifyTrue(true);

@@ -234,11 +234,11 @@ classdef UnifiedLabApi < Plant
 
         end
 
-        function got_stop = is_stop(obj)
-            got_stop = false;
+        function result = should_stop(obj)
+            result = false;
 
             if any(obj.out_of_map_limits) || obj.got_stop
-                got_stop = true;
+                result = true;
             end
 
         end

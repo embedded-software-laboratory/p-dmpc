@@ -183,7 +183,7 @@ classdef (Abstract) InterHlcCommunication < handle
 
                 % jump to next loop iteration if no message is found
                 if ~any(is_found_message)
-                    pause(1e-4)
+                    pause(1 * 1e-3)
                     continue
                 end
 

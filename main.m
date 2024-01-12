@@ -38,7 +38,9 @@ function experiment_result = main(options)
         plotter = PlotterOnline(options, scenario);
     end
 
-    if ~options.is_prioritized || options.computation_mode == ComputationMode.sequential
+    if ~options.is_prioritized ...
+            || options.computation_mode == ComputationMode.sequential ...
+            || options.amount == 1
         experiment_result = run_hlc(options, 1:options.amount);
 
         if options.options_plot_online.is_active
@@ -61,6 +63,10 @@ function experiment_result = main(options)
 
         experiment_result = fetchOutputs(future, UniformOutput = false);
 
+    end
+
+    if numel(experiment_result) > 1
+        experiment_result = merge_experiment_results([experiment_result{:}]);
     end
 
 end

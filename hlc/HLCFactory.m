@@ -3,6 +3,7 @@ classdef HLCFactory < handle
     properties (Access = public)
     end
 
+    % TODO all functions could be static
     methods
 
         function obj = HLCFactory()
@@ -18,36 +19,46 @@ classdef HLCFactory < handle
                 % CpmLab:       IDs of the vehicles
                 controlled_vehicles
                 optional.do_dry_run = false
+                optional.ros2_node = []
             end
 
-            if options.environment == Environment.Simulation
+            if isempty(optional.ros2_node)
                 % Create ROS2 node for this HLC
                 vehicle_ids_string = sprintf('_%02d', controlled_vehicles);
-                ros2_node = ros2node(['hlc', vehicle_ids_string]);
-            else
-                ros2_node = [];
+                optional.ros2_node = ros2node(['hlc', vehicle_ids_string]);
             end
 
-            plant = Plant.get_plant(options.environment, ros2_node);
+            plant = Plant.get_plant(options.environment, optional.ros2_node);
             plant.setup(options, controlled_vehicles);
 
             if optional.do_dry_run
                 % FIXME does not work in parallel
-                obj.dry_run_hlc(options, plant.vehicle_indices_controlled, ros2_node);
+                obj.dry_run_hlc(options, plant.vehicle_indices_controlled, optional.ros2_node);
             end
 
             if options.is_prioritized
 
-                if length(plant.vehicle_indices_controlled) == 1
-                    % PB Controller for exactly 1 vehicle. Communicates
+                if length(controlled_vehicles) == 1
+                    % Prioritized controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    hlc = PrioritizedParallelController(options, plant, ros2_node);
+                    hlc = PrioritizedController(options, plant, optional.ros2_node);
                 else
-                    % PB Controller controlling all vehicles
-                    hlc = PrioritizedSequentialController(options, plant, ros2_node);
+                    % Prioritized controller controlling all vehicles
+                    hlc = PrioritizedSequentialController();
+
+                    for i_vehicle = controlled_vehicles
+                        sub_hlc = obj.get_hlc( ...
+                            options, ...
+                            i_vehicle, ...
+                            ros2_node = optional.ros2_node ...
+                        );
+                        hlc.add_hlc(sub_hlc);
+                    end
+
                 end
 
             else
+                % Centralized Controller controlling all vehicles
                 hlc = CentralizedController(options, plant);
             end
 
