@@ -1,6 +1,4 @@
-function [experiment_result, scenario] = main_distributed(vehicle_id)
-
-    %startup();
+function [experiment_result, scenario] = main_distributed(i_vehicle)
 
     if isMATLABReleaseOlderThan('R2023a')
         warning("Code is developed in MATLAB R2023a, prepare for backward incompatibilities.")
@@ -17,12 +15,7 @@ function [experiment_result, scenario] = main_distributed(vehicle_id)
     % Therefore, the the ros2 message types need to be created here before experiment setup.
     generate_ros2_msgs();
 
-    % get HLC
-    if options.is_prioritized
-        hlc = HlcFactory.get_hlc(options, vehicle_id);
-        experiment_result = hlc.run();
-    else
-        warning("Use main_distributed.m only for prioritized scenarios.")
-    end
+    hlc = HlcFactory.get_hlc(options, i_vehicle);
+    experiment_result = hlc.run();
 
 end
