@@ -17,15 +17,12 @@ classdef UnifiedTestbedInterface < Plant
         goal_handle % Handle for action client goal
 
         testbed_characteristics
-        positions_initialized = false
         got_start = false
         got_stop = false
 
         dt_period_nanos
         sample
         out_of_map_limits
-
-        all_vehicle_ids
     end
 
     methods
@@ -34,21 +31,18 @@ classdef UnifiedTestbedInterface < Plant
             obj = obj@Plant();
         end
 
-        function setup(obj, options, vehicle_indices_controlled)
+        function setup(obj, options, vehicle_ids_controlled)
 
             arguments
                 obj (1, 1) UnifiedTestbedInterface
                 options (1, 1) Config
-                vehicle_indices_controlled (1, :) uint8
+                vehicle_ids_controlled (1, :) uint8
             end
 
             % FIXME what does the UTI need? IDs, indices, all, controlled?
 
             obj.got_start = false;
             obj.got_stop = false;
-
-            obj.vehicle_indices_controlled = vehicle_indices_controlled;
-            setup@Plant(obj, options);
 
             % create ros2 messages, nodes, publishers and subscribers
             obj.prepare_ros2();
@@ -57,13 +51,48 @@ classdef UnifiedTestbedInterface < Plant
             obj.dt_period_nanos = uint64(options.dt_seconds * 1e9);
 
             % perform preparation phase (uses dt_period_nanos)
-            obj.prepare_api(vehicle_indices_controlled);
+            obj.prepare_api(vehicle_ids_controlled);
+
+            setup@Plant(obj, options);
+
+            % receive sample for initial vehicle states
+            sample_for_setup = obj.receive_new_sample();
+
+            % take list of VehicleStates from sample
+            state_list = sample_for_setup.vehicle_states;
+
+            % since there is no steering info in [rad],
+            % the initial_steering is assumed to 0
+            initial_steering = 0;
+
+            for index = 1:length(state_list)
+
+                % cast state_list vehicle_id from int32 to uint8
+                % to match the data type of superclass member
+                % since this class is currently not supported,
+                % it is accepted that higher vehicle ids cannot not be represented
+                if ~any(uint8(state_list(index).vehicle_id) == vehicle_ids_controlled)
+                    % if vehicle is not controlled, do not use received information
+                    continue
+                end
+
+                % boolean with exactly one true entry for the position in all_vehicle_ids
+                is_in_vehicle_list = uint8(state_list(index).vehicle_id) == all_vehicle_ids;
+
+                obj.measurements(is_in_vehicle_list) = PlantMeasurement( ...
+                    state_list(index).pose.x, ...
+                    state_list(index).pose.y, ...
+                    state_list(index).pose.yaw, ...
+                    state_list(index).speed.linear, ...
+                    initial_steering ...
+                );
+
+            end
 
         end
 
         function register_map(obj, map_as_string)
             % UTI allows to set a scenario map in the testbed.
-            disp('Is called!!!');
             obj.set_map_in_testbed(map_as_string);
         end
 
@@ -99,53 +128,9 @@ classdef UnifiedTestbedInterface < Plant
         function [cav_measurements, hdv_measurements] = measure(obj)
             % take cav_measurements that were applied in the previous step
             % for the first step they hold the initialized values
-
             cav_measurements = obj.measurements;
 
             new_sample = obj.receive_new_sample();
-
-            if ~obj.positions_initialized
-                % take list of VehicleStates from sample
-                state_list = new_sample.vehicle_states;
-
-                % subtract the hdv_ids from active_vehicle_ids
-                obj.all_vehicle_ids = setdiff( ...
-                    new_sample.active_vehicle_ids, ...
-                    obj.manual_control_config.hdv_ids ...
-                );
-
-                % since there is no steering info in [rad],
-                % the initial_steering is assumed to 0
-                initial_steering = 0;
-
-                for index = 1:length(state_list)
-
-                    % cast state_list vehicle_id from int32 to uint8
-                    % to match the data type of superclass member
-                    % since this class is currently not supported,
-                    % it is accepted that higher vehicle ids cannot not be represented
-                    if ~any(uint8(state_list(index).vehicle_id) == vehicle_ids_controlled)
-                        % if vehicle is not controlled, do not use received information
-                        continue
-                    end
-
-                    % boolean with exactly one true entry for the position in all_vehicle_ids
-                    is_in_vehicle_list = uint8(state_list(index).vehicle_id) == all_vehicle_ids;
-
-                    obj.measurements(is_in_vehicle_list) = PlantMeasurement( ...
-                        state_list(index).pose.x, ...
-                        state_list(index).pose.y, ...
-                        state_list(index).pose.yaw, ...
-                        state_list(index).speed.linear, ...
-                        initial_steering ...
-                    );
-
-                end
-
-                obj.positions_initialized = true;
-            end
-
-            % Initialization done. Real measurement step starts here.
 
             time_old_sample_predicted = uint64(obj.sample.current_time.sec) * 10^9 + uint64(obj.sample.current_time.nanosec) + uint64(obj.dt_period_nanos) * 1.5;
             time_new_sample = uint64(new_sample.current_time.sec) * 10^9 + uint64(new_sample.current_time.nanosec);
@@ -413,8 +398,6 @@ classdef UnifiedTestbedInterface < Plant
             % Request scaling of 1:18
             disp('Wait for testbed nodes to become available...');
             [connectionStatus, connectionStatustext] = waitForServer(obj.client_scaleRegistration);
-
-            pause(0.5);
 
             if (~connectionStatus)
                 error(strcat('Scaling service could not be reached. Status text: ', connectionStatustext));
