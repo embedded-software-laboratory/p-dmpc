@@ -10,6 +10,11 @@ function experiment_result = merge_experiment_results(experiment_results)
         experiment_result = merge_two_experiment_results(experiment_result, experiment_results(i));
     end
 
+    % save the ExperimentResult to a file
+    file_name = FileNameConstructor.get_results_full_path(experiment_result.options);
+    save(file_name, 'experiment_result');
+    fprintf('Merged results were saved in: %s\n', file_name);
+
 end
 
 function merged_experiment_result = merge_two_experiment_results(merged_experiment_result, result2)

@@ -98,15 +98,17 @@ classdef FileNameConstructor
 
             arguments
                 options (1, 1) Config;
-                i_vehicles (1, :) {mustBeInteger, mustBePositive} = options.amount;
+                i_vehicles (1, :) {mustBeInteger, mustBePositive} = 1:options.amount;
             end
 
             priority = char(options.priority);
             weight = char(options.weight);
 
-            scenario_name = '';
-
-            scenario_name = ['veh_', num2str(i_vehicles), '_'];
+            if numel(i_vehicles) == 1
+                scenario_name = ['veh_', num2str(i_vehicles), '_'];
+            else
+                scenario_name = '';
+            end
 
             if isempty(options.result_name)
                 % use default name
@@ -152,6 +154,12 @@ classdef FileNameConstructor
         end
 
         function results_full_path = get_results_full_path(options, i_vehicles)
+
+            arguments
+                options (1, 1) Config;
+                i_vehicles (1, :) {mustBeInteger, mustBePositive} = 1:options.amount;
+            end
+
             % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
             % results are saved.
             % INPUT: options, i_vehicles(vehicles for which this HLC is responsible.)

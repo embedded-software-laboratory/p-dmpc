@@ -57,7 +57,7 @@ function experiment_results = main_nuc_simulation()
     % load & merge experiment_results
     fprintf('Merging experiment_results into one...');
 
-    experiment_results = [];
+    experiment_results = ExperimentResult.empty;
 
     % get list of all current experiment_results
     eval_files_folder = dir('/tmp/eval_files_*');
@@ -69,8 +69,10 @@ function experiment_results = main_nuc_simulation()
     for i_entry = 1:numel(results_list)
         entry = results_list(i_entry);
         load([entry.folder, filesep, entry.name]);
-        experiment_results = merge_two_experiment_results(experiment_results, experiment_result);
+        experiment_results(end + 1) = experiment_result;
     end
+
+    merge_experiment_results(experiment_results);
 
     fprintf('done.\n');
 
