@@ -1,6 +1,7 @@
 #!/bin/bash
 # guest password (DO NOT PUSH TO GIT)
 export SSHPASS=
+
 dirname="eval_files_$(date +%Y%m%d%H%M%S)"
 mkdir /tmp/$dirname
 

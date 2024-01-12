@@ -23,8 +23,7 @@ function experiment_result = main(options)
     end
 
     if options.computation_mode == ComputationMode.parallel_physically
-        delete_ros2_msgs();
-        disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
+        disp('Scenario was written to disk. If run with LCC, call `delete_ros2_msgs()` before.')
         return
     end
 
