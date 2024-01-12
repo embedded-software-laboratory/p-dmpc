@@ -30,7 +30,7 @@ classdef HlcFactory
 
             if options.is_prioritized
 
-                if length(controlled_vehicles) == 1
+                if length(vehicle_indices_controlled) == 1
                     % Prioritized controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
                     if options.priority ~= PriorityStrategies.optimal_priority
@@ -47,7 +47,7 @@ classdef HlcFactory
                         hlc = PrioritizedOptimalSequentialController();
                     end
 
-                    for i_vehicle = controlled_vehicles
+                    for i_vehicle = vehicle_indices_controlled
                         sub_hlc = HlcFactory.get_hlc( ...
                             options, ...
                             i_vehicle, ...
