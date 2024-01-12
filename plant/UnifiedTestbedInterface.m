@@ -399,6 +399,9 @@ classdef UnifiedTestbedInterface < Plant
             disp('Wait for testbed nodes to become available...');
             [connectionStatus, connectionStatustext] = waitForServer(obj.client_scaleRegistration);
 
+            % Wait a bit such that all nodes is really available
+            pause(0.5);
+
             if (~connectionStatus)
                 error(strcat('Scaling service could not be reached. Status text: ', connectionStatustext));
             end
