@@ -8,8 +8,8 @@ classdef HlcFactory
         function hlc = get_hlc(options, vehicle_indices_controlled, optional)
 
             arguments
-                options
-                vehicle_indices_controlled
+                options Config
+                vehicle_indices_controlled (1, :) double
                 optional.do_dry_run = false
                 optional.ros2_node = []
             end
@@ -84,6 +84,13 @@ classdef HlcFactory
         % solve the first time step of this scenario is.
 
         function dry_run_hlc(options, dry_run_vehicle_indices, ros2_node)
+
+            arguments
+                options Config
+                dry_run_vehicle_indices (1, :) double
+                ros2_node
+            end
+
             fprintf("Dry run of HLC...");
 
             % use simulation to avoid communication with a lab
