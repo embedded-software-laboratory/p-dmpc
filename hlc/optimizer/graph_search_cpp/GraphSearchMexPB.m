@@ -20,11 +20,11 @@ classdef GraphSearchMexPB < OptimizerInterface
                 return
             end
 
-            for vehicle_index = vehicle_indices
+            for i_vehicle = vehicle_indices
                 % create mexhost for each vehicle (only if incremental search is used - no option in config yet)
-                obj.mexhosts(vehicle_index) = mexhost;
+                obj.mexhosts(i_vehicle) = mexhost;
                 % initialize C++ graph search
-                feval(obj.mexhosts(vehicle_index), 'graph_search_cpp_priority_mex', CppOptimizer.InitializeMex, options, mpa, scenario);
+                feval(obj.mexhosts(i_vehicle), 'graph_search_cpp_priority_mex', CppOptimizer.InitializeMex, options, mpa, scenario);
             end
 
         end

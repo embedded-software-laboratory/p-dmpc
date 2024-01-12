@@ -18,10 +18,8 @@ function [experiment_result, scenario] = main_distributed(vehicle_id)
     generate_ros2_msgs();
 
     % get HLC
-    factory = HLCFactory();
-
     if options.is_prioritized
-        hlc = factory.get_hlc(options, vehicle_id);
+        hlc = HlcFactory.get_hlc(options, vehicle_id);
         experiment_result = hlc.run();
     else
         warning("Use main_distributed.m only for prioritized scenarios.")

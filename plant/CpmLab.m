@@ -255,11 +255,11 @@ classdef CpmLab < Plant
 
         end
 
-        function got_stop = is_stop(obj)
-            [~, got_stop] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
+        function result = should_stop(obj)
+            [~, result] = read_system_trigger(obj.reader_systemTrigger, obj.trigger_stop);
 
             if any(obj.out_of_map_limits)
-                got_stop = true;
+                result = true;
             end
 
         end

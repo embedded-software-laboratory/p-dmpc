@@ -102,6 +102,10 @@ classdef MonteCarloTree < Tree
             yaw = obj.pose(3, i_vehicle, i_node);
         end
 
+        function cost = get_cost(obj, i_node)
+            cost = obj.cost(1, i_node);
+        end
+
     end
 
 end

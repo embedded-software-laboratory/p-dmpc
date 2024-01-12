@@ -123,6 +123,10 @@ classdef AStarTree < Tree
             yaw = obj.yaw(i_vehicle, i_node);
         end
 
+        function cost = get_cost(obj, i_node)
+            cost = sum(obj.g(:, i_node));
+        end
+
     end
 
 end

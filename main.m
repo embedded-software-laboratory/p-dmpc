@@ -38,7 +38,9 @@ function experiment_result = main(options)
         plotter = PlotterOnline(options, scenario);
     end
 
-    if ~options.is_prioritized || options.computation_mode == ComputationMode.sequential
+    if ~options.is_prioritized ...
+            || options.computation_mode == ComputationMode.sequential ...
+            || options.amount == 1
         experiment_result = run_hlc(options, 1:options.amount);
 
         if options.options_plot_online.is_active
@@ -63,10 +65,13 @@ function experiment_result = main(options)
 
     end
 
+    if numel(experiment_result) > 1
+        experiment_result = merge_experiment_results([experiment_result{:}]);
+    end
+
 end
 
 function experiment_result = run_hlc(options, i_vehicle)
-    hlc_factory = HLCFactory();
-    hlc = hlc_factory.get_hlc(options, i_vehicle);
+    hlc = HlcFactory.get_hlc(options, i_vehicle);
     experiment_result = hlc.run();
 end

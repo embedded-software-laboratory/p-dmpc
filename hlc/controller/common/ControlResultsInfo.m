@@ -56,15 +56,15 @@ classdef ControlResultsInfo
         function obj = store_control_info(obj, info_v, options)
 
             if options.is_prioritized
-                vehicle_idx = find(obj.controller_ID == info_v.controller_ID);
-                obj.tree{vehicle_idx} = info_v.tree;
-                obj.tree_path(vehicle_idx, :) = info_v.tree_path;
-                obj.n_expanded(vehicle_idx, 1) = info_v.n_expanded;
-                obj.next_node = set_node(obj.next_node, vehicle_idx, info_v.tree.get_node(info_v.tree_path(2)));
-                obj.shapes(vehicle_idx, :) = info_v.shapes(:);
-                obj.predicted_trims(vehicle_idx, :) = info_v.predicted_trims; % store the planned trims in the future Hp time steps
-                obj.y_predicted(vehicle_idx) = info_v.y_predicted; % store the information of the predicted output
-                obj.is_exhausted(vehicle_idx) = info_v.is_exhausted;
+                i_vehicle = find(obj.controller_ID == info_v.controller_ID);
+                obj.tree{i_vehicle} = info_v.tree;
+                obj.tree_path(i_vehicle, :) = info_v.tree_path;
+                obj.n_expanded(i_vehicle, 1) = info_v.n_expanded;
+                obj.next_node = set_node(obj.next_node, i_vehicle, info_v.tree.get_node(info_v.tree_path(2)));
+                obj.shapes(i_vehicle, :) = info_v.shapes(:);
+                obj.predicted_trims(i_vehicle, :) = info_v.predicted_trims; % store the planned trims in the future Hp time steps
+                obj.y_predicted(i_vehicle) = info_v.y_predicted; % store the information of the predicted output
+                obj.is_exhausted(i_vehicle) = info_v.is_exhausted;
 
             else
                 % for centralized control

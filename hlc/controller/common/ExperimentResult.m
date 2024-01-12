@@ -9,9 +9,7 @@ classdef ExperimentResult
         output_path % output_path of the ExperimentResult file
         total_fallback_times % total times of fallback
 
-        %timings
-        timings_general
-        timings_per_vehicle
+        timing
 
         %hlc info parts
         n_expanded % number of expansions in search tree during graph search
@@ -40,8 +38,7 @@ classdef ExperimentResult
             obj.output_path = '';
             obj.total_fallback_times = 0;
 
-            obj.timings_general = cell(0, 1);
-            obj.timings_per_vehicle = cell(0, 1);
+            obj.timing = cell(0, 1);
 
             obj.n_expanded = zeros(options.amount, 0);
             obj.vehicles_fallback = cell(0, 1);
