@@ -210,7 +210,7 @@ classdef Config
             % limit maximum number of computation levels
             obj.max_num_CLs = min(obj.max_num_CLs, obj.amount);
 
-            if obj.scenario_type == ScenarioType.commonroad
+            if obj.scenario_type ~= ScenarioType.circle
                 % set default path ids if no path ids were defined
                 if isempty(obj.path_ids)
 
