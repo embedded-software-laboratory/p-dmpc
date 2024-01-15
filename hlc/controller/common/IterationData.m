@@ -68,6 +68,26 @@ classdef IterationData
             obj.coupling_info = cell(nVeh, nVeh);
         end
 
+        function equal = is_equal(obj, compare_obj)
+
+            arguments
+                obj (1, 1) IterationData;
+                compare_obj (1, 1) IterationData;
+            end
+
+            equal = obj.amount == compare_obj.amount;
+
+            for i_veh = 1:obj.amount
+                equal = equal && ~any(abs(obj.x0(i_veh) - compare_obj.x0(i_veh)));
+
+                if (~equal)
+                    return;
+                end
+
+            end
+
+        end
+
     end
 
 end
