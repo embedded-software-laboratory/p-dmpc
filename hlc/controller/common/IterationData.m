@@ -22,7 +22,6 @@ classdef IterationData
         dynamic_obstacle_shape % (1 x 2) array [Length, Width] for all obstacles
         dynamic_obstacle_fullres % (nObs x ?) cell array
         weighted_coupling % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
-        weighted_coupling_reduced % reduced coupling weights by forbidding vehicles entering their lanelet crossing areas
         coupling_info % couling information of each coupling pair
         directed_coupling % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
         directed_coupling_reduced % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
@@ -61,7 +60,6 @@ classdef IterationData
             obj.directed_coupling_reduced = zeros(nVeh, nVeh);
             obj.directed_coupling_sequential = zeros(nVeh, nVeh);
             obj.weighted_coupling = zeros(nVeh, nVeh);
-            obj.weighted_coupling_reduced = zeros(nVeh, nVeh);
             obj.obstacles = scenario.obstacles;
             obj.lanelet_crossing_areas = repmat({{}}, nVeh, 1);
             obj.amount = nVeh;

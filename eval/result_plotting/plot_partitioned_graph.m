@@ -10,7 +10,7 @@ function plot_partitioned_graph(experiment_result, optional)
     end
 
     directed_coupling_sequential = experiment_result.iteration_data{optional.i_step}.directed_coupling_sequential;
-    edge_weights = experiment_result.iteration_data{optional.i_step}.weighted_coupling_reduced;
+    edge_weights = experiment_result.iteration_data{optional.i_step}.directed_coupling_reduced .* experiment_result.iteration_data{optional.i_step}.weighted_coupling;
 
     if issymmetric(edge_weights)
         % undirected graph if the edge-weights matrix is symmetric
