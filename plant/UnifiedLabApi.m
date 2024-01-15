@@ -186,45 +186,41 @@ classdef UnifiedLabApi < Plant
         end
 
         function apply(obj, info, ~, ~, mpa)
-            y_pred = info.y_predicted;
-            % simulate change of state
-            for iVeh = obj.vehicle_indices_controlled
-                obj.measurements(iVeh) = PlantMeasurement( ...
-                    info.next_node(iVeh, NodeInfo.x), ...
-                    info.next_node(iVeh, NodeInfo.y), ...
-                    info.next_node(iVeh, NodeInfo.yaw), ...
-                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).speed, ...
-                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).steering ...
-                );
-            end
-
-            % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.amount, 1);
 
-            for iVeh = obj.vehicle_indices_controlled
-                n_traj_pts = obj.Hp;
-                n_predicted_points = size(y_pred{iVeh}, 1);
-                idx_predicted_points = 1:n_predicted_points / n_traj_pts:n_predicted_points;
-                trajectory_points(1:n_traj_pts) = ros2message('ula_interfaces/TrajectoryPoint');
+            for vehicle_index = obj.vehicle_indices_controlled
 
-                for i_traj_pt = 1:n_traj_pts
-                    i_predicted_points = idx_predicted_points(i_traj_pt);
-                    trajectory_points(i_traj_pt).t = obj.enhance_timepoint(obj.sample.current_time, i_traj_pt * obj.dt_period_nanos);
-                    trajectory_points(i_traj_pt).px = y_pred{iVeh}(i_predicted_points, 1);
-                    trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points, 2);
+                % simulate change of state
+                i_vehicle = (obj.vehicle_indices_controlled == vehicle_index);
 
-                    yaw = y_pred{iVeh}(i_predicted_points, 3);
+                obj.measurements(vehicle_index) = PlantMeasurement( ...
+                    info.y_predicted(1, 1, i_vehicle), ... % x
+                    info.y_predicted(2, 1, i_vehicle), ... % y
+                    info.y_predicted(3, 1, i_vehicle), ... % yaw
+                    mpa.trims(info.predicted_trims(i_vehicle, 1)).speed, ...
+                    mpa.trims(info.predicted_trims(i_vehicle, 1)).steering ...
+                );
 
-                    speed = mpa.trims(y_pred{iVeh}(i_predicted_points, 4)).speed;
+                trajectory_points(1:obj.Hp) = TrajectoryPoint;
 
-                    trajectory_points(i_traj_pt).vx = cos(yaw) * speed;
-                    trajectory_points(i_traj_pt).vy = sin(yaw) * speed;
+                for i = 1:obj.Hp
+                    trajectory_points(i).t.nanoseconds = ...
+                        uint64(obj.sample(end).t_now + i * obj.dt_period_nanos);
+                    trajectory_points(i).px = info.y_predicted(1, i, vehicle_index);
+                    trajectory_points(i).py = info.y_predicted(2, i, vehicle_index);
+
+                    yaw = info.y_predicted(3, i, vehicle_index);
+
+                    speed = mpa.trims(info.predicted_trims(i_vehicle, i)).speed;
+
+                    trajectory_points(i).vx = cos(yaw) * speed;
+                    trajectory_points(i).vy = sin(yaw) * speed;
                 end
 
-                obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
+                obj.out_of_map_limits(vehicle_index) = obj.is_veh_at_map_border(trajectory_points);
 
                 vehicle_command_trajectory = ros2message(obj.publisher_trajectoryCommand);
-                vehicle_command_trajectory.vehicle_id = int32(obj.all_vehicle_ids(iVeh));
+                vehicle_command_trajectory.vehicle_id = int32(obj.all_vehicle_ids(vehicle_index));
                 vehicle_command_trajectory.trajectory = trajectory_points;
                 vehicle_command_trajectory.t_creation = obj.enhance_timepoint(obj.sample.current_time, 0); % Just use as conversion function
                 vehicle_command_trajectory.t_valid_after = obj.enhance_timepoint(obj.sample.current_time, obj.dt_period_nanos + 1);

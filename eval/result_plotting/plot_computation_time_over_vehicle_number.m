@@ -31,7 +31,7 @@ function plot_computation_time_over_vehicle_number(experiment_results, optional)
         % plot with axis on both sides and logarithmic scale
         set(0, 'currentfigure', optional.fig);
         times_per_vehicle = reshape(times_per_vehicle, 1, []);
-        boxchart(n_vehicles(i_experiment)*ones(size(times_per_vehicle)), times_per_vehicle*1e3);
+        boxchart(n_vehicles(i_experiment) * ones(size(times_per_vehicle)), times_per_vehicle * 1e3);
         hold on
 
     end
@@ -39,8 +39,8 @@ function plot_computation_time_over_vehicle_number(experiment_results, optional)
     set(gca, 'YScale', 'log');
 
     % set labels
-    xlabel('Number of Vehicles', 'Interpreter', 'LaTex');
-    ylabel('Computation Time [ms]', 'Interpreter', 'LaTex');
+    xlabel('Number of Vehicles', Interpreter = 'LaTex');
+    ylabel('Computation Time [ms]', Interpreter = 'LaTex');
 
     set_figure_properties(optional.fig, ExportFigConfig.paper('paperheight', 12))
 
@@ -52,8 +52,6 @@ function plot_computation_time_over_vehicle_number(experiment_results, optional)
 
     if (~optional.fig.Visible); close(optional.fig); end
 
-
-
     times_to_plot(:, 1) = time_med * 10^3;
     times_to_plot(:, 2) = (time_max - time_med) * 10^3;
 
@@ -61,7 +59,7 @@ function plot_computation_time_over_vehicle_number(experiment_results, optional)
     bar(n_vehicles, times_to_plot, 'stacked');
     xlabel('Number of Vehicles');
     ylabel('Computation Time [ms]');
-    legend(["Median", "Max"], 'Interpreter', 'none');
+    legend(["Median", "Max"], Interpreter = 'none');
 
     set_figure_properties(figure_handle, ExportFigConfig.document());
 

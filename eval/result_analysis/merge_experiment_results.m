@@ -10,6 +10,8 @@ function experiment_result = merge_experiment_results(experiment_results)
         experiment_result = merge_two_experiment_results(experiment_result, experiment_results(i));
     end
 
+    experiment_result.control_results_info = merge_control_results_info(experiment_results);
+
     % save the ExperimentResult to a file
     file_name = FileNameConstructor.get_results_full_path(experiment_result.options);
     save(file_name, 'experiment_result');
@@ -35,7 +37,6 @@ function merged_experiment_result = merge_two_experiment_results(merged_experime
     end
 
     merged_experiment_result.iteration_data = merge_two_iteration_data_objects(merged_experiment_result.iteration_data, result2.iteration_data);
-    merged_experiment_result.trajectory_predictions(i_veh, :) = result2.trajectory_predictions(i_veh, :);
 
     % fallback ids are just locally available
     % therefore merge them as sets
@@ -68,5 +69,19 @@ function iter = merge_two_iteration_data_objects(iter, other_iter)
         iter(i_step).reference_trajectory_index(i_veh, :, :) = other_iter(i_step).reference_trajectory_index(i_veh, :, :);
         iter(i_step).v_ref(i_veh, :) = other_iter(i_step).v_ref(i_veh, :);
     end
+
+end
+
+function merged_control_results_info = merge_control_results_info(experiment_results)
+
+    arguments (Input)
+        experiment_results (1, :) ExperimentResult
+    end
+
+    arguments (Output)
+        merged_control_results_info (:, :) ControlResultsInfo % n_vehicles x n_steps
+    end
+
+    merged_control_results_info = vertcat(experiment_results.control_results_info);
 
 end

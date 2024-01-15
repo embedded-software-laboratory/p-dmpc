@@ -1,14 +1,16 @@
 classdef PlottingInfo
 
     properties
-        trajectory_predictions
+        x0 (3, :) % (x, y, yaw) x n_vehicles
+        % predicted trajectory including x0, (x, y, yaw) x prediction horizon x n_vehicles
+        trajectory_predictions (3, :, :)
         ref_trajectory
         n_obstacles
         obstacles
         reachable_sets
         step
+        time_seconds
         vehicle_indices % vehicles to which the plot info belong
-        tick_now
         lanelet_crossing_areas
         directed_coupling
         directed_coupling_sequential
@@ -18,16 +20,34 @@ classdef PlottingInfo
 
     methods
 
-        function obj = PlottingInfo(vehicle_indices, experiment_result, k, tick_now)
+        function obj = PlottingInfo( ...
+                vehicle_indices, ...
+                experiment_result, ...
+                k, ...
+                time_seconds, ...
+                x0 ...
+            )
+
+            % vehicle_indices (1, :) double
+            % experiment_result ExperimentResult % (1, 1)
+            % k double % (1, 1)
+            % time_seconds (1, 1) double
+            % x0 (3, 1) double
 
             if nargin == 0
                 return;
             end
 
+            if nargin == 3
+                time_seconds = k * experiment_result.options.dt_seconds;
+                x0 = experiment_result.iteration_data(k).x0(vehicle_indices, 1:3)';
+            end
+
             obj.vehicle_indices = vehicle_indices;
             obj.step = k;
-            obj.tick_now = tick_now;
-            obj.trajectory_predictions = experiment_result.trajectory_predictions(:, k);
+            obj.time_seconds = time_seconds;
+            obj.x0 = x0;
+            obj.trajectory_predictions = experiment_result.control_results_info(k).y_predicted;
             obj.ref_trajectory = experiment_result.iteration_data(k).reference_trajectory_points;
             obj.n_obstacles = size(experiment_result.iteration_data(k).obstacles, 1);
 
@@ -51,7 +71,6 @@ classdef PlottingInfo
         function obj = filter(obj, overall_amount_of_veh, plot_options)
             filter_self = false(1, overall_amount_of_veh);
             filter_self(obj.vehicle_indices(1)) = true;
-            obj.trajectory_predictions = obj.trajectory_predictions{filter_self'};
             obj.ref_trajectory = obj.ref_trajectory(filter_self, :, :);
 
             if plot_options.plot_reachable_sets

@@ -116,7 +116,7 @@ function p = plot_cell_arrays(cells, color, isFill)
 
         for j = size(cells, 2):-1:1
             shape = cells{j};
-            patch(shape(1, :), shape(2, :), color, 'FaceAlpha', (1 - j / (size(cells, 2) + 2)) * 0.5);
+            patch(shape(1, :), shape(2, :), color, FaceAlpha = (1 - j / (size(cells, 2) + 2)) * 0.5);
         end
 
     else
@@ -125,7 +125,7 @@ function p = plot_cell_arrays(cells, color, isFill)
 
         for j = 1:size(cells, 2)
             shape = cells{j};
-            p(j) = plot(shape(1, :), shape(2, :), 'LineWidth', 1, 'Color', CM(j, :), 'LineStyle', '-.');
+            p(j) = plot(shape(1, :), shape(2, :), LineWidth = 1, Color = CM(j, :), LineStyle = '-.');
         end
 
     end
@@ -246,7 +246,7 @@ function plot_predicted_occupancy(trajectory_predictions, options, scenario, col
         area = scenario.mpa.maneuvers{trim1, trim2}.area; % FIXME scenario.mpa
         [area_x, area_y] = translate_global(x(3), x(1), x(2), area(1, :), area(2, :));
         area_poly = polyshape([area_x; area_y]');
-        plot(area_poly, 'FaceColor', color, 'FaceAlpha', (i / (options.Hp + 2)) * 0.5)
+        plot(area_poly, FaceColor = color, FaceAlpha = (i / (options.Hp + 2)) * 0.5)
     end
 
 end
@@ -259,8 +259,8 @@ function plot_footprints(i_result, results, results_folder_path)
     axis equal
 
     % box on
-    % xlabel('$x$ [m]', 'Interpreter', 'LaTex');
-    % ylabel('$y$ [m]', 'Interpreter', 'LaTex');
+    % xlabel('$x$ [m]', Interpreter = 'LaTex');
+    % ylabel('$y$ [m]', Interpreter = 'LaTex');
     axis off
 
     rwth_color = rwth_color_order();
@@ -290,17 +290,17 @@ function plot_footprints(i_result, results, results_folder_path)
                 patch(vehiclePolygon(1, :) ...
                     , vehiclePolygon(2, :) ...
                     , rwth_color(5, :) ...
-                    , 'LineWidth', 0.2 ...
-                    , 'FaceAlpha', 0.8 ...
-                    , 'EdgeColor', 'k' ...
+                    , LineWidth = 0.2 ...
+                    , FaceAlpha = 0.8 ...
+                    , EdgeColor = 'k' ...
                 );
             else
                 patch(vehiclePolygon(1, :) ...
                     , vehiclePolygon(2, :) ...
                     , rwth_color(v, :) ...
-                    , 'LineWidth', 0.2 ...
-                    , 'FaceAlpha', 1 - k / (max(visualized_steps_num) * 1.3) ...
-                    , 'EdgeColor', 'k' ...
+                    , LineWidth = 0.2 ...
+                    , FaceAlpha = 1 - k / (max(visualized_steps_num) * 1.3) ...
+                    , EdgeColor = 'k' ...
                 );
             end
 
@@ -325,8 +325,8 @@ function plot_viewpoint_reachable_set(i_result, results, results_folder_path)
     box on
     axis equal
 
-    % xlabel('$x$ [m]', 'Interpreter', 'LaTex');
-    % ylabel('$y$ [m]', 'Interpreter', 'LaTex');
+    % xlabel('$x$ [m]', Interpreter = 'LaTex');
+    % ylabel('$y$ [m]', Interpreter = 'LaTex');
     axis off
 
     xmin = 2.1; xmax = 3.2;
@@ -368,15 +368,15 @@ function plot_viewpoint_reachable_set(i_result, results, results_folder_path)
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , rwth_color(v, :) ...
-            , 'LineWidth', 0.2 ...
-            , 'FaceAlpha', 0.90 ...
+            , LineWidth = 0.2 ...
+            , FaceAlpha = 0.90 ...
         );
 
         % print vehicle ID
         radius = veh.Width * 0.95/2;
-        rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
-            'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
-        text(x(1), x(2), num2str(v), 'FontSize', 7, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
+        rectangle(Position = [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], Curvature = [1, 1], ...
+            FaceColor = [1, 1, 1, 0.75], LineStyle = 'none', LineWidth = 1, Tag = 'circle');
+        text(x(1), x(2), num2str(v), FontSize = 7, LineWidth = 1, Color = 'black', HorizontalAlignment = 'center');
     end
 
     % export fig 2
@@ -395,8 +395,8 @@ function plot_viewpoint_previous_occupancy(i_result, results, results_folder_pat
     hold on
     axis equal
 
-    % xlabel('$x$ [m]', 'Interpreter', 'LaTex');
-    % ylabel('$y$ [m]', 'Interpreter', 'LaTex');
+    % xlabel('$x$ [m]', Interpreter = 'LaTex');
+    % ylabel('$y$ [m]', Interpreter = 'LaTex');
     axis off
 
     xmin = 2.1; xmax = 3.2;
@@ -438,15 +438,15 @@ function plot_viewpoint_previous_occupancy(i_result, results, results_folder_pat
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , rwth_color(v, :) ...
-            , 'LineWidth', 0.2 ...
-            , 'FaceAlpha', 0.90 ...
+            , LineWidth = 0.2 ...
+            , FaceAlpha = 0.90 ...
         );
 
         % print vehicle ID
         radius = veh.Width * 0.95/2;
-        rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
-            'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
-        text(x(1), x(2), num2str(v), 'FontSize', 7, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
+        rectangle(Position = [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], Curvature = [1, 1], ...
+            FaceColor = [1, 1, 1, 0.75], LineStyle = 'none', LineWidth = 1, Tag = 'circle');
+        text(x(1), x(2), num2str(v), FontSize = 7, LineWidth = 1, Color = 'black', HorizontalAlignment = 'center');
     end
 
     % export fig 2
@@ -461,8 +461,8 @@ end
 function plot_actual_plans(i_result, results, results_folder_path)
     %%% fig 3: Actual plans at k = 5
     fig3 = figure();
-    % xlabel('$x$ [m]', 'Interpreter', 'LaTex');
-    % ylabel('$y$ [m]', 'Interpreter', 'LaTex');
+    % xlabel('$x$ [m]', Interpreter = 'LaTex');
+    % ylabel('$y$ [m]', Interpreter = 'LaTex');
     axis off
 
     xmin = 2.1; xmax = 3.2;
@@ -499,14 +499,14 @@ function plot_actual_plans(i_result, results, results_folder_path)
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , rwth_color(v, :) ...
-            , 'LineWidth', 0.2 ...
+            , LineWidth = 0.2 ...
         );
 
         % print vehicle ID
         radius = veh.Width * 0.95/2;
-        rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
-            'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
-        text(x(1), x(2), num2str(v), 'FontSize', 7, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
+        rectangle(Position = [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], Curvature = [1, 1], ...
+            FaceColor = [1, 1, 1, 0.75], LineStyle = 'none', LineWidth = 1, Tag = 'circle');
+        text(x(1), x(2), num2str(v), FontSize = 7, LineWidth = 1, Color = 'black', HorizontalAlignment = 'center');
     end
 
     % export fig 3

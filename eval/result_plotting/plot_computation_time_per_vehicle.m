@@ -19,8 +19,8 @@ function plot_computation_time_per_vehicle(experiment_result, optional)
 
         bar(1:size(runtimes, 1), runtimes);
         % set labels
-        xlabel('Time step $k$', 'Interpreter', 'LaTex');
-        ylabel('Computation Time [s]', 'Interpreter', 'LaTex');
+        xlabel('Time step $k$', Interpreter = 'LaTex');
+        ylabel('Computation Time [s]', Interpreter = 'LaTex');
 
     end
 

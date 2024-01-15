@@ -8,14 +8,12 @@ classdef ExperimentResult
         iteration_data IterationData % iteration steps
 
         control_results_info ControlResultsInfo
-        trajectory_predictions % predicted trajectory for all vehicles and iteration steps
         output_path % output_path of the ExperimentResult file
         total_fallback_times % total times of fallback
 
         %hlc info parts
         n_expanded % number of expansions in search tree during graph search
         vehicles_fallback % which vehicles should use their fallback trajectories
-        computation_levels % TODO: should be calculated from directed_coupling ,scalar
 
         n_steps % total number of steps
         t_total % total runtime
@@ -37,7 +35,6 @@ classdef ExperimentResult
             obj.scenario = scenario;
             obj.options = options;
             obj.mpa = mpa;
-            obj.trajectory_predictions = cell(options.amount, 0);
             obj.output_path = '';
             obj.total_fallback_times = 0;
 
@@ -45,7 +42,6 @@ classdef ExperimentResult
 
             obj.n_expanded = zeros(options.amount, 0);
             obj.vehicles_fallback = cell(0, 1);
-            obj.computation_levels = zeros(1, 0);
 
             obj.n_steps = 0;
             obj.t_total = 0;

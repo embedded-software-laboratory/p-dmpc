@@ -9,7 +9,7 @@ classdef PlotterOnline < Plotter
     properties (Access = private)
         timer % used to simulate real time plotting while receiving data from visualiuation queue
         plotting_info_collection (1, 1) struct % collect plotting info from each vehicle via data queue
-        current_plotting_info (1, 1) PlottingInfo % last plotted complete plotting info
+        current_plotting_info PlottingInfo % (1, 1), last plotted complete plotting info
 
         ros2node
         publisher
@@ -207,13 +207,19 @@ classdef PlotterOnline < Plotter
             % input is a ros2 message
             % reconstruct matrices from list sent via ros2
             plotting_info = PlottingInfo();
-            plotting_info.trajectory_predictions = reshape(msg.trajectory_predictions, 4, numel(msg.trajectory_predictions) / 4)';
+
+            plotting_info.x0 = msg.state;
+            plotting_info.trajectory_predictions = reshape( ...
+                msg.trajectory_predictions, ...
+                numel(msg.trajectory_predictions) / 3, ...
+                3 ...
+            )';
             plotting_info.ref_trajectory = zeros(1, obj.options.Hp, 2);
             plotting_info.ref_trajectory(1, :, :) = reshape(msg.ref_trajectory, numel(msg.ref_trajectory) / 2, 2);
             plotting_info.n_obstacles = msg.n_obstacles;
             plotting_info.step = msg.step;
             plotting_info.vehicle_indices = msg.vehicle_indices;
-            plotting_info.tick_now = msg.tick_now;
+            plotting_info.time_seconds = msg.time_seconds;
             plotting_info.directed_coupling = reshape(msg.directed_coupling, obj.options.amount, obj.options.amount)';
             plotting_info.directed_coupling_sequential = reshape(msg.directed_coupling_sequential, obj.options.amount, obj.options.amount)';
             plotting_info.directed_coupling_reduced = reshape(msg.directed_coupling_reduced, obj.options.amount, obj.options.amount);
@@ -223,18 +229,28 @@ classdef PlotterOnline < Plotter
         function complete_plotting_info = merge_plotting_infos(obj, plotting_info_collection)
             complete_plotting_info = plotting_info_collection{1};
             complete_plotting_info.vehicle_indices = cellfun(@(x) x.vehicle_indices(1), plotting_info_collection);
+            complete_plotting_info.x0 = nan( ...
+                size(plotting_info_collection{1}.x0, 1), ...
+                length(plotting_info_collection) ...
+            );
+            complete_plotting_info.trajectory_predictions = nan( ...
+                size(plotting_info_collection{1}.trajectory_predictions, 1), ...
+                size(plotting_info_collection{1}.trajectory_predictions, 2), ...
+                length(plotting_info_collection) ...
+            );
+            complete_plotting_info.ref_trajectory = nan( ...
+                length(plotting_info_collection), ...
+                size(plotting_info_collection{1}.ref_trajectory, 2), ...
+                size(plotting_info_collection{1}.ref_trajectory, 3) ...
+            );
 
             for i = 1:length(plotting_info_collection)
                 info = plotting_info_collection{i};
-                ref_trajectory(i, :, :) = info.ref_trajectory(1, :, :);
+                complete_plotting_info.x0(:, i) = info.x0;
+                complete_plotting_info.trajectory_predictions(:, :, i) = ...
+                    info.trajectory_predictions;
+                complete_plotting_info.ref_trajectory(i, :, :) = info.ref_trajectory(1, :, :);
             end
-
-            complete_plotting_info.trajectory_predictions = cellfun( ...
-                @(x) x.trajectory_predictions, ...
-                plotting_info_collection, ...
-                UniformOutput = false ...
-            )';
-            complete_plotting_info.ref_trajectory = ref_trajectory;
 
             n_obstacles = 0;
 

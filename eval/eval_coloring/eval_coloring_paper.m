@@ -23,11 +23,11 @@ function eval_coloring_paper()
 
     % plot & save figure
     fig = figure();
-    histogram(lvl_dist, 'FaceAlpha', 1);
+    histogram(lvl_dist, FaceAlpha = 1);
     set(gca, 'yscale', 'log');
     set(gca, 'XTick', 1:size(c, 1));
-    ylabel('\# Prio. Assignments', 'Interpreter', 'LaTex');
-    xlabel('Computation Levels', 'Interpreter', 'LaTex');
+    ylabel('\# Prio. Assignments', Interpreter = 'LaTex');
+    xlabel('Computation Levels', Interpreter = 'LaTex');
     set_figure_properties(fig, ExportFigConfig.paper());
     mkdir('./results')
     export_fig(fig, fullfile('./results/levels.pdf'));
@@ -41,13 +41,13 @@ function eval_coloring_paper()
     tcomp_t = 100 * level / 8;
 
     % plot & save figure
-    fig = figure('position', [100 100 600 630], 'color', [1 1 1]);
+    fig = figure(Position = [100 100 600 630], Color = [1 1 1]);
     barh(level, tcomp_t);
     yticklabels({'$p_c$', '$p_b$'})
     set(gca, 'XTick', 0:20:100);
     xline(min(tcomp_t), '-r');
-    xlabel('Computation Time [\%]', 'Interpreter', 'LaTex');
-    ylabel('Priority Assignment', 'Interpreter', 'LaTex');
+    xlabel('Computation Time [\%]', Interpreter = 'LaTex');
+    ylabel('Priority Assignment', Interpreter = 'LaTex');
     set(gca, 'TickLabelInterpreter', 'latex');
     set_figure_properties(fig, ExportFigConfig.paper());
     export_fig(fig, fullfile('./results/tcomp.pdf'));
@@ -81,12 +81,12 @@ function eval_coloring_paper()
     end
 
     % plot & save figure
-    fig = figure('position', [100 100 600 630], 'color', [1 1 1]);
-    plot(n_agents, tcomp, '-o', 'Color', '#0072BD');
+    fig = figure(Position = [100 100 600 630], Color = [1 1 1]);
+    plot(n_agents, tcomp, '-o', Color = '#0072BD');
     scatter(n_agents, tcomp, 10, 'filled')
     set(gca, 'yscale', 'log');
-    xlabel('\# Agents', 'Interpreter', 'LaTex')
-    ylabel('Computation Time [s]', 'Interpreter', 'LaTex')
+    xlabel('\# Agents', Interpreter = 'LaTex')
+    ylabel('Computation Time [s]', Interpreter = 'LaTex')
     set(gca, 'YTick', 10.^(-5:2:1));
     set_figure_properties(fig, ExportFigConfig.paper());
     export_fig(fig, fullfile('./results/coloring_time.pdf'));
@@ -152,8 +152,8 @@ function eval_coloring_paper()
 
     plot_lanelets(scenarios(1).road_raw_data.lanelet);
     axis equal;
-    xlabel('$x$ [m]', 'Interpreter', 'latex');
-    ylabel('$y$ [m]', 'Interpreter', 'latex');
+    xlabel('$x$ [m]', Interpreter = 'latex');
+    ylabel('$y$ [m]', Interpreter = 'latex');
     set_figure_properties(figure_handle, ExportFigConfig.paper('paperheight', 6));
     export_fig(figure_handle, './results/lab_map.pdf');
     close(figure_handle);

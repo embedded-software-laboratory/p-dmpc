@@ -29,35 +29,34 @@ classdef GraphSearchMexPB < OptimizerInterface
 
         end
 
-        function info_v = run_optimizer(obj, veh_index, iter, ~, options)
-            info_v = ControlResultsInfo(iter.amount, options.Hp, iter.vehicle_ids);
+        function info = run_optimizer(obj, vehicle_index, iter, ~, options)
+            info = ControlResultsInfo(iter.amount, options.Hp);
 
             [vehicle_obstacles, ~] = get_all_obstacles(iter, options.Hp);
 
-            [next_nodes, info_v.predicted_trims, info_v.y_predicted, info_v.shapes, info_v.n_expanded, info_v.is_exhausted] = obj.do_graph_search(veh_index, iter, vehicle_obstacles, options);
-            info_v.tree = obj.create_tree(iter);
-            info_v.tree_path = 1:(options.Hp + 1);
+            [ ...
+                 next_nodes, ...
+                 current_and_predicted_trims, ...
+                 y_predicted_full_res, ...
+                 info.shapes, ...
+                 info.n_expanded, ...
+                 info.is_exhausted ...
+             ] = obj.do_graph_search(vehicle_index, iter, vehicle_obstacles, options);
 
-            for i = 1:options.Hp
-                info_v.tree.add_node(i, next_nodes{i});
-            end
+            info = OptimizerInterface.create_control_results_info_from_mex( ...
+                info, ...
+                iter, ...
+                options, ...
+                next_nodes, ...
+                current_and_predicted_trims, ...
+                y_predicted_full_res ...
+            );
 
         end
 
     end
 
     methods (Access = private)
-
-        function tree = create_tree(~, iter)
-            trim = iter.trim_indices;
-            x = iter.x0(:, 1);
-            y = iter.x0(:, 2);
-            yaw = iter.x0(:, 3);
-            k = 0;
-            g = 0;
-            h = 0;
-            tree = AStarTree(x, y, yaw, trim, k, g, h);
-        end
 
         function [next_nodes, predicted_trims, y_predicted, shapes, n_expanded, is_exhausted] = do_graph_search(obj, veh_index, iter, vehicle_obstacles, options)
 

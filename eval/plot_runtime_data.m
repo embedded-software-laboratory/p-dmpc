@@ -36,7 +36,7 @@ function plot_runtime_data(data)
     end
 
     hold off
-    ylabel('$t_{\mathrm{max}}$', 'Interpreter', 'latex');
+    ylabel('$t_{\mathrm{max}}$', Interpreter = 'latex');
 
     nexttile
     hold on
@@ -47,7 +47,7 @@ function plot_runtime_data(data)
     end
 
     hold off
-    ylabel('$t_{\mathrm{mean}}$', 'Interpreter', 'latex');
+    ylabel('$t_{\mathrm{mean}}$', Interpreter = 'latex');
 
     nexttile
     hold on
@@ -58,7 +58,7 @@ function plot_runtime_data(data)
     end
 
     hold off
-    ylabel('$t_{\mathrm{min}}$', 'Interpreter', 'latex');
+    ylabel('$t_{\mathrm{min}}$', Interpreter = 'latex');
 
     legend( ...
         '$t_{\mathrm{exp}}$', ...
@@ -68,10 +68,10 @@ function plot_runtime_data(data)
         '$p_{\mathrm{color}}$', ...
         'Orientation', 'horizontal', ...
         'Location', 'southoutside', ...
-        'Interpreter', 'latex' ...
+        Interpreter = 'latex' ...
     );
-    ylabel(tiledLayoutHandle, 't until deadlock [s]', 'Interpreter', 'latex');
-    xlabel(tiledLayoutHandle, '\# of vehicles', 'Interpreter', 'latex');
+    ylabel(tiledLayoutHandle, 't until deadlock [s]', Interpreter = 'latex');
+    xlabel(tiledLayoutHandle, '\# of vehicles', Interpreter = 'latex');
     xlim([6, 20])
     % title(tiledLayoutHandle, 'Deadlock-Free Runtime');
 
@@ -88,8 +88,8 @@ function plot_runtime_data(data)
     p = plot(avg_speed_by_veh_pri(:, data_permutation), '-');
     [p.Marker] = markers{:};
     xticks(x_values)
-    ylabel('Average speed [m/s]', 'Interpreter', 'latex');
-    xlabel('$N_{A}$', 'Interpreter', 'latex');
+    ylabel('Average speed [m/s]', Interpreter = 'latex');
+    xlabel('$N_{A}$', Interpreter = 'latex');
     legend( ...
         '$p_{\mathrm{fca}}$', ...
         '$p_{\mathrm{color}}$', ...

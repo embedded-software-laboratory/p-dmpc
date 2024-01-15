@@ -112,9 +112,9 @@ classdef PlotterOffline < Plotter
             if obj.options.scenario_type == ScenarioType.circle && obj.options.amount <= 2
                 position = obj.hotkey_position;
                 text(position(1), position(2), obj.hotkey_description(1:obj.number_base_hotkeys - 2), ...
-                    'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'Tag', 'hotkey');
+                    FontSize = 12, HorizontalAlignment = 'left', VerticalAlignment = 'top', Tag = 'hotkey');
                 text(position(1) + 1.2, position(2), obj.hotkey_description(obj.number_base_hotkeys - 2:end), ...
-                    'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'Tag', 'hotkey');
+                    FontSize = 12, HorizontalAlignment = 'left', VerticalAlignment = 'top', Tag = 'hotkey');
             else
                 plot_hotkey_description@Plotter(obj);
             end

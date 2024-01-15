@@ -36,10 +36,15 @@ classdef CentralizedController < HighLevelController
 
         function controller(obj)
             % initialize variable to store control results
-            obj.info = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_indices);
+            obj.info = ControlResultsInfo(obj.options.amount, obj.options.Hp);
 
             obj.timing.start('optimizer', obj.k);
-            info_v = obj.optimizer.run_optimizer(obj.plant.vehicle_indices_controlled, obj.iter, obj.mpa, obj.options);
+            info_v = obj.optimizer.run_optimizer( ...
+                obj.plant.vehicle_indices_controlled, ...
+                obj.iter, ...
+                obj.mpa, ...
+                obj.options ...
+            );
             obj.timing.stop('optimizer', obj.k);
 
             obj.timing.start('fallback', obj.k);
@@ -53,9 +58,6 @@ classdef CentralizedController < HighLevelController
                 % all vehicles fall back
                 obj.info.vehicles_fallback = 1:obj.options.amount;
                 obj.info.needs_fallback(obj.info.vehicles_fallback) = true;
-            else
-                % prepare output data
-                obj.info = store_control_info(obj.info, info_v, obj.options);
             end
 
             obj.timing.stop('fallback', obj.k);

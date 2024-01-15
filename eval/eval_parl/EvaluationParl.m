@@ -95,8 +95,8 @@ classdef EvaluationParl
             obj.path_tracking_errors = cell(obj.nVeh, 1);
             obj.path_tracking_errors_MAE = zeros(obj.nVeh, 1);
             obj.runtime_total_per_step = zeros(0, 1);
-            obj.plot_option_real_path = struct('Color', 'b', 'LineStyle', '-', 'LineWidth', 1.0, 'DisplayName', 'Real Path');
-            obj.plot_option_reference_path = struct('Color', 'r', 'LineStyle', '--', 'LineWidth', 1.0, 'DisplayName', 'Reference Path');
+            obj.plot_option_real_path = struct(Color = 'b', LineStyle = '-', LineWidth = 1.0, 'DisplayName', 'Real Path');
+            obj.plot_option_reference_path = struct(Color = 'r', LineStyle = '--', LineWidth = 1.0, 'DisplayName', 'Reference Path');
 
             obj.n_steps = length(experiment_result.vehicles_fallback);
 
@@ -278,8 +278,8 @@ classdef EvaluationParl
             box on
             axis equal
 
-            xlabel('\fontsize{14}{0}$x$ [m]', 'Interpreter', 'LaTex');
-            ylabel('\fontsize{14}{0}$y$ [m]', 'Interpreter', 'LaTex');
+            xlabel('\fontsize{14}{0}$x$ [m]', Interpreter = 'LaTex');
+            ylabel('\fontsize{14}{0}$y$ [m]', Interpreter = 'LaTex');
 
             xlim(experiment_result.options.plot_limits(1, :));
             ylim(experiment_result.options.plot_limits(2, :));
@@ -309,7 +309,7 @@ classdef EvaluationParl
             x = path(1, :); y = path(2, :);
             z = zeros(size(x));
             lineColor = error;
-            s = surface([x; x], [y; y], [z; z], [lineColor; lineColor], 'FaceColor', 'no', 'EdgeColor', 'interp', 'LineWidth', 4);
+            s = surface([x; x], [y; y], [z; z], [lineColor; lineColor], FaceColor = 'no', EdgeColor = 'interp', LineWidth = 4);
         end
 
     end

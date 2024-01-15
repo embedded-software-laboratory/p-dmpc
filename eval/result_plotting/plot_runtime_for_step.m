@@ -40,6 +40,7 @@ function plot_runtime_for_step(experiment_result, k, optional)
     for field_i = 1:length(field_names)
         field_name = field_names(field_i);
         time_to_draw = nan(2, options.amount);
+
         for veh_i = 1:options.amount
 
             timings = experiment_result.timing(veh_i);
@@ -50,7 +51,7 @@ function plot_runtime_for_step(experiment_result, k, optional)
         end
 
         plot_handle(:, field_i) = plot(time_to_draw, [1:options.amount; 1:options.amount], 'SeriesIndex', field_i, ...
-            'LineWidth', 5, 'Tag', 'box_as_line'); %#ok<AGROW>
+            LineWidth = 5, Tag = 'box_as_line'); %#ok<AGROW>
         hold on;
     end
 

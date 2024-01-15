@@ -67,4 +67,57 @@ classdef (Abstract) OptimizerInterface < handle
 
     end
 
+    methods (Static, Access = protected)
+
+        function tree = create_tree(iter)
+            trim = iter.trim_indices;
+            x = iter.x0(:, 1);
+            y = iter.x0(:, 2);
+            yaw = iter.x0(:, 3);
+            k = 0;
+            g = 0;
+            h = 0;
+            tree = AStarTree(x, y, yaw, trim, k, g, h);
+        end
+
+        function info = create_control_results_info_from_mex( ...
+                info, ...
+                iter, ...
+                options, ...
+                next_nodes, ...
+                current_and_predicted_trims, ...
+                y_predicted_full_res ...
+            )
+
+            n_predicted_points = size(y_predicted_full_res, 1);
+            % y_predicted_full_res is a cell array of size (options.amount x 1)
+            % Each cell contains a matrix of size (n_predicted_points x 4)
+            % FIXME this is currently probably not correct yet
+            % Current understanding: y_predicted_full_res includes the current state
+            % and spans until the end of the prediction horizon. Desired points would be
+            % something like linspace(1, n_predicted_points, options.Hp + 1)
+            idx_predicted_points = linspace(1, n_predicted_points, options.Hp + 1);
+            info.y_predicted = nan(3, options.Hp + 1, options.amount);
+
+            for i_vehicle = 1:options.amount
+
+                for i_step = 1:options.Hp + 1
+                    i_predicted_point = idx_predicted_points(i_step);
+                    info.y_predicted(:, i_step, i_vehicle) = y_predicted_full_res{i_vehicle}(i_predicted_point, 1:3);
+                end
+
+            end
+
+            info.predicted_trims = current_and_predicted_trims(:, 2:end);
+            info.tree = OptimizerInterface.create_tree(iter);
+            info.tree_path = 1:(options.Hp + 1);
+
+            for i = 1:options.Hp
+                info.tree.add_node(i, next_nodes{i});
+            end
+
+        end
+
+    end
+
 end

@@ -109,19 +109,21 @@ classdef Simulation < Plant
         function apply(obj, info, experiment_result, k, mpa)
 
             % simulate change of state
-            for iVeh = obj.vehicle_indices_controlled
-                obj.measurements(iVeh) = PlantMeasurement( ...
-                    info.next_node(iVeh, NodeInfo.x), ...
-                    info.next_node(iVeh, NodeInfo.y), ...
-                    info.next_node(iVeh, NodeInfo.yaw), ...
-                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).speed, ...
-                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).steering ...
+            for vehicle_index = obj.vehicle_indices_controlled
+                % simulate change of state
+                i_vehicle = (obj.vehicle_indices_controlled == vehicle_index);
+
+                obj.measurements(vehicle_index) = PlantMeasurement( ...
+                    info.y_predicted(1, 1, i_vehicle), ... % x
+                    info.y_predicted(2, 1, i_vehicle), ... % y
+                    info.y_predicted(3, 1, i_vehicle), ... % yaw
+                    mpa.trims(info.predicted_trims(i_vehicle, 1)).speed, ...
+                    mpa.trims(info.predicted_trims(i_vehicle, 1)).steering ...
                 );
 
                 if obj.should_plot
                     % visualize time step
-                    tick_now = 1; % plot of next time step. set to 1 for plot of current time step
-                    plotting_info = PlottingInfo(iVeh, experiment_result, k, tick_now);
+                    plotting_info = PlottingInfo(vehicle_index, experiment_result, k);
 
                     %filter plotting info for controlled vehicles before
                     %sending
@@ -140,12 +142,13 @@ classdef Simulation < Plant
         function compute_msg_to_be_sent(obj, plotting_info)
             % fill msg to be sent to plotting device with plotting_info
             % all matrices must be converted into list to comply with ros 2 message format
+            obj.msg_to_be_sent.state = plotting_info.x0;
             obj.msg_to_be_sent.trajectory_predictions = reshape(plotting_info.trajectory_predictions', 1, []);
             obj.msg_to_be_sent.ref_trajectory = reshape(squeeze(plotting_info.ref_trajectory), 1, []);
             obj.msg_to_be_sent.n_obstacles = int32(0);
             obj.msg_to_be_sent.step = int32(plotting_info.step);
             obj.msg_to_be_sent.vehicle_indices = int32(plotting_info.vehicle_indices);
-            obj.msg_to_be_sent.tick_now = int32(plotting_info.tick_now);
+            obj.msg_to_be_sent.time_seconds = plotting_info.time_seconds;
             obj.msg_to_be_sent.directed_coupling = uint8(reshape(plotting_info.directed_coupling', 1, []));
             obj.msg_to_be_sent.directed_coupling_sequential = uint8(reshape(full(plotting_info.directed_coupling_sequential'), 1, []));
             obj.msg_to_be_sent.directed_coupling_reduced = uint8(reshape(plotting_info.directed_coupling_reduced', 1, []));

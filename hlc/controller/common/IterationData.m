@@ -2,10 +2,10 @@ classdef IterationData
     %ITERATIONDATA  Class as data structure for data that changes in every iteration during the experiment.
 
     properties
-        reference_trajectory_points
+        reference_trajectory_points (:, :, 2) double % n_vehicles x Hp x (px,py)
         reference_trajectory_index
         priority_permutation % permuation index for multiple priorities
-        x0 % state
+        x0 (:, 4) % state
         trim_indices % current trim
         v_ref % reference speed
         current_lanelet % vehicle's current lanelet
@@ -30,13 +30,12 @@ classdef IterationData
         hdv_reachable_sets % reachable sets of hdvs
         hdv_adjacency % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
 
-        vehicle_ids
-        amount % number of involved vehicles (useful for filtered)
+        amount % number of total vehicles / controlled vehicles
     end
 
     methods
 
-        function obj = IterationData(options, scenario, vehicle_ids)
+        function obj = IterationData(options, scenario)
             nVeh = options.amount;
             Hp = options.Hp;
             hdv_amount = options.manual_control_config.amount;
@@ -63,7 +62,6 @@ classdef IterationData
             obj.obstacles = scenario.obstacles;
             obj.lanelet_crossing_areas = repmat({{}}, nVeh, 1);
             obj.amount = nVeh;
-            obj.vehicle_ids = vehicle_ids;
             obj.coupling_info = cell(nVeh, nVeh);
         end
 
