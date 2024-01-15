@@ -3,13 +3,14 @@ classdef MonteCarloTreeSearch < OptimizerInterface
     properties
         set_up_constraints (1, 1) function_handle = @()[];
         are_constraints_satisfied (1, 1) function_handle = @()[];
-        rand_stream (1, 1) RandStream = RandStream('mt19937ar', seed = 42);
+        rand_stream (1, 1) RandStream = RandStream('mt19937ar', Seed = 42);
     end
 
     methods
 
         function obj = MonteCarloTreeSearch()
             obj = obj@OptimizerInterface();
+            obj.rand_stream = RandStream('mt19937ar', Seed = 42);
         end
 
         function info_v = run_optimizer(obj, ~, iter, mpa, ~)
