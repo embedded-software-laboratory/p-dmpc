@@ -7,5 +7,5 @@ int32       vehicle_indices                     # 1
 int32       tick_now                        # 1 (= 1)
 uint8[]     directed_coupling               # N x N
 uint8[]     directed_coupling_sequential    # N x N
-uint8[]     weighted_coupling               # N x N
+float64[]   weighted_coupling               # N x N
 uint8[]     directed_coupling_reduced       # N x N

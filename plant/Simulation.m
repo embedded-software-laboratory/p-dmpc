@@ -150,7 +150,7 @@ classdef Simulation < Plant
             obj.msg_to_be_sent.directed_coupling = uint8(reshape(plotting_info.directed_coupling', 1, []));
             obj.msg_to_be_sent.directed_coupling_sequential = uint8(reshape(full(plotting_info.directed_coupling_sequential'), 1, []));
             obj.msg_to_be_sent.directed_coupling_reduced = uint8(reshape(plotting_info.directed_coupling_reduced', 1, []));
-            obj.msg_to_be_sent.weighted_coupling = uint8()
+            obj.msg_to_be_sent.weighted_coupling = reshape(plotting_info.weighted_coupling', 1, []);
         end
 
         function result = should_stop(~)

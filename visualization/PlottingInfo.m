@@ -14,9 +14,9 @@ classdef PlottingInfo
         tick_now
         lanelet_crossing_areas
         directed_coupling
+        directed_coupling_sequential
         weighted_coupling
         directed_coupling_reduced
-        directed_coupling_sequential
     end
 
     methods
