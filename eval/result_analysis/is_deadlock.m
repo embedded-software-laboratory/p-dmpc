@@ -7,12 +7,14 @@ function deadlock = is_deadlock(experiment_result)
         experiment_result (1, 1) ExperimentResult
     end
 
-    deadlock = zeros(experiment_result.n_steps, 1);
-    vehs_stop_duration = zeros(experiment_result.options.amount, 1);
-
     if isempty(experiment_result.mpa)
         error('error! ExperimentResult must contain mpa, make sure to turn off reduce_result option in config!')
     end
+
+    % calculate deadlock
+    % if a vehicle stops for more than a defined time, assume deadlock
+    deadlock = zeros(experiment_result.n_steps, 1);
+    vehs_stop_duration = zeros(experiment_result.options.amount, 1);
 
     for k = 1:experiment_result.n_steps
         % vehicles that stop at the current time step
