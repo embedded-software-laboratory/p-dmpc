@@ -151,7 +151,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
 
         end
 
-        function trim = random_trim(~, node_id, tree)
+        function trim = random_trim(obj, node_id, tree)
             % RANDOM_TRIM  Return random successor trim for given node.
             %
             % INPUT:
