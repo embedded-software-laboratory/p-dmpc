@@ -3,12 +3,14 @@ classdef MonteCarloTreeSearch < OptimizerInterface
     properties
         set_up_constraints (1, 1) function_handle = @()[];
         are_constraints_satisfied (1, 1) function_handle = @()[];
+        rand_stream (1, 1) RandStream = RandStream('mt19937ar', Seed = 42);
     end
 
     methods
 
         function obj = MonteCarloTreeSearch()
             obj = obj@OptimizerInterface();
+            obj.rand_stream = RandStream('mt19937ar', Seed = 42);
         end
 
         function info_v = run_optimizer(obj, ~, iter, mpa, ~)
@@ -149,7 +151,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
 
         end
 
-        function trim = random_trim(~, node_id, tree)
+        function trim = random_trim(obj, node_id, tree)
             % RANDOM_TRIM  Return random successor trim for given node.
             %
             % INPUT:
@@ -166,7 +168,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                 trim = 0;
             else
                 % choose successor trim randomly
-                trim = tree.successor_trims(trim_positions(randi(n_trims)), :, node_id);
+                trim = tree.successor_trims(trim_positions(randi(obj.rand_stream, n_trims)), :, node_id);
             end
 
         end

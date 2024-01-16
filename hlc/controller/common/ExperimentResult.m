@@ -48,6 +48,26 @@ classdef ExperimentResult
             obj.t_total = 0;
         end
 
+        function equal = is_equal(obj, compare_obj)
+
+            arguments
+                obj (1, 1) ExperimentResult;
+                compare_obj (1, 1) ExperimentResult;
+            end
+
+            equal = obj.n_steps == compare_obj.n_steps;
+
+            for i_step = 1:obj.n_steps
+                equal = equal && obj.iteration_data{i_step}.is_equal(compare_obj.iteration_data{i_step});
+
+                if (~equal)
+                    return;
+                end
+
+            end
+
+        end
+
     end
 
 end
