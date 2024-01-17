@@ -26,7 +26,7 @@ function merged_experiment_result = merge_two_experiment_results(merged_experime
         result2 (1, 1) ExperimentResult;
     end
 
-    i_veh = find(result2.n_expanded(:, 1) ~= 0);
+    i_veh = result2.hlc_indices(1); % should be scalar, for safety reason
 
     % if this is the first ExperimentResult just copy
     if isempty(merged_experiment_result)
@@ -36,18 +36,11 @@ function merged_experiment_result = merge_two_experiment_results(merged_experime
         return;
     end
 
+    merged_experiment_result = merged_experiment_result + 1;
+
     merged_experiment_result.iteration_data = merge_two_iteration_data_objects(merged_experiment_result.iteration_data, result2.iteration_data);
 
-    % fallback ids are just locally available
-    % therefore merge them as sets
-    for i_step = 1:merged_experiment_result.n_steps
-        merged_experiment_result.vehicles_fallback{i_step} = union(merged_experiment_result.vehicles_fallback{i_step}, result2.vehicles_fallback{i_step});
-    end
-
-    % deadlock as boolean
-    % maybe store that beforehand for every vehicle-timestep-combination
-    merged_experiment_result.n_expanded(i_veh, :) = result2.n_expanded(i_veh, :);
-    % INFO: ignore all coupling info, they are the same on each nuc (dont know why they are safed in ExperimentResult AND in IterationData)
+    % INFO: ignore all coupling info, they are the same on each nuc (dont know why they are saved in ExperimentResult AND in IterationData)
 
     % if someone needs one of these:
     % TODO: obstacles

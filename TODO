@@ -1,7 +1,7 @@
-- Clean ExperimentResult from data that is already in ControlResultsInfo
+- Clean ExperimentResult from data that is already in ControlResultsInfo (edit JK: EvaluationParl uses these variables; fix?)
 - Make sure Cpp optimizers work as expected
 - Fix export_video, needs to send x0 and current time
-    - x0 from MPA
-    - create MPA from options in `export_video`
-    - set `options.tick_per_step` according to framerate
-    - Use functionality in `path_between()` to find x0 for frames (move function to `export_video`)
+  - x0 from MPA
+  - create MPA from options in `export_video`
+  - set `options.tick_per_step` according to framerate
+  - Use functionality in `path_between()` to find x0 for frames (move function to `export_video`)

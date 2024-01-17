@@ -12,8 +12,8 @@ classdef ExperimentResult
         total_fallback_times % total times of fallback
 
         %hlc info parts
-        n_expanded % number of expansions in search tree during graph search
-        vehicles_fallback % which vehicles should use their fallback trajectories
+        n_hlc % number of hlcs whose experiment results are contained
+        hlc_indices % indices of vehicles the hlc (belonging to this result) controls; scalar for distributed computation
 
         n_steps % total number of steps
         t_total % total runtime
@@ -24,12 +24,13 @@ classdef ExperimentResult
 
     methods
 
-        function obj = ExperimentResult(options, scenario, mpa)
+        function obj = ExperimentResult(options, scenario, mpa, hlc_indices)
 
             arguments
                 options (1, 1) Config;
                 scenario (1, 1) Scenario;
                 mpa (1, 1) MotionPrimitiveAutomaton;
+                hlc_indices (1, :) double;
             end
 
             obj.scenario = scenario;
@@ -40,11 +41,10 @@ classdef ExperimentResult
 
             obj.timing = cell(0, 1);
 
-            obj.n_expanded = zeros(options.amount, 0);
-            obj.vehicles_fallback = cell(0, 1);
-
             obj.n_steps = 0;
             obj.t_total = 0;
+            obj.hlc_indices = hlc_indices;
+            obj.n_hlc = length(hlc_indices);
         end
 
         function equal = is_equal(obj, compare_obj)

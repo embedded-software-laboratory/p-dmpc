@@ -118,7 +118,7 @@ classdef (Abstract) HighLevelController < handle
             obj.mpa = MotionPrimitiveAutomaton(bicycle_model, obj.options);
 
             % initialize ExperimentResult object
-            obj.experiment_result = ExperimentResult(obj.options, obj.scenario_adapter.scenario, obj.mpa);
+            obj.experiment_result = ExperimentResult(obj.options, obj.scenario_adapter.scenario, obj.mpa, obj.plant.vehicle_indices_controlled);
 
             % initialize iteration data
             obj.iter = IterationData( ...
@@ -550,8 +550,6 @@ classdef (Abstract) HighLevelController < handle
 
             % store graph search results
             obj.experiment_result.control_results_info(obj.k) = ControlResultsInfo.clean(obj.info);
-            obj.experiment_result.n_expanded(:, obj.k) = obj.info.n_expanded;
-            obj.experiment_result.vehicles_fallback{obj.k} = obj.info.vehicles_fallback;
         end
 
         function apply(obj)
