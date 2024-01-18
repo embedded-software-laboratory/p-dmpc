@@ -34,7 +34,7 @@ function merged_experiment_result = merge_two_experiment_results(merged_experime
         return;
     end
 
-    merged_experiment_result.n_hlc = merged_experiment_result.n_hlc + 1;
+    merged_experiment_result.hlc_indices = union(merged_experiment_result.hlc_indices, result2.hlc_indices);
 
     merged_experiment_result.iteration_data = merge_two_iteration_data_objects(merged_experiment_result.iteration_data, result2.iteration_data);
 

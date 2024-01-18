@@ -11,15 +11,15 @@ classdef ExperimentResult
         output_path % output_path of the ExperimentResult file
 
         %hlc info parts
-        n_hlc % number of hlcs whose experiment results are contained
+        hlc_indices % indices of vehicles the hlc (belonging to this result) controls; scalar for distributed computation
 
         timing
     end
 
     properties (Dependent)
-        n_steps (1, 1) double = 0 % total number of steps
-        t_total (1, 1) double = 0 % total runtime
-        hlc_indices (1, 1) double = 0 % indices of vehicles the hlc (belonging to this result) controls; scalar for distributed computation
+        n_steps % total number of steps
+        t_total % total runtime
+        n_hlc % number of hlcs whose experiment results are contained
     end
 
     methods
