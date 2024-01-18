@@ -12,13 +12,14 @@ classdef ExperimentResult
 
         %hlc info parts
         n_hlc % number of hlcs whose experiment results are contained
-        hlc_indices % indices of vehicles the hlc (belonging to this result) controls; scalar for distributed computation
-
-        n_steps % total number of steps
-        t_total % total runtime
 
         timing
+    end
 
+    properties (Dependent)
+        n_steps (1, 1) double = 0 % total number of steps
+        t_total (1, 1) double = 0 % total runtime
+        hlc_indices (1, 1) double = 0 % indices of vehicles the hlc (belonging to this result) controls; scalar for distributed computation
     end
 
     methods
@@ -38,11 +39,7 @@ classdef ExperimentResult
             obj.output_path = '';
 
             obj.timing = cell(0, 1);
-
-            obj.n_steps = 0;
-            obj.t_total = 0;
             obj.hlc_indices = hlc_indices;
-            obj.n_hlc = length(hlc_indices);
         end
 
         function equal = is_equal(obj, compare_obj)
@@ -63,6 +60,18 @@ classdef ExperimentResult
 
             end
 
+        end
+
+        function value = get.n_steps(obj)
+            value = length(obj.control_results_info);
+        end
+
+        function value = get.t_total(obj)
+            value = obj.n_steps * obj.options.dt_seconds;
+        end
+
+        function value = get.n_hlc(obj);
+            value = length(obj.hlc_indices);
         end
 
     end

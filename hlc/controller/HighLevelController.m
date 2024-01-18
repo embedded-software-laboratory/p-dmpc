@@ -541,10 +541,6 @@ classdef (Abstract) HighLevelController < handle
                 fprintf('       For steps:%s\n', str_steps_deadlocked);
             end
 
-            % update total number of steps and total runtime
-            obj.experiment_result.n_steps = obj.k;
-            obj.experiment_result.t_total = obj.k * obj.options.dt_seconds;
-
             % store iteration data
             obj.experiment_result.iteration_data(obj.k) = obj.iter;
 
