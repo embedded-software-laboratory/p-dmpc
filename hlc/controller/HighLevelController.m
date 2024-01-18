@@ -612,7 +612,6 @@ classdef (Abstract) HighLevelController < handle
 
             obj.experiment_result.mpa = obj.mpa;
             obj.experiment_result.scenario = obj.scenario_adapter.scenario;
-            obj.experiment_result.total_fallback_times = obj.total_fallback_times;
 
             obj.experiment_result.timing = obj.timing.get_all_timings();
 

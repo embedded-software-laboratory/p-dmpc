@@ -9,7 +9,6 @@ classdef ExperimentResult
 
         control_results_info ControlResultsInfo
         output_path % output_path of the ExperimentResult file
-        total_fallback_times % total times of fallback
 
         %hlc info parts
         n_hlc % number of hlcs whose experiment results are contained
@@ -37,7 +36,6 @@ classdef ExperimentResult
             obj.options = options;
             obj.mpa = mpa;
             obj.output_path = '';
-            obj.total_fallback_times = 0;
 
             obj.timing = cell(0, 1);
 

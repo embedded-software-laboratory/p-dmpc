@@ -31,8 +31,6 @@ function merged_experiment_result = merge_two_experiment_results(merged_experime
     % if this is the first ExperimentResult just copy
     if isempty(merged_experiment_result)
         merged_experiment_result = result2;
-        merged_experiment_result.total_fallback_times = zeros(result2.options.amount, 1);
-        merged_experiment_result.total_fallback_times(i_veh) = result2.total_fallback_times;
         return;
     end
 
@@ -46,7 +44,6 @@ function merged_experiment_result = merge_two_experiment_results(merged_experime
     % TODO: obstacles
     % TODO: lanelet_crossing_areas
     % TODO: all times need to be checked on how to compute when merged (are they even used anymore)
-    merged_experiment_result.total_fallback_times(i_veh) = result2.total_fallback_times;
 
     % Timings
     merged_experiment_result.timing(i_veh) = result2.timing;
