@@ -359,7 +359,7 @@ classdef UnifiedLabApi < Plant
 
             % create subscription for controller invocation without a callback since we want to activly wait
             % only keep the last message in the queue, i.e., we throw away missed ones
-            obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "ula_interfaces/VehicleStateList", "History", "keeplast", "Depth", 1);
+            obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "ula_interfaces/VehicleStateList", History = "keeplast", Depth = 1);
 
             % create client such that we can ask for the lab properties in the preparation phase
             obj.client_labProperties = ros2svcclient(obj.comm_node, '/lab_properties_request', 'ula_interfaces/LabProperties');
