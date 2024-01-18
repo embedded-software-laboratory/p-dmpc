@@ -32,7 +32,7 @@ classdef PlottingInfo
             % experiment_result ExperimentResult % (1, 1)
             % k double % (1, 1)
             % time_seconds (1, 1) double
-            % x0 (3, 1) double
+            % x0 (3, n_vehicles) double
 
             if nargin == 0
                 return;
@@ -65,21 +65,6 @@ classdef PlottingInfo
             obj.weighted_coupling = experiment_result.iteration_data(k).weighted_coupling;
 
             obj.directed_coupling_reduced = experiment_result.iteration_data(k).directed_coupling_reduced;
-
-        end
-
-        function obj = filter(obj, overall_amount_of_veh, plot_options)
-            filter_self = false(1, overall_amount_of_veh);
-            filter_self(obj.vehicle_indices(1)) = true;
-            obj.ref_trajectory = obj.ref_trajectory(filter_self, :, :);
-
-            if plot_options.plot_reachable_sets
-                obj.reachable_sets = obj.reachable_sets{filter_self, :};
-            end
-
-            if plot_options.plot_lanelet_crossing_areas
-                obj.lanelet_crossing_areas = obj.lanelet_crossing_areas{filter_self};
-            end
 
         end
 

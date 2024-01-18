@@ -4,7 +4,8 @@ classdef ControlResultsInfo
 
     properties
         tree % (1, 1) Tree
-        tree_path (1, :) double % array of tree vertices that form the solution
+        % array of tree vertices that form the solution, (1 x prediction horizon)
+        tree_path (1, :) double
         n_expanded (1, 1) double % number of expanded nodes in the tree
         shapes (:, :) cell % occupied areas, n_vehicles x prediction horizons
         % predicted trims, n_vehicles x prediction horizon
@@ -19,14 +20,14 @@ classdef ControlResultsInfo
     methods
 
         function obj = ControlResultsInfo(nVeh, Hp)
-            obj.tree_path = zeros(nVeh, Hp + 1);
-            obj.n_expanded = zeros(nVeh, 1);
+            obj.tree_path = zeros(1, Hp + 1);
+            obj.n_expanded = zeros(1, 1);
             obj.shapes = cell(nVeh, Hp);
             obj.predicted_trims = zeros(nVeh, Hp);
             obj.y_predicted = nan(3, Hp, nVeh);
             obj.vehicles_fallback = int32.empty;
-            obj.is_exhausted = false(nVeh, 1);
-            obj.needs_fallback = false(nVeh, 1);
+            obj.is_exhausted = false(1, 1);
+            obj.needs_fallback = false(1, 1);
         end
 
     end

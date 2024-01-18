@@ -39,7 +39,7 @@ classdef CentralizedController < HighLevelController
             obj.info = ControlResultsInfo(obj.options.amount, obj.options.Hp);
 
             obj.timing.start('optimizer', obj.k);
-            info_v = obj.optimizer.run_optimizer( ...
+            obj.info = obj.optimizer.run_optimizer( ...
                 obj.plant.vehicle_indices_controlled, ...
                 obj.iter, ...
                 obj.mpa, ...
@@ -49,9 +49,9 @@ classdef CentralizedController < HighLevelController
 
             obj.timing.start('fallback', obj.k);
 
-            info_v.needs_fallback = info_v.is_exhausted;
+            obj.info.needs_fallback = obj.info.is_exhausted;
 
-            if info_v.needs_fallback
+            if obj.info.needs_fallback
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback
                 disp(['Graph search exhausted at time step: ' num2str(obj.k) '.'])
