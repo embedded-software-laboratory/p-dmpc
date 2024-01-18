@@ -89,19 +89,17 @@ classdef (Abstract) OptimizerInterface < handle
                 y_predicted_full_res ...
             )
 
-            n_predicted_points = size(y_predicted_full_res, 1);
             % y_predicted_full_res is a cell array of size (options.amount x 1)
             % Each cell contains a matrix of size (n_predicted_points x 4)
-            % FIXME this is currently probably not correct yet
-            % Current understanding: y_predicted_full_res includes the current state
-            % and spans until the end of the prediction horizon. Desired points would be
-            % something like linspace(1, n_predicted_points, options.Hp + 1)
-            idx_predicted_points = linspace(1, n_predicted_points, options.Hp + 1);
-            info.y_predicted = nan(3, options.Hp + 1, options.amount);
+            info.y_predicted = nan(3, options.Hp, options.amount);
 
-            for i_vehicle = 1:options.amount
+            for i_vehicle = 1:iter.amount
 
-                for i_step = 1:options.Hp + 1
+                n_predicted_points = size(y_predicted_full_res{i_vehicle}, 1);
+                entries_per_time_step = n_predicted_points / options.Hp;
+                idx_predicted_points = entries_per_time_step:entries_per_time_step:n_predicted_points;
+
+                for i_step = 1:options.Hp
                     i_predicted_point = idx_predicted_points(i_step);
                     info.y_predicted(:, i_step, i_vehicle) = y_predicted_full_res{i_vehicle}(i_predicted_point, 1:3);
                 end
