@@ -572,23 +572,6 @@ classdef (Abstract) HighLevelController < handle
             % end run of controller
             % this function is executed in every case
 
-            % if the controller did not succeed
-            if ~obj.is_run_succeeded
-                % force saving of unfinished ExperimentResult object for inspection
-                disp("Saving of unfinished results on error.")
-                obj.options.should_save_result = true;
-
-                % define output path on error
-                vehicle_indices_string = sprintf('_%02d', obj.plant.vehicle_indices_controlled);
-                obj.experiment_result.output_path = ['results/unfinished_result', vehicle_indices_string, '.mat'];
-            else
-                % define output path on success
-                obj.experiment_result.output_path = FileNameConstructor.get_results_full_path( ...
-                    obj.options, ...
-                    obj.plant.vehicle_indices_controlled ...
-                );
-            end
-
             % save finished or unfinished ExperimentResult
             obj.save_results();
 
@@ -626,6 +609,23 @@ classdef (Abstract) HighLevelController < handle
 
             end
 
+            % if the controller did not succeed
+            if ~obj.is_run_succeeded
+                % force saving of unfinished ExperimentResult object for inspection
+                disp("Saving of unfinished results on error.")
+                obj.options.should_save_result = true;
+
+                % define output path on error
+                vehicle_indices_string = sprintf('_%02d', obj.plant.vehicle_indices_controlled);
+                output_path = ['results/unfinished_result', vehicle_indices_string, '.mat'];
+            else
+                % define output path on success
+                output_path = FileNameConstructor.get_results_full_path( ...
+                    obj.options, ...
+                    obj.plant.vehicle_indices_controlled ...
+                );
+            end
+
             if ~obj.options.should_save_result
                 % return ExperimentResult object should not be saved
                 fprintf('As required, experiment_result was not saved\n');
@@ -633,8 +633,8 @@ classdef (Abstract) HighLevelController < handle
             end
 
             experiment_result = obj.experiment_result; %#ok<PROP>
-            save(obj.experiment_result.output_path, 'experiment_result');
-            fprintf('Results were saved in: %s\n', obj.experiment_result.output_path);
+            save(output_path, 'experiment_result');
+            fprintf('Results were saved in: %s\n', output_path);
 
         end
 

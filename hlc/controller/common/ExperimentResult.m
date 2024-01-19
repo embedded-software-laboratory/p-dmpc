@@ -8,7 +8,6 @@ classdef ExperimentResult
         iteration_data IterationData % iteration steps
 
         control_results_info ControlResultsInfo
-        output_path % output_path of the ExperimentResult file
 
         %hlc info parts
         hlc_indices % indices of vehicles the hlc (belonging to this result) controls; scalar for distributed computation
@@ -36,7 +35,6 @@ classdef ExperimentResult
             obj.scenario = scenario;
             obj.options = options;
             obj.mpa = mpa;
-            obj.output_path = '';
 
             obj.timing = cell(0, 1);
             obj.hlc_indices = hlc_indices;
