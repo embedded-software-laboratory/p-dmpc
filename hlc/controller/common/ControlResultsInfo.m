@@ -10,14 +10,29 @@ classdef ControlResultsInfo
         shapes (:, :) cell % occupied areas, n_vehicles x prediction horizons
         % predicted trims, n_vehicles x prediction horizon
         predicted_trims (:, :) double
-        % predicted trajectory including x0, (x, y, yaw) x prediction horizon x n_vehicles
+        % predicted trajectory, (x, y, yaw) x prediction horizon x n_vehicles
         y_predicted (3, :, :) double
         vehicles_fallback (:, 1) int32 % vehicles that need to take fallback
         is_exhausted (1, 1) logical % whether graph search is exhausted
         needs_fallback (1, 1) logical %
     end
 
+    properties (Dependent)
+
+        n_vehicles
+        prediction_horizon
+
+    end
+
     methods
+
+        function result = get.n_vehicles(obj)
+            result = size(obj.y_predicted, 3);
+        end
+
+        function result = get.prediction_horizon(obj)
+            result = size(obj.y_predicted, 2);
+        end
 
         function obj = ControlResultsInfo(nVeh, Hp)
             obj.tree_path = zeros(1, Hp + 1);

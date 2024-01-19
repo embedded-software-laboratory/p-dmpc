@@ -47,7 +47,7 @@ classdef PlottingInfo
             obj.step = k;
             obj.time_seconds = time_seconds;
             obj.x0 = x0;
-            obj.trajectory_predictions = experiment_result.control_results_info(k).y_predicted;
+            obj.trajectory_predictions = experiment_result.get_y_predicted(k);
             obj.ref_trajectory = experiment_result.iteration_data(k).reference_trajectory_points;
             obj.n_obstacles = size(experiment_result.iteration_data(k).obstacles, 1);
 

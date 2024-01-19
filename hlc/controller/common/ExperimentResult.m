@@ -62,6 +62,28 @@ classdef ExperimentResult
 
         end
 
+        function y_predicted = get_y_predicted(obj, k)
+
+            arguments (Input)
+                obj (1, 1) ExperimentResult;
+                k (1, 1) double;
+            end
+
+            arguments (Output)
+                y_predicted (3, :, :) double;
+            end
+
+            y_predicted = nan(3, obj.options.Hp, obj.options.amount);
+            i_vehicle_start = 1;
+
+            for control_results_info_i = obj.control_results_info(:, k)'
+                i_vehicle_end = i_vehicle_start + control_results_info_i.n_vehicles - 1;
+                y_predicted(:, :, i_vehicle_start:i_vehicle_end) = control_results_info_i.y_predicted;
+                i_vehicle_start = i_vehicle_end + 1;
+            end
+
+        end
+
         function value = get.n_steps(obj)
             value = length(obj.control_results_info);
         end
