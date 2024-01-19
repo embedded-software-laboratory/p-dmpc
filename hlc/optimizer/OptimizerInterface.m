@@ -89,11 +89,22 @@ classdef (Abstract) OptimizerInterface < handle
                 y_predicted_full_res ...
             )
 
+
+            info.predicted_trims = current_and_predicted_trims(:, 2:end);
+            info.tree = OptimizerInterface.create_tree(iter);
+            info.tree_path = 1:(options.Hp + 1);
+
+            for i = 1:options.Hp
+                info.tree.add_node(i, next_nodes{i});
+            end
+            
+
             % y_predicted_full_res is a cell array of size (options.amount x 1)
             % Each cell contains a matrix of size (n_predicted_points x 4)
-            info.y_predicted = nan(3, options.Hp, options.amount);
+            info.y_predicted = nan(3, options.Hp, iter.amount);
 
-            for i_vehicle = 1:iter.amount
+            if ~info.is_exhausted
+                for i_vehicle = 1:iter.amount
 
                 n_predicted_points = size(y_predicted_full_res{i_vehicle}, 1);
                 entries_per_time_step = n_predicted_points / options.Hp;
@@ -104,14 +115,7 @@ classdef (Abstract) OptimizerInterface < handle
                     info.y_predicted(:, i_step, i_vehicle) = y_predicted_full_res{i_vehicle}(i_predicted_point, 1:3);
                 end
 
-            end
-
-            info.predicted_trims = current_and_predicted_trims(:, 2:end);
-            info.tree = OptimizerInterface.create_tree(iter);
-            info.tree_path = 1:(options.Hp + 1);
-
-            for i = 1:options.Hp
-                info.tree.add_node(i, next_nodes{i});
+                end
             end
 
         end
