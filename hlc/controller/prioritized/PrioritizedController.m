@@ -243,8 +243,8 @@ classdef PrioritizedController < HighLevelController
                 % transform predicted lanelets
                 obj.iter.predicted_lanelets{j_vehicle} = latest_msg_i.predicted_lanelets';
 
-                obj.iter.reference_trajectory_points(j_vehicle, :, 1) = latest_msg_i.reference_trajectory_points.x;
-                obj.iter.reference_trajectory_points(j_vehicle, :, 2) = latest_msg_i.reference_trajectory_points.y;
+                obj.iter.reference_trajectory_points(j_vehicle, :, 1) = [latest_msg_i.reference_trajectory_points.x];
+                obj.iter.reference_trajectory_points(j_vehicle, :, 2) = [latest_msg_i.reference_trajectory_points.y];
 
                 % calculate the predicted lanelet boundary of vehicle j_vehicle based on its predicted lanelets
                 if obj.options.scenario_type ~= ScenarioType.circle
@@ -367,11 +367,11 @@ classdef PrioritizedController < HighLevelController
                         obj.info.vehicles_fallback = [obj.info.vehicles_fallback; find(belonging_vector_total == sub_graph_fallback).'];
                         obj.info.vehicles_fallback = unique(obj.info.vehicles_fallback, 'stable');
                         % print information about occurred fallback
-                        str_trigger_vehicles = sprintf(' %2d', find(obj.info.needs_fallback));
+                        str_trigger_vehicle = sprintf(' %2d', vehicle_index);
                         str_fallback_vehicles = sprintf(' %2d', obj.info.vehicles_fallback);
                         fprintf('%s triggered by%s affects%s\n', ...
                             obj.options.fallback_type, ...
-                            str_trigger_vehicles, ...
+                            str_trigger_vehicle, ...
                             str_fallback_vehicles ...
                         )
                     case FallbackType.no_fallback
