@@ -87,4 +87,27 @@ classdef IterationData
 
     end
 
+    methods (Static)
+
+        function cleaned_object = clean(object)
+
+            arguments
+                object (1, 1) IterationData
+            end
+
+            cleaned_object = object;
+            cleaned_object.predicted_lanelets = [];
+            cleaned_object.predicted_lanelet_boundary = [];
+            cleaned_object.emergency_maneuvers = [];
+            cleaned_object.occupied_areas = [];
+            cleaned_object.priority_permutation = [];
+            cleaned_object.current_lanelet = [];
+            cleaned_object.dynamic_obstacle_area = [];
+            cleaned_object.coupling_info = [];
+            cleaned_object.hdv_reachable_sets = [];
+            cleaned_object.hdv_adjacency = [];
+        end
+
+    end
+
 end

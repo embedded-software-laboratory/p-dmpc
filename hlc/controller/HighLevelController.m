@@ -542,7 +542,7 @@ classdef (Abstract) HighLevelController < handle
             end
 
             % store iteration data
-            obj.experiment_result.iteration_data(obj.k) = obj.iter;
+            obj.experiment_result.iteration_data(obj.k) = IterationData.clean(obj.iter);
 
             % store graph search results
             obj.experiment_result.control_results_info(obj.k) = ControlResultsInfo.clean(obj.info);
@@ -593,21 +593,6 @@ classdef (Abstract) HighLevelController < handle
             obj.experiment_result.scenario = obj.scenario_adapter.scenario;
 
             obj.experiment_result.timing = obj.timing.get_all_timings();
-
-            if obj.options.should_reduce_result
-                % delete large data fields of to reduce file size
-
-                obj.experiment_result.mpa = MotionPrimitiveAutomaton.empty;
-
-                for i_step = 1:length(obj.experiment_result.iteration_data)
-                    obj.experiment_result.iteration_data(i_step).predicted_lanelets = [];
-                    obj.experiment_result.iteration_data(i_step).predicted_lanelet_boundary = [];
-                    obj.experiment_result.iteration_data(i_step).reachable_sets = [];
-                    obj.experiment_result.iteration_data(i_step).emergency_maneuvers = [];
-                    obj.experiment_result.iteration_data(i_step).occupied_areas = [];
-                end
-
-            end
 
             % if the controller did not succeed
             if ~obj.is_run_succeeded
