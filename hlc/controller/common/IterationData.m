@@ -89,6 +89,29 @@ classdef IterationData
 
     methods (Static)
 
+        function filtered_object = filter(object, vehicle_filter)
+
+            arguments
+                object (1, 1) IterationData
+                vehicle_filter (1, :) logical
+            end
+
+            % FILTER   Reduce iter structure to selected vehicles.
+
+            filtered_object = object;
+            filtered_object.x0 = filtered_object.x0(vehicle_filter, :);
+            filtered_object.trim_indices = filtered_object.trim_indices(vehicle_filter);
+            filtered_object.v_ref = filtered_object.v_ref(vehicle_filter, :);
+            filtered_object.reference_trajectory_points = filtered_object.reference_trajectory_points(vehicle_filter, :, :);
+            filtered_object.reference_trajectory_index = filtered_object.reference_trajectory_index(vehicle_filter, :, :);
+            filtered_object.predicted_lanelets = filtered_object.predicted_lanelets(vehicle_filter);
+            filtered_object.predicted_lanelet_boundary = filtered_object.predicted_lanelet_boundary(vehicle_filter, :);
+            filtered_object.reachable_sets = filtered_object.reachable_sets(vehicle_filter, :);
+            filtered_object.lanelet_crossing_areas = filtered_object.lanelet_crossing_areas{vehicle_filter};
+            filtered_object.amount = sum(vehicle_filter);
+            filtered_object.hdv_adjacency = filtered_object.hdv_adjacency(vehicle_filter, :);
+        end
+
         function cleaned_object = clean(object)
 
             arguments

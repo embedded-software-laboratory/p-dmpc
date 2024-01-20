@@ -313,7 +313,7 @@ classdef PrioritizedController < HighLevelController
             vehicle_index = obj.plant.vehicle_indices_controlled;
             filter_self = false(1, obj.options.amount);
             filter_self(vehicle_index) = true;
-            iter_v = filter_iter(obj.iter, filter_self);
+            iter_v = IterationData.filter(obj.iter, filter_self);
 
             % coupled vehicles with higher priorities
             predecessors = find(iter_v.directed_coupling_reduced(:, vehicle_index) == 1)';
