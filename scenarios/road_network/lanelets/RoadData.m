@@ -104,8 +104,8 @@ classdef (Abstract) RoadData
                 box on
                 axis equal
 
-                xlabel('\fontsize{14}{0}$x$ [m]', 'Interpreter', 'LaTex');
-                ylabel('\fontsize{14}{0}$y$ [m]', 'Interpreter', 'LaTex');
+                xlabel('\fontsize{14}{0}$x$ [m]', Interpreter = 'LaTex');
+                ylabel('\fontsize{14}{0}$y$ [m]', Interpreter = 'LaTex');
 
                 xlim([0, 4.5]);
                 ylim([0, 4]);

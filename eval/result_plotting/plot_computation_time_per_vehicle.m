@@ -7,7 +7,7 @@ function plot_computation_time_per_vehicle(experiment_result, optional)
         optional.export_fig_cgf (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    n_hlc = size(experiment_result.n_expanded, 1);
+    n_hlc = experiment_result.n_hlc;
 
     runtimes = zeros(experiment_result.n_steps, n_hlc);
 
@@ -19,8 +19,8 @@ function plot_computation_time_per_vehicle(experiment_result, optional)
 
         bar(1:size(runtimes, 1), runtimes);
         % set labels
-        xlabel('Time step $k$', 'Interpreter', 'LaTex');
-        ylabel('Computation Time [s]', 'Interpreter', 'LaTex');
+        xlabel('Time step $k$', Interpreter = 'LaTex');
+        ylabel('Computation Time [s]', Interpreter = 'LaTex');
 
     end
 

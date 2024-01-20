@@ -13,15 +13,15 @@ classdef FcaPrioritizer < Prioritizer
 
             %% assign priorities to vehicles based on future collision assessment
 
-            nVeh = size(adjacency, 1);
+            n_vehicles = size(adjacency, 1);
             Hp = size(iter.reference_trajectory_points, 2);
-            collisions = zeros(1, nVeh);
+            collisions = zeros(1, n_vehicles);
 
             veh = Vehicle();
             x_locals = [-1, -1, 1, 1] * (veh.Length / 2 + options.offset);
             y_locals = [-1, 1, 1, -1] * (veh.Width / 2 + options.offset);
 
-            for nveh = 1:nVeh - 1
+            for nveh = 1:n_vehicles - 1
                 % position of nveh
                 nveh_x = iter.reference_trajectory_points(nveh, :, 1);
                 nveh_y = iter.reference_trajectory_points(nveh, :, 2);
@@ -89,8 +89,6 @@ classdef FcaPrioritizer < Prioritizer
             end
 
             [~, current_priorities] = sort(collisions, 'descend'); % ordered vehicle index w.r.t. priority
-            %disp(['collisions: ',num2str(collisions)])
-            %disp(['priority_index: ',num2str(FCAPrio)])
 
             directed_coupling = Prioritizer.directed_coupling_from_priorities(adjacency, current_priorities);
 

@@ -37,7 +37,7 @@ function [data] = compute_levels_data(res)
                 for iStep = n_steps:-1:1
                     % no adjacency given in 1-veh scenarios
                     if options_tmp.amount > 1
-                        iter_tmp = experiment_result.iteration_data{iStep};
+                        iter_tmp = experiment_result.iteration_data(iStep);
 
                         % assign priorities using different algorithms
                         [~, ~, ~, fca_prios] = FcaPriority().priority(scenario_tmp, iter_tmp);

@@ -13,8 +13,8 @@ function [stac, distance_to_collision_i, distance_to_collision_j, collision_type
     overlap_reachable_sets = intersect(iter.reachable_sets{veh_i, end}, iter.reachable_sets{veh_j, end});
     lanelet_relationship_point_reachable_sets = centroid(overlap_reachable_sets);
 
-    info_i = get_vehicle_info(veh_i, iter);
-    info_j = get_vehicle_info(veh_j, iter);
+    info_i = get_vehicle_info(veh_i, iter, scenario.vehicles(veh_i).Length);
+    info_j = get_vehicle_info(veh_j, iter, scenario.vehicles(veh_j).Length);
 
     is_last_pair = false;
 
@@ -193,12 +193,12 @@ end
 
 %% auxilary functions
 
-function info = get_vehicle_info(id, iter)
+function info = get_vehicle_info(id, iter, vehicle_length)
     info = struct('position', [], 'yaw', [], 'trim', [], 'predicted_lanelets', [], 'length', []);
     info.position = [iter.x0(id, indices().x), iter.x0(id, indices().y)];
     info.yaw = iter.x0(id, indices().heading);
     info.trim = iter.trim_indices(id);
-    info.length = iter.vehicles(id).Length;
+    info.length = vehicle_length;
     info.predicted_lanelets = iter.predicted_lanelets{id};
 end
 

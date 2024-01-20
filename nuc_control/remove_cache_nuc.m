@@ -1,8 +1,8 @@
-function remove_cash_remote()
+function remove_cache_nuc()
     fprintf('Removing cashed NUC files...');
 
     % remove all nuc files
-    script_path = fullfile(pwd, 'nuc_simulation', 'remove_cash_remote.sh');
+    script_path = fullfile(pwd, 'nuc_simulation', 'remove_cache_nuc.sh');
 
     command = ['bash ', script_path];
 

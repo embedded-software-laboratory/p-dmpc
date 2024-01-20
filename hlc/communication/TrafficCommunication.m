@@ -71,8 +71,11 @@ classdef TrafficCommunication < InterHlcCommunication
             obj.message_to_be_sent.current_lanelet = int32(current_lanelet);
             obj.message_to_be_sent.predicted_lanelets = int32(predicted_lanelets);
 
-            obj.message_to_be_sent.reference_trajectory_points.x = reference_trajectory_points(:, 1);
-            obj.message_to_be_sent.reference_trajectory_points.y = reference_trajectory_points(:, 2);
+            for i = 1:size(reference_trajectory_points, 1)
+                obj.message_to_be_sent.reference_trajectory_points(i).x = reference_trajectory_points(i, 1);
+                obj.message_to_be_sent.reference_trajectory_points(i).y = reference_trajectory_points(i, 2);
+                obj.message_to_be_sent.reference_trajectory_points(i).z = 0;
+            end
 
             % whether vehicle should take fallback
             obj.message_to_be_sent.is_fallback = is_fallback;

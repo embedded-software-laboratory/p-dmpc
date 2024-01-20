@@ -36,7 +36,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             n_expansions_max = 1000;
             n_successor_trims_max = mpa.maximum_branching_factor();
             % initialize variable to store control results
-            info = ControlResultsInfo(iter.amount, Hp, iter.vehicle_ids);
+            info = ControlResultsInfo(iter.amount, Hp);
 
             % Create tree with root node
             trim = iter.trim_indices;
@@ -141,11 +141,11 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             end
 
             % return cheapest path
-            info.y_predicted = return_path_to(best_node_id, info.tree, mpa);
+            info.y_predicted = return_path_to(best_node_id, info.tree);
             info.shapes = return_path_area(shapes_tmp, info.tree, best_node_id);
             info.tree_path = fliplr(path_to_root(info.tree, best_node_id));
             % Predicted trims in the future Hp time steps. The first entry is the current trims
-            info.predicted_trims = double([info.tree.trim(1, :, info.tree_path)]);
+            info.predicted_trims = squeeze(double([info.tree.trim(1, :, info.tree_path(2:end))]))';
             info.is_exhausted = false;
             info.needs_fallback = false;
 

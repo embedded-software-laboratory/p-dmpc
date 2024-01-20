@@ -1,51 +1,43 @@
 classdef ExperimentResult
 
     properties
-        scenario % scenario of simulation
-        options % config of the simulation
-        iteration_data % iteration steps
-        mpa % MotionPrimitiveAutomation used
-        trajectory_predictions % predicted trajectory for all vehicles and iteration steps
-        output_path % output_path of the ExperimentResult file
-        total_fallback_times % total times of fallback
+        scenario Scenario % scenario of simulation
+        options Config % config of the simulation
+        mpa MotionPrimitiveAutomaton % MotionPrimitiveAutomation used
 
-        timing
+        iteration_data IterationData % iteration steps
+
+        control_results_info ControlResultsInfo
 
         %hlc info parts
-        n_expanded % number of expansions in search tree during graph search
-        vehicles_fallback % which vehicles should use their fallback trajectories
-        computation_levels % TODO: should be calculated from directed_coupling ,scalar
+        hlc_indices % indices of vehicles the hlc (belonging to this result) controls; scalar for distributed computation
 
+        timing
+    end
+
+    properties (Dependent)
         n_steps % total number of steps
         t_total % total runtime
+        n_hlc % number of hlcs whose experiment results are contained
     end
 
     methods
 
-        function obj = ExperimentResult(options, scenario, mpa)
+        function obj = ExperimentResult(options, scenario, mpa, hlc_indices)
 
             arguments
                 options (1, 1) Config;
                 scenario (1, 1) Scenario;
                 mpa (1, 1) MotionPrimitiveAutomaton;
+                hlc_indices (1, :) double;
             end
 
             obj.scenario = scenario;
             obj.options = options;
-            obj.iteration_data = cell(0, 1);
             obj.mpa = mpa;
-            obj.trajectory_predictions = cell(options.amount, 0);
-            obj.output_path = '';
-            obj.total_fallback_times = 0;
 
             obj.timing = cell(0, 1);
-
-            obj.n_expanded = zeros(options.amount, 0);
-            obj.vehicles_fallback = cell(0, 1);
-            obj.computation_levels = zeros(1, 0);
-
-            obj.n_steps = 0;
-            obj.t_total = 0;
+            obj.hlc_indices = hlc_indices;
         end
 
         function equal = is_equal(obj, compare_obj)
@@ -66,6 +58,40 @@ classdef ExperimentResult
 
             end
 
+        end
+
+        function y_predicted = get_y_predicted(obj, k)
+
+            arguments (Input)
+                obj (1, 1) ExperimentResult;
+                k (1, 1) double;
+            end
+
+            arguments (Output)
+                y_predicted (3, :, :) double;
+            end
+
+            y_predicted = nan(3, obj.options.Hp, obj.options.amount);
+            i_vehicle_start = 1;
+
+            for control_results_info_i = obj.control_results_info(:, k)'
+                i_vehicle_end = i_vehicle_start + control_results_info_i.n_vehicles - 1;
+                y_predicted(:, :, i_vehicle_start:i_vehicle_end) = control_results_info_i.y_predicted;
+                i_vehicle_start = i_vehicle_end + 1;
+            end
+
+        end
+
+        function value = get.n_steps(obj)
+            value = length(obj.control_results_info);
+        end
+
+        function value = get.t_total(obj)
+            value = obj.n_steps * obj.options.dt_seconds;
+        end
+
+        function value = get.n_hlc(obj);
+            value = length(obj.hlc_indices);
         end
 
     end

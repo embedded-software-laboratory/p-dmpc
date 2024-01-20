@@ -209,17 +209,6 @@ classdef CpmLab < Plant
         end
 
         function apply(obj, info, ~, ~, mpa)
-            y_pred = info.y_predicted;
-            % simulate change of state
-            for iVeh = obj.vehicle_indices_controlled
-                obj.measurements(iVeh) = PlantMeasurement( ...
-                    info.next_node(iVeh, NodeInfo.x), ...
-                    info.next_node(iVeh, NodeInfo.y), ...
-                    info.next_node(iVeh, NodeInfo.yaw), ...
-                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).speed, ...
-                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).steering ...
-                );
-            end
 
             % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.amount, 1);
@@ -227,35 +216,42 @@ classdef CpmLab < Plant
             % compilation
             time_offset = uint64(3 * 1e9);
 
-            for iVeh = obj.vehicle_indices_controlled
-                n_traj_pts = obj.Hp;
-                n_predicted_points = size(y_pred{iVeh}, 1);
-                idx_predicted_points = 1:n_predicted_points / n_traj_pts:n_predicted_points;
-                trajectory_points(1:n_traj_pts) = TrajectoryPoint;
+            for vehicle_index = obj.vehicle_indices_controlled
+                % simulate change of state
+                i_vehicle = (obj.vehicle_indices_controlled == vehicle_index);
 
-                for i_traj_pt = 1:n_traj_pts
-                    i_predicted_points = idx_predicted_points(i_traj_pt);
-                    trajectory_points(i_traj_pt).t.nanoseconds = ...
+                obj.measurements(vehicle_index) = PlantMeasurement( ...
+                    info.y_predicted(1, 1, i_vehicle), ... % x
+                    info.y_predicted(2, 1, i_vehicle), ... % y
+                    info.y_predicted(3, 1, i_vehicle), ... % yaw
+                    mpa.trims(info.predicted_trims(i_vehicle, 1)).speed, ...
+                    mpa.trims(info.predicted_trims(i_vehicle, 1)).steering ...
+                );
+
+                trajectory_points(1:obj.Hp) = TrajectoryPoint;
+
+                for i = 1:obj.Hp
+                    trajectory_points(i).t.nanoseconds = ...
                         uint64( ...
                         obj.time_now ...
                         + i_traj_pt * obj.dt_period_nanos ...
                         + time_offset ...
                     );
-                    trajectory_points(i_traj_pt).px = y_pred{iVeh}(i_predicted_points, 1);
-                    trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points, 2);
+                    trajectory_points(i).px = info.y_predicted(1, i, vehicle_index);
+                    trajectory_points(i).py = info.y_predicted(2, i, vehicle_index);
 
-                    yaw = y_pred{iVeh}(i_predicted_points, 3);
+                    yaw = info.y_predicted(3, i, vehicle_index);
 
-                    speed = mpa.trims(y_pred{iVeh}(i_predicted_points, 4)).speed;
+                    speed = mpa.trims(info.predicted_trims(i_vehicle, i)).speed;
 
-                    trajectory_points(i_traj_pt).vx = cos(yaw) * speed;
-                    trajectory_points(i_traj_pt).vy = sin(yaw) * speed;
+                    trajectory_points(i).vx = cos(yaw) * speed;
+                    trajectory_points(i).vy = sin(yaw) * speed;
                 end
 
-                obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
+                obj.out_of_map_limits(vehicle_index) = obj.is_veh_at_map_border(trajectory_points);
 
                 vehicle_command_trajectory = VehicleCommandTrajectory;
-                vehicle_command_trajectory.vehicle_id = uint8(obj.all_vehicle_ids(iVeh));
+                vehicle_command_trajectory.vehicle_id = uint8(obj.all_vehicle_ids(vehicle_index));
                 vehicle_command_trajectory.trajectory_points = trajectory_points;
                 vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
                     uint64(posixtime(datetime('now')));

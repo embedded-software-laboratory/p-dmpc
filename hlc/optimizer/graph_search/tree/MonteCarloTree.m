@@ -103,7 +103,7 @@ classdef MonteCarloTree < Tree
         end
 
         function cost = get_cost(obj, i_node)
-            cost = obj.cost(1, i_node);
+            cost = double(obj.cost(1, i_node));
         end
 
     end

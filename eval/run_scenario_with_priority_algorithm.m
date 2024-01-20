@@ -39,7 +39,7 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
                     experiment_result = main(scenarios(iVeh, iSeed));
                 end
 
-                results{iVeh, i_priority, iSeed} = clean_result(experiment_result);
+                results{iVeh, i_priority, iSeed} = experiment_result;
 
                 % evaluate
                 %e_differentNumVehs{i_priority} = EvaluationParl(results_full_path,[0,options.T_end]);
@@ -53,18 +53,4 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
 
     end
 
-end
-
-function result = clean_result(result_in)
-
-    arguments
-        result_in (1, 1) ExperimentResult;
-    end
-
-    result.scenario = result_in.scenario;
-    %result.priority = result_in.priority;
-    result.t_total = result_in.t_total;
-    result.n_steps = result_in.n_steps;
-    result.output_path = result_in.output_path;
-    result.iteration_data = result_in.iteration_data;
 end

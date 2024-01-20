@@ -24,8 +24,8 @@ function experiment_results = main_nuc(optional)
 
     fprintf('Starting remote HLCs...');
 
-    script_path = fullfile(pwd, 'nuc_simulation', 'deploy_remote_hlcs.sh');
-    log_path = fullfile(pwd, 'nuc_simulation', 'deploy_remote_hlcs.log');
+    script_path = fullfile(pwd, 'nuc_simulation', 'deploy_nuc.sh');
+    log_path = fullfile(pwd, 'nuc_simulation', 'deploy_nuc.log');
     command = ['bash ', script_path, vehicle_ids_arg, ' &> ', log_path];
     [~, ~] = system(command);
 
@@ -40,14 +40,14 @@ function experiment_results = main_nuc(optional)
     end
 
     % stop session on all remote hlcs
-    script_path = fullfile(pwd, 'nuc_simulation', 'stop_remote_hlcs.sh');
+    script_path = fullfile(pwd, 'nuc_simulation', 'stop_nuc.sh');
     command = ['bash ', script_path, vehicle_ids_arg];
     [~, ~] = system(command);
 
     fprintf('Collecting experiment_results from remote HLCs...');
 
     % collect all ExperimentResults from nucs
-    script_path = fullfile(pwd, 'nuc_simulation', 'collect_results.sh');
+    script_path = fullfile(pwd, 'nuc_simulation', 'collect_results_nuc.sh');
     command = ['bash ', script_path, vehicle_ids_arg];
     [~, ~] = system(command);
 

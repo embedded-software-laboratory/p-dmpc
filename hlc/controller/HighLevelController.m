@@ -118,39 +118,46 @@ classdef (Abstract) HighLevelController < handle
             obj.mpa = MotionPrimitiveAutomaton(bicycle_model, obj.options);
 
             % initialize ExperimentResult object
-            obj.experiment_result = ExperimentResult(obj.options, obj.scenario_adapter.scenario, obj.mpa);
+            obj.experiment_result = ExperimentResult(obj.options, obj.scenario_adapter.scenario, obj.mpa, obj.plant.vehicle_indices_controlled);
 
             % initialize iteration data
-            obj.iter = IterationData(obj.options, obj.scenario_adapter.scenario, obj.plant.all_vehicle_indices);
+            obj.iter = IterationData( ...
+                obj.options, ...
+                obj.scenario_adapter.scenario ...
+            );
 
             % create old control results info in case of fallback at first time step
-            obj.info_old = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_indices);
+            obj.info_old = ControlResultsInfo( ...
+                numel(obj.plant.vehicle_indices_controlled), ...
+                obj.options.Hp ...
+            );
 
             % measure vehicles' initial poses and trims
             [cav_measurements] = obj.plant.measure();
 
             % fill control results info for each controlled vehicle with measurement information
-            for i_vehicle = obj.plant.vehicle_indices_controlled
+            for i_vehicle = 1:numel(obj.plant.vehicle_indices_controlled)
+                vehicle_index = obj.plant.vehicle_indices_controlled(i_vehicle);
                 % get initial pose from measurement
                 initial_pose = [ ...
-                                    cav_measurements(i_vehicle).x, ...
-                                    cav_measurements(i_vehicle).y, ...
-                                    cav_measurements(i_vehicle).yaw, ...
+                                    cav_measurements(vehicle_index).x, ...
+                                    cav_measurements(vehicle_index).y, ...
+                                    cav_measurements(vehicle_index).yaw, ...
                                 ];
                 % find initial trim of the controlled vehicle
                 initial_trim = obj.mpa.trim_from_values( ...
-                    cav_measurements(i_vehicle).speed, ...
-                    cav_measurements(i_vehicle).steering ...
+                    cav_measurements(vehicle_index).speed, ...
+                    cav_measurements(vehicle_index).steering ...
                 );
 
                 % initialize info_old
-                obj.info_old.tree{i_vehicle} = AStarTree(initial_pose(1), initial_pose(2), initial_pose(3), initial_trim, 1, inf, inf);
-                obj.info_old.tree_path(i_vehicle, :) = ones(1, obj.options.Hp + 1);
-                obj.info_old.y_predicted(i_vehicle) = {repmat( ...
-                                                           [initial_pose(1), initial_pose(2), initial_pose(3), initial_trim], ...
-                                                           (obj.options.tick_per_step + 1) * obj.options.Hp, ...
-                                                           1 ...
-                                                       )};
+                obj.info_old.tree = AStarTree(initial_pose(1), initial_pose(2), initial_pose(3), initial_trim, 1, inf, inf);
+                obj.info_old.tree_path = ones(1, obj.options.Hp + 1);
+                obj.info_old.y_predicted(:, :, i_vehicle) = repmat( ...
+                    [initial_pose(1); initial_pose(2); initial_pose(3)], ...
+                    1, ...
+                    obj.options.Hp ...
+                );
             end
 
             % record the number of time steps that vehicles
@@ -484,15 +491,6 @@ classdef (Abstract) HighLevelController < handle
                 return
             end
 
-            % print information about occurred fallback
-            str_trigger_vehicles = sprintf(' %2d', find(obj.info.needs_fallback));
-            str_fallback_vehicles = sprintf(' %2d', obj.info.vehicles_fallback);
-            fprintf('%s triggered by%s affects%s\n', ...
-                obj.options.fallback_type, ...
-                str_trigger_vehicles, ...
-                str_fallback_vehicles ...
-            )
-
             % plan for fallback case
             obj.plan_for_fallback();
 
@@ -506,7 +504,6 @@ classdef (Abstract) HighLevelController < handle
         function store_control_info(obj)
             % store control results info of previous time step
             obj.info_old = obj.info;
-
         end
 
         function reset_control_loop_data(obj)
@@ -523,7 +520,10 @@ classdef (Abstract) HighLevelController < handle
             % if a vehicle stops for more than a defined time, assume deadlock
 
             % vehicles that stop at the current time step
-            is_vehicle_stopped = ismember(obj.info.trim_indices, obj.mpa.trims_stop);
+            is_vehicle_stopped = ismember( ...
+                obj.info.predicted_trims(:, 1), ...
+                obj.mpa.trims_stop ...
+            );
             % increase couter of vehicles that stop
             obj.vehs_stop_duration(is_vehicle_stopped) = ...
                 obj.vehs_stop_duration(is_vehicle_stopped) + 1;
@@ -541,21 +541,11 @@ classdef (Abstract) HighLevelController < handle
                 fprintf('       For steps:%s\n', str_steps_deadlocked);
             end
 
-            % update total number of steps and total runtime
-            obj.experiment_result.n_steps = obj.k;
-            obj.experiment_result.t_total = obj.k * obj.options.dt_seconds;
-
             % store iteration data
-            obj.experiment_result.iteration_data{obj.k} = obj.iter;
+            obj.experiment_result.iteration_data(obj.k) = IterationData.clean(obj.iter);
 
             % store graph search results
-            obj.experiment_result.trajectory_predictions(:, obj.k) = obj.info.y_predicted;
-            obj.experiment_result.n_expanded(:, obj.k) = obj.info.n_expanded;
-            obj.experiment_result.vehicles_fallback{obj.k} = obj.info.vehicles_fallback;
-
-            % store graph search timings
-            obj.experiment_result.computation_levels(obj.k) = obj.info.computation_levels;
-
+            obj.experiment_result.control_results_info(obj.k) = ControlResultsInfo.clean(obj.info);
         end
 
         function apply(obj)
@@ -582,23 +572,6 @@ classdef (Abstract) HighLevelController < handle
             % end run of controller
             % this function is executed in every case
 
-            % if the controller did not succeed
-            if ~obj.is_run_succeeded
-                % force saving of unfinished ExperimentResult object for inspection
-                disp("Saving of unfinished results on error.")
-                obj.options.should_save_result = true;
-
-                % define output path on error
-                vehicle_indices_string = sprintf('_%02d', obj.plant.vehicle_indices_controlled);
-                obj.experiment_result.output_path = ['results/unfinished_result', vehicle_indices_string, '.mat'];
-            else
-                % define output path on success
-                obj.experiment_result.output_path = FileNameConstructor.get_results_full_path( ...
-                    obj.options, ...
-                    obj.plant.vehicle_indices_controlled ...
-                );
-            end
-
             % save finished or unfinished ExperimentResult
             obj.save_results();
 
@@ -618,23 +591,24 @@ classdef (Abstract) HighLevelController < handle
 
             obj.experiment_result.mpa = obj.mpa;
             obj.experiment_result.scenario = obj.scenario_adapter.scenario;
-            obj.experiment_result.total_fallback_times = obj.total_fallback_times;
 
             obj.experiment_result.timing = obj.timing.get_all_timings();
 
-            if obj.options.should_reduce_result
-                % delete large data fields of to reduce file size
+            % if the controller did not succeed
+            if ~obj.is_run_succeeded
+                % force saving of unfinished ExperimentResult object for inspection
+                disp("Saving of unfinished results on error.")
+                obj.options.should_save_result = true;
 
-                obj.experiment_result.mpa = [];
-
-                for i_step = 1:length(obj.experiment_result.iteration_data)
-                    obj.experiment_result.iteration_data{i_step}.predicted_lanelets = [];
-                    obj.experiment_result.iteration_data{i_step}.predicted_lanelet_boundary = [];
-                    obj.experiment_result.iteration_data{i_step}.reachable_sets = [];
-                    obj.experiment_result.iteration_data{i_step}.emergency_maneuvers = [];
-                    obj.experiment_result.iteration_data{i_step}.occupied_areas = [];
-                end
-
+                % define output path on error
+                vehicle_indices_string = sprintf('_%02d', obj.plant.vehicle_indices_controlled);
+                output_path = ['results/unfinished_result', vehicle_indices_string, '.mat'];
+            else
+                % define output path on success
+                output_path = FileNameConstructor.get_results_full_path( ...
+                    obj.options, ...
+                    obj.plant.vehicle_indices_controlled ...
+                );
             end
 
             if ~obj.options.should_save_result
@@ -644,8 +618,8 @@ classdef (Abstract) HighLevelController < handle
             end
 
             experiment_result = obj.experiment_result; %#ok<PROP>
-            save(obj.experiment_result.output_path, 'experiment_result');
-            fprintf('Results were saved in: %s\n', obj.experiment_result.output_path);
+            save(output_path, 'experiment_result');
+            fprintf('Results were saved in: %s\n', output_path);
 
         end
 

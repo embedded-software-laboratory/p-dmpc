@@ -113,10 +113,10 @@ function plot_different_num_CLs(e_CLs, free_flow_speed, CLs_s, results_folder_pa
 
     boxplot(average_speed_normalized * 100, 'Colors', 'k', 'OutlierSize', 4, 'Labels', X_string);
 
-    y_FFS = yline(free_flow_speed / free_flow_speed * 100, '--k', 'LineWidth', 0.6);
+    y_FFS = yline(free_flow_speed / free_flow_speed * 100, '--k', LineWidth = 0.6);
 
     legend(y_FFS, {'Free-flow speed'}, 'Location', 'south')
-    ylabel('$\overline{v}\:[\%]$', 'Interpreter', 'latex')
+    ylabel('$\overline{v}\:[\%]$', Interpreter = 'latex')
     xlabel('Computation level limit')
     xaxis = get(gca, 'XAxis');
     xaxis.TickLabelInterpreter = 'latex'; % latex for x-axis
@@ -146,7 +146,7 @@ function plot_different_num_CLs(e_CLs, free_flow_speed, CLs_s, results_folder_pa
     ylim([0 level_max])
     yticks(0:2:level_max)
     % xlabel('(b) Actual number of computation levels.')
-    ylabel('$N_{l}$', 'Interpreter', 'latex')
+    ylabel('$N_{l}$', Interpreter = 'latex')
     xaxis = get(gca, 'XAxis');
     xaxis.TickLabelInterpreter = 'latex'; % latex for x-axis
 

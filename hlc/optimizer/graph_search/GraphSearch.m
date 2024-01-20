@@ -27,7 +27,7 @@ classdef GraphSearch < OptimizerInterface
             %   is_exhausted: (true/false) whether graph search is exhausted or not
 
             % initialize variable to store control results
-            info = ControlResultsInfo(iter.amount, options.Hp, iter.vehicle_ids);
+            info = ControlResultsInfo(iter.amount, options.Hp);
 
             shapes_tmp = cell(iter.amount, 0);
             % Create tree with root node
@@ -80,12 +80,11 @@ classdef GraphSearch < OptimizerInterface
                 shapes_tmp(:, cur_node_id) = shapes;
 
                 if info.tree.k(cur_node_id) == options.Hp
-                    y_pred = return_path_to(cur_node_id, info.tree, mpa);
-                    info.y_predicted = y_pred;
+                    info.y_predicted = return_path_to(cur_node_id, info.tree);
                     info.shapes = return_path_area(shapes_tmp, info.tree, cur_node_id);
                     info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
                     % Predicted trims in the future Hp time steps. The first entry is the current trims
-                    info.predicted_trims = info.tree.trim(:, info.tree_path);
+                    info.predicted_trims = info.tree.trim(:, info.tree_path(2:end));
                     info.is_exhausted = false;
                     info.needs_fallback = false;
                     info.n_expanded = info.tree.size();
