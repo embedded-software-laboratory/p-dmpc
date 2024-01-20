@@ -1,4 +1,4 @@
-function remove_cash_remote()
+function remove_cache_nuc()
     fprintf('Removing cashed NUC files...');
 
     % remove all nuc files

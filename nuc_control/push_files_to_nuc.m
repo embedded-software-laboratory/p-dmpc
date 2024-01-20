@@ -1,4 +1,4 @@
-function push_files_to_remote()
+function push_files_to_nuc()
     fprintf('Updating NUC files...');
 
     % update all nuc files
