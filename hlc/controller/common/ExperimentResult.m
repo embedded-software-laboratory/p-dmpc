@@ -90,7 +90,7 @@ classdef ExperimentResult
             value = obj.n_steps * obj.options.dt_seconds;
         end
 
-        function value = get.n_hlc(obj);
+        function value = get.n_hlc(obj)
             value = length(obj.hlc_indices);
         end
 

@@ -34,7 +34,6 @@ classdef (Abstract) HighLevelController < handle
 
         vehicles_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
         total_fallback_times; % total times of fallbacks
-        vehs_stop_duration;
     end
 
     methods (Abstract = true, Access = protected)
@@ -162,7 +161,6 @@ classdef (Abstract) HighLevelController < handle
 
             % record the number of time steps that vehicles
             % consecutively stop and take fallback
-            obj.vehs_stop_duration = zeros(obj.options.amount, 1);
             obj.vehicles_fallback_times = zeros(1, obj.options.amount);
         end
 
@@ -515,31 +513,6 @@ classdef (Abstract) HighLevelController < handle
 
         function store_iteration_results(obj)
             % store iteration results like iter and info in the ExperimentResult object
-
-            % calculate deadlock
-            % if a vehicle stops for more than a defined time, assume deadlock
-
-            % vehicles that stop at the current time step
-            is_vehicle_stopped = ismember( ...
-                obj.info.predicted_trims(:, 1), ...
-                obj.mpa.trims_stop ...
-            );
-            % increase couter of vehicles that stop
-            obj.vehs_stop_duration(is_vehicle_stopped) = ...
-                obj.vehs_stop_duration(is_vehicle_stopped) + 1;
-            % reset vehicles that do not stop anymore
-            obj.vehs_stop_duration(~is_vehicle_stopped) = 0;
-
-            % check for deadlock
-            threshold_stop_steps = 3 * obj.options.Hp;
-            is_vehicle_deadlocked = (obj.vehs_stop_duration > threshold_stop_steps);
-
-            if any(is_vehicle_deadlocked)
-                str_vehicles_deadlocked = sprintf('%4d', find(is_vehicle_deadlocked));
-                str_steps_deadlocked = sprintf('%4d', obj.vehs_stop_duration(is_vehicle_deadlocked));
-                fprintf('Deadlock vehicle:%s\n', str_vehicles_deadlocked);
-                fprintf('       For steps:%s\n', str_steps_deadlocked);
-            end
 
             % store iteration data
             obj.experiment_result.iteration_data(obj.k) = IterationData.clean(obj.iter);
