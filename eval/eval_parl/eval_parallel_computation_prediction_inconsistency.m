@@ -19,7 +19,7 @@ function results = eval_parallel_computation_prediction_inconsistency()
     options.should_save_result = true;
     options.should_reduce_result = false;
     options.constraint_from_successor = ConstraintFromSuccessor.none;
-    options.strategy_enter_lanelet_crossing_area = '1';
+    options.constrained_enter_lanelet_crossing_area = false;
 
     % TODO create fitting scenario
     % options.reference_path_struct.lanelets_index = {[95, 69, 64, 62, 75, 55, 53], [76, 24, 13, 15, 3, 5], [12, 73, 92, 94, 100, 101]};

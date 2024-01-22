@@ -1,4 +1,4 @@
-function [coupling_info, directed_coupling_reduced, weighted_coupling_reduced, lanelet_crossing_areas] = reduce_coupling_lanelet_crossing_area(iter, strategy_enter_lanelet_crossing_area)
+function [coupling_info, directed_coupling_reduced, weighted_coupling_reduced, lanelet_crossing_areas] = reduce_coupling_lanelet_crossing_area(iter, constrained_enter_lanelet_crossing_area)
     % This function implement the strategies of letting vehicle enter the crossing area, which is the overlapping area of two
     % vehicles' lanelet boundaries. Four strategies are existed.
 
@@ -39,22 +39,10 @@ function [coupling_info, directed_coupling_reduced, weighted_coupling_reduced, l
         is_merging_lanelets = (lanelet_relationship_type == LaneletRelationshipType.merging);
 
         % check if coupling edge should be ignored
-        switch strategy_enter_lanelet_crossing_area
-            case '1'
-                % no constraint on entering the crossing area
-                return
-            case '2'
-                % not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
-                is_vehicle_pair_coupling_ignored = is_intersecting_lanelets && is_at_intersection;
-            case '3'
-                % not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
-                is_vehicle_pair_coupling_ignored = (is_intersecting_lanelets || is_merging_lanelets) && is_at_intersection;
-            case '4'
-                % not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-                is_vehicle_pair_coupling_ignored = is_intersecting_lanelets || is_merging_lanelets;
-            otherwise
-                warning("Please specify one of the following strategies to let vehicle enter crossing area: '0', '1', '2', '3'.")
-                return
+        if (constrained_enter_lanelet_crossing_area)
+            is_vehicle_pair_coupling_ignored = is_intersecting_lanelets || is_merging_lanelets;
+        else
+            return;
         end
 
         if is_vehicle_pair_coupling_ignored

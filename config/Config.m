@@ -17,11 +17,9 @@ classdef Config
         T_end = 20; % scalar, simulation duration
         max_num_CLs = 99; % integer, maximum allowerd number of computation levels
         constraint_from_successor ConstraintFromSuccessor = ConstraintFromSuccessor.area_of_standstill;
-        strategy_enter_lanelet_crossing_area = '1'; % one of the following: {'1', '2', '3', '4'}, strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
-        % '1': no constraint on entering the crossing area
-        % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
-        % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
-        % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
+        constrained_enter_lanelet_crossing_area = false; %strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
+        % false: no constraint on entering the crossing area
+        % true: not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
         should_save_result = true; % true/false, is save ExperimentResult
         should_reduce_result = true; % true/false, if true, reduced ExperimentResult will be save to save disk space (useful for a long run of simulation)
         result_name = ''; % string or char, custom file name to save ExperimentResult

@@ -129,7 +129,7 @@ function eval_coloring_paper()
     options.environment = Environment.Simulation;
     options.options_plot_online.is_active = false;
     options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
-    options.strategy_enter_lanelet_crossing_area = '1'; % 1: no constraint on entering the crossing area
+    options.constrained_enter_lanelet_crossing_area = false; % false: no constraint on entering the crossing area
     options.should_save_result = 1;
     options.should_reduce_result = 1;
     options.scenario_type = ScenarioType.commonroad;

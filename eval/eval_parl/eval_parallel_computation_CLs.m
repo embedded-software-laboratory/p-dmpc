@@ -8,7 +8,7 @@ function eval_parallel_computation_CLs()
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
     options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
-    options.strategy_enter_lanelet_crossing_area = '1';
+    options.constrained_enter_lanelet_crossing_area = false;
     options.dt_seconds = 0.2;
     options.options_plot_online.is_active = false;
 
