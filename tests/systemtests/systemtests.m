@@ -28,11 +28,7 @@ classdef systemtests < matlab.unittest.TestCase
             experiment_result = main(options);
             testCase.verifyTrue(true);
 
-            output_path = FileNameConstructor.get_results_full_path(experiment_result.options);
-            expected_result_output_path = get_expected_result_path(output_path);
-            testCase.verifyTrue(contains(expected_result_output_path, 'tests/systemtests/expected_results'), "expected result's path is wrong");
-
-            expected_result = load(expected_result_output_path).experiment_result;
+            expected_result = load_expected(experiment_result);
             testCase.verifyTrue(expected_result.is_equal(experiment_result), "did not match expected result");
 
         end
@@ -60,11 +56,7 @@ classdef systemtests < matlab.unittest.TestCase
             experiment_result = main(options);
             testCase.verifyTrue(true);
 
-            output_path = FileNameConstructor.get_results_full_path(experiment_result.options);
-            expected_result_output_path = get_expected_result_path(output_path);
-            testCase.verifyTrue(contains(expected_result_output_path, 'tests/systemtests/expected_results'), "expected result's path is wrong");
-
-            expected_result = load(expected_result_output_path).experiment_result;
+            expected_result = load_expected(experiment_result);
             testCase.verifyTrue(expected_result.is_equal(experiment_result), "did not match expected result");
         end
 
@@ -84,11 +76,7 @@ classdef systemtests < matlab.unittest.TestCase
             experiment_result = main(options);
             testCase.verifyTrue(true);
 
-            output_path = FileNameConstructor.get_results_full_path(experiment_result.options);
-            expected_result_output_path = get_expected_result_path(output_path);
-            testCase.verifyTrue(contains(expected_result_output_path, 'tests/systemtests/expected_results'), "expected result's path is wrong");
-
-            expected_result = load(expected_result_output_path).experiment_result;
+            expected_result = load_expected(experiment_result);
             testCase.verifyTrue(expected_result.is_equal(experiment_result), "did not match expected result");
         end
 
