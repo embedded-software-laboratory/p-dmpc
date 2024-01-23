@@ -2,7 +2,7 @@ function push_files_to_nuc()
     fprintf('Updating NUC files...');
 
     % update all nuc files
-    script_path = fullfile(pwd, 'nuc_simulation', 'push_files_to_nuc.sh');
+    script_path = fullfile(pwd, 'nuc_control', 'push_files_to_nuc.sh');
 
     command = ['bash ', script_path];
 
