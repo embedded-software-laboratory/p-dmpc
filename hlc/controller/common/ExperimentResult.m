@@ -9,10 +9,12 @@ classdef ExperimentResult
 
         control_results_info ControlResultsInfo
 
-        %hlc info parts
-        hlc_indices % indices of vehicles the hlc (belonging to this result) controls; scalar for distributed computation
+        % indices of vehicles the hlc (belonging to this result) controls; scalar for distributed computation
+        hlc_indices
 
         timing
+
+        git_hash (1, :) char
     end
 
     properties (Dependent)
