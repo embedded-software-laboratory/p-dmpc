@@ -128,7 +128,7 @@ classdef MotionPrimitiveAutomaton
                     if obj.transition_matrix_single(i, j, 1)
                         obj.maneuvers{i, j} = generate_maneuver(model, obj.trims(i), obj.trims(j), options);
                         % transform maneuver area to polyshape
-                        obj.maneuvers{i, j}.areaPoly = polyshape(obj.maneuvers{i, j}.area(1, :), obj.maneuvers{i, j}.area(2, :), 'Simplify', false);
+                        obj.maneuvers{i, j}.areaPoly = polyshape(obj.maneuvers{i, j}.area(1, :), obj.maneuvers{i, j}.area(2, :), Simplify = false);
                     end
 
                 end
@@ -383,7 +383,7 @@ classdef MotionPrimitiveAutomaton
                             [area_x, area_y] = ...
                                 translate_global(yaw0, x0, y0, obj.maneuvers{trim_start, trim_end}.area(1, :), obj.maneuvers{trim_start, trim_end}.area(2, :));
                             trimsInfo(i, t).maneuvers{child_ordinal}.area = [area_x; area_y];
-                            trimsInfo(i, t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, 'Simplify', false);
+                            trimsInfo(i, t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, Simplify = false);
                         end
 
                     end
@@ -527,7 +527,7 @@ classdef MotionPrimitiveAutomaton
                             [area_x, area_y] = ...
                                 translate_global(yaw0, x0, y0, obj.maneuvers{trim_start, trim_end}.area(1, :), obj.maneuvers{trim_start, trim_end}.area(2, :));
                             trimsInfo(i, t).maneuvers{child_ordinal}.area = [area_x; area_y];
-                            trimsInfo(i, t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, 'Simplify', false);
+                            trimsInfo(i, t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, Simplify = false);
                         end
 
                     end
@@ -616,7 +616,7 @@ classdef MotionPrimitiveAutomaton
                             [area_x, area_y] = ...
                                 translate_global(yaw0, x0, y0, obj.maneuvers{trim_start, trim_end}.area(1, :), obj.maneuvers{trim_start, trim_end}.area(2, :));
                             trimsInfoHpHalf(ii, 1).maneuvers{child_ordinal}.area = [area_x; area_y];
-                            trimsInfoHpHalf(ii, 1).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, 'Simplify', false);
+                            trimsInfoHpHalf(ii, 1).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, Simplify = false);
                         end
 
                     end
@@ -656,7 +656,7 @@ classdef MotionPrimitiveAutomaton
                                 reachable_sets_local{parentTrim, Hp_half}.Vertices(:, 1)', reachable_sets_local{parentTrim, Hp_half}.Vertices(:, 2)');
                         end
 
-                        areaPolys(j) = polyshape(area_x, area_y, 'Simplify', false);
+                        areaPolys(j) = polyshape(area_x, area_y, Simplify = false);
                     end
 
                     % union polyshapes
@@ -1010,7 +1010,7 @@ classdef MotionPrimitiveAutomaton
                 transformed_reachable_sets{t} = polyshape( ...
                     reachable_set_x, ...
                     reachable_set_y, ...
-                    'Simplify', false ...
+                    Simplify = false ...
                 );
             end
 
