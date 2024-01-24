@@ -238,7 +238,10 @@ classdef PrioritizedController < HighLevelController
                 obj.iter.occupied_areas{j_vehicle}.without_offset(2, :) = occupied_areas(2).y;
 
                 % transform reachable sets to polyshape object
-                obj.iter.reachable_sets(j_vehicle, :) = (arrayfun(@(array) {polyshape(array.x, array.y)}, latest_msg_i.reachable_sets))';
+                obj.iter.reachable_sets(j_vehicle, :) = (arrayfun( ...
+                    @(array) {polyshape(array.x, array.y, Simplify = false)}, ...
+                    latest_msg_i.reachable_sets ...
+                ))';
 
                 % transform predicted lanelets
                 obj.iter.predicted_lanelets{j_vehicle} = latest_msg_i.predicted_lanelets';
