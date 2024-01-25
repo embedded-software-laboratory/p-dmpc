@@ -7,6 +7,7 @@ classdef PriorityStrategies
         FCA_priority
         STAC_priority
         optimal_priority
+        explorative_priority
     end
 
 end

@@ -27,6 +27,8 @@ classdef (Abstract) Prioritizer < handle
                     prioritizer = StacPrioritizer();
                 case PriorityStrategies.optimal_priority
                     prioritizer = ConstantPrioritizer();
+                case PriorityStrategies.explorative_priority
+                    prioritizer = ConstantPrioritizer();
             end
 
         end
