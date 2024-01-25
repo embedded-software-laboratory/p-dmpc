@@ -19,7 +19,6 @@ classdef PrioritizedExplorativeController < PrioritizedOptimalController
     methods
 
         function obj = PrioritizedExplorativeController(options, plant, ros2_node)
-            disp('chose explorative')
             obj = obj@PrioritizedOptimalController(options, plant, ros2_node);
             obj.initialize_permutations(options.max_num_CLs);
         end

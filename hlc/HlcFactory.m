@@ -42,11 +42,16 @@ classdef HlcFactory
                     end
 
                 else
+
                     % Prioritized controller controlling all vehicles
-                    if options.priority ~= PriorityStrategies.optimal_priority
-                        hlc = PrioritizedExplorativeController();
-                    else
+                    if options.priority == PriorityStrategies.optimal_priority
                         hlc = PrioritizedOptimalSequentialController();
+                    elseif options.priority == PriorityStrategies.explorative_priority
+                        warning('Explorative controller only available in parallel modes. Using constant priority for sequential controller.')
+                        options.priority = PriorityStrategies.constant_priority;
+                        hlc = PrioritizedSequentialController();
+                    else
+                        hlc = PrioritizedSequentialController();
                     end
 
                     for i_vehicle = vehicle_indices_controlled
