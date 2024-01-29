@@ -72,19 +72,15 @@ classdef FileNameConstructor
                 options (1, 1) Config
             end
 
-            if options.amount >= 10
-                n_vehicles = string(options.amount);
-            else
-                n_vehicles = strcat("0", string(options.amount));
-            end
-
-            results_folder_path = fullfile(char(options.scenario_type), n_vehicles);
+            results_folder_path = fullfile( ...
+                FileNameConstructor.all_results(), ...
+                char(options.scenario_type), ...
+                sprintf("%02d", options.amount) ...
+            );
 
             if options.is_prioritized
                 results_folder_path = fullfile(results_folder_path, char(options.priority));
             end
-
-            results_folder_path = fullfile(FileNameConstructor.all_results(), results_folder_path);
 
         end
 
