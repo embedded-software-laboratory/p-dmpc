@@ -129,6 +129,7 @@ classdef IterationData
             cleaned_object.hdv_reachable_sets = [];
             cleaned_object.hdv_adjacency = [];
             cleaned_object.v_ref = [];
+            cleaned_object.reachable_sets = {};
         end
 
     end

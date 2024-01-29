@@ -25,14 +25,18 @@ classdef PlottingInfo
                 experiment_result, ...
                 k, ...
                 time_seconds, ...
-                x0 ...
+                x0, ...
+                optional ...
             )
 
-            % vehicle_indices (1, :) double
-            % experiment_result ExperimentResult % (1, 1)
-            % k double % (1, 1)
-            % time_seconds (1, 1) double
-            % x0 (3, n_vehicles) double
+            arguments
+                vehicle_indices (1, :) double
+                experiment_result ExperimentResult % (1, 1)
+                k double % (1, 1)
+                time_seconds (1, 1) double
+                x0 (3, :) double % 3 x n_vehicles
+                optional.reachable_sets (:, :) cell = {} % n_vehicles x prediction_horizon
+            end
 
             if nargin == 0
                 return;
@@ -55,7 +59,7 @@ classdef PlottingInfo
                 obj.obstacles = experiment_result.iteration_data(k).obstacles;
             end
 
-            obj.reachable_sets = experiment_result.iteration_data(k).reachable_sets;
+            obj.reachable_sets = optional.reachable_sets;
 
             obj.lanelet_crossing_areas = experiment_result.iteration_data(k).lanelet_crossing_areas(:);
 
