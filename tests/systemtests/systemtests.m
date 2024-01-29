@@ -25,11 +25,11 @@ classdef systemtests < matlab.unittest.TestCase
 
             testCase.verifyEmpty(lastwarn);
 
-            experiment_result = main(options);
+            experiment_result_actual = main(options);
             testCase.verifyTrue(true);
 
-            expected_result = load_expected(experiment_result);
-            testCase.verifyTrue(expected_result.is_equal(experiment_result), "did not match expected result");
+            experiment_result_expected = load_expected(experiment_result_actual);
+            testCase.verifyTrue(experiment_result_expected.is_equal(experiment_result_actual), "did not match expected result");
 
         end
 
@@ -53,11 +53,11 @@ classdef systemtests < matlab.unittest.TestCase
 
             testCase.verifyEmpty(lastwarn);
 
-            experiment_result = main(options);
+            experiment_result_actual = main(options);
             testCase.verifyTrue(true);
 
-            expected_result = load_expected(experiment_result);
-            testCase.verifyTrue(expected_result.is_equal(experiment_result), "did not match expected result");
+            experiment_result_expected = load_expected(experiment_result_actual);
+            testCase.verifyTrue(experiment_result_expected.is_equal(experiment_result_expected), "did not match expected result");
         end
 
     end
@@ -73,11 +73,11 @@ classdef systemtests < matlab.unittest.TestCase
 
             options = options.validate();
 
-            experiment_result = main(options);
+            experiment_result_actual = main(options);
             testCase.verifyTrue(true);
 
-            expected_result = load_expected(experiment_result);
-            testCase.verifyTrue(expected_result.is_equal(experiment_result), "did not match expected result");
+            experiment_result_expected = load_expected(experiment_result_actual);
+            testCase.verifyTrue(experiment_result_expected.is_equal(experiment_result_actual), "did not match expected result");
         end
 
         function test_plot_default(testCase, scenario)
