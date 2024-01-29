@@ -53,22 +53,38 @@ classdef FileNameConstructor
 
         function results_folder_path = gen_results_folder_path(options)
 
-            if options.is_prioritized
-                controller_name = 'par-rhgs';
-            else
-                controller_name = 'cen-rhgs';
+            arguments
+                options (1, 1) Config
             end
 
-            results_folder_name = strrep(strcat(char(options.scenario_type), '_', controller_name), ' ', '_');
-
-            results_folder_path = fullfile( ...
-                FileNameConstructor.all_results(), results_folder_name ...
-            );
+            results_folder_path = FileNameConstructor.get_results_folder_path(options);
 
             if ~isfolder(results_folder_path)
                 % create target folder if not exist
                 mkdir(results_folder_path)
             end
+
+        end
+
+        function results_folder_path = get_results_folder_path(options)
+
+            arguments
+                options (1, 1) Config
+            end
+
+            if options.amount >= 10
+                n_vehicles = string(options.amount);
+            else
+                n_vehicles = strcat("0", string(options.amount));
+            end
+
+            results_folder_path = fullfile(char(options.scenario_type), n_vehicles);
+
+            if options.is_prioritized
+                results_folder_path = fullfile(results_folder_path, char(options.priority));
+            end
+
+            results_folder_path = fullfile(FileNameConstructor.all_results(), results_folder_path);
 
         end
 
@@ -143,22 +159,36 @@ classdef FileNameConstructor
 
         end
 
-        function results_full_path = get_results_full_path(options, i_vehicles)
+        function results_full_path = get_results_full_path(options)
 
             arguments
                 options (1, 1) Config;
-                i_vehicles (1, :) {mustBeInteger, mustBePositive} = 1:options.amount;
             end
 
             % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
             % results are saved.
             % INPUT: options, i_vehicles(vehicles for which this HLC is responsible.)
-            results_name = [FileNameConstructor.gen_scenario_name(options, i_vehicles), '.mat'];
+            results_name = strcat(string(datetime("now"), "yyyyMMdd-HHmmss"), ".mat");
+
+            results_full_path = fullfile( ...
+                FileNameConstructor.get_results_folder_path(options) ...
+                , results_name ...
+            );
+        end
+
+        function results_full_path = gen_results_full_path(options)
+
+            arguments
+                options (1, 1) Config;
+            end
+
+            results_name = strcat(string(datetime("now"), "yyyyMMdd-HHmmss"), ".mat");
 
             results_full_path = fullfile( ...
                 FileNameConstructor.gen_results_folder_path(options) ...
                 , results_name ...
             );
+
         end
 
         function folder_path = all_results()
