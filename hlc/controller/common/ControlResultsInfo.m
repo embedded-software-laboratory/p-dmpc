@@ -58,6 +58,7 @@ classdef ControlResultsInfo
             cleaned_object = object;
             cleaned_object.tree = [];
             cleaned_object.tree_path = [];
+            cleaned_object.shapes = [];
         end
 
     end
