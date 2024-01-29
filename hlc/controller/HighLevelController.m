@@ -580,10 +580,7 @@ classdef (Abstract) HighLevelController < handle
                 output_path = ['results/unfinished_result', vehicle_indices_string, '.mat'];
             else
                 % define output path on success
-                output_path = FileNameConstructor.get_results_full_path( ...
-                    obj.options, ...
-                    obj.plant.vehicle_indices_controlled ...
-                );
+                output_path = FileNameConstructor.gen_results_full_path(obj.options);
             end
 
             if ~obj.options.should_save_result

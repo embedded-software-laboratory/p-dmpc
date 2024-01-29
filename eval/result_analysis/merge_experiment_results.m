@@ -16,7 +16,7 @@ function experiment_result = merge_experiment_results(experiment_results)
     experiment_result.git_hash = strtrim(git_hash_and_space);
 
     % save the ExperimentResult to a file
-    file_name = FileNameConstructor.get_results_full_path(experiment_result.options);
+    file_name = FileNameConstructor.gen_results_full_path(experiment_result.options);
     save(file_name, 'experiment_result');
     fprintf('Merged results were saved in: %s\n', file_name);
 

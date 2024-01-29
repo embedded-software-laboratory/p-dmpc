@@ -33,16 +33,15 @@ function results = eval_parallel_computation_prediction_inconsistency()
         options.fallback_type = fallback_type{i};
 
         for veh_id = 1:options.amount
-            full_path = FileNameConstructor.get_results_full_path(options, veh_id);
 
-            if isfile(full_path)
+            if resultExists(options)
                 disp('File already exists.')
             else
                 % run simulation
                 main(options);
             end
 
-            load(full_path, 'experiment_result');
+            experiment_result = load_latest(options);
             results{i, veh_id} = experiment_result;
         end
 
