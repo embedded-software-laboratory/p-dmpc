@@ -11,5 +11,5 @@ function plot_default(experiment_result, optional)
 
     plot_trajectories(experiment_result, do_export = optional.do_export);
 
-    plot_scenario(experiment_result.scenario, experiment_result.options, do_export = optional.do_export);
+    plot_scenario(experiment_result.options, do_export = optional.do_export);
 end

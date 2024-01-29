@@ -117,7 +117,11 @@ classdef (Abstract) HighLevelController < handle
             obj.mpa = MotionPrimitiveAutomaton(bicycle_model, obj.options);
 
             % initialize ExperimentResult object
-            obj.experiment_result = ExperimentResult(obj.options, obj.scenario_adapter.scenario, obj.mpa, obj.plant.vehicle_indices_controlled);
+            obj.experiment_result = ExperimentResult( ...
+                obj.options, ...
+                obj.mpa, ...
+                obj.plant.vehicle_indices_controlled ...
+            );
 
             % initialize iteration data
             obj.iter = IterationData( ...
@@ -563,7 +567,6 @@ classdef (Abstract) HighLevelController < handle
             fprintf('Total runtime: %f seconds\n', obj.experiment_result.t_total);
 
             obj.experiment_result.mpa = obj.mpa;
-            obj.experiment_result.scenario = obj.scenario_adapter.scenario;
 
             obj.experiment_result.timing = obj.timing.get_all_timings();
 
