@@ -1,7 +1,6 @@
 classdef ExperimentResult
 
     properties
-        scenario Scenario % scenario of simulation
         options Config % config of the simulation
         mpa MotionPrimitiveAutomaton % MotionPrimitiveAutomation used
 
@@ -25,16 +24,14 @@ classdef ExperimentResult
 
     methods
 
-        function obj = ExperimentResult(options, scenario, mpa, hlc_indices)
+        function obj = ExperimentResult(options, mpa, hlc_indices)
 
             arguments
                 options (1, 1) Config;
-                scenario (1, 1) Scenario;
                 mpa (1, 1) MotionPrimitiveAutomaton;
                 hlc_indices (1, :) double;
             end
 
-            obj.scenario = scenario;
             obj.options = options;
             obj.mpa = mpa;
 
