@@ -40,8 +40,6 @@ function merged_experiment_result = merge_two_experiment_results(merged_experime
     % merge indices of controlled hlcs in experiment result
     merged_experiment_result.hlc_indices = union(merged_experiment_result.hlc_indices, result2.hlc_indices);
 
-    merged_experiment_result.iteration_data = merge_two_iteration_data_objects(merged_experiment_result.iteration_data, result2.iteration_data);
-
     % INFO: ignore all coupling info, they are the same on each nuc (dont know why they are saved in ExperimentResult AND in IterationData)
 
     % if someone needs one of these:
@@ -51,19 +49,6 @@ function merged_experiment_result = merge_two_experiment_results(merged_experime
 
     % Timings
     merged_experiment_result.timing(i_veh) = result2.timing;
-end
-
-function iter = merge_two_iteration_data_objects(iter, other_iter)
-    n_steps = numel(iter);
-    i_veh = find(other_iter(1).reference_trajectory_index(:, 1) ~= 0);
-
-    % merge iteration struct for every timestep
-    for i_step = 1:n_steps
-        iter(i_step).reference_trajectory_points(i_veh, :, :) = other_iter(i_step).reference_trajectory_points(i_veh, :, :);
-        iter(i_step).reference_trajectory_index(i_veh, :, :) = other_iter(i_step).reference_trajectory_index(i_veh, :, :);
-        iter(i_step).v_ref(i_veh, :) = other_iter(i_step).v_ref(i_veh, :);
-    end
-
 end
 
 function merged_control_results_info = merge_control_results_info(experiment_results)

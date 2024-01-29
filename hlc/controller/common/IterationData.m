@@ -3,8 +3,8 @@ classdef IterationData
 
     properties
         reference_trajectory_points (:, :, 2) double % n_vehicles x Hp x (px,py)
-        reference_trajectory_index
-        priority_permutation % permuation index for multiple priorities
+
+        priority_permutation % permutation index for multiple priorities
         x0 (:, 4) % state
         trim_indices % current trim
         v_ref % reference speed
@@ -41,7 +41,6 @@ classdef IterationData
             hdv_amount = options.manual_control_config.amount;
             obj.priority_permutation = 0;
             obj.reference_trajectory_points = zeros(nVeh, Hp, 2);
-            obj.reference_trajectory_index = zeros(nVeh, Hp, 1);
             obj.x0 = zeros(nVeh, 4);
             obj.trim_indices = zeros(nVeh, 1);
             obj.v_ref = zeros(nVeh, Hp);
@@ -103,7 +102,6 @@ classdef IterationData
             filtered_object.trim_indices = filtered_object.trim_indices(vehicle_filter);
             filtered_object.v_ref = filtered_object.v_ref(vehicle_filter, :);
             filtered_object.reference_trajectory_points = filtered_object.reference_trajectory_points(vehicle_filter, :, :);
-            filtered_object.reference_trajectory_index = filtered_object.reference_trajectory_index(vehicle_filter, :, :);
             filtered_object.predicted_lanelets = filtered_object.predicted_lanelets(vehicle_filter);
             filtered_object.predicted_lanelet_boundary = filtered_object.predicted_lanelet_boundary(vehicle_filter, :);
             filtered_object.reachable_sets = filtered_object.reachable_sets(vehicle_filter, :);
@@ -129,6 +127,7 @@ classdef IterationData
             cleaned_object.coupling_info = [];
             cleaned_object.hdv_reachable_sets = [];
             cleaned_object.hdv_adjacency = [];
+            cleaned_object.v_ref = [];
         end
 
     end
