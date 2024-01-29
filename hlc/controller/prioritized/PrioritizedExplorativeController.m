@@ -1,6 +1,11 @@
-classdef PrioritizedExplorativeController < PrioritizedOptimalController
+classdef PrioritizedExplorativeController < PrioritizedController
 
     properties (Access = private)
+        iter_base
+        info_base
+        iter_array_tmp (1, :) cell
+        info_array_tmp (1, :) cell
+        solution_cost (:, 1) double
         priority_list_base
         base_computation_level
         n_computation_levels
@@ -19,7 +24,7 @@ classdef PrioritizedExplorativeController < PrioritizedOptimalController
     methods
 
         function obj = PrioritizedExplorativeController(options, plant, ros2_node)
-            obj = obj@PrioritizedOptimalController(options, plant, ros2_node);
+            obj = obj@PrioritizedController(options, plant, ros2_node);
             obj.initialize_permutations(options.max_num_CLs);
         end
 
@@ -30,11 +35,6 @@ classdef PrioritizedExplorativeController < PrioritizedOptimalController
         function controller(obj)
 
             obj.prepare_iterations();
-
-            obj.last_n_computation_levels = obj.n_computation_levels;
-            obj.n_computation_levels = max(obj.priority_list_base);
-
-            obj.current_permutations = obj.computation_level_permutations();
 
             for desired_computation_level = 1:obj.n_computation_levels
 
@@ -49,8 +49,6 @@ classdef PrioritizedExplorativeController < PrioritizedOptimalController
             obj.send_solution_cost();
             obj.receive_solution_cost();
             obj.choose_solution();
-
-            obj.last_belonging_vector = obj.belonging_vector_total;
 
         end
 
@@ -71,6 +69,29 @@ classdef PrioritizedExplorativeController < PrioritizedOptimalController
     end
 
     methods (Access = public)
+
+        function result = get_n_computation_levels(obj)
+            result = obj.n_computation_levels;
+        end
+
+        function prepare_iterations(obj)
+            % initialize variable to store control results
+            obj.info_base = ControlResultsInfo( ...
+                1, ...
+                obj.options.Hp ...
+            );
+
+            % set base iteration data
+            obj.iter_base = obj.iter;
+
+            % initialize
+            obj.iter_array_tmp = {};
+            obj.info_array_tmp = {};
+
+            obj.last_n_computation_levels = obj.n_computation_levels;
+            obj.n_computation_levels = max(obj.priority_list_base);
+            obj.current_permutations = obj.computation_level_permutations();
+        end
 
         function prepare_permutation(obj, desired_computation_level)
 
@@ -118,17 +139,51 @@ classdef PrioritizedExplorativeController < PrioritizedOptimalController
 
         end
 
-        function choose_solution(obj)
-            [min_solution_cost, chosen_solution] = min(obj.solution_cost);
-            chosen_solution = chosen_solution(1); % guarantee that it is a single integer
-            obj.last_chosen_solution = chosen_solution;
+        function solve_permutation(obj)
 
-            if min_solution_cost >= 1e9
-                obj.keep_utility = obj.keep_max;
+            obj.plan();
+
+            % Send own data to other vehicles
+            obj.publish_predictions();
+
+            % temporarily store data
+            obj.iter_array_tmp{obj.iter.priority_permutation} = obj.iter;
+            obj.info_array_tmp{obj.iter.priority_permutation} = obj.info;
+        end
+
+        function compute_solution_cost(obj)
+
+            n_solutions = length(obj.iter_array_tmp);
+            obj.solution_cost = NaN(1, n_solutions);
+
+            for i_solution = 1:n_solutions
+
+                if ismember( ...
+                        obj.plant.vehicle_indices_controlled, ...
+                        obj.info_array_tmp{i_solution}.vehicles_fallback ...
+                    )
+                    % in case of fallback use maximum cost
+                    cost_value = 1e9;
+                else
+                    % prefer solutions that are computed and have a low cost to come value in the last step
+                    cost_value = obj.info_array_tmp{i_solution}.tree.get_cost( ...
+                        obj.info_array_tmp{i_solution}.tree_path(end) ...
+                    );
+                end
+
+                obj.solution_cost(i_solution) = cost_value;
+
             end
 
-            obj.info = obj.info_array_tmp{chosen_solution};
-            obj.iter = obj.iter_array_tmp{chosen_solution};
+        end
+
+        function send_solution_cost(obj)
+
+            % broadcast info about solution
+            obj.solution_cost_communication.send_message( ...
+                obj.k, ...
+                obj.solution_cost ...
+            );
         end
 
         function receive_solution_cost(obj)
@@ -148,6 +203,23 @@ classdef PrioritizedExplorativeController < PrioritizedOptimalController
                 obj.solution_cost = obj.solution_cost + latest_msg_j.solution_cost;
             end
 
+        end
+
+        function choose_solution(obj)
+            [min_solution_cost, chosen_solution] = min(obj.solution_cost);
+            chosen_solution = chosen_solution(1); % guarantee that it is a single integer
+            obj.last_chosen_solution = chosen_solution;
+
+            % prevent keeping permutation when led to a fallback solution
+            if min_solution_cost >= 1e9
+                obj.keep_utility = obj.keep_max;
+            end
+
+            obj.info = obj.info_array_tmp{chosen_solution};
+            obj.iter = obj.iter_array_tmp{chosen_solution};
+
+            % copy last belonging for keeping permutation
+            obj.last_belonging_vector = obj.belonging_vector_total;
         end
 
     end
@@ -203,8 +275,8 @@ classdef PrioritizedExplorativeController < PrioritizedOptimalController
                         % fix permutation that performed best in the latest in latest iteration
                         obj.permutation_indices(1) = obj.last_permutation_indices(obj.last_chosen_solution);
                         obj.keep_utility = obj.keep_utility + 1;
-                        else
-                            % that is kind of hacky but it overcomes the undesired frequent changing of priorities
+                    else
+                        % that is kind of hacky but it overcomes the undesired frequent changing of priorities
                         % use as baseline the "base" permutation (1..n_computation_levels)
                         obj.permutation_indices(1) = factorial(obj.n_computation_levels);
                         obj.keep_utility = 1;

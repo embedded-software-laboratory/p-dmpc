@@ -47,9 +47,7 @@ classdef HlcFactory
                     if options.priority == PriorityStrategies.optimal_priority
                         hlc = PrioritizedOptimalSequentialController();
                     elseif options.priority == PriorityStrategies.explorative_priority
-                        warning('Explorative controller only available in parallel modes. Using constant priority for sequential controller.')
-                        options.priority = PriorityStrategies.constant_priority;
-                        hlc = PrioritizedSequentialController();
+                        hlc = PrioritizedExplorativeSequentialController();
                     else
                         hlc = PrioritizedSequentialController();
                     end
