@@ -14,18 +14,19 @@ classdef IterationData
 
         occupied_areas % currently occupied areas with normal offset of vehicles
         emergency_maneuvers % occupied area of emergency braking maneuver
-        reachable_sets % cells to store instances of MATLAB calss `polyshape`
+        reachable_sets % cells to store instances of MATLAB class `polyshape`
 
         obstacles
         dynamic_obstacle_area % (nObs x Hp) cell of areas [x; y]
         lanelet_crossing_areas
 
-        adjacency % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
-        weighted_coupling % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
-        coupling_info % couling information of each coupling pair
-        directed_coupling % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
-        directed_coupling_reduced % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
-        directed_coupling_sequential % nVeh-by-nVeh matrix, after graph partitioning
+        adjacency (:, :) logical % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
+        weighted_coupling (:, :) double % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
+        directed_coupling (:, :) logical % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
+        directed_coupling_reduced (:, :) logical % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
+        directed_coupling_sequential (:, :) logical % nVeh-by-nVeh matrix, after graph partitioning
+
+        coupling_info % coupling information of each coupling pair
 
         hdv_reachable_sets % reachable sets of hdvs
         hdv_adjacency % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
