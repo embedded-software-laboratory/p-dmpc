@@ -227,7 +227,6 @@ classdef (Abstract) HighLevelController < handle
                 obj.iter.v_ref(iVeh, :) = v_ref;
                 % equidistant points on the reference trajectory.
                 obj.iter.reference_trajectory_points(iVeh, :, :) = reference_trajectory_struct.path;
-                obj.iter.reference_trajectory_index(iVeh, :, :) = reference_trajectory_struct.points_index;
 
                 if obj.options.scenario_type ~= ScenarioType.circle
 
