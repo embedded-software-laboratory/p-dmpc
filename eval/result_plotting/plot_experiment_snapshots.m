@@ -138,7 +138,7 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
     set_figure_properties(optional.fig, ExportFigConfig.paper('paperheight', nFigs * (tile_height + x_axis_label_height)));
 
     if optional.do_export
-        results_folder = FileNameConstructor.gen_results_folder_path(options);
+        results_folder = FileNameConstructor.experiment_result_folder_path(options);
         filepath = fullfile(results_folder, 'snapshots.pdf');
         export_fig(optional.fig, filepath)
     end

@@ -12,14 +12,6 @@ function experiment_result = merge_experiment_results(experiment_results)
 
     experiment_result.control_results_info = merge_control_results_info(experiment_results);
 
-    [~, git_hash_and_space] = system('git rev-parse --short HEAD');
-    experiment_result.git_hash = strtrim(git_hash_and_space);
-
-    % save the ExperimentResult to a file
-    file_name = FileNameConstructor.gen_results_full_path(experiment_result.options);
-    save(file_name, 'experiment_result');
-    fprintf('Merged results were saved in: %s\n', file_name);
-
 end
 
 function merged_experiment_result = merge_two_experiment_results(merged_experiment_result, result2)

@@ -62,10 +62,10 @@ function plot_partitioned_graph(experiment_result, optional)
     yticks('')
 
     if optional.do_export
-        results_folder = FileNameConstructor.gen_results_folder_path(experiment_result.options);
-        experiment_prefix = FileNameConstructor.gen_scenario_name(experiment_result.options);
-        file_name = [experiment_prefix, sprintf('_partitioned_graph_%d.pdf', optional.i_step)];
-        filepath = fullfile(results_folder, file_name);
+        filepath = FileNameConstructor.path_to_accompanying_file( ...
+            experiment_result, ...
+            sprintf('_partitioned_graph_%d.pdf', optional.i_step) ...
+        );
         set_figure_properties(optional.fig, ExportFigConfig.paper());
         export_fig(optional.fig, filepath);
     end

@@ -69,6 +69,7 @@ function experiment_result = main(options)
         experiment_result = merge_experiment_results([experiment_result{:}]);
     end
 
+    experiment_result.save();
 end
 
 function experiment_result = run_hlc(options, i_vehicle)

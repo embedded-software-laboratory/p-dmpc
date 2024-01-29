@@ -6,7 +6,7 @@ function results = load_all(options)
 
     results = ExperimentResult.empty(0, 0);
 
-    result_folder = FileNameConstructor.get_results_folder_path(options);
+    result_folder = FileNameConstructor.experiment_result_folder_path(options);
 
     files = dir(fullfile(result_folder, "*.mat"));
 

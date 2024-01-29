@@ -25,7 +25,7 @@ function plot_mpa(mpa, options, optional)
     %export figure
     if optional.do_export
         file_ext = '.pdf';
-        folder_path = FileNameConstructor.gen_results_folder_path(options);
+        folder_path = FileNameConstructor.experiment_result_folder_path(options);
         [~, file_name, ~] = fileparts(FileNameConstructor.get_mpa_name(options));
         filepath = fullfile(folder_path, [file_name file_ext]);
         export_fig(optional.fig, filepath);

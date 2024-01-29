@@ -580,7 +580,9 @@ classdef (Abstract) HighLevelController < handle
                 output_path = ['results/unfinished_result', vehicle_indices_string, '.mat'];
             else
                 % define output path on success
-                output_path = FileNameConstructor.gen_results_full_path(obj.options);
+                output_path = FileNameConstructor.path_to_temporary_sub_result( ...
+                    obj.experiment_result ...
+                );
             end
 
             if ~obj.options.should_save_result
@@ -591,7 +593,7 @@ classdef (Abstract) HighLevelController < handle
 
             experiment_result = obj.experiment_result; %#ok<PROP>
             save(output_path, 'experiment_result');
-            fprintf('Results were saved in: %s\n', output_path);
+            fprintf('Result was saved in: %s\n', output_path);
 
         end
 

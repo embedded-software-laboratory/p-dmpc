@@ -14,6 +14,8 @@ classdef ExperimentResult
         timing
 
         git_hash (1, :) char
+
+        file_name (1, :) char % file name without path, without extension
     end
 
     properties (Dependent)
@@ -78,6 +80,24 @@ classdef ExperimentResult
                 y_predicted(:, :, i_vehicle_start:i_vehicle_end) = control_results_info_i.y_predicted;
                 i_vehicle_start = i_vehicle_end + 1;
             end
+
+        end
+
+        function save(obj)
+
+            arguments
+                obj (1, 1) ExperimentResult;
+            end
+
+            [~, git_hash_and_space] = system('git rev-parse --short HEAD');
+            obj.git_hash = strtrim(git_hash_and_space);
+
+            % save the ExperimentResult to a file
+            file_path = FileNameConstructor.path_to_experiment_result(obj.options);
+            [~, obj.file_name, ~] = fileparts( file_path            );
+            experiment_result = obj;
+            save(file_path, 'experiment_result');
+            fprintf('Merged result saved: %s\n', file_path);
 
         end
 
