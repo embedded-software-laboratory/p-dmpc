@@ -79,7 +79,7 @@ classdef FileNameConstructor
                 options (1, 1) Config;
             end
 
-            results_name = strcat(string(datetime("now", Format = "yyMMdd-HHmm")), ".mat");
+            results_name = strcat(string(datetime("now", Format = "yyMMdd-HHmmss")), ".mat");
 
             file_path = fullfile( ...
                 FileNameConstructor.experiment_result_folder_path(options) ...
@@ -155,7 +155,7 @@ classdef FileNameConstructor
 
         function experiment_result = load_latest(options)
 
-            arguments
+            arguments (Input)
                 options (1, 1) Config;
             end
 
@@ -163,7 +163,23 @@ classdef FileNameConstructor
                 experiment_result (1, 1) ExperimentResult
             end
 
-            % see #243 getLatest(options) function specification
+            experiment_result = ExperimentResult.empty(0, 0);
+
+            result_folder = FileNameConstructor.experiment_result_folder_path(options);
+
+            file_info = dir(fullfile(result_folder, "*.mat"));
+            files_sorted = sort(split(strtrim(sprintf("%s ", file_info.name))), 'descend');
+
+            for file_name = files_sorted
+                result = load(fullfile(result_folder, file_name)).experiment_result;
+
+                if isequal(options, result.options)
+                    experiment_result = result;
+                    return;
+                end
+
+            end
+
         end
 
         function exists = result_exists(options)
@@ -172,7 +188,7 @@ classdef FileNameConstructor
                 options (1, 1) Config;
             end
 
-            exists = ~isempty(FileNameConstructor.load_all(options));
+            exists = ~isempty(FileNameConstructor.load_latest(options));
         end
 
     end

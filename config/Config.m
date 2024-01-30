@@ -270,6 +270,44 @@ classdef Config
 
         end
 
+        function tf = isequal(obj, other_config)
+
+            arguments
+                obj (1, 1) Config
+                other_config (1, 1) Config
+            end
+
+            % check if two configs are equal
+            tf = true;
+
+            % check if all properties are equal
+            all_properties = string(fieldnames(obj)).';
+
+            irrelevant_properties = [
+                                     "computation_mode"
+                                     "should_save_result"
+                                     "should_reduce_result"
+                                     "time_per_tick"
+                                     "plot_limits"
+                                     "is_use_dynamic_programming"
+                                     "options_plot_online"
+                                     ];
+
+            for property = all_properties
+
+                if ismember(property, irrelevant_properties)
+                    continue;
+                end
+
+                if ~isequal(obj.(property), other_config.(property))
+                    tf = false;
+                    return;
+                end
+
+            end
+
+        end
+
     end
 
 end
