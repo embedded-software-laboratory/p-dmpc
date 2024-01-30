@@ -33,18 +33,23 @@ classdef HlcFactory
                 if length(vehicle_indices_controlled) == 1
                     % Prioritized controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    if options.priority ~= PriorityStrategies.optimal_priority
-                        hlc = PrioritizedController(options, plant, optional.ros2_node);
-                    else
+                    if options.priority == PriorityStrategies.optimal_priority
                         hlc = PrioritizedOptimalController(options, plant, optional.ros2_node);
+                    elseif options.priority == PriorityStrategies.explorative_priority
+                        hlc = PrioritizedExplorativeController(options, plant, optional.ros2_node);
+                    else
+                        hlc = PrioritizedController(options, plant, optional.ros2_node);
                     end
 
                 else
+
                     % Prioritized controller controlling all vehicles
-                    if options.priority ~= PriorityStrategies.optimal_priority
-                        hlc = PrioritizedSequentialController();
-                    else
+                    if options.priority == PriorityStrategies.optimal_priority
                         hlc = PrioritizedOptimalSequentialController();
+                    elseif options.priority == PriorityStrategies.explorative_priority
+                        hlc = PrioritizedExplorativeSequentialController();
+                    else
+                        hlc = PrioritizedSequentialController();
                     end
 
                     for i_vehicle = vehicle_indices_controlled

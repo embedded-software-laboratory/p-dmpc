@@ -7,7 +7,7 @@ classdef systemtests < matlab.unittest.TestCase
         optimizer_prioritized = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
         computation_mode = {'sequential', 'parallel_threads'};
         coupling = {'reachable_set', 'full', 'no', 'distance'};
-        priority = {'coloring', 'constant', 'random', 'FCA', 'optimal'};
+        priority = {'coloring', 'constant', 'random', 'FCA', 'optimal', 'explorative'};
         weight = {'constant', 'random', 'distance'};
     end
 

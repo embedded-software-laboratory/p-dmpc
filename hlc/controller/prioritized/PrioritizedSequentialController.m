@@ -10,16 +10,22 @@ classdef PrioritizedSequentialController < HighLevelController
         end
 
         function add_hlc(obj, hlc)
+
             if isempty(obj.hlcs)
                 % Set correct data type of hlcs
-                if isa(hlc,'PrioritizedOptimalController')
-                    % test for PrioritizedOptimalController first, since
+                if isa(hlc, 'PrioritizedExplorativeController')
+                    % test for PrioritizedExplorativeController first, since
                     % the child is also a parent
+                    obj.hlcs = PrioritizedExplorativeController.empty;
+                elseif isa(hlc, 'PrioritizedOptimalController')
+                    % test for PrioritizedOptimalController second
                     obj.hlcs = PrioritizedOptimalController.empty;
                 elseif isa(hlc, 'PrioritizedController')
                     obj.hlcs = PrioritizedController.empty;
                 end
+
             end
+
             obj.hlcs(end + 1) = hlc;
         end
 
