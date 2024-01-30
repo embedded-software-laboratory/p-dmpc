@@ -19,16 +19,6 @@ classdef FileNameConstructor
 
     methods (Static)
 
-        function controller_name = get_controller_name(options)
-
-            if options.is_prioritized
-                controller_name = strcat('prioritized-', 'RHGS');
-            else
-                controller_name = strcat('centralized-', 'RHGS');
-            end
-
-        end
-
         function mpa_instance_name = get_mpa_name(options)
 
             arguments

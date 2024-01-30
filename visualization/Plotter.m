@@ -24,7 +24,6 @@ classdef (Abstract) Plotter < handle
 
     properties (Dependent)
         nVeh (1, 1) int32 % number of vehicles
-        strategy (1, 1) string % controller strategy to print
         vehicles (1, :) Vehicle % vehicle objects
 
         hotkey_position (1, 1) double % position to place top left corner of hotkey description text
@@ -34,10 +33,6 @@ classdef (Abstract) Plotter < handle
 
         function result = get.nVeh(obj)
             result = length(obj.vehicle_indices);
-        end
-
-        function result = get.strategy(obj)
-            result = FileNameConstructor.get_controller_name(obj.options);
         end
 
         function result = get.vehicles(obj)
@@ -321,11 +316,23 @@ classdef (Abstract) Plotter < handle
                 );
             end
 
+            if obj.options.is_prioritized
+                priority_text = char(obj.options.priority);
+                priority_text = erase(priority_text, '_priority');
+            else
+                priority_text = 'centralized';
+            end
+
+            optimizer_text = lower(erase( ...
+                string(obj.options.optimizer_type), ...
+                ["Cpp", "Matlab"] ...
+            ));
+
             title_text = sprintf( ...
-                'Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs', ...
-                obj.options.scenario_type, ...
-                'Graph Search', ...
-                obj.strategy, ...
+                'Optimizer: %s, Prioritization: %s, $N_{CL}=%2i$ \nTime step: %3i, Time: %4.1f s', ...
+                optimizer_text, ...
+                priority_text, ...
+                obj.options.max_num_CLs, ...
                 plotting_info.step, ...
                 plotting_info.time_seconds ...
             );
