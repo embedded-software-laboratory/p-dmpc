@@ -3,7 +3,7 @@ classdef HlcFactory
     properties (Access = public)
     end
 
-    methods (Static)
+    methods (Static, Access = public)
 
         function hlc = get_hlc(options, vehicle_indices_controlled, optional)
 
@@ -68,6 +68,17 @@ classdef HlcFactory
                 hlc = CentralizedController(options, plant);
             end
 
+        end
+
+        function create_dry_run_scenario(options)
+            % Use commonroad as it covers more lines of codes
+            options.scenario_type = ScenarioType.commonroad;
+            % Validate for path ids
+            options = options.validate();
+            scenario = commonroad_scenario(options.amount, options.path_ids);
+
+            % Save scenario for dry run
+            save('scenario_dry_run.mat', 'scenario');
         end
 
     end
