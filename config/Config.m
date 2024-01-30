@@ -51,6 +51,7 @@ classdef Config
         are_any_obstacles_non_convex;
         % execute mex graph search functions in own process
         mex_out_of_process_execution
+        use_cpp % whether to use the C++ optimizer
     end
 
     methods
@@ -94,6 +95,10 @@ classdef Config
 
         end
 
+        function result = get.use_cpp(obj)
+            result = (obj.optimizer_type == OptimizerType.CppOptimal | obj.optimizer_type == OptimizerType.CppSampled);
+        end
+
         % empty set methods used by jsondecode
         % dependent properties with public GetAccess are encoded to a json file
         % to automatically decode the json file set methods must be defined
@@ -108,6 +113,9 @@ classdef Config
         end
 
         function obj = set.mex_out_of_process_execution(obj, ~)
+        end
+
+        function obj = set.use_cpp(obj, ~)
         end
 
     end
@@ -168,10 +176,6 @@ classdef Config
 
             end
 
-        end
-
-        function result = use_cpp(obj)
-            result = (obj.optimizer_type == OptimizerType.CppOptimal | obj.optimizer_type == OptimizerType.CppSampled);
         end
 
         function obj = validate(obj)
