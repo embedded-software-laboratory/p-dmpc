@@ -75,7 +75,7 @@ end
 %
 % options.options_plot_online.vehicles_lanelet_crossing_areas = find(options.path_ids==18);
 
-if resultExists(options)
+if FileNameConstructor.result_exists(options)
     disp('File already exists.')
 else
     % run simulation

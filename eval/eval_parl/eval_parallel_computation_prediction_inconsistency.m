@@ -34,7 +34,7 @@ function results = eval_parallel_computation_prediction_inconsistency()
 
         for veh_id = 1:options.amount
 
-            if resultExists(options)
+            if FileNameConstructor.result_exists(options)
                 disp('File already exists.')
             else
                 % run simulation

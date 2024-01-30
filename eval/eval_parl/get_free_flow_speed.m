@@ -15,7 +15,7 @@ function free_flow_speed = get_free_flow_speed(options)
     options.should_save_result = true;
     options.coupling = CouplingStrategies.no_coupling;
 
-    if resultExists(options)
+    if FileNameConstructor.result_exists(options)
         disp('File already exists.')
     else
         % run simulation

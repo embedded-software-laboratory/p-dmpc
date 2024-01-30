@@ -39,7 +39,7 @@ function eval_parallel_computation_CLs()
             options.max_num_CLs = CLs_s(j);
             options.path_ids = sort(randsample(random_seed, 1:40, options.amount), 'ascend');
 
-            if resultExists(options)
+            if FileNameConstructor.result_exists(options)
                 disp('File already exists.')
             else
                 % run simulation

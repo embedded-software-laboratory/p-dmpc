@@ -126,6 +126,55 @@ classdef FileNameConstructor
 
         end
 
+        function experiment_results = load_all(options)
+
+            arguments (Input)
+                options (1, 1) Config
+            end
+
+            arguments (Output)
+                experiment_results (1, :) ExperimentResult
+            end
+
+            experiment_results = ExperimentResult.empty(0, 0);
+
+            result_folder = FileNameConstructor.experiment_result_folder_path(options);
+
+            files = dir(fullfile(result_folder, "*.mat"));
+
+            for i = 1:length(files)
+                result = load(fullfile(result_folder, files(i).name)).experiment_result;
+
+                if isequal(options, result.options)
+                    experiment_results(length(experiment_results) + 1) = result;
+                end
+
+            end
+
+        end
+
+        function experiment_result = load_latest(options)
+
+            arguments
+                options (1, 1) Config;
+            end
+
+            arguments (Output)
+                experiment_result (1, 1) ExperimentResult
+            end
+
+            % see #243 getLatest(options) function specification
+        end
+
+        function exists = result_exists(options)
+
+            arguments
+                options (1, 1) Config;
+            end
+
+            exists = ~isempty(FileNameConstructor.load_all(options));
+        end
+
     end
 
 end

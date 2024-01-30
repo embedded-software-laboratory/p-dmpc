@@ -25,7 +25,7 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
                 % run simulation
                 % FIXME this will not work after the options are removed from the scenario object
 
-                if resultExists(scenarios(iVeh, iSeed).options)
+                if FileNameConstructor.result_exists(scenarios(iVeh, iSeed).options)
                     disp('File already exists.')
                     r = load_latest(scenarios(iVeh, iSeed).options);
                     experiment_result = r.experiment_result;
