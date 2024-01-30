@@ -1,5 +1,5 @@
 if (APPLE)
-    set(Matlab_ROOT_DIR /Applications/MATLAB_R2023a.app)
+    set(Matlab_ROOT_DIR /Applications/MATLAB_R2023b.app)
     find_package(Matlab REQUIRED)
 
     # Set DYLD_LIBRARY_PATH for execution
