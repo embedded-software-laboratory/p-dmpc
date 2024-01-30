@@ -13,7 +13,7 @@ function experiment_result = main(options)
     scenario = create_scenario(options);
 
     % write built scenario to disk
-    save('scenario.mat', 'scenario');
+    save(Config().scenario_file, 'scenario');
 
     % inform where experiment takes place
     if options.environment == Environment.Simulation
