@@ -30,9 +30,9 @@ classdef PlottingInfo
             )
 
             arguments
-                vehicle_indices (1, :) double
-                experiment_result ExperimentResult % (1, 1)
-                k double % (1, 1)
+                vehicle_indices (1, :) double = 0
+                experiment_result ExperimentResult = ExperimentResult.empty % (1, 1)
+                k double = 0 % (1, 1)
                 time_seconds (1, 1) double = -1
                 x0 (3, :) double = zeros(3, 0) % 3 x n_vehicles
                 optional.reachable_sets (:, :) cell = {} % n_vehicles x prediction_horizon
