@@ -8,7 +8,7 @@ function [experiment_result, scenario] = main_distributed(i_vehicle)
     options = Config.load_from_file('Config.json');
 
     % read scenario from disk
-    scenario = load('scenario.mat', 'scenario').scenario;
+    scenario = load(options.scenario_file, 'scenario').scenario;
 
     % In prioritized computation, vehicles communicate via ROS 2.
     % main.m will have deleted the ros2 message types before distributing the code.

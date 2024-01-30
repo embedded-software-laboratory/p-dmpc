@@ -3,7 +3,7 @@ classdef HlcFactory
     properties (Access = public)
     end
 
-    methods (Static)
+    methods (Static, Access = public)
 
         function hlc = get_hlc(options, vehicle_indices_controlled, optional)
 
@@ -14,6 +14,11 @@ classdef HlcFactory
                 optional.ros2_node = []
             end
 
+            % Dry run must be executed before everything else
+            if optional.do_dry_run
+                HlcFactory.dry_run_hlc(options, vehicle_indices_controlled);
+            end
+
             if isempty(optional.ros2_node)
                 % Create ROS2 node for this HLC
                 vehicle_ids_string = sprintf('_%02d', vehicle_indices_controlled);
@@ -22,11 +27,6 @@ classdef HlcFactory
 
             plant = Plant.get_plant(options.environment, optional.ros2_node);
             plant.setup(options, vehicle_indices_controlled);
-
-            if optional.do_dry_run
-                % FIXME does not work in parallel
-                HlcFactory.dry_run_hlc(options, plant.vehicle_indices_controlled, optional.ros2_node);
-            end
 
             if options.is_prioritized
 
@@ -70,9 +70,20 @@ classdef HlcFactory
 
         end
 
+        function create_dry_run_scenario(options)
+            % Use commonroad as it covers more lines of codes
+            options.scenario_type = ScenarioType.commonroad;
+            % Validate for path ids
+            options = options.validate();
+            scenario = commonroad_scenario(options.amount, options.path_ids);
+
+            % Save scenario for dry run
+            save('scenario_dry_run.mat', 'scenario');
+        end
+
     end
 
-    methods (Access = private)
+    methods (Static, Access = private)
 
         % This function runs the HLC once without outputting anything and
         % resets it afterwards.
@@ -88,16 +99,19 @@ classdef HlcFactory
         % Important note: This might take some time depending on how hard to
         % solve the first time step of this scenario is.
 
-        function dry_run_hlc(options, dry_run_vehicle_indices, ros2_node)
+        function dry_run_hlc(options, dry_run_vehicle_indices)
 
             arguments
                 options Config
                 dry_run_vehicle_indices (1, :) double
-                ros2_node
             end
 
-            fprintf("Dry run of HLC...");
+            fprintf("Dry run of HLC...\n");
 
+            % use dry run scenario
+            options.scenario_file = 'scenario_dry_run.mat';
+            % use commonroad as it covers more lines of code
+            options.scenario_type = ScenarioType.commonroad;
             % use simulation to avoid communication with a lab
             options.environment = Environment.Simulation;
             % for simulation manual vehicles are disabled
@@ -109,13 +123,12 @@ classdef HlcFactory
             % for the dry run results are not relevant
             options.should_save_result = false;
 
-            plant = Plant.get_plant(options.environment, ros2_node);
-            plant.setup(options, dry_run_vehicle_indices);
-
-            hlc = HlcFactory.get_hlc(options, dry_run_vehicle_indices, do_dry_run = true);
+            % dry_run must be false otherwise it would lead to an endless loop
+            % (get_hlc -> dry_run_hlc -> get_hlc)
+            hlc = HlcFactory.get_hlc(options, dry_run_vehicle_indices, do_dry_run = false);
             hlc.run();
 
-            fprintf(" done.\n");
+            fprintf("Dry run done.\n");
         end
 
     end

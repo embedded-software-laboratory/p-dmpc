@@ -9,11 +9,12 @@ function experiment_result = main(options)
         warning("Code is developed in MATLAB R2023a, prepare for backward incompatibilities.")
     end
 
-    % create scenario
+    % create scenario and write it to disk (with default name)
     scenario = create_scenario(options);
+    save(Config().scenario_file, 'scenario');
 
-    % write built scenario to disk
-    save('scenario.mat', 'scenario');
+    % create dry run scenario and write it to disk
+    HlcFactory.create_dry_run_scenario(options);
 
     % inform where experiment takes place
     if options.environment == Environment.Simulation

@@ -11,7 +11,7 @@ function experiment_results = main_nuc(optional)
     options = Config.load_from_file('Config.json');
 
     % read scenario from disk
-    scenario = load('scenario.mat', 'scenario').scenario;
+    scenario = load(options.scenario_file, 'scenario').scenario;
 
     if options.environment == Environment.CpmLab
         assert(~isempty(optional.vehicle_ids), 'Vehicle ids are needed in CPM Lab');
