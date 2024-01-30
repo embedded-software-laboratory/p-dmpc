@@ -83,7 +83,7 @@ classdef ExperimentResult
 
         end
 
-        function save(obj)
+        function obj = add_meta_information(obj)
 
             arguments
                 obj (1, 1) ExperimentResult;
@@ -92,13 +92,25 @@ classdef ExperimentResult
             [~, git_hash_and_space] = system('git rev-parse --short HEAD');
             obj.git_hash = strtrim(git_hash_and_space);
 
-            % save the ExperimentResult to a file
-            file_path = FileNameConstructor.path_to_experiment_result(obj.options);
-            [~, obj.file_name, ~] = fileparts( file_path            );
+            [~, obj.file_name, ~] = fileparts( ...
+                FileNameConstructor.path_to_experiment_result(obj.options) ...
+            );
+
+        end
+
+        function save_merged(obj)
+
+            arguments
+                obj (1, 1) ExperimentResult;
+            end
+
+            file_path = fullfile( ...
+                FileNameConstructor.experiment_result_folder_path(obj.options), ...
+                obj.file_name ...
+            );
             experiment_result = obj;
             save(file_path, 'experiment_result');
             fprintf('Merged result saved: %s\n', file_path);
-
         end
 
         function value = get.n_steps(obj)

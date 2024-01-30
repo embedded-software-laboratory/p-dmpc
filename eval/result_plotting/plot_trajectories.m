@@ -25,9 +25,11 @@ function plot_trajectories(experiment_result, optional)
 
     %export figure
     if optional.do_export
-        folder_path = FileNameConstructor.experiment_result_folder_path(experiment_result(1, 1).options);
-        filepath = fullfile(folder_path, 'trajectories.pdf');
-        export_fig(optional.fig, filepath);
+        file_path = FileNameConstructor.path_to_accompanying_file( ...
+            experiment_result, ...
+            'trajectories.pdf' ...
+        );
+        export_fig(optional.fig, file_path);
     end
 
 end
