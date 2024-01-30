@@ -4,8 +4,8 @@ function experiment_results = main_nuc(optional)
         optional.vehicle_ids = [];
     end
 
-    % On first experiment, push files to remote with `push_files_to_remote()`
-    % On changes to ROS messages or MPA library, remove files with `remove_cash_remote()`
+    % On first experiment, push files to remote with `push_files_to_nuc()`
+    % On changes to ROS messages or MPA library, remove files with `remove_cache_nuc()`
 
     % read config from disk
     options = Config.load_from_file('Config.json');
@@ -24,8 +24,8 @@ function experiment_results = main_nuc(optional)
 
     fprintf('Starting remote HLCs...');
 
-    script_path = fullfile(pwd, 'nuc_simulation', 'deploy_nuc.sh');
-    log_path = fullfile(pwd, 'nuc_simulation', 'deploy_nuc.log');
+    script_path = fullfile(pwd, 'nuc_control', 'deploy_nuc.sh');
+    log_path = fullfile(pwd, 'nuc_control', 'deploy_nuc.log');
     command = ['bash ', script_path, vehicle_ids_arg, ' &> ', log_path];
     [~, ~] = system(command);
 
@@ -40,14 +40,14 @@ function experiment_results = main_nuc(optional)
     end
 
     % stop session on all remote hlcs
-    script_path = fullfile(pwd, 'nuc_simulation', 'stop_nuc.sh');
+    script_path = fullfile(pwd, 'nuc_control', 'stop_nuc.sh');
     command = ['bash ', script_path, vehicle_ids_arg];
     [~, ~] = system(command);
 
     fprintf('Collecting experiment_results from remote HLCs...');
 
     % collect all ExperimentResults from nucs
-    script_path = fullfile(pwd, 'nuc_simulation', 'collect_results_nuc.sh');
+    script_path = fullfile(pwd, 'nuc_control', 'collect_results_nuc.sh');
     command = ['bash ', script_path, vehicle_ids_arg];
     [~, ~] = system(command);
 
@@ -62,7 +62,7 @@ function experiment_results = main_nuc(optional)
     eval_files_folder = dir('/tmp/eval_files_*');
     current_eval_folder = eval_files_folder(end);
     current_eval_folder_dir = [current_eval_folder.folder, filesep, current_eval_folder.name];
-    results_list = dir([current_eval_folder_dir, filesep, 'veh_*']);
+    results_list = dir([current_eval_folder_dir, filesep, 'result_*']);
 
     % load and merge iteratively
     for i_entry = 1:numel(results_list)
