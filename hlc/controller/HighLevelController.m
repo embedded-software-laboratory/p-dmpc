@@ -573,11 +573,14 @@ classdef (Abstract) HighLevelController < handle
             if ~obj.is_run_succeeded
                 % force saving of unfinished ExperimentResult object for inspection
                 disp("Saving of unfinished results on error.")
-                obj.options.should_save_result = true;
 
                 % define output path on error
                 vehicle_indices_string = sprintf('_%02d', obj.plant.vehicle_indices_controlled);
-                output_path = ['results/unfinished_result', vehicle_indices_string, '.mat'];
+
+                output_path = fullfile( ...
+                    FileNameConstructor.temporary_sub_results_folder_path(), ...
+                    'unfinished_result', vehicle_indices_string, '.mat' ...
+                );
             else
                 % define output path on success
                 output_path = FileNameConstructor.path_to_temporary_sub_result( ...
