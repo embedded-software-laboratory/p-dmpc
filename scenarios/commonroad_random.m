@@ -1,4 +1,4 @@
-function [options_array, scenario_array] = commonroad_random(amounts, seeds, options)
+function [options_array, scenario_array] = commonroad_random(amounts, seeds, options, optional)
     % commonroad_random - generate multiple options with commonroad scenarios
     % with random path_ids based on passed seeds and passed amounts
     %
@@ -11,6 +11,7 @@ function [options_array, scenario_array] = commonroad_random(amounts, seeds, opt
         seeds (1, :) double
         % options based on which the output arguments are created
         options (1, 1) Config = Config();
+        optional.enforce_crossing_intersection (1, 1) logical = false
     end
 
     % validate passed options
@@ -22,6 +23,14 @@ function [options_array, scenario_array] = commonroad_random(amounts, seeds, opt
     )
 
     path_id_max = 41; % maximum defined path id
+    possible_path_ids = 1:path_id_max; % all possible path ids
+
+    if optional.enforce_crossing_intersection
+        % the first 8 paths are on the outer circle
+        path_ids_outer_circle = 1:8;
+        % remove path ids for paths on the outer circle
+        possible_path_ids = setdiff(possible_path_ids, path_ids_outer_circle);
+    end
 
     fprintf('Creating options and if requested scenarios... ');
     options_array(length(amounts), length(seeds)) = Config();
@@ -34,7 +43,7 @@ function [options_array, scenario_array] = commonroad_random(amounts, seeds, opt
 
             options_random = options;
             options_random.amount = amounts(i_amount);
-            options_random.path_ids = randperm(random_stream, path_id_max, options_random.amount);
+            options_random.path_ids = randsample(random_stream, possible_path_ids, options.amount);
 
             % validate modified options
             options_random = options_random.validate();
