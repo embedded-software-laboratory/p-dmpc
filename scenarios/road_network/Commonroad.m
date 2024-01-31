@@ -1,16 +1,5 @@
 classdef Commonroad < Scenario
 
-    properties (Access = public)
-        lanelets; % coordinates of all lanelets
-        intersection_lanelets; % IDs of intersection lanelets
-        road_raw_data; % raw road data
-        road_data_file_path; % path to file of road data
-        lanelet_boundary; % boundaries of all lanelets
-        lanelet_relationships; % relationship between two adjacent lanelets
-        adjacency_lanelets (:, :) logical; % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent
-        intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
-    end
-
     methods
 
         function obj = Commonroad(amount, path_ids)
@@ -66,7 +55,7 @@ classdef Commonroad < Scenario
                 optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
             end
 
-            plot@Scenario(obj, options, optional);
+            plot@Scenario(obj, options, fig = optional.fig);
 
             % lanelets
             plot_lanelets(obj.road_raw_data.lanelet);

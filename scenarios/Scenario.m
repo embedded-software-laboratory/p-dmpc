@@ -5,6 +5,15 @@ classdef Scenario
         vehicles = []; % array of Vehicle objects
         obstacles = {}; % (n_obstacle, 1) static obstacles = {[x;y];...}
         dynamic_obstacle_area = {}; % (n_obstacle, Hp) dynamic obstacles = {[x;y],...}
+
+        lanelets; % coordinates of all lanelets
+        intersection_lanelets; % IDs of intersection lanelets
+        road_raw_data; % raw road data
+        road_data_file_path; % path to file of road data
+        lanelet_boundary; % boundaries of all lanelets
+        lanelet_relationships; % relationship between two adjacent lanelets
+        adjacency_lanelets (:, :) logical; % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent
+        intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
     end
 
     methods

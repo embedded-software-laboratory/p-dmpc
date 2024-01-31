@@ -27,7 +27,7 @@ classdef CentralizedController < HighLevelController
             obj.timing.start('coupling', obj.k);
 
             if obj.options.use_cpp()
-                obj.iter.adjacency = obj.coupler.couple(obj.options, obj.mpa.get_max_speed_of_mpa(), obj.scenario_adapter.scenario.adjacency_lanelets, obj.iter);
+                obj.iter.adjacency = obj.coupler.couple(obj.options, obj.mpa.get_max_speed_of_mpa(), obj.iter);
             end
 
             obj.timing.stop('coupling', obj.k);

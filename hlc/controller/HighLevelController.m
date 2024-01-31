@@ -60,7 +60,6 @@ classdef (Abstract) HighLevelController < handle
             obj.k = 0;
             obj.total_fallback_times = 0;
 
-            obj.coupler = Coupler.get_coupler(obj.options.coupling, obj.options.amount);
             obj.timing = ControllerTiming();
 
         end
@@ -166,6 +165,12 @@ classdef (Abstract) HighLevelController < handle
             % record the number of time steps that vehicles
             % consecutively stop and take fallback
             obj.vehicles_fallback_times = zeros(1, obj.options.amount);
+
+            obj.coupler = Coupler.get_coupler( ...
+                obj.options.coupling, ...
+                obj.options.amount, ...
+                obj.scenario_adapter.scenario ...
+            );
         end
 
         function update_controlled_vehicles_traffic_info(obj, cav_measurements)

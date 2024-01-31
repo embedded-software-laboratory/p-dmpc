@@ -11,17 +11,18 @@ classdef (Abstract) Coupler < handle
     methods (Abstract)
 
         % Returns the adjacency matrix
-        [adjacency] = couple(obj, options, max_mpa_speed, adjacency_lanelets, iter)
+        [adjacency] = couple(obj, options, max_mpa_speed, iter)
 
     end
 
     methods (Static)
 
-        function coupler = get_coupler(coupling, amount)
+        function coupler = get_coupler(coupling, amount, scenario)
             %GET_COUPLER creates a coupler according to the set option
             arguments
                 coupling CouplingStrategies;
                 amount double; % options.amount for constant coupling
+                scenario Scenario;
             end
 
             switch (coupling)
@@ -32,7 +33,7 @@ classdef (Abstract) Coupler < handle
                 case CouplingStrategies.no_coupling
                     coupler = ConstantCoupler(zeros(amount));
                 case CouplingStrategies.distance_coupling
-                    coupler = DistanceCoupler();
+                    coupler = DistanceCoupler(scenario);
             end
 
         end
