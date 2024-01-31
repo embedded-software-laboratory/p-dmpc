@@ -8,7 +8,6 @@
     "T_end": 5,
     "max_num_CLs": 4,
     "mpa_type": "single_speed",
-    "should_reduce_result": false,
     "options_plot_online": {
         "is_active": true,
         "plot_vehicle_id": true,

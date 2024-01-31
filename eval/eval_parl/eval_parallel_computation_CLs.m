@@ -29,12 +29,6 @@ function eval_parallel_computation_CLs()
 
         for j = 1:length(CLs_s)
 
-            if i == 1 && j == 1
-                options.should_reduce_result = false;
-            else
-                options.should_reduce_result = true;
-            end
-
             options.max_num_CLs = CLs_s(j);
             options.path_ids = sort(randsample(random_seed, 1:40, options.amount), 'ascend');
 

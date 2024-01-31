@@ -11,7 +11,6 @@ options.dt_seconds = 0.2;
 
 options.priority = 'STAC_priority';
 options.is_prioritized = true;
-options.should_reduce_result = false;
 options.is_plot_online = true;
 options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
 

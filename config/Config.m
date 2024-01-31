@@ -45,9 +45,6 @@ classdef Config
 
         % ----
         % Other
-        should_reduce_result = true; % true/false, if true, reduced ExperimentResult will be save to save disk space (useful for a long run of simulation)
-
-        % properties that are usually not changed:
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
 
         recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
@@ -301,8 +298,6 @@ classdef Config
             all_properties = string(fieldnames(obj)).';
 
             irrelevant_properties = [
-                                     "computation_mode"
-                                     "should_reduce_result"
                                      "time_per_tick"
                                      "plot_limits"
                                      "is_use_dynamic_programming"

@@ -16,7 +16,6 @@ function results = eval_parallel_computation_prediction_inconsistency()
     options.max_num_CLs = 1;
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
-    options.should_reduce_result = false;
     options.constraint_from_successor = ConstraintFromSuccessor.none;
     options.constrained_enter_lanelet_crossing_area = false;
 
