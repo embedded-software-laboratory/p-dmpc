@@ -1,24 +1,24 @@
-function plot_scenario(options, optional)
+function plot_scenario(experiment_result, optional)
 
     arguments
-        options (1, 1) Config;
+        experiment_result (1, 1) ExperimentResult;
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    scenario = create_scenario(options);
-    scenario.plot(options, fig = optional.fig);
+    scenario = create_scenario(experiment_result.options);
+    scenario.plot(experiment_result.options, fig = optional.fig);
 
     set_figure_properties(optional.fig, ExportFigConfig.paper("paperheight", 6))
 
     %export figure
     if optional.do_export
-        folder_path = FileNameConstructor.gen_results_folder_path( ...
-            options ...
+        file_path = FileNameConstructor.path_to_accompanying_file( ...
+            experiment_result, ...
+            'scenario.pdf' ...
         );
-        file_name = 'scenario.pdf';
-        export_fig(optional.fig, fullfile(folder_path, file_name));
+        export_fig(optional.fig, file_path);
     end
 
     if (~optional.fig.Visible); close(optional.fig); end

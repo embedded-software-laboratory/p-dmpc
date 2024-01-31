@@ -2,18 +2,10 @@ classdef FileNameConstructor
     % FILENAMECONSTRUCTOR This class provides methods to construct
     % different file names according to certain rules.
 
-    properties
-
-    end
-
     methods
 
         function obj = FileNameConstructor()
         end
-
-    end
-
-    methods
 
     end
 
@@ -30,135 +22,70 @@ classdef FileNameConstructor
             % Example:  MPA_type_single_speed_Hp6
             %           MPA_type_triple_speed_Hp6_parl_non-convex
 
-            mpa_instance_name = ['MPA_', 'type_', char(options.mpa_type), '_Hp', num2str(options.Hp), '_T', num2str(options.dt_seconds)];
-
-            if options.are_any_obstacles_non_convex
-                mpa_instance_name = [mpa_instance_name, '_non-convex'];
-            end
+            mpa_instance_name = [char(options.mpa_type), '_Hp-', num2str(options.Hp), '_T-', num2str(options.dt_seconds)];
 
             if ~options.is_prioritized
-                mpa_instance_name = [mpa_instance_name, '_centralized_nVeh' num2str(options.amount)];
-            end
-
-            if options.is_use_dynamic_programming
-                mpa_instance_name = [mpa_instance_name, '_DP'];
-            end
-
-            if ~options.recursive_feasibility
-                mpa_instance_name = [mpa_instance_name, '_notRecFeas'];
+                mpa_instance_name = [mpa_instance_name, '_centralized'];
             end
 
             mpa_instance_name = [mpa_instance_name, '.mat'];
         end
 
-        function results_folder_path = gen_results_folder_path(options)
+        function folder_path = experiment_result_folder_path(options)
+
+            arguments
+                options (1, 1) Config
+            end
+
+            folder_path = fullfile( ...
+                FileNameConstructor.all_results(), ...
+                char(options.scenario_type), ...
+                sprintf("%02d", options.amount) ...
+            );
 
             if options.is_prioritized
-                controller_name = 'par-rhgs';
-            else
-                controller_name = 'cen-rhgs';
+                folder_path = fullfile(folder_path, char(options.priority));
             end
 
-            results_folder_name = strrep(strcat(char(options.scenario_type), '_', controller_name), ' ', '_');
-
-            results_folder_path = fullfile( ...
-                FileNameConstructor.all_results(), results_folder_name ...
-            );
-
-            if ~isfolder(results_folder_path)
+            if ~isfolder(folder_path)
                 % create target folder if not exist
-                mkdir(results_folder_path)
+                mkdir(folder_path)
             end
 
         end
 
-        function video_file_path = gen_video_file_path(options)
-            video_file_name = [ ...
-                                   'video_', ...
-                                   FileNameConstructor.gen_scenario_name(options), ...
-                                   '.avi' ...
-                               ];
-            video_file_path = fullfile( ...
-                FileNameConstructor.gen_results_folder_path(options) ...
-                , video_file_name ...
+        function file_path = path_to_accompanying_file( ...
+                experiment_result, ...
+                suffix_and_extension ...
+            )
+
+            arguments
+                experiment_result (1, 1) ExperimentResult;
+                suffix_and_extension (1, :) char;
+            end
+
+            file_path = fullfile( ...
+                FileNameConstructor.experiment_result_folder_path( ...
+                experiment_result.options ...
+            ), ...
+                strcat(experiment_result.file_name, "_", suffix_and_extension) ...
             );
-        end
-
-        function scenario_name = gen_scenario_name(options, i_vehicles)
-
-            arguments
-                options (1, 1) Config;
-                i_vehicles (1, :) {mustBeInteger, mustBePositive} = 1:options.amount;
-            end
-
-            priority = char(options.priority);
-            weight = char(options.weight);
-
-            if numel(i_vehicles) == 1
-                scenario_name = ['veh_', num2str(i_vehicles), '_'];
-            else
-                scenario_name = '';
-            end
-
-            if isempty(options.result_name)
-                % use default name
-                scenario_name = [scenario_name, 'type_', char(options.mpa_type), '_Hp', num2str(options.Hp), '_dt', num2str(options.dt_seconds), '_nVeh', num2str(options.amount), '_T', num2str(options.T_end), '_', char(options.coupling), '_', priority];
-
-                if options.scenario_type == ScenarioType.commonroad
-                    path_ids_str = sprintf('-%02d', options.path_ids);
-                    scenario_name = [scenario_name, '_ids', path_ids_str];
-                end
-
-                if options.is_prioritized
-                    scenario_name = [scenario_name, '_maxCLs', num2str(options.max_num_CLs), ...
-                                         '_constraint-from-successor-', char(options.constraint_from_successor), ...
-                                         '_EnterLaneletCrossingArea', num2str(options.constrained_enter_lanelet_crossing_area)];
-                end
-
-                if options.fallback_type ~= FallbackType.local_fallback
-                    % local fallback is the default fallback strategy
-                    scenario_name = [scenario_name, '_', char(options.fallback_type)];
-                end
-
-                if ~options.should_reduce_result
-                    scenario_name = [scenario_name, '_fullResult'];
-                end
-
-                if ~options.isDealPredictionInconsistency
-                    scenario_name = [scenario_name, '_notDealWithPredictionInconsistency'];
-                end
-
-                if ~(options.weight == WeightStrategies.STAC_weight)
-                    scenario_name = [scenario_name, '_W', weight];
-                end
-
-                if ~options.is_bounded_reachable_set_used
-                    scenario_name = [scenario_name, '_unboundedRS'];
-                end
-
-            else
-                % use custom name
-                scenario_name = [scenario_name, options.result_name];
-            end
 
         end
 
-        function results_full_path = get_results_full_path(options, i_vehicles)
+        function file_path = path_to_experiment_result(options)
 
             arguments
                 options (1, 1) Config;
-                i_vehicles (1, :) {mustBeInteger, mustBePositive} = 1:options.amount;
             end
 
-            % GET_RESULTS_FULL_PATH Construct name for the folder where simulation
-            % results are saved.
-            % INPUT: options, i_vehicles(vehicles for which this HLC is responsible.)
-            results_name = [FileNameConstructor.gen_scenario_name(options, i_vehicles), '.mat'];
+            results_name = strcat(string(datetime("now", Format = "yyMMdd-HHmmss")), ".mat");
 
-            results_full_path = fullfile( ...
-                FileNameConstructor.gen_results_folder_path(options) ...
+            file_path = fullfile( ...
+                FileNameConstructor.experiment_result_folder_path(options) ...
                 , results_name ...
             );
+
         end
 
         function folder_path = all_results()
@@ -171,6 +98,72 @@ classdef FileNameConstructor
                 mkdir(folder_path)
             end
 
+        end
+
+        function folder_path = temporary_sub_results_folder_path()
+
+            folder_path = fullfile( ...
+                FileNameConstructor.all_results(), ...
+                'tmp' ...
+            );
+
+            if ~isfolder(folder_path)
+                mkdir(folder_path)
+            end
+
+        end
+
+        function file_path = path_to_temporary_sub_result(experiment_result)
+
+            arguments
+                experiment_result (1, 1) ExperimentResult;
+            end
+
+            file_path = fullfile( ...
+                FileNameConstructor.temporary_sub_results_folder_path(), ...
+                sprintf("%02d", experiment_result.hlc_indices) ...
+            );
+
+        end
+
+        function experiment_result = load_latest(options)
+
+            arguments (Input)
+                options (1, 1) Config;
+            end
+
+            arguments (Output)
+                experiment_result (1, 1) ExperimentResult
+            end
+
+            experiment_result = ExperimentResult.empty(0, 0);
+
+            % get all relevant files
+            result_folder = FileNameConstructor.experiment_result_folder_path(options);
+
+            file_info = dir(fullfile(result_folder, "*.mat"));
+            files_sorted = sort(split(strtrim(sprintf("%s ", file_info.name))), 'descend');
+
+            % find the first file that matches the given options
+            for file_name = files_sorted
+                result = load(fullfile(result_folder, file_name)).experiment_result;
+
+                if isequal(options, result.options)
+                    experiment_result = result;
+                    return;
+                end
+
+            end
+
+        end
+
+        function exists = result_exists(options)
+
+            arguments
+                options (1, 1) Config;
+            end
+
+            exists = ~isempty(FileNameConstructor.load_latest(options));
         end
 
     end

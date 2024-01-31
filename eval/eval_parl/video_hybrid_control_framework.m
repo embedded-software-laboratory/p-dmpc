@@ -75,16 +75,14 @@ end
 %
 % options.options_plot_online.vehicles_lanelet_crossing_areas = find(options.path_ids==18);
 
-full_path = FileNameConstructor.get_results_full_path(options);
-
-if isfile(full_path)
+if FileNameConstructor.result_exists(options)
     disp('File already exists.')
 else
     % run simulation
     main(options);
 end
 
-load(full_path)
+experiment_result = load_latest(options);
 
 %%
 experiment_result.options.options_plot_online.is_video_mode = true;

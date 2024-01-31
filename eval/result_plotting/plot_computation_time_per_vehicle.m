@@ -25,7 +25,7 @@ function plot_computation_time_per_vehicle(experiment_result, optional)
     end
 
     if optional.do_export
-        results_folder = FileNameConstructor.gen_results_folder_path(experiment_result.options);
+        results_folder = FileNameConstructor.experiment_result_folder_path(experiment_result.options);
         filepath = fullfile(results_folder, sprintf('computation_time_result_%d.pdf', i));
         set_figure_properties(optional.fig, ExportFigConfig.paper('paperheight', 12))
         export_fig(optional.fig, filepath);

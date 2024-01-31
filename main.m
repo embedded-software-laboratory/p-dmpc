@@ -69,6 +69,8 @@ function experiment_result = main(options)
         experiment_result = merge_experiment_results([experiment_result{:}]);
     end
 
+    experiment_result = experiment_result.add_meta_information();
+    experiment_result.save_merged();
 end
 
 function experiment_result = run_hlc(options, i_vehicle)

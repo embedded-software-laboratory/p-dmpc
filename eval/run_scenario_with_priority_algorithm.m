@@ -24,14 +24,10 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
                     algorithm{i_priority};
                 % run simulation
                 % FIXME this will not work after the options are removed from the scenario object
-                results_full_path = FileNameConstructor.get_results_full_path( ...
-                    scenarios(iVeh, iSeed).options, ...
-                    scenarios(iVeh, iSeed).options.path_ids ...
-                );
 
-                if isfile(results_full_path)
+                if FileNameConstructor.result_exists(scenarios(iVeh, iSeed).options)
                     disp('File already exists.')
-                    r = load(results_full_path);
+                    r = load_latest(scenarios(iVeh, iSeed).options);
                     experiment_result = r.experiment_result;
                 else
                     % run simulation
@@ -42,7 +38,7 @@ function results = run_scenario_with_priority_algorithm(scenarios, algorithm)
                 results{iVeh, i_priority, iSeed} = experiment_result;
 
                 % evaluate
-                %e_differentNumVehs{i_priority} = EvaluationParl(results_full_path,[0,options.T_end]);
+                %e_differentNumVehs{i_priority} = EvaluationParl(options,[0,options.T_end]);
 
                 % display progress
                 count = count + 1;

@@ -14,6 +14,8 @@ classdef ExperimentResult
         timing
 
         git_hash (1, :) char
+
+        file_name (1, :) char % file name without path, without extension
     end
 
     properties (Dependent)
@@ -79,6 +81,36 @@ classdef ExperimentResult
                 i_vehicle_start = i_vehicle_end + 1;
             end
 
+        end
+
+        function obj = add_meta_information(obj)
+
+            arguments
+                obj (1, 1) ExperimentResult;
+            end
+
+            [~, git_hash_and_space] = system('git rev-parse --short HEAD');
+            obj.git_hash = strtrim(git_hash_and_space);
+
+            [~, obj.file_name, ~] = fileparts( ...
+                FileNameConstructor.path_to_experiment_result(obj.options) ...
+            );
+
+        end
+
+        function save_merged(obj)
+
+            arguments
+                obj (1, 1) ExperimentResult;
+            end
+
+            file_path = fullfile( ...
+                FileNameConstructor.experiment_result_folder_path(obj.options), ...
+                obj.file_name ...
+            );
+            experiment_result = obj;
+            save(file_path, 'experiment_result');
+            fprintf('Merged result saved: %s\n', file_path);
         end
 
         function value = get.n_steps(obj)

@@ -51,6 +51,7 @@ classdef Config
         are_any_obstacles_non_convex;
         % execute mex graph search functions in own process
         mex_out_of_process_execution
+        use_cpp % whether to use the C++ optimizer
     end
 
     methods
@@ -94,6 +95,10 @@ classdef Config
 
         end
 
+        function result = get.use_cpp(obj)
+            result = (obj.optimizer_type == OptimizerType.CppOptimal | obj.optimizer_type == OptimizerType.CppSampled);
+        end
+
         % empty set methods used by jsondecode
         % dependent properties with public GetAccess are encoded to a json file
         % to automatically decode the json file set methods must be defined
@@ -108,6 +113,9 @@ classdef Config
         end
 
         function obj = set.mex_out_of_process_execution(obj, ~)
+        end
+
+        function obj = set.use_cpp(obj, ~)
         end
 
     end
@@ -168,10 +176,6 @@ classdef Config
 
             end
 
-        end
-
-        function result = use_cpp(obj)
-            result = (obj.optimizer_type == OptimizerType.CppOptimal | obj.optimizer_type == OptimizerType.CppSampled);
         end
 
         function obj = validate(obj)
@@ -262,6 +266,43 @@ classdef Config
             % specify different plot limits for circle scenario with 2 vehicles
             if obj.scenario_type == ScenarioType.circle && obj.amount <= 2
                 obj.plot_limits = [0, 4.5; 1.5, 2.5];
+            end
+
+        end
+
+        function tf = isequal(obj, other_config)
+
+            arguments
+                obj (1, 1) Config
+                other_config (1, 1) Config
+            end
+
+            % check if two configs are equal
+            tf = true;
+
+            % check if all properties are equal
+            all_properties = string(fieldnames(obj)).';
+
+            irrelevant_properties = [
+                                     "should_save_result"
+                                     "should_reduce_result"
+                                     "time_per_tick"
+                                     "plot_limits"
+                                     "is_use_dynamic_programming"
+                                     "options_plot_online"
+                                     ];
+
+            for property = all_properties
+
+                if ismember(property, irrelevant_properties)
+                    continue;
+                end
+
+                if ~isequal(obj.(property), other_config.(property))
+                    tf = false;
+                    return;
+                end
+
             end
 
         end

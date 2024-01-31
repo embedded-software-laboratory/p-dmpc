@@ -69,16 +69,14 @@ classdef EvaluationParl
 
         function obj = EvaluationParl(input, T_interval)
 
-            if isstring(input) || ischar(input)
-                % .mat data name
-                obj.results_full_path = input;
-            else
-                % construct file name from options
-                obj.results_full_path = FileNameConstructor.get_results_full_path(input, input.amount);
-                obj.options = input;
+            arguments
+                input (1, 1) Config
+                T_interval (1, :)
             end
 
-            load(obj.results_full_path, 'experiment_result');
+            obj.options = input;
+
+            experiment_result = load_latest(obj.options);
 
             obj.nVeh = experiment_result.options.amount;
             obj.dt_seconds = experiment_result.options.dt_seconds;

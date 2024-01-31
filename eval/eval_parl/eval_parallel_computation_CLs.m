@@ -39,9 +39,7 @@ function eval_parallel_computation_CLs()
             options.max_num_CLs = CLs_s(j);
             options.path_ids = sort(randsample(random_seed, 1:40, options.amount), 'ascend');
 
-            full_path = FileNameConstructor.get_results_full_path(options, options.amount);
-
-            if isfile(full_path)
+            if FileNameConstructor.result_exists(options)
                 disp('File already exists.')
             else
                 % run simulation
@@ -50,7 +48,7 @@ function eval_parallel_computation_CLs()
 
             % data processing
             e_CLs{i, j} = EvaluationParl(options);
-            load(full_path, 'experiment_result')
+            experiment_result = load_latest(options);
             experiment_results{i, j} = experiment_result;
 
             % display progress

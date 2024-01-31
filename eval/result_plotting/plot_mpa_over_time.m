@@ -1,24 +1,24 @@
-function plot_mpa_over_time(mpa, options, optional)
+function plot_mpa_over_time(experiment_result, optional)
 
     arguments
-        mpa (1, 1) MotionPrimitiveAutomaton;
-        options (1, 1) Config;
+        experiment_result (1, 1) ExperimentResult;
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
+    mpa = experiment_result.mpa;
     mpa.plot_over_time(fig = optional.fig);
 
     set_figure_properties(optional.fig, optional.export_fig_cfg);
 
     %export figure
     if optional.do_export
-        file_ext = '.pdf';
-        folder_path = FileNameConstructor.gen_results_folder_path(options);
-        [~, file_name, ~] = fileparts(FileNameConstructor.get_mpa_name(options));
-        filepath = fullfile(folder_path, [file_name, '_over_time', file_ext]);
-        export_fig(optional.fig, filepath);
+        file_path = FileNameConstructor.path_to_accompanying_file( ...
+            experiment_result, ...
+            'mpa_over_time.pdf' ...
+        );
+        export_fig(optional.fig, file_path);
     end
 
     if (~optional.fig.Visible); close(optional.fig); end
