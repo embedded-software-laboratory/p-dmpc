@@ -48,7 +48,7 @@ function experiment_result = main(options, optional)
         future(1:options.amount) = parallel.FevalFuture;
 
         for i_vehicle = 1:options.amount
-            future(i_vehicle) = parfeval(@main_distributed, 1, i_vehicle);
+            future(i_vehicle) = parfeval(@main_distributed, 1, i_vehicle, options = options);
         end
 
         plotter.plotting_loop();
