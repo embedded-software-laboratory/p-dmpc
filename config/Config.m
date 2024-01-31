@@ -52,9 +52,6 @@ classdef Config
         offset = 0.01;
         plot_limits = [0, 4.5; 0, 4]; % default fallback if not defined
         is_use_dynamic_programming = true; % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
-
-        is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
-
     end
 
     properties (Dependent, GetAccess = public, SetAccess = private)
