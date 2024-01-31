@@ -47,8 +47,6 @@ classdef Config
         % Other
         should_reduce_result = true; % true/false, if true, reduced ExperimentResult will be save to save disk space (useful for a long run of simulation)
 
-        result_name = ''; % string or char, custom file name to save ExperimentResult
-
         % properties that are usually not changed:
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
 
