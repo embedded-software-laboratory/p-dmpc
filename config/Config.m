@@ -284,7 +284,6 @@ classdef Config
             all_properties = string(fieldnames(obj)).';
 
             irrelevant_properties = [
-                                     "computation_mode"
                                      "should_save_result"
                                      "should_reduce_result"
                                      "time_per_tick"
