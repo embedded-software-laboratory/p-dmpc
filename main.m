@@ -1,8 +1,10 @@
-function experiment_result = main(options)
+function experiment_result = main(options, optional)
     % MAIN  main function for graph-based receding horizon control
 
     arguments
         options (1, 1) Config = config_gui();
+        % vehicle IDs of vehicles in the CPM Lab
+        optional.vehicle_ids (:, 1) double = [];
     end
 
     if isMATLABReleaseOlderThan('R2023a')
@@ -23,46 +25,47 @@ function experiment_result = main(options)
         disp('Running in Lab...')
     end
 
-    if options.computation_mode == ComputationMode.parallel_physically
-        disp('Scenario was written to disk. If run with LCC, call `delete_ros2_msgs()` before.')
-        return
-    end
-
     if options.is_prioritized
         % In prioritized computation, vehicles communicate via ROS 2.
         % Generate the ros2 msgs types.
         generate_ros2_msgs();
     end
 
-    if options.options_plot_online.is_active
-        plotter = PlotterOnline(options, scenario);
-    end
+    plotter = PlotterOnline(options, scenario);
 
-    if ~options.is_prioritized ...
-            || options.computation_mode == ComputationMode.sequential ...
+    if options.computation_mode == ComputationMode.sequential ...
+            || ~options.is_prioritized ...
             || options.amount == 1
-        experiment_result = run_hlc(options, 1:options.amount);
 
-        if options.options_plot_online.is_active
-            plotter.plotting_loop();
-        end
+        hlc = HlcFactory.get_hlc(options, 1:options.amount);
+        experiment_result = hlc.run();
+        plotter.plotting_loop();
 
-    else
+    elseif options.computation_mode == ComputationMode.parallel_threads
         % simulate distribution locally using the Parallel Computing Toolbox
         get_parallel_pool(options.amount);
 
         future(1:options.amount) = parallel.FevalFuture;
 
         for i_vehicle = 1:options.amount
-            future(i_vehicle) = parfeval(@run_hlc, 1, options, i_vehicle);
+            future(i_vehicle) = parfeval(@main_distributed, 1, i_vehicle);
         end
 
-        if options.options_plot_online.is_active
-            plotter.plotting_loop();
-        end
+        plotter.plotting_loop();
 
         experiment_result = fetchOutputs(future, UniformOutput = false);
 
+    elseif options.computation_mode == ComputationMode.parallel_physically
+        % On first experiment, push files to remote with `push_files_to_nuc()`
+        % On changes to ROS messages or MPA library, remove files with `remove_cache_nuc()`
+        deploy_nuc(options = options, vehicle_ids = optional.vehicle_ids);
+        fprintf('Running experiment...');
+        plotter.plotting_loop();
+        fprintf(' done.\n')
+        experiment_result = collect_results_nuc( ...
+            options = options, ...
+            vehicle_ids = optional.vehicle_ids ...
+        );
     end
 
     if numel(experiment_result) > 1
@@ -71,9 +74,4 @@ function experiment_result = main(options)
 
     experiment_result = experiment_result.add_meta_information();
     experiment_result.save_merged();
-end
-
-function experiment_result = run_hlc(options, i_vehicle)
-    hlc = HlcFactory.get_hlc(options, i_vehicle);
-    experiment_result = hlc.run();
 end

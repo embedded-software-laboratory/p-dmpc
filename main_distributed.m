@@ -1,14 +1,7 @@
-function [experiment_result, scenario] = main_distributed(i_vehicle)
-
-    if isMATLABReleaseOlderThan('R2023a')
-        warning("Code is developed in MATLAB R2023a, prepare for backward incompatibilities.")
-    end
+function experiment_result = main_distributed(i_vehicle)
 
     % read config from disk
     options = Config.load_from_file('Config.json');
-
-    % read scenario from disk
-    scenario = load(options.scenario_file, 'scenario').scenario;
 
     % In prioritized computation, vehicles communicate via ROS 2.
     % main.m will have deleted the ros2 message types before distributing the code.

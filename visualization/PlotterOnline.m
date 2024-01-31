@@ -75,6 +75,10 @@ classdef PlotterOnline < Plotter
 
             obj.sync_message = ros2message('std_msgs/Int32');
 
+            if ~options.options_plot_online.is_active
+                obj.set_figure_visibility(false);
+            end
+
             obj.timer = tic;
         end
 
