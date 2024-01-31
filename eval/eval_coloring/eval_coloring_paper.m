@@ -136,6 +136,7 @@ function eval_coloring_paper()
     % number of different random scenarios per priority assignment and #vehicles
     seeds = 1:9;
 
+    % FIXME now Config.randomize_path_ids
     scenarios = commonroad_random(options, nsVeh, seeds);
 
     results = run_scenario_with_priority_algorithm( ...

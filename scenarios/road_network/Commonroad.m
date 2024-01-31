@@ -1,47 +1,78 @@
-function scenario = Commonroad(amount, path_ids)
-    % Commonroad_Scenario
+classdef Commonroad < Scenario
 
-    scenario = Scenario();
+    properties (Access = public)
+        lanelets; % coordinates of all lanelets
+        intersection_lanelets; % IDs of intersection lanelets
+        road_raw_data; % raw road data
+        road_data_file_path; % path to file of road data
+        lanelet_boundary; % boundaries of all lanelets
+        lanelet_relationships; % relationship between two adjacent lanelets
+        adjacency_lanelets (:, :) logical; % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent
+        intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
+    end
 
-    % get road data
-    road_data = RoadDataCommonRoad().get_road_data();
-    scenario.lanelets = road_data.lanelets;
-    scenario.intersection_lanelets = road_data.intersection_lanelets;
-    scenario.lanelet_boundary = road_data.lanelet_boundary;
-    scenario.road_raw_data = road_data.road_raw_data;
-    scenario.lanelet_relationships = road_data.lanelet_relationships;
-    scenario.adjacency_lanelets = road_data.adjacency_lanelets;
+    methods
 
-    nVeh = amount;
+        function obj = Commonroad(amount, path_ids)
+            obj = obj@Scenario();
+            % get road data
+            road_data = RoadDataCommonRoad().get_road_data();
+            obj.lanelets = road_data.lanelets;
+            obj.intersection_lanelets = road_data.intersection_lanelets;
+            obj.lanelet_boundary = road_data.lanelet_boundary;
+            obj.road_raw_data = road_data.road_raw_data;
+            obj.lanelet_relationships = road_data.lanelet_relationships;
+            obj.adjacency_lanelets = road_data.adjacency_lanelets;
 
-    for iveh = 1:nVeh
+            nVeh = amount;
 
-        veh = Vehicle();
+            for iveh = 1:nVeh
 
-        lanelet_indices_loop = get_reference_lanelets_loop(path_ids(iveh));
-        reference_path_struct = generate_reference_path_loop(lanelet_indices_loop, scenario.lanelets); % function to generate refpath based on CPM Lab road geometry
-        veh.lanelets_index = reference_path_struct.lanelets_index;
-        lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
+                veh = Vehicle();
 
-        % check if the reference path is a loop
-        lanelet_relationship = scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)};
+                lanelet_indices_loop = get_reference_lanelets_loop(path_ids(iveh));
+                reference_path_struct = generate_reference_path_loop(lanelet_indices_loop, obj.lanelets); % function to generate refpath based on CPM Lab road geometry
+                veh.lanelets_index = reference_path_struct.lanelets_index;
+                lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
 
-        if ~isempty(lanelet_relationship) && scenario.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)}.type == LaneletRelationshipType.longitudinal
-            veh.is_loop = true;
-        else
-            veh.is_loop = false;
+                % check if the reference path is a loop
+                lanelet_relationship = obj.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)};
+
+                if ~isempty(lanelet_relationship) && obj.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)}.type == LaneletRelationshipType.longitudinal
+                    veh.is_loop = true;
+                else
+                    veh.is_loop = false;
+                end
+
+                veh.x_start = reference_path_struct.path(1, 1);
+                veh.y_start = reference_path_struct.path(1, 2);
+
+                veh.reference_path = reference_path_struct.path;
+
+                veh.points_index = reference_path_struct.points_index;
+
+                yaw = calculate_yaw(veh.reference_path);
+                veh.yaw_start = yaw(1);
+                obj.vehicles = [obj.vehicles, veh];
+            end
+
         end
 
-        veh.x_start = reference_path_struct.path(1, 1);
-        veh.y_start = reference_path_struct.path(1, 2);
+        function plot(obj, options, optional)
 
-        veh.reference_path = reference_path_struct.path;
+            arguments
+                obj (1, 1) Commonroad;
+                options (1, 1) Config;
+                optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
+            end
 
-        veh.points_index = reference_path_struct.points_index;
+            plot@Scenario(obj, options, optional);
 
-        yaw = calculate_yaw(veh.reference_path);
-        veh.yaw_start = yaw(1);
-        scenario.vehicles = [scenario.vehicles, veh];
+            % lanelets
+            plot_lanelets(obj.road_raw_data.lanelet);
+
+        end
+
     end
 
 end
