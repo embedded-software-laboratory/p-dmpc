@@ -1,33 +1,55 @@
 classdef Config
 
     properties
-        environment Environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
-        manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
-        is_prioritized = true; % true/false, is prioritize vehicles
-        amount = 20; % integer, number of vehicles, does not include manual vehicles
-        computation_mode ComputationMode = ComputationMode.sequential;
+        % ----
+        % Scenario
         scenario_type ScenarioType = ScenarioType.commonroad;
+        scenario_file (1, :) char = 'scenario.mat'; % file the scenario is loaded from
+        amount = 20; % integer, number of vehicles, does not include manual vehicles
+        T_end = 20; % scalar, simulation duration
+        path_ids = []; % reference path IDs for selection of paths for the vehicles
+
+        % ----
+        % Environment
+        environment Environment = Environment.Simulation;
+        options_plot_online OptionsPlotOnline = OptionsPlotOnline();
+
+        computation_mode ComputationMode = ComputationMode.sequential;
+
+        % ----
+        % High-Level Controller
+        is_prioritized = true; % true/false, is prioritize vehicles
         coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling;
         priority PriorityStrategies = PriorityStrategies.constant_priority;
         weight WeightStrategies = WeightStrategies.distance_weight;
         cut CutStrategies = CutStrategies.greedy_cut;
+
+        max_num_CLs = 99; % integer, maximum allowed number of computation levels
+
+        optimizer_type OptimizerType = OptimizerType.MatlabOptimal; % optimizer that shall be used
+
         dt_seconds = 0.2; % scalar, default sample time
         Hp = 6; % scalar, prediction horizon
-        mpa_type MpaType = MpaType.single_speed; % mpa type (element of {'single_speed', 'triple_speed', 'realistic'})
-        T_end = 20; % scalar, simulation duration
-        max_num_CLs = 99; % integer, maximum allowerd number of computation levels
+
+        mpa_type MpaType = MpaType.single_speed;
+
         constraint_from_successor ConstraintFromSuccessor = ConstraintFromSuccessor.area_of_standstill;
-        constrained_enter_lanelet_crossing_area = false; %strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
+
+        %strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
         % false: no constraint on entering the crossing area
         % true: not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-        should_save_result = true; % true/false, is save ExperimentResult
-        should_reduce_result = true; % true/false, if true, reduced ExperimentResult will be save to save disk space (useful for a long run of simulation)
-        result_name = ''; % string or char, custom file name to save ExperimentResult
-
+        constrained_enter_lanelet_crossing_area = false;
         fallback_type FallbackType = FallbackType.local_fallback;
 
-        path_ids = []; % reference path IDs for selection of paths for the vehicles
-        scenario_file (1, :) char = 'scenario.mat'; % file the scenario is loaded from
+        manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
+
+        % ----
+        % Other
+        should_reduce_result = true; % true/false, if true, reduced ExperimentResult will be save to save disk space (useful for a long run of simulation)
+
+        result_name = ''; % string or char, custom file name to save ExperimentResult
+
+        % properties that are usually not changed:
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
 
         recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
@@ -36,10 +58,7 @@ classdef Config
         plot_limits = [0, 4.5; 0, 4]; % default fallback if not defined
         is_use_dynamic_programming = true; % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
 
-        options_plot_online OptionsPlotOnline = OptionsPlotOnline(); % setup for online plotting
         is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
-
-        optimizer_type OptimizerType = OptimizerType.MatlabOptimal; % optimizer that shall be used
 
     end
 
@@ -284,7 +303,7 @@ classdef Config
             all_properties = string(fieldnames(obj)).';
 
             irrelevant_properties = [
-                                     "should_save_result"
+                                     "computation_mode"
                                      "should_reduce_result"
                                      "time_per_tick"
                                      "plot_limits"

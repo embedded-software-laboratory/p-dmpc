@@ -588,12 +588,6 @@ classdef (Abstract) HighLevelController < handle
                 );
             end
 
-            if ~obj.options.should_save_result
-                % return ExperimentResult object should not be saved
-                fprintf('As required, experiment_result was not saved\n');
-                return
-            end
-
             experiment_result = obj.experiment_result; %#ok<PROP>
             save(output_path, 'experiment_result');
             fprintf('Result was saved in: %s\n', output_path);

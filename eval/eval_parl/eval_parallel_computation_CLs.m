@@ -12,7 +12,6 @@ function eval_parallel_computation_CLs()
     options.dt_seconds = 0.2;
     options.options_plot_online.is_active = false;
 
-    options.should_save_result = true;
     options.Hp = 7;
     options.T_end = 4;
     options.amount = 20;

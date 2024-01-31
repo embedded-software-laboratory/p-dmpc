@@ -120,8 +120,6 @@ classdef HlcFactory
             options.options_plot_online.is_active = false;
             % for the dry run reduce experiment time to a minimum
             options.T_end = 2 * options.dt_seconds;
-            % for the dry run results are not relevant
-            options.should_save_result = false;
 
             % dry_run must be false otherwise it would lead to an endless loop
             % (get_hlc -> dry_run_hlc -> get_hlc)
