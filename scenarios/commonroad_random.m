@@ -55,7 +55,7 @@ function [options_array, scenario_array] = commonroad_random(amounts, seeds, opt
                 continue
             end
 
-            scenario = commonroad_scenario(options_random.amount, options_random.path_ids);
+            scenario = Commonroad(options_random.amount, options_random.path_ids);
 
             scenario_array(i_amount, i_seed) = scenario;
         end

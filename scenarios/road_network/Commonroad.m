@@ -1,4 +1,4 @@
-function scenario = commonroad_scenario(amount, path_ids)
+function scenario = Commonroad(amount, path_ids)
     % Commonroad_Scenario
 
     scenario = Scenario();
