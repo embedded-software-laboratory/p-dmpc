@@ -4,7 +4,7 @@ function scenario = create_scenario(options)
     %% Setup Scenario
     switch options.scenario_type
         case ScenarioType.circle
-            scenario = circle_scenario(options.amount);
+            scenario = Circle(options.amount);
         case ScenarioType.commonroad
             scenario = Commonroad(options.amount, options.path_ids);
         case ScenarioType.lanelet2
