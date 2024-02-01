@@ -143,7 +143,7 @@ classdef Config
             );
 
             obj = Config();
-            obj = obj.importFromJson(fileread(json_file_path));
+            obj = jsondecode(obj, jsondecode(fileread(json_file_path)));
 
         end
 
@@ -181,16 +181,24 @@ classdef Config
 
         end
 
-        function result = exportAsJson(obj)
-            result = jsonencode(obj);
-        end
+        function save_to_file(obj, optional)
 
-        function result = importFromJson(obj, json)
-            % custom classes must provide jsondecode by its own
-            result = jsondecode(obj, jsondecode(json));
+            arguments
+                obj (1, 1) Config
+                optional.file_name (1, :) char = 'Config.json'
+            end
+
+            % Write Config to disk
+
+            json_char = jsonencode(obj, PrettyPrint = true);
+
+            fid = fopen(optional.file_name, 'w');
+            fprintf(fid, json_char);
+            fclose(fid);
         end
 
         function obj = jsondecode(obj, json_struct)
+            % custom classes must provide jsondecode
             % for each loop requires fields as row vector
             fields = string(fieldnames(json_struct)).';
 
@@ -201,7 +209,7 @@ classdef Config
                     continue;
                 end
 
-                % custom classes must provide jsondecode by its own
+                % custom classes must provide jsondecode
                 if strcmp(field, "manual_control_config")
                     obj.manual_control_config = ManualControlConfig();
                     obj.manual_control_config = obj.manual_control_config.jsondecode(json_struct.manual_control_config);

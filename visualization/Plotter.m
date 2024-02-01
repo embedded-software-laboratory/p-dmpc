@@ -137,6 +137,10 @@ classdef (Abstract) Plotter < handle
             set(obj.fig, 'WindowKeyPressFcn', @obj.keyPressCallback);
         end
 
+        function delete(obj)
+            obj.close_figure();
+        end
+
         function plot(obj, plotting_info)
             %PLOT  Plot the simulation state described by a PlottingInfo object.
             arguments

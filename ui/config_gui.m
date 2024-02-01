@@ -235,13 +235,6 @@ function config = config_gui()
     % Validate Config file
     config = config.validate();
 
-    % Write Config to disk
-    encodedJSON = jsonencode(config);
-    fid = fopen('Config.json', 'w');
-    fprintf(fid, encodedJSON);
-    fclose('all');
-    % save('config.mat','config');
-
     % close app
     ui.delete;
 

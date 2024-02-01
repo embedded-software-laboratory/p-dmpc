@@ -192,10 +192,6 @@ classdef Simulation < Plant
         function end_run(obj)
             disp('End.')
 
-            if ~obj.should_plot
-                return
-            end
-
             for i_vehicle = obj.vehicle_indices_controlled
                 obj.msg_to_be_sent.step = int32(-1);
                 obj.msg_to_be_sent.vehicle_indices = int32(i_vehicle);
