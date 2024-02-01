@@ -1,5 +1,19 @@
-function [data] = compute_runtime_data(res)
+function data = compute_runtime_data(res, optional)
+
+    arguments
+        res cell
+        optional.recompute (1, 1) logical = true
+        optional.file_path (1, :) char = 'results/runtime.mat'
+    end
+
     % COMPUTE_RUNTIME_DATA  Calculate data needed to export plots for runtime evaluation
+
+    if ~optional.recompute && isfile(optional.file_path)
+
+        load(optional.file_path, 'data');
+        return;
+
+    end
 
     data = struct();
 
@@ -48,4 +62,6 @@ function [data] = compute_runtime_data(res)
     data.nVeh = nVeh;
     data.nPri = nPri;
     data.nSce = nSce;
+
+    save(optional.file_path, 'data');
 end

@@ -1,3 +1,17 @@
+function plot_runtime(res, optional)
+
+    arguments
+        res cell
+        optional.recompute (1, 1) logical = true
+    end
+
+    % PLOT_RUNTIME Evaluate the runtime of the experiment before deadlock
+
+    runtime_data = compute_runtime_data(res, recompute = optional.recompute);
+
+    plot_runtime_data(runtime_data);
+end
+
 function plot_runtime_data(data)
     % PLOT_RUNTIME_DATA     Export plots for runtime evaluation using pre-calculated data
 
