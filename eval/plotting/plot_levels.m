@@ -1,3 +1,17 @@
+function plot_levels(res, optional)
+
+    arguments
+        res cell
+        optional.recompute (1, 1) logical = true
+    end
+
+    % EVAL_PLOT_LEVELS  Evaluate the computation levels of the result cell `res`.
+
+    levels_data = compute_levels_data(res, recompute = optional.recompute);
+
+    plot_levels_data(levels_data);
+end
+
 function plot_levels_data(data)
     %   PLOT_LEVELS_DATA     Export plots for computation level evaluation using pre-calculated data
 

@@ -1,5 +1,18 @@
-function [data] = compute_levels_data(res)
+function [data] = compute_levels_data(res, optional)
+
+    arguments
+        res cell
+        optional.recompute (1, 1) logical = true
+    end
+
     % COMPUTE_LEVELS_DATA  Calculate data needed to export plots for compuation level evaluation
+
+    if ~optional.recompute && isfile('eval/data/levels.mat')
+
+        load('data/levels.mat', 'data');
+        return;
+
+    end
 
     data = struct();
 
@@ -79,4 +92,6 @@ function [data] = compute_levels_data(res)
     data.nVeh = nVeh;
     data.nPri = nPri;
     data.nSce = nSce;
+
+    save('eval/data/levels.mat', 'data');
 end
