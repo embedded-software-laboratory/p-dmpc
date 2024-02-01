@@ -8,8 +8,6 @@
     "T_end": 2,
     "max_num_CLs": 2,
     "mpa_type": "single_speed",
-    "should_save_result": true,
-    "should_reduce_result": false,
     "options_plot_online": {
         "is_active": false
     },

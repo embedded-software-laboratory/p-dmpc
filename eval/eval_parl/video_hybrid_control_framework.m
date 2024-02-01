@@ -11,8 +11,6 @@ options.dt_seconds = 0.2;
 
 options.priority = 'STAC_priority';
 options.is_prioritized = true;
-options.should_save_result = true;
-options.should_reduce_result = false;
 options.is_plot_online = true;
 options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
 
@@ -25,7 +23,7 @@ switch i
         options.options_plot_online.plot_reachable_sets = true;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
         options.options_plot_online.vehicles_reachable_sets = [2];
-        options.is_bounded_reachable_set_used = false;
+        % options.is_bounded_reachable_set_used = false;
         options.constrained_enter_lanelet_crossing_area = false;
         options.max_num_CLs = 1;
         options.path_ids = [18, 41];
@@ -34,7 +32,6 @@ switch i
         options.T_end = 3;
         options.options_plot_online.plot_reachable_sets = true;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
-        options.is_bounded_reachable_set_used = true;
         options.constrained_enter_lanelet_crossing_area = false;
         options.max_num_CLs = 1;
         options.path_ids = [18, 41];
@@ -43,7 +40,6 @@ switch i
         options.T_end = 3;
         options.options_plot_online.plot_reachable_sets = false;
         options.options_plot_online.plot_lanelet_crossing_areaas = true;
-        options.is_bounded_reachable_set_used = true;
         options.constrained_enter_lanelet_crossing_area = true;
         options.max_num_CLs = 1;
         options.path_ids = [18, 41];
@@ -52,7 +48,6 @@ switch i
         options.T_end = 30;
         options.options_plot_online.plot_reachable_sets = false;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
-        options.is_bounded_reachable_set_used = true;
         options.constrained_enter_lanelet_crossing_area = true;
         options.max_num_CLs = 3;
         options.amount = 30;
@@ -62,7 +57,6 @@ switch i
         options.T_end = 10;
         options.options_plot_online.plot_reachable_sets = false;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
-        options.is_bounded_reachable_set_used = true;
         options.constrained_enter_lanelet_crossing_area = false;
         options.max_num_CLs = 4;
         options.amount = 17;

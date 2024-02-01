@@ -12,7 +12,6 @@ function free_flow_speed = get_free_flow_speed(options)
 
     % prepare simulation options
     options.environment = Environment.Simulation;
-    options.should_save_result = true;
     options.coupling = CouplingStrategies.no_coupling;
 
     if FileNameConstructor.result_exists(options)

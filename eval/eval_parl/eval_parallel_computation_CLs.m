@@ -12,7 +12,6 @@ function eval_parallel_computation_CLs()
     options.dt_seconds = 0.2;
     options.options_plot_online.is_active = false;
 
-    options.should_save_result = true;
     options.Hp = 7;
     options.T_end = 4;
     options.amount = 20;
@@ -29,12 +28,6 @@ function eval_parallel_computation_CLs()
     for i = 1:random_times
 
         for j = 1:length(CLs_s)
-
-            if i == 1 && j == 1
-                options.should_reduce_result = false;
-            else
-                options.should_reduce_result = true;
-            end
 
             options.max_num_CLs = CLs_s(j);
             options.path_ids = sort(randsample(random_seed, 1:40, options.amount), 'ascend');

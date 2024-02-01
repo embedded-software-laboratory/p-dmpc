@@ -250,12 +250,10 @@ classdef (Abstract) HighLevelController < handle
                     );
 
                     % constrain the reachable sets by the boundaries of the predicted lanelets
-                    if obj.options.is_bounded_reachable_set_used
-                        obj.iter.reachable_sets(iVeh, :) = bound_reachable_sets( ...
-                            obj.iter.reachable_sets(iVeh, :), ...
-                            obj.iter.predicted_lanelet_boundary{iVeh, 3} ...
-                        );
-                    end
+                    obj.iter.reachable_sets(iVeh, :) = bound_reachable_sets( ...
+                        obj.iter.reachable_sets(iVeh, :), ...
+                        obj.iter.predicted_lanelet_boundary{iVeh, 3} ...
+                    );
 
                 end
 
@@ -586,12 +584,6 @@ classdef (Abstract) HighLevelController < handle
                 output_path = FileNameConstructor.path_to_temporary_sub_result( ...
                     obj.experiment_result ...
                 );
-            end
-
-            if ~obj.options.should_save_result
-                % return ExperimentResult object should not be saved
-                fprintf('As required, experiment_result was not saved\n');
-                return
             end
 
             experiment_result = obj.experiment_result; %#ok<PROP>
