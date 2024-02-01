@@ -43,7 +43,7 @@ function export_video(experiment_result, optional)
         options ...
     );
 
-    disp('Exporting video ...');
+    fprintf('Exporting video...');
     wb = waitbar(0, 'Exporting video ...', 'Name', 'Video Export Progress');
 
     for step_idx = optional.step_start:optional.step_end
@@ -75,6 +75,7 @@ function export_video(experiment_result, optional)
     plotter.close_figure();
     close(wb);
     close(v);
+    fprintf(' done.\n');
 
 end
 
