@@ -1,5 +1,6 @@
 function scenario = lanelet2_scenario(amount, path_ids, filepath_lanelet2_map)
     % Lanelet2_Scenario
+    % FIXME Should be a class; Avoid code duplication with Commonroad
 
     scenario = Scenario();
 

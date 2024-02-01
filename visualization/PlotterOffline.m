@@ -21,7 +21,7 @@ classdef PlotterOffline < Plotter
                 vehicle_indices (1, :) int32 = 1:experiment_result.options.amount
             end
 
-            scenario = create_scenario(experiment_result.options);
+            scenario = Scenario.create(experiment_result.options);
             obj@Plotter(experiment_result.options, scenario, vehicle_indices);
             obj.experiment_result = experiment_result;
             obj.delta_t_s = delta_t_s;

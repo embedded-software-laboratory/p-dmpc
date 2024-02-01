@@ -32,7 +32,7 @@ function [data] = compute_levels_data(res)
                 end
 
                 options_tmp = experiment_result.options;
-                scenario_tmp = create_scenario(options);
+                scenario_tmp = Scenario.create(options);
 
                 for iStep = n_steps:-1:1
                     % no adjacency given in 1-veh scenarios

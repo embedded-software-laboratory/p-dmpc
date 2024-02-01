@@ -154,6 +154,33 @@ classdef Config
         function obj = Config()
         end
 
+        function path_ids = randomize_path_ids(obj, optional)
+
+            arguments
+                obj (1, 1) Config = Config()
+                optional.seed double = []
+                optional.enforce_crossing_intersection (1, 1) logical = true
+            end
+
+            path_id_max = 41; % maximum defined path id
+
+            if optional.enforce_crossing_intersection
+                % the first 8 paths are on the outer circle
+                possible_path_ids = 9:path_id_max;
+            else
+                possible_path_ids = 1:path_id_max; % all possible path ids
+            end
+
+            if isempty(optional.seed)
+                random_stream = RandStream('mt19937ar');
+            else
+                random_stream = RandStream('mt19937ar', Seed = optional.seed);
+            end
+
+            path_ids = randsample(random_stream, possible_path_ids, obj.amount);
+
+        end
+
         function result = exportAsJson(obj)
             result = jsonencode(obj);
         end
@@ -238,8 +265,7 @@ classdef Config
                         case 4
                             obj.path_ids = [17, 18, 19, 20];
                         otherwise
-                            path_id_max = 41; % maximum defined path id
-                            obj.path_ids = randperm(RandStream("mt19937ar"), path_id_max, obj.amount);
+                            obj.path_ids = obj.randomize_path_ids();
                     end
 
                 end

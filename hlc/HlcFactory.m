@@ -75,7 +75,7 @@ classdef HlcFactory
             options.scenario_type = ScenarioType.commonroad;
             % Validate for path ids
             options = options.validate();
-            scenario = commonroad_scenario(options.amount, options.path_ids);
+            scenario = Commonroad(options.amount, options.path_ids);
 
             % Save scenario for dry run
             save('scenario_dry_run.mat', 'scenario');
