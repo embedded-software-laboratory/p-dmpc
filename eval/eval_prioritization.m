@@ -1,4 +1,4 @@
-function results = eval_prioritization(optional)
+function experiment_results = eval_prioritization(optional)
 
     arguments
         optional.computation_mode (1, 1) ComputationMode = ComputationMode.sequential
@@ -13,13 +13,19 @@ function results = eval_prioritization(optional)
                            PriorityStrategies.explorative_priority
                            };
 
-    options = Config;
-    options.computation_mode = optional.computation_mode;
-
-    nsVeh = 1:20;
+    % different numbers of vehicles in a scenario
+    nsVeh = 5:5:20;
     % number of different random scenarios per priority assignment and #vehicles
     seeds = 1:9;
 
-    scenarios = randomize_commonroad(options, nsVeh, seeds);
+    options = Config();
+    options.computation_mode = optional.computation_mode;
+    options.max_num_CLs = 5;
+
+    experiment_results = ExperimentResult.empty( ...
+        length(nsVeh), ...
+        length(seeds), ...
+        length(priority_strategies) ...
+    );
 
 end
