@@ -11,7 +11,7 @@ function export_frame(experiment_result, optional)
 
     close all % if not, sometimes color bar will not be shown properly
     options = experiment_result.options;
-    scenario = create_scenario(options);
+    scenario = Scenario.create(options);
 
     plotter = PlotterOnline(options, scenario);
     plotter.set_figure_visibility(false);

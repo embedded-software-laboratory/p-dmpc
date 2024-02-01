@@ -60,4 +60,28 @@ classdef Scenario
 
     end
 
+    methods (Static)
+
+        function scenario = create(options)
+
+            arguments
+                options (1, 1) Config;
+            end
+
+            switch options.scenario_type
+                case ScenarioType.circle
+                    scenario = Circle(options.amount);
+                case ScenarioType.commonroad
+                    scenario = Commonroad(options.amount, options.path_ids);
+                case ScenarioType.lanelet2
+                    scenario = lanelet2_scenario(options.amount, options.path_ids);
+                case ScenarioType.lab_default
+                    scenario = Scenario();
+                    disp('Scenario is created later after map is retrieved via UnifiedLabApi');
+            end
+
+        end
+
+    end
+
 end

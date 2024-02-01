@@ -8,7 +8,7 @@ function export_video(experiment_result, optional)
     end
 
     options = experiment_result.options;
-    scenario = create_scenario(options);
+    scenario = Scenario.create(options);
     options.options_plot_online.is_video_mode = 1;
 
     if nargin > 1

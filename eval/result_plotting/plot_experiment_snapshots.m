@@ -8,7 +8,7 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
     end
 
     options = experiment_result.options;
-    scenario = create_scenario(options);
+    scenario = Scenario.create(options);
 
     n_vehicles = options.amount;
     obstacles = experiment_result.iteration_data(experiment_result.n_steps).obstacles;

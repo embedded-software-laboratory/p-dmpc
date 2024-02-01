@@ -10,7 +10,7 @@ function experiment_result = main(options)
     end
 
     % create scenario and write it to disk (with default name)
-    scenario = create_scenario(options);
+    scenario = Scenario.create(options);
     save(Config().scenario_file, 'scenario');
 
     % create dry run scenario and write it to disk
