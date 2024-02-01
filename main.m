@@ -11,6 +11,8 @@ function experiment_result = main(options, optional)
         warning("Code is developed in MATLAB R2023a, prepare for backward incompatibilities.")
     end
 
+    options.save_to_file();
+
     % create scenario and write it to disk (with default name)
     scenario = Scenario.create(options);
     save(Config().scenario_file, 'scenario');
@@ -56,7 +58,7 @@ function experiment_result = main(options, optional)
         experiment_result = fetchOutputs(future, UniformOutput = false);
 
     elseif options.computation_mode == ComputationMode.parallel_physically
-        % On first experiment, push files to remote with `push_files_to_nuc()`
+        push_files_to_nuc();
         % On changes to ROS messages or MPA library, remove files with `remove_cache_nuc()`
         deploy_nuc(options = options, vehicle_ids = optional.vehicle_ids);
         fprintf('Running experiment...');
