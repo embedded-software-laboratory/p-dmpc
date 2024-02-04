@@ -34,6 +34,10 @@ classdef IterationData
         amount % number of total vehicles / controlled vehicles
     end
 
+    properties (Dependent)
+        number_of_computation_levels
+    end
+
     methods
 
         function obj = IterationData(options, scenario)
@@ -83,6 +87,10 @@ classdef IterationData
 
             end
 
+        end
+
+        function result = get.number_of_computation_levels(obj)
+            result = size(kahn(obj.directed_coupling_sequential), 1);
         end
 
     end

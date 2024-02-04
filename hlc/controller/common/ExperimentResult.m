@@ -22,6 +22,7 @@ classdef ExperimentResult
         n_steps % total number of steps
         t_total % total runtime
         n_hlc % number of hlcs whose experiment results are contained
+        max_number_of_computation_levels
     end
 
     methods
@@ -123,6 +124,10 @@ classdef ExperimentResult
 
         function value = get.n_hlc(obj)
             value = length(obj.hlc_indices);
+        end
+
+        function value = get.max_number_of_computation_levels(obj)
+            value = max([obj.iteration_data.number_of_computation_levels]);
         end
 
     end
