@@ -14,7 +14,7 @@ function cost = data_cost_experiment(experiment_result)
     for i_step = 1:n_steps
 
         for i_vehicle = 1:n_vehicles
-            trajectory_prediction = experiment_result.control_results_info(i_step).y_predicted(1:2, :, i_vehicle);
+            trajectory_prediction = experiment_result.control_results_info(i_vehicle, i_step).y_predicted(1:2, :);
 
             trajectory_reference = ...
                 experiment_result.iteration_data(i_step).reference_trajectory_points( ...
