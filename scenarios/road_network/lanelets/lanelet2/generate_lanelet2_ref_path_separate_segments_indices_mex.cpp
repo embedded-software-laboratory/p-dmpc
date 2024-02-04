@@ -6,7 +6,7 @@
 #include <lanelet2_io/Io.h>
 #include <lanelet2_routing/RoutingGraph.h>
 #include <lanelet2_traffic_rules/TrafficRulesFactory.h>
-#include <lanelet2_scaled_lab_projector/ScaledLab.h>
+#include <lanelet2_projection/CPM.h>
 
 
 using matlab::mex::ArgumentList;
@@ -24,7 +24,7 @@ public:
         using namespace lanelet;
 
         // Read lanelet2 map
-        LaneletMapPtr map = load(filename, projection::ScaledLabProjector{Origin({0,0})});
+        LaneletMapPtr map = load(filename, projection::CpmProjector{Origin({0,0})});
         traffic_rules::TrafficRulesPtr trafficRules =
             traffic_rules::TrafficRulesFactory::create(Locations::Germany, Participants::Vehicle);
         routing::RoutingGraphUPtr routing_graph = routing::RoutingGraph::build(*map, *trafficRules);

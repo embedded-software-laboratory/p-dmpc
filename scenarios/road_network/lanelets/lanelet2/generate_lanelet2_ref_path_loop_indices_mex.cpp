@@ -6,7 +6,7 @@
 #include <lanelet2_io/Io.h>
 #include <lanelet2_routing/RoutingGraph.h>
 #include <lanelet2_traffic_rules/TrafficRulesFactory.h>
-#include <lanelet2_scaled_lab_projector/ScaledLab.h>
+#include <lanelet2_projection/CPM.h>
 
 
 using matlab::mex::ArgumentList;
@@ -27,7 +27,7 @@ public:
         using namespace lanelet;
 
         // Read lanelet2 map
-        LaneletMapPtr map = load(filename, projection::ScaledLabProjector{Origin({0,0})});
+        LaneletMapPtr map = load(filename, projection::CpmProjector{Origin({0,0})});
         traffic_rules::TrafficRulesPtr trafficRules =
             traffic_rules::TrafficRulesFactory::create(Locations::Germany, Participants::Vehicle);
         routing::RoutingGraphUPtr routing_graph = routing::RoutingGraph::build(*map, *trafficRules);
@@ -63,7 +63,7 @@ public:
         Optional<routing::LaneletPath> path_part2_opt = routing_graph->shortestPath(path_part1.back(), path_part1.front(), 1, false);
         assert(path_part2_opt.has_value());
         routing::LaneletPath path_part2 = path_part2_opt.get();
-        
+
         // Get lanelet IDs (matlab) of whole path
         matlab::data::TypedArray<int> path_ids = factory.createArray<int>({1,path_part1.size()+path_part2.size()-2}); // start and end of parts are the same
         int i = 0;
@@ -83,5 +83,5 @@ private:
     // Maps from the lanelet ids to the matlab ids (indices of rows/columns)
     std::map<lanelet::Id, size_t> id_to_index;
 
-    
+
 };
