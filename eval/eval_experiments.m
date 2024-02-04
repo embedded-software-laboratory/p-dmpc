@@ -18,7 +18,7 @@ function experiment_results = eval_experiments(optional)
     % different numbers of vehicles in a scenario
     n_vehicles_array = 5:5:20;
     % number of different random scenarios per priority assignment and #vehicles
-    seeds = 1;
+    seeds = 1:3;
 
     options = Config();
     % Scenario
@@ -35,16 +35,16 @@ function experiment_results = eval_experiments(optional)
 
     % experiment result in order (n_vehicles x n_approaches x n_scenarios)
     for seed = seeds
-        options = options.randomize_path_ids(seed = seed);
 
         for priority = optional.priority_strategies
             options.priority = priority;
 
-            for computation_levels = max_num_CLs
+            for computation_levels = optional.max_num_CLs
                 options.max_num_CLs = computation_levels;
 
                 for n_vehicles = n_vehicles_array
                     options.amount = n_vehicles;
+                    options.path_ids = options.randomize_path_ids(seed = seed);
 
                     experiment_result = FileNameConstructor.load_latest(options);
 
@@ -62,6 +62,7 @@ function experiment_results = eval_experiments(optional)
     end
 
     experiment_results = reshape( ...
+        experiment_results, ...
         length(n_vehicles_array), ...
         max(length(optional.priority_strategies), length(optional.max_num_CLs)), ...
         length(seeds) ...
