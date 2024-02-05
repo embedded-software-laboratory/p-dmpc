@@ -7,14 +7,24 @@ function eval_prioritization(optional)
     priority_strategies = [
                            PriorityStrategies.constant_priority
                            PriorityStrategies.random_priority
-                           PriorityStrategies.coloring_priority_priority
-                           PriorityStrategies.FCA_priority_priority
+                           PriorityStrategies.coloring_priority
+                           PriorityStrategies.FCA_priority
                            PriorityStrategies.explorative_priority
                            PriorityStrategies.optimal_priority
                            ];
 
-    scenarios = [ScenarioType.commonroad, ScenarioType.circle];
-    optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
+    priority_names = [
+                      "$p_\text{constant}"
+                      "$p_\text{random}"
+                      "$p_\text{color}"
+                      "$p_\text{constraint}"
+                      "$p_\text{explore}"
+                      ];
+
+    % scenarios = [ScenarioType.commonroad, ScenarioType.circle];
+    scenarios = ScenarioType.commonroad;
+    % optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
+    optimizers = OptimizerType.MatlabOptimal;
 
     for scenario = scenarios
 
@@ -27,7 +37,48 @@ function eval_prioritization(optional)
                 priority_strategies = priority_strategies ...
             );
 
+            % Process results
+            cost_increase_percent_average = data_cost_increase_percent(experiment_results);
+
             % Plot cost
+            n_vehicles = [experiment_results(:, 1, 1).n_hlc];
+            fig = figure;
+            bar_handle = bar(n_vehicles, cost_increase_percent_average);
+            % legend
+            lexendtext = priority_names;
+            legend(lexendtext)
+            % axes
+            xlabel("$N_A$")
+            ylabel( ...
+                "$J_{NCS}(p) / J_{NCS}(p_\text{opt}) - 1$ [\%]", ...
+                Interpreter="latex" ...
+            );
+
+            ylim([-5, 105])
+
+            for b = bar_handle
+                xtips = b.XEndPoints;
+                ytips = 50 * ones(size(b.YEndPoints));
+                labels = arrayfun(@(s) sprintf("%5.1f", s), b.YData);
+                text( ...
+                    xtips, ...
+                    ytips, ...
+                    labels, ...
+                    HorizontalAlignment = 'left', ...
+                    VerticalAlignment = 'bottom', ...
+                    Rotation = 55, ...
+                    BackgroundColor = [1 1 1] ...
+                );
+            end
+
+            set_figure_properties(fig, ExportFigConfig.presentation());
+            filename = sprintf('prioritization_cost_%s_%s.pdf', scenario, optimizer);
+            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            export_fig(fig, filepath);
+            filename = sprintf('prioritization_cost_%s_%s.emf', scenario, optimizer);
+            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            export_fig(fig, filepath);
+            close all;
 
             % Plot computation time
         end
