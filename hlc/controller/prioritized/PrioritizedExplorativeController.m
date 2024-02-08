@@ -16,14 +16,12 @@ classdef PrioritizedExplorativeController < PrioritizedController
         belonging_vector_total
 
         should_keep_permutation (1, 1) logical
-        permutations (1, :) cell
     end
 
     methods
 
         function obj = PrioritizedExplorativeController(options, plant, ros2_node)
             obj = obj@PrioritizedController(options, plant, ros2_node);
-            obj.initialize_permutations(options.max_num_CLs);
         end
 
     end
@@ -103,7 +101,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
             % the ith permutation needs i-1 permutation steps
             obj.iter.priority_permutation = i_permutation;
 
-            % replace every ocurrence of the old level index by the level index in the permuted priority list
+            % replace every occurrence of the old level index by the level index in the permuted priority list
             permuted_priority_list = obj.i11changem( ...
                 obj.computation_levels_of_vehicles, ...
                 1:obj.n_computation_levels, ...
@@ -227,67 +225,58 @@ classdef PrioritizedExplorativeController < PrioritizedController
         function result = computation_level_permutations(obj)
             % start: prioritization from previous time step
             % always keep permutation
-            permutation_indices = zeros(obj.n_computation_levels, 1);
-            % get permutations for certain number of computation_levels
-            permutations_n_levels = obj.permutations{obj.n_computation_levels};
+            % iteratively fill matrix of permutations
+            result = zeros(obj.n_computation_levels, obj.n_computation_levels);
 
-            switch obj.n_computation_levels
-                case 1
-                    % only one permutation possible
-                    permutation_indices = 1;
-                    result = permutations_n_levels(permutation_indices, :);
-                case 2
-                    % only 1 combination of permutations possible
-                    permutation_indices = 1:2;
-                    result = permutations_n_levels(permutation_indices, :);
-                otherwise
-                    n_permutations = size(permutations_n_levels, 1);
-                    permutation_rand_stream = RandStream("mt19937ar", Seed = obj.k);
-                    % iteratively fill matrix of permutations
-                    result = zeros(obj.n_computation_levels, obj.n_computation_levels);
+            if obj.should_keep_permutation
+                % use the previous best permutation (1..n_computation_levels)
+                % is ordered from priorities of last time step
+                result(1, :) = 1:obj.n_computation_levels;
+            else
+                % use "opposite" ordering
+                result(1, :) = obj.n_computation_levels:-1:1;
+            end
 
-                    if obj.should_keep_permutation
-                        % use the previous best permutation (1..n_computation_levels)
-                        % is ordered from priorities of last time step
-                        permutation_indices(1) = n_permutations;
-                    else
-                        % use "opposite" ordering
-                        permutation_indices(1) = 1;
-                    end
+            permutation_rand_stream = RandStream("mt19937ar", Seed = obj.k);
 
-                    % build matrix from chosen permutations
-                    result(1, :) = permutations_n_levels(permutation_indices(1), :);
-                    % start random choosing from the second index cause first one is fixed
-                    start_index = 2;
+            % start with second row
+            for nth_permutation = 2:obj.n_computation_levels
+                permutation = zeros(1, obj.n_computation_levels);
+                % each column in possibilities represents possible values
+                % for each cell in the current row
+                possibilities = true(obj.n_computation_levels);
+                % remove result entries from possibilities
+                for i_col = 1:size(result, 2)
+                    used_permutation = nonzeros(result(:, i_col));
+                    possibilities(used_permutation, i_col) = false;
+                end
 
-                    % order the permutations randomly
-                    rand_indices = randperm(permutation_rand_stream, n_permutations, n_permutations);
+                n_filled_cells = 0;
 
-                    % this keeps track of the index of the next permutation to check
-                    next_permutation = 1;
+                while n_filled_cells < obj.n_computation_levels
+                    % find cell with least possibilities
+                    [n_possibilities, i_cell] = min(sum(possibilities, 1));
+                    assert(n_possibilities > 0, "No possibilities left for permutation");
+                    % choose possibility at random
+                    possibilities_for_cell = find(possibilities(:, i_cell));
 
-                    % start at second (start_index) permutation, since first one is fixed (eventually)
-                    for nth_permutation = start_index:obj.n_computation_levels
+                    used_permutation = possibilities_for_cell(randi( ...
+                        permutation_rand_stream, ...
+                        n_possibilities ...
+                    ));
+                    permutation(i_cell) = used_permutation;
 
-                        while next_permutation <= length(rand_indices)
-                            % get next permutation to check & shift index
-                            permutation = permutations_n_levels(rand_indices(next_permutation), :);
-                            next_permutation = next_permutation + 1;
+                    % remove possibility from other cells
+                    possibilities(used_permutation, :) = false;
+                    % set possibilities for current cell to true
+                    % in order to avoid choosing it again
+                    possibilities(:, i_cell) = true;
 
-                            % check whether the permutation is valid
-                            % according to the already chosen permutations
-                            % no no duplicate entries in any column/row
-                            if obj.check_validity(result, permutation)
-                                % save indices of used permutation to update rank afterwards
-                                permutation_indices(nth_permutation) = rand_indices(next_permutation - 1);
-                                break;
-                            end
+                    n_filled_cells = n_filled_cells + 1;
+                end
 
-                        end
-
-                        % build matrix from chosen permutations
-                        result(nth_permutation, :) = permutations_n_levels(permutation_indices(nth_permutation), :);
-                    end
+                % build matrix from chosen permutations
+                result(nth_permutation, :) = permutation;
 
             end
 
@@ -304,39 +293,9 @@ classdef PrioritizedExplorativeController < PrioritizedController
             obj.iter.directed_coupling_sequential(entries) = obj.iter_base.directed_coupling_sequential(swapped_entries);
         end
 
-        function initialize_permutations(obj, max_num_CLs)
-            obj.permutations = cell(max_num_CLs, 1);
-
-            for i_max_CL = 1:max_num_CLs
-                obj.permutations{i_max_CL} = perms(1:i_max_CL);
-            end
-
-        end
-
-        function is_valid = check_validity(~, permutations, permutation)
-            is_valid = true;
-            % remove empty (zero) rows (currently not filled)
-            permutations(~any(permutations, 2), :) = [];
-            % add permutation that needs to be checked
-            permutations(end + 1, :) = permutation;
-
-            [n_rows, n_cols] = size(permutations);
-
-            for i_col = 1:n_cols
-                % check whether column has a unique value in every row
-                % rows dont need to be checked by definition of a permutation
-                if length(unique(permutations(:, i_col))) ~= n_rows
-                    is_valid = false;
-                    break;
-                end
-
-            end
-
-        end
-
         function mapout = i11changem(~, mapout, newcode, oldcode)
             % own changem function to circumvent necessarity of toolbox
-            assert(numel(newcode) == numel(oldcode), 'newcode and oldecode must have the same number of elements');
+            assert(numel(newcode) == numel(oldcode), 'newcode and oldcode must have the same number of elements');
             [toreplace, bywhat] = ismember(mapout, oldcode);
             mapout(toreplace) = newcode(bywhat(toreplace));
         end
