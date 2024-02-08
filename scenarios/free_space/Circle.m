@@ -28,9 +28,11 @@ classdef Circle < Scenario
                 y_end = obj.vehicles(iVeh).y_start + s * 2 * radius;
 
                 obj.vehicles(iVeh).reference_path = [obj.vehicles(iVeh).x_start obj.vehicles(iVeh).y_start
-                                      x_end y_end];
+                                                     x_end y_end];
 
-                obj.vehicles = [obj.vehicles, veh];
+                % set a maximum speed level in mpa as reference speed
+                straight_speeds = MotionPrimitiveAutomaton(options).get_straight_speeds_of_mpa();
+                obj.vehicles(iVeh).reference_speed = max(straight_speeds);
             end
 
         end

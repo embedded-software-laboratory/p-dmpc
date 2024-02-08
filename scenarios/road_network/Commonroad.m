@@ -15,6 +15,8 @@ classdef Commonroad < Scenario
 
             nVeh = options.amount;
 
+            rand_stream = RandStream("mt19937ar", "Seed", sum(options.path_ids));
+
             for iveh = 1:nVeh
                 lanelet_indices_loop = get_reference_lanelets_loop(options.path_ids(iveh));
                 reference_path_struct = generate_reference_path_loop(lanelet_indices_loop, obj.lanelets); % function to generate refpath based on CPM Lab road geometry
@@ -40,6 +42,9 @@ classdef Commonroad < Scenario
                 yaw = calculate_yaw(obj.vehicles(iveh).reference_path);
                 obj.vehicles(iveh).yaw_start = yaw(1);
 
+                % set a random speed level in mpa as reference speed
+                straight_speeds = MotionPrimitiveAutomaton(options).get_straight_speeds_of_mpa();
+                obj.vehicles(iveh).reference_speed = straight_speeds(randi(rand_stream, numel(straight_speeds)));
             end
 
         end

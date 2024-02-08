@@ -29,6 +29,8 @@ function scenario = lanelet2_scenario(options, filepath_lanelet2_map)
 
     nVeh = options.amount;
 
+    rand_stream = RandStream("mt19937ar", "Seed", sum(options.path_ids));
+
     for iveh = 1:nVeh
         % Generate a ref path using the Lanelet2 Interface and generate_reference_path_loop
         reference_path_loops = {Lanelet2_Interface.generate_reference_path_indices(scenario.road_data_file_path)};
@@ -61,6 +63,10 @@ function scenario = lanelet2_scenario(options, filepath_lanelet2_map)
 
         yaw = calculate_yaw(scenario.vehicles(iveh).reference_path);
         scenario.vehicles(iveh).yaw_start = yaw(1);
+
+        % set a random speed level in mpa as reference speed
+        straight_speeds = MotionPrimitiveAutomaton(options).get_straight_speeds_of_mpa();
+        scenario.vehicles(iveh).reference_speed = straight_speeds(randi(rand_stream, numel(straight_speeds)));
     end
 
 end

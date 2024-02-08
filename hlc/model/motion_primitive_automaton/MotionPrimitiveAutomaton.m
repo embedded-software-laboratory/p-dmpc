@@ -217,6 +217,12 @@ classdef MotionPrimitiveAutomaton
 
         end
 
+        function straight_speeds = get_straight_speeds_of_mpa(obj)
+            % return non-negative speeds of trims with steering=0
+            non_negative_speed_trims = find([obj.trims(:).speed] > 0 & [obj.trims(:).steering] == 0);
+            straight_speeds = [obj.trims(non_negative_speed_trims).speed];
+        end
+
         function trim_index = trim_from_values(obj, speed, steering)
             % get closest trim based on speed and steering values
             %
