@@ -2,8 +2,8 @@ classdef Commonroad < Scenario
 
     methods
 
-        function obj = Commonroad(amount, path_ids)
-            obj = obj@Scenario();
+        function obj = Commonroad(options)
+            obj = obj@Scenario(options);
             % get road data
             road_data = RoadDataCommonRoad().get_road_data();
             obj.lanelets = road_data.lanelets;
@@ -13,36 +13,33 @@ classdef Commonroad < Scenario
             obj.lanelet_relationships = road_data.lanelet_relationships;
             obj.adjacency_lanelets = road_data.adjacency_lanelets;
 
-            nVeh = amount;
+            nVeh = options.amount;
 
             for iveh = 1:nVeh
-
-                veh = Vehicle();
-
-                lanelet_indices_loop = get_reference_lanelets_loop(path_ids(iveh));
+                lanelet_indices_loop = get_reference_lanelets_loop(options.path_ids(iveh));
                 reference_path_struct = generate_reference_path_loop(lanelet_indices_loop, obj.lanelets); % function to generate refpath based on CPM Lab road geometry
-                veh.lanelets_index = reference_path_struct.lanelets_index;
+                obj.vehicles(iveh).lanelets_index = reference_path_struct.lanelets_index;
                 lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
 
                 % check if the reference path is a loop
                 lanelet_relationship = obj.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)};
 
                 if ~isempty(lanelet_relationship) && obj.lanelet_relationships{min(lanelet_ij), max(lanelet_ij)}.type == LaneletRelationshipType.longitudinal
-                    veh.is_loop = true;
+                    obj.vehicles(iveh).is_loop = true;
                 else
-                    veh.is_loop = false;
+                    obj.vehicles(iveh).is_loop = false;
                 end
 
-                veh.x_start = reference_path_struct.path(1, 1);
-                veh.y_start = reference_path_struct.path(1, 2);
+                obj.vehicles(iveh).x_start = reference_path_struct.path(1, 1);
+                obj.vehicles(iveh).y_start = reference_path_struct.path(1, 2);
 
-                veh.reference_path = reference_path_struct.path;
+                obj.vehicles(iveh).reference_path = reference_path_struct.path;
 
-                veh.points_index = reference_path_struct.points_index;
+                obj.vehicles(iveh).points_index = reference_path_struct.points_index;
 
-                yaw = calculate_yaw(veh.reference_path);
-                veh.yaw_start = yaw(1);
-                obj.vehicles = [obj.vehicles, veh];
+                yaw = calculate_yaw(obj.vehicles(iveh).reference_path);
+                obj.vehicles(iveh).yaw_start = yaw(1);
+
             end
 
         end

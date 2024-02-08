@@ -18,7 +18,12 @@ classdef Scenario
 
     methods
 
-        function obj = Scenario()
+        function obj = Scenario(options)
+            % create vehicle objects
+            for iVeh = 2:options.amount
+                obj.vehicles = [obj.vehicles, Vehicle()];
+            end
+
         end
 
         function plot(obj, options, optional)
@@ -70,13 +75,13 @@ classdef Scenario
 
             switch options.scenario_type
                 case ScenarioType.circle
-                    scenario = Circle(options.amount);
+                    scenario = Circle(options);
                 case ScenarioType.commonroad
-                    scenario = Commonroad(options.amount, options.path_ids);
+                    scenario = Commonroad(options);
                 case ScenarioType.lanelet2
-                    scenario = lanelet2_scenario(options.amount, options.path_ids);
+                    scenario = lanelet2_scenario(options);
                 case ScenarioType.lab_default
-                    scenario = Scenario();
+                    scenario = Scenario(options);
                     disp('Scenario is created later after map is retrieved via UnifiedLabApi');
             end
 
