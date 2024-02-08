@@ -10,15 +10,15 @@ function eval_prioritization(optional)
                            PriorityStrategies.coloring_priority
                            PriorityStrategies.FCA_priority
                            PriorityStrategies.explorative_priority
-                           PriorityStrategies.optimal_priority
+    %    PriorityStrategies.optimal_priority
                            ];
 
     priority_names = [
-                      "$p_\text{constant}"
-                      "$p_\text{random}"
-                      "$p_\text{color}"
-                      "$p_\text{constraint}"
-                      "$p_\text{explore}"
+                      "$p_{\text{constant}}$"
+                      "$p_{\text{random}}$"
+                      "$p_{\text{color}}$"
+                      "$p_{\text{constraint}}$"
+                      "$p_{\text{explore}}$"
                       ];
 
     % scenarios = [ScenarioType.commonroad, ScenarioType.circle];
@@ -37,21 +37,22 @@ function eval_prioritization(optional)
                 priority_strategies = priority_strategies ...
             );
 
+            save('experiment_results_prioritization.mat', 'experiment_results')
             % Process results
-            cost_increase_percent_average = data_cost_increase_percent(experiment_results);
+            cost_percent_average = data_cost_percent(experiment_results);
 
             % Plot cost
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar_handle = bar(n_vehicles, cost_increase_percent_average);
+            bar_handle = bar(n_vehicles, cost_percent_average);
             % legend
             lexendtext = priority_names;
             legend(lexendtext)
             % axes
             xlabel("$N_A$")
             ylabel( ...
-                "$J_{NCS}(p) / J_{NCS}(p_\text{opt}) - 1$ [\%]", ...
-                Interpreter="latex" ...
+                "$J_{NCS}(p) / J_{NCS}(p_\text{opt})$ [\%]", ...
+                Interpreter = "latex" ...
             );
 
             ylim([-5, 105])

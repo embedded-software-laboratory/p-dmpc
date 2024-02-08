@@ -25,12 +25,12 @@ function eval_grouping(optional)
 
             % Plot cost
             % Process results
-            cost_increase_percent_average = data_cost_increase_percent(experiment_results);
+            cost_percent_average = data_cost_percent(experiment_results);
 
             % plot
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar_handle = bar(n_vehicles, cost_increase_percent_average);
+            bar_handle = bar(n_vehicles, cost_percent_average);
             % legend
             legendtext = string(max_num_CLs(1:end - 1));
             legendtext = arrayfun( ...
@@ -41,8 +41,8 @@ function eval_grouping(optional)
             % axes
             xlabel("$N_A$")
             ylabel( ...
-                "$J_{NCS}(N_{CL}) / J_{NCS}(N_{CL,\infty}) - 1$ [\%]", ...
-                Interpreter="latex" ...
+                "$J_{NCS}(N_{CL}) / J_{NCS}(N_{CL,\infty})$ [\%]", ...
+                Interpreter = "latex" ...
             );
 
             % ylim([-5, 105])
@@ -50,6 +50,7 @@ function eval_grouping(optional)
             ymax = ylim;
             ymax = ymax(2);
             ylim([1e-1, ymax])
+
             for i_num_vehicles = 1:length(n_vehicles)
                 num_cls_infty = max( ...
                     [experiment_results(i_num_vehicles, end, :).max_number_of_computation_levels] ...
