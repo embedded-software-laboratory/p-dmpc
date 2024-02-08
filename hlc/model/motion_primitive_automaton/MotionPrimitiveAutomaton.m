@@ -27,11 +27,11 @@ classdef MotionPrimitiveAutomaton
 
     methods
 
-        function obj = MotionPrimitiveAutomaton(model, options)
+        function obj = MotionPrimitiveAutomaton(options, model)
 
             arguments
-                model (1, 1) VehicleModel
                 options (1, 1) Config
+                model (1, 1) VehicleModel = BicycleModel(Vehicle().Lf, Vehicle().Lr)
             end
 
             % Constructor

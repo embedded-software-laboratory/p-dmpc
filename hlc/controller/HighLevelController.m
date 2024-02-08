@@ -104,16 +104,8 @@ classdef (Abstract) HighLevelController < handle
         function init(obj)
             % initialize high level controller itself
 
-            % create vehicle model from information of controlled vehicle
-            % if more than one vehicle is controlled assume that they all have
-            % the same dimensions and take the dimensions of the first one
-            bicycle_model = BicycleModel( ...
-                obj.scenario_adapter.scenario.vehicles(obj.plant.vehicle_indices_controlled(1)).Lf, ...
-                obj.scenario_adapter.scenario.vehicles(obj.plant.vehicle_indices_controlled(1)).Lr ...
-            );
-
             % construct mpa
-            obj.mpa = MotionPrimitiveAutomaton(bicycle_model, obj.options);
+            obj.mpa = MotionPrimitiveAutomaton(obj.options);
 
             % initialize ExperimentResult object
             obj.experiment_result = ExperimentResult( ...
