@@ -20,7 +20,7 @@ classdef Scenario
 
         function obj = Scenario(options)
             % create vehicle objects
-            for iVeh = 2:options.amount
+            for iVeh = 1:options.amount
                 obj.vehicles = [obj.vehicles, Vehicle()];
             end
 
