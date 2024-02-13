@@ -495,6 +495,18 @@ classdef (Abstract) HighLevelController < handle
                 return
             end
 
+            % Display info if vehicle is triggerer
+            if obj.info.needs_fallback
+                % print information about occurred fallback
+                str_trigger_vehicle = sprintf(' %2d', obj.plant.vehicle_indices_controlled);
+                str_fallback_vehicles = sprintf(' %2d', obj.info.vehicles_fallback);
+                fprintf('%s triggered by%s affects%s\n', ...
+                    obj.options.fallback_type, ...
+                    str_trigger_vehicle, ...
+                    str_fallback_vehicles ...
+                )
+            end
+
             % plan for fallback case
             obj.plan_for_fallback();
 
