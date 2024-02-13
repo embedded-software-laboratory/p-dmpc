@@ -6,18 +6,16 @@ classdef PrioritizedExplorativeController < PrioritizedController
         iter_array_tmp (1, :) cell
         info_array_tmp (1, :) cell
         solution_cost (:, 1) double
-        priority_list_base
+
+        computation_levels_of_vehicles
         base_computation_level
         n_computation_levels
-        last_n_computation_levels
-        last_chosen_solution
+
         current_permutations
-        permutation_indices
-        last_permutation_indices
+
         belonging_vector_total
-        last_belonging_vector
-        keep_utility (1, 1) double = 10 % first time step cant be kept
-        keep_max (1, 1) double = 10
+
+        should_keep_permutation (1, 1) logical
         permutations (1, :) cell
     end
 
@@ -50,6 +48,8 @@ classdef PrioritizedExplorativeController < PrioritizedController
             obj.receive_solution_cost();
             obj.choose_solution();
 
+            obj.remember_priorities();
+
         end
 
         function create_coupling_graph(obj)
@@ -60,10 +60,10 @@ classdef PrioritizedExplorativeController < PrioritizedController
             obj.belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling_sequential), 'Type', 'weak');
 
             % store mapping: agents<->topological level (for permuting priorities)
-            obj.priority_list_base = Prioritizer.computation_levels_of_vehicles(obj.iter.directed_coupling_sequential);
+            obj.computation_levels_of_vehicles = Prioritizer.computation_levels_of_vehicles(obj.iter.directed_coupling_sequential);
 
             % topological level of controlled agent (computation level of agent in initial priority permutation)
-            obj.base_computation_level = obj.priority_list_base(obj.plant.vehicle_indices_controlled);
+            obj.base_computation_level = obj.computation_levels_of_vehicles(obj.plant.vehicle_indices_controlled);
         end
 
     end
@@ -88,8 +88,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
             obj.iter_array_tmp = {};
             obj.info_array_tmp = {};
 
-            obj.last_n_computation_levels = obj.n_computation_levels;
-            obj.n_computation_levels = max(obj.priority_list_base);
+            obj.n_computation_levels = max(obj.computation_levels_of_vehicles);
             obj.current_permutations = obj.computation_level_permutations();
         end
 
@@ -106,7 +105,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
 
             % replace every ocurrence of the old level index by the level index in the permuted priority list
             permuted_priority_list = obj.i11changem( ...
-                obj.priority_list_base, ...
+                obj.computation_levels_of_vehicles, ...
                 1:obj.n_computation_levels, ...
                 obj.current_permutations(i_permutation, :) ...
             );
@@ -208,18 +207,17 @@ classdef PrioritizedExplorativeController < PrioritizedController
         function choose_solution(obj)
             [min_solution_cost, chosen_solution] = min(obj.solution_cost);
             chosen_solution = chosen_solution(1); % guarantee that it is a single integer
-            obj.last_chosen_solution = chosen_solution;
 
-            % prevent keeping permutation when led to a fallback solution
-            if min_solution_cost >= 1e9
-                obj.keep_utility = obj.keep_max;
-            end
+            % Keep permutation if it was feasible
+            obj.should_keep_permutation = min_solution_cost < 1e8;
 
             obj.info = obj.info_array_tmp{chosen_solution};
             obj.iter = obj.iter_array_tmp{chosen_solution};
+        end
 
-            % copy last belonging for keeping permutation
-            obj.last_belonging_vector = obj.belonging_vector_total;
+        function remember_priorities(obj)
+            priorities = Prioritizer.priorities_from_directed_coupling(obj.iter.directed_coupling);
+            obj.prioritizer.current_priorities = priorities;
         end
 
     end
@@ -227,63 +225,38 @@ classdef PrioritizedExplorativeController < PrioritizedController
     methods (Access = private)
 
         function result = computation_level_permutations(obj)
-
-            obj.last_permutation_indices = obj.permutation_indices;
-            obj.permutation_indices = zeros(obj.n_computation_levels, 1);
+            % start: prioritization from previous time step
+            % always keep permutation
+            permutation_indices = zeros(obj.n_computation_levels, 1);
             % get permutations for certain number of computation_levels
             permutations_n_levels = obj.permutations{obj.n_computation_levels};
 
             switch obj.n_computation_levels
                 case 1
                     % only one permutation possible
-                    obj.permutation_indices = 1;
-                    result = permutations_n_levels(obj.permutation_indices, :);
-                    obj.keep_utility = 1;
+                    permutation_indices = 1;
+                    result = permutations_n_levels(permutation_indices, :);
                 case 2
-                    % onyl 1 combination of permutations possible
-                    obj.permutation_indices = 1:2;
-                    result = permutations_n_levels(obj.permutation_indices, :);
-                    obj.keep_utility = 1;
+                    % only 1 combination of permutations possible
+                    permutation_indices = 1:2;
+                    result = permutations_n_levels(permutation_indices, :);
                 otherwise
                     n_permutations = size(permutations_n_levels, 1);
-                    permutation_rand_stream = RandStream("mt19937ar", "Seed", obj.k);
+                    permutation_rand_stream = RandStream("mt19937ar", Seed = obj.k);
                     % iteratively fill matrix of permutations
                     result = zeros(obj.n_computation_levels, obj.n_computation_levels);
 
-                    % use a decreasing probability to decide whether to use the last permutation
-                    should_keep_permutation = rand(permutation_rand_stream) > (obj.keep_utility / obj.keep_max);
-
-                    if should_keep_permutation
-                        % only if the current subgraph is a subgraph of the previous one
-                        % (for consistent last_chosen_solution)
-                        sub_graph = obj.belonging_vector_total(obj.plant.vehicle_indices_controlled(1));
-                        sub_graph_old = obj.last_belonging_vector(obj.plant.vehicle_indices_controlled(1));
-                        sub_graph_vehicles = find(obj.belonging_vector_total == sub_graph);
-                        sub_graph_vehicles_old = find(obj.last_belonging_vector == sub_graph_old);
-                        is_subset_subgraph = all(ismember(sub_graph_vehicles, sub_graph_vehicles_old));
-
-                        % (only if last iteration had same number of levels)
-                        is_same_number_of_computation_levels = obj.last_n_computation_levels == obj.n_computation_levels;
-
-                        % the permutationn can only be kept when
-                        % 1) the number of computation levels does not have changed and
-                        % 2) current the subgraph is a subgraph of the last subgraph
-                        can_keep_permutation = is_same_number_of_computation_levels && is_subset_subgraph;
-                    end
-
-                    if should_keep_permutation && can_keep_permutation
-                        % fix permutation that performed best in the latest in latest iteration
-                        obj.permutation_indices(1) = obj.last_permutation_indices(obj.last_chosen_solution);
-                        obj.keep_utility = obj.keep_utility + 1;
+                    if obj.should_keep_permutation
+                        % use the previous best permutation (1..n_computation_levels)
+                        % is ordered from priorities of last time step
+                        permutation_indices(1) = n_permutations;
                     else
-                        % that is kind of hacky but it overcomes the undesired frequent changing of priorities
-                        % use as baseline the "base" permutation (1..n_computation_levels)
-                        obj.permutation_indices(1) = factorial(obj.n_computation_levels);
-                        obj.keep_utility = 1;
+                        % use "opposite" ordering
+                        permutation_indices(1) = 1;
                     end
 
                     % build matrix from chosen permutations
-                    result(1, :) = permutations_n_levels(obj.permutation_indices(1), :);
+                    result(1, :) = permutations_n_levels(permutation_indices(1), :);
                     % start random choosing from the second index cause first one is fixed
                     start_index = 2;
 
@@ -306,14 +279,14 @@ classdef PrioritizedExplorativeController < PrioritizedController
                             % no no duplicate entries in any column/row
                             if obj.check_validity(result, permutation)
                                 % save indices of used permutation to update rank afterwards
-                                obj.permutation_indices(nth_permutation) = rand_indices(next_permutation - 1);
+                                permutation_indices(nth_permutation) = rand_indices(next_permutation - 1);
                                 break;
                             end
 
                         end
 
                         % build matrix from chosen permutations
-                        result(nth_permutation, :) = permutations_n_levels(obj.permutation_indices(nth_permutation), :);
+                        result(nth_permutation, :) = permutations_n_levels(permutation_indices(nth_permutation), :);
                     end
 
             end
