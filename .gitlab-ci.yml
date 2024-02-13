@@ -16,6 +16,7 @@ stages:
       description: "Folder to compute code coverage for."
   stage: Test
   script:
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
     - matlab -batch
       "openProject('graph_based_planning.prj');
       [results, coverage] = execute_tests($TEST_FOLDER, $COVERAGE_FOLDER);
@@ -38,6 +39,7 @@ build:
   extends: .matlab_defaults
   stage: Build
   script:
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
     - matlab -batch
       "mex -setup C;
       mex -setup C++;
