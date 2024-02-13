@@ -2,7 +2,7 @@ classdef Scenario
     % SCENARIO  Scenario class
 
     properties (Access = public)
-        vehicles = []; % array of Vehicle objects
+        vehicles (1, :) Vehicle; % array of Vehicle objects
         obstacles = {}; % (n_obstacle, 1) static obstacles = {[x;y];...}
         dynamic_obstacle_area = {}; % (n_obstacle, Hp) dynamic obstacles = {[x;y],...}
 
@@ -19,11 +19,7 @@ classdef Scenario
     methods
 
         function obj = Scenario(options)
-            % create vehicle objects
-            for iVeh = 1:options.amount
-                obj.vehicles = [obj.vehicles, Vehicle()];
-            end
-
+            obj.vehicles(1, options.amount) = Vehicle();
         end
 
         function plot(obj, options, optional)
