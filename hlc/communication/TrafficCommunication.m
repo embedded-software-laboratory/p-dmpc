@@ -43,8 +43,7 @@ classdef TrafficCommunication < InterHlcCommunication
                 predicted_lanelets, ...
                 reference_trajectory_points, ...
                 occupied_areas, ...
-                reachable_sets, ...
-                is_fallback ...
+                reachable_sets ...
             )
 
             arguments
@@ -57,7 +56,6 @@ classdef TrafficCommunication < InterHlcCommunication
                 reference_trajectory_points (:, 2) double
                 occupied_areas (1, 1) struct
                 reachable_sets (1, :) cell
-                is_fallback (1, 1) logical = false
             end
 
             % vehicle send message to its topic
@@ -76,9 +74,6 @@ classdef TrafficCommunication < InterHlcCommunication
                 obj.message_to_be_sent.reference_trajectory_points(i).y = reference_trajectory_points(i, 2);
                 obj.message_to_be_sent.reference_trajectory_points(i).z = 0;
             end
-
-            % whether vehicle should take fallback
-            obj.message_to_be_sent.is_fallback = is_fallback;
 
             % occupied areas of current time step.
             % normal offset at index 1, without offset at index 2
