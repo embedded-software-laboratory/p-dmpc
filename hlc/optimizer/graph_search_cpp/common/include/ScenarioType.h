@@ -5,6 +5,7 @@ namespace GraphBasedPlanning {
 	enum class SCENARIO_TYPE {
 		Error,
 		CommonRoad,
+		Lanelet2,
 		Circle,
 	};
 

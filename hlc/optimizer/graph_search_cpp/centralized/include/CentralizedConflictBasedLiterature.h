@@ -125,7 +125,7 @@ namespace GraphBasedPlanning {
 				conflict_based_node = conflict_based_node->_parent;
 			}
 			// lanelet interaction:
-			if constexpr (scenario_type == SCENARIO_TYPE::CommonRoad) {
+			if constexpr (scenario_type == SCENARIO_TYPE::CommonRoad || scenario_type == SCENARIO_TYPE::Lanelet2) {
 				return this->lanelet_interaction_valid(vehicles_obstacle, i);
 			} else {
 				return true;

@@ -312,6 +312,7 @@ class MexFunction : public matlab::mex::Function /*, private GraphBasedPlanning:
 		switch (_config->scenario_type()) {
 			case SCENARIO_TYPE::Circle: return run_centralized<SCENARIO_TYPE::Circle>(iter, Function);
 			case SCENARIO_TYPE::CommonRoad: return run_centralized<SCENARIO_TYPE::CommonRoad>(iter, Function);
+			case SCENARIO_TYPE::Lanelet2: return run_centralized<SCENARIO_TYPE::Lanelet2>(iter, Function);
 			default: throw MatlabException("Scenario type '", _config->scenario_type(), "' not implemented/available!");
 		}
 	}

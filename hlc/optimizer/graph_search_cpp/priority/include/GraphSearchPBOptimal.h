@@ -48,7 +48,7 @@ namespace GraphBasedPlanning {
 						vehicles_obstacle = this->_mpa->template calc_vehicles_obstacles_large_offset<1>(current_node);
 					}
 
-					if constexpr (scenario_type == SCENARIO_TYPE::CommonRoad) {
+					if constexpr (scenario_type == SCENARIO_TYPE::CommonRoad || scenario_type == SCENARIO_TYPE::Lanelet2) {
 						if (!this->lanelet_interaction_valid(vehicles_obstacle[0], 0)) continue;
 					}
 
