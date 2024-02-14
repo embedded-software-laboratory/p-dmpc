@@ -1,4 +1,8 @@
-set(Boost_Version 1.82.0)
+if (APPLE)
+        set(Boost_Version 1.84.0)
+else ()
+        set(Boost_Version 1.82.0)
+endif ()
 
 CPMAddPackage(
         NAME boost_geometry_lib
