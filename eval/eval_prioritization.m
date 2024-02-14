@@ -10,15 +10,15 @@ function eval_prioritization(optional)
                            PriorityStrategies.coloring_priority
                            PriorityStrategies.FCA_priority
                            PriorityStrategies.explorative_priority
-    %    PriorityStrategies.optimal_priority
+                           PriorityStrategies.optimal_priority
                            ];
 
     priority_names = [
-                      "$p_{\text{constant}}$"
-                      "$p_{\text{random}}$"
-                      "$p_{\text{color}}$"
-                      "$p_{\text{constraint}}$"
-                      "$p_{\text{explore}}$"
+                      "$p_{\mathrm{constant}}$"
+                      "$p_{\mathrm{random}}$"
+                      "$p_{\mathrm{color}}$"
+                      "$p_{\mathrm{constraint}}$"
+                      "$p_{\mathrm{explore}}$"
                       ];
 
     % scenarios = [ScenarioType.commonroad, ScenarioType.circle];
@@ -47,19 +47,17 @@ function eval_prioritization(optional)
             bar_handle = bar(n_vehicles, cost_percent_average);
             % legend
             lexendtext = priority_names;
-            legend(lexendtext)
+            legend(lexendtext, Location = 'southeast', Interpreter = 'latex');
             % axes
             xlabel("$N_A$")
             ylabel( ...
-                "$J_{NCS}(p) / J_{NCS}(p_\text{opt})$ [\%]", ...
+                "$J_\mathrm{NCS}(p) / J_\mathrm{NCS}(p_\mathrm{opt})$ [\%]", ...
                 Interpreter = "latex" ...
             );
 
-            ylim([-5, 105])
-
             for b = bar_handle
                 xtips = b.XEndPoints;
-                ytips = 50 * ones(size(b.YEndPoints));
+                ytips = 60 * ones(size(b.YEndPoints));
                 labels = arrayfun(@(s) sprintf("%5.1f", s), b.YData);
                 text( ...
                     xtips, ...
