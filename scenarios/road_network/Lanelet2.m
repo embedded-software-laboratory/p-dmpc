@@ -1,25 +1,54 @@
-classdef Commonroad < Scenario
+classdef Lanelet2 < Scenario
 
     methods
 
-        function obj = Commonroad(options)
+        function obj = Lanelet2(options, filepath_lanelet2_map)
+
+            arguments
+                options (1, 1) Config
+                filepath_lanelet2_map (1, :) char = [];
+            end
+
             obj = obj@Scenario(options);
-            % get road data
-            road_data = RoadDataCommonRoad().get_road_data();
+
+            if isempty(filepath_lanelet2_map)
+                % Get road data from default location
+                road_data = RoadDataLanelet2(false).get_road_data();
+            else
+                % ULA is required for that.
+                assert(isa(plant, "UnifiedLabApi"));
+
+                % Store string in temporary file
+                tmp_file_name = 'received_lanelet2_map_via_unifiedLabAPI.osm';
+                writelines(filepath_lanelet2_map, [tempdir, filesep, tmp_file_name]);
+
+                % Retrieve road data
+                road_data = RoadDataLanelet2(false).get_road_data(tmp_file_name, tempdir);
+            end
+
             obj.lanelets = road_data.lanelets;
             obj.intersection_lanelets = road_data.intersection_lanelets;
             obj.lanelet_boundary = road_data.lanelet_boundary;
             obj.road_raw_data = road_data.road_raw_data;
             obj.lanelet_relationships = road_data.lanelet_relationships;
             obj.adjacency_lanelets = road_data.adjacency_lanelets;
+            obj.road_data_file_path = [road_data.road_folder_path, filesep, road_data.road_name];
 
             nVeh = options.amount;
 
             rand_stream = RandStream("mt19937ar", "Seed", sum(options.path_ids));
 
             for iveh = 1:nVeh
-                lanelet_indices_loop = get_reference_lanelets_loop(options.path_ids(iveh));
-                reference_path_struct = generate_reference_path_loop(lanelet_indices_loop, obj.lanelets); % function to generate refpath based on CPM Lab road geometry
+                % Generate a ref path using the Lanelet2 Interface and generate_reference_path_loop
+                reference_path_loops = {Lanelet2_Interface.generate_reference_path_indices(obj.road_data_file_path)};
+                % take loop from all defined loops
+                reference_path_loop = reference_path_loops{1};
+                % define starting lanelet
+                start_idx = mod(options.path_ids(iveh) * 2 - 1, width(reference_path_loop));
+                % shift reference_path_loop depending on start_idx
+                lanelets_index = [reference_path_loop(start_idx:end), reference_path_loop(1:start_idx - 1)];
+
+                reference_path_struct = generate_reference_path_loop(lanelets_index, obj.lanelets);
                 obj.vehicles(iveh).lanelets_index = reference_path_struct.lanelets_index;
                 lanelet_ij = [reference_path_struct.lanelets_index(1), reference_path_struct.lanelets_index(end)];
 
@@ -52,7 +81,7 @@ classdef Commonroad < Scenario
         function plot(obj, options, optional)
 
             arguments
-                obj (1, 1) Commonroad;
+                obj (1, 1) Lanelet2;
                 options (1, 1) Config;
                 optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
             end

@@ -1,7 +1,7 @@
 classdef systemtests < matlab.unittest.TestCase
 
     properties (TestParameter)
-        scenario = {'circle', 'commonroad'};
+        scenario = {'circle', 'commonroad', 'lanelet2'};
         mpa = {'single_speed', 'triple_speed', 'realistic'};
         optimizer_centralized = {'MatlabOptimal', 'CppOptimal'}; % 'CppSampled' crashes matlab in tests
         optimizer_prioritized = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};

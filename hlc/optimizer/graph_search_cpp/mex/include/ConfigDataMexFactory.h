@@ -30,6 +30,8 @@ namespace GraphBasedPlanning {
 		SCENARIO_TYPE scenario_type = SCENARIO_TYPE::Error;
 		if (scenario_type_string == "commonroad") {
 			scenario_type = SCENARIO_TYPE::CommonRoad;
+		} else if (scenario_type_string == "lanelet2") {
+			scenario_type = SCENARIO_TYPE::Lanelet2;
 		} else if (scenario_type_string == "circle") {
 			scenario_type = SCENARIO_TYPE::Circle;
 		} else {

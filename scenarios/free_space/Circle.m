@@ -4,34 +4,35 @@ classdef Circle < Scenario
 
     methods
 
-        function obj = Circle(amount)
-            obj = obj@Scenario();
+        function obj = Circle(options)
+            obj = obj@Scenario(options);
 
             radius = 2;
-            nVeh = amount;
+            nVeh = options.amount;
             yaws = pi * 2 / nVeh * (0:nVeh - 1);
 
             for iVeh = 1:nVeh
                 yaw = yaws(iVeh);
                 s = sin(yaw);
                 c = cos(yaw);
-                veh = Vehicle();
 
-                veh.x_start = -c * radius;
-                veh.y_start = -s * radius;
-                veh.yaw_start = yaw;
+                obj.vehicles(iVeh).x_start = -c * radius;
+                obj.vehicles(iVeh).y_start = -s * radius;
+                obj.vehicles(iVeh).yaw_start = yaw;
                 % Lab: translate by center
                 center_x = 2.25;
                 center_y = 2;
-                veh.x_start = veh.x_start + center_x;
-                veh.y_start = veh.y_start + center_y;
-                x_end = veh.x_start + c * 2 * radius;
-                y_end = veh.y_start + s * 2 * radius;
+                obj.vehicles(iVeh).x_start = obj.vehicles(iVeh).x_start + center_x;
+                obj.vehicles(iVeh).y_start = obj.vehicles(iVeh).y_start + center_y;
+                x_end = obj.vehicles(iVeh).x_start + c * 2 * radius;
+                y_end = obj.vehicles(iVeh).y_start + s * 2 * radius;
 
-                veh.reference_path = [veh.x_start veh.y_start
-                                      x_end y_end];
+                obj.vehicles(iVeh).reference_path = [obj.vehicles(iVeh).x_start obj.vehicles(iVeh).y_start
+                                                     x_end y_end];
 
-                obj.vehicles = [obj.vehicles, veh];
+                % set a maximum speed level in mpa as reference speed
+                straight_speeds = MotionPrimitiveAutomaton(options).get_straight_speeds_of_mpa();
+                obj.vehicles(iVeh).reference_speed = max(straight_speeds);
             end
 
         end

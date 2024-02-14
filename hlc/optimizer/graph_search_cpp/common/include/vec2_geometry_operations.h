@@ -27,7 +27,7 @@ namespace GraphBasedPlanning {
 			}
 		}
 
-		if constexpr (scenario_type == SCENARIO_TYPE::CommonRoad) {  // roundtrip
+		if constexpr (scenario_type == SCENARIO_TYPE::CommonRoad || scenario_type == SCENARIO_TYPE::Lanelet2) {  // roundtrip
 			auto i_start = (((current_index_on_trajectory - look_before) % n_reference_trajectory_line_strips) + n_reference_trajectory_line_strips) % n_reference_trajectory_line_strips;
 			for (auto i = i_start, j = (i_start + 1) % n_reference_trajectory_line_strips, k = 0; k <= look_before + look_after && (k == 0 || i != i_start); ++k, i = (i + 1) % n_reference_trajectory_line_strips, j = (j + 1) % n_reference_trajectory_line_strips) {
 				std::vector<vec2> test = {reference_trajectory_points[i], reference_trajectory_points[j]};

@@ -2,7 +2,7 @@ classdef Scenario
     % SCENARIO  Scenario class
 
     properties (Access = public)
-        vehicles = []; % array of Vehicle objects
+        vehicles (1, :) Vehicle; % array of Vehicle objects
         obstacles = {}; % (n_obstacle, 1) static obstacles = {[x;y];...}
         dynamic_obstacle_area = {}; % (n_obstacle, Hp) dynamic obstacles = {[x;y],...}
 
@@ -18,7 +18,8 @@ classdef Scenario
 
     methods
 
-        function obj = Scenario()
+        function obj = Scenario(options)
+            obj.vehicles(1, options.amount) = Vehicle();
         end
 
         function plot(obj, options, optional)
@@ -70,13 +71,13 @@ classdef Scenario
 
             switch options.scenario_type
                 case ScenarioType.circle
-                    scenario = Circle(options.amount);
+                    scenario = Circle(options);
                 case ScenarioType.commonroad
-                    scenario = Commonroad(options.amount, options.path_ids);
+                    scenario = Commonroad(options);
                 case ScenarioType.lanelet2
-                    scenario = lanelet2_scenario(options.amount, options.path_ids);
+                    scenario = Lanelet2(options);
                 case ScenarioType.lab_default
-                    scenario = Scenario();
+                    scenario = Scenario(options);
                     disp('Scenario is created later after map is retrieved via UnifiedLabApi');
             end
 

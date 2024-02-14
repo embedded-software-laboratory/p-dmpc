@@ -27,11 +27,11 @@ classdef MotionPrimitiveAutomaton
 
     methods
 
-        function obj = MotionPrimitiveAutomaton(model, options)
+        function obj = MotionPrimitiveAutomaton(options, model)
 
             arguments
-                model (1, 1) VehicleModel
                 options (1, 1) Config
+                model (1, 1) VehicleModel = BicycleModel(Vehicle().Lf, Vehicle().Lr)
             end
 
             % Constructor
@@ -215,6 +215,12 @@ classdef MotionPrimitiveAutomaton
                 max_speed(k) = max_speed_next;
             end
 
+        end
+
+        function straight_speeds = get_straight_speeds_of_mpa(obj)
+            % return non-negative speeds of trims with steering=0
+            non_negative_speed_trims = find([obj.trims(:).speed] > 0 & [obj.trims(:).steering] == 0);
+            straight_speeds = [obj.trims(non_negative_speed_trims).speed];
         end
 
         function trim_index = trim_from_values(obj, speed, steering)
