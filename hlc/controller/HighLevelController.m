@@ -31,9 +31,6 @@ classdef (Abstract) HighLevelController < handle
     properties (Access = private)
         % member variable that is used to execute steps on error
         is_run_succeeded (1, 1) logical = false
-
-        vehicles_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
-        total_fallback_times; % total times of fallbacks
     end
 
     methods (Abstract = true, Access = protected)
@@ -58,7 +55,6 @@ classdef (Abstract) HighLevelController < handle
             obj.plant = plant;
 
             obj.k = 0;
-            obj.total_fallback_times = 0;
 
             obj.timing = ControllerTiming();
 
@@ -153,10 +149,6 @@ classdef (Abstract) HighLevelController < handle
                     obj.options.Hp ...
                 );
             end
-
-            % record the number of time steps that vehicles
-            % consecutively stop and take fallback
-            obj.vehicles_fallback_times = zeros(1, obj.options.amount);
 
             obj.coupler = Coupler.get_coupler( ...
                 obj.options.coupling, ...
@@ -462,35 +454,20 @@ classdef (Abstract) HighLevelController < handle
             % check fallback of other controllers
             obj.check_others_fallback();
 
-            % boolean that is used to break the main control loop
-            % initialize it with value false
-            is_fallback_handled = false;
-
             if isempty(obj.info.vehicles_fallback)
-                % increase counter of vehicles that take fallback
-                obj.vehicles_fallback_times(obj.info.vehicles_fallback) = ...
-                    obj.vehicles_fallback_times(obj.info.vehicles_fallback) + 1;
-
-                % reset fallback counter of vehicles that have no fallback
-                obj.vehicles_fallback_times(setdiff( ...
-                    1:obj.options.amount, ...
-                    obj.info.vehicles_fallback ...
-                )) = 0;
-
                 % if no fallback occurs return that fallback is handled
                 is_fallback_handled = true;
                 return
             end
 
             if obj.options.fallback_type == FallbackType.no_fallback
-                % disabled fallback
                 disp('Fallback is disabled. Simulation ends.')
+                is_fallback_handled = false;
                 return
             end
 
             % Display info if vehicle is triggerer
             if obj.info.needs_fallback
-                % print information about occurred fallback
                 str_trigger_vehicle = sprintf(' %2d', obj.plant.vehicle_indices_controlled);
                 str_fallback_vehicles = sprintf(' %2d', obj.info.vehicles_fallback);
                 fprintf('%s triggered by%s affects%s\n', ...
@@ -500,13 +477,8 @@ classdef (Abstract) HighLevelController < handle
                 )
             end
 
-            % plan for fallback case
             obj.plan_for_fallback();
 
-            % increase counter of total fallbacks
-            obj.total_fallback_times = obj.total_fallback_times + 1;
-
-            % if fallback is handled return that
             is_fallback_handled = true;
         end
 
@@ -570,7 +542,6 @@ classdef (Abstract) HighLevelController < handle
             % save ExperimentResult object at end of experiment
 
             % print information about final values of counter
-            fprintf('Total times of fallback: %d\n', obj.total_fallback_times);
             fprintf('Total runtime: %f seconds\n', obj.experiment_result.t_total);
 
             obj.experiment_result.mpa = obj.mpa;
