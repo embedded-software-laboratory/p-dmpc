@@ -319,10 +319,6 @@ classdef (Abstract) HighLevelController < handle
             obj.timing.stop("hlc_init_all");
         end
 
-        % end
-
-        % methods (Access = private)
-
         function synchronize_start_with_plant(obj)
             obj.plant.synchronize_start_with_plant();
         end
