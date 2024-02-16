@@ -5,7 +5,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
         info_base
         iter_array_tmp (1, :) cell
         info_array_tmp (1, :) cell
-        solution_cost (:, 1) double
+        solution_cost (:, :) double % n_solutions x n_graphs
 
         computation_levels_of_vehicles
         base_computation_level
@@ -14,8 +14,6 @@ classdef PrioritizedExplorativeController < PrioritizedController
         current_permutations
 
         belonging_vector_total
-
-        should_keep_permutation (1, 1) logical
     end
 
     methods
@@ -45,8 +43,6 @@ classdef PrioritizedExplorativeController < PrioritizedController
             obj.send_solution_cost();
             obj.receive_solution_cost();
             obj.choose_solution();
-
-            obj.remember_priorities();
 
         end
 
@@ -151,7 +147,9 @@ classdef PrioritizedExplorativeController < PrioritizedController
         function compute_solution_cost(obj)
 
             n_solutions = length(obj.iter_array_tmp);
-            obj.solution_cost = NaN(1, n_solutions);
+            n_graphs = max(obj.belonging_vector_total);
+            i_own_graph = obj.belonging_vector_total(obj.plant.vehicle_indices_controlled);
+            obj.solution_cost = zeros(n_solutions, n_graphs);
 
             for i_solution = 1:n_solutions
 
@@ -168,7 +166,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
                     );
                 end
 
-                obj.solution_cost(i_solution) = cost_value;
+                obj.solution_cost(i_solution, i_own_graph) = cost_value;
 
             end
 
@@ -177,45 +175,66 @@ classdef PrioritizedExplorativeController < PrioritizedController
         function send_solution_cost(obj)
 
             % broadcast info about solution
+            i_own_graph = obj.belonging_vector_total(obj.plant.vehicle_indices_controlled);
             obj.solution_cost_communication.send_message( ...
                 obj.k, ...
-                obj.solution_cost ...
+                obj.solution_cost(:, i_own_graph) ...
             );
         end
 
         function receive_solution_cost(obj)
             % receive info about solutions
-            sub_graph = obj.belonging_vector_total(obj.plant.vehicle_indices_controlled(1));
-            sub_graph_vehicles = find(obj.belonging_vector_total == sub_graph);
-            other_vehicles = setdiff(sub_graph_vehicles, obj.plant.vehicle_indices_controlled);
 
-            for j_vehicle = other_vehicles
-                % loop over vehicle from which the messages are read
-                latest_msg_j = obj.solution_cost_communication.read_message( ...
-                    j_vehicle, ...
-                    obj.k, ...
-                    throw_error = true ...
-                );
-                % calculate objective value
-                obj.solution_cost = obj.solution_cost + latest_msg_j.solution_cost;
+            for i_graph = 1:max(obj.belonging_vector_total)
+                sub_graph_vehicles = find(obj.belonging_vector_total == i_graph);
+                other_vehicles = setdiff(sub_graph_vehicles, obj.plant.vehicle_indices_controlled);
+
+                for j_vehicle = other_vehicles
+                    % loop over vehicle from which the messages are read
+                    latest_msg_j = obj.solution_cost_communication.read_message( ...
+                        j_vehicle, ...
+                        obj.k, ...
+                        throw_error = true ...
+                    );
+                    % calculate objective value
+                    obj.solution_cost(:, i_graph) = obj.solution_cost(:, i_graph) + latest_msg_j.solution_cost;
+                end
+
             end
 
         end
 
         function choose_solution(obj)
-            [min_solution_cost, chosen_solution] = min(obj.solution_cost);
-            chosen_solution = chosen_solution(1); % guarantee that it is a single integer
+            unique_priorities = zeros(size(obj.belonging_vector_total));
+            i_own_graph = obj.belonging_vector_total(obj.plant.vehicle_indices_controlled);
 
-            % Keep permutation if it was feasible
-            obj.should_keep_permutation = min_solution_cost < 1e8;
+            for i_graph = 1:max(obj.belonging_vector_total)
+                sub_graph_vehicles = obj.belonging_vector_total == i_graph;
+                [min_solution_cost, chosen_solution] = min(obj.solution_cost(:, i_graph));
+                chosen_solution = chosen_solution(1); % guarantee that it is a single integer
 
-            obj.info = obj.info_array_tmp{chosen_solution};
-            obj.iter = obj.iter_array_tmp{chosen_solution};
-        end
+                if i_graph == i_own_graph
+                    obj.info = obj.info_array_tmp{chosen_solution};
+                    obj.iter = obj.iter_array_tmp{chosen_solution};
+                end
 
-        function remember_priorities(obj)
-            priorities = Prioritizer.priorities_from_directed_coupling(obj.iter.directed_coupling);
-            obj.prioritizer.current_priorities = priorities;
+                sub_graph_directed_coupling = obj.iter_array_tmp{chosen_solution}.directed_coupling( ...
+                    sub_graph_vehicles, ...
+                    sub_graph_vehicles ...
+                );
+                priorities = Prioritizer.priorities_from_directed_coupling(sub_graph_directed_coupling);
+
+                if min_solution_cost > 1e8
+                    % flip priorities of subgraph if fallback to have a
+                    % greater chance for a feasible solution
+                    priorities = fliplr(priorities);
+                end
+
+                unique_priorities(sub_graph_vehicles) = priorities + max(unique_priorities);
+            end
+
+            obj.prioritizer.current_priorities = unique_priorities;
+
         end
 
     end
@@ -228,14 +247,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
             % iteratively fill matrix of permutations
             result = zeros(obj.n_computation_levels, obj.n_computation_levels);
 
-            if obj.should_keep_permutation
-                % use the previous best permutation (1..n_computation_levels)
-                % is ordered from priorities of last time step
-                result(1, :) = 1:obj.n_computation_levels;
-            else
-                % use "opposite" ordering
-                result(1, :) = obj.n_computation_levels:-1:1;
-            end
+            result(1, :) = 1:obj.n_computation_levels;
 
             permutation_rand_stream = RandStream("mt19937ar", Seed = obj.k);
 

@@ -45,7 +45,6 @@ classdef PrioritizedExplorativeSequentialController < PrioritizedSequentialContr
             for hlc = obj.hlcs
                 hlc.receive_solution_cost();
                 hlc.choose_solution();
-                hlc.remember_priorities();
             end
 
         end
