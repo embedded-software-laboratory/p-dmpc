@@ -80,6 +80,39 @@ function eval_prioritization(optional)
             close all;
 
             % Plot computation time
+            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle(experiment_results);
+
+            % Plot cost
+            n_vehicles = [experiment_results(:, 1, 1).n_hlc];
+            fig = figure;
+            bar(n_vehicles, time_max_approach_vehicle .* 1000);
+            hold on
+            bar(n_vehicles, time_med_approach_vehicle .* 1000);
+            % legend
+
+            str_max = "max ";
+            str_med = "median ";
+            lexendtext = [ ...
+                              strcat(repmat(str_max, length(priority_names), 1), priority_names) ...
+                              strcat(repmat(str_med, length(priority_names), 1), priority_names) ...
+                          ];
+            legend(lexendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            % axes
+            xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
+            ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
+
+            set_figure_properties(fig, ExportFigConfig.presentation());
+            r100 = rwth_color_order;
+            r50 = rwth_color_order_50;
+            colororder(fig, [r50(1:5, :); r100(1:5, :)]);
+
+            filename = sprintf('prioritization_time_%s_%s.pdf', scenario, optimizer);
+            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            export_fig(fig, filepath);
+            filename = sprintf('prioritization_time_%s_%s.emf', scenario, optimizer);
+            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            export_fig(fig, filepath);
+            close all;
         end
 
     end
