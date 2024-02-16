@@ -102,9 +102,13 @@ function eval_prioritization(optional)
             ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
 
             set_figure_properties(fig, ExportFigConfig.presentation());
-            r100 = rwth_color_order;
-            r50 = rwth_color_order_50;
-            colororder(fig, [r50(1:5, :); r100(1:5, :)]);
+            rwth_colors_100 = rwth_color_order;
+            rwth_colors_50 = rwth_color_order_50;
+            colororder( ...
+                fig, ...
+                [rwth_colors_50(1:length(priority_names), :); ...
+                 rwth_colors_100(1:length(priority_names), :)] ...
+            );
 
             filename = sprintf('prioritization_time_%s_%s.pdf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
