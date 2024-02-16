@@ -153,10 +153,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
 
             for i_solution = 1:n_solutions
 
-                if ismember( ...
-                        obj.plant.vehicle_indices_controlled, ...
-                        obj.info_array_tmp{i_solution}.vehicles_fallback ...
-                    )
+                if obj.info_array_tmp{i_solution}.needs_fallback
                     % in case of fallback use maximum cost
                     cost_value = 1e9;
                 else
@@ -216,6 +213,10 @@ classdef PrioritizedExplorativeController < PrioritizedController
                 if i_graph == i_own_graph
                     obj.info = obj.info_array_tmp{chosen_solution};
                     obj.iter = obj.iter_array_tmp{chosen_solution};
+                    % communicate actual prediction with permutation index 0
+                    % used by other vehicles to consider fallback while planning
+                    obj.iter.priority_permutation = 0;
+                    obj.publish_predictions();
                 end
 
                 sub_graph_directed_coupling = obj.iter_array_tmp{chosen_solution}.directed_coupling( ...

@@ -269,7 +269,7 @@ classdef (Abstract) HighLevelController < handle
             % method that can be overwritten by child classes if necessary
         end
 
-        function check_others_fallback(~)
+        function check_others_fallback_post_planning(~)
             % method that can be overwritten by child classes if necessary
         end
 
@@ -348,12 +348,9 @@ classdef (Abstract) HighLevelController < handle
                 % controller
                 obj.controller();
 
-                % handle fallback of controller
-
-                if ~obj.handle_fallback()
-                    % if fallback is not handled break the main control loop
-                    break
-                end
+                % handle fallback of other controllers
+                % TODO rename function
+                    obj.handle_fallback();
 
                 % store results from iteration in ExperimentResult
                 obj.store_control_info();
@@ -442,40 +439,22 @@ classdef (Abstract) HighLevelController < handle
 
         end
 
-        function is_fallback_handled = handle_fallback(obj)
+        function handle_fallback(obj)
             % handle the fallback of the controller
-            % if fallback is disabled return
-            % boolean to break the main control loop
+
+                if obj.info.needs_fallback
+                    % own fallback was handled in controller()
+                    return
+                end
 
             % check fallback of other controllers
-            obj.check_others_fallback();
+            obj.check_others_fallback_post_planning();
 
-            if isempty(obj.info.vehicles_fallback)
-                % if no fallback occurs return that fallback is handled
-                is_fallback_handled = true;
-                return
-            end
-
-            if obj.options.fallback_type == FallbackType.no_fallback
-                disp('Fallback is disabled. Simulation ends.')
-                is_fallback_handled = false;
-                return
-            end
-
-            % Display info if vehicle is triggerer
             if obj.info.needs_fallback
-                str_trigger_vehicle = sprintf(' %2d', obj.plant.vehicle_indices_controlled);
-                str_fallback_vehicles = sprintf(' %2d', obj.info.vehicles_fallback);
-                fprintf('%s triggered by%s affects%s\n', ...
-                    obj.options.fallback_type, ...
-                    str_trigger_vehicle, ...
-                    str_fallback_vehicles ...
-                )
+                % TODO Rename function -- controller_fallback
+                obj.plan_for_fallback();
             end
 
-            obj.plan_for_fallback();
-
-            is_fallback_handled = true;
         end
 
         function store_control_info(obj)

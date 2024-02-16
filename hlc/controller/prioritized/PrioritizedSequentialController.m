@@ -104,12 +104,10 @@ classdef PrioritizedSequentialController < HighLevelController
 
         end
 
-        function is_fallback_handled = handle_fallback(obj)
-
-            is_fallback_handled = true;
+        function handle_fallback(obj)
 
             for hlc = obj.hlcs
-                is_fallback_handled = is_fallback_handled && hlc.handle_fallback();
+                hlc.handle_fallback();
             end
 
         end

@@ -98,10 +98,7 @@ classdef PrioritizedOptimalController < PrioritizedController
 
             for i_solution = 1:n_solutions
 
-                if ismember( ...
-                        obj.plant.vehicle_indices_controlled, ...
-                        obj.info_array_tmp{i_solution}.vehicles_fallback ...
-                    )
+                if obj.info_array_tmp{i_solution}.needs_fallback
                     % in case of fallback use maximum cost
                     cost_value = 1e9;
                 else

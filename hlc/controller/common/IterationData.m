@@ -28,6 +28,8 @@ classdef IterationData
 
         coupling_info % coupling information of each coupling pair
 
+        indices_fallback_checked (1, :) double = []
+
         hdv_reachable_sets % reachable sets of hdvs
         hdv_adjacency % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
 

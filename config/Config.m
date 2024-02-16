@@ -39,7 +39,6 @@ classdef Config
         % false: no constraint on entering the crossing area
         % true: not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
         constrained_enter_lanelet_crossing_area = false;
-        fallback_type FallbackType = FallbackType.local_fallback;
 
         manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
 
