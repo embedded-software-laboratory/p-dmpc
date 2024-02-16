@@ -35,7 +35,7 @@ classdef (Abstract) HighLevelController < handle
 
     methods (Abstract = true, Access = protected)
         controller(obj);
-        plan_for_fallback(obj);
+        controller_fallback(obj);
     end
 
     methods
@@ -269,7 +269,7 @@ classdef (Abstract) HighLevelController < handle
             % method that can be overwritten by child classes if necessary
         end
 
-        function check_others_fallback_post_planning(~)
+        function check_others_fallback(~)
             % method that can be overwritten by child classes if necessary
         end
 
@@ -350,7 +350,7 @@ classdef (Abstract) HighLevelController < handle
 
                 % handle fallback of other controllers
                 % TODO rename function
-                    obj.handle_fallback();
+                obj.handle_others_fallback();
 
                 % store results from iteration in ExperimentResult
                 obj.store_control_info();
@@ -439,20 +439,19 @@ classdef (Abstract) HighLevelController < handle
 
         end
 
-        function handle_fallback(obj)
+        function handle_others_fallback(obj)
             % handle the fallback of the controller
 
-                if obj.info.needs_fallback
-                    % own fallback was handled in controller()
-                    return
-                end
+            if obj.info.needs_fallback
+                % own fallback was handled in controller()
+                return
+            end
 
             % check fallback of other controllers
-            obj.check_others_fallback_post_planning();
+            obj.check_others_fallback();
 
             if obj.info.needs_fallback
-                % TODO Rename function -- controller_fallback
-                obj.plan_for_fallback();
+                obj.controller_fallback();
             end
 
         end

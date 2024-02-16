@@ -328,8 +328,6 @@ classdef PrioritizedController < HighLevelController
             % coupled vehicles with lower priorities
             successors = find(iter_v.directed_coupling_reduced(vehicle_index, :) == 1);
 
-            obj.iter.indices_fallback_checked = [vehicle_index, predecessors_sequential];
-
             % consider vehicles with higher priority
             dynamic_obstacle_area_predecessors = consider_predecessors( ...
                 obj, ...
@@ -360,7 +358,7 @@ classdef PrioritizedController < HighLevelController
                 obj.info = obj.handle_graph_search_exhaustion(obj.info, iter_v);
 
                 if obj.info.needs_fallback
-                    obj.actually_plan_for_fallback();
+                    obj.plan_fallback();
                 end
 
             end
@@ -374,7 +372,6 @@ classdef PrioritizedController < HighLevelController
                 obj.k, ...
                 predicted_areas, ...
                 obj.info.needs_fallback, ...
-                obj.info.fallbacks_considered, ...
                 obj.iter.priority_permutation ...
             );
         end
@@ -510,7 +507,6 @@ classdef PrioritizedController < HighLevelController
 
             % preallocate cell array entries
             dynamic_obstacle_area = cell(length(predecessors), obj.options.Hp);
-            j_fallbacks_considered = cell(length(predecessors), 1);
 
             predecessors_parallel = setdiff(predecessors, predecessors_sequential);
 
@@ -524,15 +520,9 @@ classdef PrioritizedController < HighLevelController
                     throw_error = true ...
                 );
 
-                if latest_msg.needs_fallback
-                    obj.info.fallbacks_considered = [obj.info.fallbacks_considered, latest_msg.vehicle_index];
-                else
-                    predicted_areas = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
-                    j_predecessor = predecessors == j_vehicle;
-                    dynamic_obstacle_area(j_predecessor, :) = predicted_areas;
-                    j_fallbacks_considered{j_predecessor} = latest_msg.fallbacks_considered;
-                end
-
+                predicted_areas = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
+                j_predecessor = predecessors == j_vehicle;
+                dynamic_obstacle_area(j_predecessor, :) = predicted_areas;
             end
 
             for j_vehicle = predecessors_parallel
@@ -543,33 +533,6 @@ classdef PrioritizedController < HighLevelController
                 dynamic_obstacle_area(j_predecessor, :) = ...
                     obj.consider_parallel_coupling(j_vehicle);
 
-            end
-
-            % Check for fallbacks of vehicles which are not predecessors
-            obj.check_others_fallback_pre_planning();
-
-            for j_vehicle = predecessors_sequential
-                % Check if predecessor uses fallback. Criteria:
-                % 1) predecessor communicated fallback
-                % 2) predecessor has not considered a triggered fallback
-                % If so, replace predecessor trajectory with fallback trajectory
-                predecessor_should_use_fallback = ...
-                    any(obj.info.fallbacks_considered == j_vehicle) ...
-                    || ~isempty(setdiff(j_fallbacks_considered{j_predecessor}, obj.info.fallbacks_considered));
-
-                if ~predecessor_should_use_fallback
-                    continue
-                end
-
-                previous_msg = obj.predictions_communication.read_message( ...
-                    j_vehicle, ...
-                    obj.k - 1, ...
-                    priority_permutation = 0, ...
-                    throw_error = true ...
-                );
-                predicted_areas = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, previous_msg.predicted_areas);
-                j_predecessor = predecessors == j_vehicle;
-                dynamic_obstacle_area(j_predecessor, :) = predicted_areas;
             end
 
             % release preallocated cell array entries
@@ -677,47 +640,7 @@ classdef PrioritizedController < HighLevelController
 
         end
 
-        function check_others_fallback_pre_planning(obj)
-            % Determine if a vehicle triggered a fallback in the subgraph.
-            % If so, this vehicle needs to consider the fallback trajectories
-            % of vehicles which have not considered this fallback.
-
-            i_vehicle = obj.plant.vehicle_indices_controlled;
-
-            belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling), 'Type', 'weak');
-            sub_graph_fallback = belonging_vector_total(i_vehicle);
-            % vehicles in the subgraph to check for fallback
-            other_vehicle_indices = find(belonging_vector_total == sub_graph_fallback);
-            % remove irrelevant vehicles which have not to be checked for fallback
-            % irrelevant are those from which we have read the message already
-            other_vehicle_indices = setdiff(other_vehicle_indices, obj.iter.indices_fallback_checked, 'stable');
-
-            for j_vehicle = other_vehicle_indices
-                % TODO this function always pauses 1e-3 seconds; we could use a function
-                % for reading without waiting.
-                latest_msg = obj.predictions_communication.read_message( ...
-                    j_vehicle, ...
-                    obj.k, ...
-                    priority_permutation = obj.iter.priority_permutation, ...
-                    throw_error = false, ...
-                    timeout_seconds = 0 ...
-                );
-
-                if isempty(latest_msg)
-                    continue
-                end
-
-                if latest_msg.needs_fallback
-                    obj.info.fallbacks_considered = [obj.info.fallbacks_considered, latest_msg.vehicle_index];
-                end
-
-                obj.iter.indices_fallback_checked = [obj.iter.indices_fallback_checked, latest_msg.vehicle_index];
-
-            end
-
-        end
-
-        function check_others_fallback_post_planning(obj)
+        function check_others_fallback(obj)
             % Determine if there is a fallback which this vehicles has not considered.
             % If so, it needs to take the fallback solution.
             i_vehicle = obj.plant.vehicle_indices_controlled;
@@ -728,7 +651,9 @@ classdef PrioritizedController < HighLevelController
             other_vehicle_indices = find(belonging_vector_total == sub_graph_fallback);
             % remove irrelevant vehicles which have not to be checked for fallback
             % irrelevant are those from which we have read the message already
-            other_vehicle_indices = setdiff(other_vehicle_indices, obj.iter.indices_fallback_checked, 'stable');
+            predecessors_sequential = find(obj.iter.directed_coupling_sequential(:, i_vehicle))';
+            irrelevant_vehicles = [i_vehicle, predecessors_sequential];
+            other_vehicle_indices = setdiff(other_vehicle_indices, irrelevant_vehicles, 'stable');
 
             for j_vehicle = other_vehicle_indices
                 latest_msg = obj.predictions_communication.read_message( ...
@@ -747,7 +672,7 @@ classdef PrioritizedController < HighLevelController
 
         end
 
-        function actually_plan_for_fallback(obj)
+        function plan_fallback(obj)
 
             % initialize
             obj.info = ControlResultsInfo(1, obj.options.Hp);
@@ -760,10 +685,10 @@ classdef PrioritizedController < HighLevelController
             obj.info.needs_fallback = true;
         end
 
-        function plan_for_fallback(obj)
+        function controller_fallback(obj)
             % planning by using last priority and trajectories directly
 
-            obj.actually_plan_for_fallback();
+            obj.plan_fallback();
             obj.publish_predictions();
 
         end

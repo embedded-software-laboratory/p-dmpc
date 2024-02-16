@@ -14,8 +14,6 @@ classdef ControlResultsInfo
         y_predicted (3, :, :) double
         is_exhausted (1, 1) logical = false % whether graph search is exhausted
         needs_fallback (1, 1) logical = false %
-        % indices of vehicles with fallback that were considered during planning
-        fallbacks_considered (1, :) double = []
     end
 
     properties (Dependent)

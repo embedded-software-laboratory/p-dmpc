@@ -61,7 +61,7 @@ classdef CentralizedController < HighLevelController
 
         end
 
-        function plan_for_fallback(~)
+        function controller_fallback(~)
             error(['No fallback handling for centralized controller', ...
                    ' implemented yet!'])
         end

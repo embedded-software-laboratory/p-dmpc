@@ -104,15 +104,15 @@ classdef PrioritizedSequentialController < HighLevelController
 
         end
 
-        function handle_fallback(obj)
+        function handle_others_fallback(obj)
 
             for hlc = obj.hlcs
-                hlc.handle_fallback();
+                hlc.handle_others_fallback();
             end
 
         end
 
-        function plan_for_fallback(~)
+        function controller_fallback(~)
             % is implemented in hlcs
         end
 
