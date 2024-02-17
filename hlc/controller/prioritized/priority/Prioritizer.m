@@ -27,6 +27,8 @@ classdef (Abstract) Prioritizer < handle
                     prioritizer = StacPrioritizer();
                 case PriorityStrategies.optimal_priority
                     prioritizer = ConstantPrioritizer();
+                case PriorityStrategies.explorative_priority
+                    prioritizer = ConstantPrioritizer();
             end
 
         end
@@ -92,6 +94,24 @@ classdef (Abstract) Prioritizer < handle
 
                 end
 
+            end
+
+        end
+
+        function priorities = priorities_from_directed_coupling(directed_coupling)
+            % PRIORITIES_FROM_DIRECTED_COUPLING  Given the directed coupling matrix,
+            % this function returns the priorities.
+
+            n_vehicles = size(directed_coupling, 1);
+            priorities = zeros(1, n_vehicles);
+            directed_coupling_digraph = digraph(directed_coupling);
+
+            if isdag(directed_coupling_digraph)
+                topological_order = toposort( ...
+                    directed_coupling_digraph, ...
+                    Order = 'stable' ...
+                );
+                priorities(topological_order) = 1:n_vehicles;
             end
 
         end

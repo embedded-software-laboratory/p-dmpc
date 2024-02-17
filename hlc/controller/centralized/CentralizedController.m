@@ -27,7 +27,7 @@ classdef CentralizedController < HighLevelController
             obj.timing.start('coupling', obj.k);
 
             if obj.options.use_cpp()
-                obj.iter.adjacency = obj.coupler.couple(obj.options, obj.mpa.get_max_speed_of_mpa(), obj.scenario_adapter.scenario.adjacency_lanelets, obj.iter);
+                obj.iter.adjacency = obj.coupler.couple(obj.options, obj.mpa.get_max_speed_of_mpa(), obj.iter);
             end
 
             obj.timing.stop('coupling', obj.k);
@@ -36,28 +36,28 @@ classdef CentralizedController < HighLevelController
 
         function controller(obj)
             % initialize variable to store control results
-            obj.info = ControlResultsInfo(obj.options.amount, obj.options.Hp, obj.plant.all_vehicle_indices);
+            obj.info = ControlResultsInfo(obj.options.amount, obj.options.Hp);
 
             obj.timing.start('optimizer', obj.k);
-            info_v = obj.optimizer.run_optimizer(obj.plant.vehicle_indices_controlled, obj.iter, obj.mpa, obj.options);
+            obj.info = obj.optimizer.run_optimizer( ...
+                obj.plant.vehicle_indices_controlled, ...
+                obj.iter, ...
+                obj.mpa, ...
+                obj.options ...
+            );
             obj.timing.stop('optimizer', obj.k);
 
             obj.timing.start('fallback', obj.k);
 
-            if info_v.is_exhausted
-                info_v = handle_graph_search_exhaustion(info_v, obj.options, obj.iter, obj.mpa);
-            end
+            obj.info.needs_fallback = obj.info.is_exhausted;
 
-            if info_v.needs_fallback
+            if obj.info.needs_fallback
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback
                 disp(['Graph search exhausted at time step: ' num2str(obj.k) '.'])
                 % all vehicles fall back
                 obj.info.vehicles_fallback = 1:obj.options.amount;
                 obj.info.needs_fallback(obj.info.vehicles_fallback) = true;
-            else
-                % prepare output data
-                obj.info = store_control_info(obj.info, info_v, obj.options);
             end
 
             obj.timing.stop('fallback', obj.k);

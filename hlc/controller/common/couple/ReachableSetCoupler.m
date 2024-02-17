@@ -2,7 +2,7 @@ classdef ReachableSetCoupler < Coupler
 
     methods
 
-        function [adjacency] = couple(~, options, ~, ~, iter)
+        function [adjacency] = couple(~, options, ~, iter)
             % COUPLE Calculate coupling adjacency matrix
             %        Coupling check is performed by checking which
             %        reachable set overlap

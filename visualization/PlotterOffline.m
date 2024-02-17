@@ -21,7 +21,8 @@ classdef PlotterOffline < Plotter
                 vehicle_indices (1, :) int32 = 1:experiment_result.options.amount
             end
 
-            obj@Plotter(experiment_result.options, experiment_result.scenario, vehicle_indices);
+            scenario = Scenario.create(experiment_result.options);
+            obj@Plotter(experiment_result.options, scenario, vehicle_indices);
             obj.experiment_result = experiment_result;
             obj.delta_t_s = delta_t_s;
             obj.paused = true;
@@ -60,7 +61,7 @@ classdef PlotterOffline < Plotter
         function plot(obj)
             %PLOT  Plot the simulation state at the current time step.
 
-            plotting_info = PlottingInfo(obj.vehicle_indices, obj.experiment_result, obj.time_step, 1);
+            plotting_info = PlottingInfo(obj.vehicle_indices, obj.experiment_result, obj.time_step);
             plot@Plotter(obj, plotting_info);
         end
 
@@ -112,9 +113,9 @@ classdef PlotterOffline < Plotter
             if obj.options.scenario_type == ScenarioType.circle && obj.options.amount <= 2
                 position = obj.hotkey_position;
                 text(position(1), position(2), obj.hotkey_description(1:obj.number_base_hotkeys - 2), ...
-                    'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'Tag', 'hotkey');
+                    FontSize = 12, HorizontalAlignment = 'left', VerticalAlignment = 'top', Tag = 'hotkey');
                 text(position(1) + 1.2, position(2), obj.hotkey_description(obj.number_base_hotkeys - 2:end), ...
-                    'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'Tag', 'hotkey');
+                    FontSize = 12, HorizontalAlignment = 'left', VerticalAlignment = 'top', Tag = 'hotkey');
             else
                 plot_hotkey_description@Plotter(obj);
             end

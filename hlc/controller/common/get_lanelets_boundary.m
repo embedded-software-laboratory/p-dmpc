@@ -71,7 +71,5 @@ function lanelet_boundary = get_lanelets_boundary(predicted_lanelets, lanelet_bo
 
     % if x- and y-coordinates are ensured to be in the right order, set
     % 'Simplify' to false to save computation time
-    lanelet_boundary{3} = polyshape(x, y, 'Simplify', false);
-    assert(lanelet_boundary{3}.NumRegions == 1)
-
+    lanelet_boundary{3} = polyshape(x, y, Simplify = false);
 end

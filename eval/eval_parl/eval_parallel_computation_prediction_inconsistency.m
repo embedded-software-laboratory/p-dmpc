@@ -16,10 +16,8 @@ function results = eval_parallel_computation_prediction_inconsistency()
     options.max_num_CLs = 1;
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
-    options.should_save_result = true;
-    options.should_reduce_result = false;
     options.constraint_from_successor = ConstraintFromSuccessor.none;
-    options.strategy_enter_lanelet_crossing_area = '1';
+    options.constrained_enter_lanelet_crossing_area = false;
 
     % TODO create fitting scenario
     % options.reference_path_struct.lanelets_index = {[95, 69, 64, 62, 75, 55, 53], [76, 24, 13, 15, 3, 5], [12, 73, 92, 94, 100, 101]};
@@ -33,16 +31,15 @@ function results = eval_parallel_computation_prediction_inconsistency()
         options.fallback_type = fallback_type{i};
 
         for veh_id = 1:options.amount
-            full_path = FileNameConstructor.get_results_full_path(options, veh_id);
 
-            if isfile(full_path)
+            if FileNameConstructor.result_exists(options)
                 disp('File already exists.')
             else
                 % run simulation
                 main(options);
             end
 
-            load(full_path, 'experiment_result');
+            experiment_result = load_latest(options);
             results{i, veh_id} = experiment_result;
         end
 
@@ -116,7 +113,7 @@ function p = plot_cell_arrays(cells, color, isFill)
 
         for j = size(cells, 2):-1:1
             shape = cells{j};
-            patch(shape(1, :), shape(2, :), color, 'FaceAlpha', (1 - j / (size(cells, 2) + 2)) * 0.5);
+            patch(shape(1, :), shape(2, :), color, FaceAlpha = (1 - j / (size(cells, 2) + 2)) * 0.5);
         end
 
     else
@@ -125,7 +122,7 @@ function p = plot_cell_arrays(cells, color, isFill)
 
         for j = 1:size(cells, 2)
             shape = cells{j};
-            p(j) = plot(shape(1, :), shape(2, :), 'LineWidth', 1, 'Color', CM(j, :), 'LineStyle', '-.');
+            p(j) = plot(shape(1, :), shape(2, :), LineWidth = 1, Color = CM(j, :), LineStyle = '-.');
         end
 
     end
@@ -143,9 +140,9 @@ function results_combined = combine_distributed_results(results)
             [experiment_result.trajectory_predictions{j, :}] = trajectory_predictions{:};
 
             for k = 1:length(results{i, j}.iteration_data)
-                experiment_result.iteration_data{k}.referenceTrajectoryPoints(j, :, :) = results{i, j}.iteration_data{k}.referenceTrajectoryPoints(j, :, :);
-                experiment_result.iteration_data{k}.referenceTrajectoryIndex(j, :) = results{i, j}.iteration_data{k}.referenceTrajectoryIndex(j, :);
-                experiment_result.iteration_data{k}.v_ref(j, :) = results{i, j}.iteration_data{k}.v_ref(j, :);
+                experiment_result.iteration_data(k).referenceTrajectoryPoints(j, :, :) = results{i, j}.iteration_data(k).referenceTrajectoryPoints(j, :, :);
+                experiment_result.iteration_data(k).referenceTrajectoryIndex(j, :) = results{i, j}.iteration_data(k).referenceTrajectoryIndex(j, :);
+                experiment_result.iteration_data(k).v_ref(j, :) = results{i, j}.iteration_data(k).v_ref(j, :);
             end
 
         end
@@ -246,7 +243,7 @@ function plot_predicted_occupancy(trajectory_predictions, options, scenario, col
         area = scenario.mpa.maneuvers{trim1, trim2}.area; % FIXME scenario.mpa
         [area_x, area_y] = translate_global(x(3), x(1), x(2), area(1, :), area(2, :));
         area_poly = polyshape([area_x; area_y]');
-        plot(area_poly, 'FaceColor', color, 'FaceAlpha', (i / (options.Hp + 2)) * 0.5)
+        plot(area_poly, FaceColor = color, FaceAlpha = (i / (options.Hp + 2)) * 0.5)
     end
 
 end
@@ -259,8 +256,8 @@ function plot_footprints(i_result, results, results_folder_path)
     axis equal
 
     % box on
-    % xlabel('$x$ [m]', 'Interpreter', 'LaTex');
-    % ylabel('$y$ [m]', 'Interpreter', 'LaTex');
+    % xlabel('$x$ [m]', Interpreter = 'LaTex');
+    % ylabel('$y$ [m]', Interpreter = 'LaTex');
     axis off
 
     rwth_color = rwth_color_order();
@@ -290,17 +287,17 @@ function plot_footprints(i_result, results, results_folder_path)
                 patch(vehiclePolygon(1, :) ...
                     , vehiclePolygon(2, :) ...
                     , rwth_color(5, :) ...
-                    , 'LineWidth', 0.2 ...
-                    , 'FaceAlpha', 0.8 ...
-                    , 'EdgeColor', 'k' ...
+                    , LineWidth = 0.2 ...
+                    , FaceAlpha = 0.8 ...
+                    , EdgeColor = 'k' ...
                 );
             else
                 patch(vehiclePolygon(1, :) ...
                     , vehiclePolygon(2, :) ...
                     , rwth_color(v, :) ...
-                    , 'LineWidth', 0.2 ...
-                    , 'FaceAlpha', 1 - k / (max(visualized_steps_num) * 1.3) ...
-                    , 'EdgeColor', 'k' ...
+                    , LineWidth = 0.2 ...
+                    , FaceAlpha = 1 - k / (max(visualized_steps_num) * 1.3) ...
+                    , EdgeColor = 'k' ...
                 );
             end
 
@@ -325,8 +322,8 @@ function plot_viewpoint_reachable_set(i_result, results, results_folder_path)
     box on
     axis equal
 
-    % xlabel('$x$ [m]', 'Interpreter', 'LaTex');
-    % ylabel('$y$ [m]', 'Interpreter', 'LaTex');
+    % xlabel('$x$ [m]', Interpreter = 'LaTex');
+    % ylabel('$y$ [m]', Interpreter = 'LaTex');
     axis off
 
     xmin = 2.1; xmax = 3.2;
@@ -348,7 +345,7 @@ function plot_viewpoint_reachable_set(i_result, results, results_folder_path)
     other_vehs = setdiff(1:nVehs, ego_vehs);
     % plot reachable set
     for v = other_vehs
-        reachable_sets = results{i_result, v}.iteration_data{step_idx}.reachable_sets(v, :);
+        reachable_sets = results{i_result, v}.iteration_data(step_idx).reachable_sets(v, :);
         reachable_sets_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets);
         color = rwth_color(v, :);
         plot_cell_arrays(reachable_sets_array, color, true)
@@ -368,15 +365,15 @@ function plot_viewpoint_reachable_set(i_result, results, results_folder_path)
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , rwth_color(v, :) ...
-            , 'LineWidth', 0.2 ...
-            , 'FaceAlpha', 0.90 ...
+            , LineWidth = 0.2 ...
+            , FaceAlpha = 0.90 ...
         );
 
         % print vehicle ID
         radius = veh.Width * 0.95/2;
-        rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
-            'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
-        text(x(1), x(2), num2str(v), 'FontSize', 7, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
+        rectangle(Position = [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], Curvature = [1, 1], ...
+            FaceColor = [1, 1, 1, 0.75], LineStyle = 'none', LineWidth = 1, Tag = 'circle');
+        text(x(1), x(2), num2str(v), FontSize = 7, LineWidth = 1, Color = 'black', HorizontalAlignment = 'center');
     end
 
     % export fig 2
@@ -395,8 +392,8 @@ function plot_viewpoint_previous_occupancy(i_result, results, results_folder_pat
     hold on
     axis equal
 
-    % xlabel('$x$ [m]', 'Interpreter', 'LaTex');
-    % ylabel('$y$ [m]', 'Interpreter', 'LaTex');
+    % xlabel('$x$ [m]', Interpreter = 'LaTex');
+    % ylabel('$y$ [m]', Interpreter = 'LaTex');
     axis off
 
     xmin = 2.1; xmax = 3.2;
@@ -438,15 +435,15 @@ function plot_viewpoint_previous_occupancy(i_result, results, results_folder_pat
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , rwth_color(v, :) ...
-            , 'LineWidth', 0.2 ...
-            , 'FaceAlpha', 0.90 ...
+            , LineWidth = 0.2 ...
+            , FaceAlpha = 0.90 ...
         );
 
         % print vehicle ID
         radius = veh.Width * 0.95/2;
-        rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
-            'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
-        text(x(1), x(2), num2str(v), 'FontSize', 7, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
+        rectangle(Position = [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], Curvature = [1, 1], ...
+            FaceColor = [1, 1, 1, 0.75], LineStyle = 'none', LineWidth = 1, Tag = 'circle');
+        text(x(1), x(2), num2str(v), FontSize = 7, LineWidth = 1, Color = 'black', HorizontalAlignment = 'center');
     end
 
     % export fig 2
@@ -461,8 +458,8 @@ end
 function plot_actual_plans(i_result, results, results_folder_path)
     %%% fig 3: Actual plans at k = 5
     fig3 = figure();
-    % xlabel('$x$ [m]', 'Interpreter', 'LaTex');
-    % ylabel('$y$ [m]', 'Interpreter', 'LaTex');
+    % xlabel('$x$ [m]', Interpreter = 'LaTex');
+    % ylabel('$y$ [m]', Interpreter = 'LaTex');
     axis off
 
     xmin = 2.1; xmax = 3.2;
@@ -499,14 +496,14 @@ function plot_actual_plans(i_result, results, results_folder_path)
         patch(vehiclePolygon(1, :) ...
             , vehiclePolygon(2, :) ...
             , rwth_color(v, :) ...
-            , 'LineWidth', 0.2 ...
+            , LineWidth = 0.2 ...
         );
 
         % print vehicle ID
         radius = veh.Width * 0.95/2;
-        rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
-            'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
-        text(x(1), x(2), num2str(v), 'FontSize', 7, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
+        rectangle(Position = [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], Curvature = [1, 1], ...
+            FaceColor = [1, 1, 1, 0.75], LineStyle = 'none', LineWidth = 1, Tag = 'circle');
+        text(x(1), x(2), num2str(v), FontSize = 7, LineWidth = 1, Color = 'black', HorizontalAlignment = 'center');
     end
 
     % export fig 3

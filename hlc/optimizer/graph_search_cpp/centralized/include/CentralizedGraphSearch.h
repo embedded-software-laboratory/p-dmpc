@@ -35,7 +35,7 @@ namespace GraphBasedPlanning {
 			}
 
 			// lanelet interaction:
-			if constexpr (scenario_type == SCENARIO_TYPE::CommonRoad) {
+			if constexpr (scenario_type == SCENARIO_TYPE::CommonRoad || scenario_type == SCENARIO_TYPE::Lanelet2) {
 				for (auto i = 0; i < n_vehicles; ++i) {
 					if (!lanelet_interaction_valid(vehicles_obstacles[i], i)) return false;
 				}

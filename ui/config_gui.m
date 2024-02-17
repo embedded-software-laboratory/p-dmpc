@@ -235,13 +235,6 @@ function config = config_gui()
     % Validate Config file
     config = config.validate();
 
-    % Write Config to disk
-    encodedJSON = jsonencode(config);
-    fid = fopen('Config.json', 'w');
-    fprintf(fid, encodedJSON);
-    fclose('all');
-    % save('config.mat','config');
-
     % close app
     ui.delete;
 
@@ -362,7 +355,8 @@ function [list] = list_priority_assignment_methods
                 PriorityStrategies.random_priority, 'Random Priority'; ...
                 PriorityStrategies.FCA_priority, 'FCA Priority'; ...
                 PriorityStrategies.STAC_priority, 'STAC Priority'; ...
-                PriorityStrategies.optimal_priority, 'Optimal Priority'
+                PriorityStrategies.optimal_priority, 'Optimal Priority'; ...
+                PriorityStrategies.explorative_priority, 'Explorative Priority'
             };
 end
 

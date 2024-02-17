@@ -21,11 +21,10 @@ classdef ManualVehicle
             options.is_prioritized = true;
             options.is_use_dynamic_programming = true;
             options.recursive_feasibility = false;
-            options.is_bounded_reachable_set_used = true;
             obj.options = options;
             obj.road_raw_data = road_raw_data;
             obj.ID = id;
-            obj.mpa = MotionPrimitiveAutomaton(BicycleModel(obj.Lf, obj.Lr), options);
+            obj.mpa = MotionPrimitiveAutomaton(options, BicycleModel(obj.Lf, obj.Lr));
         end
 
         function reachable_sets = compute_reachable_lane(obj, measurement, lanelet_ids)

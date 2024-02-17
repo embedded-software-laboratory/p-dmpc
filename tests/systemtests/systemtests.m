@@ -1,13 +1,13 @@
 classdef systemtests < matlab.unittest.TestCase
 
     properties (TestParameter)
-        scenario = {'circle', 'commonroad'};
+        scenario = {'circle', 'commonroad', 'lanelet2'};
         mpa = {'single_speed', 'triple_speed', 'realistic'};
         optimizer_centralized = {'MatlabOptimal', 'CppOptimal'}; % 'CppSampled' crashes matlab in tests
         optimizer_prioritized = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
         computation_mode = {'sequential', 'parallel_threads'};
         coupling = {'reachable_set', 'full', 'no', 'distance'};
-        priority = {'coloring', 'constant', 'random', 'FCA', 'optimal'};
+        priority = {'coloring', 'constant', 'random', 'FCA', 'optimal', 'explorative'};
         weight = {'constant', 'random', 'distance'};
     end
 
@@ -91,11 +91,9 @@ classdef systemtests < matlab.unittest.TestCase
 
             %let main run and read result file
             experiment_result = main(options);
-            testCase.verifyTrue(true);
 
             %verify and check export too
             plot_default(experiment_result, do_export = true);
-            testCase.verifyTrue(true);
 
             % verify export_video
             export_video( ...
@@ -111,16 +109,14 @@ classdef systemtests < matlab.unittest.TestCase
                 step_indices, ...
                 do_export = false ...
             );
-            testCase.verifyTrue(true);
+
             plot_experiment_snapshots( ...
                 experiment_result, ...
                 step_indices, ...
                 do_export = true ...
             );
-            testCase.verifyTrue(true);
 
             plot_partitioned_graph(experiment_result);
-            testCase.verifyTrue(true);
 
             plot_partitioned_graph( ...
                 experiment_result, ...
@@ -130,7 +126,9 @@ classdef systemtests < matlab.unittest.TestCase
                 do_export = false, ...
                 fig = figure(Visible = 'off') ...
             );
-            testCase.verifyTrue(true);
+
+            plot_mpa_over_time(experiment_result);
+            plot_mpa_local_reachable_sets(experiment_result);
 
             close all;
         end

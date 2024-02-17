@@ -3,12 +3,14 @@ classdef MonteCarloTreeSearch < OptimizerInterface
     properties
         set_up_constraints (1, 1) function_handle = @()[];
         are_constraints_satisfied (1, 1) function_handle = @()[];
+        rand_stream (1, 1) RandStream = RandStream('mt19937ar', Seed = 42);
     end
 
     methods
 
         function obj = MonteCarloTreeSearch()
             obj = obj@OptimizerInterface();
+            obj.rand_stream = RandStream('mt19937ar', Seed = 42);
         end
 
         function info_v = run_optimizer(obj, ~, iter, mpa, ~)
@@ -34,7 +36,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             n_expansions_max = 1000;
             n_successor_trims_max = mpa.maximum_branching_factor();
             % initialize variable to store control results
-            info = ControlResultsInfo(iter.amount, Hp, iter.vehicle_ids);
+            info = ControlResultsInfo(iter.amount, Hp);
 
             % Create tree with root node
             trim = iter.trim_indices;
@@ -139,17 +141,17 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             end
 
             % return cheapest path
-            info.y_predicted = return_path_to(best_node_id, info.tree, mpa);
+            info.y_predicted = return_path_to(best_node_id, info.tree);
             info.shapes = return_path_area(shapes_tmp, info.tree, best_node_id);
             info.tree_path = fliplr(path_to_root(info.tree, best_node_id));
             % Predicted trims in the future Hp time steps. The first entry is the current trims
-            info.predicted_trims = double([info.tree.trim(1, :, info.tree_path)]);
+            info.predicted_trims = squeeze(double([info.tree.trim(1, :, info.tree_path(2:end))]))';
             info.is_exhausted = false;
             info.needs_fallback = false;
 
         end
 
-        function trim = random_trim(~, node_id, tree)
+        function trim = random_trim(obj, node_id, tree)
             % RANDOM_TRIM  Return random successor trim for given node.
             %
             % INPUT:
@@ -166,7 +168,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                 trim = 0;
             else
                 % choose successor trim randomly
-                trim = tree.successor_trims(trim_positions(randi(n_trims)), :, node_id);
+                trim = tree.successor_trims(trim_positions(randi(obj.rand_stream, n_trims)), :, node_id);
             end
 
         end

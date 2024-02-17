@@ -1,34 +1,50 @@
 classdef Config
 
     properties
-        environment Environment = Environment.Simulation; % NOTE: Replacement of "is_sim_lab". Does now have three optinos (see Environment enum).
-        manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
-        is_prioritized = true; % true/false, is prioritize vehicles
-        amount = 20; % integer, number of vehicles, does not include manual vehicles
-        computation_mode ComputationMode = ComputationMode.sequential;
+        % ----
+        % Scenario
         scenario_type ScenarioType = ScenarioType.commonroad;
+        scenario_file (1, :) char = 'scenario.mat'; % file the scenario is loaded from
+        amount = 20; % integer, number of vehicles, does not include manual vehicles
+        T_end = 20; % scalar, simulation duration
+        path_ids = []; % reference path IDs for selection of paths for the vehicles
+
+        % ----
+        % Environment
+        environment Environment = Environment.Simulation;
+        options_plot_online OptionsPlotOnline = OptionsPlotOnline();
+
+        computation_mode ComputationMode = ComputationMode.sequential;
+
+        % ----
+        % High-Level Controller
+        is_prioritized = true; % true/false, is prioritize vehicles
         coupling CouplingStrategies = CouplingStrategies.reachable_set_coupling;
         priority PriorityStrategies = PriorityStrategies.constant_priority;
         weight WeightStrategies = WeightStrategies.distance_weight;
         cut CutStrategies = CutStrategies.greedy_cut;
+
+        max_num_CLs = 99; % integer, maximum allowed number of computation levels
+
+        optimizer_type OptimizerType = OptimizerType.MatlabOptimal; % optimizer that shall be used
+
         dt_seconds = 0.2; % scalar, default sample time
         Hp = 6; % scalar, prediction horizon
-        mpa_type MpaType = MpaType.single_speed; % mpa type (element of {'single_speed', 'triple_speed', 'realistic'})
-        T_end = 20; % scalar, simulation duration
-        max_num_CLs = 99; % integer, maximum allowerd number of computation levels
-        constraint_from_successor ConstraintFromSuccessor = ConstraintFromSuccessor.area_of_standstill;
-        strategy_enter_lanelet_crossing_area = '1'; % one of the following: {'1', '2', '3', '4'}, strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
-        % '1': no constraint on entering the crossing area
-        % '2': not allowed to enter the crossing area if they are coupled at intersecting lanelets of the intersection
-        % '3': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets of the intersection
-        % '4': not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-        should_save_result = true; % true/false, is save ExperimentResult
-        should_reduce_result = true; % true/false, if true, reduced ExperimentResult will be save to save disk space (useful for a long run of simulation)
-        result_name = ''; % string or char, custom file name to save ExperimentResult
 
+        mpa_type MpaType = MpaType.single_speed;
+
+        constraint_from_successor ConstraintFromSuccessor = ConstraintFromSuccessor.area_of_standstill;
+
+        %strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
+        % false: no constraint on entering the crossing area
+        % true: not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
+        constrained_enter_lanelet_crossing_area = false;
         fallback_type FallbackType = FallbackType.local_fallback;
 
-        path_ids = []; % reference path IDs for selection of paths for the vehicles
+        manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
+
+        % ----
+        % Other
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered
 
         recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
@@ -36,12 +52,6 @@ classdef Config
         offset = 0.01;
         plot_limits = [0, 4.5; 0, 4]; % default fallback if not defined
         is_use_dynamic_programming = true; % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
-
-        options_plot_online OptionsPlotOnline = OptionsPlotOnline(); % setup for online plotting
-        is_bounded_reachable_set_used = true; % true/false, if true, reachable sets are bounded by lanelet boundaries
-
-        optimizer_type OptimizerType = OptimizerType.MatlabOptimal; % optimizer that shall be used
-
     end
 
     properties (Dependent, GetAccess = public, SetAccess = private)
@@ -52,6 +62,7 @@ classdef Config
         are_any_obstacles_non_convex;
         % execute mex graph search functions in own process
         mex_out_of_process_execution
+        use_cpp % whether to use the C++ optimizer
     end
 
     methods
@@ -95,6 +106,10 @@ classdef Config
 
         end
 
+        function result = get.use_cpp(obj)
+            result = (obj.optimizer_type == OptimizerType.CppOptimal | obj.optimizer_type == OptimizerType.CppSampled);
+        end
+
         % empty set methods used by jsondecode
         % dependent properties with public GetAccess are encoded to a json file
         % to automatically decode the json file set methods must be defined
@@ -111,6 +126,9 @@ classdef Config
         function obj = set.mex_out_of_process_execution(obj, ~)
         end
 
+        function obj = set.use_cpp(obj, ~)
+        end
+
     end
 
     methods (Static)
@@ -125,7 +143,7 @@ classdef Config
             );
 
             obj = Config();
-            obj = obj.importFromJson(fileread(json_file_path));
+            obj = jsondecode(obj, jsondecode(fileread(json_file_path)));
 
         end
 
@@ -136,16 +154,51 @@ classdef Config
         function obj = Config()
         end
 
-        function result = exportAsJson(obj)
-            result = jsonencode(obj);
+        function path_ids = randomize_path_ids(obj, optional)
+
+            arguments
+                obj (1, 1) Config = Config()
+                optional.seed double = []
+                optional.enforce_crossing_intersection (1, 1) logical = true
+            end
+
+            path_id_max = 41; % maximum defined path id
+
+            if optional.enforce_crossing_intersection
+                % the first 8 paths are on the outer circle
+                possible_path_ids = 9:path_id_max;
+            else
+                possible_path_ids = 1:path_id_max; % all possible path ids
+            end
+
+            if isempty(optional.seed)
+                random_stream = RandStream('mt19937ar');
+            else
+                random_stream = RandStream('mt19937ar', Seed = optional.seed);
+            end
+
+            path_ids = randsample(random_stream, possible_path_ids, obj.amount);
+
         end
 
-        function result = importFromJson(obj, json)
-            % custom classes must provide jsondecode by its own
-            result = jsondecode(obj, jsondecode(json));
+        function save_to_file(obj, optional)
+
+            arguments
+                obj (1, 1) Config
+                optional.file_name (1, :) char = 'Config.json'
+            end
+
+            % Write Config to disk
+
+            json_char = jsonencode(obj, PrettyPrint = true);
+
+            fid = fopen(optional.file_name, 'w');
+            fprintf(fid, json_char);
+            fclose(fid);
         end
 
         function obj = jsondecode(obj, json_struct)
+            % custom classes must provide jsondecode
             % for each loop requires fields as row vector
             fields = string(fieldnames(json_struct)).';
 
@@ -156,7 +209,7 @@ classdef Config
                     continue;
                 end
 
-                % custom classes must provide jsondecode by its own
+                % custom classes must provide jsondecode
                 if strcmp(field, "manual_control_config")
                     obj.manual_control_config = ManualControlConfig();
                     obj.manual_control_config = obj.manual_control_config.jsondecode(json_struct.manual_control_config);
@@ -169,10 +222,6 @@ classdef Config
 
             end
 
-        end
-
-        function result = use_cpp(obj)
-            result = (obj.optimizer_type == OptimizerType.CppOptimal | obj.optimizer_type == OptimizerType.CppSampled);
         end
 
         function obj = validate(obj)
@@ -224,8 +273,7 @@ classdef Config
                         case 4
                             obj.path_ids = [17, 18, 19, 20];
                         otherwise
-                            path_id_max = 41; % maximum defined path id
-                            obj.path_ids = randperm(RandStream("mt19937ar"), path_id_max, obj.amount);
+                            obj.path_ids = obj.randomize_path_ids();
                     end
 
                 end
@@ -263,6 +311,41 @@ classdef Config
             % specify different plot limits for circle scenario with 2 vehicles
             if obj.scenario_type == ScenarioType.circle && obj.amount <= 2
                 obj.plot_limits = [0, 4.5; 1.5, 2.5];
+            end
+
+        end
+
+        function tf = isequal(obj, other_config)
+
+            arguments
+                obj (1, 1) Config
+                other_config (1, 1) Config
+            end
+
+            % check if two configs are equal
+            tf = true;
+
+            % check if all properties are equal
+            all_properties = string(fieldnames(obj)).';
+
+            irrelevant_properties = [
+                                     "time_per_tick"
+                                     "plot_limits"
+                                     "is_use_dynamic_programming"
+                                     "options_plot_online"
+                                     ];
+
+            for property = all_properties
+
+                if ismember(property, irrelevant_properties)
+                    continue;
+                end
+
+                if ~isequal(obj.(property), other_config.(property))
+                    tf = false;
+                    return;
+                end
+
             end
 
         end

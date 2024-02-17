@@ -1,4 +1,4 @@
-function [reference_trajectory_struct, v_ref, current_point_index] = get_reference_trajectory(mpa, reference_path, x_current, y_current, trim_current, dt_seconds)
+function [reference_trajectory_struct, v_ref, current_point_index] = get_reference_trajectory(mpa, reference_path, reference_speed, x_current, y_current, trim_current, dt_seconds)
     % get_reference_trajectory This function calculates the reference path and
     % speed for the prediction horizon based on the vehicle's current state and
     % the total reference path from the scenario. As a byproduct it returns
@@ -17,6 +17,7 @@ function [reference_trajectory_struct, v_ref, current_point_index] = get_referen
     arguments
         mpa MotionPrimitiveAutomaton
         reference_path (:, 2) double % reference_path from scenario
+        reference_speed (1, 1) double % reference_speed from scenario
         x_current (1, 1) double % current x coordinate of the vehicle
         y_current (1, 1) double % current y coordinate of the vehicle
         trim_current (1, 1) double % current trim of the vehicle
@@ -26,7 +27,7 @@ function [reference_trajectory_struct, v_ref, current_point_index] = get_referen
     Hp = size(mpa.transition_matrix_single, 3);
 
     % get reference speed and path points
-    v_ref = mpa.get_max_speed(trim_current);
+    v_ref = ones(Hp, 1) * reference_speed;
 
     % determine intermediate speed between every two consecutive speeds
     v_current = mpa.trims(trim_current).speed;

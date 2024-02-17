@@ -8,11 +8,10 @@ function eval_parallel_computation_CLs()
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
     options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
-    options.strategy_enter_lanelet_crossing_area = '1';
+    options.constrained_enter_lanelet_crossing_area = false;
     options.dt_seconds = 0.2;
     options.options_plot_online.is_active = false;
 
-    options.should_save_result = true;
     options.Hp = 7;
     options.T_end = 4;
     options.amount = 20;
@@ -30,18 +29,10 @@ function eval_parallel_computation_CLs()
 
         for j = 1:length(CLs_s)
 
-            if i == 1 && j == 1
-                options.should_reduce_result = false;
-            else
-                options.should_reduce_result = true;
-            end
-
             options.max_num_CLs = CLs_s(j);
             options.path_ids = sort(randsample(random_seed, 1:40, options.amount), 'ascend');
 
-            full_path = FileNameConstructor.get_results_full_path(options, options.amount);
-
-            if isfile(full_path)
+            if FileNameConstructor.result_exists(options)
                 disp('File already exists.')
             else
                 % run simulation
@@ -50,7 +41,7 @@ function eval_parallel_computation_CLs()
 
             % data processing
             e_CLs{i, j} = EvaluationParl(options);
-            load(full_path, 'experiment_result')
+            experiment_result = load_latest(options);
             experiment_results{i, j} = experiment_result;
 
             % display progress
@@ -113,10 +104,10 @@ function plot_different_num_CLs(e_CLs, free_flow_speed, CLs_s, results_folder_pa
 
     boxplot(average_speed_normalized * 100, 'Colors', 'k', 'OutlierSize', 4, 'Labels', X_string);
 
-    y_FFS = yline(free_flow_speed / free_flow_speed * 100, '--k', 'LineWidth', 0.6);
+    y_FFS = yline(free_flow_speed / free_flow_speed * 100, '--k', LineWidth = 0.6);
 
     legend(y_FFS, {'Free-flow speed'}, 'Location', 'south')
-    ylabel('$\overline{v}\:[\%]$', 'Interpreter', 'latex')
+    ylabel('$\overline{v}\:[\%]$', Interpreter = 'latex')
     xlabel('Computation level limit')
     xaxis = get(gca, 'XAxis');
     xaxis.TickLabelInterpreter = 'latex'; % latex for x-axis
@@ -146,7 +137,7 @@ function plot_different_num_CLs(e_CLs, free_flow_speed, CLs_s, results_folder_pa
     ylim([0 level_max])
     yticks(0:2:level_max)
     % xlabel('(b) Actual number of computation levels.')
-    ylabel('$N_{l}$', 'Interpreter', 'latex')
+    ylabel('$N_{l}$', Interpreter = 'latex')
     xaxis = get(gca, 'XAxis');
     xaxis.TickLabelInterpreter = 'latex'; % latex for x-axis
 

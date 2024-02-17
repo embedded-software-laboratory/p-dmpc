@@ -8,8 +8,6 @@
     "T_end": 5,
     "max_num_CLs": 4,
     "mpa_type": "single_speed",
-    "should_save_result": false,
-    "should_reduce_result": false,
     "options_plot_online": {
         "is_active": true,
         "plot_vehicle_id": true,
@@ -24,5 +22,5 @@
         "is_video_mode": true
     },
     "is_prioritized": true,
-    "strategy_enter_lanelet_crossing_area": "2"
+    "constrained_enter_lanelet_crossing_area": true
 }

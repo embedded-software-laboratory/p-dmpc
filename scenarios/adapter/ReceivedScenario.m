@@ -30,7 +30,7 @@ classdef ReceivedScenario < ScenarioAdapter
                 filepath_lanelet2_map = 'lab_reduced.osm';
             end
 
-            obj.scenario = lanelet2_scenario(options.amount, options.path_ids, filepath_lanelet2_map);
+            obj.scenario = Lanelet2(options, filepath_lanelet2_map);
 
             % init manual vehicles
             obj.init_hdv(options);

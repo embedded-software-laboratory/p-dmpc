@@ -1,8 +1,18 @@
 classdef DistanceCoupler < Coupler
 
+    properties (Access = private)
+        adjacency_lanelets
+    end
+
     methods
 
-        function [adjacency] = couple(obj, options, max_mpa_speed, adjacency_lanelets, iter)
+        function obj = DistanceCoupler(scenario)
+            obj@Coupler();
+
+            obj.adjacency_lanelets = scenario.adjacency_lanelets;
+        end
+
+        function [adjacency] = couple(obj, options, max_mpa_speed, iter)
             adjacency = zeros(options.amount, options.amount);
 
             max_distance = 2 * max_mpa_speed * options.dt_seconds * options.Hp;
@@ -15,8 +25,8 @@ classdef DistanceCoupler < Coupler
                 for i_vehicle_2 = (i_vehicle_1 + 1):options.amount
                     % If the predicted lanelets of both vehicles are not adjacent, skip the distance measurement
                     % (only checked if information of adjacent lanelets exist, i.e., in commonroad or lanelet2 scenarios)
-                    if (~isempty(adjacency_lanelets) ...
-                            && ~obj.is_any_lanelet_adjacent(iter.current_lanelet, iter.predicted_lanelets, adjacency_lanelets, i_vehicle_1, i_vehicle_2))
+                    if (~isempty(obj.adjacency_lanelets) ...
+                            && ~obj.is_any_lanelet_adjacent(iter.current_lanelet, iter.predicted_lanelets, i_vehicle_1, i_vehicle_2))
                         continue;
                     end
 
@@ -40,14 +50,14 @@ classdef DistanceCoupler < Coupler
 
     end
 
-    methods (Static, Access = private)
+    methods (Access = private)
 
-        function [is_adjacent] = is_any_lanelet_adjacent(current_lanelet, predicted_lanelets, adjacency_lanelets, i_vehicle_1, i_vehicle_2)
+        function is_adjacent = is_any_lanelet_adjacent(obj, current_lanelet, predicted_lanelets, i_vehicle_1, i_vehicle_2)
             % IS_ANY_LANELET_ADJACENT checks whether the predicted and current lanelets of the vehicles
             %   with the given indices are adjacent to each other
             lanelets_1 = unique([current_lanelet(i_vehicle_1), predicted_lanelets{i_vehicle_1, 1}]);
             lanelets_2 = unique([current_lanelet(i_vehicle_2), predicted_lanelets{i_vehicle_2, 1}]);
-            is_adjacent = any(adjacency_lanelets(lanelets_1, lanelets_2), 'all');
+            is_adjacent = any(obj.adjacency_lanelets(lanelets_1, lanelets_2), 'all');
         end
 
     end

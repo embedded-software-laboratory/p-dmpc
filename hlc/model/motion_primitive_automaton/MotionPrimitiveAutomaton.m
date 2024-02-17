@@ -27,11 +27,11 @@ classdef MotionPrimitiveAutomaton
 
     methods
 
-        function obj = MotionPrimitiveAutomaton(model, options)
+        function obj = MotionPrimitiveAutomaton(options, model)
 
             arguments
-                model (1, 1) VehicleModel
                 options (1, 1) Config
+                model (1, 1) VehicleModel = BicycleModel(Vehicle().Lf, Vehicle().Lr)
             end
 
             % Constructor
@@ -128,7 +128,7 @@ classdef MotionPrimitiveAutomaton
                     if obj.transition_matrix_single(i, j, 1)
                         obj.maneuvers{i, j} = generate_maneuver(model, obj.trims(i), obj.trims(j), options);
                         % transform maneuver area to polyshape
-                        obj.maneuvers{i, j}.areaPoly = polyshape(obj.maneuvers{i, j}.area(1, :), obj.maneuvers{i, j}.area(2, :), 'Simplify', false);
+                        obj.maneuvers{i, j}.areaPoly = polyshape(obj.maneuvers{i, j}.area(1, :), obj.maneuvers{i, j}.area(2, :), Simplify = false);
                     end
 
                 end
@@ -215,6 +215,12 @@ classdef MotionPrimitiveAutomaton
                 max_speed(k) = max_speed_next;
             end
 
+        end
+
+        function straight_speeds = get_straight_speeds_of_mpa(obj)
+            % return non-negative speeds of trims with steering=0
+            non_negative_speed_trims = find([obj.trims(:).speed] > 0 & [obj.trims(:).steering] == 0);
+            straight_speeds = [obj.trims(non_negative_speed_trims).speed];
         end
 
         function trim_index = trim_from_values(obj, speed, steering)
@@ -383,7 +389,7 @@ classdef MotionPrimitiveAutomaton
                             [area_x, area_y] = ...
                                 translate_global(yaw0, x0, y0, obj.maneuvers{trim_start, trim_end}.area(1, :), obj.maneuvers{trim_start, trim_end}.area(2, :));
                             trimsInfo(i, t).maneuvers{child_ordinal}.area = [area_x; area_y];
-                            trimsInfo(i, t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, 'Simplify', false);
+                            trimsInfo(i, t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, Simplify = false);
                         end
 
                     end
@@ -527,7 +533,7 @@ classdef MotionPrimitiveAutomaton
                             [area_x, area_y] = ...
                                 translate_global(yaw0, x0, y0, obj.maneuvers{trim_start, trim_end}.area(1, :), obj.maneuvers{trim_start, trim_end}.area(2, :));
                             trimsInfo(i, t).maneuvers{child_ordinal}.area = [area_x; area_y];
-                            trimsInfo(i, t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, 'Simplify', false);
+                            trimsInfo(i, t).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, Simplify = false);
                         end
 
                     end
@@ -616,7 +622,7 @@ classdef MotionPrimitiveAutomaton
                             [area_x, area_y] = ...
                                 translate_global(yaw0, x0, y0, obj.maneuvers{trim_start, trim_end}.area(1, :), obj.maneuvers{trim_start, trim_end}.area(2, :));
                             trimsInfoHpHalf(ii, 1).maneuvers{child_ordinal}.area = [area_x; area_y];
-                            trimsInfoHpHalf(ii, 1).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, 'Simplify', false);
+                            trimsInfoHpHalf(ii, 1).maneuvers{child_ordinal}.areaPoly = polyshape(area_x, area_y, Simplify = false);
                         end
 
                     end
@@ -656,7 +662,7 @@ classdef MotionPrimitiveAutomaton
                                 reachable_sets_local{parentTrim, Hp_half}.Vertices(:, 1)', reachable_sets_local{parentTrim, Hp_half}.Vertices(:, 2)');
                         end
 
-                        areaPolys(j) = polyshape(area_x, area_y, 'Simplify', false);
+                        areaPolys(j) = polyshape(area_x, area_y, Simplify = false);
                     end
 
                     % union polyshapes
@@ -1010,7 +1016,7 @@ classdef MotionPrimitiveAutomaton
                 transformed_reachable_sets{t} = polyshape( ...
                     reachable_set_x, ...
                     reachable_set_y, ...
-                    'Simplify', false ...
+                    Simplify = false ...
                 );
             end
 
@@ -1091,7 +1097,7 @@ classdef MotionPrimitiveAutomaton
                     with_labels = false, ...
                     y_lim = optional.y_lim ...
                 );
-                title(sprintf("$t=k+%d$", k - 1), 'Interpreter', 'latex');
+                title(sprintf("$t=k+%d$", k - 1), Interpreter = 'latex');
             end
 
             xlabel(tiledLayoutHandle, 'Steering Angle $\delta$ [$^{\circ}$]', ...

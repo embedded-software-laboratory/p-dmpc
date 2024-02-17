@@ -3,7 +3,7 @@ classdef HlcFactory
     properties (Access = public)
     end
 
-    methods (Static)
+    methods (Static, Access = public)
 
         function hlc = get_hlc(options, vehicle_indices_controlled, optional)
 
@@ -12,6 +12,11 @@ classdef HlcFactory
                 vehicle_indices_controlled (1, :) double
                 optional.do_dry_run = false
                 optional.ros2_node = []
+            end
+
+            % Dry run must be executed before everything else
+            if optional.do_dry_run
+                HlcFactory.dry_run_hlc(options, vehicle_indices_controlled);
             end
 
             if isempty(optional.ros2_node)
@@ -23,28 +28,28 @@ classdef HlcFactory
             plant = Plant.get_plant(options.environment, optional.ros2_node);
             plant.setup(options, vehicle_indices_controlled);
 
-            if optional.do_dry_run
-                % FIXME does not work in parallel
-                HlcFactory.dry_run_hlc(options, plant.vehicle_indices_controlled, optional.ros2_node);
-            end
-
             if options.is_prioritized
 
                 if length(vehicle_indices_controlled) == 1
                     % Prioritized controller for exactly 1 vehicle. Communicates
                     % with the other HLCs
-                    if options.priority ~= PriorityStrategies.optimal_priority
-                        hlc = PrioritizedController(options, plant, optional.ros2_node);
-                    else
+                    if options.priority == PriorityStrategies.optimal_priority
                         hlc = PrioritizedOptimalController(options, plant, optional.ros2_node);
+                    elseif options.priority == PriorityStrategies.explorative_priority
+                        hlc = PrioritizedExplorativeController(options, plant, optional.ros2_node);
+                    else
+                        hlc = PrioritizedController(options, plant, optional.ros2_node);
                     end
 
                 else
+
                     % Prioritized controller controlling all vehicles
-                    if options.priority ~= PriorityStrategies.optimal_priority
-                        hlc = PrioritizedSequentialController();
-                    else
+                    if options.priority == PriorityStrategies.optimal_priority
                         hlc = PrioritizedOptimalSequentialController();
+                    elseif options.priority == PriorityStrategies.explorative_priority
+                        hlc = PrioritizedExplorativeSequentialController();
+                    else
+                        hlc = PrioritizedSequentialController();
                     end
 
                     for i_vehicle = vehicle_indices_controlled
@@ -65,9 +70,20 @@ classdef HlcFactory
 
         end
 
+        function create_dry_run_scenario(options)
+            % Use commonroad as it covers more lines of codes
+            options.scenario_type = ScenarioType.commonroad;
+            % Validate for path ids
+            options = options.validate();
+            scenario = Commonroad(options);
+
+            % Save scenario for dry run
+            save('scenario_dry_run.mat', 'scenario');
+        end
+
     end
 
-    methods (Access = private)
+    methods (Static, Access = private)
 
         % This function runs the HLC once without outputting anything and
         % resets it afterwards.
@@ -83,16 +99,19 @@ classdef HlcFactory
         % Important note: This might take some time depending on how hard to
         % solve the first time step of this scenario is.
 
-        function dry_run_hlc(options, dry_run_vehicle_indices, ros2_node)
+        function dry_run_hlc(options, dry_run_vehicle_indices)
 
             arguments
                 options Config
                 dry_run_vehicle_indices (1, :) double
-                ros2_node
             end
 
-            fprintf("Dry run of HLC...");
+            fprintf("Dry run of HLC...\n");
 
+            % use dry run scenario
+            options.scenario_file = 'scenario_dry_run.mat';
+            % use commonroad as it covers more lines of code
+            options.scenario_type = ScenarioType.commonroad;
             % use simulation to avoid communication with a lab
             options.environment = Environment.Simulation;
             % for simulation manual vehicles are disabled
@@ -101,16 +120,13 @@ classdef HlcFactory
             options.options_plot_online.is_active = false;
             % for the dry run reduce experiment time to a minimum
             options.T_end = 2 * options.dt_seconds;
-            % for the dry run results are not relevant
-            options.should_save_result = false;
 
-            plant = Plant.get_plant(options.environment, ros2_node);
-            plant.setup(options, dry_run_vehicle_indices);
-
-            hlc = HlcFactory.get_hlc(options, dry_run_vehicle_indices, do_dry_run = true);
+            % dry_run must be false otherwise it would lead to an endless loop
+            % (get_hlc -> dry_run_hlc -> get_hlc)
+            hlc = HlcFactory.get_hlc(options, dry_run_vehicle_indices, do_dry_run = false);
             hlc.run();
 
-            fprintf(" done.\n");
+            fprintf("Dry run done.\n");
         end
 
     end

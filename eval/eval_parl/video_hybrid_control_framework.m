@@ -11,8 +11,6 @@ options.dt_seconds = 0.2;
 
 options.priority = 'STAC_priority';
 options.is_prioritized = true;
-options.should_save_result = true;
-options.should_reduce_result = false;
 options.is_plot_online = true;
 options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
 
@@ -25,8 +23,8 @@ switch i
         options.options_plot_online.plot_reachable_sets = true;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
         options.options_plot_online.vehicles_reachable_sets = [2];
-        options.is_bounded_reachable_set_used = false;
-        options.strategy_enter_lanelet_crossing_area = '1';
+        % options.is_bounded_reachable_set_used = false;
+        options.constrained_enter_lanelet_crossing_area = false;
         options.max_num_CLs = 1;
         options.path_ids = [18, 41];
         options.amount = 2;
@@ -34,8 +32,7 @@ switch i
         options.T_end = 3;
         options.options_plot_online.plot_reachable_sets = true;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
-        options.is_bounded_reachable_set_used = true;
-        options.strategy_enter_lanelet_crossing_area = '1';
+        options.constrained_enter_lanelet_crossing_area = false;
         options.max_num_CLs = 1;
         options.path_ids = [18, 41];
         options.amount = 2;
@@ -43,8 +40,7 @@ switch i
         options.T_end = 3;
         options.options_plot_online.plot_reachable_sets = false;
         options.options_plot_online.plot_lanelet_crossing_areaas = true;
-        options.is_bounded_reachable_set_used = true;
-        options.strategy_enter_lanelet_crossing_area = '4';
+        options.constrained_enter_lanelet_crossing_area = true;
         options.max_num_CLs = 1;
         options.path_ids = [18, 41];
         options.amount = 2;
@@ -52,8 +48,7 @@ switch i
         options.T_end = 30;
         options.options_plot_online.plot_reachable_sets = false;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
-        options.is_bounded_reachable_set_used = true;
-        options.strategy_enter_lanelet_crossing_area = '4';
+        options.constrained_enter_lanelet_crossing_area = true;
         options.max_num_CLs = 3;
         options.amount = 30;
         random_stream = RandStream('mt19937ar');
@@ -62,8 +57,7 @@ switch i
         options.T_end = 10;
         options.options_plot_online.plot_reachable_sets = false;
         options.options_plot_online.plot_lanelet_crossing_areaas = false;
-        options.is_bounded_reachable_set_used = true;
-        options.strategy_enter_lanelet_crossing_area = '1';
+        options.constrained_enter_lanelet_crossing_area = false;
         options.max_num_CLs = 4;
         options.amount = 17;
         options.priority = 'random_priority';
@@ -75,16 +69,14 @@ end
 %
 % options.options_plot_online.vehicles_lanelet_crossing_areas = find(options.path_ids==18);
 
-full_path = FileNameConstructor.get_results_full_path(options);
-
-if isfile(full_path)
+if FileNameConstructor.result_exists(options)
     disp('File already exists.')
 else
     % run simulation
     main(options);
 end
 
-load(full_path)
+experiment_result = load_latest(options);
 
 %%
 experiment_result.options.options_plot_online.is_video_mode = true;

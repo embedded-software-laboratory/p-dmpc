@@ -16,7 +16,7 @@ function plot_lanelet(lanelet, color)
         lineStyle = '-';
     end
 
-    line([lanelet.rightBound.point.x], [lanelet.rightBound.point.y], 'Color', color, 'LineWidth', 0.15, 'LineStyle', lineStyle);
+    line([lanelet.rightBound.point.x], [lanelet.rightBound.point.y], Color = color, LineWidth = 0.15, LineStyle = lineStyle);
 
     % right bound
     if strcmp(lanelet.leftBound.lineMarking, 'dashed')
@@ -25,5 +25,5 @@ function plot_lanelet(lanelet, color)
         lineStyle = '-';
     end
 
-    line([lanelet.leftBound.point.x], [lanelet.leftBound.point.y], 'Color', color, 'LineWidth', 0.15, 'LineStyle', lineStyle);
+    line([lanelet.leftBound.point.x], [lanelet.leftBound.point.y], Color = color, LineWidth = 0.15, LineStyle = lineStyle);
 end

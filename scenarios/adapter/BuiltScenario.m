@@ -14,7 +14,7 @@ classdef BuiltScenario < ScenarioAdapter
 
         function init(obj, options, plant)
             % initialize the member scenario of the scenario adapter
-            % with a scenario saved in 'scenario.mat'
+            % with a scenario saved in specified scenario file
 
             arguments
                 obj (1, 1) BuiltScenario
@@ -22,7 +22,7 @@ classdef BuiltScenario < ScenarioAdapter
                 plant (1, 1) Plant
             end
 
-            scenario_loaded = load('scenario.mat', 'scenario').scenario;
+            scenario_loaded = load(options.scenario_file, 'scenario').scenario;
 
             assert( ...
                 length(scenario_loaded.vehicles) == options.amount, ...

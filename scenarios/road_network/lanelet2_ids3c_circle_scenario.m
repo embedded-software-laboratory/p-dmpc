@@ -10,6 +10,7 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
     options.is_allow_non_convex = true;
 
     disp('Create Lanelet2_IDS3C_circle scenario.')
+
     if options.scenario_type == ScenarioType.lanelet2_ids3c_circle
         file_name = 'IDS3C_Map_Circle_18.osm';
         scenario.options.plot_limits = [-0.5, 4.2; -2, 2];
@@ -23,7 +24,7 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
     road_data = RoadDataLanelet2(false).get_road_data(file_name);
     % end
 
-    assignin('base', 'road_data_lab_default_scenario', road_data);
+    assignin('base', 'road_data_testbed_default_scenario', road_data);
     scenario.lanelets = road_data.lanelets;
     scenario.intersection_lanelets = road_data.intersection_lanelets;
     scenario.lanelet_boundary = road_data.lanelet_boundary;
@@ -33,7 +34,7 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
 
     nVeh = options.amount;
 
-    paths = [5332,2488,2396; 2396,2488,2396; 5311,2488,2396];
+    paths = [5332, 2488, 2396; 2396, 2488, 2396; 5311, 2488, 2396];
 
     for iveh = 1:nVeh
 
@@ -41,7 +42,7 @@ function scenario = lanelet2_ids3c_circle_scenario(options, vehicle_ids, plant)
         veh.trim_config = 1;
 
         % Generate a ref path using the Lanelet2 Interface and generate_ref_path_loop
-        lanelets_index = Lanelet2_Interface.generate_lanelet2_ref_path_separate_segments_indices(scenario.road_data_file_path, paths(iveh,:));
+        lanelets_index = Lanelet2_Interface.generate_lanelet2_ref_path_separate_segments_indices(scenario.road_data_file_path, paths(iveh, :));
 
         ref_path = generate_ref_path(vehicle_ids(iveh), scenario.lanelets, lanelets_index);
         veh.lanelets_index = ref_path.lanelets_index;
