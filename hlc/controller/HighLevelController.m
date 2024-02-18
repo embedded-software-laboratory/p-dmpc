@@ -451,7 +451,7 @@ classdef (Abstract) HighLevelController < handle
             obj.check_others_fallback();
 
             if obj.info.needs_fallback
-                obj.controller_fallback();
+                obj.controller_fallback(is_fallback_while_planning = false);
             end
 
         end

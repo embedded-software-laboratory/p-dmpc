@@ -520,6 +520,8 @@ classdef PrioritizedController < HighLevelController
                     throw_error = true ...
                 );
 
+                obj.iter.fallbacks(latest_msg.vehicle_index) = latest_msg.needs_fallback;
+
                 predicted_areas = arrayfun(@(array) {[array.x(:)'; array.y(:)']}, latest_msg.predicted_areas);
                 j_predecessor = predecessors == j_vehicle;
                 dynamic_obstacle_area(j_predecessor, :) = predicted_areas;
@@ -663,7 +665,30 @@ classdef PrioritizedController < HighLevelController
                     throw_error = true ...
                 );
 
-                if latest_msg.needs_fallback
+                obj.iter.fallbacks(latest_msg.vehicle_index) = latest_msg.needs_fallback;
+
+            end
+
+            fallback_matrix = obj.iter.adjacency;
+            % remove outgoing edges of fallback vehicles;
+            % These fallback edges have already been considered during planning
+            outgoing_fallback = obj.iter.directed_coupling_sequential;
+            outgoing_fallback(~obj.iter.fallbacks, ~obj.iter.fallbacks) = 0;
+            outgoing_fallback = outgoing_fallback + outgoing_fallback';
+            fallback_matrix = fallback_matrix - outgoing_fallback;
+
+            fallback_graph = digraph(fallback_matrix);
+            fallback_vehicle_indices = find(obj.iter.fallbacks);
+
+            for i = 1:numel(fallback_vehicle_indices)
+                i_fallback_vehicle = fallback_vehicle_indices(i);
+                graph_path = shortestpath( ...
+                    fallback_graph, ...
+                    i_fallback_vehicle, ...
+                    i_vehicle ...
+                );
+
+                if ~isempty(graph_path)
                     obj.info.needs_fallback = true;
                     break;
                 end
@@ -672,7 +697,12 @@ classdef PrioritizedController < HighLevelController
 
         end
 
-        function plan_fallback(obj)
+        function plan_fallback(obj, optional)
+
+            arguments
+                obj (1, 1) PrioritizedController
+                optional.is_fallback_while_planning (1, 1) logical = true;
+            end
 
             % initialize
             obj.info = ControlResultsInfo(1, obj.options.Hp);
@@ -682,13 +712,19 @@ classdef PrioritizedController < HighLevelController
             obj.info.shapes = del_first_rpt_last(obj.info_old.shapes);
             obj.info.predicted_trims = del_first_rpt_last(obj.info_old.predicted_trims);
             obj.info.y_predicted = del_first_rpt_last(obj.info_old.y_predicted);
-            obj.info.needs_fallback = true;
+            obj.info.needs_fallback = optional.is_fallback_while_planning;
         end
 
-        function controller_fallback(obj)
+        function controller_fallback(obj, optional)
+
+            arguments
+                obj (1, 1) PrioritizedController
+                optional.is_fallback_while_planning (1, 1) logical = true;
+            end
+
             % planning by using last priority and trajectories directly
 
-            obj.plan_fallback();
+            obj.plan_fallback(is_fallback_while_planning = optional.is_fallback_while_planning);
             obj.publish_predictions();
 
         end

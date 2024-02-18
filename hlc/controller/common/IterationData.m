@@ -27,6 +27,7 @@ classdef IterationData
         directed_coupling_sequential (:, :) logical % nVeh-by-nVeh matrix, after graph partitioning
 
         coupling_info % coupling information of each coupling pair
+        fallbacks (:, 1) logical % n_vehicles x 1, true if fallback
 
         hdv_reachable_sets % reachable sets of hdvs
         hdv_adjacency % (nCAV x nHDV) matrix, entry (i,j) is 1 if CAV i is next to or in behind of HDV j
@@ -67,6 +68,7 @@ classdef IterationData
             obj.lanelet_crossing_areas = repmat({{}}, nVeh, 1);
             obj.amount = nVeh;
             obj.coupling_info = cell(nVeh, nVeh);
+            obj.fallbacks = false(nVeh, 1);
         end
 
         function equal = is_equal(obj, compare_obj)
@@ -138,6 +140,7 @@ classdef IterationData
             cleaned_object.hdv_adjacency = [];
             cleaned_object.v_ref = [];
             cleaned_object.reachable_sets = {};
+            cleaned_object.fallbacks = [];
         end
 
     end
