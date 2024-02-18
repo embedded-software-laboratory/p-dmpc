@@ -36,8 +36,8 @@ classdef (Abstract) Plant < handle
                     plant.set_ros2_node(ros2_node);
                 case Environment.CpmLab
                     plant = CpmLab();
-                case Environment.UnifiedLabApi
-                    plant = UnifiedLabApi();
+                case Environment.UnifiedTestbedInterface
+                    plant = UnifiedTestbedInterface();
             end
 
         end

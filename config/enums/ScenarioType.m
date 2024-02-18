@@ -4,7 +4,7 @@ classdef ScenarioType
         commonroad
         circle
         lanelet2
-        lab_default
+        testbed_default
     end
 
 end

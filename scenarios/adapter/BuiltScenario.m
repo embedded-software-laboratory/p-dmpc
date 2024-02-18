@@ -31,7 +31,7 @@ classdef BuiltScenario < ScenarioAdapter
                 options.amount ...
             )
 
-            if isa(plant, "UnifiedLabApi") && options.scenario_type == ScenarioType.lanelet2
+            if isa(plant, "UnifiedTestbedInterface") && options.scenario_type == ScenarioType.lanelet2
                 plant.register_map(fileread(scenario_loaded.road_data_file_path));
             end
 
@@ -47,7 +47,7 @@ classdef BuiltScenario < ScenarioAdapter
 
         function register_map(~, map_as_string)
             % registering the map of the scenario
-            % the functionality is currently part of UnifiedLabApi
+            % the functionality is currently part of UnifiedTestbedInterface
             fprintf('Successfully registered the map %s.', map_as_string);
         end
 

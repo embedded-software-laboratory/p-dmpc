@@ -76,9 +76,9 @@ classdef Scenario
                     scenario = Commonroad(options);
                 case ScenarioType.lanelet2
                     scenario = Lanelet2(options);
-                case ScenarioType.lab_default
+                case ScenarioType.testbed_default
                     scenario = Scenario(options);
-                    disp('Scenario is created later after map is retrieved via UnifiedLabApi');
+                    disp('Scenario is created later after map is retrieved via UnifiedTestbedInterface');
             end
 
         end

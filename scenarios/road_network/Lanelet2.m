@@ -15,11 +15,11 @@ classdef Lanelet2 < Scenario
                 % Get road data from default location
                 road_data = RoadDataLanelet2(false).get_road_data();
             else
-                % ULA is required for that.
-                assert(isa(plant, "UnifiedLabApi"));
+                % UTI is required for that.
+                assert(isa(plant, "UnifiedTestbedInterface"));
 
                 % Store string in temporary file
-                tmp_file_name = 'received_lanelet2_map_via_unifiedLabAPI.osm';
+                tmp_file_name = 'received_lanelet2_map_via_unifiedTestbedInterface.osm';
                 writelines(filepath_lanelet2_map, [tempdir, filesep, tmp_file_name]);
 
                 % Retrieve road data
@@ -44,7 +44,7 @@ classdef Lanelet2 < Scenario
                 % take loop from all defined loops
                 reference_path_loop = reference_path_loops{1};
                 % define starting lanelet
-                start_idx = mod(options.path_ids(iveh) * 2 - 1, width(reference_path_loop));
+                start_idx = mod(options.path_ids(iveh) * 2 - 1 + 8, width(reference_path_loop));
                 % shift reference_path_loop depending on start_idx
                 lanelets_index = [reference_path_loop(start_idx:end), reference_path_loop(1:start_idx - 1)];
 

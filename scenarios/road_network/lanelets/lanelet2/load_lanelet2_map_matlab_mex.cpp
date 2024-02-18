@@ -8,7 +8,7 @@
 #include <lanelet2_core/geometry/Lanelet.h>
 #include <lanelet2_routing/RoutingGraph.h>
 #include <lanelet2_traffic_rules/TrafficRulesFactory.h>
-#include <lanelet2_scaled_lab_projector/ScaledLab.h>
+#include <lanelet2_projection/CPM.h>
 
 
 using matlab::mex::ArgumentList;
@@ -28,7 +28,7 @@ public:
         using namespace lanelet;
 
         // Read lanelet2 map
-        LaneletMapPtr map = load(filename, projection::ScaledLabProjector{Origin({0,0})});
+        LaneletMapPtr map = load(filename, projection::CpmProjector{Origin({0,0})});
         traffic_rules::TrafficRulesPtr trafficRules =
             traffic_rules::TrafficRulesFactory::create(Locations::Germany, Participants::Vehicle);
         routing::RoutingGraphUPtr routing_graph = routing::RoutingGraph::build(*map, *trafficRules);
@@ -42,7 +42,7 @@ public:
                 id_to_index.emplace(lanelet_it->id(), i);
             }
         }
-        
+
 
 ////////////////////////////////////// Read Lanelets //////////////////////////////////////
         matlab::data::CellArray lanelets_mat = factory.createCellArray({1,map->laneletLayer.size()});
@@ -54,9 +54,9 @@ public:
         //         size_t n_rows = lanelet_it->leftBound2d().size();
         //         assert(n_rows == lanelet_it->rightBound2d().size());
         //         // We assume that leftBound, rightBound and centerline have the same number of points. Valid hypothesis?
-        // 
+        //
         //         lanelets_mat[0][i] = factory.createArray<double>({n_rows,6});
-        // 
+        //
         //         auto point_left_it  = lanelet_it->leftBound2d().begin();
         //         auto point_right_it = lanelet_it->rightBound2d().begin();
         //         auto point_center_it = lanelet_it->centerline().begin();

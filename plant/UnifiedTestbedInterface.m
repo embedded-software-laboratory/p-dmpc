@@ -1,22 +1,22 @@
-classdef UnifiedLabApi < Plant
-    % UNIFIEDLABPI    Instance of experiment interface for usage via the generalized lab api.
+classdef UnifiedTestbedInterface < Plant
+    % UNIFIEDTESTBEDINTERFACE    Instance of experiment interface for usage via the unified testbed interface.
 
     properties (Access = private)
         comm_node %matlabParticipant
         subscription_experimentState
-        subscription_controllerInvocation % = vehicleStateList
-        client_labProperties
+        subscription_plannerInvocation % = vehicleStateList
+        client_testbedCharacteristics
         client_scaleRegistration
         client_mapDefinition % for defining the map
         client_mapRequest % for receiving the defined map
         publisher_readyState
         publisher_trajectoryCommand
-        publisher_vehicleControllerPeriod
+        publisher_motionPlannerPeriod
         actionClient_vehiclesRequest
         goal_msg % Contains the action client goal message
         goal_handle % Handle for action client goal
 
-        lab_properties
+        testbed_characteristics
         got_start = false
         got_stop = false
 
@@ -27,19 +27,19 @@ classdef UnifiedLabApi < Plant
 
     methods
 
-        function obj = UnifiedLabApi()
+        function obj = UnifiedTestbedInterface()
             obj = obj@Plant();
         end
 
         function setup(obj, options, vehicle_ids_controlled)
 
             arguments
-                obj (1, 1) UnifiedLabApi
+                obj (1, 1) UnifiedTestbedInterface
                 options (1, 1) Config
                 vehicle_ids_controlled (1, :) uint8
             end
 
-            % FIXME what does the ULA need? IDs, indices, all, controlled?
+            % FIXME what does the UTI need? IDs, indices, all, controlled?
 
             obj.got_start = false;
             obj.got_stop = false;
@@ -92,14 +92,14 @@ classdef UnifiedLabApi < Plant
         end
 
         function register_map(obj, map_as_string)
-            % ULA allows to set a scenario map in the lab.
-            obj.set_map_in_lab(map_as_string);
+            % UTI allows to set a scenario map in the testbed.
+            obj.set_map_in_testbed(map_as_string);
         end
 
         function map_as_string = receive_map(obj)
-            % ULA allows to receive a default map from the lab.
+            % UTI allows to receive a default map from the testbed.
             % The return value is the file content of an .osm file as string.
-            map_as_string = obj.set_map_in_lab();
+            map_as_string = obj.set_map_in_testbed();
         end
 
         function synchronize_start_with_plant(obj)
@@ -186,41 +186,45 @@ classdef UnifiedLabApi < Plant
         end
 
         function apply(obj, info, ~, ~, mpa)
+            y_pred = info.y_predicted;
+            % simulate change of state
+            for iVeh = obj.vehicle_indices_controlled
+                obj.measurements(iVeh) = PlantMeasurement( ...
+                    info.next_node(iVeh, NodeInfo.x), ...
+                    info.next_node(iVeh, NodeInfo.y), ...
+                    info.next_node(iVeh, NodeInfo.yaw), ...
+                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).speed, ...
+                    mpa.trims(info.next_node(iVeh, NodeInfo.trim)).steering ...
+                );
+            end
+
+            % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.amount, 1);
 
-            for vehicle_index = obj.vehicle_indices_controlled
+            for iVeh = obj.vehicle_indices_controlled
+                n_traj_pts = obj.Hp;
+                n_predicted_points = size(y_pred{iVeh}, 1);
+                idx_predicted_points = 1:n_predicted_points / n_traj_pts:n_predicted_points;
+                trajectory_points(1:n_traj_pts) = ros2message('uti_msgs/TrajectoryPoint');
 
-                % simulate change of state
-                i_vehicle = (obj.vehicle_indices_controlled == vehicle_index);
+                for i_traj_pt = 1:n_traj_pts
+                    i_predicted_points = idx_predicted_points(i_traj_pt);
+                    trajectory_points(i_traj_pt).t = obj.enhance_timepoint(obj.sample.current_time, i_traj_pt * obj.dt_period_nanos);
+                    trajectory_points(i_traj_pt).px = y_pred{iVeh}(i_predicted_points, 1);
+                    trajectory_points(i_traj_pt).py = y_pred{iVeh}(i_predicted_points, 2);
 
-                obj.measurements(vehicle_index) = PlantMeasurement( ...
-                    info.y_predicted(1, 1, i_vehicle), ... % x
-                    info.y_predicted(2, 1, i_vehicle), ... % y
-                    info.y_predicted(3, 1, i_vehicle), ... % yaw
-                    mpa.trims(info.predicted_trims(i_vehicle, 1)).speed, ...
-                    mpa.trims(info.predicted_trims(i_vehicle, 1)).steering ...
-                );
+                    yaw = y_pred{iVeh}(i_predicted_points, 3);
 
-                trajectory_points(1:obj.Hp) = TrajectoryPoint;
+                    speed = mpa.trims(y_pred{iVeh}(i_predicted_points, 4)).speed;
 
-                for i = 1:obj.Hp
-                    trajectory_points(i).t.nanoseconds = ...
-                        uint64(obj.sample(end).t_now + i * obj.dt_period_nanos);
-                    trajectory_points(i).px = info.y_predicted(1, i, vehicle_index);
-                    trajectory_points(i).py = info.y_predicted(2, i, vehicle_index);
-
-                    yaw = info.y_predicted(3, i, vehicle_index);
-
-                    speed = mpa.trims(info.predicted_trims(i_vehicle, i)).speed;
-
-                    trajectory_points(i).vx = cos(yaw) * speed;
-                    trajectory_points(i).vy = sin(yaw) * speed;
+                    trajectory_points(i_traj_pt).vx = cos(yaw) * speed;
+                    trajectory_points(i_traj_pt).vy = sin(yaw) * speed;
                 end
 
-                obj.out_of_map_limits(vehicle_index) = obj.is_veh_at_map_border(trajectory_points);
+                obj.out_of_map_limits(iVeh) = obj.is_veh_at_map_border(trajectory_points);
 
                 vehicle_command_trajectory = ros2message(obj.publisher_trajectoryCommand);
-                vehicle_command_trajectory.vehicle_id = int32(obj.all_vehicle_ids(vehicle_index));
+                vehicle_command_trajectory.vehicle_id = int32(obj.all_vehicle_ids(iVeh));
                 vehicle_command_trajectory.trajectory = trajectory_points;
                 vehicle_command_trajectory.t_creation = obj.enhance_timepoint(obj.sample.current_time, 0); % Just use as conversion function
                 vehicle_command_trajectory.t_valid_after = obj.enhance_timepoint(obj.sample.current_time, obj.dt_period_nanos + 1);
@@ -295,15 +299,15 @@ classdef UnifiedLabApi < Plant
             timepoint.nanosec = t_new_nanosec;
         end
 
-        function map_as_string = set_map_in_lab(obj, map_as_string)
+        function map_as_string = set_map_in_testbed(obj, map_as_string)
             % map_as_string: must be a lanelet2 map given as string of .osm
-            % file. If empty, the default map of the lab is requested.
+            % file. If empty, the default map of the testbed is requested.
             % return: Either the given map or the received map.
 
             % Request map to use
             map_definition_request = ros2message(obj.client_mapDefinition);
 
-            if nargin == 1 % no map given--> request lab's default map
+            if nargin == 1 % no map given--> request testbed's default map
                 map_definition_request.use_default = true;
                 map_definition_request.map = '';
             else
@@ -318,17 +322,17 @@ classdef UnifiedLabApi < Plant
             end
 
             if (~map_definition_response.ok)
-                error(strcat('The lab rejected the requested map. Error message: ', map_definition_response.msg));
+                error(strcat('The testbed rejected the requested map. Error message: ', map_definition_response.msg));
             end
 
             disp('Successfully registered map.');
 
-            if nargin == 1 % no map given--> lab's default was successfully requested but now we still want to get it
+            if nargin == 1 % no map given--> testbed's default was successfully requested but now we still want to get it
                 map_request = ros2message(obj.client_mapRequest);
                 map_request_response = call(obj.client_mapRequest, map_request);
 
                 if (~map_request_response.defined)
-                    error('Map request was not successful. The lab returned that no map is currently defined.');
+                    error('Map request was not successful. The testbed returned that no map is currently defined.');
                 end
 
                 if (~map_request_response.valid)
@@ -345,7 +349,7 @@ classdef UnifiedLabApi < Plant
             disp('Setup. Phase 1: Generation of ROS2 messages...');
 
             % generated message types if not already existing
-            ula_ros2gen();
+            uti_ros2gen();
 
             disp('Setup. Phase 2: Creation of all reader and writes...');
             %matlabDomainId = 1; %TODO: If not working try str2double(getenv('DDS_DOMAIN'))
@@ -357,43 +361,46 @@ classdef UnifiedLabApi < Plant
                 @obj.on_experiment_state_change, Durability = "transientlocal", Reliability = "reliable", ...
                 History = "keeplast", Depth = 2);
 
-            % create subscription for controller invocation without a callback since we want to activly wait
+            % create subscription for planner invocation without a callback since we want to activly wait
             % only keep the last message in the queue, i.e., we throw away missed ones
-            obj.subscription_controllerInvocation = ros2subscriber(obj.comm_node, "/controller_invocation", "ula_interfaces/VehicleStateList", History = "keeplast", Depth = 1);
+            obj.subscription_plannerInvocation = ros2subscriber(obj.comm_node, "/planner_invocation", "uti_msgs/VehicleStateList", "History", "keeplast", "Depth", 1);
 
-            % create client such that we can ask for the lab properties in the preparation phase
-            obj.client_labProperties = ros2svcclient(obj.comm_node, '/lab_properties_request', 'ula_interfaces/LabProperties');
+            % create client such that we can ask for the testbed characteristics in the preparation phase
+            obj.client_testbedCharacteristics = ros2svcclient(obj.comm_node, '/testbed_characteristics_request', 'uti_msgs/TestbedCharacteristics');
 
             % create client such that we can register the scale we want to use within the scaling node
-            obj.client_scaleRegistration = ros2svcclient(obj.comm_node, '/scale_registration', 'ula_interfaces/ScaleRegistration');
+            obj.client_scaleRegistration = ros2svcclient(obj.comm_node, '/scale_registration', 'uti_msgs/ScaleRegistration');
 
             % create client with which we can define the map we want to use
-            obj.client_mapDefinition = ros2svcclient(obj.comm_node, '/map_definition_request', 'ula_interfaces/MapDefinition');
+            obj.client_mapDefinition = ros2svcclient(obj.comm_node, '/map_definition_request', 'uti_msgs/MapDefinition');
 
             % create client with which we can receive the defined map
-            obj.client_mapRequest = ros2svcclient(obj.comm_node, '/map_request', 'ula_interfaces/MapRequest');
+            obj.client_mapRequest = ros2svcclient(obj.comm_node, '/map_request', 'uti_msgs/MapRequest');
 
             % create publisher for ready state
-            obj.publisher_readyState = ros2publisher(obj.comm_node, '/ready_state', 'ula_interfaces/Ready');
+            obj.publisher_readyState = ros2publisher(obj.comm_node, '/ready_state', 'uti_msgs/Ready');
 
             % create publisher for trajectory commands
-            obj.publisher_trajectoryCommand = ros2publisher(obj.comm_node, '/trajectory_command', 'ula_interfaces/TrajectoryCommand');
+            obj.publisher_trajectoryCommand = ros2publisher(obj.comm_node, '/trajectory_command', 'uti_msgs/TrajectoryCommand');
 
-            % create publisher for vehicle controller period
-            obj.publisher_vehicleControllerPeriod = ros2publisher(obj.comm_node, '/vehicle_controller_period', 'builtin_interfaces/Duration');
+            % create publisher for motion planner period
+            obj.publisher_motionPlannerPeriod = ros2publisher(obj.comm_node, '/motion_planner_period', 'builtin_interfaces/Duration');
 
-            % create client with which we can ask the lab for specific vehicles
-            [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'ula_interfaces/VehiclesRequest');
+            % create client with which we can ask the testbed for specific vehicles
+            [obj.actionClient_vehiclesRequest, obj.goal_msg] = ros2actionclient(obj.comm_node, '/vehicles_request', 'uti_msgs/VehiclesRequest');
             % Since matlab does not provide support for actions, we use a normal message via the action bridge node
-            % obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'ula_interfaces/VehicleIDs');
+            % obj.actionClient_vehiclesRequest = ros2publisher(obj.comm_node, '/vehicles_request_action_bridge_goal', 'uti_msgs/VehicleIDs');
         end
 
         function prepare_api(obj, vehicle_ids_controlled)
             disp('Setup. Phase 3: Perform preparation phase...');
 
             % Request scaling of 1:18
-            disp('Wait for lab nodes to become available...');
+            disp('Wait for testbed nodes to become available...');
             [connectionStatus, connectionStatustext] = waitForServer(obj.client_scaleRegistration);
+
+            % Wait a bit such that all nodes is really available
+            pause(0.5);
 
             if (~connectionStatus)
                 error(strcat('Scaling service could not be reached. Status text: ', connectionStatustext));
@@ -411,22 +418,22 @@ classdef UnifiedLabApi < Plant
 
             disp(strcat('Successfully registered scaling of 1:', num2str(scaling_request.scale)));
 
-            % Request lab properties
-            lab_properties_request = ros2message(obj.client_labProperties);
-            obj.lab_properties = call(obj.client_labProperties, lab_properties_request);
+            % Request testbed characteristics
+            testbed_characteristics_request = ros2message(obj.client_testbedCharacteristics);
+            obj.testbed_characteristics = call(obj.client_testbedCharacteristics, testbed_characteristics_request);
 
-            if (~obj.lab_properties.valid)
-                error('Lab properties request was not successful. Scaling service returned an error.');
+            if (~obj.testbed_characteristics.valid)
+                error('testbed characteristics request was not successful. Scaling service returned an error.');
             end
 
-            disp('Successfully received lab properties.');
+            disp('Successfully received testbed characteristics.');
 
-            % Set vehicle controller period
-            vehicle_controller_period_request = ros2message(obj.publisher_vehicleControllerPeriod);
-            vehicle_controller_period_request.nanosec = uint32(obj.dt_period_nanos);
-            send(obj.publisher_vehicleControllerPeriod, vehicle_controller_period_request);
+            % Set motion planner period
+            motion_planner_period_request = ros2message(obj.publisher_motionPlannerPeriod);
+            motion_planner_period_request.nanosec = uint32(obj.dt_period_nanos);
+            send(obj.publisher_motionPlannerPeriod, motion_planner_period_request);
 
-            disp('Sent request for vehicle controller period.');
+            disp('Sent request for motion planner period.');
 
             % Request the vehicle ids which shall be used in this experiment (this should be an action, but we use only the initial message)
             % TODO: This assumes that the assigned vehicles are all vehicles needed in the experiment. Correct?

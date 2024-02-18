@@ -5,7 +5,7 @@ classdef RoadDataLanelet2 < RoadDataCommonRoad
     %   such that it can reuse much funcionality.
 
     properties
-        map_as_string % The whole file read as string. This is needed for sending the map via ULA to a lab.
+        map_as_string % The whole file read as string. This is needed for sending the map via UTI to a lab.
     end
 
     methods (Access = protected)
