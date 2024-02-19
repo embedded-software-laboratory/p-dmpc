@@ -22,11 +22,22 @@ classdef FileNameConstructor
             % Example:  MPA_type_single_speed_Hp6
             %           MPA_type_triple_speed_Hp6_parl_non-convex
 
-            mpa_instance_name = [char(options.mpa_type), '_Hp-', num2str(options.Hp), '_T-', num2str(options.dt_seconds)];
+            mpa_instance_name = [ ...
+                                     char(options.mpa_type), ...
+                                     '_Hp-', num2str(options.Hp), ...
+                                     '_T-', num2str(options.dt_seconds) ...
+                                 ];
 
-            if ~options.is_prioritized
-                mpa_instance_name = [mpa_instance_name, '_centralized'];
+            if options.is_prioritized
+                n_vehicles = 1;
+            else
+                n_vehicles = options.amount;
             end
+
+            mpa_instance_name = [ ...
+                                     mpa_instance_name, ...
+                                     '_NA-', num2str(n_vehicles) ...
+                                 ];
 
             mpa_instance_name = [mpa_instance_name, '.mat'];
         end
