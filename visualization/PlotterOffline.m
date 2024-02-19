@@ -39,7 +39,7 @@ classdef PlotterOffline < Plotter
             obj.plot();
             % Keep plotter alive until plotting is aborted.
             while ~obj.abort
-                pause(obj.delta_t_s);
+                t_start = tic;
                 % Pause playback on last time step.
                 if ~obj.paused && obj.time_step == obj.experiment_result.n_steps
                     obj.paused = true;
@@ -54,6 +54,8 @@ classdef PlotterOffline < Plotter
                     obj.plot();
                 end
 
+                t_end = toc(t_start);
+                pause(obj.delta_t_s - t_end);
             end
 
         end

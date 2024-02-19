@@ -133,7 +133,7 @@ classdef FileNameConstructor
             end
 
             arguments (Output)
-                experiment_result (1, 1) ExperimentResult
+                experiment_result ExperimentResult
             end
 
             experiment_result = ExperimentResult.empty(0, 0);
@@ -142,10 +142,14 @@ classdef FileNameConstructor
             result_folder = FileNameConstructor.experiment_result_folder_path(options);
 
             file_info = dir(fullfile(result_folder, "*.mat"));
-            files_sorted = sort(split(strtrim(sprintf("%s ", file_info.name))), 'descend');
+            files_sorted = sort(split(strtrim(sprintf("%s ", file_info.name))), 'descend')';
+            
 
             % find the first file that matches the given options
             for file_name = files_sorted
+                if strlength(file_name) == 0
+                    continue
+                end
                 result = load(fullfile(result_folder, file_name)).experiment_result;
 
                 if isequal(options, result.options)
