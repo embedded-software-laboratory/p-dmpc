@@ -48,7 +48,7 @@ function eval_prioritization(optional)
             bar_handle = bar(n_vehicles, cost_percent_average);
             % legend
             legendtext = priority_names(1:end - 1);
-            legend(legendtext, Location = 'southeast', Interpreter = 'latex');
+            legend(legendtext, Location = 'best', Interpreter = 'latex');
             % axes
             xlabel("$N_A$")
             ylabel( ...
