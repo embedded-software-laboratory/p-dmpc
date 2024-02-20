@@ -58,7 +58,7 @@ function eval_grouping(optional)
                 );
                 label = strcat("$N_{\mathrm{CL},\infty} = ", sprintf("%d", num_cls_infty), "$");
 
-                y_text = ymin*1.2;
+                y_text = ymin * 1.2;
 
                 text( ...
                     n_vehicles(i_num_vehicles), ...
@@ -97,6 +97,132 @@ function eval_grouping(optional)
             close all;
 
             % Plot computation time
+            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle(experiment_results);
+
+            n_vehicles = [experiment_results(:, 1, 1).n_hlc];
+            fig = figure;
+            bar(n_vehicles, time_max_approach_vehicle .* 1000);
+            hold on
+            bar(n_vehicles, time_med_approach_vehicle .* 1000);
+            % legend
+
+            str_max = "max ";
+            str_med = "median ";
+            % legend
+            legendtext = string(max_num_CLs);
+            legendtext = arrayfun( ...
+                @(element) strcat("$N_\mathrm{CL} = ", element, "$"), ...
+                legendtext ...
+            )';
+            legendtext = [ ...
+                              strcat(repmat(str_max, length(legendtext), 1), legendtext) ...
+                              strcat(repmat(str_med, length(legendtext), 1), legendtext) ...
+                          ];
+            legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            % axes
+            xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
+            ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
+
+            for i_num_vehicles = 1:length(n_vehicles)
+                num_cls_infty = max( ...
+                    [experiment_results(i_num_vehicles, end, :).max_number_of_computation_levels] ...
+                );
+                label = strcat("$N_{\mathrm{CL},\infty} = ", sprintf("%d", num_cls_infty), "$");
+
+                y_text = 0;
+
+                text( ...
+                    n_vehicles(i_num_vehicles), ...
+                    y_text, ...
+                    label, ...
+                    BackgroundColor = [1 1 1], ...
+                    HorizontalAlignment = "center", ...
+                    VerticalAlignment = "bottom", ...
+                    Interpreter = "latex" ...
+                );
+
+            end
+
+            set_figure_properties(fig, ExportFigConfig.presentation());
+            rwth_colors_100 = rwth_color_order;
+            rwth_colors_50 = rwth_color_order_50;
+            colororder( ...
+                fig, ...
+                [rwth_colors_50(1:length(max_num_CLs), :); ...
+                 rwth_colors_100(1:length(max_num_CLs), :)] ...
+            );
+
+            filename = sprintf('grouping_time_%s_%s.pdf', scenario, optimizer);
+            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            export_fig(fig, filepath);
+            filename = sprintf('grouping_time_%s_%s.emf', scenario, optimizer);
+            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            export_fig(fig, filepath);
+            close all;
+
+            % Plot computation levels
+            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_n_levels_approach_vehicle(experiment_results);
+
+            n_vehicles = [experiment_results(:, 1, 1).n_hlc];
+            fig = figure;
+            bar(n_vehicles, time_max_approach_vehicle);
+            hold on
+            bar(n_vehicles, time_med_approach_vehicle);
+            % legend
+
+            str_max = "max ";
+            str_med = "median ";
+            % legend
+            legendtext = string(max_num_CLs);
+            legendtext = arrayfun( ...
+                @(element) strcat("$N_\mathrm{CL} = ", element, "$"), ...
+                legendtext ...
+            )';
+            legendtext = [ ...
+                              strcat(repmat(str_max, length(legendtext), 1), legendtext) ...
+                              strcat(repmat(str_med, length(legendtext), 1), legendtext) ...
+                          ];
+            legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            % axes
+            xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
+            ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
+
+            for i_num_vehicles = 1:length(n_vehicles)
+                num_cls_infty = max( ...
+                    [experiment_results(i_num_vehicles, end, :).max_number_of_computation_levels] ...
+                );
+                label = strcat("$N_{\mathrm{CL},\infty} = ", sprintf("%d", num_cls_infty), "$");
+
+                y_text = 0;
+
+                text( ...
+                    n_vehicles(i_num_vehicles), ...
+                    y_text, ...
+                    label, ...
+                    BackgroundColor = [1 1 1], ...
+                    HorizontalAlignment = "center", ...
+                    VerticalAlignment = "bottom", ...
+                    Interpreter = "latex" ...
+                );
+
+            end
+
+            set_figure_properties(fig, ExportFigConfig.presentation());
+            rwth_colors_100 = rwth_color_order;
+            rwth_colors_50 = rwth_color_order_50;
+            colororder( ...
+                fig, ...
+                [rwth_colors_50(1:length(max_num_CLs), :); ...
+                 rwth_colors_100(1:length(max_num_CLs), :)] ...
+            );
+
+            filename = sprintf('grouping_levels_%s_%s.pdf', scenario, optimizer);
+            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            export_fig(fig, filepath);
+            filename = sprintf('grouping_levels_%s_%s.emf', scenario, optimizer);
+            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            export_fig(fig, filepath);
+            close all;
         end
 
     end

@@ -46,7 +46,7 @@ function eval_prioritization(optional)
             fig = figure;
             bar_handle = bar(n_vehicles, cost_percent_average);
             % legend
-            lexendtext = priority_names;
+            lexendtext = priority_names(1:end - 1);
             legend(lexendtext, Location = 'southeast', Interpreter = 'latex');
             % axes
             xlabel("$N_A$")
@@ -82,7 +82,6 @@ function eval_prioritization(optional)
             % Plot computation time
             [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle(experiment_results);
 
-            % Plot cost
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
             bar(n_vehicles, time_max_approach_vehicle .* 1000);
@@ -114,6 +113,44 @@ function eval_prioritization(optional)
             filepath = fullfile(FileNameConstructor.all_results(), filename);
             export_fig(fig, filepath);
             filename = sprintf('prioritization_time_%s_%s.emf', scenario, optimizer);
+            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            export_fig(fig, filepath);
+            close all;
+
+            % Plot computation levels
+            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_n_levels_approach_vehicle(experiment_results);
+
+            n_vehicles = [experiment_results(:, 1, 1).n_hlc];
+            fig = figure;
+            bar(n_vehicles, time_max_approach_vehicle);
+            hold on
+            bar(n_vehicles, time_med_approach_vehicle);
+            % legend
+
+            str_max = "max ";
+            str_med = "median ";
+            lexendtext = [ ...
+                              strcat(repmat(str_max, length(priority_names), 1), priority_names) ...
+                              strcat(repmat(str_med, length(priority_names), 1), priority_names) ...
+                          ];
+            legend(lexendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            % axes
+            xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
+            ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
+
+            set_figure_properties(fig, ExportFigConfig.presentation());
+            rwth_colors_100 = rwth_color_order;
+            rwth_colors_50 = rwth_color_order_50;
+            colororder( ...
+                fig, ...
+                [rwth_colors_50(1:length(priority_names), :); ...
+                 rwth_colors_100(1:length(priority_names), :)] ...
+            );
+
+            filename = sprintf('prioritization_levels_%s_%s.pdf', scenario, optimizer);
+            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            export_fig(fig, filepath);
+            filename = sprintf('prioritization_levels_%s_%s.emf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
             export_fig(fig, filepath);
             close all;
