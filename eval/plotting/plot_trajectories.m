@@ -10,7 +10,9 @@ function plot_trajectories(experiment_result, optional)
 
     set(0, 'currentfigure', optional.fig);
 
-    iteration_data = [experiment_result.iteration_data(optional.time_span)];
+    iteration_data = [experiment_result.iteration_data( ...
+                          optional.time_span(1):optional.time_span(2) ...
+                      )];
     pose_and_trim = [iteration_data.x0];
     x = pose_and_trim(:, 1:4:end);
     y = pose_and_trim(:, 2:4:end);
@@ -18,7 +20,7 @@ function plot_trajectories(experiment_result, optional)
     axis equal;
 
     for i_vehicle = 1:size(x, 1)
-        plot(x(i_vehicle, :), y(i_vehicle, :));
+        plot(x(i_vehicle, :), y(i_vehicle, :), LineStyle = '--');
     end
 
     set_figure_properties(optional.fig, optional.export_fig_cfg);

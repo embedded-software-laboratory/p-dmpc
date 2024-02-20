@@ -15,10 +15,10 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
     nObst = size(obstacles, 1);
 
     nFigs = numel(step_indices);
+    n_figure_cols = 2;
+    n_figure_rows = ceil(nFigs / n_figure_cols);
 
-    if nargin < 3
-        tiledlayout(optional.fig, nFigs, 1);
-    end
+    tiledlayout(optional.fig, n_figure_rows, n_figure_cols);
 
     % show predictions for multiple timesteps
     for step = 1:nFigs
@@ -28,30 +28,22 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
         hold on
         box on
 
-        if nargin < 3
+        if step > numel(step_indices) - n_figure_cols
+            xlabel('$x$ [m]', Interpreter = 'LaTex')
+        end
 
-            if step == numel(step_indices)
-                xlabel('$x$ [m]', Interpreter = 'LaTex')
-            end
-
+        if mod(step - 1, n_figure_cols) == 0
             ylabel('$y$ [m]', Interpreter = 'LaTex')
+        end
 
-            title(['Step ' num2str(step_idx)] ...
-                , Interpreter = 'LaTex' ...
-                , Units = 'normalized' ...
-                , Position = [1.07, 0.5, 0] ...
-                , VerticalAlignment = 'middle' ...
-                , Rotation = 70 ...
+        title(['Step ' num2str(step_idx)], Interpreter = 'LaTex');
+
+        % Obstacle rectangle
+        for obs = 1:nObst
+            patch(obstacles{obs}(1, :) ...
+                , obstacles{obs}(2, :) ...
+                , [0.5 0.5 0.5] ...
             );
-
-            % Obstacle rectangle
-            for obs = 1:nObst
-                patch(obstacles{obs}(1, :) ...
-                    , obstacles{obs}(2, :) ...
-                    , [0.5 0.5 0.5] ...
-                );
-            end
-
         end
 
         % past trajectory
@@ -120,22 +112,10 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
         daspect([1 1 1]);
         xlim(options.plot_limits(1, :));
         ylim(options.plot_limits(2, :));
-
-        if step == numel(step_indices)
-            xlabel('$x$ [m]', Interpreter = 'LaTex')
-        end
-
-        ylabel('$y$ [m]', Interpreter = 'LaTex')
-
-        title(['Step ' num2str(step_idx)], Interpreter = 'LaTex');
     end
 
-    set(optional.fig.Children.Children(1), Units = 'centimeters');
-    tile_height = optional.fig.Children.Children(end).OuterPosition(4);
-    x_axis_label_height = optional.fig.Children.Children(1).OuterPosition(4) - tile_height;
-    set(optional.fig.Children.Children(1), Units = 'normalized');
     optional.fig.Children.TileSpacing = 'compact';
-    set_figure_properties(optional.fig, ExportFigConfig.paper('paperheight', nFigs * (tile_height + x_axis_label_height)));
+    set_figure_properties(optional.fig, ExportFigConfig.paper('paperheight', n_figure_rows * 4));
 
     if optional.do_export
         step_indices_str = sprintf("_%02d", step_indices);
