@@ -36,6 +36,7 @@ function experiment_results = eval_experiments(optional)
     % High-Level Controller
     options.optimizer_type = optional.optimizer;
     options.mpa_type = MpaType.triple_speed;
+    options.should_do_dry_run = true;
 
     experiment_results = ExperimentResult.empty();
 
