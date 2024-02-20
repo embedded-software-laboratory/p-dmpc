@@ -98,7 +98,7 @@ function eval_prioritization(optional)
                           ];
             legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
             % axes
-            xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
+            xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
 
             set_figure_properties(fig, ExportFigConfig.presentation());
@@ -136,7 +136,7 @@ function eval_prioritization(optional)
                           ];
             legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
             % axes
-            xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
+            xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
 
             set_figure_properties(fig, ExportFigConfig.presentation());
