@@ -1,6 +1,6 @@
 #!/bin/bash
-# guest password (DO NOT PUSH TO GIT)
-export SSHPASS=
+source nuc_control/nuc-password.sh
+
 dirname="eval_files_$(date +%Y%m%d%H%M%S)"
 mkdir /tmp/$dirname
 

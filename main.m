@@ -65,7 +65,7 @@ function experiment_result = main(options, optional)
     elseif options.computation_mode == ComputationMode.parallel_physically
         push_files_to_nuc();
         % On changes to ROS messages or MPA library, remove files with `remove_cache_nuc()`
-        deploy_nuc(options = options, vehicle_ids = optional.vehicle_ids);
+        deploy_nuc(vehicle_ids = optional.vehicle_ids);
         fprintf('Running experiment...');
         plotter.plotting_loop();
         fprintf(' done.\n')
