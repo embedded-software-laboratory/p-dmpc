@@ -1,7 +1,7 @@
 function experiment_results = eval_experiments(optional)
 
     arguments (Input)
-        optional.scenario_type (1, 1) ScenarioType = ScenarioType.Commonroad
+        optional.scenario_type (1, 1) ScenarioType = ScenarioType.commonroad
         optional.computation_mode (1, 1) ComputationMode = ComputationMode.sequential
         optional.optimizer (1, 1) OptimizerType = OptimizerType.MatlabOptimal
         optional.priority_strategies (1, :) PriorityStrategies = PriorityStrategies.constant_priority
@@ -18,12 +18,18 @@ function experiment_results = eval_experiments(optional)
     % different numbers of vehicles in a scenario
     n_vehicles_array = 20:-5:5;
     % number of different random scenarios per priority assignment and #vehicles
-    seeds = 1:3;
 
     options = Config();
     % Scenario
     options.scenario_type = optional.scenario_type;
-    options.T_end = 15;
+    options.T_end = 7;
+    % Scenario-specific config
+    if options.scenario_type == ScenarioType.commonroad
+        seeds = 1:3;
+    elseif options.scenario_type == ScenarioType.circle
+        seeds = 1;
+    end
+
     % Environment
     options.options_plot_online.is_active = 0;
     options.computation_mode = optional.computation_mode;
@@ -34,6 +40,7 @@ function experiment_results = eval_experiments(optional)
     experiment_results = ExperimentResult.empty();
 
     % experiment result in order (n_vehicles x n_approaches x n_scenarios)
+    % number of different random scenarios per priority assignment and #vehicles
     for seed = seeds
 
         for priority = optional.priority_strategies
