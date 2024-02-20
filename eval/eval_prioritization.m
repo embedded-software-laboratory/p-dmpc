@@ -19,6 +19,7 @@ function eval_prioritization(optional)
                       "$p_{\mathrm{color}}$"
                       "$p_{\mathrm{constraint}}$"
                       "$p_{\mathrm{explore}}$"
+                      "$p_{\mathrm{optimal}}$"
                       ];
 
     % scenarios = [ScenarioType.commonroad, ScenarioType.circle];
@@ -46,8 +47,8 @@ function eval_prioritization(optional)
             fig = figure;
             bar_handle = bar(n_vehicles, cost_percent_average);
             % legend
-            lexendtext = priority_names(1:end - 1);
-            legend(lexendtext, Location = 'southeast', Interpreter = 'latex');
+            legendtext = priority_names(1:end - 1);
+            legend(legendtext, Location = 'southeast', Interpreter = 'latex');
             % axes
             xlabel("$N_A$")
             ylabel( ...
@@ -91,11 +92,11 @@ function eval_prioritization(optional)
 
             str_max = "max ";
             str_med = "median ";
-            lexendtext = [ ...
+            legendtext = [ ...
                               strcat(repmat(str_max, length(priority_names), 1), priority_names) ...
                               strcat(repmat(str_med, length(priority_names), 1), priority_names) ...
                           ];
-            legend(lexendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
             % axes
             xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
             ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
@@ -129,11 +130,11 @@ function eval_prioritization(optional)
 
             str_max = "max ";
             str_med = "median ";
-            lexendtext = [ ...
+            legendtext = [ ...
                               strcat(repmat(str_max, length(priority_names), 1), priority_names) ...
                               strcat(repmat(str_med, length(priority_names), 1), priority_names) ...
                           ];
-            legend(lexendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
             % axes
             xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
             ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
