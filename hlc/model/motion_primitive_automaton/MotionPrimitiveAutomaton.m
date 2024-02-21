@@ -6,7 +6,6 @@ classdef MotionPrimitiveAutomaton
         trims % A struct array of the specified trim_inputs
         transition_matrix_single % Matrix (nTrims x nTrims x horizon_length)
         trim_tuple % Matrix with trim indices ((nTrims1*nTrims2*...) x nVehicles)
-        transition_matrix % binary Matrix (if maneuverTuple exist according to trims) (nTrimTuples x nTrimTuples x horizon_length)
         transition_matrix_mean_speed % nTrims-by-nTrims matrix, each entry is the mean speed of the two connected trims
         distance_to_equilibrium uint16 % Distance in graph from current state to equilibrium state (nTrims x 1)
         recursive_feasibility
@@ -14,10 +13,7 @@ classdef MotionPrimitiveAutomaton
         local_reachable_sets_conv; % Convexified local reachable sets of each trim
         local_center_trajectory % local trajcetory of the center point
         local_reachable_sets_CP % local reachable sets of the center point
-        shortest_paths_to_max_speed % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with maximum speed
-        shortest_paths_to_equilibrium % cell(n_trims, 1), the shortest path in the trim graph from the current trim to the trim with zero speed
         trims_stop % trims with zero speed
-        offline_reachability_computation_time % computation time of the offline reachability analysis
     end
 
     properties (Access = protected)
@@ -131,8 +127,6 @@ classdef MotionPrimitiveAutomaton
 
                 end
 
-                obj.shortest_paths_to_max_speed{i, 1} = get_shortest_path_to_max_speed(obj, i);
-                obj.shortest_paths_to_equilibrium{i, 1} = get_shortest_path_to_equilibrium(obj, i);
             end
 
             % compute distance to equilibrium state
@@ -149,21 +143,11 @@ classdef MotionPrimitiveAutomaton
                 obj.transition_matrix_single = compute_time_varying_transition_matrix(obj);
             end
 
-            % compute maneuver matrix for trimProduct
-
-            if ~options.is_prioritized && options.use_cpp
-                % way too big for Centralized Search
-                % obj.transition_matrix = compute_product_maneuver_matrix(obj,nVeh_mpa,options.Hp);
-            else
-                obj.transition_matrix = compute_product_maneuver_matrix(obj, nVeh_mpa, options.Hp);
-            end
-
             % variables to store reachable sets in different time steps
             obj.local_reachable_sets = cell(n_trims, options.Hp);
             obj.local_reachable_sets_conv = cell(n_trims, options.Hp);
 
             % For parallel computation, reachability analysis are used
-            offline_RA = tic;
             % no need for reachability analysis if only one vehicle
             is_calculate_reachable_sets_of_CP = false; % whether to calculate center point's reachable sets
 
@@ -177,8 +161,6 @@ classdef MotionPrimitiveAutomaton
                     reachability_analysis_offline(obj, options.Hp, is_calculate_reachable_sets_of_CP);
             end
 
-            obj.offline_reachability_computation_time = toc(offline_RA);
-
             if options.computation_mode ~= ComputationMode.parallel_threads
                 % save mpa to library
                 % If computing in parallel on one machine, this causes file
@@ -191,25 +173,6 @@ classdef MotionPrimitiveAutomaton
         function max_speed = get_max_speed_of_mpa(obj)
             % returns maximum speed of mpa (1 x 1)
             max_speed = max([obj.trims(:).speed]);
-        end
-
-        function max_speed = get_max_speed(obj, cur_trim_id)
-            % returns maximum speed, averaged over the timestep (nSamples x 1)
-            % is not general, but works for current MPAs
-            % PROBLEM Sometimes vehicle stays in stop, as it is cheapest
-            % for first action
-            hp = size(obj.transition_matrix_single, 3);
-            max_speed = zeros(hp, 1);
-
-            for k = 1:hp
-                successor_trim_ids = find(obj.transition_matrix_single(cur_trim_id, :, k));
-                [max_speed_next, i_successor_max_speed] = max( ...
-                    [obj.trims(successor_trim_ids).speed] ...
-                );
-                cur_trim_id = successor_trim_ids(i_successor_max_speed);
-                max_speed(k) = max_speed_next;
-            end
-
         end
 
         function straight_speeds = get_straight_speeds_of_mpa(obj)
@@ -273,22 +236,6 @@ classdef MotionPrimitiveAutomaton
                 % (equilibrium state must be reachable within Hp-k steps)
                 k_to_go = N - k;
                 transition_matrix_single(:, obj.distance_to_equilibrium > k_to_go, k) = 0;
-            end
-
-        end
-
-        function maneuver_matrix = compute_product_maneuver_matrix(obj, nveh, N)
-            nTrimTuples = size(obj.trim_tuple, 1);
-            maneuver_matrix = zeros(nTrimTuples, nTrimTuples, N);
-            % Assumes Hp=Hu
-            for k = 1:N
-                transition_matrix_slice = obj.transition_matrix_single(:, :, k);
-                % compute tensor product iteratively
-                for i = 2:nveh
-                    transition_matrix_slice = kron(transition_matrix_slice, obj.transition_matrix_single(:, :, k));
-                end
-
-                maneuver_matrix(:, :, k) = transition_matrix_slice;
             end
 
         end
@@ -687,162 +634,6 @@ classdef MotionPrimitiveAutomaton
             textprogressbar('done');
             fprintf('done (%.2f s).\n', duration_computation);
 
-        end
-
-        function emergency_braking_distance = get_emergency_braking_distance(obj, cur_trim_id, time_step)
-            % returns the emergency braking distance starting from the current trim
-            emergency_braking_distance = 0;
-            speed_cur = obj.trims(cur_trim_id).speed;
-
-            shortest_path_to_equilibrium = get_shortest_path_to_equilibrium(obj, cur_trim_id);
-
-            for iTrim = shortest_path_to_equilibrium(2:end)
-                speed_next = obj.trims(iTrim).speed;
-                speed_mean = (speed_cur + speed_next) / 2; % assume linear change
-                emergency_braking_distance = emergency_braking_distance + speed_mean * time_step;
-                speed_cur = speed_next; % update the current speed for the next iteration
-            end
-
-        end
-
-        function shortest_path_to_equilibrium = get_shortest_path_to_equilibrium(obj, cur_trim_id)
-            % compute the shortest path from the current trim to the equilibrium trim
-            equilibrium_trims = find([obj.trims.speed] == 0);
-            mpa = graph(obj.transition_matrix_single(:, :, 1));
-            % find closest equilibrium trim, take first if multiple options
-            distance_min = inf;
-
-            for trim_target = equilibrium_trims
-                [path_trims, distance] = ...
-                    shortestpath(mpa, cur_trim_id, trim_target);
-
-                if (distance < distance_min)
-                    distance_min = distance;
-                    shortest_path_to_equilibrium = path_trims;
-                end
-
-            end
-
-        end
-
-        function shortest_time_to_arrive = get_the_shortest_time_to_arrive(obj, current_trim, distance_destination, time_step)
-            % Returns the shortest time to drive a given distance starting
-            % from the current trim.
-            % Note that this is only a lower bound time because the
-            % steering angle is not considered, namely we assume the
-            % vehicle drives straight to arrive the goal destination.
-            shortest_time_to_arrive = 0;
-            distance_remained = distance_destination;
-            distance_acceleration = 0; % acceleration distance
-            % compute the shortest path from the current trim to the trim(s) with maximum speed
-            shortest_path_to_max_speed = obj.shortest_paths_to_max_speed{current_trim};
-            max_speed = obj.trims(shortest_path_to_max_speed(end)).speed;
-
-            % find the one which has the minimal distance to the trims with the maximum speed
-            if length(shortest_path_to_max_speed) == 1 % if the current trim has already the maximum speed, no acceleration is needed
-                shortest_time_to_arrive = distance_remained / max_speed;
-            else % acceleration to maximum speed
-
-                for i = 1:length(shortest_path_to_max_speed)
-                    trim_current = shortest_path_to_max_speed(i);
-
-                    speed_cur = obj.trims(trim_current).speed;
-
-                    if i + 1 <= length(shortest_path_to_max_speed)
-                        trim_next = shortest_path_to_max_speed(i + 1);
-                        speed_next = obj.trims(trim_next).speed;
-                    else
-                        speed_next = max_speed;
-                    end
-
-                    mean_speed = (speed_cur + speed_next) / 2;
-                    distance_acceleration = distance_acceleration + mean_speed * time_step;
-
-                    if distance_acceleration > distance_destination % if the vehicle arrives the detination when accelerating
-                        shortest_time_to_arrive = shortest_time_to_arrive + distance_remained / mean_speed; % time accumulates
-                        distance_remained = 0;
-                        break
-                    else
-                        shortest_time_to_arrive = shortest_time_to_arrive + time_step; % time accumulates
-                        distance_remained = distance_destination - distance_acceleration;
-                    end
-
-                end
-
-                % if the detination is still not arrived after acceleration, calculate the remaining time using the maximum speed
-                if distance_remained > 0
-                    shortest_time_to_arrive = shortest_time_to_arrive + distance_remained / max_speed;
-                end
-
-            end
-
-        end
-
-        function braking_time = get_emergency_braking_time(obj, current_trim, braking_distance, time_step)
-            % Returns the shortest time to perform emergency braking maneuver starting from the current trim
-            % Note that this is only a lower bound time because the
-            % steering angle is not considered, namely we assume the
-            % vehicle drives straight to arrive the goal destination.
-            braking_time = 0;
-            distance_remained = braking_distance;
-            distance_decceleration = 0; % acceleration distance
-            % compute the shortest path from the current trim to the trim(s) with minimum speed
-            min_speed = 0;
-            min_speed_trims = find([obj.trims.speed] == min_speed); % find all the trims with the minimum speed
-
-            graph_trims = graph(obj.transition_matrix_single(:, :, 1));
-            shortest_distances_to_min_speed = distances(graph_trims, current_trim, min_speed_trims); % shortest path between two single nodes
-            % find the one which has the minimal distance to the trims with the minimum speed
-            [min_distance, idx] = min(shortest_distances_to_min_speed);
-
-            if min_distance == 0 % if the current trim has already the minimum speed, no decceleration is needed
-                braking_time = distance_remained / min_speed;
-            else % decceleration to minimum speed
-                min_speed_trim = min_speed_trims(idx);
-                shortest_path_to_min_speed = shortestpath(graph_trims, current_trim, min_speed_trim); % shortest path between two single nodes
-
-                for i = 1:length(shortest_path_to_min_speed)
-                    trim_current = shortest_path_to_min_speed(i);
-
-                    speed_cur = obj.trims(trim_current).speed;
-
-                    if i + 1 <= length(shortest_path_to_min_speed)
-                        trim_next = shortest_path_to_min_speed(i + 1);
-                        speed_next = obj.trims(trim_next).speed;
-                    else
-                        speed_next = min_speed;
-                    end
-
-                    mean_speed = (speed_cur + speed_next) / 2;
-                    distance_decceleration = distance_decceleration + mean_speed * time_step;
-
-                    if distance_decceleration > braking_distance % if the vehicle arrives the destination when deccelerating
-                        braking_time = braking_time + distance_remained / mean_speed; % time accumulates
-                        break
-                    else
-                        braking_time = braking_time + time_step; % time accumulates
-                        distance_remained = braking_distance - distance_decceleration;
-                    end
-
-                end
-
-            end
-
-        end
-
-        function shortest_path_to_max_speed = get_shortest_path_to_max_speed(obj, trim_current)
-            % Returns the shortest path in the trim graph from the current trim to the trim with maximum speed
-            % compute the shortest path from the current trim to the trim(s) with maximum speed
-            max_speed = max([obj.trims.speed]);
-            max_speed_trims = find([obj.trims.speed] == max_speed); % find all the trims with the maximum speed
-
-            graph_weighted = graph(1 ./ obj.transition_matrix_mean_speed);
-
-            shortest_distances_to_max_speed = distances(graph_weighted, trim_current, max_speed_trims); % shortest path between two single nodes
-            % find the one which has the minimal distance to the trims with the maximum speed
-            [~, idx] = min(shortest_distances_to_max_speed);
-            max_speed_trim = max_speed_trims(idx);
-            shortest_path_to_max_speed = shortestpath(graph_weighted, trim_current, max_speed_trim); % shortest path between two single nodes
         end
 
         function transformed_reachable_sets = reachable_sets_at_pose(obj, x, y, yaw, trim)

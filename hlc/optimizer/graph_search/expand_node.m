@@ -12,10 +12,6 @@ function [new_open_nodes] = expand_node(options, mpa, iter, iNode, info)
 
     k_exp = curK + 1;
 
-    % The reduction of the MPA has the consequence that the transition_matrix remains empty.
-    % expand_node.m, however, needs this to calculate the successor_trim_ids.
-    % The calculation is now done via transition_matrix_single.
-    % see !127
     per_vehicle_trims = cell(1, iter.amount);
 
     for iVehicle = 1:iter.amount
