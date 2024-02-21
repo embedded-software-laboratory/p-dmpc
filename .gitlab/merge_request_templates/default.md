@@ -3,6 +3,3 @@
 
 Closes #ISSUE
 Relates to #ISSUE
-
-## Changes
-%{all_commits}
