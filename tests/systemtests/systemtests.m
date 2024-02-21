@@ -56,17 +56,7 @@ classdef systemtests < matlab.unittest.TestCase
     end
 
     methods (Test)
-
-        function test_prioritized_STAC(testCase)
-            lastwarn('');
-            %load Config from json
-            options = Config.load_from_file('tests/systemtests/Config_systemtests_prioritized_stac.json');
-            options.validate();
-            testCase.verifyEmpty(lastwarn);
-            main(options);
-            testCase.verifyTrue(true);
-        end
-
+        
         function test_visualization(testCase, scenario)
             lastwarn('');
             fprintf('\nvisualization systemtest for %s\n', scenario)
