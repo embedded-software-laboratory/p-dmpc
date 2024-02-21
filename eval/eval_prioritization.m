@@ -75,9 +75,6 @@ function eval_prioritization(optional)
             filename = sprintf('prioritization_cost_%s_%s.pdf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
             export_fig(fig, filepath);
-            filename = sprintf('prioritization_cost_%s_%s.emf', scenario, optimizer);
-            filepath = fullfile(FileNameConstructor.all_results(), filename);
-            export_fig(fig, filepath);
             close all;
 
             % Plot computation time
@@ -113,9 +110,6 @@ function eval_prioritization(optional)
             filename = sprintf('prioritization_time_%s_%s.pdf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
             export_fig(fig, filepath);
-            filename = sprintf('prioritization_time_%s_%s.emf', scenario, optimizer);
-            filepath = fullfile(FileNameConstructor.all_results(), filename);
-            export_fig(fig, filepath);
             close all;
 
             % Plot computation levels
@@ -149,9 +143,6 @@ function eval_prioritization(optional)
             );
 
             filename = sprintf('prioritization_levels_%s_%s.pdf', scenario, optimizer);
-            filepath = fullfile(FileNameConstructor.all_results(), filename);
-            export_fig(fig, filepath);
-            filename = sprintf('prioritization_levels_%s_%s.emf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
             export_fig(fig, filepath);
             close all;
