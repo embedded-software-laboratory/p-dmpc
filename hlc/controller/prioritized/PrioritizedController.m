@@ -209,9 +209,6 @@ classdef PrioritizedController < HighLevelController
             % read the traffic messages from the other vehicles and
             % store the information in the IterationData object
 
-            % create index struct only once for efficiency
-            state_index = indices();
-
             % read messages from other vehicles
             other_vehicle_indices = setdiff( ...
                 1:obj.options.amount, ...
@@ -260,13 +257,6 @@ classdef PrioritizedController < HighLevelController
                     );
                 end
 
-                % get occupied areas of emergency maneuvers for vehicle j_vehicle
-                obj.iter.emergency_maneuvers{j_vehicle} = obj.mpa.emergency_maneuvers_at_pose( ...
-                    obj.iter.x0(j_vehicle, state_index.x), ...
-                    obj.iter.x0(j_vehicle, state_index.y), ...
-                    obj.iter.x0(j_vehicle, state_index.heading), ...
-                    obj.iter.trim_indices(j_vehicle) ...
-                );
             end
 
         end

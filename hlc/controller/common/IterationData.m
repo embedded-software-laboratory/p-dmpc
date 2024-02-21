@@ -13,7 +13,6 @@ classdef IterationData
         predicted_lanelet_boundary % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
 
         occupied_areas % currently occupied areas with normal offset of vehicles
-        emergency_maneuvers % occupied area of emergency braking maneuver
         reachable_sets % cells to store instances of MATLAB class `polyshape`
 
         obstacles
@@ -54,7 +53,6 @@ classdef IterationData
             obj.reachable_sets = cell(nVeh, Hp);
             obj.hdv_reachable_sets = cell(hdv_amount, Hp);
             obj.occupied_areas = cell(nVeh, 1);
-            obj.emergency_maneuvers = cell(nVeh, 1);
             obj.adjacency = zeros(nVeh, nVeh);
             obj.hdv_adjacency = zeros(nVeh, hdv_amount);
             obj.dynamic_obstacle_area = scenario.dynamic_obstacle_area;
@@ -125,7 +123,6 @@ classdef IterationData
             cleaned_object = object;
             cleaned_object.predicted_lanelets = [];
             cleaned_object.predicted_lanelet_boundary = [];
-            cleaned_object.emergency_maneuvers = [];
             cleaned_object.occupied_areas = [];
             cleaned_object.priority_permutation = [];
             cleaned_object.current_lanelet = [];
