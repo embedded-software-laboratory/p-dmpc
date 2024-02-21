@@ -7,16 +7,14 @@ function experiment_results = collect_results_nuc(optional)
 
     fprintf('Collecting experiment_results from remote HLCs...');
 
-    vehicle_ids_arg = sprintf(' %d', optional.vehicle_ids);
-
     % stop session on all remote hlcs
     script_path = fullfile(pwd, 'nuc_control', 'stop_nuc.sh');
-    command = ['bash ', script_path, vehicle_ids_arg];
+    command = ['bash ', script_path];
     [~, ~] = system(command);
 
     % collect all ExperimentResults from nucs
     script_path = fullfile(pwd, 'nuc_control', 'collect_results_nuc.sh');
-    command = ['bash ', script_path, vehicle_ids_arg];
+    command = ['bash ', script_path];
     [~, ~] = system(command);
 
     fprintf(' done.\n')
@@ -29,7 +27,7 @@ function experiment_results = collect_results_nuc(optional)
     eval_files_folder = dir('/tmp/eval_files_*');
     current_eval_folder = eval_files_folder(end);
     current_eval_folder_dir = [current_eval_folder.folder, filesep, current_eval_folder.name];
-    results_list = dir([current_eval_folder_dir, filesep, 'result_*']);
+    results_list = dir([current_eval_folder_dir, filesep, '*.mat']);
 
     % load and merge iteratively
     for i_entry = 1:numel(results_list)
