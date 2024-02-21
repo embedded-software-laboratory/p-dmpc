@@ -16,7 +16,7 @@ function experiment_results = eval_experiments(optional)
         || numel(optional.priority_strategies) == 1);
 
     % different numbers of vehicles in a scenario
-    n_vehicles_array = 20:-5:5;
+    n_vehicles_array = 5:5:20;
     % number of different random scenarios per priority assignment and #vehicles
 
     options = Config();
