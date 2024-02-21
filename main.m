@@ -4,7 +4,7 @@ function experiment_result = main(options, optional)
     arguments
         options (1, 1) Config = config_gui();
         % vehicle IDs of vehicles in the CPM Lab
-        optional.vehicle_ids (:, 1) double = 1:Config.load_from_file('Config.json').amount;
+        optional.vehicle_ids (:, 1) double = 1:options.amount;
     end
 
     if isMATLABReleaseOlderThan('R2023a')
