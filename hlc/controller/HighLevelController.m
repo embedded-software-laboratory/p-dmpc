@@ -31,14 +31,11 @@ classdef (Abstract) HighLevelController < handle
     properties (Access = private)
         % member variable that is used to execute steps on error
         is_run_succeeded (1, 1) logical = false
-
-        vehicles_fallback_times; % record the number of successive fallback times of each vehicle % record the number of successive fallback times of each vehicle
-        total_fallback_times; % total times of fallbacks
     end
 
     methods (Abstract = true, Access = protected)
         controller(obj);
-        plan_for_fallback(obj);
+        controller_fallback(obj);
     end
 
     methods
@@ -58,7 +55,6 @@ classdef (Abstract) HighLevelController < handle
             obj.plant = plant;
 
             obj.k = 0;
-            obj.total_fallback_times = 0;
 
             obj.timing = ControllerTiming();
 
@@ -153,10 +149,6 @@ classdef (Abstract) HighLevelController < handle
                     obj.options.Hp ...
                 );
             end
-
-            % record the number of time steps that vehicles
-            % consecutively stop and take fallback
-            obj.vehicles_fallback_times = zeros(1, obj.options.amount);
 
             obj.coupler = Coupler.get_coupler( ...
                 obj.options.coupling, ...
@@ -327,10 +319,6 @@ classdef (Abstract) HighLevelController < handle
             obj.timing.stop("hlc_init_all");
         end
 
-        % end
-
-        % methods (Access = private)
-
         function synchronize_start_with_plant(obj)
             obj.plant.synchronize_start_with_plant();
         end
@@ -360,12 +348,9 @@ classdef (Abstract) HighLevelController < handle
                 % controller
                 obj.controller();
 
-                % handle fallback of controller
-
-                if ~obj.handle_fallback()
-                    % if fallback is not handled break the main control loop
-                    break
-                end
+                % handle fallback of other controllers
+                % TODO rename function
+                obj.handle_others_fallback();
 
                 % store results from iteration in ExperimentResult
                 obj.store_control_info();
@@ -454,60 +439,21 @@ classdef (Abstract) HighLevelController < handle
 
         end
 
-        function is_fallback_handled = handle_fallback(obj)
+        function handle_others_fallback(obj)
             % handle the fallback of the controller
-            % if fallback is disabled return
-            % boolean to break the main control loop
+
+            if obj.info.needs_fallback
+                % own fallback was handled in controller()
+                return
+            end
 
             % check fallback of other controllers
             obj.check_others_fallback();
 
-            % boolean that is used to break the main control loop
-            % initialize it with value false
-            is_fallback_handled = false;
-
-            if isempty(obj.info.vehicles_fallback)
-                % increase counter of vehicles that take fallback
-                obj.vehicles_fallback_times(obj.info.vehicles_fallback) = ...
-                    obj.vehicles_fallback_times(obj.info.vehicles_fallback) + 1;
-
-                % reset fallback counter of vehicles that have no fallback
-                obj.vehicles_fallback_times(setdiff( ...
-                    1:obj.options.amount, ...
-                    obj.info.vehicles_fallback ...
-                )) = 0;
-
-                % if no fallback occurs return that fallback is handled
-                is_fallback_handled = true;
-                return
-            end
-
-            if obj.options.fallback_type == FallbackType.no_fallback
-                % disabled fallback
-                disp('Fallback is disabled. Simulation ends.')
-                return
-            end
-
-            % Display info if vehicle is triggerer
             if obj.info.needs_fallback
-                % print information about occurred fallback
-                str_trigger_vehicle = sprintf(' %2d', obj.plant.vehicle_indices_controlled);
-                str_fallback_vehicles = sprintf(' %2d', obj.info.vehicles_fallback);
-                fprintf('%s triggered by%s affects%s\n', ...
-                    obj.options.fallback_type, ...
-                    str_trigger_vehicle, ...
-                    str_fallback_vehicles ...
-                )
+                obj.controller_fallback(is_fallback_while_planning = false);
             end
 
-            % plan for fallback case
-            obj.plan_for_fallback();
-
-            % increase counter of total fallbacks
-            obj.total_fallback_times = obj.total_fallback_times + 1;
-
-            % if fallback is handled return that
-            is_fallback_handled = true;
         end
 
         function store_control_info(obj)
@@ -570,7 +516,6 @@ classdef (Abstract) HighLevelController < handle
             % save ExperimentResult object at end of experiment
 
             % print information about final values of counter
-            fprintf('Total times of fallback: %d\n', obj.total_fallback_times);
             fprintf('Total runtime: %f seconds\n', obj.experiment_result.t_total);
 
             obj.experiment_result.mpa = obj.mpa;

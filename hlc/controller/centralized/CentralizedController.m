@@ -55,16 +55,19 @@ classdef CentralizedController < HighLevelController
                 % if graph search is exhausted, this vehicles and all vehicles that have directed or
                 % undirected couplings with this vehicle will take fallback
                 disp(['Graph search exhausted at time step: ' num2str(obj.k) '.'])
-                % all vehicles fall back
-                obj.info.vehicles_fallback = 1:obj.options.amount;
-                obj.info.needs_fallback(obj.info.vehicles_fallback) = true;
             end
 
             obj.timing.stop('fallback', obj.k);
 
         end
 
-        function plan_for_fallback(~)
+        function controller_fallback(~, ~)
+
+            arguments
+                ~
+                ~
+            end
+
             error(['No fallback handling for centralized controller', ...
                    ' implemented yet!'])
         end
