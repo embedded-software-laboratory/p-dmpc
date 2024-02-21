@@ -23,7 +23,7 @@ for (( i=0; i<$N_NUCS; i++ )); do
         ./graph_based_planning \
         guest@${IP}:/home/guest/dev/software/high_level_controller/
     # remove old logs and scripts
-    sshpass -e ssh -t guest@${IP} 'rm -rf ~/dev/lcc_script_logs; mkdir -p ~/dev/lcc_script_logs'
+    sshpass -e ssh -t guest@${IP} 'rm -rf ~/dev/lcc_script_logs; mkdir -p ~/dev/lcc_script_logs; rm -rf /tmp/scripts; mkdir -p /tmp/scripts'
 
     # kill resource hungry lab autostart used by LCC
     sshpass -e ssh -t guest@${IP} 'pkill autostart'
