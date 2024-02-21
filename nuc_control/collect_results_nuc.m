@@ -2,7 +2,7 @@ function experiment_results = collect_results_nuc(optional)
 
     arguments
         optional.options = Config.load_from_file('Config.json');
-        optional.vehicle_ids (:, 1) double = [];
+        optional.vehicle_ids (:, 1) double = 1:Config.load_from_file('Config.json').amount;
     end
 
     fprintf('Collecting experiment_results from remote HLCs...');
@@ -23,7 +23,7 @@ function experiment_results = collect_results_nuc(optional)
 
     % load experiment_results
 
-    experiment_results = ExperimentResult.empty;
+    experiment_results = cell(size(optional.vehicle_ids));
 
     % get list of all current experiment_results
     eval_files_folder = dir('/tmp/eval_files_*');
@@ -35,7 +35,7 @@ function experiment_results = collect_results_nuc(optional)
     for i_entry = 1:numel(results_list)
         entry = results_list(i_entry);
         load([entry.folder, filesep, entry.name], 'experiment_result');
-        experiment_results(end + 1) = experiment_result; %#ok<AGROW>
+        experiment_results{i_entry} = experiment_result;
     end
 
 end

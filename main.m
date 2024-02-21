@@ -4,7 +4,7 @@ function experiment_result = main(options, optional)
     arguments
         options (1, 1) Config = config_gui();
         % vehicle IDs of vehicles in the CPM Lab
-        optional.vehicle_ids (:, 1) double = [];
+        optional.vehicle_ids (:, 1) double = 1:Config.load_from_file('Config.json').amount;
     end
 
     if isMATLABReleaseOlderThan('R2023a')
@@ -66,9 +66,9 @@ function experiment_result = main(options, optional)
         push_files_to_nuc();
         % On changes to ROS messages or MPA library, remove files with `remove_cache_nuc()`
         deploy_nuc(vehicle_ids = optional.vehicle_ids);
-        fprintf('Running experiment...');
+        fprintf('Running experiment...\n');
         plotter.plotting_loop();
-        fprintf(' done.\n')
+        fprintf('Running experiment done.\n')
         experiment_result = collect_results_nuc( ...
             options = options, ...
             vehicle_ids = optional.vehicle_ids ...

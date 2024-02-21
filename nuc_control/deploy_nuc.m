@@ -1,11 +1,7 @@
 function deploy_nuc(optional)
 
     arguments
-        optional.vehicle_ids (:, 1) double;
-    end
-
-    if isempty(optional.vehicle_ids)
-        optional.vehicle_ids = 1:Config.load_from_file('Config.json').amount;
+        optional.vehicle_ids (:, 1) double = 1:Config.load_from_file('Config.json').amount;
     end
 
     vehicle_ids_arg = sprintf(' %d', optional.vehicle_ids);
