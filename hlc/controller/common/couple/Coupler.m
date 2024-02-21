@@ -45,45 +45,6 @@ classdef (Abstract) Coupler < handle
         function obj = Coupler()
         end
 
-        function [coupling_info] = calculate_coupling_info(obj, options, mpa, scenario, iter, time_step)
-            % Calculates information going beyong the adjacency matrix like distance, stac, etc.
-
-            adjacency = iter.adjacency;
-            amount = options.amount;
-            coupling_info = cell(amount, amount);
-
-            [obj.intersection_ids, ~] = vehicles_at_intersection(time_step, obj.intersection_ids, [], obj.intersection_distance_threshold, iter.x0, scenario.intersection_center, amount);
-
-            for veh_i = 1:(amount - 1)
-
-                for veh_j = (veh_i + 1):amount
-
-                    if adjacency(veh_i, veh_j)
-
-                        % both vehicles are at intersection
-                        is_intersection = ismember([veh_i, veh_j], obj.intersection_ids);
-
-                        [stac, distance_i, distance_j, collision_type, lanelet_relationship] = ...
-                            calculate_stac(veh_i, veh_j, options.dt_seconds, scenario, mpa, iter);
-
-                        coupling_info{veh_i, veh_j} = struct( ...
-                            'stac', stac, ...
-                            'distance', [distance_i, distance_j], ...
-                            'collision_type', collision_type, ...
-                            'lanelet_relationship', lanelet_relationship, ...
-                            'is_intersection', is_intersection ...
-                        );
-
-                        coupling_info{veh_j, veh_i} = coupling_info{veh_i, veh_j};
-
-                    end
-
-                end
-
-            end
-
-        end
-
     end
 
 end
