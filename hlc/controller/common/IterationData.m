@@ -18,12 +18,10 @@ classdef IterationData
 
         obstacles
         dynamic_obstacle_area % (nObs x Hp) cell of areas [x; y]
-        lanelet_crossing_areas
 
         adjacency (:, :) logical % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
         weighted_coupling (:, :) double % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
         directed_coupling (:, :) logical % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
-        directed_coupling_reduced (:, :) logical % nVeh-by-nVeh matrix, reduced directed adjacency by forbidding vehicles entering their lanelet crossing area
         directed_coupling_sequential (:, :) logical % nVeh-by-nVeh matrix, after graph partitioning
 
         coupling_info % coupling information of each coupling pair
@@ -61,11 +59,9 @@ classdef IterationData
             obj.hdv_adjacency = zeros(nVeh, hdv_amount);
             obj.dynamic_obstacle_area = scenario.dynamic_obstacle_area;
             obj.directed_coupling = zeros(nVeh, nVeh);
-            obj.directed_coupling_reduced = zeros(nVeh, nVeh);
             obj.directed_coupling_sequential = zeros(nVeh, nVeh);
             obj.weighted_coupling = zeros(nVeh, nVeh);
             obj.obstacles = scenario.obstacles;
-            obj.lanelet_crossing_areas = repmat({{}}, nVeh, 1);
             obj.amount = nVeh;
             obj.coupling_info = cell(nVeh, nVeh);
             obj.fallbacks = false(nVeh, 1);
@@ -116,7 +112,6 @@ classdef IterationData
             filtered_object.predicted_lanelets = filtered_object.predicted_lanelets(vehicle_filter);
             filtered_object.predicted_lanelet_boundary = filtered_object.predicted_lanelet_boundary(vehicle_filter, :);
             filtered_object.reachable_sets = filtered_object.reachable_sets(vehicle_filter, :);
-            filtered_object.lanelet_crossing_areas = filtered_object.lanelet_crossing_areas{vehicle_filter};
             filtered_object.amount = sum(vehicle_filter);
             filtered_object.hdv_adjacency = filtered_object.hdv_adjacency(vehicle_filter, :);
         end

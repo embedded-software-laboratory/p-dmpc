@@ -1,4 +1,4 @@
-function [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter, Hp)
+function [vehicle_obstacles, hdv_obstacles, lanelet_boundary] = vectorize_all_obstacles(iter, Hp)
     % VECTORIZE_ALL_OBSTACLES This function vectorizes all obstacles, including
     % static and dynamic obstacles as well as lanelet boundaries, to
     % a single two-row matrix. The first row is for x-coordinates and the
@@ -13,22 +13,12 @@ function [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_a
     %
     %   lanelet_boundary: two-row matrix
     %
-    %   lanelet_crossing_areas: cell array with Hp subcells. Each subcell
-    %   corresponds to intersecting areas of two vehicles' lanelets in a certain
-    %   prediction horizon.
-    %
     vehicle_obstacles = cell(1, Hp);
     hdv_obstacles = cell(1, Hp);
 
     % get static occupied areas of the considered vehicles
     current_occupied_areas = iter.obstacles;
     check_closeness(current_occupied_areas)
-
-    % Preprocess intersecting areas of lanelets
-    % Add column [nan;nan] to separate different obstacles
-    check_closeness(iter.lanelet_crossing_areas)
-    lanelet_crossing_areas_tmp = cellfun(@(c)[c, [nan; nan]], iter.lanelet_crossing_areas, UniformOutput = false);
-    lanelet_crossing_areas = [lanelet_crossing_areas_tmp{:}];
 
     % Preprocess lanelet boundary
     % 1. Add column [nan;nan] to separate left and right boundaries

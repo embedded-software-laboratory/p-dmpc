@@ -11,11 +11,9 @@ classdef PlottingInfo
         step
         time_seconds
         vehicle_indices % vehicles to which the plot info belong
-        lanelet_crossing_areas
         directed_coupling
         directed_coupling_sequential
         weighted_coupling
-        directed_coupling_reduced
     end
 
     methods
@@ -61,14 +59,10 @@ classdef PlottingInfo
 
             obj.reachable_sets = optional.reachable_sets;
 
-            obj.lanelet_crossing_areas = experiment_result.iteration_data(k).lanelet_crossing_areas(:);
-
             obj.directed_coupling = experiment_result.iteration_data(k).directed_coupling;
             obj.directed_coupling_sequential = experiment_result.iteration_data(k).directed_coupling_sequential;
 
             obj.weighted_coupling = experiment_result.iteration_data(k).weighted_coupling;
-
-            obj.directed_coupling_reduced = experiment_result.iteration_data(k).directed_coupling_reduced;
 
         end
 

@@ -67,7 +67,6 @@ end
 
 % options.options_plot_online.vehicles_reachable_sets = find(options.path_ids==41);
 %
-% options.options_plot_online.vehicles_lanelet_crossing_areas = find(options.path_ids==18);
 
 if FileNameConstructor.result_exists(options)
     disp('File already exists.')

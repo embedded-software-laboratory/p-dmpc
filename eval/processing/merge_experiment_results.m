@@ -36,7 +36,6 @@ function merged_experiment_result = merge_two_experiment_results(merged_experime
 
     % if someone needs one of these:
     % TODO: obstacles
-    % TODO: lanelet_crossing_areas
     % TODO: all times need to be checked on how to compute when merged (are they even used anymore)
 
     % Timings

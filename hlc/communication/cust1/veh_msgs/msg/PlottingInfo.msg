@@ -8,4 +8,3 @@ int32       vehicle_indices
 uint8[]     directed_coupling               # N x N
 uint8[]     directed_coupling_sequential    # N x N
 float64[]   weighted_coupling               # N x N
-uint8[]     directed_coupling_reduced       # N x N
