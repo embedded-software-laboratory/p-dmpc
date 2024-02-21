@@ -30,8 +30,6 @@ stages:
       coverage_report:
         coverage_format: cobertura
         path: tests/coverage/coverageReport.xml
-    paths:
-      - tests/coverage/htmlReport/
   tags:
     - docker
 
