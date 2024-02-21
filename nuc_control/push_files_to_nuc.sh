@@ -1,13 +1,11 @@
 #!/bin/bash
 source nuc_control/nuc-password.sh
+source nuc_control/working-nucs.sh
 
 # Get directory of the script (use before first use of cd)
 SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/"
 echo ${SCRIPT_PATH}
 cd ..
-
-# list of working nucs to be used for execution
-WORKING_NUCS=(01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20)
 
 # LCC directory to reuse lcc bash scripts
 LCC_BASH_DIR="/home/cpm/dev/software/lab_control_center/bash/"
