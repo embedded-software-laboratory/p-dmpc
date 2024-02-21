@@ -349,7 +349,6 @@ classdef (Abstract) HighLevelController < handle
                 obj.controller();
 
                 % handle fallback of other controllers
-                % TODO rename function
                 obj.handle_others_fallback();
 
                 % store results from iteration in ExperimentResult
@@ -514,10 +513,6 @@ classdef (Abstract) HighLevelController < handle
 
         function save_results(obj)
             % save ExperimentResult object at end of experiment
-
-            % print information about final values of counter
-            fprintf('Total runtime: %f seconds\n', obj.experiment_result.t_total);
-
             obj.experiment_result.mpa = obj.mpa;
 
             obj.experiment_result.timing = obj.timing.get_all_timings();

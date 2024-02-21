@@ -48,7 +48,7 @@ function eval_prioritization(optional)
             bar_handle = bar(n_vehicles, cost_percent_average);
             % legend
             legendtext = priority_names(1:end - 1);
-            legend(legendtext, Location = 'southeast', Interpreter = 'latex');
+            legend(legendtext, Location = 'best', Interpreter = 'latex');
             % axes
             xlabel("$N_A$")
             ylabel( ...
@@ -98,7 +98,7 @@ function eval_prioritization(optional)
                           ];
             legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
             % axes
-            xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
+            xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
 
             set_figure_properties(fig, ExportFigConfig.presentation());
@@ -136,7 +136,7 @@ function eval_prioritization(optional)
                           ];
             legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
             % axes
-            xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
+            xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
 
             set_figure_properties(fig, ExportFigConfig.presentation());

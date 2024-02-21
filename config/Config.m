@@ -42,6 +42,8 @@ classdef Config
 
         manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
 
+        should_do_dry_run (1, 1) logical = false;
+
         % ----
         % Other
         isDealPredictionInconsistency = true; % true/false, if true, reachability analysis will be used to deal with the problem of prediction inconsistency; otherwise, one-step delayed trajectories will be considered

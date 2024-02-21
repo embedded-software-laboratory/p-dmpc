@@ -120,7 +120,7 @@ function eval_grouping(optional)
                           ];
             legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
             % axes
-            xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
+            xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
 
             for i_num_vehicles = 1:length(n_vehicles)
@@ -184,7 +184,7 @@ function eval_grouping(optional)
                           ];
             legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
             % axes
-            xlabel('$N_{\mathrm{A}}$', Interpreter = 'latex');
+            xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
 
             for i_num_vehicles = 1:length(n_vehicles)

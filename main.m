@@ -39,7 +39,7 @@ function experiment_result = main(options, optional)
             || ~options.is_prioritized ...
             || options.amount == 1
 
-        hlc = HlcFactory.get_hlc(options, 1:options.amount);
+        hlc = HlcFactory.get_hlc(options, 1:options.amount, do_dry_run = options.should_do_dry_run);
         experiment_result = hlc.run();
         plotter.plotting_loop();
 
@@ -50,7 +50,12 @@ function experiment_result = main(options, optional)
         future(1:options.amount) = parallel.FevalFuture;
 
         for i_vehicle = 1:options.amount
-            future(i_vehicle) = parfeval(@main_distributed, 1, i_vehicle, options = options);
+            future(i_vehicle) = parfeval( ...
+                @main_distributed, ...
+                1, ...
+                i_vehicle, ...
+                options = options ...
+            );
         end
 
         plotter.plotting_loop();
