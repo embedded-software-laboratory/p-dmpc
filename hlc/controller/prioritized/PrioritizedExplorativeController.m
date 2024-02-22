@@ -252,8 +252,11 @@ classdef PrioritizedExplorativeController < PrioritizedController
 
             permutation_rand_stream = RandStream("mt19937ar", Seed = obj.k);
 
+            % first permutation is fixed, start
+            nth_permutation = 2;
+
             % start with second row
-            for nth_permutation = 2:obj.n_computation_levels
+            while nth_permutation <= obj.n_computation_levels
                 permutation = zeros(1, obj.n_computation_levels);
                 % each column in possibilities represents possible values
                 % for each cell in the current row
@@ -265,11 +268,19 @@ classdef PrioritizedExplorativeController < PrioritizedController
                 end
 
                 n_filled_cells = 0;
+                no_possibilities_left = false;
 
                 while n_filled_cells < obj.n_computation_levels
                     % find cell with least possibilities
                     [n_possibilities, i_cell] = min(sum(possibilities, 1));
-                    assert(n_possibilities > 0, "No possibilities left for permutation");
+
+                    % discard current permutation
+                    if (n_possibilities == 0)
+                        % the chosen random values led to a dead end
+                        no_possibilities_left = true;
+                        break;
+                    end
+
                     % choose possibility at random
                     possibilities_for_cell = find(possibilities(:, i_cell));
 
@@ -288,8 +299,13 @@ classdef PrioritizedExplorativeController < PrioritizedController
                     n_filled_cells = n_filled_cells + 1;
                 end
 
+                if no_possibilities_left
+                    continue;
+                end
+
                 % build matrix from chosen permutations
                 result(nth_permutation, :) = permutation;
+                nth_permutation = nth_permutation + 1;
 
             end
 
