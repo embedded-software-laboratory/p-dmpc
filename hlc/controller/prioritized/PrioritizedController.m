@@ -14,8 +14,6 @@ classdef PrioritizedController < HighLevelController
         cutter
 
         consider_parallel_coupling (1, 1) function_handle = @()[];
-
-        predicted_areas_others_old (:, :) cell; % n_vehicles x Hp
     end
 
     methods
@@ -673,7 +671,7 @@ classdef PrioritizedController < HighLevelController
             % remove outgoing edges of fallback vehicles;
             % These fallback edges have already been considered during planning
             outgoing_fallback = obj.iter.directed_coupling_sequential;
-            outgoing_fallback(~obj.iter.fallbacks, ~obj.iter.fallbacks) = 0;
+            outgoing_fallback(~obj.iter.fallbacks, :) = 0;
             outgoing_fallback = outgoing_fallback + outgoing_fallback';
             fallback_matrix = fallback_matrix - outgoing_fallback;
 
