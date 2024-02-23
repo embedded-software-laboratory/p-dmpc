@@ -3,6 +3,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
     properties
         set_up_constraints (1, 1) function_handle = @()[];
         are_constraints_satisfied (1, 1) function_handle = @()[];
+        random_numbers (1, :) double = [];
         rand_stream (1, 1) RandStream = RandStream('mt19937ar', Seed = 42);
     end
 
@@ -34,6 +35,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             assert(iter.amount == 1);
             Hp = size(iter.v_ref, 2);
             n_expansions_max = 1000;
+            obj.random_numbers = rand(obj.rand_stream, 1, n_expansions_max + Hp);
             n_successor_trims_max = mpa.maximum_branching_factor();
             % initialize variable to store control results
             info = ControlResultsInfo(iter.amount, Hp);
@@ -63,7 +65,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                     is_valid = false;
                     n_expansions = n_expansions + 1;
                     % Select node to expand randomly
-                    goal_trim = obj.random_trim(node_id, info.tree);
+                    goal_trim = obj.random_trim(node_id, info.tree, n_expansions);
 
                     if goal_trim == 0
                         is_finished = true;
@@ -149,12 +151,13 @@ classdef MonteCarloTreeSearch < OptimizerInterface
 
         end
 
-        function trim = random_trim(obj, node_id, tree)
+        function trim = random_trim(obj, node_id, tree, n_expansions)
             % RANDOM_TRIM  Return random successor trim for given node.
             %
             % INPUT:
             %   node_id: Id of node to return random successor trim for.
             %   tree: Tree to expand a node in.
+            %   n_expansions: Number of expansions so far.
             %
             % OUTPUT:
             %   trim: Random successor trim of node. If no successor trim is available, return 0.
@@ -166,7 +169,11 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                 trim = 0;
             else
                 % choose successor trim randomly
-                trim = tree.successor_trims(trim_positions(randi(obj.rand_stream, n_trims)), :, node_id);
+                trim = tree.successor_trims( ...
+                    trim_positions(ceil(obj.random_numbers(n_expansions) * n_trims)), ...
+                    :, ...
+                    node_id ...
+                );
             end
 
         end
