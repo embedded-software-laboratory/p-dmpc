@@ -685,9 +685,32 @@ classdef PrioritizedController < HighLevelController
                 optional.is_fallback_while_planning (1, 1) logical = true;
             end
 
+            i_vehicle = obj.plant.vehicle_indices_controlled;
+
             % initialize
             obj.info.tree = obj.info_old.tree;
+            % copy previous last node
+            fallback_node = obj.info.tree.get_node( ...
+                obj.info_old.tree_path(end) ...
+            );
+            % add this node to the tree
+            fallback_node_index = obj.info.tree.add_node(obj.info_old.tree_path(end), fallback_node);
+            % intermediate step: delete already applied node, repeat last one
             obj.info.tree_path = del_first_rpt_last(obj.info_old.tree_path);
+            % overwrite repeated last node with copied node
+            obj.info.tree_path(end) = fallback_node_index;
+
+            % recompute cost values
+            cumulated_cost = 0;
+
+            for i_node = 2:length(obj.info.tree_path)
+                node = obj.info.tree_path(i_node);
+                trajectory_reference = squeeze(obj.iter.reference_trajectory_points(i_vehicle, i_node - 1, :));
+                trajectory_prediction = [obj.info.tree.get_x(1, node); obj.info.tree.get_y(1, node)];
+                obj.info.tree.g(1, node) = cumulated_cost + vecnorm(trajectory_reference - trajectory_prediction).^2;
+                cumulated_cost = obj.info.tree.g(1, node);
+            end
+
             obj.info.shapes = del_first_rpt_last(obj.info_old.shapes);
             obj.info.predicted_trims = del_first_rpt_last(obj.info_old.predicted_trims);
             obj.info.y_predicted = del_first_rpt_last(obj.info_old.y_predicted);

@@ -100,16 +100,10 @@ classdef PrioritizedOptimalController < PrioritizedController
 
             for i_solution = 1:n_solutions
 
-                if obj.info_array_tmp{i_solution}.needs_fallback
-                    % in case of fallback use maximum cost
-                    cost_value = 1e9;
-                else
-                    % prefer solutions that are computed and have a low cost to come value in the last step
-                    cost_value = obj.info_array_tmp{i_solution}.tree.get_cost( ...
-                        obj.info_array_tmp{i_solution}.tree_path(end) ...
-                    );
-                end
-
+                % get solution cost
+                cost_value = obj.info_array_tmp{i_solution}.tree.get_cost( ...
+                    obj.info_array_tmp{i_solution}.tree_path(end) ...
+                );
                 obj.solution_cost(i_solution) = cost_value;
 
             end
