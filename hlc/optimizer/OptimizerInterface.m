@@ -94,7 +94,7 @@ classdef (Abstract) OptimizerInterface < handle
             info.tree_path = 1:(options.Hp + 1);
 
             for i = 1:options.Hp
-                info.tree.add_node(i, next_nodes{i});
+                info.tree.add_node_object(i, next_nodes{i});
             end
 
             % y_predicted_full_res is a cell array of size (options.amount x 1)
