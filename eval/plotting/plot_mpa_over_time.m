@@ -7,7 +7,7 @@ function plot_mpa_over_time(experiment_result, optional)
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    mpa = experiment_result.mpa;
+    mpa = MotionPrimitiveAutomaton(experiment_result.options);
     mpa.plot_over_time(fig = optional.fig);
 
     set_figure_properties(optional.fig, optional.export_fig_cfg);

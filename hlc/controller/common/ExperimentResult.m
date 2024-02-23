@@ -2,7 +2,6 @@ classdef ExperimentResult
 
     properties
         options Config % config of the simulation
-        mpa MotionPrimitiveAutomaton % MotionPrimitiveAutomation used
 
         iteration_data IterationData % iteration steps
 
@@ -27,16 +26,14 @@ classdef ExperimentResult
 
     methods
 
-        function obj = ExperimentResult(options, mpa, hlc_indices)
+        function obj = ExperimentResult(options, hlc_indices)
 
             arguments
                 options (1, 1) Config;
-                mpa (1, 1) MotionPrimitiveAutomaton;
                 hlc_indices (1, :) double;
             end
 
             obj.options = options;
-            obj.mpa = mpa;
 
             obj.timing = cell(0, 1);
             obj.hlc_indices = hlc_indices;

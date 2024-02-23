@@ -7,7 +7,9 @@ function deadlock = is_deadlock(experiment_result)
         experiment_result (1, 1) ExperimentResult
     end
 
-    if isempty(experiment_result.mpa)
+    mpa = MotionPrimitiveAutomaton(experiment_result.options);
+
+    if isempty(mpa)
         error('error! ExperimentResult must contain mpa, make sure to turn off reduce_result option in config!')
     end
 
@@ -18,7 +20,7 @@ function deadlock = is_deadlock(experiment_result)
 
     for k = 1:experiment_result.n_steps
         % vehicles that stop at the current time step
-        is_vehicle_stopped = ismember(experiment_result.iteration_data(k).trim_indices, experiment_result.mpa.trims_stop);
+        is_vehicle_stopped = ismember(experiment_result.iteration_data(k).trim_indices, mpa.trims_stop);
         % increase couter of vehicles that stop
         vehs_stop_duration(is_vehicle_stopped) = ...
             vehs_stop_duration(is_vehicle_stopped) + 1;
