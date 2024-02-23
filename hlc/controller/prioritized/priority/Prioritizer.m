@@ -23,8 +23,6 @@ classdef (Abstract) Prioritizer < handle
                     prioritizer = RandomPrioritizer();
                 case PriorityStrategies.FCA_priority
                     prioritizer = FcaPrioritizer();
-                case PriorityStrategies.STAC_priority
-                    prioritizer = StacPrioritizer();
                 case PriorityStrategies.optimal_priority
                     prioritizer = ConstantPrioritizer();
                 case PriorityStrategies.explorative_priority

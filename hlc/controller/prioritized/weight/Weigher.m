@@ -14,8 +14,6 @@ classdef (Abstract) Weigher < handle
                     weigher = ConstantWeigher();
                 case WeightStrategies.random_weight
                     weigher = RandomWeigher();
-                case WeightStrategies.STAC_weight
-                    weigher = StacWeigher();
                 case WeightStrategies.distance_weight
                     weigher = DistanceWeigher();
             end

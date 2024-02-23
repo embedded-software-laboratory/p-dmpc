@@ -23,7 +23,6 @@ classdef IterationData
         directed_coupling (:, :) logical % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
         directed_coupling_sequential (:, :) logical % nVeh-by-nVeh matrix, after graph partitioning
 
-        coupling_info % coupling information of each coupling pair
         fallbacks (:, 1) logical % n_vehicles x 1, true if fallback
 
         hdv_reachable_sets % reachable sets of hdvs
@@ -61,7 +60,6 @@ classdef IterationData
             obj.weighted_coupling = zeros(nVeh, nVeh);
             obj.obstacles = scenario.obstacles;
             obj.amount = nVeh;
-            obj.coupling_info = cell(nVeh, nVeh);
             obj.fallbacks = false(nVeh, 1);
         end
 
@@ -127,7 +125,6 @@ classdef IterationData
             cleaned_object.priority_permutation = [];
             cleaned_object.current_lanelet = [];
             cleaned_object.dynamic_obstacle_area = [];
-            cleaned_object.coupling_info = [];
             cleaned_object.hdv_reachable_sets = [];
             cleaned_object.hdv_adjacency = [];
             cleaned_object.v_ref = [];
