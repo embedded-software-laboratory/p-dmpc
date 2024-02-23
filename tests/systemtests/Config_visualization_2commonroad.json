@@ -19,6 +19,5 @@
         "vehicles_reachable_sets": [],
         "is_video_mode": true
     },
-    "is_prioritized": true,
-    "constrained_enter_lanelet_crossing_area": true
+    "is_prioritized": true
 }

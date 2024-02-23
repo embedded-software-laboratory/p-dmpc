@@ -35,11 +35,6 @@ classdef Config
 
         constraint_from_successor ConstraintFromSuccessor = ConstraintFromSuccessor.area_of_standstill;
 
-        %strategy of forbidding vehicles with lower priorities entering their lanelet crossing area
-        % false: no constraint on entering the crossing area
-        % true: not allowed to enter the crossing area if they are coupled at intersecting or merging lanelets regardless whether they are at the intersection or not
-        constrained_enter_lanelet_crossing_area = false;
-
         manual_control_config ManualControlConfig = ManualControlConfig(); % manual control config
 
         should_do_dry_run (1, 1) logical = false;
