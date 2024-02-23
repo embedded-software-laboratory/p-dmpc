@@ -47,12 +47,12 @@ function eval_prioritization(optional)
             fig = figure;
             bar_handle = bar(n_vehicles, cost_percent_average);
             % legend
-            legendtext = priority_names(1:end - 1);
+            legendtext = priority_names;
             legend(legendtext, Location = 'best', Interpreter = 'latex');
             % axes
             xlabel("$N_A$")
             ylabel( ...
-                "$J_\mathrm{NCS}(p) / J_\mathrm{NCS}(p_\mathrm{opt})$ [\%]", ...
+                "$J_\mathrm{NCS}(p) / J_\mathrm{NCS}(p_\mathrm{const})$ [\%]", ...
                 Interpreter = "latex" ...
             );
 
