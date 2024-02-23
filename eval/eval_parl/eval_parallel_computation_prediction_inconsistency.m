@@ -17,7 +17,6 @@ function results = eval_parallel_computation_prediction_inconsistency()
     options.priority = 'STAC_priority';
     options.is_prioritized = true;
     options.constraint_from_successor = ConstraintFromSuccessor.none;
-    options.constrained_enter_lanelet_crossing_area = false;
 
     % TODO create fitting scenario
     % options.reference_path_struct.lanelets_index = {[95, 69, 64, 62, 75, 55, 53], [76, 24, 13, 15, 3, 5], [12, 73, 92, 94, 100, 101]};

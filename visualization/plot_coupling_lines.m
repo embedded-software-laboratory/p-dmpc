@@ -2,8 +2,7 @@ function plot_coupling_lines( ...
         weighted_coupling, ...
         directed_coupling_sequential, ...
         x0, ...
-        coupling_visu, ...
-        optional ...
+        coupling_visu ...
     )
     % PLOT_COUPLING_LINES This function visualizes the coupling between
     % each coupled pair.
@@ -13,11 +12,7 @@ function plot_coupling_lines( ...
         x0 (:, 3) double; % vehicle states
         % a struct to control the visualization of coupling lines
         coupling_visu (1, 1) struct;
-        % a matrix whose value indicate whether the coupling is handled by virtual obstacles
-        optional.is_virtual_obstacle (:, :) logical = false(size(weighted_coupling));
     end
-
-    is_virtual_obstacle = optional.is_virtual_obstacle;
 
     % if the given matrix is adjacency matrix but not edge-weights matrix
     if all(weighted_coupling == 1 | weighted_coupling == 0, "all")
@@ -34,23 +29,6 @@ function plot_coupling_lines( ...
         x = x0(v, :);
         % plot directed coupling
         adjacent_vehicles = find(weighted_coupling(v, :));
-
-        % find_couplings that are handly by virtual obstacles
-        coupling_is_virtual_obstacle = find(is_virtual_obstacle(v, :));
-
-        % plot couplings that are ignored by letting vehicles without
-        % right-of-way not enter the lanelet crossing area (virtual_obstacle)
-
-
-        if ~isempty(coupling_is_virtual_obstacle)
-
-            for coupled_i = coupling_is_virtual_obstacle
-                coupled_x = x0(coupled_i, :);
-                % couplings that are ignored will be shown in grey solid lines
-                plot_arrow(x', (coupled_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_minor, '-', head_size);
-            end
-
-        end
 
         for adj_v = adjacent_vehicles
             adj_x = x0(adj_v, :);

@@ -209,9 +209,6 @@ classdef PrioritizedController < HighLevelController
             % read the traffic messages from the other vehicles and
             % store the information in the IterationData object
 
-            % create index struct only once for efficiency
-            state_index = indices();
-
             % read messages from other vehicles
             other_vehicle_indices = setdiff( ...
                 1:obj.options.amount, ...
@@ -260,13 +257,6 @@ classdef PrioritizedController < HighLevelController
                     );
                 end
 
-                % get occupied areas of emergency maneuvers for vehicle j_vehicle
-                obj.iter.emergency_maneuvers{j_vehicle} = obj.mpa.emergency_maneuvers_at_pose( ...
-                    obj.iter.x0(j_vehicle, state_index.x), ...
-                    obj.iter.x0(j_vehicle, state_index.y), ...
-                    obj.iter.x0(j_vehicle, state_index.heading), ...
-                    obj.iter.trim_indices(j_vehicle) ...
-                );
             end
 
         end
@@ -285,9 +275,9 @@ classdef PrioritizedController < HighLevelController
             obj.prioritize();
             obj.timing.stop('prioritize', obj.k);
 
-            obj.timing.start('reduce_computation_levels', obj.k);
-            obj.reduce_computation_levels();
-            obj.timing.stop('reduce_computation_levels', obj.k);
+            obj.timing.start('group', obj.k);
+            obj.group();
+            obj.timing.stop('group', obj.k);
 
         end
 
@@ -320,11 +310,11 @@ classdef PrioritizedController < HighLevelController
             iter_v = IterationData.filter(obj.iter, filter_self);
 
             % coupled vehicles with higher priorities
-            predecessors = find(iter_v.directed_coupling_reduced(:, vehicle_index) == 1)';
+            predecessors = find(iter_v.directed_coupling(:, vehicle_index) == 1)';
             % coupled vehicles with higher priorities that vehicle_index computes in sequence with
             predecessors_sequential = find(iter_v.directed_coupling_sequential(:, vehicle_index))';
             % coupled vehicles with lower priorities
-            successors = find(iter_v.directed_coupling_reduced(vehicle_index, :) == 1);
+            successors = find(iter_v.directed_coupling(vehicle_index, :) == 1);
 
             % consider vehicles with higher priority
             dynamic_obstacle_area_predecessors = consider_predecessors( ...
@@ -383,37 +373,16 @@ classdef PrioritizedController < HighLevelController
             obj.iter.directed_coupling = obj.prioritizer.prioritize(obj.iter, obj.k, obj.options, obj.scenario_adapter.scenario.intersection_center);
         end
 
-        function reduce_computation_levels(obj)
+        function group(obj)
             % weigh
             obj.timing.start('weigh', obj.k);
             obj.iter.weighted_coupling = obj.weigher.weigh(obj.iter, obj.k, obj.options, obj.mpa.get_max_speed_of_mpa());
             obj.timing.stop('weigh', obj.k);
 
-            % reduce by replacing with lanelet crossing area obstacles
-            obj.iter.directed_coupling_reduced = obj.iter.directed_coupling;
-
-            weighted_coupling_reduced = obj.iter.directed_coupling_reduced .* obj.iter.weighted_coupling;
-
-            if obj.options.scenario_type ~= ScenarioType.circle
-                % reduce only if no circle scenario
-
-                % get ignored couplings and lanelet_crossing_areas
-                [ ...
-                     obj.iter.coupling_info, ...
-                     obj.iter.directed_coupling_reduced, ...
-                     weighted_coupling_reduced, ...
-                     obj.iter.lanelet_crossing_areas ...
-                 ] = reduce_coupling_lanelet_crossing_area( ...
-                    obj.iter, ...
-                    obj.options.constrained_enter_lanelet_crossing_area ...
-                );
-
-            end
-
             obj.timing.start('cut', obj.k);
             % reduce by grouping and cutting edges
             obj.iter.directed_coupling_sequential = obj.cutter.cut( ...
-                weighted_coupling_reduced, ...
+                obj.iter.weighted_coupling, ...
                 obj.options.max_num_CLs ...
             );
             obj.timing.stop('cut', obj.k);

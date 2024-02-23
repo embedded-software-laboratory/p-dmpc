@@ -17,9 +17,6 @@ function [vehicle_obstacles, hdv_obstacles] = get_all_obstacles(iter, Hp)
     current_occupied_areas = iter.obstacles;
     check_closeness(current_occupied_areas)
 
-    % Preprocess intersecting areas of lanelets
-    check_closeness(iter.lanelet_crossing_areas)
-
     [~, n_occupiedAreas_Hp] = size(iter.dynamic_obstacle_area);
     [~, n_hdvSets_Hp] = size(iter.hdv_reachable_sets);
     adjacent_hdv = find(iter.hdv_adjacency);

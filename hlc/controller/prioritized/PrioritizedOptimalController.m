@@ -76,7 +76,7 @@ classdef PrioritizedOptimalController < PrioritizedController
             obj.prioritizer.current_priorities = current_priorities;
 
             obj.prioritize();
-            obj.reduce_computation_levels();
+            obj.group();
         end
 
         function solve_permutation(obj)

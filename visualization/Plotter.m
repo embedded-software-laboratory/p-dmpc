@@ -279,10 +279,6 @@ classdef (Abstract) Plotter < handle
                     obj.plot_reachable_sets(plotting_info, i_vehicle);
                 end
 
-                if obj.plot_options.plot_lanelet_crossing_areas
-                    obj.plot_lanelet_crossing_areas(plotting_info, i_vehicle);
-                end
-
             end
 
             % plot scenario adjacency
@@ -295,17 +291,11 @@ classdef (Abstract) Plotter < handle
                     , FontSize = obj.export_fig_config.fontsize - 2 ...
                 );
 
-                is_virtual_obstacle = ( ...
-                    plotting_info.directed_coupling ~= ...
-                    plotting_info.directed_coupling_reduced ...
-                );
-
                 plot_coupling_lines( ...
                     plotting_info.weighted_coupling, ...
                     plotting_info.directed_coupling_sequential, ...
                     plotting_info.x0', ...
-                    coupling_visu, ...
-                    is_virtual_obstacle = is_virtual_obstacle ...
+                    coupling_visu ...
                 );
 
             end
@@ -379,40 +369,6 @@ classdef (Abstract) Plotter < handle
 
         end
 
-        function plot_lanelet_crossing_areas(obj, plotting_info, vehicle_indices)
-
-            arguments
-                obj (1, 1) Plotter
-                plotting_info (1, 1) PlottingInfo
-                vehicle_indices (1, :) int32 = obj.vehicle_indices;
-            end
-
-            if isempty(plotting_info.lanelet_crossing_areas)
-                return
-            end
-
-            for i_vehicle = vehicle_indices
-
-                LCA = plotting_info.lanelet_crossing_areas{i_vehicle};
-
-                if isempty(LCA) ...
-                        || (~isempty(obj.plot_options.vehicles_lanelet_crossing_areas) ...
-                        && ~ismember(i_vehicle, obj.plot_options.vehicles_lanelet_crossing_areas))
-                    continue
-                end
-
-                LCAs_xy = [LCA{:}];
-                line( ...
-                    LCAs_xy(1, :), LCAs_xy(2, :), ...
-                    LineWidth = 1, ...
-                    Color = 'k', ...
-                    Tag = "temporary" ...
-                );
-
-            end
-
-        end
-
         function fig = get_figure(obj)
             fig = obj.fig;
         end
@@ -461,12 +417,6 @@ classdef (Abstract) Plotter < handle
                 obj.hotkey_description(7) = '{\itr}: hide reachable sets';
             else
                 obj.hotkey_description(7) = '{\itr}: show reachable sets';
-            end
-
-            if obj.plot_options.plot_lanelet_crossing_areas
-                obj.hotkey_description(8) = '{\itl}: hide lanelet crossing areas';
-            else
-                obj.hotkey_description(8) = '{\itl}: show lanelet crossing areas';
             end
 
             if obj.paused
@@ -566,15 +516,6 @@ classdef (Abstract) Plotter < handle
                         disp('Show reachable sets.')
                     else
                         disp('Hide reachable sets.')
-                    end
-
-                case 'l'
-                    obj.plot_options.plot_lanelet_crossing_areas = ~obj.plot_options.plot_lanelet_crossing_areas;
-
-                    if obj.plot_options.plot_lanelet_crossing_areas
-                        disp('Show lanelet crossing areas.')
-                    else
-                        disp('Hide lanelet crossing areas.')
                     end
 
                 case 'h'

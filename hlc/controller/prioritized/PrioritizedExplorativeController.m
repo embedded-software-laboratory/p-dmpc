@@ -116,15 +116,8 @@ classdef PrioritizedExplorativeController < PrioritizedController
 
                 % swap priority if assigned computation levels invert the coupling
                 if permuted_priority_list(veh_i) > permuted_priority_list(veh_j)
-                    % do not swap couplings that are ignored due to lanelet crossing area
-                    % those can not be swapped in general since vehicles inside the crossing area
-                    % can not consider the crossing area as obstacle
-                    is_any_ignored = ~obj.iter_base.directed_coupling_reduced(veh_i, veh_j) ...
-                        && ~obj.iter_base.directed_coupling_reduced(veh_j, veh_i);
 
-                    if ~is_any_ignored
-                        obj.swap_entries_all_coupling_matrices(veh_i, veh_j);
-                    end
+                    obj.swap_entries_all_coupling_matrices(veh_i, veh_j);
 
                 end
 
@@ -318,7 +311,6 @@ classdef PrioritizedExplorativeController < PrioritizedController
             swapped_entries = fliplr(entries);
             obj.iter.weighted_coupling(entries) = obj.iter_base.weighted_coupling(swapped_entries);
             obj.iter.directed_coupling(entries) = obj.iter_base.directed_coupling(swapped_entries);
-            obj.iter.directed_coupling_reduced(entries) = obj.iter_base.directed_coupling_reduced(swapped_entries);
             obj.iter.directed_coupling_sequential(entries) = obj.iter_base.directed_coupling_sequential(swapped_entries);
         end
 
