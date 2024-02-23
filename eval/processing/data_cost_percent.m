@@ -5,11 +5,17 @@ arguments
     experiment_results (:, :, :)ExperimentResult
 end
 
-cost = zeros(size(experiment_results));
+    cost = zeros(size(experiment_results));
 
-for i = 1:numel(experiment_results)
-    cost(i) = data_cost_experiment(experiment_results(i));
-end
+    for i = 1:numel(experiment_results)
+
+        if experiment_results(i).hlc_indices == -1
+            cost(i) = 0;
+            continue;
+        end
+
+        cost(i) = data_cost_experiment(experiment_results(i));
+    end
 
 optimal_cost = cost(:, end, :);
 cost_increase = cost(:, 1:end - 1, :) ./ optimal_cost;

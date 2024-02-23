@@ -22,6 +22,10 @@ function [n_levels_min_approach_vehicle, n_levels_med_approach_vehicle, n_levels
 
                 experiment_result = experiment_results(i_vehicles, i_approaches, i_scenarios);
 
+                if experiment_result.hlc_indices == -1
+                    continue;
+                end
+
                 for j_vehicle = 1:experiment_result.options.amount
                     % get all n_levels in experiment as row vector
                     n_levels_experiment = reshape( ...
@@ -42,6 +46,9 @@ function [n_levels_min_approach_vehicle, n_levels_med_approach_vehicle, n_levels
         end
 
     end
+
+    n_levels_approach_vehicle_empty_cells = cellfun(@isempty, n_levels_approach_vehicle);
+    [n_levels_approach_vehicle{n_levels_approach_vehicle_empty_cells}] = deal([0]);
 
     % extract information
     n_levels_min_approach_vehicle = cellfun(@min, n_levels_approach_vehicle);

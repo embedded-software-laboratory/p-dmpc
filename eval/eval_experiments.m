@@ -16,7 +16,7 @@ function experiment_results = eval_experiments(optional)
         || numel(optional.priority_strategies) == 1);
 
     % different numbers of vehicles in a scenario
-    n_vehicles_array = 5:5:20;
+    n_vehicles_array = 20:-5:5;
     % number of different random scenarios per priority assignment and #vehicles
 
     options = Config();
@@ -51,13 +51,19 @@ function experiment_results = eval_experiments(optional)
                 options.max_num_CLs = computation_levels;
 
                 for n_vehicles = n_vehicles_array
+
                     options.amount = n_vehicles;
                     options.path_ids = options.randomize_path_ids(seed = seed);
 
-                    experiment_result = FileNameConstructor.load_latest(options);
+                    if n_vehicles > 10 && priority == PriorityStrategies.optimal_priority
+                        experiment_result = ExperimentResult(options, -1);
+                    else
+                        experiment_result = FileNameConstructor.load_latest(options);
 
-                    if isempty(experiment_result)
-                        experiment_result = main(options);
+                        if isempty(experiment_result)
+                            experiment_result = main(options);
+                        end
+
                     end
 
                     experiment_results(end + 1) = experiment_result; %#ok<AGROW>
