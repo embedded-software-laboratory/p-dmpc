@@ -221,7 +221,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             info.shapes = return_path_area(shapes_tmp, tree, best_node_id);
             info.tree_path = final_nodes;
             % Predicted trims in the future Hp time steps. The first entry is the current trims
-            info.predicted_trims = squeeze(double([tree.trim(1, info.tree_path(2:end))]))';
+            info.predicted_trims = squeeze(double([tree.trim(1, info.tree_path(2:end))]));
             info.is_exhausted = false;
             info.needs_fallback = false;
             info.tree = tree;
