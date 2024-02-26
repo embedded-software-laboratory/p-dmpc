@@ -671,8 +671,6 @@ classdef PrioritizedController < HighLevelController
             end
 
             % initialize
-            obj.info = ControlResultsInfo(1, obj.options.Hp);
-
             obj.info.tree = obj.info_old.tree;
             obj.info.tree_path = del_first_rpt_last(obj.info_old.tree_path);
             obj.info.shapes = del_first_rpt_last(obj.info_old.shapes);
