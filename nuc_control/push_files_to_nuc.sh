@@ -6,8 +6,9 @@ LCC_BASH_DIR="/home/cpm/dev/software/lab_control_center/bash/"
 
 # remove old logs and scripts
 # kill resource hungry lab autostart used by LCC
+# remove previous results
 cat nuc_control/working-nucs | xargs --max-args=1 --max-procs=20 -i \
-    sshpass -e ssh -t guest@{} 'rm -rf ~/dev/lcc_script_logs; mkdir -p ~/dev/lcc_script_logs; rm -rf /tmp/scripts; mkdir -p /tmp/scripts; pkill autostart;'
+    sshpass -e ssh -t guest@{} 'rm -rf ~/dev/lcc_script_logs; mkdir -p ~/dev/lcc_script_logs; rm -rf /tmp/scripts; mkdir -p /tmp/scripts; pkill autostart; rm -rf /home/guest/dev/software/high_level_controller/graph_based_planning/results/*'
 # sync files
 cat nuc_control/working-nucs | xargs --max-args=1 --max-procs=20 -i \
     sshpass -e rsync -r -u \
