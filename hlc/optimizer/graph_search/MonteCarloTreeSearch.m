@@ -190,6 +190,9 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             tree = Tree();
             tree.trim = trims(1, 1:n_nodes);
             tree.parent = parents(1, 1:n_nodes);
+            tree.k = -1 * ones(1, n_nodes);
+            tree.g = -1 * ones(1, n_nodes);
+            tree.h = -1 * ones(1, n_nodes);
 
             % set final path
             final_nodes = fliplr(tree.path_to_root(best_node_id));
@@ -214,6 +217,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             tree.x(1, final_nodes) = pose(1, :);
             tree.y(1, final_nodes) = pose(2, :);
             tree.yaw(1, final_nodes) = pose(3, :);
+            tree.k(1, final_nodes) = 1:length(final_nodes);
 
             tree.g(1, best_node_id) = cost;
 
