@@ -40,12 +40,23 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             % initialize variable to store control results
             info = ControlResultsInfo(iter.amount, Hp);
 
+            all_successor_trims = mpa.successor_trims;
+
             % Create tree with root node
             trim = iter.trim_indices;
-            successor_trims = find(mpa.transition_matrix_single(trim, :, 1));
-            info.tree = MonteCarloTree(1, n_successor_trims_max, n_expansions_max);
-            cost = 0;
-            info.tree.add_root(iter.x0(1:3), trim, cost, successor_trims);
+            root_successor_trims = all_successor_trims{trim, 1};
+
+            tree = MonteCarloTree(1, n_successor_trims_max, n_expansions_max + Hp);
+            trims = zeros(1, n_expansions_max, 'uint8');
+            parents = zeros(1, n_expansions_max, 'uint32');
+            children = zeros(n_successor_trims_max, n_expansions_max, 'uint32');
+
+            root_pose = iter.x0(1:3)';
+            tree.add_root(root_pose, trim, root_successor_trims);
+            trims(1) = trim;
+            parents(1) = 0;
+            children(1:size(root_successor_trims, 2), 1) = 1;
+            n_nodes = 1;
 
             valid_nodes_at_hp = PriorityQueue();
             shapes_tmp = cell(iter.amount, 0);
@@ -57,47 +68,80 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             n_expansions = 0;
             is_finished = false;
 
+            reference_trajectory_points = squeeze(iter.reference_trajectory_points(iVeh, :, 1:2))';
+            maneuvers = mpa.maneuvers;
+
             while (n_expansions < n_expansions_max) && ~is_finished
                 % expand randomly for Hp steps
                 node_id = 1;
+                solution_cost = 0;
+                node_pose = root_pose;
 
                 for i_step = 1:Hp
                     is_valid = false;
                     n_expansions = n_expansions + 1;
-                    % Select node to expand randomly
-                    goal_trim = obj.random_trim(node_id, info.tree, n_expansions);
 
-                    if goal_trim == 0
-                        is_finished = true;
-                        break
+                    % Select node to expand randomly
+                    trim_positions = find(children(:, node_id));
+                    n_trims = numel(trim_positions);
+
+                    if n_trims ~= 0
+                        % choose successor trim randomly
+                        child_position = trim_positions(ceil(obj.random_numbers(n_expansions) * n_trims));
+                    else
+
+                        if node_id ~= 1
+                            % remove edge to node without children
+                            parent_id = parents(node_id);
+                            children(children(parent_id) == node_id, parent_id) = 0;
+                            break
+                        else
+                            is_finished = true;
+                            break
+                        end
+
                     end
 
-                    child_position = info.tree.successor_trims(:, :, node_id) == goal_trim;
-                    is_expanded = info.tree.children(child_position, node_id) ~= 1;
+                    % Expand node
+                    parent_trim = trims(node_id);
+                    successor_trims = all_successor_trims{parent_trim, i_step};
+                    goal_trim = successor_trims(child_position);
+
+                    maneuver = maneuvers{parent_trim, goal_trim};
+
+                    c = cos(node_pose(3));
+                    s = sin(node_pose(3));
+
+                    transform = [c, -s, 0;
+                                 s, c, 0;
+                                 0, 0, 1];
+
+                    start_pose = node_pose;
+                    node_pose = node_pose + transform * maneuver.dpose;
+
+                    % Cost to come
+                    % Distance to reference trajectory points squared to conform with
+                    % J = (x-x_ref)' Q (x-x_ref)
+                    solution_cost = solution_cost + norm(node_pose(1:2) - reference_trajectory_points(:, i_step))^2;
+
+                    is_expanded = children(child_position, node_id) ~= 1;
 
                     if is_expanded
-                        node_id = info.tree.children(child_position, node_id);
+                        node_id = children(child_position, node_id);
                         continue
                     end
 
-                    [node_pose, node_cost, ...
-                         shapes, shapes_without_offset, shapes_with_large_offset] = obj.expand_node( ...
-                        goal_trim ...
-                        , squeeze(iter.reference_trajectory_points(iVeh, i_step, 1:2)) ...
-                        , node_id ...
-                        , info.tree ...
-                        , mpa ...
-                    );
-
-                    node_trim = goal_trim;
                     node_parent = node_id;
+
+                    shapes_without_offset = {transform(1:2, 1:2) * maneuver.area_without_offset + start_pose(1:2)};
+                    shapes = {transform(1:2, 1:2) * maneuver.area + start_pose(1:2)};
 
                     if (i_step ~= Hp)
                         shapes_for_boundary_check = shapes_without_offset;
-
-                        node_successor_trims = find(mpa.transition_matrix_single(goal_trim, :, i_step + 1));
+                        child_successor_trims = all_successor_trims{goal_trim, i_step + 1};
                     else
-                        shapes_for_boundary_check = shapes_with_large_offset;
+                        shapes_for_boundary_check = {transform(1:2, 1:2) * maneuver.area_large_offset + start_pose(1:2)};
+                        child_successor_trims = [];
                     end
 
                     is_valid = obj.are_constraints_satisfied( ...
@@ -112,25 +156,31 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                     );
 
                     if ~is_valid
-                        info.tree.remove_edge(node_parent, goal_trim);
+                        % remove edge
+                        children(child_position, node_parent) = 0;
                         break
                     else
-                        node_id = info.tree.add_node(node_pose, node_trim, node_cost, node_parent, node_successor_trims);
+                        % add node
+                        n_nodes = n_nodes + 1;
+                        parents(1, n_nodes) = node_parent;
+                        trims(:, n_nodes) = goal_trim;
+                        children(1:size(child_successor_trims, 2), n_nodes) = 1;
+                        children(child_position, node_parent) = n_nodes;
+                        shapes_tmp(:, n_nodes) = shapes;
+                        node_id = n_nodes;
                     end
-
-                    shapes_tmp(:, node_id) = shapes;
 
                 end
 
                 if is_valid
-                    valid_nodes_at_hp.push(double(node_id), double(node_cost));
+                    valid_nodes_at_hp.push(double(node_id), double(solution_cost));
                     % Avoid double exploration
-                    info.tree.remove_edge(node_parent, goal_trim);
+                    children(child_position, node_parent) = 0;
                 end
 
             end
 
-            best_node_id = valid_nodes_at_hp.pop();
+            [best_node_id, cost] = valid_nodes_at_hp.pop();
 
             info.n_expanded = n_expansions;
 
@@ -140,80 +190,41 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                 return
             end
 
-            % return cheapest path
-            info.y_predicted = return_path_to(best_node_id, info.tree);
-            info.shapes = return_path_area(shapes_tmp, info.tree, best_node_id);
-            info.tree_path = fliplr(path_to_root(info.tree, best_node_id));
-            % Predicted trims in the future Hp time steps. The first entry is the current trims
-            info.predicted_trims = squeeze(double([info.tree.trim(1, :, info.tree_path(2:end))]))';
-            info.is_exhausted = false;
-            info.needs_fallback = false;
+            tree.trim = trims;
+            tree.parent = parents;
+            tree.children = children;
 
-        end
+            % set final path
+            final_nodes = fliplr(tree.path_to_root(best_node_id));
+            pose = zeros(3, length(final_nodes));
+            pose(:, 1) = root_pose;
 
-        function trim = random_trim(obj, node_id, tree, n_expansions)
-            % RANDOM_TRIM  Return random successor trim for given node.
-            %
-            % INPUT:
-            %   node_id: Id of node to return random successor trim for.
-            %   tree: Tree to expand a node in.
-            %   n_expansions: Number of expansions so far.
-            %
-            % OUTPUT:
-            %   trim: Random successor trim of node. If no successor trim is available, return 0.
-            %
-            trim_positions = find(tree.successor_trims(:, :, node_id));
-            n_trims = numel(trim_positions);
+            for i = 2:length(final_nodes)
+                start_trim = tree.trim(1, final_nodes(i - 1));
+                goal_trim = tree.trim(1, final_nodes(i));
 
-            if n_trims == 0
-                trim = 0;
-            else
-                % choose successor trim randomly
-                trim = tree.successor_trims( ...
-                    trim_positions(ceil(obj.random_numbers(n_expansions) * n_trims)), ...
-                    :, ...
-                    node_id ...
-                );
+                maneuver = maneuvers{start_trim, goal_trim};
+
+                c = cos(pose(3, i - 1));
+                s = sin(pose(3, i - 1));
+
+                transform = [c, -s, 0;
+                             s, c, 0;
+                             0, 0, 1];
+                pose(:, i) = pose(:, i - 1) + transform * maneuver.dpose;
             end
 
-        end
+            tree.set_final_path(cost, pose, final_nodes);
 
-        function [goal_pose, goal_cost, shapes, shapes_without_offset, shapes_with_large_offset] = expand_node(~ ...
-                , goal_trim ...
-                , reference_trajectory_point ...
-                , node_id ...
-                , tree ...
-                , mpa ...
-            )
-            start_trim = tree.trim(1, :, node_id);
-
-            maneuver = mpa.maneuvers{start_trim, goal_trim};
-
-            c = cos(tree.pose(3, :, node_id));
-            s = sin(tree.pose(3, :, node_id));
-
-            transform = [c, -s, 0;
-                         s, c, 0;
-                         0, 0, 1];
-            dpose = [maneuver.dx; maneuver.dy; maneuver.dyaw];
-            goal_pose = transform * dpose + tree.pose(:, :, node_id);
-
-            % Cost to come
-            % Distance to reference trajectory points squared to conform with
-            % J = (x-x_ref)' Q (x-x_ref)
-            goal_cost = tree.cost(1, node_id) + norm( ...
-                goal_pose(1:2) - reference_trajectory_point ...
-            )^2;
-
-            iVeh = 1;
-            shapes = cell(iVeh, 1);
-            shapes_without_offset = cell(iVeh, 1);
-            shapes_with_large_offset = cell(iVeh, 1);
-            shapes{iVeh} = transform(1:2, 1:2) * maneuver.area + tree.pose(1:2, :, node_id);
-
-            shapes_without_offset{iVeh} = transform(1:2, 1:2) * maneuver.area_without_offset + tree.pose(1:2, :, node_id);
-
-            shapes_with_large_offset{iVeh} = transform(1:2, 1:2) * maneuver.area_large_offset + tree.pose(1:2, :, node_id);
+            % return cheapest path
+            info.y_predicted = return_path_to(best_node_id, tree);
+            info.shapes = return_path_area(shapes_tmp, tree, best_node_id);
+            info.tree_path = final_nodes;
+            % Predicted trims in the future Hp time steps. The first entry is the current trims
+            info.predicted_trims = squeeze(double([tree.trim(1, info.tree_path(2:end))]))';
+            info.is_exhausted = false;
+            info.needs_fallback = false;
+            info.tree = tree;
 
         end
 
