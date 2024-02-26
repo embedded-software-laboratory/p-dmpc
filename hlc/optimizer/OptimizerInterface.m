@@ -77,7 +77,7 @@ classdef (Abstract) OptimizerInterface < handle
             k = 0;
             g = 0;
             h = 0;
-            tree = AStarTree(x, y, yaw, trim, k, g, h);
+            tree = Tree(x, y, yaw, trim, k, g, h);
         end
 
         function info = create_control_results_info_from_mex( ...
@@ -89,7 +89,6 @@ classdef (Abstract) OptimizerInterface < handle
                 y_predicted_full_res ...
             )
 
-
             info.predicted_trims = current_and_predicted_trims(:, 2:end);
             info.tree = OptimizerInterface.create_tree(iter);
             info.tree_path = 1:(options.Hp + 1);
@@ -97,25 +96,26 @@ classdef (Abstract) OptimizerInterface < handle
             for i = 1:options.Hp
                 info.tree.add_node(i, next_nodes{i});
             end
-            
 
             % y_predicted_full_res is a cell array of size (options.amount x 1)
             % Each cell contains a matrix of size (n_predicted_points x 4)
             info.y_predicted = nan(3, options.Hp, iter.amount);
 
             if ~info.is_exhausted
+
                 for i_vehicle = 1:iter.amount
 
-                n_predicted_points = size(y_predicted_full_res{i_vehicle}, 1);
-                entries_per_time_step = n_predicted_points / options.Hp;
-                idx_predicted_points = entries_per_time_step:entries_per_time_step:n_predicted_points;
+                    n_predicted_points = size(y_predicted_full_res{i_vehicle}, 1);
+                    entries_per_time_step = n_predicted_points / options.Hp;
+                    idx_predicted_points = entries_per_time_step:entries_per_time_step:n_predicted_points;
 
-                for i_step = 1:options.Hp
-                    i_predicted_point = idx_predicted_points(i_step);
-                    info.y_predicted(:, i_step, i_vehicle) = y_predicted_full_res{i_vehicle}(i_predicted_point, 1:3);
+                    for i_step = 1:options.Hp
+                        i_predicted_point = idx_predicted_points(i_step);
+                        info.y_predicted(:, i_step, i_vehicle) = y_predicted_full_res{i_vehicle}(i_predicted_point, 1:3);
+                    end
+
                 end
 
-                end
             end
 
         end

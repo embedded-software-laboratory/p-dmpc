@@ -45,14 +45,11 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             % Create tree with root node
             trim = iter.trim_indices;
             root_successor_trims = all_successor_trims{trim, 1};
-
-            tree = MonteCarloTree(1, n_successor_trims_max, n_expansions_max + Hp);
             trims = zeros(1, n_expansions_max, 'uint8');
             parents = zeros(1, n_expansions_max, 'uint32');
             children = zeros(n_successor_trims_max, n_expansions_max, 'uint32');
 
             root_pose = iter.x0(1:3)';
-            tree.add_root(root_pose, trim, root_successor_trims);
             trims(1) = trim;
             parents(1) = 0;
             children(1:size(root_successor_trims, 2), 1) = 1;
@@ -190,9 +187,9 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                 return
             end
 
-            tree.trim = trims;
-            tree.parent = parents;
-            tree.children = children;
+            tree = Tree();
+            tree.trim = trims(1, 1:n_nodes);
+            tree.parent = parents(1, 1:n_nodes);
 
             % set final path
             final_nodes = fliplr(tree.path_to_root(best_node_id));
@@ -214,7 +211,11 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                 pose(:, i) = pose(:, i - 1) + transform * maneuver.dpose;
             end
 
-            tree.set_final_path(cost, pose, final_nodes);
+            tree.x(1, final_nodes) = pose(1, :);
+            tree.y(1, final_nodes) = pose(2, :);
+            tree.yaw(1, final_nodes) = pose(3, :);
+
+            tree.g(1, best_node_id) = cost;
 
             % return cheapest path
             info.y_predicted = return_path_to(best_node_id, tree);

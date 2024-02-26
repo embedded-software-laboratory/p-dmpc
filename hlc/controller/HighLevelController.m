@@ -141,7 +141,7 @@ classdef (Abstract) HighLevelController < handle
                 );
 
                 % initialize info_old
-                obj.info_old.tree = AStarTree(initial_pose(1), initial_pose(2), initial_pose(3), initial_trim, 1, inf, inf);
+                obj.info_old.tree = Tree(initial_pose(1), initial_pose(2), initial_pose(3), initial_trim, 1, inf, inf);
                 obj.info_old.tree_path = ones(1, obj.options.Hp + 1);
                 obj.info_old.y_predicted(:, :, i_vehicle) = repmat( ...
                     [initial_pose(1); initial_pose(2); initial_pose(3)], ...
