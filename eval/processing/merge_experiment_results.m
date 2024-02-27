@@ -12,6 +12,8 @@ function experiment_result = merge_experiment_results(experiment_results)
 
     experiment_result.control_results_info = merge_control_results_info(experiment_results);
 
+    experiment_result = normalize_timing_results(experiment_result);
+
 end
 
 function merged_experiment_result = merge_two_experiment_results(merged_experiment_result, result2)

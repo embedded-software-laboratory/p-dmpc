@@ -15,7 +15,7 @@ function plot_computation_time_per_vehicle(experiment_result, optional)
         set(0, 'currentfigure', optional.fig);
         hold on;
 
-        runtimes(:, i) = squeeze(experiment_result.timing(i).control_loop(2, 1, :));
+        runtimes(:, i) = experiment_result.timing(i).control_loop(2, :);
 
         bar(1:size(runtimes, 1), runtimes);
         % set labels
