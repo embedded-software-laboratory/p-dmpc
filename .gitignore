@@ -1,6 +1,6 @@
 # Ignore output
 results/
-profile_results
+profile_results*
 ui/Config.json
 Config.json
 derived/*

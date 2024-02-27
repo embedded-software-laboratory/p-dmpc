@@ -3,6 +3,7 @@ classdef MotionPrimitiveAutomaton
 
     properties
         maneuvers % cell(n_trims, n_trims)
+        successor_trims % cell(n_trims, Hp), the successor trims of each trim
         trims % A struct array of the specified trim_inputs
         transition_matrix_single % Matrix (nTrims x nTrims x horizon_length)
         trim_tuple % Matrix with trim indices ((nTrims1*nTrims2*...) x nVehicles)
@@ -141,6 +142,14 @@ classdef MotionPrimitiveAutomaton
 
             if options.recursive_feasibility
                 obj.transition_matrix_single = compute_time_varying_transition_matrix(obj);
+            end
+
+            for i_step = 1:size(obj.transition_matrix_single, 3)
+
+                for i_trim = 1:size(obj.transition_matrix_single, 1)
+                    obj.successor_trims{i_trim, i_step} = find(obj.transition_matrix_single(i_trim, :, i_step));
+                end
+
             end
 
             % variables to store reachable sets in different time steps

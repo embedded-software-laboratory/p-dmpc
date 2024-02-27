@@ -582,7 +582,22 @@ classdef PrioritizedController < HighLevelController
                 x = iter.x0(:, 1);
                 y = iter.x0(:, 2);
                 yaw = iter.x0(:, 3);
-                info_v.tree_path = ones(size(x, 1), Hp + 1);
+                k = (1:Hp + 1);
+                cost = 0;
+                info_v.tree = Tree(x, y, yaw, trim, 0, cost, -1);
+                i_vehicle = obj.plant.vehicle_indices_controlled;
+
+                for i_step = 2:Hp + 1
+                    % recompute cost values
+                    trajectory_reference = squeeze(obj.iter.reference_trajectory_points(i_vehicle, i_step - 1, :));
+                    trajectory_prediction = [x; y];
+                    cost = cost + vecnorm(trajectory_reference - trajectory_prediction).^2;
+                    % add node to the tree
+                    parent = i_step - 1;
+                    info_v.tree.add_nodes(parent, x, y, yaw, trim, k(i_step - 1), cost, -1);
+                end
+
+                info_v.tree_path = ones(size(x, 1), 1) * k;
                 info_v.y_predicted = repmat( ...
                     [x; y; yaw], ...
                     1, ...
@@ -671,8 +686,6 @@ classdef PrioritizedController < HighLevelController
             end
 
             % initialize
-            obj.info = ControlResultsInfo(1, obj.options.Hp);
-
             obj.info.tree = obj.info_old.tree;
             obj.info.tree_path = del_first_rpt_last(obj.info_old.tree_path);
             obj.info.shapes = del_first_rpt_last(obj.info_old.shapes);

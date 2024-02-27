@@ -22,7 +22,7 @@ function maneuver = generate_maneuver(model, trim1, trim2, options)
         odeset('RelTol', 1e-8, 'AbsTol', 1e-8) ...
     );
 
-    maneuver = struct('xs', [], 'ys', [], 'yaws', [], 'dx', [], 'dy', [], 'dyaw', [], 'area', [], 'area_without_offset', [], 'area_large_offset', []);
+    maneuver = struct('xs', [], 'ys', [], 'yaws', [], 'dx', [], 'dy', [], 'dyaw', [], 'dpose', [], 'area', [], 'area_without_offset', [], 'area_large_offset', []);
     % assign values to struct
     maneuver.xs = x(:, 1)';
     maneuver.ys = x(:, 2)';
@@ -31,6 +31,7 @@ function maneuver = generate_maneuver(model, trim1, trim2, options)
     maneuver.dx = maneuver.xs(end);
     maneuver.dy = maneuver.ys(end);
     maneuver.dyaw = maneuver.yaws(end);
+    maneuver.dpose = [maneuver.dx; maneuver.dy; maneuver.dyaw];
 
     % local rectangle of bycicle model [coordinates clockwise from lower left corner]
     veh = Vehicle();
