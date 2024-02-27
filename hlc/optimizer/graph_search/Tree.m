@@ -69,7 +69,7 @@ classdef Tree < handle
             obj.parent(1, i_node) = parent;
         end
 
-        function i_node = add_node(obj, parent, node)
+        function i_node = add_node_object(obj, parent, node)
             assert( ...
                 parent > 0 && parent <= numel(obj.parent) ...
                 , 'Parent index %d out of bounds.\n' ...
@@ -125,6 +125,10 @@ classdef Tree < handle
 
         function cost = get_cost(obj, i_node)
             cost = sum(obj.g(:, i_node));
+        end
+
+        function set_cost(obj, i_node, cost)
+            obj.g(:, i_node) = cost;
         end
 
     end

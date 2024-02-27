@@ -11,7 +11,7 @@ function plot_mpa(experiment_result, optional)
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    mpa = experiment_result.mpa;
+    mpa = MotionPrimitiveAutomaton(experiment_result.options);
 
     mpa.plot( ...
         y_lim = optional.y_lim, ...

@@ -7,7 +7,7 @@ classdef Config
         scenario_file (1, :) char = 'scenario.mat'; % file the scenario is loaded from
         amount = 20; % integer, number of vehicles, does not include manual vehicles
         T_end = 20; % scalar, simulation duration
-        path_ids = []; % reference path IDs for selection of paths for the vehicles
+        path_ids (1, :) double = []; % reference path IDs for selection of paths for the vehicles
 
         % ----
         % Environment
@@ -302,6 +302,7 @@ classdef Config
                 obj (1, 1) Config
                 other_config (1, 1) Config
             end
+
 
             % check if two configs are equal
             tf = true;

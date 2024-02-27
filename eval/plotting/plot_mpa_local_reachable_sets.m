@@ -7,7 +7,7 @@ function plot_mpa_local_reachable_sets(experiment_result, optional)
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    mpa = experiment_result.mpa;
+    mpa = MotionPrimitiveAutomaton(experiment_result.options);
     mpa.plot_local_reachable_sets(fig = optional.fig);
 
     set_figure_properties(optional.fig, optional.export_fig_cfg);

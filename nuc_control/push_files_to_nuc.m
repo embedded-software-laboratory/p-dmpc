@@ -1,5 +1,5 @@
 function push_files_to_nuc()
-    fprintf('Updating NUC files...');
+    fprintf('Updating NUC files...'); tic;
 
     % update all nuc files
     script_path = fullfile(pwd, 'nuc_control', 'push_files_to_nuc.sh');
@@ -8,5 +8,5 @@ function push_files_to_nuc()
 
     [~, ~] = system(command);
 
-    fprintf(' done.\n')
+    fprintf(' done (%.2f s).\n', toc)
 end

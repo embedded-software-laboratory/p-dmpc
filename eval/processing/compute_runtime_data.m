@@ -33,6 +33,7 @@ function data = compute_runtime_data(res, optional)
             for iSce = 1:nSce
                 disp(['Scenario ', num2str(iVeh), ' / ', num2str(iPri), ' / ', num2str(iSce)])
                 experiment_result = res{iVeh, iPri, iSce};
+                mpa = MotionPrimitiveAutomaton(experiment_result.options);
                 [n_total_deadlock_free, t_total_deadlock_free] = ...
                     compute_deadlock_free_runtime(experiment_result);
                 t_deadlock_free(iVeh, iSce, iPri) = t_total_deadlock_free;
@@ -42,7 +43,7 @@ function data = compute_runtime_data(res, optional)
 
                 for iStep = 1:n_total_deadlock_free
                     iter = experiment_result.iteration_data(iStep);
-                    speeds = [experiment_result.mpa.trims(iter.trim_indices).speed];
+                    speeds = [mpa.trims(iter.trim_indices).speed];
                     avg_speed_step(iStep) = mean(speeds);
                 end
 

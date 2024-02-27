@@ -22,6 +22,10 @@ function [time_min_approach_vehicle, time_med_approach_vehicle, time_mean_approa
 
                 experiment_result = experiment_results(i_vehicles, i_approaches, i_scenarios);
 
+                if experiment_result.hlc_indices == -1
+                    continue;
+                end
+
                 for j_vehicle = 1:experiment_result.options.amount
                     % get all control loop times as row vector
                     times_experiment = reshape( ...
@@ -42,6 +46,9 @@ function [time_min_approach_vehicle, time_med_approach_vehicle, time_mean_approa
         end
 
     end
+
+    times_approach_vehicle_empty_cells = cellfun(@isempty, times_approach_vehicle);
+    [times_approach_vehicle{times_approach_vehicle_empty_cells}] = deal([0]);
 
     % extract information
     time_min_approach_vehicle = cellfun(@min, times_approach_vehicle);

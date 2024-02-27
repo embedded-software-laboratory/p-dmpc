@@ -106,7 +106,6 @@ classdef (Abstract) HighLevelController < handle
             % initialize ExperimentResult object
             obj.experiment_result = ExperimentResult( ...
                 obj.options, ...
-                obj.mpa, ...
                 obj.plant.vehicle_indices_controlled ...
             );
 
@@ -503,7 +502,6 @@ classdef (Abstract) HighLevelController < handle
 
         function save_results(obj)
             % save ExperimentResult object at end of experiment
-            obj.experiment_result.mpa = obj.mpa;
 
             obj.experiment_result.timing = obj.timing.get_all_timings();
 

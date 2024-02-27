@@ -91,9 +91,6 @@ function eval_grouping(optional)
             filename = sprintf('grouping_cost_%s_%s.pdf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
             export_fig(fig, filepath);
-            filename = sprintf('grouping_cost_%s_%s.emf', scenario, optimizer);
-            filepath = fullfile(FileNameConstructor.all_results(), filename);
-            export_fig(fig, filepath);
             close all;
 
             % Plot computation time
@@ -155,9 +152,6 @@ function eval_grouping(optional)
             filename = sprintf('grouping_time_%s_%s.pdf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
             export_fig(fig, filepath);
-            filename = sprintf('grouping_time_%s_%s.emf', scenario, optimizer);
-            filepath = fullfile(FileNameConstructor.all_results(), filename);
-            export_fig(fig, filepath);
             close all;
 
             % Plot computation levels
@@ -217,9 +211,6 @@ function eval_grouping(optional)
             );
 
             filename = sprintf('grouping_levels_%s_%s.pdf', scenario, optimizer);
-            filepath = fullfile(FileNameConstructor.all_results(), filename);
-            export_fig(fig, filepath);
-            filename = sprintf('grouping_levels_%s_%s.emf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
             export_fig(fig, filepath);
             close all;
