@@ -42,7 +42,9 @@ classdef PrioritizedOptimalController < PrioritizedController
         end
 
         function create_coupling_graph(obj)
+            obj.timing.start('receive_from_others', obj.k);
             obj.update_other_vehicles_traffic_info();
+            obj.timing.stop('receive_from_others', obj.k);
             obj.timing.start('couple', obj.k);
             obj.couple();
             obj.timing.stop('couple', obj.k);
