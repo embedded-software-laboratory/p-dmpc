@@ -28,11 +28,18 @@ function plot_runtime_for_step(experiment_result, k, optional)
                        "optimize", ...
                    ];
 
-    % Find minimum in start of first measurement, i.e., "hlc_init", to normalize time by that.
-    t0 = realmax;
+    % Find time of HLC which starts loop last
+    measure_timings = vertcat(experiment_result.timing.measure);
+    measure_start_points = measure_timings(1:2:end, :);
+    [t0, i_vehicle_last] = max(measure_start_points(:, k));
 
-    for veh_i = 1:options.amount
-        t0 = min(t0, experiment_result.timing(veh_i).control_loop(1, 1, k));
+    % Fake that all vehicles started at the same time
+    % Actually, vehicles start right after they finished the previous step,
+    % and then wait for others
+    for i_vehicle = 1:options.amount
+        experiment_result.timing(i_vehicle).measure(:, k) = experiment_result.timing(i_vehicle_last).measure(:, k);
+        experiment_result.timing(i_vehicle).analyze_reachability(:, k) = experiment_result.timing(i_vehicle_last).analyze_reachability(:, k);
+        experiment_result.timing(i_vehicle).receive_from_others(:, k) = experiment_result.timing(i_vehicle_last).receive_from_others(:, k);
     end
 
     figure_handle = figure();
@@ -45,8 +52,8 @@ function plot_runtime_for_step(experiment_result, k, optional)
 
             timings = experiment_result.timing(veh_i);
 
-            t_start = timings.(field_name)(1, 1, k) - t0; % Normalize (see above)
-            duration = timings.(field_name)(2, 1, k);
+            t_start = timings.(field_name)(1, k) - t0; % Normalize (see above)
+            duration = timings.(field_name)(2, k);
             time_to_draw(:, veh_i) = [t_start, t_start + duration] * 10^3; % Scale to ms
         end
 
@@ -55,9 +62,9 @@ function plot_runtime_for_step(experiment_result, k, optional)
         hold on;
     end
 
-    legend(plot_handle(1, :), strrep(cellstr(field_names), '_', ' '));
+    legend(plot_handle(1, :), strrep(cellstr(field_names), '_', ' '), Location = 'best');
     xlabel('Time [ms]');
-    ylabel('Vehicle');
+    ylabel('Vehicle ID');
     yticks(1:options.amount);
     ylim([1 - 0.2, options.amount + 0.2]);
 
