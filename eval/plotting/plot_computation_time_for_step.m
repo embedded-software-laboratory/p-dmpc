@@ -1,4 +1,4 @@
-function plot_runtime_for_step(experiment_result, k, optional)
+function plot_computation_time_for_step(experiment_result, k, optional)
     %% PLOT_RUNTIME_FOR_STEP plots the timing of the specified timestep where t=0 is the start of the first hlc_init measurement
     %%      IMPORTANT: This function expects a result as input in which the controller_start_times were normalized before
     %%                 by normalize_timing_results

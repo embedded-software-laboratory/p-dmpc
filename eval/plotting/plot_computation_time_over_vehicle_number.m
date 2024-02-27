@@ -16,22 +16,18 @@ function plot_computation_time_over_vehicle_number(experiment_results, optional)
     time_max = nan(1, n_experiments);
 
     for i_experiment = 1:n_experiments
-        n_steps = experiment_results(i_experiment).n_steps;
-
-        times_per_vehicle = nan(n_steps - 1, i_experiment);
         n_vehicles(i_experiment) = experiment_results(i_experiment).options.amount;
 
-        for i_vehicle = 1:n_vehicles(i_experiment)
-            times_per_vehicle(:, i_vehicle) = experiment_results(i_experiment).timing(i_vehicle).control_loop(2, 2:n_steps);
-        end
+        computation_time = data_time_experiment(experiment_results(i_experiment));
+        computation_time = computation_time';
 
-        time_med(i_experiment) = median(times_per_vehicle, "all");
-        time_max(i_experiment) = max(times_per_vehicle, [], "all");
+        time_med(i_experiment) = median(computation_time, "all");
+        time_max(i_experiment) = max(computation_time, [], "all");
 
         % plot with axis on both sides and logarithmic scale
         set(0, 'currentfigure', optional.fig);
-        times_per_vehicle = reshape(times_per_vehicle, 1, []);
-        boxchart(n_vehicles(i_experiment) * ones(size(times_per_vehicle)), times_per_vehicle * 1e3);
+        computation_time = reshape(computation_time, 1, []);
+        boxchart(n_vehicles(i_experiment) * ones(size(computation_time)), computation_time * 1e3);
         hold on
 
     end

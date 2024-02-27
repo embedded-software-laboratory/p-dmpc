@@ -26,20 +26,12 @@ function [time_min_approach_vehicle, time_med_approach_vehicle, time_mean_approa
                     continue;
                 end
 
-                for j_vehicle = 1:experiment_result.options.amount
-                    % get all control loop times as row vector
-                    times_experiment = reshape( ...
-                        experiment_result.timing(j_vehicle).control_loop(2, :), ...
-                        1, ...
-                        length(experiment_result.timing(j_vehicle).control_loop(2, :)) ...
-                    );
-                    % insert timings into the correct list
-                    times_approach_vehicle{i_approaches, i_vehicles} = [ ...
-                                                                            times_approach_vehicle{i_approaches, i_vehicles}, ...
-                                                                            times_experiment ...
-                                                                        ];
+                computation_time = data_time_experiment(experiment_result);
 
-                end
+                % insert timings into the correct list
+                times_approach_vehicle{i_approaches, i_vehicles} = reshape( ...
+                    computation_time, 1, [] ...
+                );
 
             end
 
@@ -48,7 +40,7 @@ function [time_min_approach_vehicle, time_med_approach_vehicle, time_mean_approa
     end
 
     times_approach_vehicle_empty_cells = cellfun(@isempty, times_approach_vehicle);
-    [times_approach_vehicle{times_approach_vehicle_empty_cells}] = deal([0]);
+    [times_approach_vehicle{times_approach_vehicle_empty_cells}] = deal(0);
 
     % extract information
     time_min_approach_vehicle = cellfun(@min, times_approach_vehicle);

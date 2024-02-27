@@ -303,7 +303,6 @@ classdef Config
                 other_config (1, 1) Config
             end
 
-
             % check if two configs are equal
             tf = true;
 
