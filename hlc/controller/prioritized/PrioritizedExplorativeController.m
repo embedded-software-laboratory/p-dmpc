@@ -195,6 +195,8 @@ classdef PrioritizedExplorativeController < PrioritizedController
 
             for i_graph = 1:max(obj.belonging_vector_total)
                 sub_graph_vehicles = obj.belonging_vector_total == i_graph;
+                % Round solution cost to avoid numerical differences
+                obj.solution_cost(:, i_graph) = round(obj.solution_cost(:, i_graph), 8);
                 [min_solution_cost, chosen_solution] = min(obj.solution_cost(:, i_graph));
                 chosen_solution = chosen_solution(1); % guarantee that it is a single integer
 
