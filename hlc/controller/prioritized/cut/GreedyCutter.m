@@ -73,10 +73,10 @@ classdef GreedyCutter < Cutter
 
                 if computation_levels_if_sequential <= max_num_CLs
                     directed_graph = directed_graph.addedge(vertex_starting, vertex_ending);
-
-                    levels_of_vehicles([vertex_ending; vertices_ordered_after]) = ...
-                        levels_of_vehicles([vertex_ending; vertices_ordered_after]) ...
-                        + added_levels;
+                    
+                    levels_of_vehicles(vertices_ordered_after) = ...
+                         distances(directed_graph, vertex_ending, vertices_ordered_after) ...
+                        + added_levels + 1;
                 end
 
             end
