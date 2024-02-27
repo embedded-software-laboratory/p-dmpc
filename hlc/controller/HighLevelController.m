@@ -159,7 +159,7 @@ classdef (Abstract) HighLevelController < handle
 
         function update_controlled_vehicles_traffic_info(obj, cav_measurements)
 
-            obj.timing.start("update_controlled_vehicles_traffic_info", obj.k);
+            obj.timing.start("analyze_reachability", obj.k);
 
             for iVeh = obj.plant.vehicle_indices_controlled
                 % states of controlled vehicles can be measured directly
@@ -249,7 +249,7 @@ classdef (Abstract) HighLevelController < handle
 
             end
 
-            obj.timing.stop("update_controlled_vehicles_traffic_info", obj.k);
+            obj.timing.stop("analyze_reachability", obj.k);
 
         end
 
