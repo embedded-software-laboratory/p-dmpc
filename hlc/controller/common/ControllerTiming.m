@@ -93,7 +93,9 @@ classdef ControllerTiming < handle
 
             % save results from timings_per_time_step
             for name = obj.names_of_timings_per_time_step
-                timings.(name) = obj.timings_per_time_step(:, obj.name_to_timing_per_time_step(name), :);
+                timings.(name) = squeeze( ...
+                    obj.timings_per_time_step(:, obj.name_to_timing_per_time_step(name), :) ...
+                );
             end
 
         end

@@ -22,7 +22,7 @@ function plot_computation_time_over_vehicle_number(experiment_results, optional)
         n_vehicles(i_experiment) = experiment_results(i_experiment).options.amount;
 
         for i_vehicle = 1:n_vehicles(i_experiment)
-            times_per_vehicle(:, i_vehicle) = experiment_results(i_experiment).timing(i_vehicle).control_loop(2, :, 2:n_steps);
+            times_per_vehicle(:, i_vehicle) = experiment_results(i_experiment).timing(i_vehicle).control_loop(2, 2:n_steps);
         end
 
         time_med(i_experiment) = median(times_per_vehicle, "all");
