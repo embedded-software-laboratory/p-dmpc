@@ -15,10 +15,6 @@ function experiment_results = eval_experiments(optional)
     assert(numel(optional.max_num_CLs) == 1 ...
         || numel(optional.priority_strategies) == 1);
 
-    % different numbers of vehicles in a scenario
-    n_vehicles_array = 20:-5:5;
-    % number of different random scenarios per priority assignment and #vehicles
-
     options = Config();
     % Scenario
     options.scenario_type = optional.scenario_type;
@@ -26,8 +22,10 @@ function experiment_results = eval_experiments(optional)
     % Scenario-specific config
     if options.scenario_type == ScenarioType.commonroad
         seeds = 1:3;
+        n_vehicles_array = 5:5:20;
     elseif options.scenario_type == ScenarioType.circle
         seeds = 1;
+        n_vehicles_array = 4:2:10;
     end
 
     % Environment
