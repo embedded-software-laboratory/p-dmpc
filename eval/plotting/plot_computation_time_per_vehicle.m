@@ -7,22 +7,12 @@ function plot_computation_time_per_vehicle(experiment_result, optional)
         optional.export_fig_cgf (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
-    n_hlc = experiment_result.n_hlc;
+    computation_time = data_time_experiment(experiment_result);
+    computation_time = computation_time';
 
-    runtimes = zeros(experiment_result.n_steps, n_hlc);
-
-    for i = 1:n_hlc
-        set(0, 'currentfigure', optional.fig);
-        hold on;
-
-        runtimes(:, i) = experiment_result.timing(i).control_loop(2, :);
-
-        bar(1:size(runtimes, 1), runtimes);
-        % set labels
-        xlabel('Time step $k$', Interpreter = 'LaTex');
-        ylabel('Computation Time [s]', Interpreter = 'LaTex');
-
-    end
+    bar(1:size(computation_time, 1), computation_time);
+    xlabel('Time step $k$', Interpreter = 'LaTex');
+    ylabel('Computation Time [s]', Interpreter = 'LaTex');
 
     if optional.do_export
         results_folder = FileNameConstructor.experiment_result_folder_path(experiment_result.options);

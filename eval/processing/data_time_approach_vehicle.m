@@ -26,20 +26,11 @@ function [time_min_approach_vehicle, time_med_approach_vehicle, time_mean_approa
                     continue;
                 end
 
-                control_loop_timing = vertcat(experiment_result.timing.control_loop);
-                control_loop_duration = control_loop_timing(2:2:end, :);
-
-                synchronize_timing = vertcat(experiment_result.timing.receive_from_others);
-                synchronize_duration = synchronize_timing(2:2:end, :);
-                synchronize_min_duration = min(synchronize_duration);
-
-                control_loop_duration_cleaned = control_loop_duration ...
-                    - synchronize_duration ...
-                    + repmat(synchronize_min_duration, size(control_loop_duration, 1), 1);
+                computation_time = data_time_experiment(experiment_result);
 
                 % insert timings into the correct list
                 times_approach_vehicle{i_approaches, i_vehicles} = reshape( ...
-                    control_loop_duration_cleaned, 1, [] ...
+                    computation_time, 1, [] ...
                 );
 
             end
@@ -49,7 +40,7 @@ function [time_min_approach_vehicle, time_med_approach_vehicle, time_mean_approa
     end
 
     times_approach_vehicle_empty_cells = cellfun(@isempty, times_approach_vehicle);
-    [times_approach_vehicle{times_approach_vehicle_empty_cells}] = deal([0]);
+    [times_approach_vehicle{times_approach_vehicle_empty_cells}] = deal(0);
 
     % extract information
     time_min_approach_vehicle = cellfun(@min, times_approach_vehicle);
