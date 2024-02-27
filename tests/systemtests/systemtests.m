@@ -159,9 +159,9 @@ classdef systemtests < matlab.unittest.TestCase
             % Test plotting of runtime of one timestep within one experiment
             result_one_experiment_normalized = normalize_timing_results(experiment_result_3);
 
-            plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = true);
+            plot_computation_time_for_step(result_one_experiment_normalized, 5, do_export = true);
             testCase.verifyTrue(true);
-            plot_runtime_for_step(result_one_experiment_normalized, 5, do_export = false);
+            plot_computation_time_for_step(result_one_experiment_normalized, 5, do_export = false);
             testCase.verifyTrue(true);
 
             close all;
