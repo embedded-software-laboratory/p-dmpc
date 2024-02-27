@@ -22,7 +22,6 @@ function plot_coupling_lines( ...
     nVeh = length(weighted_coupling);
 
     color_main = [0 0 0];
-    color_minor = 0.4 * [1 1 1];
     head_size = coupling_visu.radius;
 
     for v = 1:nVeh
@@ -38,7 +37,7 @@ function plot_coupling_lines( ...
             is_coupling_sequential = directed_coupling_sequential(v, adj_v);
 
             if ~is_coupling_sequential
-                plot_arrow(x', (adj_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_main, ':', head_size);
+                plot_arrow(x', (adj_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_main, '--', head_size);
             else
                 plot_arrow(x', (adj_x - x)', coupling_visu.radius, coupling_visu.LineWidth, color_main, '-', head_size);
             end
