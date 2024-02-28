@@ -14,7 +14,8 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             obj.rand_stream = RandStream('mt19937ar', Seed = 42);
         end
 
-        function info_v = run_optimizer(obj, ~, iter, mpa, ~)
+        function info_v = run_optimizer(obj, vehicle_index, iter, mpa, ~, time_step)
+            obj.rand_stream = RandStream('mt19937ar', Seed = time_step + vehicle_index);
             % execute sub controller for 1-veh scenario
             info_v = obj.do_graph_search(iter, mpa);
         end

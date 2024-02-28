@@ -337,7 +337,8 @@ classdef PrioritizedController < HighLevelController
                 vehicle_index, ...
                 iter_v, ...
                 obj.mpa, ...
-                obj.options ...
+                obj.options, ...
+                obj.k ...
             );
             obj.timing.stop('optimize', obj.k);
 
@@ -734,11 +735,11 @@ classdef PrioritizedController < HighLevelController
 
         end
 
-        function clean_up(obj)
+        function free_objects(obj)
             % delete ros2 objects
             delete(obj.ros2_node);
             % clean up hlc in reverse order than constructing
-            clean_up@HighLevelController(obj);
+            free_objects@HighLevelController(obj);
         end
 
     end
