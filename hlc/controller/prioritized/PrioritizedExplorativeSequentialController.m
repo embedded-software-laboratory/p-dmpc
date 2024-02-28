@@ -37,6 +37,10 @@ classdef PrioritizedExplorativeSequentialController < PrioritizedSequentialContr
 
             end
 
+        end
+
+        function store_control_info(obj)
+
             for hlc = obj.hlcs
                 hlc.compute_solution_cost();
                 hlc.send_solution_cost();
@@ -45,6 +49,7 @@ classdef PrioritizedExplorativeSequentialController < PrioritizedSequentialContr
             for hlc = obj.hlcs
                 hlc.receive_solution_cost();
                 hlc.choose_solution();
+                store_control_info@HighLevelController(hlc);
             end
 
         end

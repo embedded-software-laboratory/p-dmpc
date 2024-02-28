@@ -156,7 +156,6 @@ classdef PrioritizedExplorativeController < PrioritizedController
                 % Round solution cost to avoid numerical differences
                 obj.solution_cost(:, i_graph) = round(obj.solution_cost(:, i_graph), 8);
                 [min_solution_cost, chosen_solution] = min(obj.solution_cost(:, i_graph));
-                chosen_solution = chosen_solution(1); % guarantee that it is a single integer
 
                 if i_graph == i_own_graph
                     obj.info = obj.info_array_tmp{chosen_solution};
@@ -174,6 +173,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
                 priorities = Prioritizer.priorities_from_directed_coupling(sub_graph_directed_coupling);
 
                 if min_solution_cost > 1e8
+                    % TODO doesn't do anything atm, as fallbacks are not costing that much
                     % flip priorities of subgraph if fallback to have a
                     % greater chance for a feasible solution
                     priorities = fliplr(priorities);
@@ -203,11 +203,6 @@ classdef PrioritizedExplorativeController < PrioritizedController
                 obj.solve_permutation();
             end
 
-            obj.compute_solution_cost();
-            obj.send_solution_cost();
-            obj.receive_solution_cost();
-            obj.choose_solution();
-
         end
 
         function create_coupling_graph(obj)
@@ -222,6 +217,28 @@ classdef PrioritizedExplorativeController < PrioritizedController
 
             % topological level of controlled agent (computation level of agent in initial priority permutation)
             obj.base_computation_level = obj.computation_levels_of_vehicles(obj.plant.vehicle_indices_controlled);
+        end
+
+        function handle_others_fallback(obj)
+
+            for i_permutation = 1:obj.n_computation_levels
+                obj.iter = obj.iter_array_tmp{i_permutation};
+                obj.info = obj.info_array_tmp{i_permutation};
+
+                handle_others_fallback@HighLevelController(obj);
+
+                obj.iter_array_tmp{i_permutation} = obj.iter;
+                obj.info_array_tmp{i_permutation} = obj.info;
+            end
+
+        end
+
+        function store_control_info(obj)
+            obj.compute_solution_cost();
+            obj.send_solution_cost();
+            obj.receive_solution_cost();
+            obj.choose_solution();
+            store_control_info@HighLevelController(obj);
         end
 
     end
