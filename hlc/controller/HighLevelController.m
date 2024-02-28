@@ -31,6 +31,8 @@ classdef (Abstract) HighLevelController < handle
     properties (Access = private)
         % member variable that is used to execute steps on error
         is_run_succeeded (1, 1) logical = false
+
+        clean_up (1, 1) function_handle = @()[];
     end
 
     methods (Abstract = true, Access = protected)
@@ -41,6 +43,8 @@ classdef (Abstract) HighLevelController < handle
     methods
         % Set default settings
         function obj = HighLevelController(options, plant)
+
+            obj.clean_up = @obj.end_run;
 
             if nargin == 0
                 return
@@ -64,7 +68,7 @@ classdef (Abstract) HighLevelController < handle
             % run the controller
 
             % object that executes the specified function on destruction
-            cleanupObj = onCleanup(@obj.end_run);
+            cleanupObj = onCleanup(obj.clean_up);
 
             % initialize the controller and its adapters
             obj.main_init();
@@ -87,6 +91,10 @@ classdef (Abstract) HighLevelController < handle
 
             % specify returned variables
             experiment_result = obj.experiment_result;
+        end
+
+        function set_clean_up_dry_run_function(obj)
+            obj.clean_up = @obj.end_dry_run;
         end
 
     end
@@ -264,7 +272,7 @@ classdef (Abstract) HighLevelController < handle
             % method that can be overwritten by child classes if necessary
         end
 
-        function clean_up(~)
+        function free_objects(~)
             % release memory allocated by mex functions
 
             % clear mex on all other computers
@@ -497,7 +505,12 @@ classdef (Abstract) HighLevelController < handle
             obj.plant.end_run();
 
             % clean up controller
-            obj.clean_up();
+            obj.free_objects();
+        end
+
+        function end_dry_run(obj)
+            % clean up controller
+            obj.free_objects();
         end
 
         function save_results(obj)

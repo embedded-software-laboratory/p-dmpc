@@ -7,6 +7,7 @@ classdef PrioritizedSequentialController < HighLevelController
     methods
 
         function obj = PrioritizedSequentialController()
+            obj@HighLevelController();
         end
 
         function add_hlc(obj, hlc)
