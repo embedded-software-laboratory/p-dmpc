@@ -214,7 +214,7 @@ classdef CpmLab < Plant
             obj.out_of_map_limits = false(obj.amount, 1);
             % time offset to account for slow start of MATLABs JIT
             % compilation
-            time_offset = uint64(3 * 1e9);
+            time_offset = uint64(5 * 1e9);
 
             for vehicle_index = obj.vehicle_indices_controlled
                 % simulate change of state
@@ -234,13 +234,13 @@ classdef CpmLab < Plant
                     trajectory_points(i).t.nanoseconds = ...
                         uint64( ...
                         obj.time_now ...
-                        + i_traj_pt * obj.dt_period_nanos ...
+                        + i * obj.dt_period_nanos ...
                         + time_offset ...
                     );
-                    trajectory_points(i).px = info.y_predicted(1, i, vehicle_index);
-                    trajectory_points(i).py = info.y_predicted(2, i, vehicle_index);
+                    trajectory_points(i).px = info.y_predicted(1, i);
+                    trajectory_points(i).py = info.y_predicted(2, i);
 
-                    yaw = info.y_predicted(3, i, vehicle_index);
+                    yaw = info.y_predicted(3, i);
 
                     speed = mpa.trims(info.predicted_trims(i_vehicle, i)).speed;
 
