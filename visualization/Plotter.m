@@ -154,12 +154,12 @@ classdef (Abstract) Plotter < handle
 
             %% Simulation state / scenario plot
 
-            h = findobj(Tag = "temporary");
+            h = findobj(obj.fig, Tag = "temporary");
             delete(h);
-            h = findobj(Tag = "circle");
+            h = findobj(obj.fig, Tag = "circle");
             delete(h);
 
-            find_text_hotkey = findobj(Tag = 'hotkey');
+            find_text_hotkey = findobj(obj.fig, Tag = 'hotkey');
 
             if obj.plot_options.plot_hotkey_description
                 % Update hot key description.
@@ -172,7 +172,7 @@ classdef (Abstract) Plotter < handle
 
             if obj.plot_options.plot_priority
                 % Get plot's priority colorbar and set it to visible or define a new priority colorbar.
-                priority_colorbar = findobj(Tag = 'priority_colorbar');
+                priority_colorbar = findobj(obj.fig, Tag = 'priority_colorbar');
 
                 n_colors_max = size(obj.priority_colormap, 1);
 
@@ -379,6 +379,16 @@ classdef (Abstract) Plotter < handle
                 close(obj.fig);
             end
 
+        end
+
+        function set_figure_visibility(obj, option)
+
+            arguments
+                obj Plotter
+                option (1, 1) logical = true
+            end
+
+            obj.fig.Visible = option;
         end
 
     end

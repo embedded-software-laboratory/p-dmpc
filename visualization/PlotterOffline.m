@@ -67,6 +67,10 @@ classdef PlotterOffline < Plotter
             plot@Plotter(obj, plotting_info);
         end
 
+        function set_time_step(obj, time_step)
+            obj.time_step = time_step;
+        end
+
     end
 
     methods (Access = protected)

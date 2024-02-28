@@ -94,16 +94,6 @@ classdef PlotterOnline < Plotter
             plot@Plotter(obj, plotting_info);
         end
 
-        function set_figure_visibility(obj, option)
-
-            arguments
-                obj PlotterOnline
-                option (1, 1) logical = true
-            end
-
-            obj.fig.Visible = option;
-        end
-
         function plotting_loop(obj)
 
             while obj.time_step <= obj.max_time_step || ~obj.is_finished
