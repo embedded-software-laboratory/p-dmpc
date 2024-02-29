@@ -43,7 +43,7 @@ function eval_prioritization(optional)
             % Plot cost
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar_handle = bar(n_vehicles, cost_percent_average);
+            bar(n_vehicles, cost_percent_average);
             % legend
             legendtext = priority_names;
             legend(legendtext, Location = 'best', Interpreter = 'latex');
@@ -53,21 +53,6 @@ function eval_prioritization(optional)
                 "$J_\mathrm{NCS}(p) / J_\mathrm{NCS}(p_\mathrm{const})$ [\%]", ...
                 Interpreter = "latex" ...
             );
-
-            for b = bar_handle
-                xtips = b.XEndPoints;
-                ytips = 60 * ones(size(b.YEndPoints));
-                labels = arrayfun(@(s) sprintf("%5.1f", s), b.YData);
-                text( ...
-                    xtips, ...
-                    ytips, ...
-                    labels, ...
-                    HorizontalAlignment = 'left', ...
-                    VerticalAlignment = 'bottom', ...
-                    Rotation = 55, ...
-                    BackgroundColor = [1 1 1] ...
-                );
-            end
 
             set_figure_properties(fig, ExportFigConfig.presentation());
             filename = sprintf('prioritization_cost_%s_%s.pdf', scenario, optimizer);
@@ -80,18 +65,18 @@ function eval_prioritization(optional)
 
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar(n_vehicles, time_max_approach_vehicle .* 1000);
+            max_bar = bar(n_vehicles, time_max_approach_vehicle' .* 1000);
             hold on
-            bar(n_vehicles, time_med_approach_vehicle .* 1000);
-            % legend
+            med_bar = bar(n_vehicles, time_med_approach_vehicle' .* 1000);
 
+            % legend
+            str_med = "med ";
             str_max = "max ";
-            str_med = "median ";
             legendtext = [ ...
-                              strcat(repmat(str_max, length(priority_names), 1), priority_names) ...
                               strcat(repmat(str_med, length(priority_names), 1), priority_names) ...
+                              strcat(repmat(str_max, length(priority_names), 1), priority_names) ...
                           ];
-            legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex', NumColumns = 2);
             % axes
             xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
@@ -115,18 +100,12 @@ function eval_prioritization(optional)
 
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar(n_vehicles, time_max_approach_vehicle);
+            max_bar = bar(n_vehicles, time_max_approach_vehicle');
             hold on
-            bar(n_vehicles, time_med_approach_vehicle);
-            % legend
+            med_bar = bar(n_vehicles, time_med_approach_vehicle');
 
-            str_max = "max ";
-            str_med = "median ";
-            legendtext = [ ...
-                              strcat(repmat(str_max, length(priority_names), 1), priority_names) ...
-                              strcat(repmat(str_med, length(priority_names), 1), priority_names) ...
-                          ];
-            legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            % legend
+            legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex', NumColumns = 2);
             % axes
             xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
