@@ -33,6 +33,12 @@ classdef GreedyCutter < Cutter
             % increasing the number of computation levels.
             % This function sequentializes those edges.
 
+            arguments
+                directed_coupling_weighted (:, :) double
+                directed_coupling_sequential (:, :) logical
+                max_num_CLs (1, 1) double
+            end
+
             directed_coupling_sequential_weighted = directed_coupling_sequential;
             directed_coupling_sequential_weighted(directed_coupling_sequential_weighted ~= 0) ...
                 = directed_coupling_weighted(directed_coupling_sequential_weighted ~= 0);
@@ -47,8 +53,6 @@ classdef GreedyCutter < Cutter
 
             levels_of_vehicles = Prioritizer.computation_levels_of_vehicles(directed_coupling_sequential);
 
-            directed_graph = digraph(logical(directed_coupling_sequential));
-
             for i_parallel_edge = 1:length(row)
 
                 vertex_starting = row(i_parallel_edge);
@@ -60,32 +64,65 @@ classdef GreedyCutter < Cutter
                 % computation level
                 if level_starting < level_ending
                     % edge can be sequentialized
-                    directed_graph = directed_graph.addedge(vertex_starting, vertex_ending);
+                    directed_coupling_sequential(vertex_starting, vertex_ending) = 1;
                     continue
                 end
 
                 % Option 2: check whether the ending vertex can be moved to a
                 % level that is lower than the starting vertex
-                vertices_ordered_after = directed_graph.bfsearch(vertex_ending);
-                level_after_ending = max(levels_of_vehicles(vertices_ordered_after));
-                added_levels = (level_starting - level_ending + 1);
-                computation_levels_if_sequential = level_after_ending + added_levels;
+                distances_from_ending = GreedyCutter.search(directed_coupling_sequential, vertex_ending);
+                vertices_ordered_after = distances_from_ending ~= -inf;
 
-                if computation_levels_if_sequential <= max_num_CLs
-                    directed_graph = directed_graph.addedge(vertex_starting, vertex_ending);
+                % What would happen if we added the edge?
+                new_level_ending = level_starting + 1;
+                % Only increase the level of vertices that are
+                % topologically ordered after if necessary
+                new_levels_from_ending = distances_from_ending + new_level_ending;
+                increase_level = new_levels_from_ending > levels_of_vehicles;
+                new_levels = levels_of_vehicles;
+                new_levels(increase_level) = new_levels_from_ending(increase_level);
 
-                    % if only coupling from ending vertex: move by added
-                    % levels
-                    % if coupling from both starting and ending vertex:
-                    levels_of_vehicles(vertices_ordered_after) = ...
-                        level_starting ...
-                        + added_levels ...
-                        + distances(directed_graph, vertex_ending, vertices_ordered_after);
+                if max(new_levels(vertices_ordered_after)) <= max_num_CLs
+                    directed_coupling_sequential(vertex_starting, vertex_ending) = 1;
+                    levels_of_vehicles = new_levels;
                 end
 
             end
 
-            directed_coupling_sequential = full(directed_graph.adjacency);
+        end
+
+        function discovered_distances = search(directed_coupling, start_vertex)
+
+            arguments (Input)
+                directed_coupling (:, :) logical
+                start_vertex (1, 1) double
+            end
+
+            arguments (Output)
+                discovered_distances (1, :) double
+            end
+
+            discovered = false(1, size(directed_coupling, 2));
+            discovered(start_vertex) = 1;
+
+            i_level = 1;
+            discovered_distances = -inf(size(discovered));
+            discovered_distances(start_vertex) = 0;
+            new_vertices_to_expand = discovered;
+
+            while nnz(new_vertices_to_expand) ~= 0
+                vertices_to_expand = find(new_vertices_to_expand);
+                new_vertices_to_expand(:) = false;
+
+                for vertex_to_expand = vertices_to_expand
+                    discovered(vertex_to_expand) = 1;
+                    neighbors = directed_coupling(vertex_to_expand, :);
+                    new_vertices_to_expand = new_vertices_to_expand | (neighbors & ~discovered);
+                end
+
+                discovered_distances(new_vertices_to_expand) = i_level;
+                i_level = i_level + 1;
+            end
 
         end
 
