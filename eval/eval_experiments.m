@@ -53,7 +53,14 @@ function experiment_results = eval_experiments(optional)
                     options.amount = n_vehicles;
                     options.path_ids = options.randomize_path_ids(seed = seed);
 
-                    if n_vehicles > 10 && priority == PriorityStrategies.optimal_priority
+                    should_skip_commonroad = n_vehicles > 10 ...
+                        && priority == PriorityStrategies.optimal_priority...
+                        && options.scenario_type == ScenarioType.commonroad;
+                    should_skip_circle = n_vehicles > 5 ...
+                        && priority == PriorityStrategies.optimal_priority...
+                        && options.scenario_type == ScenarioType.circle;
+
+                    if should_skip_commonroad || should_skip_circle
                         experiment_result = ExperimentResult(options, -1);
                     else
                         experiment_result = FileNameConstructor.load_latest(options);
