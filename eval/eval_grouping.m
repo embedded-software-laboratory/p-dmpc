@@ -6,10 +6,8 @@ function eval_grouping(optional)
 
     max_num_CLs = [1, 2, 4, 6, 99];
 
-    % scenarios = [ScenarioType.commonroad, ScenarioType.circle];
-    scenarios = ScenarioType.commonroad;
-    % optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
-    optimizers = OptimizerType.MatlabOptimal;
+    scenarios = [ScenarioType.commonroad, ScenarioType.circle];
+    optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
 
     for scenario = scenarios
 

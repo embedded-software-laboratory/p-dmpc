@@ -22,10 +22,8 @@ function eval_prioritization(optional)
                       "$p_{\mathrm{optimal}}$"
                       ];
 
-    % scenarios = [ScenarioType.commonroad, ScenarioType.circle];
-    scenarios = ScenarioType.commonroad;
-    % optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
-    optimizers = OptimizerType.MatlabOptimal;
+    scenarios = [ScenarioType.commonroad, ScenarioType.circle];
+    optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
 
     for scenario = scenarios
 

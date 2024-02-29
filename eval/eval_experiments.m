@@ -25,7 +25,7 @@ function experiment_results = eval_experiments(optional)
         n_vehicles_array = 5:5:20;
     elseif options.scenario_type == ScenarioType.circle
         seeds = 1;
-        n_vehicles_array = 4:2:10;
+        n_vehicles_array = 2:2:10;
     end
 
     % Environment
