@@ -73,10 +73,14 @@ classdef GreedyCutter < Cutter
 
                 if computation_levels_if_sequential <= max_num_CLs
                     directed_graph = directed_graph.addedge(vertex_starting, vertex_ending);
-                    
+
+                    % if only coupling from ending vertex: move by added
+                    % levels
+                    % if coupling from both starting and ending vertex:
                     levels_of_vehicles(vertices_ordered_after) = ...
-                         distances(directed_graph, vertex_ending, vertices_ordered_after) ...
-                        + added_levels + 1;
+                        level_starting ...
+                        + added_levels ...
+                        + distances(directed_graph, vertex_ending, vertices_ordered_after);
                 end
 
             end
