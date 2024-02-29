@@ -22,10 +22,6 @@ classdef PrioritizedExplorativeController < PrioritizedController
             obj = obj@PrioritizedController(options, plant, ros2_node);
         end
 
-        function result = get_n_computation_levels(obj)
-            result = obj.n_computation_levels;
-        end
-
         function prepare_iterations(obj)
             % initialize variable to store control results
             obj.info_base = ControlResultsInfo( ...
@@ -184,6 +180,10 @@ classdef PrioritizedExplorativeController < PrioritizedController
 
             obj.prioritizer.current_priorities = unique_priorities;
 
+        end
+
+        function result = get_n_computation_levels(obj)
+            result = obj.n_computation_levels;
         end
 
     end

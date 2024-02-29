@@ -8,51 +8,11 @@ classdef PrioritizedOptimalController < PrioritizedController
         solution_cost (:, 1) double
     end
 
-    methods
+    methods (Access = public)
 
         function obj = PrioritizedOptimalController(options, plant, ros2_node)
             obj = obj@PrioritizedController(options, plant, ros2_node);
         end
-
-    end
-
-    methods (Access = protected)
-
-        function controller(obj)
-            obj.prepare_iterations();
-
-            unique_priorities = Prioritizer.unique_priorities(obj.iter.adjacency);
-            n_priorities = size(unique_priorities, 2);
-
-            for priority_permutation = 1:n_priorities
-
-                obj.prepare_permutation( ...
-                    unique_priorities(:, priority_permutation), ...
-                    priority_permutation ...
-                );
-                obj.solve_permutation();
-
-            end
-
-            obj.compute_solution_cost();
-            obj.send_solution_cost();
-            obj.receive_solution_cost();
-            obj.choose_solution();
-
-        end
-
-        function create_coupling_graph(obj)
-            obj.timing.start('receive_from_others', obj.k);
-            obj.update_other_vehicles_traffic_info();
-            obj.timing.stop('receive_from_others', obj.k);
-            obj.timing.start('couple', obj.k);
-            obj.couple();
-            obj.timing.stop('couple', obj.k);
-        end
-
-    end
-
-    methods (Access = public)
 
         function prepare_iterations(obj)
             % initialize variable to store control results
@@ -140,11 +100,72 @@ classdef PrioritizedOptimalController < PrioritizedController
         end
 
         function choose_solution(obj)
+            % Round solution cost to avoid numerical differences
+            obj.solution_cost = round(obj.solution_cost, 8);
             [~, chosen_solution] = min(obj.solution_cost);
-            chosen_solution = chosen_solution(1); % guarantee that it is a single integer
 
             obj.info = obj.info_array_tmp{chosen_solution};
             obj.iter = obj.iter_array_tmp{chosen_solution};
+
+            % communicate actual prediction with permutation index 0
+            % used by other vehicles to consider fallback while planning
+            obj.iter.priority_permutation = 0;
+            obj.publish_predictions();
+        end
+
+    end
+
+    methods (Access = protected)
+
+        function controller(obj)
+            obj.prepare_iterations();
+
+            unique_priorities = Prioritizer.unique_priorities(obj.iter.adjacency);
+            n_solutions = size(unique_priorities, 2);
+
+            for priority_permutation = 1:n_solutions
+
+                obj.prepare_permutation( ...
+                    unique_priorities(:, priority_permutation), ...
+                    priority_permutation ...
+                );
+                obj.solve_permutation();
+
+            end
+
+        end
+
+        function create_coupling_graph(obj)
+            obj.timing.start('receive_from_others', obj.k);
+            obj.update_other_vehicles_traffic_info();
+            obj.timing.stop('receive_from_others', obj.k);
+            obj.timing.start('couple', obj.k);
+            obj.couple();
+            obj.timing.stop('couple', obj.k);
+        end
+
+        function handle_others_fallback(obj)
+
+            n_solutions = length(obj.iter_array_tmp);
+
+            for i_permutation = 1:n_solutions
+                obj.iter = obj.iter_array_tmp{i_permutation};
+                obj.info = obj.info_array_tmp{i_permutation};
+
+                handle_others_fallback@HighLevelController(obj);
+
+                obj.iter_array_tmp{i_permutation} = obj.iter;
+                obj.info_array_tmp{i_permutation} = obj.info;
+            end
+
+        end
+
+        function store_control_info(obj)
+            obj.compute_solution_cost();
+            obj.send_solution_cost();
+            obj.receive_solution_cost();
+            obj.choose_solution();
+            store_control_info@HighLevelController(obj);
         end
 
     end
