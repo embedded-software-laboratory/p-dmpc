@@ -154,21 +154,8 @@ classdef (Abstract) Plotter < handle
 
             %% Simulation state / scenario plot
 
-            h = findobj(obj.fig, Tag = "temporary");
-            delete(h);
-            h = findobj(obj.fig, Tag = "circle");
-            delete(h);
-
-            find_text_hotkey = findobj(obj.fig, Tag = 'hotkey');
-
-            if obj.plot_options.plot_hotkey_description
-                % Update hot key description.
-                delete(find_text_hotkey);
-                obj.plot_hotkey_description();
-            else
-                % Remove hot key description if it was painted and not to be shown anymore.
-                delete(find_text_hotkey);
-            end
+            delete(findobj(obj.fig, Tag = "temporary"));
+            delete(findobj(obj.fig, Tag = "circle"));
 
             if obj.plot_options.plot_priority
                 % Get plot's priority colorbar and set it to visible or define a new priority colorbar.
@@ -433,6 +420,13 @@ classdef (Abstract) Plotter < handle
                 obj.hotkey_description(11) = "{\itspace}: start simulation";
             else
                 obj.hotkey_description(11) = "{\itspace}: stop simulation";
+            end
+
+            delete(findobj(obj.fig, Tag = 'hotkey'));
+
+            if obj.plot_options.plot_hotkey_description
+                % Update hot key description.
+                obj.plot_hotkey_description();
             end
 
         end
