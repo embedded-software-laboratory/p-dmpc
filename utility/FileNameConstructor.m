@@ -137,10 +137,11 @@ classdef FileNameConstructor
 
         end
 
-        function experiment_result = load_latest(options)
+        function experiment_result = load_latest(options, optional)
 
             arguments (Input)
                 options (1, 1) Config;
+                optional.result_folder_path (1, 1) string = "";
             end
 
             arguments (Output)
@@ -150,7 +151,11 @@ classdef FileNameConstructor
             experiment_result = ExperimentResult.empty(0, 0);
 
             % get all relevant files
-            result_folder = FileNameConstructor.experiment_result_folder_path(options);
+            if optional.result_folder_path ~= ""
+                result_folder = optional.result_folder_path;
+            else
+                result_folder = FileNameConstructor.experiment_result_folder_path(options);
+            end
 
             file_info = dir(fullfile(result_folder, "*.mat"));
             files_sorted = sort(split(strtrim(sprintf("%s ", file_info.name))), 'descend')';
