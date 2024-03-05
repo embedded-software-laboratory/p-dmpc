@@ -63,7 +63,7 @@ classdef IterationData
             obj.fallbacks = false(nVeh, 1);
         end
 
-        function equal = is_equal(obj, compare_obj)
+        function equal = isequal(obj, compare_obj)
 
             arguments
                 obj (1, 1) IterationData;
