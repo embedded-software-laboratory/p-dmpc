@@ -16,8 +16,6 @@ stages:
       description: "Folder to compute code coverage for."
     GIT_LFS_SKIP_SMUDGE: "true"
   stage: Test
-  before_script:
-    - apt install git-lfs
   script:
     - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
     - git lfs pull
