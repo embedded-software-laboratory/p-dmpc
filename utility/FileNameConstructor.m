@@ -39,6 +39,10 @@ classdef FileNameConstructor
                                      '_NA-', num2str(n_vehicles) ...
                                  ];
 
+            if ~options.are_any_obstacles_non_convex
+                mpa_instance_name = [mpa_instance_name, '_convexified'];
+            end
+
             mpa_instance_name = [mpa_instance_name, '.mat'];
         end
 
