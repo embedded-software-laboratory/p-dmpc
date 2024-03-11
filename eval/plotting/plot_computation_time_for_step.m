@@ -6,7 +6,7 @@ function plot_computation_time_for_step(experiment_result, k, optional)
     arguments
         experiment_result (1, 1) ExperimentResult;
         k uint64;
-        optional.do_export (1, 1) logical = true;
+        optional.fig (1, 1) matlab.ui.Figure = gcf;
     end
 
     % useful variable for shorter notations
@@ -18,6 +18,7 @@ function plot_computation_time_for_step(experiment_result, k, optional)
     end
 
     field_names = [ ...
+                       "measure", ...
                        "analyze_reachability", ...
                        "receive_from_others", ...
                        "couple", ...
@@ -29,18 +30,7 @@ function plot_computation_time_for_step(experiment_result, k, optional)
     % Find time of HLC which starts loop last
     measure_timings = vertcat(experiment_result.timing.measure);
     measure_start_points = measure_timings(1:2:end, :);
-    [t0, i_vehicle_last] = max(measure_start_points(:, k));
-
-    % Fake that all vehicles started at the same time
-    % Actually, vehicles start right after they finished the previous step,
-    % and then wait for others
-    for i_vehicle = 1:options.amount
-        experiment_result.timing(i_vehicle).measure(:, k) = experiment_result.timing(i_vehicle_last).measure(:, k);
-        experiment_result.timing(i_vehicle).analyze_reachability(:, k) = experiment_result.timing(i_vehicle_last).analyze_reachability(:, k);
-        experiment_result.timing(i_vehicle).receive_from_others(:, k) = experiment_result.timing(i_vehicle_last).receive_from_others(:, k);
-    end
-
-    figure_handle = figure();
+    t0 = max(measure_start_points(:, k));
 
     for field_i = 1:length(field_names)
         field_name = field_names(field_i);
@@ -62,20 +52,10 @@ function plot_computation_time_for_step(experiment_result, k, optional)
 
     legend(plot_handle(1, :), strrep(cellstr(field_names), '_', ' '), Location = 'best');
     xlabel('Time [ms]');
+    xlim([-5, ceil(max(time_to_draw(2, :)))] + 5);
     ylabel('Vehicle ID');
     yticks(1:options.amount);
     ylim([1 - 0.2, options.amount + 0.2]);
 
-    set_figure_properties(figure_handle, ExportFigConfig.document());
-
-    % Export
-    if optional.do_export
-        folder_path = FileNameConstructor.experiment_result_folder_path( ...
-            experiment_result.options ...
-        );
-        filename = strcat('runtime_step_', string(k), '.pdf');
-        export_fig(figure_handle, fullfile(folder_path, filename));
-        close(figure_handle);
-    end
-
+    set_figure_properties(optional.fig, ExportFigConfig.document());
 end
