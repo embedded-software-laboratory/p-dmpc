@@ -446,7 +446,9 @@ classdef (Abstract) HighLevelController < handle
             end
 
             % check fallback of other controllers
+            obj.timing.start("receive_fallback", obj.k);
             obj.check_others_fallback();
+            obj.timing.stop("receive_fallback", obj.k);
 
             if obj.info.needs_fallback
                 obj.controller_fallback(is_fallback_while_planning = false);
