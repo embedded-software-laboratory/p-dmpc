@@ -9,7 +9,8 @@ function plot_computation_time_for_step(experiment_result, k, optional)
         optional.fig (1, 1) matlab.ui.Figure = gcf;
     end
 
-    % useful variable for shorter notations
+    hold_before = ishold;
+
     options = experiment_result.options;
 
     % Configure, which field names in the timing object are relevant, dependent on the used controller
@@ -58,4 +59,9 @@ function plot_computation_time_for_step(experiment_result, k, optional)
     ylim([1 - 0.2, options.amount + 0.2]);
 
     set_figure_properties(optional.fig, ExportFigConfig.document());
+
+    if ~hold_before
+        hold off;
+    end
+
 end
