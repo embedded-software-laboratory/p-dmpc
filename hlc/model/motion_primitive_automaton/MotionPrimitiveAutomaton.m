@@ -388,6 +388,7 @@ classdef MotionPrimitiveAutomaton
             % Save MPA to library
             mpa = obj;
             save(mpa_full_path, 'mpa', '-v7.3');
+            disp(['Saved MPA to: ' mpa_full_path]);
         end
 
         function [reachable_sets_local, reachable_sets_conv_local, center_trajectory, reachable_sets_CP, trimsInfo] = reachability_analysis_offline_DP(obj, Hp, is_calculate_reachable_sets_of_CP)

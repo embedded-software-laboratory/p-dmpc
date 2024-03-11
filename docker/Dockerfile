@@ -122,6 +122,8 @@ RUN git clone https://github.com/embedded-software-laboratory/Rosless-Lanelet2.g
     cd ../.. && \
     rm -rf Rosless-Lanelet2
 
+# Install git-lfs
+RUN apt-get update && apt-get install git-lfs
 
 ### Set working directory.
 WORKDIR /home/matlab

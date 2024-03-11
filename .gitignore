@@ -60,6 +60,7 @@ Temporary Items
 ### MATLAB ###
 # MATLAB matfile
 *.mat
+!tests/systemtests/expected_results/**/*.mat
 
 # Windows default autosave extension
 *.asv

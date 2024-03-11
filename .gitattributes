@@ -20,7 +20,6 @@
 *.slxc binary
 *.slx binary merge=mlAutoMerge
 *.slxp binary
-
 ## Other common binary file types
 *.docx binary
 *.exe binary
@@ -28,3 +27,5 @@
 *.pdf binary
 *.png binary
 *.xlsx binary
+# lfs files
+tests/systemtests/expected_results/**/*.mat filter=lfs diff=lfs merge=lfs -text

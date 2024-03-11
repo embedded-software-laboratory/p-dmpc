@@ -25,8 +25,12 @@ classdef systemtests < matlab.unittest.TestCase
 
             testCase.verifyEmpty(lastwarn);
 
-            main(options);
+            experiment_result_actual = main(options);
             testCase.verifyTrue(true);
+
+            experiment_result_expected = load_expected(experiment_result_actual);
+            testCase.verifyTrue(experiment_result_expected.isequal(experiment_result_actual), "did not match expected result");
+
         end
 
         function test_prioritized(testCase, scenario, mpa, computation_mode, optimizer_prioritized, coupling, priority, weight)
@@ -49,8 +53,11 @@ classdef systemtests < matlab.unittest.TestCase
 
             testCase.verifyEmpty(lastwarn);
 
-            main(options);
+            experiment_result_actual = main(options);
             testCase.verifyTrue(true);
+
+            experiment_result_expected = load_expected(experiment_result_actual);
+            testCase.verifyTrue(experiment_result_expected.isequal(experiment_result_expected), "did not match expected result");
         end
 
     end
@@ -66,8 +73,11 @@ classdef systemtests < matlab.unittest.TestCase
 
             options = options.validate();
 
-            main(options);
+            experiment_result_actual = main(options);
             testCase.verifyTrue(true);
+
+            experiment_result_expected = load_expected(experiment_result_actual);
+            testCase.verifyTrue(experiment_result_expected.isequal(experiment_result_actual), "did not match expected result");
         end
 
         function test_plot_default(testCase, scenario)
