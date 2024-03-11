@@ -39,13 +39,16 @@ function experiment_result = normalize_timing_results(experiment_result)
             if strcmp(field{1}, 'controller_start_time')
                 experiment_result.timing(veh_i).(field{1})(1, :) = ...
                     min_start_time_nanos;
+            elseif strcmp(field{1}, 'offset')
+                continue
             else
-
                 experiment_result.timing(veh_i).(field{1})(1, :) = ...
                     experiment_result.timing(veh_i).(field{1})(1, :) - offset;
             end
 
         end
+
+        experiment_result.timing(veh_i).offset = offset;
 
     end
 
