@@ -11,10 +11,8 @@ classdef Simulation < Plant
         ros2_node
         publisher
         msg_to_be_sent
-        subscriber
         k = 0;
 
-        should_sync
         highest_sync_step = 0;
     end
 
@@ -68,8 +66,6 @@ classdef Simulation < Plant
             obj.options_plot_online = options.options_plot_online;
             obj.should_plot = obj.options_plot_online.is_active;
 
-            obj.should_sync = false;
-
             qos_config = struct( ...
                 History = "keeplast", ...
                 Depth = 40, ...
@@ -80,28 +76,9 @@ classdef Simulation < Plant
             topic_name_publish = '/plotting';
             obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/PlottingInfo", qos_config);
             obj.msg_to_be_sent = ros2message("veh_msgs/PlottingInfo");
-
-            obj.subscriber = ros2subscriber( ...
-                obj.ros2_node, ...
-                '/plant_sync', ...
-                'std_msgs/Int32', ...
-                @obj.sync_callback, ...
-                qos_config ...
-            );
         end
 
         function [cav_measurements, hdv_measurements] = measure(obj)
-
-            % We need to observe if this functionality is useful. If not, we
-            % can remove it. Syncing is done via plotter.
-            if obj.should_sync && obj.should_plot
-                % wait for all vehicles to finish their computation
-                while obj.highest_sync_step < obj.k
-                    pause(10 * 1e-3)
-                end
-
-            end
-
             cav_measurements = obj.measurements;
             hdv_measurements = [];
         end

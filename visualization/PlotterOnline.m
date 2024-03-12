@@ -12,9 +12,7 @@ classdef PlotterOnline < Plotter
         current_plotting_info PlottingInfo % (1, 1), last plotted complete plotting info
 
         ros2node
-        publisher
         subscriber
-        sync_message
 
         n_finished = 0;
         is_plotting = false;
@@ -65,15 +63,6 @@ classdef PlotterOnline < Plotter
                 callback, ...
                 qos_config ...
             );
-
-            obj.publisher = ros2publisher( ...
-                obj.ros2node, ...
-                '/plant_sync', ...
-                'std_msgs/Int32', ...
-                qos_config ...
-            );
-
-            obj.sync_message = ros2message('std_msgs/Int32');
 
             if ~options.options_plot_online.is_active
                 obj.set_figure_visibility(false);
@@ -126,8 +115,6 @@ classdef PlotterOnline < Plotter
             end
 
             obj.is_plotting = true;
-            obj.sync_message.data = int32(obj.time_step);
-            obj.publisher.send(obj.sync_message);
             complete_plotting_info = obj.merge_plotting_infos(obj.plotting_info_collection.(field_name));
 
             obj.plot(complete_plotting_info);
