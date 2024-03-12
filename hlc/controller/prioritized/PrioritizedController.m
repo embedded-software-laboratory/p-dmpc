@@ -235,11 +235,14 @@ classdef PrioritizedController < HighLevelController
                 obj.iter.occupied_areas{j_vehicle}.without_offset(1, :) = occupied_areas(2).x;
                 obj.iter.occupied_areas{j_vehicle}.without_offset(2, :) = occupied_areas(2).y;
 
-                % transform reachable sets to polyshape object
-                obj.iter.reachable_sets(j_vehicle, :) = (arrayfun( ...
-                    @(array) {polyshape(array.x, array.y, Simplify = false)}, ...
-                    latest_msg_i.reachable_sets ...
-                ))';
+                % transform reachable sets to cell array of polygon vertices
+                for i_step = 1:obj.options.Hp
+                    obj.iter.reachable_sets{j_vehicle, i_step} = ...
+                        [
+                        latest_msg_i.reachable_sets(i_step).x'
+                        latest_msg_i.reachable_sets(i_step).y'
+                        ];
+                end
 
                 % transform predicted lanelets
                 obj.iter.predicted_lanelets{j_vehicle} = latest_msg_i.predicted_lanelets';
@@ -249,6 +252,7 @@ classdef PrioritizedController < HighLevelController
 
                 % calculate the predicted lanelet boundary of vehicle j_vehicle based on its predicted lanelets
                 if obj.options.scenario_type ~= ScenarioType.circle
+                    % TODO this is unnecessary I think
                     obj.iter.predicted_lanelet_boundary(j_vehicle, :) = get_lanelets_boundary( ...
                         obj.iter.predicted_lanelets{j_vehicle}, ...
                         obj.scenario_adapter.scenario.lanelet_boundary, ...
@@ -403,10 +407,7 @@ classdef PrioritizedController < HighLevelController
             end
 
             % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
-            reachable_sets_i = obj.iter.reachable_sets(j_predecessor, :);
-            % turn polyshape to plain array (repeat the first row to enclosed the shape)
-            reachable_sets_i_cell_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
-            dynamic_obstacle_area = reachable_sets_i_cell_array;
+            dynamic_obstacle_area = obj.iter.reachable_sets(j_predecessor, :);
 
         end
 
