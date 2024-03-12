@@ -17,9 +17,6 @@ function experiment_result = main(options, optional)
     scenario = Scenario.create(options);
     save(Config().scenario_file, 'scenario');
 
-    % create dry run scenario and write it to disk
-    HlcFactory.create_dry_run_scenario(options);
-
     % inform where experiment takes place
     if options.environment == Environment.Simulation
         disp('Running in MATLAB simulation...')
