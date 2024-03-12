@@ -239,9 +239,9 @@ classdef PrioritizedController < HighLevelController
                 for i_step = 1:obj.options.Hp
                     obj.iter.reachable_sets{j_vehicle, i_step} = ...
                         [
-                        latest_msg_i.reachable_sets(i_step).x'
-                        latest_msg_i.reachable_sets(i_step).y'
-                        ];
+                     latest_msg_i.reachable_sets(i_step).x'
+                     latest_msg_i.reachable_sets(i_step).y'
+                     ];
                 end
 
                 % transform predicted lanelets
@@ -249,17 +249,6 @@ classdef PrioritizedController < HighLevelController
 
                 obj.iter.reference_trajectory_points(j_vehicle, :, 1) = [latest_msg_i.reference_trajectory_points.x];
                 obj.iter.reference_trajectory_points(j_vehicle, :, 2) = [latest_msg_i.reference_trajectory_points.y];
-
-                % calculate the predicted lanelet boundary of vehicle j_vehicle based on its predicted lanelets
-                if obj.options.scenario_type ~= ScenarioType.circle
-                    % TODO this is unnecessary I think
-                    obj.iter.predicted_lanelet_boundary(j_vehicle, :) = get_lanelets_boundary( ...
-                        obj.iter.predicted_lanelets{j_vehicle}, ...
-                        obj.scenario_adapter.scenario.lanelet_boundary, ...
-                        obj.scenario_adapter.scenario.vehicles(j_vehicle).lanelets_index, ...
-                        obj.scenario_adapter.scenario.vehicles(j_vehicle).is_loop ...
-                    );
-                end
 
             end
 
