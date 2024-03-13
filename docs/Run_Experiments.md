@@ -20,3 +20,6 @@ Matlab Parallel Computation Toolbox doesn't support debugging. However, you can 
 # Troubleshooting
 - If you encounter problems like `"MATLAB has experienced a low-level graphics error, and may not have drawn correctly."`, close Matlab and restart again by using `matlab -softwareopengl`.
 - If you run into problems with the standard c++ library libstdc++ try one of the ways described here: https://de.mathworks.com/matlabcentral/answers/329796-issue-with-libstdc-so-6 . "1. Renaming the libstdc++.so.6 library file so that MATLAB cannot find it and is forced to use the system's version of the library." worked for me.
+- NUCs do not run as expected?
+    - Sometimes lab software is missing on the NUCs. Make sure that the software is built on the main PC. Then execute `bash autostart/lab_update.bash` in the home directory of the NUC to pull the software to the NUC. Cancel when loop is running.
+    - Tip: Monitor execution from NUC 1 (`tail -F dev/lcc_script_logs/tmux_script.txt`)
