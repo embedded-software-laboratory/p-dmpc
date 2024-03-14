@@ -42,13 +42,13 @@ function experiment_results = eval_experiments(optional)
     % number of different random scenarios per priority assignment and #vehicles
     for seed = seeds
 
-        for priority = optional.priority_strategies
-            options.priority = priority;
+        for n_vehicles = n_vehicles_array
 
-            for computation_levels = optional.max_num_CLs
-                options.max_num_CLs = computation_levels;
+            for priority = optional.priority_strategies
+                options.priority = priority;
 
-                for n_vehicles = n_vehicles_array
+                for computation_levels = optional.max_num_CLs
+                    options.max_num_CLs = computation_levels;
 
                     options.amount = n_vehicles;
                     options.path_ids = options.randomize_path_ids(seed = seed);
