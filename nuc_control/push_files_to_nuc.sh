@@ -12,16 +12,16 @@ cat nuc_control/working-nucs | xargs --max-args=1 --max-procs=20 -i \
 # sync files
 cat nuc_control/working-nucs | xargs --max-args=1 --max-procs=20 -i \
     sshpass -e rsync -r -u \
-    --bwlimit=5000 \
     --exclude 'hlc/communication/cust1/matlab_msg_gen' \
-    --exclude 'results' \
+    --exclude 'hlc/optimizer/graph_search_cpp' \
+    --exclude 'results*' \
     --exclude '.git' \
+    --exclude 'derived' \
     ../graph_based_planning \
     guest@{}:/home/guest/dev/software/high_level_controller/
 # Copy scripts to the NUC
 cat nuc_control/working-nucs | xargs --max-args=1 --max-procs=20 -i \
     sshpass -e rsync -u \
-    --bwlimit=5000 \
     ${LCC_BASH_DIR}remote_start.bash \
     ${LCC_BASH_DIR}environment_variables.bash \
     ${LCC_BASH_DIR}tmux_middleware.bash \
