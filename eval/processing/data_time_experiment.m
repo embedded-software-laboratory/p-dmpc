@@ -23,5 +23,5 @@ function computation_time = data_time_experiment(experiment_result)
         + repmat(synchronize_min_duration, size(control_loop_duration, 1), 1);
 
     % Remove first five steps to reduce the effect of JIT compilation
-    computation_time = computation_time(:, 6:end);
+    computation_time = computation_time(:, 1:end);
 end
