@@ -35,9 +35,9 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             %
             assert(iter.amount == 1);
             Hp = size(iter.v_ref, 2);
-            n_expansions_max = 200;
+            n_expansions_max = 250;
             % overapproximate number of traversals
-            obj.random_numbers = rand(obj.rand_stream, 1, Hp*n_expansions_max);
+            obj.random_numbers = rand(obj.rand_stream, 1, Hp * n_expansions_max);
             n_successor_trims_max = mpa.maximum_branching_factor();
             % initialize variable to store control results
             info = ControlResultsInfo(iter.amount, Hp);
@@ -130,6 +130,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
                         node_id = children(child_position, node_id);
                         continue
                     end
+
                     n_expansions = n_expansions + 1;
 
                     node_parent = node_id;
