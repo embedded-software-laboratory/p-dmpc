@@ -97,47 +97,39 @@ classdef CpmLab < Plant
 
             setup@Plant(obj, options);
 
-            % take list of VehicleStates from sample
-            state_list = sample_for_setup.state_list;
-
             % since there is no steering info in [rad],
             % the initial_steering is assumed to 0
+            % all vehicles have the same initial speed and steering
             initial_steering = 0;
+            initial_speed = 0;
 
-            for index = 1:length(state_list)
+            % create scenario adapter to get scenario
+            % with Simulation only BuiltScenario can be used
+            scenario_adapter = BuiltScenario();
+            scenario_adapter.init(options, obj);
 
-                % data type of state_list vehicle_id is uint8 and
-                % matches the data type of the superclass variable
-                % casting of the data type is not necessary
-                if ~any(state_list(index).vehicle_id == obj.vehicle_ids_controlled)
-                    % if vehicle is not controlled, do not use received information
-                    continue
-                end
-
-                % boolean with exactly one true entry for the position in all_vehicle_ids
-                is_in_vehicle_list = obj.all_vehicle_ids == state_list(index).vehicle_id;
-
-                obj.measurements(is_in_vehicle_list) = PlantMeasurement( ...
-                    state_list(index).pose.x, ...
-                    state_list(index).pose.y, ...
-                    state_list(index).pose.yaw, ...
-                    state_list(index).speed, ...
+            % set initial vehicle measurements
+            for i_vehicle = 1:options.amount
+                obj.measurements(i_vehicle) = PlantMeasurement( ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).x_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).y_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).yaw_start, ...
+                    initial_speed, ...
                     initial_steering ...
                 );
+            end
 
-                % Assume prioritized controller
-                assert(numel(obj.vehicle_ids_controlled) == 1);
-                obj.trajectory_point_buffer = TrajectoryPoint;
-                obj.trajectory_point_buffer(1:obj.Hp) = TrajectoryPoint;
+            % Assume prioritized controller
+            assert(numel(obj.vehicle_ids_controlled) == 1);
+            obj.trajectory_point_buffer = TrajectoryPoint;
+            obj.trajectory_point_buffer(1:obj.Hp) = TrajectoryPoint;
 
-                for i = 1:obj.Hp
-                    obj.trajectory_point_buffer(i).t.nanoseconds = 0;
-                    obj.trajectory_point_buffer(i).px = state_list(index).pose.x;
-                    obj.trajectory_point_buffer(i).py = state_list(index).pose.y;
-                    obj.trajectory_point_buffer(i).vx = 0;
-                    obj.trajectory_point_buffer(i).vy = 0;
-                end
-
+            for i = 1:obj.Hp
+                obj.trajectory_point_buffer(i).t.nanoseconds = 0;
+                obj.trajectory_point_buffer(i).px = scenario_adapter.scenario.vehicles(is_in_vehicle_list).x_start;
+                obj.trajectory_point_buffer(i).py = scenario_adapter.scenario.vehicles(is_in_vehicle_list).y_start;
+                obj.trajectory_point_buffer(i).vx = 0;
+                obj.trajectory_point_buffer(i).vy = 0;
             end
 
         end
@@ -186,7 +178,7 @@ classdef CpmLab < Plant
                     obj.trajectory_point_buffer(i).t.nanoseconds = ...
                         uint64( ...
                         obj.time_now ...
-                        + (i-1) * obj.dt_period_nanos ...
+                        + (i - 1) * obj.dt_period_nanos ...
                         + obj.time_offset ...
                     );
                 end
@@ -281,7 +273,7 @@ classdef CpmLab < Plant
                 vehicle_command_trajectory.vehicle_id = uint8(obj.all_vehicle_ids(vehicle_index));
                 vehicle_command_trajectory.trajectory_points = obj.trajectory_point_buffer;
                 vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
-                    uint64(posixtime(datetime('now'))*1e9);
+                    uint64(posixtime(datetime('now')) * 1e9);
 
                 vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
                     obj.trajectory_point_buffer(2).t.nanoseconds;
