@@ -213,7 +213,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
             obj.belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling_sequential), 'Type', 'weak');
 
             % store mapping: agents<->topological level (for permuting priorities)
-            obj.computation_levels_of_vehicles = Prioritizer.computation_levels_of_vehicles(obj.iter.directed_coupling_sequential);
+            obj.computation_levels_of_vehicles = kahn(obj.iter.directed_coupling_sequential);
 
             % topological level of controlled agent (computation level of agent in initial priority permutation)
             obj.base_computation_level = obj.computation_levels_of_vehicles(obj.plant.vehicle_indices_controlled);

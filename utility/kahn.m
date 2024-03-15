@@ -1,29 +1,24 @@
 function L = kahn(A)
-    % KAHN  Kahn's topological sorting algorithm.
-
-    % init
-    a = length(A);
-    l = 1; % nr. of levels
-    L = zeros(l, a);
+    % Given the directed coupling matrix,
+    % this function returns the computation level of each vehicle.
+    current_level = 1;
+    L = zeros(1, length(A));
     in_D = sum(A, 1);
-    old_zeros_in_D = [];
 
-    while ~all(in_D == 1)
-        zero_in_D = find(in_D == 0);
+    sorted_vertices = false(1, length(A));
 
-        if isempty(zero_in_D)
-            valid = false;
-            return
-        end
+    while ~all(sorted_vertices)
+        source_vertices = (in_D == 0);
 
-        L(l, zero_in_D) = 1;
-        l = l + 1;
-        A(zero_in_D, :) = 0;
+        L(source_vertices) = current_level;
+        % remove outgoing edges of sources
+        A(source_vertices, :) = 0;
+
+        sorted_vertices(source_vertices) = 1;
         in_D = sum(A, 1);
-        old_zeros_in_D = [old_zeros_in_D zero_in_D];
-        in_D(old_zeros_in_D) = 1;
+        in_D(sorted_vertices) = 1;
+
+        current_level = current_level + 1;
     end
 
-    % check results
-    assert(isequal(sum(sum(L, 1)), a));
 end

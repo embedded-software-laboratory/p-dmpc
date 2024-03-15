@@ -148,7 +148,7 @@ classdef (Abstract) Plotter < handle
                 plotting_info (1, 1) PlottingInfo
             end
 
-            vehicle_to_computation_level = Prioritizer.computation_levels_of_vehicles(plotting_info.directed_coupling);
+            vehicle_to_computation_level = kahn(plotting_info.directed_coupling);
 
             nObst = plotting_info.n_obstacles;
 

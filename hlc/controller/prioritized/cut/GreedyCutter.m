@@ -51,7 +51,7 @@ classdef GreedyCutter < Cutter
             row = row(order_by_weight);
             col = col(order_by_weight);
 
-            levels_of_vehicles = Prioritizer.computation_levels_of_vehicles(directed_coupling_sequential);
+            levels_of_vehicles = kahn(directed_coupling_sequential);
 
             for i_parallel_edge = 1:length(row)
 
@@ -70,21 +70,14 @@ classdef GreedyCutter < Cutter
 
                 % Option 2: check whether the ending vertex can be moved to a
                 % level that is lower than the starting vertex
-                distances_from_ending = GreedyCutter.search(directed_coupling_sequential, vertex_ending);
-                vertices_ordered_after = distances_from_ending ~= -inf;
+                directed_coupling_sequential_new = directed_coupling_sequential;
+                directed_coupling_sequential_new(vertex_starting, vertex_ending) = 1;
 
-                % What would happen if we added the edge?
-                new_level_ending = level_starting + 1;
-                % Only increase the level of vertices that are
-                % topologically ordered after if necessary
-                new_levels_from_ending = distances_from_ending + new_level_ending;
-                increase_level = new_levels_from_ending > levels_of_vehicles;
-                new_levels = levels_of_vehicles;
-                new_levels(increase_level) = new_levels_from_ending(increase_level);
+                levels_of_vehicles_new = kahn(directed_coupling_sequential_new);
 
-                if max(new_levels(vertices_ordered_after)) <= max_num_CLs
+                if max(levels_of_vehicles_new) <= max_num_CLs
                     directed_coupling_sequential(vertex_starting, vertex_ending) = 1;
-                    levels_of_vehicles = new_levels;
+                    levels_of_vehicles = levels_of_vehicles_new;
                 end
 
             end

@@ -85,7 +85,7 @@ classdef IterationData
         end
 
         function result = get.number_of_computation_levels(obj)
-            result = size(kahn(obj.directed_coupling_sequential), 1);
+            result = max(kahn(obj.directed_coupling_sequential));
         end
 
     end

@@ -35,20 +35,6 @@ classdef (Abstract) Prioritizer < handle
 
     methods (Static)
 
-        function vehicle_to_computation_level = computation_levels_of_vehicles(directed_coupling)
-            % COMPUTATION_LEVELS_OF_VEHICLES  Given the directed coupling matrix,
-            % this function returns the computation level of each vehicle.
-            L = kahn(directed_coupling);
-
-            n_vehicles = size(L, 2);
-            vehicle_to_computation_level = zeros(1, n_vehicles);
-
-            for i_vehicle = 1:n_vehicles
-                vehicle_to_computation_level(i_vehicle) = find(L(:, i_vehicle));
-            end
-
-        end
-
         function directed_coupling = direct_coupling(undirected_coupling, topo_groups)
             % determine directed adjacency
             directed_coupling = undirected_coupling;
