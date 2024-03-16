@@ -37,6 +37,12 @@ function plot_computation_time_for_step(experiment_result, k, optional)
     measure_start_points = measure_timings(1:2:end, :);
     t0 = max(measure_start_points(:, k));
 
+    directed_coupling = experiment_result.iteration_data(k).directed_coupling_sequential;
+    groups = conncomp(digraph(directed_coupling), Type = 'weak');
+    % L = kahn(directed_coupling);
+
+    [~, vehicle_id_order] = sort(groups);
+
     for field_i = 1:length(field_names)
         field_name = field_names(field_i);
         time_to_draw = nan(2, options.amount);
@@ -47,7 +53,8 @@ function plot_computation_time_for_step(experiment_result, k, optional)
 
             t_start = timings.(field_name)(1, k) - t0; % Normalize (see above)
             duration = timings.(field_name)(2, k);
-            time_to_draw(:, veh_i) = [t_start, t_start + duration] * 10^3; % Scale to ms
+            time_to_draw(:, vehicle_id_order == veh_i) = ...
+                [t_start, t_start + duration] * 10^3; % Scale to ms
         end
 
         plot_handle(:, field_i) = plot(time_to_draw, [1:options.amount; 1:options.amount], 'SeriesIndex', field_i, ...
@@ -60,6 +67,8 @@ function plot_computation_time_for_step(experiment_result, k, optional)
     xlim([-5, ceil(max(time_to_draw(2, :)))] + 5);
     ylabel('Vehicle ID');
     yticks(1:options.amount);
+    yticklabels(vehicle_id_order)
+
     ylim([1 - 0.2, options.amount + 0.2]);
 
     set_figure_properties(optional.fig, ExportFigConfig.document());
