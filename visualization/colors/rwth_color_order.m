@@ -18,5 +18,5 @@ function result = rwth_color_order(color_index)
               189 205 0 %RWTH maigrün  RGB
               ];
     result = result ./ 255;
-    result = result(color_index, :);
+    result = result(mod(color_index - 1, 11) + 1, :);
 end
