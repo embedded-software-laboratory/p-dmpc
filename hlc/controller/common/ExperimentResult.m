@@ -112,7 +112,7 @@ classdef ExperimentResult
         end
 
         function value = get.n_steps(obj)
-            value = length(obj.control_results_info);
+            value = size(obj.control_results_info, 2);
         end
 
         function value = get.t_total(obj)
