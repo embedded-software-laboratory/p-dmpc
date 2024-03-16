@@ -126,8 +126,8 @@ classdef CpmLab < Plant
 
             for i = 1:obj.Hp
                 obj.trajectory_point_buffer(i).t.nanoseconds = 0;
-                obj.trajectory_point_buffer(i).px = scenario_adapter.scenario.vehicles(is_in_vehicle_list).x_start;
-                obj.trajectory_point_buffer(i).py = scenario_adapter.scenario.vehicles(is_in_vehicle_list).y_start;
+                obj.trajectory_point_buffer(i).px = scenario_adapter.scenario.vehicles(obj.vehicle_indices_controlled).x_start;
+                obj.trajectory_point_buffer(i).py = scenario_adapter.scenario.vehicles(obj.vehicle_indices_controlled).y_start;
                 obj.trajectory_point_buffer(i).vx = 0;
                 obj.trajectory_point_buffer(i).vy = 0;
             end

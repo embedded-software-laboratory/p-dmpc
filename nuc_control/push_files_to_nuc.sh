@@ -27,3 +27,9 @@ cat nuc_control/working-nucs | xargs --max-args=1 --max-procs=20 -i \
     ${LCC_BASH_DIR}tmux_middleware.bash \
     ${LCC_BASH_DIR}tmux_script.bash \
     guest@{}:/tmp/scripts
+
+
+cat nuc_control/working-nucs | xargs --max-args=1 --max-procs=20 -i \
+    sshpass -e rsync -u \
+    /home/patrick/dev/software/high_level_controller/examples/matlab/read_system_trigger.m \
+    guest@{}:/home/guest/dev/software/high_level_controller/examples/matlab
