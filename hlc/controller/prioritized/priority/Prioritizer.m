@@ -35,10 +35,10 @@ classdef (Abstract) Prioritizer < handle
 
     methods (Static)
 
-        function directed_coupling = direct_coupling(undirected_coupling, topo_groups)
+        function directed_coupling = direct_coupling(adjacency, topo_groups)
             % determine directed adjacency
-            directed_coupling = undirected_coupling;
-            [rows, cols] = find(undirected_coupling ~= 0);
+            directed_coupling = adjacency;
+            [rows, cols] = find(adjacency ~= 0);
 
             for k = 1:length(rows)
                 v_i = rows(k);
@@ -62,24 +62,18 @@ classdef (Abstract) Prioritizer < handle
         end
 
         function directed_coupling = directed_coupling_from_priorities(adjacency, current_priorities)
+
+            arguments (Input)
+                adjacency (:, :) % logical
+                current_priorities (1, :) % double
+            end
+
             % DIRECTED_COUPLING_FROM_PRIORITIES  Given the adjacency matrix and
             % the current priorities, this function returns the directed coupling matrix.
 
+            removed_edges = current_priorities < current_priorities';
             directed_coupling = adjacency;
-            n_agents = size(directed_coupling, 1);
-
-            for i = 1:n_agents
-
-                for j = 1:n_agents
-
-                    if directed_coupling(i, j) && (current_priorities(i) > current_priorities(j))
-                        directed_coupling(i, j) = 0;
-                    end
-
-                end
-
-            end
-
+            directed_coupling(removed_edges) = 0;
         end
 
         function priorities = priorities_from_directed_coupling(directed_coupling)
