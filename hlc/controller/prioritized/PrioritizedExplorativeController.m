@@ -151,7 +151,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
                 sub_graph_vehicles = obj.belonging_vector_total == i_graph;
                 % Round solution cost to avoid numerical differences
                 obj.solution_cost(:, i_graph) = round(obj.solution_cost(:, i_graph), 8);
-                [min_solution_cost, chosen_solution] = min(obj.solution_cost(:, i_graph));
+                [~, chosen_solution] = min(obj.solution_cost(:, i_graph));
 
                 if i_graph == i_own_graph
                     obj.info = obj.info_array_tmp{chosen_solution};
@@ -167,13 +167,6 @@ classdef PrioritizedExplorativeController < PrioritizedController
                     sub_graph_vehicles ...
                 );
                 priorities = Prioritizer.priorities_from_directed_coupling(sub_graph_directed_coupling);
-
-                if min_solution_cost > 1e8
-                    % TODO doesn't do anything atm, as fallbacks are not costing that much
-                    % flip priorities of subgraph if fallback to have a
-                    % greater chance for a feasible solution
-                    priorities = fliplr(priorities);
-                end
 
                 unique_priorities(sub_graph_vehicles) = priorities + max(unique_priorities);
             end
