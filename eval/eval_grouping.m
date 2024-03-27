@@ -71,7 +71,10 @@ function eval_grouping(optional)
             close all;
 
             % Plot computation time
-            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle(experiment_results);
+            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle( ...
+                experiment_results, ...
+                computation_time_function = @data_time_group_optimize_experiment ...
+            );
 
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
