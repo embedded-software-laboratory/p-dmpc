@@ -3,11 +3,8 @@ function lvl_dist = calc_level_dist(c)
 
     nV = size(c, 1);
 
-    % list of all priorities to assign
-    prios = 1:nV;
-
-    % all permutations of these priorities (nP = nV!)
-    Pm = perms(prios);
+    % unique permutations of these priorities
+    Pm = Prioritizer.unique_priorities(c)';
     nP = size(Pm, 1);
 
     lvl_dist = zeros(1, nP);
@@ -36,8 +33,8 @@ function lvl_dist = calc_level_dist(c)
 
         end
 
-        L = kahn(cdag);
-        lvl_dist(ip) = size(L, 1);
+        levels = kahn(cdag);
+        lvl_dist(ip) = max(levels);
 
     end
 
