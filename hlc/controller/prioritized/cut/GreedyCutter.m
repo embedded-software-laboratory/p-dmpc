@@ -84,41 +84,6 @@ classdef GreedyCutter < Cutter
 
         end
 
-        function discovered_distances = search(directed_coupling, start_vertex)
-
-            arguments (Input)
-                directed_coupling (:, :) logical
-                start_vertex (1, 1) double
-            end
-
-            arguments (Output)
-                discovered_distances (1, :) double
-            end
-
-            discovered = false(1, size(directed_coupling, 2));
-            discovered(start_vertex) = 1;
-
-            i_level = 1;
-            discovered_distances = -inf(size(discovered));
-            discovered_distances(start_vertex) = 0;
-            new_vertices_to_expand = discovered;
-
-            while nnz(new_vertices_to_expand) ~= 0
-                vertices_to_expand = find(new_vertices_to_expand);
-                new_vertices_to_expand(:) = false;
-
-                for vertex_to_expand = vertices_to_expand
-                    discovered(vertex_to_expand) = 1;
-                    neighbors = directed_coupling(vertex_to_expand, :);
-                    new_vertices_to_expand = new_vertices_to_expand | (neighbors & ~discovered);
-                end
-
-                discovered_distances(new_vertices_to_expand) = i_level;
-                i_level = i_level + 1;
-            end
-
-        end
-
     end
 
 end
