@@ -123,13 +123,8 @@ classdef ExportFigConfig
                 optional
             end
 
-            fn = fieldnames(optional);
 
-            if isempty(fn)
-                return
-            end
-
-            for field = fn
+            for field = fieldnames(optional)'
 
                 if ~isempty(optional.(field{1}))
                     obj.(field{1}) = optional.(field{1});
