@@ -42,14 +42,14 @@ classdef (Abstract) Plotter < handle
         function result = get.hotkey_position(obj)
 
             if obj.options.scenario_type == ScenarioType.commonroad
-                result = diag(obj.options.plot_limits) + [-1.6; 0];
+                result = diag(obj.scenario.plot_limits) + [-1.6; 0];
             elseif obj.options.scenario_type == ScenarioType.circle && obj.options.amount <= 2
-                result = obj.options.plot_limits(:, 1) + [0; -0.25];
+                result = obj.scenario.plot_limits(:, 1) + [0; -0.25];
             elseif obj.options.scenario_type == ScenarioType.circle && obj.options.amount > 2
-                result = diag(obj.options.plot_limits) + [-2.1; 0];
+                result = diag(obj.scenario.plot_limits) + [-2.1; 0];
             else
                 % To be defined according to the specific scenario.
-                result = diag(obj.options.plot_limits) + [-1.6; 0];
+                result = diag(obj.scenario.plot_limits) + [-1.6; 0];
             end
 
         end
@@ -108,8 +108,8 @@ classdef (Abstract) Plotter < handle
             axis equal
             xlabel('$x$ [m]', Interpreter = 'LaTex');
             ylabel('$y$ [m]', Interpreter = 'LaTex');
-            xlim(options.plot_limits(1, :));
-            ylim(options.plot_limits(2, :));
+            xlim(obj.scenario.plot_limits(1, :));
+            ylim(obj.scenario.plot_limits(2, :));
             daspect([1 1 1])
             set(0, 'DefaultTextFontname', obj.export_fig_config.fontname);
             set(0, 'DefaultAxesFontName', obj.export_fig_config.fontname);

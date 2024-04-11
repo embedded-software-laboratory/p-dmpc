@@ -78,19 +78,17 @@ classdef Lanelet2 < Scenario
 
         end
 
-        function plot(obj, options, optional)
+        function plot(obj, optional)
 
             arguments
                 obj (1, 1) Lanelet2;
-                options (1, 1) Config;
                 optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
             end
 
-            plot@Scenario(obj, options, fig = optional.fig);
+            plot@Scenario(obj, fig = optional.fig);
 
             % lanelets
             plot_lanelets(obj.road_raw_data.lanelet);
-
         end
 
     end
