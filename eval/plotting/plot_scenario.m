@@ -8,7 +8,7 @@ function plot_scenario(experiment_result, optional)
     end
 
     scenario = Scenario.create(experiment_result.options);
-    scenario.plot(experiment_result.options, fig = optional.fig);
+    scenario.plot(fig = optional.fig);
 
     set_figure_properties(optional.fig, ExportFigConfig.paper("paperheight", 6))
 

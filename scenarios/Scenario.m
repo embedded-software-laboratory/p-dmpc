@@ -14,6 +14,8 @@ classdef Scenario
         lanelet_relationships; % relationship between two adjacent lanelets
         adjacency_lanelets (:, :) logical; % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
+
+        plot_limits (2, 2) double = [0, 4.5; 0, 4]; % [xmin xmax; ymin ymax]
     end
 
     methods
@@ -22,19 +24,18 @@ classdef Scenario
             obj.vehicles(1, options.amount) = Vehicle();
         end
 
-        function plot(obj, options, optional)
+        function plot(obj, optional)
 
             arguments
                 obj (1, 1) Scenario;
-                options (1, 1) Config;
                 optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
             end
 
             set(0, 'CurrentFigure', optional.fig);
             daspect([1 1 1]);
 
-            xlim(options.plot_limits(1, :));
-            ylim(options.plot_limits(2, :));
+            xlim(obj.plot_limits(1, :));
+            ylim(obj.plot_limits(2, :));
 
             for iVeh = 1:numel(obj.vehicles)
                 veh = obj.vehicles(iVeh);
@@ -42,7 +43,8 @@ classdef Scenario
                 line( ...
                     veh.reference_path(:, 1), ...
                     veh.reference_path(:, 2), ...
-                    LineStyle = '--' ...
+                    LineStyle = '--', ...
+                    Color = rwth_color_order(iVeh) ...
                 );
 
                 % vehicle rectangle

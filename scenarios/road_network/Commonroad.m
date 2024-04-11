@@ -49,18 +49,40 @@ classdef Commonroad < Scenario
 
         end
 
-        function plot(obj, options, optional)
+        function plot(obj, optional)
 
             arguments
                 obj (1, 1) Commonroad;
-                options (1, 1) Config;
                 optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
             end
 
-            plot@Scenario(obj, options, fig = optional.fig);
+            plot@Scenario(obj, fig = optional.fig);
 
             % lanelets
             plot_lanelets(obj.road_raw_data.lanelet);
+
+        end
+
+        function plot_with_lanelet_ids(obj)
+
+            arguments
+                obj (1, 1) Commonroad;
+            end
+
+            fig = gcf;
+            obj.plot(fig = fig);
+
+            for i_lanelet = 1:numel(obj.lanelets)
+                lanelet = obj.lanelets{i_lanelet};
+                n_half = floor(size(lanelet, 1) / 2);
+                text( ...
+                    lanelet(n_half, LaneletInfo.cx) ...
+                    , lanelet(n_half, LaneletInfo.cy) ...
+                    , num2str(i_lanelet) ...
+                    , FontSize = 10 ...
+                    , HorizontalAlignment = "center" ...
+                );
+            end
 
         end
 

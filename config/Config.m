@@ -46,7 +46,6 @@ classdef Config
         recursive_feasibility = true; % true/false, if true, the last trim must be an equilibrium trims
         time_per_tick = 0.01;
         offset = 0.01;
-        plot_limits = [0, 4.5; 0, 4]; % default fallback if not defined
         is_use_dynamic_programming = true; % true/false, use dynamic programming or brute-force approach to calculate local reachable sets
     end
 
@@ -289,11 +288,6 @@ classdef Config
                 )
             end
 
-            % specify different plot limits for circle scenario with 2 vehicles
-            if obj.scenario_type == ScenarioType.circle && obj.amount <= 2
-                obj.plot_limits = [0, 4.5; 1.5, 2.5];
-            end
-
         end
 
         function tf = isequal(obj, other_config)
@@ -311,7 +305,6 @@ classdef Config
 
             irrelevant_properties = [
                                      "time_per_tick"
-                                     "plot_limits"
                                      "is_use_dynamic_programming"
                                      "options_plot_online"
                                      ];

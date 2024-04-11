@@ -7,8 +7,13 @@ classdef Circle < Scenario
         function obj = Circle(options)
             obj = obj@Scenario(options);
 
-            radius = 2;
             nVeh = options.amount;
+
+            if nVeh <= 2
+                obj.plot_limits = [0, 4.5; 1.5, 2.5];
+            end
+
+            radius = 2;
             yaws = pi * 2 / nVeh * (0:nVeh - 1);
             % set a maximum speed level in mpa as reference speed
             straight_speeds = MotionPrimitiveAutomaton(options).get_straight_speeds_of_mpa();
