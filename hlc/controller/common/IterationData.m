@@ -13,7 +13,8 @@ classdef IterationData
         predicted_lanelet_boundary % first column for left boundary, second column for right boundary, third column for MATLAB polyshape instance
 
         occupied_areas % currently occupied areas with normal offset of vehicles
-        reachable_sets % cells to store instances of MATLAB class `polyshape`
+        % cell array (n_vehicles x Hp), each cell stores xy-array (2 x n_polygon_vertices)
+        reachable_sets
 
         obstacles
         dynamic_obstacle_area % (nObs x Hp) cell of areas [x; y]
@@ -84,7 +85,7 @@ classdef IterationData
         end
 
         function result = get.number_of_computation_levels(obj)
-            result = size(kahn(obj.directed_coupling_sequential), 1);
+            result = max(kahn(obj.directed_coupling_sequential));
         end
 
     end

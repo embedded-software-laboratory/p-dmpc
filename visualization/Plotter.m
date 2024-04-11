@@ -148,31 +148,18 @@ classdef (Abstract) Plotter < handle
                 plotting_info (1, 1) PlottingInfo
             end
 
-            vehicle_to_computation_level = Prioritizer.computation_levels_of_vehicles(plotting_info.directed_coupling);
+            vehicle_to_computation_level = kahn(plotting_info.directed_coupling);
 
             nObst = plotting_info.n_obstacles;
 
             %% Simulation state / scenario plot
 
-            h = findobj(Tag = "temporary");
-            delete(h);
-            h = findobj(Tag = "circle");
-            delete(h);
-
-            find_text_hotkey = findobj(Tag = 'hotkey');
-
-            if obj.plot_options.plot_hotkey_description
-                % Update hot key description.
-                delete(find_text_hotkey);
-                obj.plot_hotkey_description();
-            else
-                % Remove hot key description if it was painted and not to be shown anymore.
-                delete(find_text_hotkey);
-            end
+            delete(findobj(obj.fig, Tag = "temporary"));
+            delete(findobj(obj.fig, Tag = "circle"));
 
             if obj.plot_options.plot_priority
                 % Get plot's priority colorbar and set it to visible or define a new priority colorbar.
-                priority_colorbar = findobj(Tag = 'priority_colorbar');
+                priority_colorbar = findobj(obj.fig, Tag = 'priority_colorbar');
 
                 n_colors_max = size(obj.priority_colormap, 1);
 
@@ -358,9 +345,9 @@ classdef (Abstract) Plotter < handle
                     continue
                 end
 
-                [RS_x, RS_y] = boundary(plotting_info.reachable_sets{i_vehicle, obj.options.Hp});
                 line( ...
-                    RS_x, RS_y, ...
+                    plotting_info.reachable_sets{i_vehicle, obj.options.Hp}(1, :), ...
+                    plotting_info.reachable_sets{i_vehicle, obj.options.Hp}(2, :), ...
                     LineWidth = 1.0, ...
                     Color = 'k', ...
                     Tag = "temporary" ...
@@ -379,6 +366,16 @@ classdef (Abstract) Plotter < handle
                 close(obj.fig);
             end
 
+        end
+
+        function set_figure_visibility(obj, option)
+
+            arguments
+                obj Plotter
+                option (1, 1) logical = true
+            end
+
+            obj.fig.Visible = option;
         end
 
     end
@@ -423,6 +420,13 @@ classdef (Abstract) Plotter < handle
                 obj.hotkey_description(11) = "{\itspace}: start simulation";
             else
                 obj.hotkey_description(11) = "{\itspace}: stop simulation";
+            end
+
+            delete(findobj(obj.fig, Tag = 'hotkey'));
+
+            if obj.plot_options.plot_hotkey_description
+                % Update hot key description.
+                obj.plot_hotkey_description();
             end
 
         end

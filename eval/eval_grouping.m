@@ -6,10 +6,8 @@ function eval_grouping(optional)
 
     max_num_CLs = [1, 2, 4, 6, 99];
 
-    % scenarios = [ScenarioType.commonroad, ScenarioType.circle];
-    scenarios = ScenarioType.commonroad;
-    % optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
-    optimizers = OptimizerType.MatlabOptimal;
+    scenarios = [ScenarioType.commonroad, ScenarioType.circle];
+    optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
 
     for scenario = scenarios
 
@@ -30,27 +28,21 @@ function eval_grouping(optional)
             % plot
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar_handle = bar(n_vehicles, cost_percent_average);
+            bar(n_vehicles, cost_percent_average);
             % legend
-            legendtext = string(max_num_CLs(1:end - 1));
+            legendtext = string(max_num_CLs);
             legendtext = arrayfun( ...
                 @(element) strcat("$N_\mathrm{CL} = ", element, "$"), ...
                 legendtext ...
             );
+            legendtext(end) = "$N_{\mathrm{CL}, \infty}$";
             legend(legendtext)
             % axes
             xlabel("$N_A$")
             ylabel( ...
-                "$J_\mathrm{NCS}(N_\mathrm{CL}) / J_\mathrm{NCS}(N_{\mathrm{CL},\infty})$ [\%]", ...
+                "$J_\mathrm{NCS}(N_\mathrm{CL}) / J_\mathrm{NCS}(N_{\mathrm{CL}} = 1)$ [\%]", ...
                 Interpreter = "latex" ...
             );
-
-            % ylim([-5, 105])
-            yscale("log");
-            ymax = ylim;
-            ymax = ymax(2);
-            ymin = 1e1;
-            ylim([ymin, ymax])
 
             for i_num_vehicles = 1:length(n_vehicles)
                 num_cls_infty = max( ...
@@ -58,7 +50,7 @@ function eval_grouping(optional)
                 );
                 label = strcat("$N_{\mathrm{CL},\infty} = ", sprintf("%d", num_cls_infty), "$");
 
-                y_text = ymin * 1.2;
+                y_text = 0;
 
                 text( ...
                     n_vehicles(i_num_vehicles), ...
@@ -72,21 +64,6 @@ function eval_grouping(optional)
 
             end
 
-            for b = bar_handle
-                xtips = b.XEndPoints;
-                ytips = 40 * ones(size(b.YEndPoints));
-                labels = arrayfun(@(s) sprintf("%5.1f", s), b.YData);
-                text( ...
-                    xtips, ...
-                    ytips, ...
-                    labels, ...
-                    HorizontalAlignment = 'left', ...
-                    VerticalAlignment = 'middle', ...
-                    Rotation = 55, ...
-                    BackgroundColor = [1 1 1] ...
-                );
-            end
-
             set_figure_properties(fig, ExportFigConfig.presentation());
             filename = sprintf('grouping_cost_%s_%s.pdf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
@@ -94,28 +71,26 @@ function eval_grouping(optional)
             close all;
 
             % Plot computation time
-            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle(experiment_results);
+            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle( ...
+                experiment_results, ...
+                computation_time_function = @data_time_group_optimize_experiment ...
+            );
 
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar(n_vehicles, time_max_approach_vehicle .* 1000);
+            max_bar = bar(n_vehicles, time_max_approach_vehicle' .* 1000);
             hold on
-            bar(n_vehicles, time_med_approach_vehicle .* 1000);
-            % legend
+            med_bar = bar(n_vehicles, time_med_approach_vehicle' .* 1000);
 
+            str_med = "med ";
             str_max = "max ";
-            str_med = "median ";
             % legend
-            legendtext = string(max_num_CLs);
-            legendtext = arrayfun( ...
-                @(element) strcat("$N_\mathrm{CL} = ", element, "$"), ...
-                legendtext ...
-            )';
+            legendtext = legendtext';
             legendtext = [ ...
-                              strcat(repmat(str_max, length(legendtext), 1), legendtext) ...
                               strcat(repmat(str_med, length(legendtext), 1), legendtext) ...
+                              strcat(repmat(str_max, length(legendtext), 1), legendtext) ...
                           ];
-            legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex', NumColumns = 2);
             % axes
             xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
@@ -159,24 +134,11 @@ function eval_grouping(optional)
 
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar(n_vehicles, time_max_approach_vehicle);
+            max_bar = bar(n_vehicles, time_max_approach_vehicle');
             hold on
-            bar(n_vehicles, time_med_approach_vehicle);
-            % legend
+            med_bar = bar(n_vehicles, time_med_approach_vehicle');
 
-            str_max = "max ";
-            str_med = "median ";
-            % legend
-            legendtext = string(max_num_CLs);
-            legendtext = arrayfun( ...
-                @(element) strcat("$N_\mathrm{CL} = ", element, "$"), ...
-                legendtext ...
-            )';
-            legendtext = [ ...
-                              strcat(repmat(str_max, length(legendtext), 1), legendtext) ...
-                              strcat(repmat(str_med, length(legendtext), 1), legendtext) ...
-                          ];
-            legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex', NumColumns = 2);
             % axes
             xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');

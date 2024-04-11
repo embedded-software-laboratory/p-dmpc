@@ -33,6 +33,12 @@ classdef GreedyCutter < Cutter
             % increasing the number of computation levels.
             % This function sequentializes those edges.
 
+            arguments
+                directed_coupling_weighted (:, :) double
+                directed_coupling_sequential (:, :) logical
+                max_num_CLs (1, 1) double
+            end
+
             directed_coupling_sequential_weighted = directed_coupling_sequential;
             directed_coupling_sequential_weighted(directed_coupling_sequential_weighted ~= 0) ...
                 = directed_coupling_weighted(directed_coupling_sequential_weighted ~= 0);
@@ -45,9 +51,7 @@ classdef GreedyCutter < Cutter
             row = row(order_by_weight);
             col = col(order_by_weight);
 
-            levels_of_vehicles = Prioritizer.computation_levels_of_vehicles(directed_coupling_sequential);
-
-            directed_graph = digraph(logical(directed_coupling_sequential));
+            levels_of_vehicles = kahn(directed_coupling_sequential);
 
             for i_parallel_edge = 1:length(row)
 
@@ -60,28 +64,23 @@ classdef GreedyCutter < Cutter
                 % computation level
                 if level_starting < level_ending
                     % edge can be sequentialized
-                    directed_graph = directed_graph.addedge(vertex_starting, vertex_ending);
+                    directed_coupling_sequential(vertex_starting, vertex_ending) = 1;
                     continue
                 end
 
                 % Option 2: check whether the ending vertex can be moved to a
                 % level that is lower than the starting vertex
-                vertices_ordered_after = directed_graph.bfsearch(vertex_ending);
-                level_after_ending = max(levels_of_vehicles(vertices_ordered_after));
-                added_levels = (level_starting - level_ending + 1);
-                computation_levels_if_sequential = level_after_ending + added_levels;
+                directed_coupling_sequential_new = directed_coupling_sequential;
+                directed_coupling_sequential_new(vertex_starting, vertex_ending) = 1;
 
-                if computation_levels_if_sequential <= max_num_CLs
-                    directed_graph = directed_graph.addedge(vertex_starting, vertex_ending);
-                    
-                    levels_of_vehicles(vertices_ordered_after) = ...
-                         distances(directed_graph, vertex_ending, vertices_ordered_after) ...
-                        + added_levels + 1;
+                levels_of_vehicles_new = kahn(directed_coupling_sequential_new);
+
+                if max(levels_of_vehicles_new) <= max_num_CLs
+                    directed_coupling_sequential(vertex_starting, vertex_ending) = 1;
+                    levels_of_vehicles = levels_of_vehicles_new;
                 end
 
             end
-
-            directed_coupling_sequential = full(directed_graph.adjacency);
 
         end
 

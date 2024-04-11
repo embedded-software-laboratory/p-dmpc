@@ -25,7 +25,7 @@ function experiment_results = eval_experiments(optional)
         n_vehicles_array = 5:5:20;
     elseif options.scenario_type == ScenarioType.circle
         seeds = 1;
-        n_vehicles_array = 4:2:10;
+        n_vehicles_array = 2:2:10;
     end
 
     % Environment
@@ -42,18 +42,25 @@ function experiment_results = eval_experiments(optional)
     % number of different random scenarios per priority assignment and #vehicles
     for seed = seeds
 
-        for priority = optional.priority_strategies
-            options.priority = priority;
+        for n_vehicles = n_vehicles_array
 
-            for computation_levels = optional.max_num_CLs
-                options.max_num_CLs = computation_levels;
+            for priority = optional.priority_strategies
+                options.priority = priority;
 
-                for n_vehicles = n_vehicles_array
+                for computation_levels = optional.max_num_CLs
+                    options.max_num_CLs = computation_levels;
 
                     options.amount = n_vehicles;
                     options.path_ids = options.randomize_path_ids(seed = seed);
 
-                    if n_vehicles > 10 && priority == PriorityStrategies.optimal_priority
+                    should_skip_commonroad = n_vehicles > 10 ...
+                        && priority == PriorityStrategies.optimal_priority ...
+                        && options.scenario_type == ScenarioType.commonroad;
+                    should_skip_circle = n_vehicles > 5 ...
+                        && priority == PriorityStrategies.optimal_priority ...
+                        && options.scenario_type == ScenarioType.circle;
+
+                    if should_skip_commonroad || should_skip_circle
                         experiment_result = ExperimentResult(options, -1);
                     else
                         experiment_result = FileNameConstructor.load_latest(options);
@@ -75,9 +82,10 @@ function experiment_results = eval_experiments(optional)
 
     experiment_results = reshape( ...
         experiment_results, ...
-        length(n_vehicles_array), ...
         max(length(optional.priority_strategies), length(optional.max_num_CLs)), ...
+        length(n_vehicles_array), ...
         length(seeds) ...
     );
+    experiment_results = permute(experiment_results, [2, 1, 3]);
 
 end

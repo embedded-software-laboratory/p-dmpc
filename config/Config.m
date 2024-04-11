@@ -173,7 +173,7 @@ classdef Config
                 random_stream = RandStream('mt19937ar', Seed = optional.seed);
             end
 
-            path_ids = randsample(random_stream, possible_path_ids, obj.amount);
+            path_ids = sort(randsample(random_stream, possible_path_ids, obj.amount), 'ascend');
 
         end
 

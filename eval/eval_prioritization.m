@@ -22,10 +22,8 @@ function eval_prioritization(optional)
                       "$p_{\mathrm{optimal}}$"
                       ];
 
-    % scenarios = [ScenarioType.commonroad, ScenarioType.circle];
-    scenarios = ScenarioType.commonroad;
-    % optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
-    optimizers = OptimizerType.MatlabOptimal;
+    scenarios = [ScenarioType.commonroad, ScenarioType.circle];
+    optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
 
     for scenario = scenarios
 
@@ -45,7 +43,7 @@ function eval_prioritization(optional)
             % Plot cost
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar_handle = bar(n_vehicles, cost_percent_average);
+            bar(n_vehicles, cost_percent_average);
             % legend
             legendtext = priority_names;
             legend(legendtext, Location = 'best', Interpreter = 'latex');
@@ -56,21 +54,6 @@ function eval_prioritization(optional)
                 Interpreter = "latex" ...
             );
 
-            for b = bar_handle
-                xtips = b.XEndPoints;
-                ytips = 60 * ones(size(b.YEndPoints));
-                labels = arrayfun(@(s) sprintf("%5.1f", s), b.YData);
-                text( ...
-                    xtips, ...
-                    ytips, ...
-                    labels, ...
-                    HorizontalAlignment = 'left', ...
-                    VerticalAlignment = 'bottom', ...
-                    Rotation = 55, ...
-                    BackgroundColor = [1 1 1] ...
-                );
-            end
-
             set_figure_properties(fig, ExportFigConfig.presentation());
             filename = sprintf('prioritization_cost_%s_%s.pdf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
@@ -78,22 +61,25 @@ function eval_prioritization(optional)
             close all;
 
             % Plot computation time
-            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle(experiment_results);
+            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle( ...
+                experiment_results(:, 1:end - 1, :), ...
+                computation_time_function = @data_time_prioritize_optimize_experiment ...
+            );
 
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar(n_vehicles, time_max_approach_vehicle .* 1000);
+            max_bar = bar(n_vehicles, time_max_approach_vehicle' .* 1000);
             hold on
-            bar(n_vehicles, time_med_approach_vehicle .* 1000);
-            % legend
+            med_bar = bar(n_vehicles, time_med_approach_vehicle' .* 1000);
 
+            % legend
+            str_med = "med ";
             str_max = "max ";
-            str_med = "median ";
             legendtext = [ ...
-                              strcat(repmat(str_max, length(priority_names), 1), priority_names) ...
-                              strcat(repmat(str_med, length(priority_names), 1), priority_names) ...
+                              strcat(repmat(str_med, length(priority_names) - 1, 1), priority_names(1:end - 1)) ...
+                              strcat(repmat(str_max, length(priority_names) - 1, 1), priority_names(1:end - 1)) ...
                           ];
-            legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex', NumColumns = 2);
             % axes
             xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
@@ -103,8 +89,8 @@ function eval_prioritization(optional)
             rwth_colors_50 = rwth_color_order_50;
             colororder( ...
                 fig, ...
-                [rwth_colors_50(1:length(priority_names), :); ...
-                 rwth_colors_100(1:length(priority_names), :)] ...
+                [rwth_colors_50(1:length(priority_names) - 1, :); ...
+                 rwth_colors_100(1:length(priority_names) - 1, :)] ...
             );
 
             filename = sprintf('prioritization_time_%s_%s.pdf', scenario, optimizer);
@@ -113,22 +99,16 @@ function eval_prioritization(optional)
             close all;
 
             % Plot computation levels
-            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_n_levels_approach_vehicle(experiment_results);
+            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_n_levels_approach_vehicle(experiment_results(:, 1:end - 1, :));
 
             n_vehicles = [experiment_results(:, 1, 1).n_hlc];
             fig = figure;
-            bar(n_vehicles, time_max_approach_vehicle);
+            max_bar = bar(n_vehicles, time_max_approach_vehicle');
             hold on
-            bar(n_vehicles, time_med_approach_vehicle);
-            % legend
+            med_bar = bar(n_vehicles, time_med_approach_vehicle');
 
-            str_max = "max ";
-            str_med = "median ";
-            legendtext = [ ...
-                              strcat(repmat(str_max, length(priority_names), 1), priority_names) ...
-                              strcat(repmat(str_med, length(priority_names), 1), priority_names) ...
-                          ];
-            legend(legendtext, Location = 'northeast', Interpreter = 'latex', NumColumns = 2);
+            % legend
+            legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex', NumColumns = 2);
             % axes
             xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
@@ -138,8 +118,8 @@ function eval_prioritization(optional)
             rwth_colors_50 = rwth_color_order_50;
             colororder( ...
                 fig, ...
-                [rwth_colors_50(1:length(priority_names), :); ...
-                 rwth_colors_100(1:length(priority_names), :)] ...
+                [rwth_colors_50(1:length(priority_names) - 1, :); ...
+                 rwth_colors_100(1:length(priority_names) - 1, :)] ...
             );
 
             filename = sprintf('prioritization_levels_%s_%s.pdf', scenario, optimizer);

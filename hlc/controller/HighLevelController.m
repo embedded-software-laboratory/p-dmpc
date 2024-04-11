@@ -31,6 +31,8 @@ classdef (Abstract) HighLevelController < handle
     properties (Access = private)
         % member variable that is used to execute steps on error
         is_run_succeeded (1, 1) logical = false
+
+        clean_up (1, 1) function_handle = @()[];
     end
 
     methods (Abstract = true, Access = protected)
@@ -41,6 +43,8 @@ classdef (Abstract) HighLevelController < handle
     methods
         % Set default settings
         function obj = HighLevelController(options, plant)
+
+            obj.clean_up = @obj.end_run;
 
             if nargin == 0
                 return
@@ -64,7 +68,7 @@ classdef (Abstract) HighLevelController < handle
             % run the controller
 
             % object that executes the specified function on destruction
-            cleanupObj = onCleanup(@obj.end_run);
+            cleanupObj = onCleanup(obj.clean_up);
 
             % initialize the controller and its adapters
             obj.main_init();
@@ -87,6 +91,10 @@ classdef (Abstract) HighLevelController < handle
 
             % specify returned variables
             experiment_result = obj.experiment_result;
+        end
+
+        function set_clean_up_dry_run_function(obj)
+            obj.clean_up = @obj.end_dry_run;
         end
 
     end
@@ -186,7 +194,7 @@ classdef (Abstract) HighLevelController < handle
                 );
 
                 % compute reachable sets for vehicle iVeh
-                obj.iter.reachable_sets(iVeh, :) = obj.mpa.reachable_sets_at_pose( ...
+                reachable_sets_polyshape = obj.mpa.reachable_sets_at_pose( ...
                     cav_measurements(iVeh).x, ...
                     cav_measurements(iVeh).y, ...
                     cav_measurements(iVeh).yaw, ...
@@ -231,8 +239,8 @@ classdef (Abstract) HighLevelController < handle
                     );
 
                     % constrain the reachable sets by the boundaries of the predicted lanelets
-                    obj.iter.reachable_sets(iVeh, :) = bound_reachable_sets( ...
-                        obj.iter.reachable_sets(iVeh, :), ...
+                    reachable_sets_polyshape = bound_reachable_sets( ...
+                        reachable_sets_polyshape, ...
                         obj.iter.predicted_lanelet_boundary{iVeh, 3} ...
                     );
 
@@ -240,11 +248,20 @@ classdef (Abstract) HighLevelController < handle
 
                 % force convex reachable sets if non-convex polygons are not allowed
                 if ~obj.options.are_any_obstacles_non_convex
-                    obj.iter.reachable_sets(iVeh, :) = cellfun(@(c) convhull(c), ...
-                        obj.iter.reachable_sets(iVeh, :), ...
+                    reachable_sets_polyshape = cellfun(@(c) convhull(c), ...
+                        reachable_sets_polyshape, ...
                         UniformOutput = false ...
                     );
                 end
+
+                % turn polyshape to plain array (repeat the first row to close the shape)
+                obj.iter.reachable_sets(iVeh, :) = cellfun(@(c) ...
+                    {[ ...
+                      c.Vertices(:, 1)', c.Vertices(1, 1)'; ...
+                      c.Vertices(:, 2)', c.Vertices(1, 2)' ...
+                  ]}, ...
+                    reachable_sets_polyshape ...
+                );
 
             end
 
@@ -264,7 +281,7 @@ classdef (Abstract) HighLevelController < handle
             % method that can be overwritten by child classes if necessary
         end
 
-        function clean_up(~)
+        function free_objects(~)
             % release memory allocated by mex functions
 
             % clear mex on all other computers
@@ -438,7 +455,9 @@ classdef (Abstract) HighLevelController < handle
             end
 
             % check fallback of other controllers
+            obj.timing.start("receive_fallback", obj.k);
             obj.check_others_fallback();
+            obj.timing.stop("receive_fallback", obj.k);
 
             if obj.info.needs_fallback
                 obj.controller_fallback(is_fallback_while_planning = false);
@@ -497,7 +516,12 @@ classdef (Abstract) HighLevelController < handle
             obj.plant.end_run();
 
             % clean up controller
-            obj.clean_up();
+            obj.free_objects();
+        end
+
+        function end_dry_run(obj)
+            % clean up controller
+            obj.free_objects();
         end
 
         function save_results(obj)

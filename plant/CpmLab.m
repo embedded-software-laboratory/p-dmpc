@@ -16,6 +16,11 @@ classdef CpmLab < Plant
 
         time_now (1, 1) uint64 = 0;
         init_completed = false
+
+        trajectory_point_buffer (1, :) % (1 x Hp) TrajectoryPoint
+        % time offset to account for slow start of MATLABs JIT
+        % compilation
+        time_offset (1, 1) uint64 = 5 * 1e9;
     end
 
     properties (GetAccess = public, SetAccess = private)
@@ -92,34 +97,39 @@ classdef CpmLab < Plant
 
             setup@Plant(obj, options);
 
-            % take list of VehicleStates from sample
-            state_list = sample_for_setup.state_list;
-
             % since there is no steering info in [rad],
             % the initial_steering is assumed to 0
+            % all vehicles have the same initial speed and steering
             initial_steering = 0;
+            initial_speed = 0;
 
-            for index = 1:length(state_list)
+            % create scenario adapter to get scenario
+            % with Simulation only BuiltScenario can be used
+            scenario_adapter = BuiltScenario();
+            scenario_adapter.init(options, obj);
 
-                % data type of state_list vehicle_id is uint8 and
-                % matches the data type of the superclass variable
-                % casting of the data type is not necessary
-                if ~any(state_list(index).vehicle_id == obj.vehicle_ids_controlled)
-                    % if vehicle is not controlled, do not use received information
-                    continue
-                end
-
-                % boolean with exactly one true entry for the position in all_vehicle_ids
-                is_in_vehicle_list = obj.all_vehicle_ids == state_list(index).vehicle_id;
-
-                obj.measurements(is_in_vehicle_list) = PlantMeasurement( ...
-                    state_list(index).pose.x, ...
-                    state_list(index).pose.y, ...
-                    state_list(index).pose.yaw, ...
-                    state_list(index).speed, ...
+            % set initial vehicle measurements
+            for i_vehicle = 1:options.amount
+                obj.measurements(i_vehicle) = PlantMeasurement( ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).x_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).y_start, ...
+                    scenario_adapter.scenario.vehicles(i_vehicle).yaw_start, ...
+                    initial_speed, ...
                     initial_steering ...
                 );
+            end
 
+            % Assume prioritized controller
+            assert(numel(obj.vehicle_ids_controlled) == 1);
+            obj.trajectory_point_buffer = TrajectoryPoint;
+            obj.trajectory_point_buffer(1:obj.Hp) = TrajectoryPoint;
+
+            for i = 1:obj.Hp
+                obj.trajectory_point_buffer(i).t.nanoseconds = 0;
+                obj.trajectory_point_buffer(i).px = scenario_adapter.scenario.vehicles(obj.vehicle_indices_controlled).x_start;
+                obj.trajectory_point_buffer(i).py = scenario_adapter.scenario.vehicles(obj.vehicle_indices_controlled).y_start;
+                obj.trajectory_point_buffer(i).vx = 0;
+                obj.trajectory_point_buffer(i).vy = 0;
             end
 
         end
@@ -162,6 +172,15 @@ classdef CpmLab < Plant
 
                 if (sample_count > 1)
                     warning('Received %d samples, expected 1. Correct middleware period? Missed deadline?', sample_count);
+                end
+
+                for i = 1:obj.Hp
+                    obj.trajectory_point_buffer(i).t.nanoseconds = ...
+                        uint64( ...
+                        obj.time_now ...
+                        + (i - 1) * obj.dt_period_nanos ...
+                        + obj.time_offset ...
+                    );
                 end
 
             else
@@ -212,57 +231,52 @@ classdef CpmLab < Plant
 
             % calculate vehicle control messages
             obj.out_of_map_limits = false(obj.amount, 1);
-            % time offset to account for slow start of MATLABs JIT
-            % compilation
-            time_offset = uint64(3 * 1e9);
 
             for vehicle_index = obj.vehicle_indices_controlled
                 % simulate change of state
                 i_vehicle = (obj.vehicle_indices_controlled == vehicle_index);
 
+                x_next = info.y_predicted(1, 1, i_vehicle);
+                y_next = info.y_predicted(2, 1, i_vehicle);
+                yaw_next = info.y_predicted(3, 1, i_vehicle);
+                speed_next = mpa.trims(info.predicted_trims(i_vehicle, 1)).speed;
+
                 obj.measurements(vehicle_index) = PlantMeasurement( ...
-                    info.y_predicted(1, 1, i_vehicle), ... % x
-                    info.y_predicted(2, 1, i_vehicle), ... % y
-                    info.y_predicted(3, 1, i_vehicle), ... % yaw
-                    mpa.trims(info.predicted_trims(i_vehicle, 1)).speed, ...
+                    x_next, ...
+                    y_next, ...
+                    yaw_next, ...
+                    speed_next, ...
                     mpa.trims(info.predicted_trims(i_vehicle, 1)).steering ...
                 );
 
-                trajectory_points(1:obj.Hp) = TrajectoryPoint;
+                obj.trajectory_point_buffer = circshift(obj.trajectory_point_buffer, -1);
 
-                for i = 1:obj.Hp
-                    trajectory_points(i).t.nanoseconds = ...
-                        uint64( ...
-                        obj.time_now ...
-                        + i_traj_pt * obj.dt_period_nanos ...
-                        + time_offset ...
-                    );
-                    trajectory_points(i).px = info.y_predicted(1, i, vehicle_index);
-                    trajectory_points(i).py = info.y_predicted(2, i, vehicle_index);
+                % Delay of Hp-1 steps because of buffer
+                % Add new input to the end of trajectory to allow vehicle
+                % to have more lookahead when following the trajectory
+                obj.trajectory_point_buffer(end).t.nanoseconds = ...
+                    uint64( ...
+                    obj.time_now ...
+                    + obj.Hp * obj.dt_period_nanos ...
+                    + obj.time_offset ...
+                );
 
-                    yaw = info.y_predicted(3, i, vehicle_index);
+                obj.trajectory_point_buffer(end).px = x_next;
+                obj.trajectory_point_buffer(end).py = y_next;
 
-                    speed = mpa.trims(info.predicted_trims(i_vehicle, i)).speed;
+                obj.trajectory_point_buffer(end).vx = cos(yaw_next) * speed_next;
+                obj.trajectory_point_buffer(end).vy = sin(yaw_next) * speed_next;
 
-                    trajectory_points(i).vx = cos(yaw) * speed;
-                    trajectory_points(i).vy = sin(yaw) * speed;
-                end
-
-                obj.out_of_map_limits(vehicle_index) = obj.is_veh_at_map_border(trajectory_points);
+                obj.out_of_map_limits(vehicle_index) = obj.is_veh_at_map_border(obj.trajectory_point_buffer);
 
                 vehicle_command_trajectory = VehicleCommandTrajectory;
                 vehicle_command_trajectory.vehicle_id = uint8(obj.all_vehicle_ids(vehicle_index));
-                vehicle_command_trajectory.trajectory_points = trajectory_points;
+                vehicle_command_trajectory.trajectory_points = obj.trajectory_point_buffer;
                 vehicle_command_trajectory.header.create_stamp.nanoseconds = ...
-                    uint64(posixtime(datetime('now')));
+                    uint64(posixtime(datetime('now')) * 1e9);
 
                 vehicle_command_trajectory.header.valid_after_stamp.nanoseconds = ...
-                    uint64( ...
-                    obj.time_now ...
-                    + obj.dt_period_nanos ...
-                    + time_offset ...
-                    + 1 ... % to guarantee interpolating is possible
-                );
+                    obj.trajectory_point_buffer(2).t.nanoseconds;
 
                 obj.writer_vehicleCommandTrajectory.write(vehicle_command_trajectory);
             end

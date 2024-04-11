@@ -7,6 +7,7 @@ classdef PrioritizedSequentialController < HighLevelController
     methods
 
         function obj = PrioritizedSequentialController()
+            obj@HighLevelController();
         end
 
         function add_hlc(obj, hlc)
@@ -79,11 +80,10 @@ classdef PrioritizedSequentialController < HighLevelController
             % between groups plan in parallel. Controller simulates multiple
             % distributed controllers in a for-loop.
 
-            level_matrix = kahn(obj.merged_graph("directed_coupling_sequential"));
+            levels_of_vehicles = kahn(obj.merged_graph("directed_coupling_sequential"));
 
-            for i_level = 1:size(level_matrix, 1)
-
-                vehicles_in_level = find(level_matrix(i_level, :));
+            for i_level = 1:max(levels_of_vehicles)
+                vehicles_in_level = find(levels_of_vehicles == i_level);
 
                 for i_vehicle = vehicles_in_level
                     obj.hlcs(i_vehicle).controller();

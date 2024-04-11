@@ -68,9 +68,6 @@ end
 function check_closeness(cell_array)
     % This function checks closeness of the input shapes contained in cell
     % array
-    if all(cellfun('isempty', cell_array))
-        return;
-    end
 
     for i = 1:length(cell_array)
         assert(all(cell_array{i}(:, 1) == cell_array{i}(:, end)))

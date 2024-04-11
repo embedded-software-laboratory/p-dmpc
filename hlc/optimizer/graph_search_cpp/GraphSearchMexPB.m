@@ -29,7 +29,7 @@ classdef GraphSearchMexPB < OptimizerInterface
 
         end
 
-        function info = run_optimizer(obj, vehicle_index, iter, ~, options)
+        function info = run_optimizer(obj, vehicle_index, iter, ~, options, ~)
             info = ControlResultsInfo(iter.amount, options.Hp);
 
             [vehicle_obstacles, ~] = get_all_obstacles(iter, options.Hp);

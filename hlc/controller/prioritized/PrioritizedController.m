@@ -235,27 +235,20 @@ classdef PrioritizedController < HighLevelController
                 obj.iter.occupied_areas{j_vehicle}.without_offset(1, :) = occupied_areas(2).x;
                 obj.iter.occupied_areas{j_vehicle}.without_offset(2, :) = occupied_areas(2).y;
 
-                % transform reachable sets to polyshape object
-                obj.iter.reachable_sets(j_vehicle, :) = (arrayfun( ...
-                    @(array) {polyshape(array.x, array.y, Simplify = false)}, ...
-                    latest_msg_i.reachable_sets ...
-                ))';
+                % transform reachable sets to cell array of polygon vertices
+                for i_step = 1:obj.options.Hp
+                    obj.iter.reachable_sets{j_vehicle, i_step} = ...
+                        [
+                     latest_msg_i.reachable_sets(i_step).x'
+                     latest_msg_i.reachable_sets(i_step).y'
+                     ];
+                end
 
                 % transform predicted lanelets
                 obj.iter.predicted_lanelets{j_vehicle} = latest_msg_i.predicted_lanelets';
 
                 obj.iter.reference_trajectory_points(j_vehicle, :, 1) = [latest_msg_i.reference_trajectory_points.x];
                 obj.iter.reference_trajectory_points(j_vehicle, :, 2) = [latest_msg_i.reference_trajectory_points.y];
-
-                % calculate the predicted lanelet boundary of vehicle j_vehicle based on its predicted lanelets
-                if obj.options.scenario_type ~= ScenarioType.circle
-                    obj.iter.predicted_lanelet_boundary(j_vehicle, :) = get_lanelets_boundary( ...
-                        obj.iter.predicted_lanelets{j_vehicle}, ...
-                        obj.scenario_adapter.scenario.lanelet_boundary, ...
-                        obj.scenario_adapter.scenario.vehicles(j_vehicle).lanelets_index, ...
-                        obj.scenario_adapter.scenario.vehicles(j_vehicle).is_loop ...
-                    );
-                end
 
             end
 
@@ -332,14 +325,21 @@ classdef PrioritizedController < HighLevelController
 
             %% Plan for vehicle i_vehicle
             % execute sub controller for 1-veh scenario
-            obj.timing.start('optimize', obj.k);
+
+            optimize_timer_name = [ ...
+                                       'optimize', ...
+                                       num2str(max(0, obj.iter.priority_permutation - 1)), ...
+                                   ];
+
+            obj.timing.start(optimize_timer_name, obj.k);
             obj.info = obj.optimizer.run_optimizer( ...
                 vehicle_index, ...
                 iter_v, ...
                 obj.mpa, ...
-                obj.options ...
+                obj.options, ...
+                obj.k ...
             );
-            obj.timing.stop('optimize', obj.k);
+            obj.timing.stop(optimize_timer_name, obj.k);
 
             if obj.info.is_exhausted
                 % this function checks if a fallback is required
@@ -402,10 +402,7 @@ classdef PrioritizedController < HighLevelController
             end
 
             % Add their reachable sets as dynamic obstacles to deal with the prediction inconsistency
-            reachable_sets_i = obj.iter.reachable_sets(j_predecessor, :);
-            % turn polyshape to plain array (repeat the first row to enclosed the shape)
-            reachable_sets_i_cell_array = cellfun(@(c) {[c.Vertices(:, 1)', c.Vertices(1, 1)'; c.Vertices(:, 2)', c.Vertices(1, 2)']}, reachable_sets_i);
-            dynamic_obstacle_area = reachable_sets_i_cell_array;
+            dynamic_obstacle_area = obj.iter.reachable_sets(j_predecessor, :);
 
         end
 
@@ -734,11 +731,11 @@ classdef PrioritizedController < HighLevelController
 
         end
 
-        function clean_up(obj)
+        function free_objects(obj)
             % delete ros2 objects
             delete(obj.ros2_node);
             % clean up hlc in reverse order than constructing
-            clean_up@HighLevelController(obj);
+            free_objects@HighLevelController(obj);
         end
 
     end

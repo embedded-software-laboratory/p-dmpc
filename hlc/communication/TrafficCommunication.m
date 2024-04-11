@@ -84,8 +84,8 @@ classdef TrafficCommunication < InterHlcCommunication
 
             % comment out if vehicles send their reachable sets to others
             for i = 1:length(reachable_sets)
-                obj.message_to_be_sent.reachable_sets(i).x = reachable_sets{i}.Vertices(:, 1);
-                obj.message_to_be_sent.reachable_sets(i).y = reachable_sets{i}.Vertices(:, 2);
+                obj.message_to_be_sent.reachable_sets(i).x = reachable_sets{i}(1, :);
+                obj.message_to_be_sent.reachable_sets(i).y = reachable_sets{i}(2, :);
             end
 
             send(obj.ros2_publisher, obj.message_to_be_sent);

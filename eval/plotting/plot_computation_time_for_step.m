@@ -6,10 +6,11 @@ function plot_computation_time_for_step(experiment_result, k, optional)
     arguments
         experiment_result (1, 1) ExperimentResult;
         k uint64;
-        optional.do_export (1, 1) logical = true;
+        optional.fig (1, 1) matlab.ui.Figure = gcf;
     end
 
-    % useful variable for shorter notations
+    hold_before = ishold;
+
     options = experiment_result.options;
 
     % Configure, which field names in the timing object are relevant, dependent on the used controller
@@ -17,30 +18,30 @@ function plot_computation_time_for_step(experiment_result, k, optional)
         error('The graph is currently only supported for results of prioritized, distributed execution.');
     end
 
+    all_field_names = fieldnames(experiment_result.timing(1));
+    optimize_field_names_indices = ~cellfun(@isempty, regexp(all_field_names, '^optimize\w+'));
+    optimize_field_names = string(all_field_names(optimize_field_names_indices))';
     field_names = [ ...
+                       "measure", ...
                        "analyze_reachability", ...
                        "receive_from_others", ...
                        "couple", ...
                        "prioritize", ...
                        "group", ...
-                       "optimize", ...
+                       optimize_field_names, ...
+                       "receive_fallback", ...
                    ];
 
     % Find time of HLC which starts loop last
     measure_timings = vertcat(experiment_result.timing.measure);
     measure_start_points = measure_timings(1:2:end, :);
-    [t0, i_vehicle_last] = max(measure_start_points(:, k));
+    t0 = max(measure_start_points(:, k));
 
-    % Fake that all vehicles started at the same time
-    % Actually, vehicles start right after they finished the previous step,
-    % and then wait for others
-    for i_vehicle = 1:options.amount
-        experiment_result.timing(i_vehicle).measure(:, k) = experiment_result.timing(i_vehicle_last).measure(:, k);
-        experiment_result.timing(i_vehicle).analyze_reachability(:, k) = experiment_result.timing(i_vehicle_last).analyze_reachability(:, k);
-        experiment_result.timing(i_vehicle).receive_from_others(:, k) = experiment_result.timing(i_vehicle_last).receive_from_others(:, k);
-    end
+    directed_coupling = experiment_result.iteration_data(k).directed_coupling_sequential;
+    groups = conncomp(digraph(directed_coupling), Type = 'weak');
+    % L = kahn(directed_coupling);
 
-    figure_handle = figure();
+    [~, vehicle_id_order] = sort(groups);
 
     for field_i = 1:length(field_names)
         field_name = field_names(field_i);
@@ -52,7 +53,8 @@ function plot_computation_time_for_step(experiment_result, k, optional)
 
             t_start = timings.(field_name)(1, k) - t0; % Normalize (see above)
             duration = timings.(field_name)(2, k);
-            time_to_draw(:, veh_i) = [t_start, t_start + duration] * 10^3; % Scale to ms
+            time_to_draw(:, vehicle_id_order == veh_i) = ...
+                [t_start, t_start + duration] * 10^3; % Scale to ms
         end
 
         plot_handle(:, field_i) = plot(time_to_draw, [1:options.amount; 1:options.amount], 'SeriesIndex', field_i, ...
@@ -62,20 +64,17 @@ function plot_computation_time_for_step(experiment_result, k, optional)
 
     legend(plot_handle(1, :), strrep(cellstr(field_names), '_', ' '), Location = 'best');
     xlabel('Time [ms]');
+    xlim([-5, ceil(max(time_to_draw(2, :)))] + 5);
     ylabel('Vehicle ID');
     yticks(1:options.amount);
+    yticklabels(vehicle_id_order)
+
     ylim([1 - 0.2, options.amount + 0.2]);
 
-    set_figure_properties(figure_handle, ExportFigConfig.document());
+    set_figure_properties(optional.fig, ExportFigConfig.document());
 
-    % Export
-    if optional.do_export
-        folder_path = FileNameConstructor.experiment_result_folder_path( ...
-            experiment_result.options ...
-        );
-        filename = strcat('runtime_step_', string(k), '.pdf');
-        export_fig(figure_handle, fullfile(folder_path, filename));
-        close(figure_handle);
+    if ~hold_before
+        hold off;
     end
 
 end

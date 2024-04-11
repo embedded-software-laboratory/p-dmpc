@@ -47,6 +47,13 @@ classdef Scenario
 
                 % vehicle rectangle
                 veh.plot(rwth_color_order(iVeh));
+
+                % path ID
+                text( ...
+                    veh.x_start, ...
+                    veh.y_start, ...
+                    num2str(iVeh) ...
+                );
             end
 
             % Obstacles

@@ -12,7 +12,7 @@ classdef ConstantPrioritizer < Prioritizer
         end
 
         function [directed_coupling] = prioritize(obj, iter, ~, ~, ~)
-
+            obj.current_priorities = obj.current_priorities(1:iter.amount);
             directed_coupling = Prioritizer.directed_coupling_from_priorities( ...
                 iter.adjacency, obj.current_priorities ...
             );

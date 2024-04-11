@@ -1,8 +1,9 @@
-function [time_min_approach_vehicle, time_med_approach_vehicle, time_mean_approach_vehicle, time_max_approach_vehicle] = data_time_approach_vehicle(experiment_results)
+function [time_min_approach_vehicle, time_med_approach_vehicle, time_mean_approach_vehicle, time_max_approach_vehicle] = data_time_approach_vehicle(experiment_results, optional)
 
     arguments (Input)
         % ExperimentResult in order (n_vehicles x n_approaches x n_scenarios)
         experiment_results (:, :, :) ExperimentResult
+        optional.computation_time_function (1, 1) function_handle = @data_time_experiment
     end
 
     [n_vehicles, n_approaches, n_scenarios] = size(experiment_results);
@@ -26,11 +27,12 @@ function [time_min_approach_vehicle, time_med_approach_vehicle, time_mean_approa
                     continue;
                 end
 
-                computation_time = data_time_experiment(experiment_result);
+                computation_time_per_vehicle = optional.computation_time_function(experiment_result);
+                computation_time_ncs = max(computation_time_per_vehicle);
 
                 % insert timings into the correct list
                 times_approach_vehicle{i_approaches, i_vehicles} = reshape( ...
-                    computation_time, 1, [] ...
+                    computation_time_ncs, 1, [] ...
                 );
 
             end

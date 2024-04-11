@@ -70,17 +70,6 @@ classdef HlcFactory
 
         end
 
-        function create_dry_run_scenario(options)
-            % Use commonroad as it covers more lines of codes
-            options.scenario_type = ScenarioType.commonroad;
-            % Validate for path ids
-            options = options.validate();
-            scenario = Commonroad(options);
-
-            % Save scenario for dry run
-            save('scenario_dry_run.mat', 'scenario');
-        end
-
     end
 
     methods (Static, Access = private)
@@ -108,22 +97,10 @@ classdef HlcFactory
 
             fprintf("Dry run of HLC...\n");
 
-            % use dry run scenario
-            options.scenario_file = 'scenario_dry_run.mat';
-            % use commonroad as it covers more lines of code
-            options.scenario_type = ScenarioType.commonroad;
-            % use simulation to avoid communication with a lab
-            options.environment = Environment.Simulation;
-            % for simulation manual vehicles are disabled
-            options.manual_control_config.is_active = false;
-            % for the dry run plotting is not necessary
-            options.options_plot_online.is_active = false;
-            % for the dry run reduce experiment time to a minimum
-            options.T_end = 2 * options.dt_seconds;
-
             % dry_run must be false otherwise it would lead to an endless loop
             % (get_hlc -> dry_run_hlc -> get_hlc)
             hlc = HlcFactory.get_hlc(options, dry_run_vehicle_indices, do_dry_run = false);
+            hlc.set_clean_up_dry_run_function();
             hlc.run();
 
             fprintf("Dry run done.\n");

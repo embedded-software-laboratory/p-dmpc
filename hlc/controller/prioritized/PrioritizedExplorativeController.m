@@ -16,56 +16,10 @@ classdef PrioritizedExplorativeController < PrioritizedController
         belonging_vector_total
     end
 
-    methods
+    methods (Access = public)
 
         function obj = PrioritizedExplorativeController(options, plant, ros2_node)
             obj = obj@PrioritizedController(options, plant, ros2_node);
-        end
-
-    end
-
-    methods (Access = protected)
-
-        function controller(obj)
-
-            obj.prepare_iterations();
-
-            for desired_computation_level = 1:obj.n_computation_levels
-
-                % calculate priority information for permutation
-                % where vehicle is on the desired_computation_level
-                obj.prepare_permutation(desired_computation_level);
-
-                obj.solve_permutation();
-            end
-
-            obj.compute_solution_cost();
-            obj.send_solution_cost();
-            obj.receive_solution_cost();
-            obj.choose_solution();
-
-        end
-
-        function create_coupling_graph(obj)
-            % call create_coupling_graph function of super class
-            create_coupling_graph@PrioritizedController(obj)
-
-            % store mapping: agents<->subgraph (for keeping priority permutation)
-            obj.belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling_sequential), 'Type', 'weak');
-
-            % store mapping: agents<->topological level (for permuting priorities)
-            obj.computation_levels_of_vehicles = Prioritizer.computation_levels_of_vehicles(obj.iter.directed_coupling_sequential);
-
-            % topological level of controlled agent (computation level of agent in initial priority permutation)
-            obj.base_computation_level = obj.computation_levels_of_vehicles(obj.plant.vehicle_indices_controlled);
-        end
-
-    end
-
-    methods (Access = public)
-
-        function result = get_n_computation_levels(obj)
-            result = obj.n_computation_levels;
         end
 
         function prepare_iterations(obj)
@@ -197,8 +151,7 @@ classdef PrioritizedExplorativeController < PrioritizedController
                 sub_graph_vehicles = obj.belonging_vector_total == i_graph;
                 % Round solution cost to avoid numerical differences
                 obj.solution_cost(:, i_graph) = round(obj.solution_cost(:, i_graph), 8);
-                [min_solution_cost, chosen_solution] = min(obj.solution_cost(:, i_graph));
-                chosen_solution = chosen_solution(1); % guarantee that it is a single integer
+                [~, chosen_solution] = min(obj.solution_cost(:, i_graph));
 
                 if i_graph == i_own_graph
                     obj.info = obj.info_array_tmp{chosen_solution};
@@ -215,17 +168,70 @@ classdef PrioritizedExplorativeController < PrioritizedController
                 );
                 priorities = Prioritizer.priorities_from_directed_coupling(sub_graph_directed_coupling);
 
-                if min_solution_cost > 1e8
-                    % flip priorities of subgraph if fallback to have a
-                    % greater chance for a feasible solution
-                    priorities = fliplr(priorities);
-                end
-
                 unique_priorities(sub_graph_vehicles) = priorities + max(unique_priorities);
             end
 
             obj.prioritizer.current_priorities = unique_priorities;
 
+        end
+
+        function result = get_n_computation_levels(obj)
+            result = obj.n_computation_levels;
+        end
+
+    end
+
+    methods (Access = protected)
+
+        function controller(obj)
+
+            obj.prepare_iterations();
+
+            for desired_computation_level = 1:obj.n_computation_levels
+
+                % calculate priority information for permutation
+                % where vehicle is on the desired_computation_level
+                obj.prepare_permutation(desired_computation_level);
+
+                obj.solve_permutation();
+            end
+
+        end
+
+        function create_coupling_graph(obj)
+            % call create_coupling_graph function of super class
+            create_coupling_graph@PrioritizedController(obj)
+
+            % store mapping: agents<->subgraph (for keeping priority permutation)
+            obj.belonging_vector_total = conncomp(digraph(obj.iter.directed_coupling_sequential), 'Type', 'weak');
+
+            % store mapping: agents<->topological level (for permuting priorities)
+            obj.computation_levels_of_vehicles = kahn(obj.iter.directed_coupling_sequential);
+
+            % topological level of controlled agent (computation level of agent in initial priority permutation)
+            obj.base_computation_level = obj.computation_levels_of_vehicles(obj.plant.vehicle_indices_controlled);
+        end
+
+        function handle_others_fallback(obj)
+
+            for i_permutation = 1:obj.n_computation_levels
+                obj.iter = obj.iter_array_tmp{i_permutation};
+                obj.info = obj.info_array_tmp{i_permutation};
+
+                handle_others_fallback@HighLevelController(obj);
+
+                obj.iter_array_tmp{i_permutation} = obj.iter;
+                obj.info_array_tmp{i_permutation} = obj.info;
+            end
+
+        end
+
+        function store_control_info(obj)
+            obj.compute_solution_cost();
+            obj.send_solution_cost();
+            obj.receive_solution_cost();
+            obj.choose_solution();
+            store_control_info@HighLevelController(obj);
         end
 
     end
