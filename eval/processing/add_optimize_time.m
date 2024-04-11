@@ -85,7 +85,7 @@ function computation_time = add_optimize_time(experiment_result, computation_tim
 
             end
 
-            computation_time(:, i_step) = computation_time_from_level;
+            computation_time(:, i_step) = computation_time(:, i_step) + computation_time_from_level;
         end
 
     end
