@@ -1,9 +1,12 @@
-function plot_lanelets(lanelets)
+function plot_lanelets(lanelets, optional)
+arguments
+    lanelets
+    optional.color (1,3) double = [0.5 0.5 0.5];
+end
     % PLOT_LANELETS     Plots the lanelet structure.
-    color = '#848484';
 
     for i = 1:length(lanelets)
-        plot_lanelet(lanelets(i), color);
+        plot_lanelet(lanelets(i), optional.color);
     end
 
 end
