@@ -1,8 +1,8 @@
 # Ignore output
 results/
 profile_results*
-ui/Config.json
 Config.json
+Config/mcts.json
 derived/*
 
 # Ignore PDF file

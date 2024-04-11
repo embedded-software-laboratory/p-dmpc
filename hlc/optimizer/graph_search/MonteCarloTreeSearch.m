@@ -5,6 +5,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
         are_constraints_satisfied (1, 1) function_handle = @()[];
         random_numbers (1, :) double = [];
         rand_stream (1, 1) RandStream = RandStream('mt19937ar', Seed = 42);
+        n_expansions_max (1, 1) double = 250;
     end
 
     methods
@@ -12,6 +13,18 @@ classdef MonteCarloTreeSearch < OptimizerInterface
         function obj = MonteCarloTreeSearch()
             obj = obj@OptimizerInterface();
             obj.rand_stream = RandStream('mt19937ar', Seed = 42);
+            config_file = 'config/mcts.json';
+
+            if isfile(config_file)
+                mcts_config = jsondecode(fileread(config_file));
+
+                for field_cell = fieldnames(mcts_config)'
+                    field_name = field_cell{1};
+                    obj.(field_name) = mcts_config.(field_name);
+                end
+
+            end
+
         end
 
         function info_v = run_optimizer(obj, vehicle_index, iter, mpa, ~, time_step)
@@ -35,9 +48,8 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             %
             assert(iter.amount == 1);
             Hp = size(iter.v_ref, 2);
-            n_expansions_max = 250;
             % overapproximate number of traversals
-            obj.random_numbers = rand(obj.rand_stream, 1, Hp * n_expansions_max);
+            obj.random_numbers = rand(obj.rand_stream, 1, Hp * obj.n_expansions_max);
             n_successor_trims_max = mpa.maximum_branching_factor();
             % initialize variable to store control results
             info = ControlResultsInfo(iter.amount, Hp);
@@ -47,9 +59,9 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             % Create tree with root node
             trim = iter.trim_indices;
             root_successor_trims = all_successor_trims{trim, 1};
-            trims = zeros(1, n_expansions_max, 'uint8');
-            parents = zeros(1, n_expansions_max, 'uint32');
-            children = zeros(n_successor_trims_max, n_expansions_max, 'uint32');
+            trims = zeros(1, obj.n_expansions_max, 'uint8');
+            parents = zeros(1, obj.n_expansions_max, 'uint32');
+            children = zeros(n_successor_trims_max, obj.n_expansions_max, 'uint32');
 
             root_pose = iter.x0(1:3)';
             trims(1) = trim;
@@ -71,7 +83,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
             reference_trajectory_points = squeeze(iter.reference_trajectory_points(iVeh, :, 1:2))';
             maneuvers = mpa.maneuvers;
 
-            while (n_expansions < n_expansions_max) && ~is_finished
+            while (n_expansions < obj.n_expansions_max) && ~is_finished
                 % expand randomly for Hp steps
                 node_id = 1;
                 solution_cost = 0;
