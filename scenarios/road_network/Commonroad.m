@@ -33,18 +33,37 @@ classdef Commonroad < Scenario
                     obj.vehicles(iveh).is_loop = false;
                 end
 
-                obj.vehicles(iveh).x_start = reference_path_struct.path(1, 1);
-                obj.vehicles(iveh).y_start = reference_path_struct.path(1, 2);
-
                 obj.vehicles(iveh).reference_path = reference_path_struct.path;
-
                 obj.vehicles(iveh).points_index = reference_path_struct.points_index;
 
-                yaw = calculate_yaw(obj.vehicles(iveh).reference_path);
-                obj.vehicles(iveh).yaw_start = yaw(1);
+                [ ...
+                     obj.vehicles(iveh).x_start, ...
+                     obj.vehicles(iveh).y_start, ...
+                     obj.vehicles(iveh).yaw_start] = obj.start_pose(iveh, options);
 
                 % set a random speed level in mpa as reference speed
                 obj.vehicles(iveh).reference_speed = straight_speeds(randi(rand_stream, numel(straight_speeds)));
+            end
+
+        end
+
+        function [x, y, yaw] = start_pose(obj, iveh, options)
+
+            arguments
+                obj (1, 1) Commonroad;
+                iveh (1, 1) double;
+                options (1, 1) Config;
+            end
+
+            if ~isempty(options.start_poses)
+                x = options.start_poses(1, iveh);
+                y = options.start_poses(2, iveh);
+                yaw = options.start_poses(3, iveh);
+            else
+                x = obj.vehicles(iveh).reference_path(1, 1);
+                y = obj.vehicles(iveh).reference_path(1, 2);
+                yaw_trajectory = calculate_yaw(obj.vehicles(iveh).reference_path);
+                yaw = yaw_trajectory(1);
             end
 
         end

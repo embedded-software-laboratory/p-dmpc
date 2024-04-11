@@ -8,6 +8,7 @@ classdef Config
         amount = 20; % integer, number of vehicles, does not include manual vehicles
         T_end = 20; % scalar, simulation duration
         path_ids (1, :) double = []; % reference path IDs for selection of paths for the vehicles
+        start_poses (3, :) double; % initial poses of the vehicles (x, y, yaw) x n_vehicles
 
         % ----
         % Environment
