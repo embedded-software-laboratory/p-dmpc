@@ -251,8 +251,9 @@ function eval_coloring_paper()
         , BinEdges = bin_edges ...
     );
     set(gca, 'xscale', 'log');
+    xlim('padded');
     set(gca, 'YTick', 1:size(experiment_results(1).iteration_data(1).adjacency, 1));
-    xlabel('Number of acyclic orientations', Interpreter = 'LaTex');
+    xlabel('Number of prioritizations', Interpreter = 'LaTex');
     ylabel('$N_{\mathrm{CL}}$', Interpreter = 'LaTex');
     set_figure_properties(fig, ExportFigConfig.paper());
     export_fig(fig, fullfile(folderpath, 'level_distribution.pdf'));
