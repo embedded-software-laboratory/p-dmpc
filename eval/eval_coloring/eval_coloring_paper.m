@@ -43,6 +43,16 @@ function eval_coloring_paper()
             experiment_result = main(config);
         end
 
+        file_path = char(FileNameConstructor.experiment_result_folder_path(config));
+        result_str_pos = strfind(file_path, 'results') + numel('results');
+        file_path = [ ...
+                         folderpath, filesep, ...
+                         file_path(result_str_pos + 1:end), filesep, ...
+                         '999999-999999.mat' ...
+                     ];
+        mkdir(fileparts(file_path));
+        save(file_path, "experiment_result");
+
         experiment_results(i_priority_strategy) = experiment_result; %#ok<AGROW>
     end
 
