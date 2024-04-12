@@ -2,6 +2,11 @@ function eval_coloring_paper()
     %% intro
     fprintf("\nEvaluation script for \'Reducing Computation Time with Priority Assignment in Distributed Control\'\n\n")
 
+    foldername = 'coloring';
+    folderpath = fullfile(FileNameConstructor.all_results(), foldername);
+    mkdir(folderpath);
+
+    %%
     % ███████╗██╗  ██╗██████╗ ███████╗██████╗ ██╗███╗   ███╗███████╗███╗   ██╗████████╗
     % ██╔════╝╚██╗██╔╝██╔══██╗██╔════╝██╔══██╗██║████╗ ████║██╔════╝████╗  ██║╚══██╔══╝
     % █████╗   ╚███╔╝ ██████╔╝█████╗  ██████╔╝██║██╔████╔██║█████╗  ██╔██╗ ██║   ██║
@@ -9,7 +14,7 @@ function eval_coloring_paper()
     % ███████╗██╔╝ ██╗██║     ███████╗██║  ██║██║██║ ╚═╝ ██║███████╗██║ ╚████║   ██║
     % ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝
 
-    %% Intersection experiment, 8 vehicles
+    % Intersection experiment, 8 vehicles
     % 4 straight from left lane
     % 4 right from right lane
     config = Config.load_from_file("eval\eval_coloring\Config_coloring.json");
@@ -43,6 +48,7 @@ function eval_coloring_paper()
 
     experiment_results = reshape(experiment_results, 1, [], 1);
 
+    %%
     %  ██████╗ ██████╗ ███████╗████████╗
     % ██╔════╝██╔═══██╗██╔════╝╚══██╔══╝
     % ██║     ██║   ██║███████╗   ██║
@@ -63,11 +69,12 @@ function eval_coloring_paper()
     );
 
     set_figure_properties(fig, ExportFigConfig.paper());
-    filename = sprintf('prioritization_cost_coloring.pdf');
-    filepath = fullfile(FileNameConstructor.all_results(), filename);
+    filename = sprintf('prioritization_cost.pdf');
+    filepath = fullfile(folderpath, filename);
     export_fig(fig, filepath);
     close all;
 
+    %%
     % ████████╗██╗███╗   ███╗███████╗
     % ╚══██╔══╝██║████╗ ████║██╔════╝
     %    ██║   ██║██╔████╔██║█████╗
@@ -94,7 +101,7 @@ function eval_coloring_paper()
     ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
 
     set_figure_properties(fig, ExportFigConfig.paper());
-    rwth_colors_100 = rwth_color_order;
+    rwth_colors_100 = rwth_color_order();
     rwth_colors_50 = rwth_color_order_50;
     colororder( ...
         fig, ...
@@ -102,17 +109,18 @@ function eval_coloring_paper()
          rwth_colors_100(1, :)] ...
     );
 
-    filename = sprintf('prioritization_time_coloring.pdf');
-    filepath = fullfile(FileNameConstructor.all_results(), filename);
+    filename = sprintf('prioritization_time.pdf');
+    filepath = fullfile(folderpath, filename);
     export_fig(fig, filepath);
     close all;
 
-    % ████████╗██╗███╗   ███╗███████╗    ███╗   ██╗ ██████╗ ██████╗ ███╗   ███╗ █████╗ ██╗     ██╗███████╗███████╗██████╗
-    % ╚══██╔══╝██║████╗ ████║██╔════╝    ████╗  ██║██╔═══██╗██╔══██╗████╗ ████║██╔══██╗██║     ██║╚══███╔╝██╔════╝██╔══██╗
-    %    ██║   ██║██╔████╔██║█████╗      ██╔██╗ ██║██║   ██║██████╔╝██╔████╔██║███████║██║     ██║  ███╔╝ █████╗  ██║  ██║
-    %    ██║   ██║██║╚██╔╝██║██╔══╝      ██║╚██╗██║██║   ██║██╔══██╗██║╚██╔╝██║██╔══██║██║     ██║ ███╔╝  ██╔══╝  ██║  ██║
-    %    ██║   ██║██║ ╚═╝ ██║███████╗    ██║ ╚████║╚██████╔╝██║  ██║██║ ╚═╝ ██║██║  ██║███████╗██║███████╗███████╗██████╔╝
-    %    ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝    ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚══════╝╚═════╝
+    %%
+    % ████████╗██╗███╗   ███╗███████╗    ███╗   ██╗ ██████╗ ██████╗ ███╗   ███╗
+    % ╚══██╔══╝██║████╗ ████║██╔════╝    ████╗  ██║██╔═══██╗██╔══██╗████╗ ████║
+    %    ██║   ██║██╔████╔██║█████╗      ██╔██╗ ██║██║   ██║██████╔╝██╔████╔██║
+    %    ██║   ██║██║╚██╔╝██║██╔══╝      ██║╚██╗██║██║   ██║██╔══██╗██║╚██╔╝██║
+    %    ██║   ██║██║ ╚═╝ ██║███████╗    ██║ ╚████║╚██████╔╝██║  ██║██║ ╚═╝ ██║██╗
+    %    ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝    ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝
     max_time = max(time_max_approach_vehicle, [], "all");
     time_max_approach_vehicle_normalized = time_max_approach_vehicle ./ max_time;
     time_med_approach_vehicle_normalized = time_med_approach_vehicle ./ max_time;
@@ -140,11 +148,40 @@ function eval_coloring_paper()
          rwth_colors_100(1, :)] ...
     );
 
-    filename = sprintf('prioritization_time_normalized_coloring.pdf');
-    filepath = fullfile(FileNameConstructor.all_results(), filename);
+    filename = sprintf('prioritization_time_normalized.pdf');
+    filepath = fullfile(folderpath, filename);
     export_fig(fig, filepath);
     close all;
 
+    %%
+    % ████████╗██╗███╗   ███╗███████╗    ██████╗ ██████╗ ██╗ ██████╗
+    % ╚══██╔══╝██║████╗ ████║██╔════╝    ██╔══██╗██╔══██╗██║██╔═══██╗
+    %    ██║   ██║██╔████╔██║█████╗      ██████╔╝██████╔╝██║██║   ██║
+    %    ██║   ██║██║╚██╔╝██║██╔══╝      ██╔═══╝ ██╔══██╗██║██║   ██║
+    %    ██║   ██║██║ ╚═╝ ██║███████╗    ██║     ██║  ██║██║╚██████╔╝
+    %    ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝    ╚═╝     ╚═╝  ╚═╝╚═╝ ╚═════╝
+
+    filename = 'prioritization_time_coloring.txt';
+    filepath = fullfile(folderpath, filename);
+    fileID = fopen(filepath, 'w');
+
+    for experiment_result = experiment_results
+        prioritize_timing = vertcat(experiment_result.timing.prioritize);
+        prioritize_duration = max(prioritize_timing(2:2:end, :), [], 1);
+        prioritize_duration_max = max(prioritize_duration) * 1000;
+        prioritize_duration_med = median(prioritize_duration) * 1000;
+        str_to_write = sprintf( ...
+            "Prioritization time for %17s -- max: %5.2f ms -- med: %5.2f ms\n" ...
+            , experiment_result.options.priority ...
+            , prioritize_duration_max ...
+            , prioritize_duration_med ...
+        );
+        fwrite(fileID, str_to_write);
+    end
+
+    fclose(fileID);
+
+    %%
     % ██╗     ███████╗██╗   ██╗███████╗██╗     ███████╗
     % ██║     ██╔════╝██║   ██║██╔════╝██║     ██╔════╝
     % ██║     █████╗  ██║   ██║█████╗  ██║     ███████╗
@@ -152,12 +189,12 @@ function eval_coloring_paper()
     % ███████╗███████╗ ╚████╔╝ ███████╗███████╗███████║
     % ╚══════╝╚══════╝  ╚═══╝  ╚══════╝╚══════╝╚══════╝
 
-    [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_n_levels_approach_vehicle(experiment_results);
+    [~, n_levels_med_approach_vehicle, ~, n_levels_max_approach_vehicle] = data_n_levels_approach_vehicle(experiment_results);
 
     fig = figure;
-    max_bar = bar(priority_names, time_max_approach_vehicle');
+    max_bar = bar(priority_names, n_levels_max_approach_vehicle');
     hold on
-    med_bar = bar(priority_names, time_med_approach_vehicle');
+    med_bar = bar(priority_names, n_levels_med_approach_vehicle');
 
     h_xaxis = get(gca, 'XAxis');
     h_xaxis.TickLabelInterpreter = 'latex';
@@ -176,11 +213,18 @@ function eval_coloring_paper()
          rwth_colors_100(1, :)] ...
     );
 
-    filename = sprintf('prioritization_levels_coloring.pdf');
-    filepath = fullfile(FileNameConstructor.all_results(), filename);
+    filename = sprintf('prioritization_levels.pdf');
+    filepath = fullfile(folderpath, filename);
     export_fig(fig, filepath);
     close all;
 
+    %%
+    % ██╗     ███████╗██╗   ██╗███████╗██╗         ██████╗ ██╗███████╗████████╗
+    % ██║     ██╔════╝██║   ██║██╔════╝██║         ██╔══██╗██║██╔════╝╚══██╔══╝
+    % ██║     █████╗  ██║   ██║█████╗  ██║         ██║  ██║██║███████╗   ██║
+    % ██║     ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║         ██║  ██║██║╚════██║   ██║
+    % ███████╗███████╗ ╚████╔╝ ███████╗███████╗    ██████╔╝██║███████║   ██║
+    % ╚══════╝╚══════╝  ╚═══╝  ╚══════╝╚══════╝    ╚═════╝ ╚═╝╚══════╝   ╚═╝
     % levels per acyclic orientation
     lvl_dist = calc_level_dist(experiment_results(1).iteration_data(1).adjacency);
 
@@ -201,23 +245,145 @@ function eval_coloring_paper()
     xlabel('Number of acyclic orientations', Interpreter = 'LaTex');
     ylabel('$N_{\mathrm{CL}}$', Interpreter = 'LaTex');
     set_figure_properties(fig, ExportFigConfig.paper());
-    export_fig(fig, fullfile('./results/levels.pdf'));
+    export_fig(fig, fullfile(folderpath, 'level_distribution.pdf'));
     close(fig);
 
+    %%
     % ███████╗ ██████╗███████╗███╗   ██╗ █████╗ ██████╗ ██╗ ██████╗
     % ██╔════╝██╔════╝██╔════╝████╗  ██║██╔══██╗██╔══██╗██║██╔═══██╗
     % ███████╗██║     █████╗  ██╔██╗ ██║███████║██████╔╝██║██║   ██║
     % ╚════██║██║     ██╔══╝  ██║╚██╗██║██╔══██║██╔══██╗██║██║   ██║
     % ███████║╚██████╗███████╗██║ ╚████║██║  ██║██║  ██║██║╚██████╔╝
     % ╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝
+    experiment_result = experiment_results(1);
+    time_step = 1;
+    vehicle_indices = 1:experiment_result.options.amount;
+    plotting_info = PlottingInfo(vehicle_indices, experiment_result, time_step);
+    fig = figure;
+    grey = [0.5 0.5 0.5];
+    black = [0 0 0];
+    scenario = Scenario.create(experiment_result.options);
+    vehicles = scenario.vehicles;
+    export_fig_config = ExportFigConfig.paper( ...
+        paperheight = 8 ...
+        , markersize = 1 ...
+    );
 
-    % TODO plot scenario with undirected coupling
-    % see `plot_experiment_snapshots`
-    %    - first time step
-    %    - all vehicles same color
-    %    - reference trajectory points
-    %    - zoomed in on intersection
+    axis equal
+    daspect([1 1 1])
+    xlabel('$x$ [m]', Interpreter = 'LaTex');
+    ylabel('$y$ [m]', Interpreter = 'LaTex');
+    xlim([1.25 3.25]);
+    ylim([1.0 3.0]);
+    set_figure_properties(fig, export_fig_config);
+    %
+    t = text( ...
+        0.5, 0.5, ...
+        '20', ...
+        LineWidth = 1, ...
+        Color = 'black', ...
+        HorizontalAlignment = 'center', ...
+        FontSize = export_fig_config.fontsize, ...
+        Tag = "temporary" ...
+    );
+    extent = t.Extent;
+    delete(t);
+    text_width = extent(3);
+    text_height = extent(4);
+    % compute new radius so that text fits into circle
+    vehicle_id_radius = max(text_width, text_height) * 1.2/2;
 
+    plot_lanelets(scenario.road_raw_data.lanelet, color = [0.8 0.8 0.8]);
+
+    for i_vehicle = vehicle_indices
+        % Sampled reference trajectory points
+        line( ...
+            plotting_info.ref_trajectory(i_vehicle, :, 1), ...
+            plotting_info.ref_trajectory(i_vehicle, :, 2), ...
+            Color = 'black', ...
+            LineStyle = 'none', ...
+            Marker = 'o', ...
+            MarkerFaceColor = black, ...
+            MarkerSize = 0.5, ...
+            Tag = "temporary" ...
+        );
+
+        % Vehicle rectangles
+        x = plotting_info.x0(:, i_vehicle);
+        veh = vehicles(i_vehicle);
+        vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+        patch( ...
+            vehiclePolygon(1, :) ...
+            , vehiclePolygon(2, :) ...
+            , grey ...
+            , EdgeColor = 'none' ...
+            , Tag = "temporary" ...
+        );
+
+        % plot the vehicle ID in the middle of each vehicle on a lighter background
+        rectangle( ...
+            Position = [x(1) - vehicle_id_radius, x(2) - vehicle_id_radius, 2 * vehicle_id_radius, 2 * vehicle_id_radius], ...
+            Curvature = [1, 1], ...
+            FaceColor = [1, 1, 1, 1], ...
+            LineStyle = '-', ...
+            LineWidth = 0.5, ...
+            Tag = 'circle' ...
+        );
+
+        text( ...
+            x(1), x(2), ...
+            num2str(i_vehicle), ...
+            LineWidth = 0.5, ...
+            Color = 'black', ...
+            HorizontalAlignment = 'center', ...
+            FontSize = export_fig_config.fontsize, ...
+            Tag = "temporary" ...
+        );
+
+    end
+
+    % plot coupling
+    x0 = plotting_info.x0';
+
+    directed_coupling = experiment_result.iteration_data(time_step).directed_coupling;
+
+    for v = 1:experiment_result.options.amount
+        x_base = x0(v, :);
+        adjacent_vehicles = find(directed_coupling(v, :));
+
+        for adj_v = adjacent_vehicles
+            adj_x = x0(adj_v, :);
+
+            % plot adjacency
+            % Only use position.
+
+            u = (adj_x - x_base)';
+            x = x_base(1:2)';
+            u = u(1:2);
+
+            % Transform arrow size so that it starts and ends not in the vehicle middle, but at a circle around the center with given radius.
+            l = sqrt(u(1) * u(1) + u(2) * u(2));
+            x = x + vehicle_id_radius * u / l;
+            u = u - 2 * vehicle_id_radius * u / l;
+
+            % Plot.
+            line( ...
+                [x(1), x(1) + u(1)], ...
+                [x(2), x(2) + u(2)], ...
+                Color = black, ...
+                LineStyle = '-', ...
+                LineWidth = 0.5, ...
+                Tag = "temporary" ...
+            );
+        end
+
+    end
+
+    set_figure_properties(fig, export_fig_config);
+    export_fig(fig, fullfile(folderpath, 'scenario.pdf'));
+    close(fig);
+
+    %%
     % ██████╗  █████╗  ██████╗
     % ██╔══██╗██╔══██╗██╔════╝
     % ██║  ██║███████║██║  ███╗
@@ -225,12 +391,71 @@ function eval_coloring_paper()
     % ██████╔╝██║  ██║╚██████╔╝
     % ╚═════╝ ╚═╝  ╚═╝ ╚═════╝
 
-    % TODO plot directed coupling graphs for different priority assignments, color nodes by level in coloring algo
-    % constant_prioritizer = ConstantPrioritizer();
-    % constant_prioritizer.current_priorities = [2 1 4 3 6 5 8 7];
-    % coupling_directed = constant_prioritizer.prioritize(result.iteration_data(1));
-    % max(kahn(coupling_directed))
-    % figure
-    % plot(digraph(coupling_directed))
+    common_steps = true(1, experiment_results(1).n_steps);
+
+    for experiment_result = experiment_results
+        levels_over_time = [experiment_result.iteration_data.number_of_computation_levels];
+        max_level = max(levels_over_time);
+        steps_with_max_level = levels_over_time == max_level;
+        common_steps = common_steps & steps_with_max_level;
+    end
+
+    step = find(common_steps, 1);
+
+    if isempty(step)
+        warning("no common step with maximum levels, taking the first step")
+        step = 1;
+    end
+
+    fig = figure;
+    i_experiments = [1 4];
+    n_figure_cols = 2;
+    n_figure_rows = ceil(numel(i_experiments) / n_figure_cols);
+    tiledlayout(fig, n_figure_rows, n_figure_cols);
+
+    % show predictions for multiple timesteps
+    for i_fig = i_experiments
+
+        nexttile
+        hold on
+        box on
+
+        p = plot( ...
+            digraph(experiment_results(i_fig).iteration_data(step).directed_coupling), ...
+            ArrowSize = 5, ...
+            MarkerSize = 3, ...
+            NodeColor = black, ...
+            EdgeColor = grey, ...
+            EdgeAlpha = 1, ...
+            ArrowPosition = 0.95 ...
+        );
+
+        ylim([0.5 8.5]);
+
+        if i_fig == 4 % coloring
+            p.NodeColor = rwth_colors_100(p.YData, :);
+            ylim([-4.5 3.5]);
+        end
+
+        title(priority_names(i_fig), Interpreter = 'latex');
+
+        layout(p, 'layered', AssignLayers = 'asap');
+
+        if mod(i_fig - 1, n_figure_cols) == 0
+            ylabel('Computation level', Interpreter = 'LaTex')
+            yticklabels(string(8:-1:1))
+        else
+            set(gca, 'yticklabel', [])
+        end
+
+        set(gca, 'xticklabel', [])
+    end
+
+    fig.Children.TileSpacing = 'compact';
+    fig.Children.Padding = 'compact';
+
+    set_figure_properties(fig, ExportFigConfig.paper(paperheight = 6, paperwidth = 10));
+    export_fig(fig, fullfile(folderpath, 'dag.pdf'));
+    close(fig);
 
 end
