@@ -464,7 +464,7 @@ function eval_coloring_paper()
     fig.Children.TileSpacing = 'compact';
     fig.Children.Padding = 'compact';
 
-    set_figure_properties(fig, ExportFigConfig.paper(paperheight = 6, paperwidth = 10));
+    set_figure_properties(fig, ExportFigConfig.paper(paperheight = 6));
     export_fig(fig, fullfile(folderpath, 'dag.pdf'));
     close(fig);
 
