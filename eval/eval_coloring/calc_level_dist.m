@@ -3,8 +3,9 @@ function lvl_dist = calc_level_dist(c)
 
     nV = size(c, 1);
 
-    % unique permutations of these priorities
-    Pm = Prioritizer.unique_priorities(c)';
+    % permutations of priorities
+    % all permutations of these priorities (nP = nV!)
+    Pm = perms(1:nV);
     nP = size(Pm, 1);
 
     lvl_dist = zeros(1, nP);
