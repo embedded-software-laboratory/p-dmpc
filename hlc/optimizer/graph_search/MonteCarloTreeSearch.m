@@ -13,7 +13,7 @@ classdef MonteCarloTreeSearch < OptimizerInterface
         function obj = MonteCarloTreeSearch()
             obj = obj@OptimizerInterface();
             obj.rand_stream = RandStream('mt19937ar', Seed = 42);
-            config_file = 'config/mcts.json';
+            config_file = fullfile('config/mcts.json');
 
             if isfile(config_file)
                 mcts_config = jsondecode(fileread(config_file));
