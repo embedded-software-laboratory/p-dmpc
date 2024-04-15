@@ -162,34 +162,6 @@ function eval_coloring_paper()
     close all;
 
     %%
-    % ████████╗██╗███╗   ███╗███████╗    ██████╗ ██████╗ ██╗ ██████╗
-    % ╚══██╔══╝██║████╗ ████║██╔════╝    ██╔══██╗██╔══██╗██║██╔═══██╗
-    %    ██║   ██║██╔████╔██║█████╗      ██████╔╝██████╔╝██║██║   ██║
-    %    ██║   ██║██║╚██╔╝██║██╔══╝      ██╔═══╝ ██╔══██╗██║██║   ██║
-    %    ██║   ██║██║ ╚═╝ ██║███████╗    ██║     ██║  ██║██║╚██████╔╝
-    %    ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝    ╚═╝     ╚═╝  ╚═╝╚═╝ ╚═════╝
-
-    filename = 'prioritization_time_coloring.txt';
-    filepath = fullfile(folderpath, filename);
-    fileID = fopen(filepath, 'w');
-
-    for experiment_result = experiment_results
-        prioritize_timing = vertcat(experiment_result.timing.prioritize);
-        prioritize_duration = max(prioritize_timing(2:2:end, :), [], 1);
-        prioritize_duration_max = max(prioritize_duration) * 1000;
-        prioritize_duration_med = median(prioritize_duration) * 1000;
-        str_to_write = sprintf( ...
-            "Prioritization time for %17s -- max: %5.2f ms -- med: %5.2f ms\n" ...
-            , experiment_result.options.priority ...
-            , prioritize_duration_max ...
-            , prioritize_duration_med ...
-        );
-        fwrite(fileID, str_to_write);
-    end
-
-    fclose(fileID);
-
-    %%
     % ██╗     ███████╗██╗   ██╗███████╗██╗     ███████╗
     % ██║     ██╔════╝██║   ██║██╔════╝██║     ██╔════╝
     % ██║     █████╗  ██║   ██║█████╗  ██║     ███████╗
@@ -466,4 +438,53 @@ function eval_coloring_paper()
     export_fig(fig, fullfile(folderpath, 'dag.pdf'));
     close(fig);
 
+    %%
+    % ███████╗██╗██╗     ███████╗
+    % ██╔════╝██║██║     ██╔════╝
+    % █████╗  ██║██║     █████╗
+    % ██╔══╝  ██║██║     ██╔══╝
+    % ██║     ██║███████╗███████╗
+    % ╚═╝     ╚═╝╚══════╝╚══════╝
+    filename = 'prioritization_coloring.txt';
+    filepath = fullfile(folderpath, filename);
+    fileID = fopen(filepath, 'w');
+
+    for i = 1:numel(experiment_results)
+        str_to_write = sprintf( ...
+            "Prioritization+Optimization time for %17s -- max: %5.2f ms -- med: %5.2f ms\n" ...
+            , experiment_results(i).options.priority ...
+            , time_max_approach_vehicle(i) * 1000 ...
+            , time_med_approach_vehicle(i) * 1000 ...
+        );
+        fwrite(fileID, str_to_write);
+    end
+
+    fwrite(fileID, newline);
+
+    for experiment_result = experiment_results
+        prioritize_timing = vertcat(experiment_result.timing.prioritize);
+        prioritize_duration = max(prioritize_timing(2:2:end, :), [], 1);
+        prioritize_duration_max = max(prioritize_duration) * 1000;
+        prioritize_duration_med = median(prioritize_duration) * 1000;
+        str_to_write = sprintf( ...
+            "Prioritization time for %17s -- max: %5.2f ms -- med: %5.2f ms\n" ...
+            , experiment_result.options.priority ...
+            , prioritize_duration_max ...
+            , prioritize_duration_med ...
+        );
+        fwrite(fileID, str_to_write);
+    end
+
+    fwrite(fileID, newline);
+
+    for i = 1:numel(experiment_results)
+        str_to_write = sprintf( ...
+            "Prioritization cost for %17s -- %5.1f \%\n" ...
+            , experiment_results(i).options.priority ...
+            , cost_percent_average(i) ...
+        );
+        fwrite(fileID, str_to_write);
+    end
+
+    fclose(fileID);
 end
