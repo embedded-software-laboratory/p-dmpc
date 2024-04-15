@@ -68,13 +68,13 @@ function eval_coloring_paper()
 
     cost_percent_average = data_cost_percent(experiment_results);
     fig = figure;
-    bar(priority_names, cost_percent_average);
-    h_xaxis = get(gca, 'XAxis');
-    h_xaxis.TickLabelInterpreter = 'latex';
+    barh(priority_names, cost_percent_average);
+    h_axis = get(gca, 'YAxis');
+    h_axis.TickLabelInterpreter = 'latex';
     % axes
-    xlabel("Prioritization algorithm")
-    ylabel( ...
-        "$J_\mathrm{NCS}(p) / J_\mathrm{NCS}(p_\mathrm{const})$ [\%]", ...
+    % xlabel("Prioritization algorithm")
+    xlabel( ...
+        "$J_\mathrm{NCS}(p) / J_\mathrm{NCS}(p_\mathrm{constant})$ [\%]", ...
         Interpreter = "latex" ...
     );
 
@@ -97,18 +97,17 @@ function eval_coloring_paper()
     );
 
     fig = figure;
-    max_bar = bar(priority_names, time_max_approach_vehicle' .* 1000);
+    max_bar = barh(priority_names, time_max_approach_vehicle' .* 1000);
     hold on
-    med_bar = bar(priority_names, time_med_approach_vehicle' .* 1000);
+    med_bar = barh(priority_names, time_med_approach_vehicle' .* 1000);
 
-    h_xaxis = get(gca, 'XAxis');
-    h_xaxis.TickLabelInterpreter = 'latex';
+    h_axis = get(gca, 'YAxis');
+    h_axis.TickLabelInterpreter = 'latex';
     % legend
     legendtext = ["med", "max"];
     legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex');
     % axes
-    xlabel("Prioritization algorithm")
-    ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
+    xlabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
 
     set_figure_properties(fig, ExportFigConfig.paper());
     rwth_colors_100 = rwth_color_order();
@@ -136,18 +135,17 @@ function eval_coloring_paper()
     time_med_approach_vehicle_normalized = time_med_approach_vehicle ./ max_time;
 
     fig = figure;
-    max_bar = bar(priority_names, time_max_approach_vehicle_normalized' .* 100);
+    max_bar = barh(priority_names, time_max_approach_vehicle_normalized' .* 100);
     hold on
-    med_bar = bar(priority_names, time_med_approach_vehicle_normalized' .* 100);
+    med_bar = barh(priority_names, time_med_approach_vehicle_normalized' .* 100);
 
-    h_xaxis = get(gca, 'XAxis');
-    h_xaxis.TickLabelInterpreter = 'latex';
+    h_axis = get(gca, 'YAxis');
+    h_axis.TickLabelInterpreter = 'latex';
     % legend
     legendtext = ["med", "max"];
     legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex');
     % axes
-    xlabel("Prioritization algorithm")
-    ylabel('$T_{\mathrm{NCS}} / T_{\mathrm{NCS, max}}$ [\%]', Interpreter = 'latex');
+    xlabel('$T_{\mathrm{NCS}} / T_{\mathrm{NCS, max}}$ [\%]', Interpreter = 'latex');
 
     set_figure_properties(fig, ExportFigConfig.paper());
     rwth_colors_100 = rwth_color_order;
@@ -202,17 +200,16 @@ function eval_coloring_paper()
     [~, n_levels_med_approach_vehicle, ~, n_levels_max_approach_vehicle] = data_n_levels_approach_vehicle(experiment_results);
 
     fig = figure;
-    max_bar = bar(priority_names, n_levels_max_approach_vehicle');
+    max_bar = barh(priority_names, n_levels_max_approach_vehicle');
     hold on
-    med_bar = bar(priority_names, n_levels_med_approach_vehicle');
+    med_bar = barh(priority_names, n_levels_med_approach_vehicle');
 
-    h_xaxis = get(gca, 'XAxis');
-    h_xaxis.TickLabelInterpreter = 'latex';
+    h_axis = get(gca, 'YAxis');
+    h_axis.TickLabelInterpreter = 'latex';
     % legend
     legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex');
     % axes
-    xlabel("Prioritization algorithm")
-    ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
+    xlabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
 
     set_figure_properties(fig, ExportFigConfig.paper());
     rwth_colors_100 = rwth_color_order;
