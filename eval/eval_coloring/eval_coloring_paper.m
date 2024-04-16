@@ -17,8 +17,9 @@ function eval_coloring_paper()
     % Intersection experiment, 8 vehicles
     % 4 straight from left lane
     % 4 right from right lane
-    config = Config.load_from_file("eval\eval_coloring\Config_coloring.json");
-    copyfile("eval\eval_coloring\mcts.json", "Config\mcts.json");
+    config = Config.load_from_file("eval/eval_coloring/Config_coloring.json");
+    copyfile("eval/eval_coloring/mcts.json", "Config/mcts.json");
+    on_cleanup = onCleanup(@() delete("Config/mcts.json"));
 
     priority_strategies = [
                            PriorityStrategies.constant_priority
