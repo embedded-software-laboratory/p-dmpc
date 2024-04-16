@@ -36,7 +36,7 @@
   "optimizer_type": "MatlabSampled",
   "dt_seconds": 0.2,
   "Hp": 8,
-  "mpa_type": "triple_speed",
+  "mpa_type": "single_speed",
   "constraint_from_successor": "area_of_standstill",
   "manual_control_config": {
     "is_active": false,
