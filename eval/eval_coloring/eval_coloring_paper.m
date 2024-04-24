@@ -2,158 +2,490 @@ function eval_coloring_paper()
     %% intro
     fprintf("\nEvaluation script for \'Reducing Computation Time with Priority Assignment in Distributed Control\'\n\n")
 
-    %% priority assignments <-> topological levels
-    % Scenario at intersection with dedicated left turning lane:
-    % sn(1)-ln(2)-re(3)-le(4)-ss(5)-ls(6)-rw(7)-lw(8)
-    fprintf("\nEvaluate number of different priority assignments resulting in a certain number of levels in an 8-vehicle scenario at intersection\n")
+    foldername = 'coloring';
+    folderpath = fullfile(FileNameConstructor.all_results(), foldername);
+    mkdir(folderpath);
 
-    c = zeros(8, 8);
-    c(2, 4) = 1; c(4, 2) = 1;
-    c(4, 6) = 1; c(6, 4) = 1;
-    c(6, 8) = 1; c(8, 6) = 1;
-    c(8, 2) = 1; c(2, 8) = 1;
-    c(5, 2) = 1; c(2, 5) = 1;
-    c(5, 3) = 1; c(3, 5) = 1;
-    c(5, 4) = 1; c(4, 5) = 1;
-    c(1, 8) = 1; c(8, 1) = 1;
-    c(1, 7) = 1; c(7, 1) = 1;
-    c(1, 6) = 1; c(6, 1) = 1;
+    %%
+    % ███████╗██╗  ██╗██████╗ ███████╗██████╗ ██╗███╗   ███╗███████╗███╗   ██╗████████╗
+    % ██╔════╝╚██╗██╔╝██╔══██╗██╔════╝██╔══██╗██║████╗ ████║██╔════╝████╗  ██║╚══██╔══╝
+    % █████╗   ╚███╔╝ ██████╔╝█████╗  ██████╔╝██║██╔████╔██║█████╗  ██╔██╗ ██║   ██║
+    % ██╔══╝   ██╔██╗ ██╔═══╝ ██╔══╝  ██╔══██╗██║██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║
+    % ███████╗██╔╝ ██╗██║     ███████╗██║  ██║██║██║ ╚═╝ ██║███████╗██║ ╚████║   ██║
+    % ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝
 
-    lvl_dist = calc_level_dist(c);
+    % Intersection experiment, 8 vehicles
+    % 4 straight from left lane
+    % 4 right from right lane
+    config = Config.load_from_file("eval/eval_coloring/Config_coloring.json");
+    copyfile("eval/eval_coloring/mcts.json", "Config/mcts.json");
+    on_cleanup = onCleanup(@() delete("Config/mcts.json"));
 
-    % plot & save figure
-    fig = figure();
-    histogram(lvl_dist, FaceAlpha = 1);
-    set(gca, 'yscale', 'log');
-    set(gca, 'XTick', 1:size(c, 1));
-    ylabel('\# Prio. Assignments', Interpreter = 'LaTex');
-    xlabel('Computation Levels', Interpreter = 'LaTex');
-    set_figure_properties(fig, ExportFigConfig.paper());
-    mkdir('./results')
-    export_fig(fig, fullfile('./results/levels.pdf'));
-    close(fig);
+    priority_strategies = [
+                           PriorityStrategies.constant_priority
+                           PriorityStrategies.random_priority
+                           PriorityStrategies.FCA_priority
+                           PriorityStrategies.coloring_priority
+                           ];
 
-    %% computation time <-> topological levels
-    % Scenario at intersection with dedicated left turning lane:
-    % sn(1)-ln(2)-re(3)-le(4)-ss(5)-ls(6)-rw(7)-lw(8)
-    fprintf("\nEvaluate computation time for planning using priority assignments with different numbers of levels\n")
-    level = 8:-5:3;
-    tcomp_t = 100 * level / 8;
+    priority_names = [
+                      "$p_{\mathrm{constant}}$"
+                      "$p_{\mathrm{random}}$"
+                      "$p_{\mathrm{constraint}}$"
+                      "$p_{\mathrm{color}}$"
+                      ];
 
-    % plot & save figure
-    fig = figure(Position = [100 100 600 630], Color = [1 1 1]);
-    barh(level, tcomp_t);
-    yticklabels({'$p_c$', '$p_b$'})
-    set(gca, 'XTick', 0:20:100);
-    xline(min(tcomp_t), '-r');
-    xlabel('Computation Time [\%]', Interpreter = 'LaTex');
-    ylabel('Priority Assignment', Interpreter = 'LaTex');
-    set(gca, 'TickLabelInterpreter', 'latex');
-    set_figure_properties(fig, ExportFigConfig.paper());
-    export_fig(fig, fullfile('./results/tcomp.pdf'));
-    close(fig);
+    for i_priority_strategy = 1:numel(priority_strategies)
+        config.priority = priority_strategies(i_priority_strategy);
 
-    %% computation time algorithm
-    % theoretical
-    fprintf("\nEvaluate computation time for priority assignment algorithm in random scenarios of varying size\n")
-    n_runs = 10;
-    n_agents = [5, 10:10:50, 100:50:500, 600:100:1000];
-    range = 1:length(n_agents);
-    tcomp = zeros(1, length(n_agents));
-    tcomp_helper = zeros(1, n_runs);
+        experiment_result = FileNameConstructor.load_latest(config);
 
-    prioritizer = ColoringPrioritizer();
-    iter = struct;
-
-    for n = range
-        adjacency = triu(randi([0 1], n_agents(n), n_agents(n)), 1);
-        adjacency = adjacency + adjacency';
-
-        iter.adjacency = adjacency;
-
-        for i = 1:n_runs
-            tstart = tic;
-            prioritizer.prioritize(iter, [], [], []);
-            tcomp_helper(i) = toc(tstart);
+        if isempty(experiment_result)
+            experiment_result = main(config);
         end
 
-        tcomp(n) = median(tcomp_helper);
+        file_path = char(FileNameConstructor.experiment_result_folder_path(config));
+        result_str_pos = strfind(file_path, 'results') + numel('results');
+        file_path = [ ...
+                         folderpath, filesep, ...
+                         file_path(result_str_pos + 1:end), filesep, ...
+                         '999999-999999.mat' ...
+                     ];
+        mkdir(fileparts(file_path));
+        save(file_path, "experiment_result");
+
+        experiment_results(i_priority_strategy) = experiment_result; %#ok<AGROW>
     end
 
-    % plot & save figure
-    fig = figure(Position = [100 100 600 630], Color = [1 1 1]);
-    plot(n_agents, tcomp, '-o', Color = '#0072BD');
-    scatter(n_agents, tcomp, 10, 'filled')
-    set(gca, 'yscale', 'log');
-    xlabel('\# Agents', Interpreter = 'LaTex')
-    ylabel('Computation Time [s]', Interpreter = 'LaTex')
-    set(gca, 'YTick', 10.^(-5:2:1));
-    set_figure_properties(fig, ExportFigConfig.paper());
-    export_fig(fig, fullfile('./results/coloring_time.pdf'));
-    close(fig);
+    experiment_results = reshape(experiment_results, 1, [], 1);
 
-    % Scenario at intersection with dedicated left turning lane:
-    % sn(1)-ln(2)-re(3)-le(4)-ss(5)-ls(6)-rw(7)-lw(8)
-    fprintf("\nEvaluate computation time for priority assignment algorithm in 8-vehicle scenario at intersection\n")
-    n = 100;
-    tcomp_s = zeros(1, n);
-    iter.adjacency = c;
+    %%
+    %  ██████╗ ██████╗ ███████╗████████╗
+    % ██╔════╝██╔═══██╗██╔════╝╚══██╔══╝
+    % ██║     ██║   ██║███████╗   ██║
+    % ██║     ██║   ██║╚════██║   ██║
+    % ╚██████╗╚██████╔╝███████║   ██║
+    %  ╚═════╝ ╚═════╝ ╚══════╝   ╚═╝
 
-    for i = 1:n
-        tstart = tic;
-        prioritizer.prioritize(iter, [], [], []);
-        tcomp_s(i) = toc(tstart);
-    end
-
-    fprintf("\nComputation Time - Coloring Algorithm - in 8-Vehicle-Intersection-Scenario\n\n")
-    fprintf("Max: %.5f\n", max(tcomp_s))
-    fprintf("Mean: %.5f\n", mean(tcomp_s))
-    fprintf("Median: %.5f\n\n", median(tcomp_s))
-
-    %% Comparison to other prioritizing algorithms
-    fprintf( ...
-        "\nCompare computation levels from different prioritizing algorithms\n" ...
-    )
-    priority_assignment_algorithms = {
-                                      'FCA_priority'
-                                      'random_priority'
-                                      'constant_priority'
-                                      'coloring_priority'
-                                      };
-
-    options = Config;
-    options.mpa_type = MpaType.single_speed;
-    options.T_end = 180;
-    options.Hp = 8;
-    options.is_prioritized = true;
-    options.environment = Environment.Simulation;
-    options.options_plot_online.is_active = false;
-    options.constraint_from_successor = ConstraintFromSuccessor.area_of_standstill;
-    options.constrained_enter_lanelet_crossing_area = false; % false: no constraint on entering the crossing area
-    options.scenario_type = ScenarioType.commonroad;
-
-    nsVeh = 1:20;
-    % number of different random scenarios per priority assignment and #vehicles
-    seeds = 1:9;
-
-    % FIXME now Config.randomize_path_ids
-    scenarios = commonroad_random(options, nsVeh, seeds);
-
-    results = run_scenario_with_priority_algorithm( ...
-        scenarios, priority_assignment_algorithms ...
+    cost_percent_average = data_cost_percent(experiment_results);
+    fig = figure;
+    barh(priority_names, cost_percent_average);
+    h_axis = get(gca, 'YAxis');
+    h_axis.TickLabelInterpreter = 'latex';
+    % axes
+    % xlabel("Prioritization algorithm")
+    xlabel( ...
+        "$J_\mathrm{NCS}(p) / J_\mathrm{NCS}(p_\mathrm{constant})$ [\%]", ...
+        Interpreter = "latex" ...
     );
 
-    % plot Computation levels histogram excluding deadlock
-    plot_levels(results);
+    set_figure_properties(fig, ExportFigConfig.paper());
+    filename = sprintf('prioritization_cost.pdf');
+    filepath = fullfile(folderpath, filename);
+    export_fig(fig, filepath);
+    close all;
 
-    % plot lanelets map
-    figure_handle = figure();
+    %%
+    % ████████╗██╗███╗   ███╗███████╗
+    % ╚══██╔══╝██║████╗ ████║██╔════╝
+    %    ██║   ██║██╔████╔██║█████╗
+    %    ██║   ██║██║╚██╔╝██║██╔══╝
+    %    ██║   ██║██║ ╚═╝ ██║███████╗
+    %    ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝
+    [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle( ...
+        experiment_results, ...
+        computation_time_function = @data_time_prioritize_optimize_experiment ...
+    );
 
-    plot_lanelets(scenarios(1).road_raw_data.lanelet);
-    axis equal;
-    xlabel('$x$ [m]', Interpreter = 'latex');
-    ylabel('$y$ [m]', Interpreter = 'latex');
-    set_figure_properties(figure_handle, ExportFigConfig.paper('paperheight', 6));
-    export_fig(figure_handle, './results/lab_map.pdf');
-    close(figure_handle);
+    fig = figure;
+    max_bar = barh(priority_names, time_max_approach_vehicle' .* 1000);
+    hold on
+    med_bar = barh(priority_names, time_med_approach_vehicle' .* 1000);
+
+    h_axis = get(gca, 'YAxis');
+    h_axis.TickLabelInterpreter = 'latex';
+    % legend
+    legendtext = ["med", "max"];
+    legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex');
+    % axes
+    xlabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
+
+    set_figure_properties(fig, ExportFigConfig.paper());
+    rwth_colors_100 = rwth_color_order();
+    rwth_colors_50 = rwth_color_order_50;
+    colororder( ...
+        fig, ...
+        [rwth_colors_50(1, :); ...
+         rwth_colors_100(1, :)] ...
+    );
+
+    filename = sprintf('prioritization_time.pdf');
+    filepath = fullfile(folderpath, filename);
+    export_fig(fig, filepath);
+    close all;
+
+    %%
+    % ████████╗██╗███╗   ███╗███████╗    ███╗   ██╗ ██████╗ ██████╗ ███╗   ███╗
+    % ╚══██╔══╝██║████╗ ████║██╔════╝    ████╗  ██║██╔═══██╗██╔══██╗████╗ ████║
+    %    ██║   ██║██╔████╔██║█████╗      ██╔██╗ ██║██║   ██║██████╔╝██╔████╔██║
+    %    ██║   ██║██║╚██╔╝██║██╔══╝      ██║╚██╗██║██║   ██║██╔══██╗██║╚██╔╝██║
+    %    ██║   ██║██║ ╚═╝ ██║███████╗    ██║ ╚████║╚██████╔╝██║  ██║██║ ╚═╝ ██║██╗
+    %    ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝    ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝
+    max_time = max(time_max_approach_vehicle, [], "all");
+    time_max_approach_vehicle_normalized = time_max_approach_vehicle ./ max_time;
+    time_med_approach_vehicle_normalized = time_med_approach_vehicle ./ max_time;
+
+    fig = figure;
+    max_bar = barh(priority_names, time_max_approach_vehicle_normalized' .* 100);
+    hold on
+    med_bar = barh(priority_names, time_med_approach_vehicle_normalized' .* 100);
+
+    h_axis = get(gca, 'YAxis');
+    h_axis.TickLabelInterpreter = 'latex';
+    % legend
+    legendtext = ["med", "max"];
+    legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex');
+    % axes
+    xlabel('$T_{\mathrm{NCS}} / T_{\mathrm{NCS, max}}$ [\%]', Interpreter = 'latex');
+
+    set_figure_properties(fig, ExportFigConfig.paper());
+    rwth_colors_100 = rwth_color_order;
+    rwth_colors_50 = rwth_color_order_50;
+    colororder( ...
+        fig, ...
+        [rwth_colors_50(1, :); ...
+         rwth_colors_100(1, :)] ...
+    );
+
+    filename = sprintf('prioritization_time_normalized.pdf');
+    filepath = fullfile(folderpath, filename);
+    export_fig(fig, filepath);
+    close all;
+
+    %%
+    % ██╗     ███████╗██╗   ██╗███████╗██╗     ███████╗
+    % ██║     ██╔════╝██║   ██║██╔════╝██║     ██╔════╝
+    % ██║     █████╗  ██║   ██║█████╗  ██║     ███████╗
+    % ██║     ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║     ╚════██║
+    % ███████╗███████╗ ╚████╔╝ ███████╗███████╗███████║
+    % ╚══════╝╚══════╝  ╚═══╝  ╚══════╝╚══════╝╚══════╝
+
+    [~, n_levels_med_approach_vehicle, ~, n_levels_max_approach_vehicle] = data_n_levels_approach_vehicle(experiment_results);
+
+    fig = figure;
+    max_bar = barh(priority_names, n_levels_max_approach_vehicle');
+    hold on
+    med_bar = barh(priority_names, n_levels_med_approach_vehicle');
+
+    h_axis = get(gca, 'YAxis');
+    h_axis.TickLabelInterpreter = 'latex';
+    % legend
+    legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex');
+    % axes
+    xlabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
+
+    set_figure_properties(fig, ExportFigConfig.paper());
+    rwth_colors_100 = rwth_color_order;
+    rwth_colors_50 = rwth_color_order_50;
+    colororder( ...
+        fig, ...
+        [rwth_colors_50(1, :); ...
+         rwth_colors_100(1, :)] ...
+    );
+
+    filename = sprintf('prioritization_levels.pdf');
+    filepath = fullfile(folderpath, filename);
+    export_fig(fig, filepath);
+    close all;
+
+    %%
+    % ██╗     ███████╗██╗   ██╗███████╗██╗         ██████╗ ██╗███████╗████████╗
+    % ██║     ██╔════╝██║   ██║██╔════╝██║         ██╔══██╗██║██╔════╝╚══██╔══╝
+    % ██║     █████╗  ██║   ██║█████╗  ██║         ██║  ██║██║███████╗   ██║
+    % ██║     ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║         ██║  ██║██║╚════██║   ██║
+    % ███████╗███████╗ ╚████╔╝ ███████╗███████╗    ██████╔╝██║███████║   ██║
+    % ╚══════╝╚══════╝  ╚═══╝  ╚══════╝╚══════╝    ╚═════╝ ╚═╝╚══════╝   ╚═╝
+    % levels per acyclic orientation
+    lvl_dist = calc_level_dist(experiment_results(1).iteration_data(1).adjacency);
+
+    fig = figure();
+    levels = sort(unique(lvl_dist));
+    bin_margin = 0.3;
+    bin_edges_low = levels - bin_margin;
+    bin_edges_high = levels + bin_margin;
+    bin_edges = sort([bin_edges_low bin_edges_high]);
+    histogram( ...
+        lvl_dist ...
+        , FaceAlpha = 1 ...
+        , Orientation = 'horizontal' ...
+        , BinEdges = bin_edges ...
+    );
+    set(gca, 'xscale', 'log');
+    xlim('padded');
+    set(gca, 'YTick', 1:size(experiment_results(1).iteration_data(1).adjacency, 1));
+    xlabel('Number of prioritizations', Interpreter = 'LaTex');
+    ylabel('$N_{\mathrm{CL}}$', Interpreter = 'LaTex');
+    set_figure_properties(fig, ExportFigConfig.paper());
+    export_fig(fig, fullfile(folderpath, 'level_distribution.pdf'));
+    close(fig);
+
+    %%
+    % ███████╗ ██████╗███████╗███╗   ██╗ █████╗ ██████╗ ██╗ ██████╗
+    % ██╔════╝██╔════╝██╔════╝████╗  ██║██╔══██╗██╔══██╗██║██╔═══██╗
+    % ███████╗██║     █████╗  ██╔██╗ ██║███████║██████╔╝██║██║   ██║
+    % ╚════██║██║     ██╔══╝  ██║╚██╗██║██╔══██║██╔══██╗██║██║   ██║
+    % ███████║╚██████╗███████╗██║ ╚████║██║  ██║██║  ██║██║╚██████╔╝
+    % ╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝
+    experiment_result = experiment_results(1);
+    time_step = 1;
+    vehicle_indices = 1:experiment_result.options.amount;
+    plotting_info = PlottingInfo(vehicle_indices, experiment_result, time_step);
+    fig = figure;
+    grey = [0.5 0.5 0.5];
+    black = [0 0 0];
+    scenario = Scenario.create(experiment_result.options);
+    vehicles = scenario.vehicles;
+    export_fig_config = ExportFigConfig.paper( ...
+        paperheight = 8 ...
+        , markersize = 1 ...
+    );
+
+    axis equal
+    daspect([1 1 1])
+    xlabel('$x$ [m]', Interpreter = 'LaTex');
+    ylabel('$y$ [m]', Interpreter = 'LaTex');
+    xlim([1.25 3.25]);
+    ylim([1.0 3.0]);
+    set_figure_properties(fig, export_fig_config);
+    %
+    t = text( ...
+        0.5, 0.5, ...
+        '20', ...
+        LineWidth = 1, ...
+        Color = 'black', ...
+        HorizontalAlignment = 'center', ...
+        FontSize = export_fig_config.fontsize, ...
+        Tag = "temporary" ...
+    );
+    extent = t.Extent;
+    delete(t);
+    text_width = extent(3);
+    text_height = extent(4);
+    % compute new radius so that text fits into circle
+    vehicle_id_radius = max(text_width, text_height) * 1.2/2;
+
+    plot_lanelets(scenario.road_raw_data.lanelet, color = [0.8 0.8 0.8]);
+
+    for i_vehicle = vehicle_indices
+        % Sampled reference trajectory points
+        line( ...
+            plotting_info.ref_trajectory(i_vehicle, :, 1), ...
+            plotting_info.ref_trajectory(i_vehicle, :, 2), ...
+            Color = 'black', ...
+            LineStyle = 'none', ...
+            Marker = 'o', ...
+            MarkerFaceColor = black, ...
+            MarkerSize = 0.5, ...
+            Tag = "temporary" ...
+        );
+
+        % Vehicle rectangles
+        x = plotting_info.x0(:, i_vehicle);
+        veh = vehicles(i_vehicle);
+        vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+        patch( ...
+            vehiclePolygon(1, :) ...
+            , vehiclePolygon(2, :) ...
+            , grey ...
+            , EdgeColor = 'none' ...
+            , Tag = "temporary" ...
+        );
+
+        % plot the vehicle ID in the middle of each vehicle on a lighter background
+        rectangle( ...
+            Position = [x(1) - vehicle_id_radius, x(2) - vehicle_id_radius, 2 * vehicle_id_radius, 2 * vehicle_id_radius], ...
+            Curvature = [1, 1], ...
+            FaceColor = [1, 1, 1, 1], ...
+            LineStyle = '-', ...
+            LineWidth = 0.5, ...
+            Tag = 'circle' ...
+        );
+
+        text( ...
+            x(1), x(2), ...
+            num2str(i_vehicle), ...
+            LineWidth = 0.5, ...
+            Color = 'black', ...
+            HorizontalAlignment = 'center', ...
+            FontSize = export_fig_config.fontsize, ...
+            Tag = "temporary" ...
+        );
+
+    end
+
+    % plot coupling
+    x0 = plotting_info.x0';
+
+    directed_coupling = experiment_result.iteration_data(time_step).directed_coupling;
+
+    for v = 1:experiment_result.options.amount
+        x_base = x0(v, :);
+        adjacent_vehicles = find(directed_coupling(v, :));
+
+        for adj_v = adjacent_vehicles
+            adj_x = x0(adj_v, :);
+
+            % plot adjacency
+            % Only use position.
+
+            u = (adj_x - x_base)';
+            x = x_base(1:2)';
+            u = u(1:2);
+
+            % Transform arrow size so that it starts and ends not in the vehicle middle, but at a circle around the center with given radius.
+            l = sqrt(u(1) * u(1) + u(2) * u(2));
+            x = x + vehicle_id_radius * u / l;
+            u = u - 2 * vehicle_id_radius * u / l;
+
+            % Plot.
+            line( ...
+                [x(1), x(1) + u(1)], ...
+                [x(2), x(2) + u(2)], ...
+                Color = black, ...
+                LineStyle = '-', ...
+                LineWidth = 0.5, ...
+                Tag = "temporary" ...
+            );
+        end
+
+    end
+
+    set_figure_properties(fig, export_fig_config);
+    export_fig(fig, fullfile(folderpath, 'scenario.pdf'));
+    close(fig);
+
+    %%
+    % ██████╗  █████╗  ██████╗
+    % ██╔══██╗██╔══██╗██╔════╝
+    % ██║  ██║███████║██║  ███╗
+    % ██║  ██║██╔══██║██║   ██║
+    % ██████╔╝██║  ██║╚██████╔╝
+    % ╚═════╝ ╚═╝  ╚═╝ ╚═════╝
+
+    common_steps = true(1, experiment_results(1).n_steps);
+
+    for experiment_result = experiment_results
+        levels_over_time = [experiment_result.iteration_data.number_of_computation_levels];
+        max_level = max(levels_over_time);
+        steps_with_max_level = levels_over_time == max_level;
+        common_steps = common_steps & steps_with_max_level;
+    end
+
+    step = find(common_steps, 1);
+
+    if isempty(step)
+        warning("no common step with maximum levels, taking the first step")
+        step = 1;
+    end
+
+    fig = figure;
+    i_experiments = [1 4];
+    n_figure_cols = 2;
+    n_figure_rows = ceil(numel(i_experiments) / n_figure_cols);
+    tiledlayout(fig, n_figure_rows, n_figure_cols);
+
+    % show predictions for multiple timesteps
+    for i_fig = i_experiments
+
+        nexttile
+        hold on
+        box on
+
+        p = plot( ...
+            digraph(experiment_results(i_fig).iteration_data(step).directed_coupling), ...
+            ArrowSize = 5, ...
+            MarkerSize = 3, ...
+            NodeColor = black, ...
+            EdgeColor = grey, ...
+            EdgeAlpha = 1, ...
+            ArrowPosition = 0.95 ...
+        );
+
+        ylim([0.5 8.5]);
+
+        if i_fig == 4 % coloring
+            p.NodeColor = rwth_colors_100(p.YData, :);
+            ylim([-4.5 3.5]);
+        end
+
+        title(priority_names(i_fig), Interpreter = 'latex');
+
+        layout(p, 'layered', AssignLayers = 'asap');
+
+        if mod(i_fig - 1, n_figure_cols) == 0
+            ylabel('Computation level', Interpreter = 'LaTex')
+            yticklabels(string(8:-1:1))
+        else
+            set(gca, 'yticklabel', [])
+        end
+
+        set(gca, 'xticklabel', [])
+    end
+
+    fig.Children.TileSpacing = 'compact';
+    fig.Children.Padding = 'compact';
+
+    set_figure_properties(fig, ExportFigConfig.paper(paperheight = 6));
+    export_fig(fig, fullfile(folderpath, 'dag.pdf'));
+    close(fig);
+
+    %%
+    % ███████╗██╗██╗     ███████╗
+    % ██╔════╝██║██║     ██╔════╝
+    % █████╗  ██║██║     █████╗
+    % ██╔══╝  ██║██║     ██╔══╝
+    % ██║     ██║███████╗███████╗
+    % ╚═╝     ╚═╝╚══════╝╚══════╝
+    filename = 'prioritization_coloring.txt';
+    filepath = fullfile(folderpath, filename);
+    fileID = fopen(filepath, 'w');
+
+    for i = 1:numel(experiment_results)
+        str_to_write = sprintf( ...
+            "Prioritization+Optimization time for %17s -- max: %5.2f ms -- med: %5.2f ms\n" ...
+            , experiment_results(i).options.priority ...
+            , time_max_approach_vehicle(i) * 1000 ...
+            , time_med_approach_vehicle(i) * 1000 ...
+        );
+        fwrite(fileID, str_to_write);
+    end
+
+    fwrite(fileID, newline);
+
+    for experiment_result = experiment_results
+        prioritize_timing = vertcat(experiment_result.timing.prioritize);
+        prioritize_duration = max(prioritize_timing(2:2:end, :), [], 1);
+        prioritize_duration_max = max(prioritize_duration) * 1000;
+        prioritize_duration_med = median(prioritize_duration) * 1000;
+        str_to_write = sprintf( ...
+            "Prioritization time for %17s -- max: %5.2f ms -- med: %5.2f ms\n" ...
+            , experiment_result.options.priority ...
+            , prioritize_duration_max ...
+            , prioritize_duration_med ...
+        );
+        fwrite(fileID, str_to_write);
+    end
+
+    fwrite(fileID, newline);
+
+    for i = 1:numel(experiment_results)
+        str_to_write = sprintf( ...
+            "Prioritization cost for %17s -- %5.1f \%\n" ...
+            , experiment_results(i).options.priority ...
+            , cost_percent_average(i) ...
+        );
+        fwrite(fileID, str_to_write);
+    end
+
+    fclose(fileID);
 end

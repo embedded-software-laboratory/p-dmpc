@@ -145,7 +145,7 @@ classdef FileNameConstructor
 
             arguments (Input)
                 options (1, 1) Config;
-                optional.result_folder_path (1, 1) string = "";
+                optional.result_folder_path (1, 1) string = FileNameConstructor.experiment_result_folder_path(options);
             end
 
             arguments (Output)
@@ -155,13 +155,7 @@ classdef FileNameConstructor
             experiment_result = ExperimentResult.empty(0, 0);
 
             % get all relevant files
-            if optional.result_folder_path ~= ""
-                result_folder = optional.result_folder_path;
-            else
-                result_folder = FileNameConstructor.experiment_result_folder_path(options);
-            end
-
-            file_info = dir(fullfile(result_folder, "*.mat"));
+            file_info = dir(fullfile(optional.result_folder_path, "*.mat"));
             files_sorted = sort(split(strtrim(sprintf("%s ", file_info.name))), 'descend')';
             
 
@@ -170,7 +164,7 @@ classdef FileNameConstructor
                 if strlength(file_name) == 0
                     continue
                 end
-                result = load(fullfile(result_folder, file_name)).experiment_result;
+                result = load(fullfile(optional.result_folder_path, file_name)).experiment_result;
 
                 if isequal(options, result.options)
                     experiment_result = result;

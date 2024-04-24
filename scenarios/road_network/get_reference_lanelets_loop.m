@@ -9,6 +9,18 @@ function [lanelets_index] = get_reference_lanelets_loop(path_id)
     end
 
     % totally 7 loops of paths are designed
+    % 1
+    % 2
+    % 3
+    % 4
+    % 5
+    % 6
+    % 7
+    % 8: right turn at intersection from right lane; overlapping paths cause issues in sample_reference_trajectory -- only good for intersection
+    % 9: straight at intersection from left lane, north
+    % 10: straight at intersection from left lane, east
+    % 11: straight at intersection from left lane, south
+    % 12: straight at intersection from left lane, west
     reference_lanelets_loops = { ...
                                     [4, 6, 8, 60, 58, 56, 54, 80, 82, 84, 86, 34, 32, 30, 28, 2], ...
                                     [1, 3, 23, 10, 12, 17, 43, 38, 36, 49, 29, 27], ...
@@ -16,7 +28,12 @@ function [lanelets_index] = get_reference_lanelets_loop(path_id)
                                     [40, 45, 97, 92, 94, 100, 83, 85, 33, 31, 48, 42], ...
                                     [5, 7, 59, 57, 74, 68, 66, 71, 19, 14, 16, 22], ...
                                     [41, 39, 20, 63, 61, 57, 55, 67, 65, 98, 37, 35, 31, 29], ...
-                                    [3, 5, 9, 11, 72, 91, 93, 81, 83, 87, 89, 46, 13, 15] ...
+                                    [3, 5, 9, 11, 72, 91, 93, 81, 83, 87, 89, 46, 13, 15], ...
+                                    [1 3 23 10 12 18 14 16 22 5 7 59 57 74 68 66 70 64 62 75 55 53 79 81 101 88 90 96 92 94 100 83 85 33 31 48 42 40 44 38 36 49 29 27], ...
+                                    [1 3 5 9 11 26 52 37 35 31 29 27], ...
+                                    [3 5 7 59 57 55 67 65 76 24 13 15], ...
+                                    [79 81 83 87 89 104 78 63 61 57 55 53], ...
+                                    [33 31 29 41 39 50 102 91 93 81 83 85] ...
                                 };
 
     switch path_id
@@ -109,6 +126,24 @@ function [lanelets_index] = get_reference_lanelets_loop(path_id)
 
         case 41
             loop = 5; starting_lanelet = 71;
+
+        case 51
+            loop = 8; starting_lanelet = 18;
+        case 52
+            loop = 8; starting_lanelet = 70;
+        case 53
+            loop = 8; starting_lanelet = 96;
+        case 54
+            loop = 8; starting_lanelet = 44;
+
+        case 61
+            loop = 9; starting_lanelet = 26;
+        case 62
+            loop = 10; starting_lanelet = 76;
+        case 63
+            loop = 11; starting_lanelet = 104;
+        case 64
+            loop = 12; starting_lanelet = 50;
     end
 
     % take loop from all defined loops
