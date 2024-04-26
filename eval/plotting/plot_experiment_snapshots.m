@@ -5,6 +5,7 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
         step_indices (1, :) double
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
+        optional.n_figure_cols (1, 1) double = 2;
     end
 
     experiment_result.options.options_plot_online.plot_priority = 0;
@@ -12,7 +13,7 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
     plotter.set_figure_visibility(false);
 
     nFigs = numel(step_indices);
-    n_figure_cols = 2;
+    n_figure_cols = optional.n_figure_cols;
     n_figure_rows = ceil(nFigs / n_figure_cols);
 
     set(0, 'CurrentFigure', optional.fig)
