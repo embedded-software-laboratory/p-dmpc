@@ -99,9 +99,7 @@ classdef (Abstract) Plotter < handle
                 plot_lanelets(scenario.road_raw_data.lanelet);
             end
 
-            % Define a colormap
-            [obj.priority_colormap, ~] = discrete_colormap();
-            colormap(obj.priority_colormap);
+            obj.set_colormap();
 
             hold on
             box on
@@ -376,6 +374,18 @@ classdef (Abstract) Plotter < handle
             end
 
             obj.fig.Visible = option;
+        end
+
+        function set_colormap(obj, optional)
+            %SET_COLORMAP Set the colormap for the plot.
+            arguments
+                obj (1, 1) Plotter
+                optional.colormap (:, 3) double = discrete_colormap()
+            end
+
+            % Define a colormap
+            obj.priority_colormap = optional.colormap;
+            colormap(obj.priority_colormap);
         end
 
     end

@@ -1,7 +1,11 @@
 function export_fig(fig, filepath)
 
     if ~verLessThan('matlab', '9.8')
+        % PDF
         exportgraphics(fig, filepath, 'ContentType', 'vector');
+        % EPS
+        [folderpath,name,~] = fileparts(filepath);
+        exportgraphics(fig, fullfile(folderpath,strcat(name,'.eps')), 'ContentType', 'vector');
     else
         % validFontNames = {'AvantGarde'; 'Bookman'; 'Courier'; 'Helvetica'; ...
         %             'Helvetica-Narrow'; 'NewCenturySchoolBook'; 'Palatino'; ...
