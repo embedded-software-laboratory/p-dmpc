@@ -1,4 +1,7 @@
 function experiment_results = eval_experiments(optional)
+    % EVAL_EXPERIMENTS Conduct experiments with a preset configuration for either
+    % 1) different PriorityStrategies or
+    % 2) different max_num_CLs
 
     arguments (Input)
         optional.scenario_type (1, 1) ScenarioType = ScenarioType.commonroad

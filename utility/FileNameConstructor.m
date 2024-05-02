@@ -157,13 +157,14 @@ classdef FileNameConstructor
             % get all relevant files
             file_info = dir(fullfile(optional.result_folder_path, "*.mat"));
             files_sorted = sort(split(strtrim(sprintf("%s ", file_info.name))), 'descend')';
-            
 
             % find the first file that matches the given options
             for file_name = files_sorted
+
                 if strlength(file_name) == 0
                     continue
                 end
+
                 result = load(fullfile(optional.result_folder_path, file_name)).experiment_result;
 
                 if isequal(options, result.options)
