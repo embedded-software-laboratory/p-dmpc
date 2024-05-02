@@ -12,7 +12,7 @@ function export_plot(function_name, varargin, optional)
 
     arguments
         % optional arguments for export process
-        optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
+        optional.fig (1, 1) matlab.ui.Figure = gcf;
         optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
         optional.file_path (1, :) char = 'plot.pdf'
     end
