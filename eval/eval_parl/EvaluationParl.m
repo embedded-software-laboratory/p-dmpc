@@ -93,8 +93,8 @@ classdef EvaluationParl
             obj.path_tracking_errors = cell(obj.nVeh, 1);
             obj.path_tracking_errors_MAE = zeros(obj.nVeh, 1);
             obj.runtime_total_per_step = zeros(0, 1);
-            obj.plot_option_real_path = struct(Color = 'b', LineStyle = '-', LineWidth = 1.0, 'DisplayName', 'Real Path');
-            obj.plot_option_reference_path = struct(Color = 'r', LineStyle = '--', LineWidth = 1.0, 'DisplayName', 'Reference Path');
+            obj.plot_option_real_path = struct(Color = 'b', LineStyle = '-', LineWidth = 1.0, DisplayName = 'Real Path');
+            obj.plot_option_reference_path = struct(Color = 'r', LineStyle = '--', LineWidth = 1.0, DisplayName = 'Reference Path');
 
             obj.n_steps = length(experiment_result.vehicles_fallback);
 
