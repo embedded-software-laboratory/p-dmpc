@@ -10,6 +10,13 @@ function computation_time = add_optimize_time(experiment_result, computation_tim
         computation_time (:, :) double
     end
 
+    % Skip computation for optimal priorities
+    if experiment_result.options.priority == PriorityStrategies.optimal_priority
+        control_loop_timing = vertcat(experiment_result.timing.control_loop);
+        computation_time = control_loop_timing(2:2:end, :);
+        return
+    end
+
     n_vehicles = experiment_result.n_hlc;
 
     all_field_names = fieldnames(experiment_result.timing(1));
