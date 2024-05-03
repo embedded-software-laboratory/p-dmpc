@@ -1,9 +1,15 @@
-function cost_percent_average = data_cost_percent(experiment_results)
+function cost_percent_average = data_cost_percent(experiment_results, optional)
 
-    arguments
+    arguments (Input)
         % ExperimentResult in order (n_vehicles x n_approaches x n_scenarios)
         % First approach is assumed to be constant approach
         experiment_results (:, :, :)ExperimentResult
+        optional.function_name (1, 1) function_handle = @data_cost_predicted_experiment
+    end
+
+    arguments (Output)
+        % (n_vehicles x n_approaches)
+        cost_percent_average (:, :) double
     end
 
     cost = zeros(size(experiment_results));
@@ -15,7 +21,7 @@ function cost_percent_average = data_cost_percent(experiment_results)
             continue;
         end
 
-        cost(i) = data_cost_experiment(experiment_results(i));
+        cost(i) = optional.function_name(experiment_results(i));
     end
 
     baseline_cost = cost(:, 1, :);

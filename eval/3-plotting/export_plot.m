@@ -7,7 +7,7 @@ function export_plot(function_name, varargin, optional)
 
     arguments (Repeating)
         % arguments for plotting function
-        varargin (1, :)
+        varargin
     end
 
     arguments
@@ -18,7 +18,7 @@ function export_plot(function_name, varargin, optional)
     end
 
     % call plotting function with given arguments
-    function_name(varargin{:}, fig = optional.fig);
+    function_name(varargin{:});
 
     set_figure_properties(optional.fig, optional.export_fig_cfg)
 

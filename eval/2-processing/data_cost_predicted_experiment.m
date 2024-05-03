@@ -1,4 +1,4 @@
-function cost = data_cost_experiment(experiment_result)
+function cost = data_cost_predicted_experiment(experiment_result)
 
     arguments
         experiment_result (1, 1) ExperimentResult

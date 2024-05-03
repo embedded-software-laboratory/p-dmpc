@@ -1,9 +1,12 @@
 function eval_prioritization(optional)
 
     arguments
-        optional.computation_mode (1, 1) ComputationMode = ComputationMode.sequential
+        optional.computation_mode (1, 1) ComputationMode = ComputationMode.parallel
+        optional.scenarios (1, :) ScenarioType = [ScenarioType.commonroad, ScenarioType.circle]
+        optional.optimizers (1, :) OptimizerType = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled]
     end
 
+    export_fig_config = ExportFigConfig.paper(paperheight = 6);
     priority_strategies = [
                            PriorityStrategies.constant_priority
                            PriorityStrategies.random_priority
@@ -22,8 +25,8 @@ function eval_prioritization(optional)
                       "$p_{\mathrm{optimal}}$"
                       ];
 
-    scenarios = [ScenarioType.commonroad, ScenarioType.circle];
-    optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
+    scenarios = optional.scenarios;
+    optimizers = optional.optimizers;
 
     for scenario = scenarios
 
@@ -40,24 +43,14 @@ function eval_prioritization(optional)
             % Process results
             cost_percent_average = data_cost_percent(experiment_results);
 
-            % Plot cost
-            n_vehicles = [experiment_results(:, 1, 1).n_hlc];
-            fig = figure;
-            bar(n_vehicles, cost_percent_average);
-            % legend
-            legendtext = priority_names;
-            legend(legendtext, Location = 'best', Interpreter = 'latex');
-            % axes
-            xlabel("$N_A$")
-            ylabel( ...
-                "$J_\mathrm{NCS}(p) / J_\mathrm{NCS}(p_\mathrm{const})$ [\%]", ...
-                Interpreter = "latex" ...
+            export_plot( ...
+                @series_plot_cost_percent, ...
+                experiment_results, ...
+                cost_percent_average, ...
+                priority_names, ...
+                export_fig_cfg = export_fig_config, ...
+                file_path = sprintf('prioritization_cost_%s_%s.pdf', scenario, optimizer) ...
             );
-
-            set_figure_properties(fig, ExportFigConfig.presentation());
-            filename = sprintf('prioritization_cost_%s_%s.pdf', scenario, optimizer);
-            filepath = fullfile(FileNameConstructor.all_results(), filename);
-            export_fig(fig, filepath);
             close all;
 
             % Plot computation time
@@ -79,12 +72,13 @@ function eval_prioritization(optional)
                               strcat(repmat(str_med, length(priority_names) - 1, 1), priority_names(1:end - 1)) ...
                               strcat(repmat(str_max, length(priority_names) - 1, 1), priority_names(1:end - 1)) ...
                           ];
-            legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex', NumColumns = 2);
+            legend([med_bar, max_bar], legendtext, Location = 'northoutside', Interpreter = 'latex', NumColumns = 2);
             % axes
             xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
 
-            set_figure_properties(fig, ExportFigConfig.presentation());
+            set_figure_properties(fig, export_fig_config);
+            legend(Box = 'off')
             rwth_colors_100 = rwth_color_order;
             rwth_colors_50 = rwth_color_order_50;
             colororder( ...
@@ -108,12 +102,13 @@ function eval_prioritization(optional)
             med_bar = bar(n_vehicles, time_med_approach_vehicle');
 
             % legend
-            legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex', NumColumns = 2);
+            legend([med_bar, max_bar], legendtext, Location = 'northoutside', Interpreter = 'latex', NumColumns = 2);
             % axes
             xlabel('$N_{A}$', Interpreter = 'latex');
             ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
 
-            set_figure_properties(fig, ExportFigConfig.presentation());
+            set_figure_properties(fig, export_fig_config);
+            legend(Box = 'off')
             rwth_colors_100 = rwth_color_order;
             rwth_colors_50 = rwth_color_order_50;
             colororder( ...
