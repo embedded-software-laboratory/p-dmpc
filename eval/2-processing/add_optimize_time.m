@@ -68,7 +68,7 @@ function computation_time = add_optimize_time(experiment_result, computation_tim
                     priorities ...
                 );
 
-                levels_per_vehicle(:, i_perm) = kahn(directed_coupling_sequential(:, :, i_perm));
+                levels_per_vehicle(:, i_perm) = level_matrix* (1:size(latin_square, 2))';
             end
 
         end
