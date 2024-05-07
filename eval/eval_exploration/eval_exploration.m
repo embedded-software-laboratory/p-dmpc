@@ -1,4 +1,10 @@
-function eval_exploration()
+function eval_exploration(optional)
+
+    arguments
+        optional.cpm_lab_experiment_result (1, 1) string = fullfile(FileNameConstructor.all_results(), 'cpm_lab.mat')
+    end
+
+    %%
     foldername = 'exploration';
     folderpath = fullfile(FileNameConstructor.all_results(), foldername);
 
@@ -108,14 +114,14 @@ function eval_exploration()
     );
 
     % Remove optimal priority, scale to ms
-    series_time_max_ms = time_max_approach_vehicle(1:end - 1, :)' .* 1000;
-    series_time_med_ms = time_med_approach_vehicle(1:end - 1, :)' .* 1000;
+    series_time_max_ms = time_max_approach_vehicle' .* 1000;
+    series_time_med_ms = time_med_approach_vehicle' .* 1000;
 
     fig = figure;
     series_plot_med_max( ...
         experiment_results, ...
-        series_time_med_ms, ...
-        series_time_max_ms, ...
+        series_time_med_ms(:, 1:end - 1), ...
+        series_time_max_ms(:, 1:end - 1), ...
         priority_names(1:end - 1), ...
         export_fig_config = ExportFigConfig.paper(paperheight = 6) ...
     );
@@ -129,16 +135,17 @@ function eval_exploration()
     %    ██║   ██║██║╚██╔╝██║██╔══╝      ██║╚██╗██║██║   ██║██╔══██╗██║╚██╔╝██║
     %    ██║   ██║██║ ╚═╝ ██║███████╗    ██║ ╚████║╚██████╔╝██║  ██║██║ ╚═╝ ██║██╗
     %    ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝    ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝
-    max_time = max(series_time_max_ms, [], "all");
+    max_time = max(series_time_max_ms(:, 1:end - 1), [], "all");
     series_time_max_normalized = series_time_max_ms ./ max_time;
     series_time_med_normalized = series_time_med_ms ./ max_time;
 
     fig = figure;
     series_plot_med_max( ...
         experiment_results, ...
-        series_time_med_normalized, ...
-        series_time_max_normalized, ...
+        series_time_med_normalized(:, 1:end - 1) * 100, ...
+        series_time_max_normalized(:, 1:end - 1) * 100, ...
         priority_names(1:end - 1), ...
+        ylabel = "$T_\mathrm{NCS}(p) / T_\mathrm{NCS}(p_\mathrm{constant})$ [\%]", ...
         export_fig_config = ExportFigConfig.paper(paperheight = 6) ...
     );
     export_fig(fig, fullfile(folderpath, 'prioritization_time_normalized.pdf'));
@@ -165,54 +172,88 @@ function eval_exploration()
     export_fig(fig, fullfile(folderpath, 'n_levels.pdf'));
     close all;
 
-    %     %%
-    %     % ███████╗██╗██╗     ███████╗
-    %     % ██╔════╝██║██║     ██╔════╝
-    %     % █████╗  ██║██║     █████╗
-    %     % ██╔══╝  ██║██║     ██╔══╝
-    %     % ██║     ██║███████╗███████╗
-    %     % ╚═╝     ╚═╝╚══════╝╚══════╝
-    %     filename = 'prioritization_coloring.txt';
-    %     filepath = fullfile(folderpath, filename);
-    %     fileID = fopen(filepath, 'w');
+    %%
+    %  ██████╗██████╗ ███╗   ███╗    ██╗      █████╗ ██████╗
+    % ██╔════╝██╔══██╗████╗ ████║    ██║     ██╔══██╗██╔══██╗
+    % ██║     ██████╔╝██╔████╔██║    ██║     ███████║██████╔╝
+    % ██║     ██╔═══╝ ██║╚██╔╝██║    ██║     ██╔══██║██╔══██╗
+    % ╚██████╗██║     ██║ ╚═╝ ██║    ███████╗██║  ██║██████╔╝
+    %  ╚═════╝╚═╝     ╚═╝     ╚═╝    ╚══════╝╚═╝  ╚═╝╚═════╝
 
-    %     for i = 1:numel(experiment_results)
-    %         str_to_write = sprintf( ...
-    %             "Prioritization+Optimization time for %17s -- max: %5.2f ms -- med: %5.2f ms\n" ...
-    %             , experiment_results(i).options.priority ...
-    %             , time_max_approach_vehicle(i) * 1000 ...
-    %             , time_med_approach_vehicle(i) * 1000 ...
-    %         );
-    %         fwrite(fileID, str_to_write);
-    %     end
+    i_step_start = 21;
+    cpm_lab_experiment_result = load(optional.cpm_lab_experiment_result).experiment_result;
+    % ---
+    % time per vehicle
+    t_cpm_lab = data_time_prioritize_optimize_experiment(cpm_lab_experiment_result);
+    % time NCS
+    t_cpm_lab = max(t_cpm_lab, [], 1);
+    % remove first time steps where code is loaded JIT
+    t_cpm_lab = t_cpm_lab(i_step_start:end);
 
-    %     fwrite(fileID, newline);
+    t_cpm_lab_med = median(t_cpm_lab);
+    t_cpm_lab_max = max(t_cpm_lab);
 
-    %     for experiment_result = experiment_results
-    %         prioritize_timing = vertcat(experiment_result.timing.prioritize);
-    %         prioritize_duration = max(prioritize_timing(2:2:end, :), [], 1);
-    %         prioritize_duration_max = max(prioritize_duration) * 1000;
-    %         prioritize_duration_med = median(prioritize_duration) * 1000;
-    %         str_to_write = sprintf( ...
-    %             "Prioritization time for %17s -- max: %5.2f ms -- med: %5.2f ms\n" ...
-    %             , experiment_result.options.priority ...
-    %             , prioritize_duration_max ...
-    %             , prioritize_duration_med ...
-    %         );
-    %         fwrite(fileID, str_to_write);
-    %     end
+    %%
+    % ███████╗██╗██╗     ███████╗
+    % ██╔════╝██║██║     ██╔════╝
+    % █████╗  ██║██║     █████╗
+    % ██╔══╝  ██║██║     ██╔══╝
+    % ██║     ██║███████╗███████╗
+    % ╚═╝     ╚═╝╚══════╝╚══════╝
+    filename = 'values.txt';
+    filepath = fullfile(folderpath, filename);
+    fileID = fopen(filepath, 'w');
 
-    %     fwrite(fileID, newline);
+    file_closer = onCleanup(@()fclose(fileID));
 
-    %     for i = 1:numel(experiment_results)
-    %         str_to_write = sprintf( ...
-    %             "Prioritization cost for %17s -- %5.1f %%\n" ...
-    %             , experiment_results(i).options.priority ...
-    %             , cost_percent_average(i) ...
-    %         );
-    %         fwrite(fileID, str_to_write);
-    %     end
+    for i_n_vehicles = 1:size(experiment_results, 1)
+        fwrite(fileID, sprintf("%02i vehicles\n", experiment_results(i_n_vehicles, 1, 1).n_hlc));
 
-    % % TODO cost from cost_percent_average_applied
-    %     fclose(fileID);
+        for i_approach = 1:size(experiment_results, 2)
+            str_to_write = sprintf( ...
+                "Prioritization+Optimization time for %20s -- max: %5.1f ms (%5.1f%%)-- med: %5.1f ms (%5.1f%%)\n" ...
+                , experiment_results(i_n_vehicles, i_approach, 1).options.priority ...
+                , time_max_approach_vehicle(i_approach, i_n_vehicles) * 1000 ...
+                , series_time_max_normalized(i_n_vehicles, i_approach) * 100 ...
+                , time_med_approach_vehicle(i_approach, i_n_vehicles) * 1000 ...
+                , series_time_med_normalized(i_n_vehicles, i_approach) * 100 ...
+            );
+            fwrite(fileID, str_to_write);
+        end
+
+        fwrite(fileID, newline);
+
+    end
+
+    fwrite(fileID, newline);
+    fwrite(fileID, newline);
+    fwrite(fileID, newline);
+
+    for i_n_vehicles = 1:size(experiment_results, 1)
+        fwrite(fileID, sprintf("%02i vehicles\n", experiment_results(i_n_vehicles, 1, 1).n_hlc));
+
+        for i_approach = 1:size(experiment_results, 2)
+            str_to_write = sprintf( ...
+                "Cost for %20s -- predicted %5.1f%% -- applied %5.1f%%\n" ...
+                , experiment_results(i_n_vehicles, i_approach, 1).options.priority ...
+                , cost_percent_average(i_n_vehicles, i_approach) ...
+                , cost_percent_average_applied(i_n_vehicles, i_approach) ...
+            );
+            fwrite(fileID, str_to_write);
+        end
+
+        fwrite(fileID, newline);
+    end
+
+    % CPM Lab experiment
+    fwrite(fileID, newline);
+    fwrite(fileID, newline);
+    fwrite(fileID, newline);
+
+    str_to_write = sprintf( ...
+        "CPM Lab -- max: %5.2f ms -- med: %5.2f ms\n" ...
+        , t_cpm_lab_max * 1000 ...
+        , t_cpm_lab_med * 1000 ...
+    );
+    fwrite(fileID, str_to_write);
 end
