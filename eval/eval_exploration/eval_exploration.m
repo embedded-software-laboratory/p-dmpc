@@ -34,6 +34,7 @@ function eval_exploration(optional)
                       "$p_{\mathrm{optimal}}$"
                       ];
 
+    % (n_vehicles x n_approaches x n_scenarios)
     experiment_results = eval_experiments( ...
         computation_mode = ComputationMode.parallel_physically ...
         , optimizer = OptimizerType.MatlabSampled ...
@@ -170,6 +171,27 @@ function eval_exploration(optional)
         export_fig_config = ExportFigConfig.paper(paperheight = 6) ...
     );
     export_fig(fig, fullfile(folderpath, 'n_levels.pdf'));
+    close all;
+
+    %%
+    % ████████╗██╗███╗   ███╗███████╗    ███████╗████████╗███████╗██████╗
+    % ╚══██╔══╝██║████╗ ████║██╔════╝    ██╔════╝╚══██╔══╝██╔════╝██╔══██╗
+    %    ██║   ██║██╔████╔██║█████╗      ███████╗   ██║   █████╗  ██████╔╝
+    %    ██║   ██║██║╚██╔╝██║██╔══╝      ╚════██║   ██║   ██╔══╝  ██╔═══╝
+    %    ██║   ██║██║ ╚═╝ ██║███████╗    ███████║   ██║   ███████╗██║
+    %    ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝    ╚══════╝   ╚═╝   ╚══════╝╚═╝
+
+    i_n_vehicles = 3; % 15 vehicles
+    i_priority = 5; % Explorative priority
+    i_scenario = 1;
+    k = 1;
+    export_plot( ...
+        @plot_computation_time_for_step, ...
+        experiment_results(i_n_vehicles, i_priority, i_scenario), ...
+        k, ...
+        export_fig_config = ExportFigConfig.paper(), ...
+        file_path = fullfile(folderpath, 'computation_time_for_step.pdf') ...
+    );
     close all;
 
     %%
