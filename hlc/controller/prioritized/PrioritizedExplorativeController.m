@@ -254,48 +254,49 @@ classdef PrioritizedExplorativeController < PrioritizedController
             % start with second row
             while nth_permutation <= obj.n_computation_levels
                 permutation = zeros(1, obj.n_computation_levels);
-                % each column in possibilities represents possible values
-                % for each cell in the current row
-                possibilities = true(obj.n_computation_levels);
-                % remove result entries from possibilities
+                % each column in `is_level_allowed` represents possible values
+                % for the level of the corresponding class.
+                % Each class is an entry in the current row (=permutation) of `result`
+                is_level_allowed = true(obj.n_computation_levels);
+                % remove already picked levels in `result` from `is_level_allowed`
                 for i_col = 1:size(result, 2)
-                    used_permutation = nonzeros(result(:, i_col));
-                    possibilities(used_permutation, i_col) = false;
+                    levels_picked = nonzeros(result(:, i_col));
+                    is_level_allowed(levels_picked, i_col) = false;
                 end
 
                 n_filled_cells = 0;
-                no_possibilities_left = false;
+                is_permutation_valid = true;
 
                 while n_filled_cells < obj.n_computation_levels
-                    % find cell with least possibilities
-                    [n_possibilities, i_cell] = min(sum(possibilities, 1));
+                    % find class with least possibilities for level
+                    [n_possibilities, i_cell] = min(sum(is_level_allowed, 1));
 
                     % discard current permutation
                     if (n_possibilities == 0)
                         % the chosen random values led to a dead end
-                        no_possibilities_left = true;
+                        is_permutation_valid = false;
                         break;
                     end
 
                     % choose possibility at random
-                    possibilities_for_cell = find(possibilities(:, i_cell));
+                    possibilities_for_cell = find(is_level_allowed(:, i_cell));
 
-                    used_permutation = possibilities_for_cell(randi( ...
+                    level_picked = possibilities_for_cell(randi( ...
                         permutation_rand_stream, ...
                         n_possibilities ...
                     ));
-                    permutation(i_cell) = used_permutation;
+                    permutation(i_cell) = level_picked;
 
-                    % remove possibility from other cells
-                    possibilities(used_permutation, :) = false;
-                    % set possibilities for current cell to true
+                    % remove possibility from other classes
+                    is_level_allowed(level_picked, :) = false;
+                    % set is_level_allowed for current class to true
                     % in order to avoid choosing it again
-                    possibilities(:, i_cell) = true;
+                    is_level_allowed(:, i_cell) = true;
 
                     n_filled_cells = n_filled_cells + 1;
                 end
 
-                if no_possibilities_left
+                if ~is_permutation_valid
                     continue;
                 end
 
