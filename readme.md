@@ -4,9 +4,9 @@
 
 - [Priority-Based Trajectory Planning for Networked Vehicles Using Motion Primitives](#priority-based-trajectory-planning-for-networked-vehicles-using-motion-primitives)
 - [Setup](#setup)
-    - [MATLAB R2023a](#matlab-r2023a)
-    - [System Requirements for MATLAB ROS Toolbox](#system-requirements-for-matlab-ros-toolbox)
-    - [Setup Details](#setup-details)
+  - [MATLAB R2023a](#matlab-r2023a)
+  - [System Requirements for MATLAB ROS Toolbox](#system-requirements-for-matlab-ros-toolbox)
+  - [Setup Details](#setup-details)
 - [Experiments](#experiments)
 - [References](#references)
 - [Acknowledgements](#acknowledgements)
@@ -208,7 +208,7 @@ References in Bibtex format
     author  = {Patrick Scheffe and Jianye Xu and Bassam Alrifaee},
     title   = {Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees},
     year    = {2023},
-    doi     = {10.13140/RG.2.2.32731.03368}}
+    doi     = {10.13140/RG.2.2.32731.03368}
 }
 
 @article{scheffe2023reducing,
