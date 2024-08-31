@@ -51,7 +51,8 @@ function eval_coloring_paper()
                          file_path(result_str_pos + 1:end), filesep, ...
                          '999999-999999.mat' ...
                      ];
-        mkdir(fileparts(file_path));
+        is_folder_created = mkdir(fileparts(file_path));
+        assert(is_folder_created)
         save(file_path, "experiment_result");
 
         experiment_results(i_priority_strategy) = experiment_result; %#ok<AGROW>
@@ -372,12 +373,10 @@ function eval_coloring_paper()
     % ███████║██║ ╚████║██║  ██║██║     ███████║██║  ██║╚██████╔╝   ██║
     % ╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝    ╚═╝
 
-
     experiment_result = experiment_results(1);
     time_step = 10;
     vehicle_indices = 1:experiment_result.options.amount;
     fig = figure;
-
 
     grey = [0.5 0.5 0.5];
     black = [0 0 0];
@@ -420,6 +419,7 @@ function eval_coloring_paper()
         i_experiment = i_best_and_coloring(i_select);
         experiment_result = experiment_results(i_experiment);
         plotting_info = PlottingInfo(vehicle_indices, experiment_result, time_step);
+
         for i_vehicle = vehicle_indices
             % Vehicle rectangles
             x = plotting_info.x0(:, i_vehicle);
@@ -455,6 +455,7 @@ function eval_coloring_paper()
             );
 
         end
+
     end
 
     legend(patch_handle, priority_names(i_best_and_coloring));
@@ -468,7 +469,6 @@ function eval_coloring_paper()
     set_figure_properties(fig, export_fig_config);
     export_fig(fig, fullfile(folderpath, sprintf('best-vs-color-k-%d.pdf', time_step)));
     close(fig);
-
 
     %%
     % ██████╗  █████╗  ██████╗

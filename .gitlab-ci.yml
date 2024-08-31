@@ -65,7 +65,7 @@ test:
   extends: .matlab_with_test_coverage
   variables:
     TEST_FOLDER: "'tests'"
-    COVERAGE_FOLDER: "{'config', 'eval/processing', 'eval/plotting', 'utility', 'hlc', 'plant', 'scenarios', 'visualization'}"
+    COVERAGE_FOLDER: "{'config', 'eval/2-processing', 'eval/3-plotting', 'utility', 'hlc', 'plant', 'scenarios', 'visualization'}"
   needs:
     - job: build
       artifacts: true
