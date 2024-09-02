@@ -4,13 +4,13 @@ function plot_mpa_local_reachable_sets(experiment_result, optional)
         experiment_result (1, 1) ExperimentResult;
         optional.do_export (1, 1) logical = true;
         optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
-        optional.export_fig_cfg (1, 1) ExportFigConfig = ExportFigConfig.paper();
+        optional.export_fig_config (1, 1) ExportFigConfig = ExportFigConfig.paper();
     end
 
     mpa = MotionPrimitiveAutomaton(experiment_result.options);
     mpa.plot_local_reachable_sets(fig = optional.fig);
 
-    set_figure_properties(optional.fig, optional.export_fig_cfg);
+    set_figure_properties(optional.fig, optional.export_fig_config);
 
     %export figure
     if optional.do_export
