@@ -71,12 +71,12 @@ Please refer to the respective publication if you are using it for your work. Th
 
 <details>
 <summary>
-P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees", ResearchGate, Preprint, 2023, doi: 10.13140/RG.2.2.32731.03368
+P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees", 2024 European Control Conference (ECC), Stockholm, Sweden, 2024, doi: 10.23919/ECC64448.2024.10591179
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
 
-[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](http://dx.doi.org/10.13140/RG.2.2.32731.03368)
+[![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.23919/ECC64448.2024.10591179)
 [![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v5.0)
 [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/alGHLwQQpHI)
 
@@ -125,7 +125,35 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
+Scheffe, P., Pedrosa, M.V.A., Flaßkamp, K., Alrifaee, B. (2024). Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives. In: Stiller, C., Althoff, M., Burger, C., Deml, B., Eckstein, L., Flemisch, F. (eds) Cooperatively Interacting Vehicles. Springer, Cham. https://doi.org/10.1007/978-3-031-60494-2_9
+<br>
+
+<!-- icons from https://simpleicons.org/ -->
+
+[![Paper](https://img.shields.io/badge/Springer-Paper-00629B)](https://doi.org/10.1007/978-3-031-60494-2_9)
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v3.0)
+
+</summary>
+<p>
+
+Checkout the [the software version 3.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v3.0).
+The results of the publication can be reproduced by running
+
+```matlab
+open graph_based_planning.prj
+spp_book()
+```
+
+The results are saved in the folder "results".
+
+</p>
+</details>
+
+<details>
+<summary>
 P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs," 2023 IEEE Intelligent Vehicles Symposium (IV), Anchorage, AK, USA, 2023, doi: 10.1109/IV55152.2023.10186623.
+<br>
+This paper has won the Young Research Award of ITSS Germany 2023.
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
@@ -204,12 +232,31 @@ References in Bibtex format
 <p>
 
 ```bibtex
-@article{scheffe2023limiting,
-    author  = {Patrick Scheffe and Jianye Xu and Bassam Alrifaee},
-    title   = {Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees},
-    year    = {2023},
-    doi     = {10.13140/RG.2.2.32731.03368}
+@Inbook{scheffe2024prioritized,
+    author    = "Scheffe, Patrick and Pedrosa, Matheus V. A. and Fla{\ss}kamp, Kathrin and Alrifaee, Bassam",
+    editor    = "Stiller, Christoph and Althoff, Matthias and Burger, Christoph and Deml, Barbara and Eckstein, Lutz and Flemisch, Frank",
+    title     = "Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives",
+    bookTitle = "Cooperatively Interacting Vehicles: Methods and Effects of Automated Cooperation in Traffic",
+    year      = "2024",
+    publisher = "Springer International Publishing",
+    address   = "Cham",
+    pages     = "253--275",
+    isbn      = "978-3-031-60494-2",
+    doi       = "10.1007/978-3-031-60494-2_9",
 }
+
+@inproceedings{scheffe2024limiting,
+    author   = {Scheffe, Patrick and Xu, Jianye and Alrifaee, Bassam},
+    booktitle= {2024 European Control Conference (ECC)},
+    title    = {Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees},
+    year     = {2024},
+    volume   = {},
+    number   = {},
+    pages    = {297-304},
+    keywords = {Couplings;Limiting;Trajectory planning;Computational modeling;Europe;Real-time systems;Planning},
+    doi      = {10.23919/ECC64448.2024.10591179}
+}
+
 
 @article{scheffe2023reducing,
     author = {Patrick Scheffe and Julius Kahle and Bassam Alrifaee},
