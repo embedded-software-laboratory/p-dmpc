@@ -232,6 +232,19 @@ References in Bibtex format
 <p>
 
 ```bibtex
+@Inbook{scheffe2024prioritized,
+    author    = "Scheffe, Patrick and Pedrosa, Matheus V. A. and Fla{\ss}kamp, Kathrin and Alrifaee, Bassam",
+    editor    = "Stiller, Christoph and Althoff, Matthias and Burger, Christoph and Deml, Barbara and Eckstein, Lutz and Flemisch, Frank",
+    title     = "Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives",
+    bookTitle = "Cooperatively Interacting Vehicles: Methods and Effects of Automated Cooperation in Traffic",
+    year      = "2024",
+    publisher = "Springer International Publishing",
+    address   = "Cham",
+    pages     = "253--275",
+    isbn      = "978-3-031-60494-2",
+    doi       = "10.1007/978-3-031-60494-2_9",
+}
+
 @inproceedings{scheffe2024limiting,
     author   = {Scheffe, Patrick and Xu, Jianye and Alrifaee, Bassam},
     booktitle= {2024 European Control Conference (ECC)},
