@@ -71,14 +71,14 @@ Please refer to the respective publication if you are using it for your work. Th
 
 <details>
 <summary>
-P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees", 2024 European Control Conference (ECC), Stockholm, Sweden, 2024, doi: 10.23919/ECC64448.2024.10591179
+P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees," 2024 European Control Conference (ECC), Stockholm, Sweden, 2024, doi: 10.23919/ECC64448.2024.10591179.
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
 
 [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.23919/ECC64448.2024.10591179)
 [![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v5.0)
-[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/alGHLwQQpHI)
+[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/di6X6XTGt88)
 
 </summary>
 <p>
@@ -99,7 +99,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority Assignment in Distributed MPC," TechRxiv, Preprint, 2023, doi: 10.36227/techrxiv.20304015.v2
+P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority Assignment in Distributed MPC," TechRxiv, Preprint, 2023, doi: 10.36227/techrxiv.20304015.v2.
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
@@ -125,7 +125,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-Scheffe, P., Pedrosa, M.V.A., Flaßkamp, K., Alrifaee, B. (2024). Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives. In: Stiller, C., Althoff, M., Burger, C., Deml, B., Eckstein, L., Flemisch, F. (eds) Cooperatively Interacting Vehicles. Springer, Cham. https://doi.org/10.1007/978-3-031-60494-2_9
+P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp, B. Alrifaee, "Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives," In: Stiller, C., Althoff, M., Burger, C., Deml, B., Eckstein, L., Flemisch, F. (eds) Cooperatively Interacting Vehicles. Springer, Cham, 2024, doi: 10.1007/978-3-031-60494-2_9.
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
@@ -179,7 +179,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning", in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
+P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning," in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
@@ -232,7 +232,7 @@ References in Bibtex format
 <p>
 
 ```bibtex
-@Inbook{scheffe2024prioritized,
+@incollection{scheffe2024prioritized,
     author    = "Scheffe, Patrick and Pedrosa, Matheus V. A. and Fla{\ss}kamp, Kathrin and Alrifaee, Bassam",
     editor    = "Stiller, Christoph and Althoff, Matthias and Burger, Christoph and Deml, Barbara and Eckstein, Lutz and Flemisch, Frank",
     title     = "Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives",
