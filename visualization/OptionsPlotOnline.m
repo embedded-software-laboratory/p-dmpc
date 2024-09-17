@@ -11,8 +11,6 @@ classdef OptionsPlotOnline
         plot_hotkey_description = false; % whether to show description of hotkeys
         plot_reachable_sets = false; % whether to show reachable sets
         vehicles_reachable_sets = []; % reachable sets of those vehicles will be shown
-        plot_lanelet_crossing_areas = false; % whether to show lanelet crossing areas
-        vehicles_lanelet_crossing_areas = []; % lanelet corssing area of those vehicles will be shown
         is_video_mode = false; % if in video mode, the lanelets need to be plotted for each time step
     end
 
@@ -21,18 +19,18 @@ classdef OptionsPlotOnline
         function obj = OptionsPlotOnline()
         end
 
-        function obj = assign_data(obj, struct)
-            fn = fieldnames(struct);
+        function obj = jsondecode(obj, json_struct)
+            % for each loop requires fields as row vector
+            fields = string(fieldnames(json_struct)).';
 
-            for i_field = 1:length(fn)
-                field = fn{i_field};
+            for field = fields
 
                 if ~isprop(obj, field)
                     warning('Cannot set property %s for class OptionsPlotOnline as it does not exist', field);
                     continue;
                 end
 
-                obj.(field) = struct.(field);
+                obj.(field) = json_struct.(field);
             end
 
         end

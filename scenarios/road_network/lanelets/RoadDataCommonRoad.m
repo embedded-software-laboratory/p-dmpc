@@ -385,7 +385,7 @@ classdef RoadDataCommonRoad < RoadData
                 % convert to MATLAB polyshape object for later use (set 'Simplify' to true to remove colinear points)
                 bound_x = [left_bound_x; right_bound_x(end:-1:1)];
                 bound_y = [left_bound_y; right_bound_y(end:-1:1)];
-                lanelet_boundary_tmp{i}{3} = polyshape(bound_x, bound_y, 'Simplify', true);
+                lanelet_boundary_tmp{i}{3} = polyshape(bound_x, bound_y, Simplify = true);
 
                 share_boundary_with{i} = sort(share_boundary_with_i, 'ascend');
             end

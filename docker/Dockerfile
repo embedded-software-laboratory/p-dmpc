@@ -71,7 +71,7 @@ RUN wget -q https://www.mathworks.com/mpm/glnxa64/mpm
 RUN chmod +x mpm
 
 # Install matlab and specified toolboxes.
-ARG MATLAB_RELEASE=r2022a
+ARG MATLAB_RELEASE=r2023a
 ARG TOOLBOXES="Parallel_Computing_Toolbox ROS_Toolbox Statistics_and_Machine_Learning_Toolbox"
 RUN ./mpm install --release=$MATLAB_RELEASE --destination=/opt/matlab --products MATLAB $TOOLBOXES
 
@@ -122,6 +122,8 @@ RUN git clone https://github.com/embedded-software-laboratory/Rosless-Lanelet2.g
     cd ../.. && \
     rm -rf Rosless-Lanelet2
 
+# Install git-lfs
+RUN apt-get update && apt-get install git-lfs
 
 ### Set working directory.
 WORKDIR /home/matlab

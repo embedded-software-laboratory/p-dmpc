@@ -1,54 +1,206 @@
-classdef PrioritizedSequentialController < PrioritizedController
+classdef PrioritizedSequentialController < HighLevelController
+
+    properties (Access = protected)
+        hlcs (1, :) % PrioritizedController
+    end
 
     methods
 
-        function obj = PrioritizedSequentialController(scenario, vehicle_ids)
-            obj = obj@PrioritizedController(scenario, vehicle_ids);
+        function obj = PrioritizedSequentialController()
+            obj@HighLevelController();
+        end
+
+        function add_hlc(obj, hlc)
+
+            if isempty(obj.hlcs)
+                % Set correct data type of hlcs
+                if isa(hlc, 'PrioritizedExplorativeController')
+                    % test for PrioritizedExplorativeController first, since
+                    % the child is also a parent
+                    obj.hlcs = PrioritizedExplorativeController.empty;
+                elseif isa(hlc, 'PrioritizedOptimalController')
+                    % test for PrioritizedOptimalController second
+                    obj.hlcs = PrioritizedOptimalController.empty;
+                elseif isa(hlc, 'PrioritizedController')
+                    obj.hlcs = PrioritizedController.empty;
+                end
+
+            end
+
+            obj.hlcs(end + 1) = hlc;
         end
 
     end
 
     methods (Access = protected)
 
+        function increment_time_step(obj)
+
+            for hlc = obj.hlcs
+                hlc.increment_time_step();
+            end
+
+        end
+
+        function synchronize_start_with_other_controllers(obj)
+
+            for hlc = obj.hlcs
+                hlc.synchronize_start_with_other_controllers();
+            end
+
+        end
+
+        function update_controlled_vehicles_traffic_info(obj)
+
+            for hlc = obj.hlcs
+                hlc.update_controlled_vehicles_traffic_info();
+            end
+
+        end
+
+        function update_hdv_traffic_info(obj)
+
+            for hlc = obj.hlcs
+                hlc.update_hdv_traffic_info();
+            end
+
+        end
+
+        function create_coupling_graph(obj)
+
+            for hlc = obj.hlcs
+                hlc.create_coupling_graph();
+            end
+
+        end
+
         function controller(obj)
-            % PB_CONTROLLER_PARL Plan trajectory for one time step using a
-            % priority-based controller. Vehicles inside one group plan in sequence and
-            % between groups plan in pararllel. Controller simulates multiple
+            % CONTROLLER Plan trajectory for one time step using a
+            % prioritized controller. Vehicles inside one group plan in sequence and
+            % between groups plan in parallel. Controller simulates multiple
             % distributed controllers in a for-loop.
 
-            runtime_others = obj.init_step();
+            levels_of_vehicles = kahn(obj.merged_graph("directed_coupling_sequential"));
 
-            msg_send_time = zeros(1, obj.amount);
-            runtime_planning = zeros(1, obj.amount);
+            for i_level = 1:max(levels_of_vehicles)
+                vehicles_in_level = find(levels_of_vehicles == i_level);
 
-            for level_j = 1:length(obj.CL_based_hierarchy)
-                vehs_level_i = obj.CL_based_hierarchy(level_j).members; % vehicles of all groups in the same computation level
-
-                for vehicle_idx = vehs_level_i
-
-                    if ismember(vehicle_idx, obj.info.vehs_fallback)
-                        % jump to next vehicle if the selected vehicle should take fallback
-                        obj.info.runtime_graph_search_each_veh(vehicle_idx) = 0;
-                        continue
-                    end
-
-                    % plan for vehicle_idx
-                    runtime_planning(vehicle_idx) = obj.plan_single_vehicle(vehicle_idx);
-                end
-
-                % Communicate data to other vehicles
-                for vehicle_k = vehs_level_i
-                    msg_send_time(vehicle_k) = obj.publish_predictions(vehicle_k);
+                for i_vehicle = vehicles_in_level
+                    obj.hlcs(i_vehicle).controller();
                 end
 
             end
 
-            % Calculate the total runtime of each group
-            obj.info = get_run_time_total_all_grps(obj.info, ...
-                obj.iter.parl_groups_info, obj.CL_based_hierarchy, ...
-                msg_send_time, runtime_others, runtime_planning);
+        end
 
-            obj.iter.lanelet_crossing_areas = obj.lanelet_crossing_areas;
+        function result = merged_graph(obj, graph_name)
+
+            result = zeros(length(obj.hlcs), length(obj.hlcs));
+
+            % currently unnecessary as all coupling graphs are the same
+            for hlc = obj.hlcs
+                result = result | hlc.iter.(graph_name);
+            end
+
+        end
+
+        function handle_others_fallback(obj)
+
+            for hlc = obj.hlcs
+                hlc.handle_others_fallback();
+            end
+
+        end
+
+        function controller_fallback(~)
+            % is implemented in hlcs
+        end
+
+        function store_control_info(obj)
+
+            for hlc = obj.hlcs
+                hlc.store_control_info();
+            end
+
+        end
+
+        function store_iteration_results(obj)
+
+            for hlc = obj.hlcs
+                hlc.store_iteration_results();
+            end
+
+        end
+
+        function reset_control_loop_data(obj)
+
+            for hlc = obj.hlcs
+                hlc.reset_control_loop_data();
+            end
+
+        end
+
+        function apply(obj)
+
+            for hlc = obj.hlcs
+                hlc.apply();
+            end
+
+        end
+
+        function result = should_stop(obj)
+            result = false;
+
+            for hlc = obj.hlcs
+
+                if hlc.should_stop()
+                    result = true;
+                    return
+                end
+
+            end
+
+        end
+
+        function end_run(obj)
+
+            for hlc = obj.hlcs
+                hlc.end_run();
+                obj.experiment_result{end + 1} = hlc.experiment_result;
+            end
+
+        end
+
+        function main_init(obj)
+
+            for hlc = obj.hlcs
+                hlc.main_init();
+            end
+
+        end
+
+        function synchronize_start_with_plant(obj)
+
+            for hlc = obj.hlcs
+                hlc.synchronize_start_with_plant();
+            end
+
+        end
+
+        function update_traffic(obj)
+
+            for hlc = obj.hlcs
+                hlc.update_traffic();
+            end
+
+        end
+
+        function set_run_succeeded(obj, is_run_succeeded)
+
+            for hlc = obj.hlcs
+                hlc.set_run_succeeded(is_run_succeeded);
+            end
+
         end
 
     end

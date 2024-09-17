@@ -1,25 +1,20 @@
-function [result, scenario] = main_distributed(vehicle_id)
+function experiment_result = main_distributed(i_vehicle, optional)
 
-    %startup();
-
-    if verLessThan('matlab', '9.12')
-        warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
+    arguments
+        i_vehicle (1, 1) double
+        optional.options (1, 1) Config = Config.load_from_file('Config.json')
     end
 
-    % read scenario from disk
-    scenario = load('scenario.mat', 'scenario').scenario;
+    % In prioritized computation, vehicles communicate via ROS 2.
+    % main.m will have deleted the ros2 message types before distributing the code.
+    % Therefore, the the ros2 message types need to be created here before experiment setup.
+    generate_ros2_msgs();
 
-    % get HLC
-    factory = HLCFactory();
-    factory.set_scenario(scenario);
-    dry_run = (scenario.options.environment == Environment.CpmLab);
-    plant = PlantFactory.get_experiment_interface(scenario.options.environment);
-
-    if scenario.options.is_prioritized == true
-        hlc = factory.get_hlc(vehicle_id, dry_run, plant);
-        [result, scenario] = hlc.run();
-    else
-        warning("Use main_distributed.m only for pb-scenarios.")
-    end
+    hlc = HlcFactory.get_hlc( ...
+        optional.options, ...
+        i_vehicle, ...
+        do_dry_run = optional.options.should_do_dry_run ...
+    );
+    experiment_result = hlc.run();
 
 end

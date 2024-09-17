@@ -1,8 +1,9 @@
 classdef ConstantPrioritizer < Prioritizer
-    % constant_priority  Instance of interface_priority used for priority
-    % assignment, fixed priority according to vehicle ids
-
-    properties (Access = private)
+    % ConstantPrioritizer  Assign fixed priority. Defaults to priorities
+    % according to vehicle ids.
+    properties
+        % priority array must be longer than the number of agents
+        current_priorities (1, :) double = 1:50;
     end
 
     methods
@@ -10,27 +11,12 @@ classdef ConstantPrioritizer < Prioritizer
         function obj = ConstantPrioritizer()
         end
 
-        function [directed_coupling] = prioritize(~, ~, iter)
-            adjacency = iter.adjacency;
+        function [directed_coupling] = prioritize(obj, iter, ~, ~, ~)
+            obj.current_priorities = obj.current_priorities(1:iter.amount);
+            directed_coupling = Prioritizer.directed_coupling_from_priorities( ...
+                iter.adjacency, obj.current_priorities ...
+            );
 
-            directed_coupling = adjacency;
-            nVeh = size(adjacency, 1);
-            ConstPrio = 1:nVeh;
-
-            for iVeh = 1:nVeh
-
-                for jVeh = 1:nVeh
-
-                    if directed_coupling(iVeh, jVeh) && (ConstPrio(iVeh) > ConstPrio(jVeh))
-                        directed_coupling(iVeh, jVeh) = 0;
-                    end
-
-                end
-
-            end
-
-            [isDAG, ~] = kahn(directed_coupling);
-            assert(isDAG, 'Coupling matrix is not a DAG');
         end
 
     end

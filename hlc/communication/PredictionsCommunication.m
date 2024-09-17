@@ -1,107 +1,103 @@
-classdef PredictionsCommunication
-    % SCENARIO  Communication class
+classdef PredictionsCommunication < InterHlcCommunication
+    % communication class for predictions message
 
     properties
-        ros2_node; % node of ROS 2
-        vehicle_id; % vehicle ID
-        publisher; % vehicle as publisher to send message
-        time_step = int32(0); % time step
-        stored_msgs; % stored messages
-        msg_to_be_sent; % initialize message type
-        options; % options to create publisher and subscriber
-    end
-
-    properties (Dependent)
 
     end
 
     methods
 
-        function obj = PredictionsCommunication()
-            % Create node connected to ROS 2 network for communication
-            %             setenv("ROS_DOMAIN_ID","11") % change domain ID from default value 0 to 11. Vehicles can only communicate inside the same domain.
-            %             domain_ID = 11; % Vehicles can only communicate with vehicles in the same domain.
-        end
+        function obj = PredictionsCommunication( ...
+                vehicle_index, ...
+                ros2_node, ...
+                topic_name, ...
+                message_type ...
+            )
 
-        function obj = initialize_communication(obj, vehicle_id)
-            obj.vehicle_id = vehicle_id;
-            node_name = ['/node_', num2str(obj.vehicle_id)];
-            obj.ros2_node = ros2node(node_name);
-            obj.msg_to_be_sent = ros2message('veh_msgs/Predictions'); % create ROS 2 message structure
-            obj.options = struct("History", "keeplast", "Depth", 40, "Durability", "transientlocal");
-        end
-
-        function obj = create_publisher(obj)
-            % workaround to be able to create publisher in the lab
-            obj.publisher = ros2publisher(obj.ros2_node, "/parameter_events");
-            % create publisher: each vehicle send message only to its own topic with name '/vehicle_ID'
-            topic_name_publish = ['/vehicle_', num2str(obj.vehicle_id), '_pred'];
-            obj.publisher = ros2publisher(obj.ros2_node, topic_name_publish, "veh_msgs/Predictions", obj.options);
-        end
-
-        function ros_subscribers = create_subscriber(obj, veh_indices_to_be_subscribed, veh_ids_to_be_subscribed, amount)
-
-            ros_subscribers = cell(amount, 1);
-
-            for i = 1:length(veh_indices_to_be_subscribed)
-                veh_id = veh_ids_to_be_subscribed(i);
-                topic_name_subscribe = ['/vehicle_', num2str(veh_id), '_pred'];
-                ros_subscribers{veh_indices_to_be_subscribed(i)} = ros2subscriber(obj.ros2_node, topic_name_subscribe, "veh_msgs/Predictions", obj.options);
+            arguments
+                vehicle_index (1, 1) double
+                ros2_node (1, 1) ros2node
+                topic_name (1, :) char
+                message_type (1, :) char
             end
 
+            % create communication class to connect to ROS2 network
+            % call superclass constructor
+            obj = obj@InterHlcCommunication( ...
+                vehicle_index, ...
+                ros2_node, ...
+                topic_name, ...
+                message_type ...
+            );
         end
 
-        function send_message(obj, time_step, predicted_areas, vehs_fallback)
+        function send_message( ...
+                obj, ...
+                time_step, ...
+                predicted_areas, ...
+                needs_fallback, ...
+                priority_permutation ...
+            )
+
+            arguments
+                obj (1, 1) PredictionsCommunication
+                time_step (1, 1) double
+                predicted_areas (1, :) cell
+                needs_fallback (1, 1) logical = false
+                priority_permutation (1, 1) double = 0
+            end
+
             % vehicle send message to its topic
-            obj.msg_to_be_sent.time_step = int32(time_step);
-            obj.msg_to_be_sent.vehicle_id = int32(obj.vehicle_id);
-
-            if nargin <= 3
-                vehs_fallback = int32.empty();
-            end
-
-            obj.msg_to_be_sent.vehs_fallback = int32(vehs_fallback); % which vehicles should take fallback
+            obj.message_to_be_sent.time_step = int32(time_step);
+            obj.message_to_be_sent.vehicle_index = int32(obj.vehicle_index);
+            obj.message_to_be_sent.needs_fallback = needs_fallback;
 
             for i = 1:length(predicted_areas)
-                obj.msg_to_be_sent.predicted_areas(i).x = predicted_areas{i}(1, :)';
-                obj.msg_to_be_sent.predicted_areas(i).y = predicted_areas{i}(2, :)';
+                obj.message_to_be_sent.predicted_areas(i).x = predicted_areas{i}(1, :)';
+                obj.message_to_be_sent.predicted_areas(i).y = predicted_areas{i}(2, :)';
             end
 
-            send(obj.publisher, obj.msg_to_be_sent);
+            obj.message_to_be_sent.priority_permutation = int32(priority_permutation);
+
+            send(obj.ros2_publisher, obj.message_to_be_sent);
         end
 
-        function latest_msg = read_message(~, sub, time_step, timeout)
-            % Read message from the given time step
-            if nargin <= 3
-                timeout = 0.5;
+        function tf = is_msg_outdated( ...
+                obj, ...
+                message_received ...
+            )
+
+            tf = ...
+                ([obj.messages_stored.vehicle_index] == ...
+                message_received.vehicle_index) & ...
+                ([obj.messages_stored.time_step] == ...
+                message_received.time_step) & ...
+                ([obj.messages_stored.priority_permutation] == ...
+                message_received.priority_permutation);
+        end
+
+        function tf = is_found_message( ...
+                obj, ...
+                vehicle_index_subscribed, ...
+                time_step, ...
+                priority_permutation ...
+            )
+
+            arguments
+                obj (1, 1) InterHlcCommunication
+                vehicle_index_subscribed (1, 1) double
+                time_step (1, 1) double
+                priority_permutation (1, 1) double = 0
             end
 
-            is_timeout = true;
-            read_start = tic; read_time = toc(read_start);
+            tf = ...
+                [obj.messages_stored.vehicle_index] == ...
+                int32(vehicle_index_subscribed) & ...
+                [obj.messages_stored.time_step] == ...
+                int32(time_step) & ...
+                [obj.messages_stored.priority_permutation] == ...
+                int32(priority_permutation);
 
-            while read_time < timeout
-
-                if ~isempty(sub.LatestMessage)
-
-                    if sub.LatestMessage.time_step == time_step
-                        %                     disp(['Get current message after ' num2str(read_time) ' seconds.'])
-                        is_timeout = false;
-                        break
-                    end
-
-                end
-
-                read_time = toc(read_start);
-                pause(1e-4)
-            end
-
-            if is_timeout
-                warning(['Unable to receive the current message of step %i from vehicle %s. The pevious message from step ' ...
-                         '%i will be used.'], time_step, sub.TopicName, sub.LatestMessage.time_step)
-            end
-
-            % return the latest message
-            latest_msg = sub.LatestMessage;
         end
 
     end

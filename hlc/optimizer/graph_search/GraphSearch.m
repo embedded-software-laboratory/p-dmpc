@@ -1,31 +1,33 @@
 classdef GraphSearch < OptimizerInterface
 
+    properties
+        set_up_constraints (1, 1) function_handle = @()[];
+        are_constraints_satisfied (1, 1) function_handle = @()[];
+    end
+
     methods
 
-        function obj = GraphSearch(scenario)
-            obj = obj@OptimizerInterface(scenario);
+        function obj = GraphSearch()
+            obj = obj@OptimizerInterface();
         end
 
-        function [info_v, graph_search_time] = run_optimizer(obj, iter, ~)
-            graph_search_timer = tic;
+        function info_v = run_optimizer(obj, ~, iter, mpa, options, ~)
             % execute sub controller for 1-veh scenario
-            info_v = obj.do_graph_search(iter);
-            graph_search_time = toc(graph_search_timer);
+            info_v = obj.do_graph_search(iter, mpa, options);
         end
 
     end
 
     methods (Access = private)
 
-        function info = do_graph_search(obj, iter)
+        function info = do_graph_search(obj, iter, mpa, options)
             % GRAPH_SEARCH  Expand search tree beginning at current node for Hp steps.
             %
             % OUTPUT:
             %   is_exhausted: (true/false) whether graph search is exhausted or not
-            %
-            Hp = obj.scenario.options.Hp;
+
             % initialize variable to store control results
-            info = ControlResultsInfo(iter.amount, Hp, [iter.vehicles.ID]);
+            info = ControlResultsInfo(iter.amount, options.Hp);
 
             shapes_tmp = cell(iter.amount, 0);
             % Create tree with root node
@@ -43,21 +45,8 @@ classdef GraphSearch < OptimizerInterface
             pq = PriorityQueue();
             pq.push(1, 0);
 
-            if obj.scenario.options.is_allow_non_convex && iter.amount == 1
-                % currently two methods for intersecting check are available:
-                % 1. separating axis theorem (SAT) works only for convex polygons
-                % 2. InterX: works for both convex and non-convex polygons
-                method = 'InterX';
-                % if 'InterX' is used, all obstacles can be vectorized to speed up the collision checking
-                [vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas] = vectorize_all_obstacles(iter, obj.scenario);
-            else
-                method = 'sat';
-                % vectorization is currently not supported for 'sat'
-                vehicle_obstacles = [];
-                hdv_obstacles = [];
-                lanelet_boundary = [];
-                lanelet_crossing_areas = [];
-            end
+            [vehicle_obstacles, hdv_obstacles, lanelet_boundary] ...
+                = obj.set_up_constraints(iter, options.Hp);
 
             % Expand leaves of tree until depth or target is reached or until there
             % are no leaves
@@ -72,27 +61,29 @@ classdef GraphSearch < OptimizerInterface
                 end
 
                 % Eval edge
-                [is_valid, shapes] = eval_edge_exact(iter, obj.scenario, info.tree, cur_node_id, vehicle_obstacles, hdv_obstacles, lanelet_boundary, lanelet_crossing_areas, method); % two methods: 'sat' or 'InterX'
+                [is_valid, shapes] = obj.eval_edge_exact( ...
+                    iter, ...
+                    options, ...
+                    mpa, ...
+                    info.tree, ...
+                    cur_node_id, ...
+                    vehicle_obstacles, ...
+                    hdv_obstacles, ...
+                    lanelet_boundary ...
+                );
 
                 if ~is_valid
-                    % could remove node from tree here
-                    %             plot_options = struct('Color',[0.4940 0.1840 0.5560],'LineWidth',0.30);
-                    %             plot_obstacles(shapes,plot_options) % visualize the invalid shape
                     continue
-                    %         else
-                    %             plot_options = struct('Color','r','LineWidth',0.75);
-                    %             plot_obstacles(shapes,plot_options) % visualize the valid shape
                 end
 
                 shapes_tmp(:, cur_node_id) = shapes;
 
-                if info.tree.k(cur_node_id) == Hp
-                    y_pred = return_path_to(cur_node_id, info.tree, obj.scenario);
-                    info.y_predicted = y_pred;
+                if info.tree.k(cur_node_id) == options.Hp
+                    info.y_predicted = return_path_to(cur_node_id, info.tree);
                     info.shapes = return_path_area(shapes_tmp, info.tree, cur_node_id);
                     info.tree_path = fliplr(path_to_root(info.tree, cur_node_id));
                     % Predicted trims in the future Hp time steps. The first entry is the current trims
-                    info.predicted_trims = info.tree.trim(:, info.tree_path);
+                    info.predicted_trims = info.tree.trim(:, info.tree_path(2:end));
                     info.is_exhausted = false;
                     info.needs_fallback = false;
                     info.n_expanded = info.tree.size();
@@ -100,16 +91,104 @@ classdef GraphSearch < OptimizerInterface
                 else
                     % Expand chosen node
                     new_open_nodes = expand_node( ...
-                        obj.scenario ...
-                        , iter ...
-                        , cur_node_id ...
-                        , info ...
+                        options, ...
+                        mpa, ...
+                        iter, ...
+                        cur_node_id, ...
+                        info ...
                     );
                     g_weight = 1;
                     h_weight = 1;
                     new_open_values = info.tree.g(new_open_nodes) * g_weight + info.tree.h(new_open_nodes) * h_weight;
                     % add child nodes
                     pq.push(new_open_nodes, new_open_values);
+                end
+
+            end
+
+        end
+
+        function [is_valid, shapes] = eval_edge_exact( ...
+                obj, ...
+                iter, ...
+                options, ...
+                mpa, ...
+                tree, ...
+                iNode, ...
+                vehicle_obstacles, ...
+                hdv_obstacles, ...
+                lanelet_boundary ...
+            )
+            % EVAL_EDGE_EXACT   Evaluate if edge to vertex is valid.
+            %
+            % OUTPUT:
+            %   is_valid: logical, indicates whether the selected node is collision-free
+            %
+            %   shapes: occupied area of the vehicle if the selected node is chosen
+            %
+
+            is_valid = true;
+            % maneuver shapes correspond to movement TO node
+            node_id_parent = get_parent(tree, iNode);
+            shapes = cell(iter.amount, 1);
+            shapes_without_offset = cell(iter.amount, 1);
+            shapes_for_boundary_check = cell(iter.amount, 1);
+
+            if ~node_id_parent % root node without parent
+                return;
+            end
+
+            pX = tree.x(:, node_id_parent);
+            pY = tree.y(:, node_id_parent);
+            pYaw = tree.yaw(:, node_id_parent);
+            pTrim = tree.trim(:, node_id_parent);
+
+            cTrim = tree.trim(:, iNode);
+            cK = tree.k(:, iNode);
+
+            for iVeh = 1:iter.amount
+                t1 = pTrim(iVeh);
+                t2 = cTrim(iVeh);
+
+                maneuver = mpa.maneuvers{t1, t2};
+
+                c = cos(pYaw(iVeh));
+                s = sin(pYaw(iVeh));
+
+                shape_x = c * maneuver.area(1, :) - s * maneuver.area(2, :) + pX(iVeh);
+                shape_y = s * maneuver.area(1, :) + c * maneuver.area(2, :) + pY(iVeh);
+                shapes{iVeh} = [shape_x; shape_y];
+
+                shape_x_without_offset = c * maneuver.area_without_offset(1, :) - s * maneuver.area_without_offset(2, :) + pX(iVeh);
+                shape_y_without_offset = s * maneuver.area_without_offset(1, :) + c * maneuver.area_without_offset(2, :) + pY(iVeh);
+                shapes_without_offset{iVeh} = [shape_x_without_offset; shape_y_without_offset];
+
+                if tree.k(iNode) == options.Hp
+                    % with larger offset
+                    shape_x_for_boundary_check = c * maneuver.area_large_offset(1, :) - s * maneuver.area_large_offset(2, :) + pX(iVeh);
+                    shape_y_for_boundary_check = s * maneuver.area_large_offset(1, :) + c * maneuver.area_large_offset(2, :) + pY(iVeh);
+                    shapes_for_boundary_check{iVeh} = [shape_x_for_boundary_check; shape_y_for_boundary_check];
+                else
+                    % without offset
+                    shapes_for_boundary_check{iVeh} = shapes_without_offset{iVeh};
+                end
+
+                i_step = cK;
+
+                % check if collides with other vehicles' predicted trajectory or lanelets
+                is_valid = obj.are_constraints_satisfied( ...
+                    iter, ...
+                    iVeh, ...
+                    shapes, ...
+                    shapes_for_boundary_check, ...
+                    i_step, ...
+                    vehicle_obstacles, ...
+                    lanelet_boundary, ...
+                    hdv_obstacles ...
+                );
+
+                if ~is_valid
+                    return;
                 end
 
             end

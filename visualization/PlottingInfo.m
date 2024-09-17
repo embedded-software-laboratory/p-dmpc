@@ -1,88 +1,68 @@
 classdef PlottingInfo
 
     properties
-        trajectory_predictions
+        x0 (3, :) % (x, y, yaw) x n_vehicles
+        % predicted trajectory including x0, (x, y, yaw) x prediction horizon x n_vehicles
+        trajectory_predictions (3, :, :)
         ref_trajectory
-        priorities
         n_obstacles
-        n_dynamic_obstacles
         obstacles
-        dynamic_obstacles
-        dynamic_obstacles_shape
         reachable_sets
         step
-        veh_indices % vehicles to which the plot info belong
-        tick_now
-        lanelet_crossing_areas
-        weighted_coupling_reduced
+        time_seconds
+        vehicle_indices % vehicles to which the plot info belong
         directed_coupling
-        belonging_vector = []
-        coupling_info
+        directed_coupling_sequential
+        weighted_coupling
     end
 
     methods
 
-        function obj = PlottingInfo(veh_indices, result, k, tick_now)
+        function obj = PlottingInfo( ...
+                vehicle_indices, ...
+                experiment_result, ...
+                k, ...
+                time_seconds, ...
+                x0, ...
+                optional ...
+            )
+
+            arguments
+                vehicle_indices (1, :) double = 0
+                experiment_result ExperimentResult = ExperimentResult.empty % (1, 1)
+                k double = 0 % (1, 1)
+                time_seconds (1, 1) double = -1
+                x0 (3, :) double = zeros(3, 0) % 3 x n_vehicles
+                optional.reachable_sets (:, :) cell = {} % n_vehicles x prediction_horizon
+            end
 
             if nargin == 0
                 return;
             end
 
-            obj.veh_indices = veh_indices;
+            if nargin == 3
+                time_seconds = k * experiment_result.options.dt_seconds;
+                x0 = experiment_result.iteration_data(k).x0(vehicle_indices, 1:3)';
+            end
+
+            obj.vehicle_indices = vehicle_indices;
             obj.step = k;
-            obj.tick_now = tick_now;
-            obj.trajectory_predictions = result.trajectory_predictions(:, k);
-            obj.ref_trajectory = result.iteration_structs{k}.reference_trajectory_points;
-            obj.priorities = result.priority_list(:, k);
-            obj.n_obstacles = size(result.obstacles, 2);
-            obj.n_dynamic_obstacles = size(result.iteration_structs{k}.dynamic_obstacle_fullres, 1);
+            obj.time_seconds = time_seconds;
+            obj.x0 = x0;
+            obj.trajectory_predictions = experiment_result.get_y_predicted(k);
+            obj.ref_trajectory = experiment_result.iteration_data(k).reference_trajectory_points;
+            obj.n_obstacles = size(experiment_result.iteration_data(k).obstacles, 1);
 
             if obj.n_obstacles > 0
-                obj.obstacles = result.obstacles;
+                obj.obstacles = experiment_result.iteration_data(k).obstacles;
             end
 
-            if obj.n_dynamic_obstacles > 0
-                obj.dynamic_obstacles = result.iteration_structs{k}.dynamic_obstacle_fullres{:, k};
-                obj.dynamic_obstacles_shape = result.iteration_structs{k}.dynamic_obstacle_shape;
-            end
+            obj.reachable_sets = optional.reachable_sets;
 
-            obj.reachable_sets = result.iteration_structs{k}.reachable_sets;
+            obj.directed_coupling = experiment_result.iteration_data(k).directed_coupling;
+            obj.directed_coupling_sequential = experiment_result.iteration_data(k).directed_coupling_sequential;
 
-            if isfield(result, "lanelet_crossing_areas")
-                obj.lanelet_crossing_areas = result.lanelet_crossing_areas{k};
-            end
-
-            obj.directed_coupling = result.directed_coupling{k};
-
-            if ~isempty(result.iteration_structs{k}.weighted_coupling_reduced)
-                obj.weighted_coupling_reduced = result.iteration_structs{k}.weighted_coupling_reduced;
-
-                if ( ...
-                        result.scenario.options.is_prioritized && ...
-                        result.scenario.options.scenario_type == ScenarioType.commonroad ...
-                    )
-                    obj.belonging_vector = result.belonging_vector(:, k);
-                    obj.coupling_info = result.coupling_info{k};
-                end
-
-            end
-
-        end
-
-        function obj = filter(obj, overall_amount_of_veh, plot_options)
-            filter_self = false(1, overall_amount_of_veh);
-            filter_self(obj.veh_indices(1)) = true;
-            obj.trajectory_predictions = obj.trajectory_predictions{filter_self'};
-            obj.ref_trajectory = obj.ref_trajectory(filter_self, :, :);
-            obj.priorities = obj.priorities(filter_self');
-
-            if plot_options.plot_reachable_sets
-                obj.reachable_sets = obj.reachable_sets{filter_self, :};
-            end
-
-            if plot_options.plot_lanelet_crossing_areas
-                obj.lanelet_crossing_areas = obj.lanelet_crossing_areas{filter_self};
-            end
+            obj.weighted_coupling = experiment_result.iteration_data(k).weighted_coupling;
 
         end
 

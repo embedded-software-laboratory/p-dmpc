@@ -1,41 +1,95 @@
 classdef Scenario
     % SCENARIO  Scenario class
 
-    properties
-        vehicles = []; % array of Vehicle objects
-        obstacles = {}; % static obstacles = {[xs;ys],...}
-        lanelet_crossing_areas = {}; % crossing area of one vehicle's lanelet with another vehicle's lanelet
-        mpa;
-        options;
-        speed_profile_mpas = [];
+    properties (Access = public)
+        vehicles (1, :) Vehicle; % array of Vehicle objects
+        obstacles = {}; % (n_obstacle, 1) static obstacles = {[x;y];...}
+        dynamic_obstacle_area = {}; % (n_obstacle, Hp) dynamic obstacles = {[x;y],...}
 
-        model = [];
-        r_goal = 0.1; % goal circle
-        dynamic_obstacle_area = {};
-        dynamic_obstacle_shape = {};
-        dynamic_obstacle_fullres = {};
-        dynamic_obstacle_reachableSets = {}; % reachable sets of the coupled vehicles with higher priorities in other groups
-
-        assignPrios = false;
         lanelets; % coordinates of all lanelets
         intersection_lanelets; % IDs of intersection lanelets
-        boundary;
         road_raw_data; % raw road data
         road_data_file_path; % path to file of road data
         lanelet_boundary; % boundaries of all lanelets
         lanelet_relationships; % relationship between two adjacent lanelets
-        adjacency_lanelets; % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent
-        priority_list = 1; % priority list of vehicles; a smaller value for a higher priority
+        adjacency_lanelets (:, :) logical; % (nLanelets x nLanelets) matrix, entry is 1 if two lanelets are adjacent
         intersection_center = [2.25, 2]; % (numOfIntersection x 2) matrix, positions of intersection center
-        random_stream = RandStream('mt19937ar'); % for reproducibility
-    end
 
-    properties (Dependent)
+        plot_limits (2, 2) double = [0, 4.5; 0, 4]; % [xmin xmax; ymin ymax]
     end
 
     methods
 
-        function obj = Scenario()
+        function obj = Scenario(options)
+            obj.vehicles(1, options.amount) = Vehicle();
+        end
+
+        function plot(obj, optional)
+
+            arguments
+                obj (1, 1) Scenario;
+                optional.fig (1, 1) matlab.ui.Figure = figure(Visible = "on");
+            end
+
+            set(0, 'CurrentFigure', optional.fig);
+            daspect([1 1 1]);
+
+            xlim(obj.plot_limits(1, :));
+            ylim(obj.plot_limits(2, :));
+
+            for iVeh = 1:numel(obj.vehicles)
+                veh = obj.vehicles(iVeh);
+                % reference trajectory
+                line( ...
+                    veh.reference_path(:, 1), ...
+                    veh.reference_path(:, 2), ...
+                    LineStyle = '--', ...
+                    Color = rwth_color_order(iVeh) ...
+                );
+
+                % vehicle rectangle
+                veh.plot(rwth_color_order(iVeh));
+
+                % path ID
+                text( ...
+                    veh.x_start, ...
+                    veh.y_start, ...
+                    num2str(iVeh) ...
+                );
+            end
+
+            % Obstacles
+            for o = obj.obstacles
+                oCont = o{:};
+                patch(oCont(1, :), oCont(2, :), [0.5 0.5 0.5]);
+            end
+
+            xlabel('$x$ [m]')
+            ylabel('$y$ [m]')
+        end
+
+    end
+
+    methods (Static)
+
+        function scenario = create(options)
+
+            arguments
+                options (1, 1) Config;
+            end
+
+            switch options.scenario_type
+                case ScenarioType.circle
+                    scenario = Circle(options);
+                case ScenarioType.commonroad
+                    scenario = Commonroad(options);
+                case ScenarioType.lanelet2
+                    scenario = Lanelet2(options);
+                case ScenarioType.testbed_default
+                    scenario = Scenario(options);
+                    disp('Scenario is created later after map is retrieved via UnifiedTestbedInterface');
+            end
+
         end
 
     end

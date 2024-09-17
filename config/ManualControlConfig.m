@@ -1,9 +1,14 @@
 classdef ManualControlConfig
-    %MANUALCONTROLCONFIG Configuration specificed to Manual Control Scenarios
+    % ManualControlConfig Configuration specified to Manual Control Scenarios
 
     properties
-        amount = 0;
-        hdv_ids = []; % vehicle ID of manually controlled vehicle (MCV) TODO: assing manually
+        % whether manual vehicles should be considered
+        is_active (1, 1) logical = false;
+        % amount of manually controlled vehicles
+        amount (1, 1) double = 0;
+        % vehicle ids of manually controlled vehicle (MCV)
+        % data type is related to *vehicle_ids in Plant.m
+        hdv_ids (1, :) uint8 = [];
     end
 
     methods
@@ -11,11 +16,21 @@ classdef ManualControlConfig
         function obj = ManualControlConfig()
         end
 
-        function obj = assign_data(obj, struct)
-            %ManualControlConfig Construct an instance of this class
-            %   Detailed explanation goes here
-            obj.amount = struct.amount;
-            obj.hdv_ids = struct.hdv_ids;
+        function obj = jsondecode(obj, json_struct)
+            % for each loop requires fields as row vector
+            fields = string(fieldnames(json_struct)).';
+
+            for field = fields
+
+                if ~isprop(obj, field)
+                    warning('Cannot set property %s for class ManualControlConfig as it does not exist', field);
+                    continue
+                end
+
+                obj.(field) = json_struct.(field);
+
+            end
+
         end
 
     end

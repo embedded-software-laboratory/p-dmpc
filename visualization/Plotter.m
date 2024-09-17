@@ -6,22 +6,24 @@ classdef (Abstract) Plotter < handle
     end
 
     properties (Access = protected)
-        fig (1, 1) matlab.ui.Figure % figure used for plotting
+        fig matlab.ui.Figure % figure used for plotting;
         plot_options (1, 1) OptionsPlotOnline % options for plotting
-        resolution (1, 2) int32 % pixels to plot in horizontal and vertical direction
         priority_colormap (:, 3) double % Colors for computation levels
 
-        scenario (1, 1) Scenario % scenario object
-        veh_indices (1, :) int32 % indices of vehicles for which this plotter instance is responsible
+        options (1, 1) Config % Config object
+        scenario Scenario % (1, 1) scenario object
+        vehicle_indices (1, :) int32 % indices of vehicles for which this plotter instance is responsible
         time_step (1, 1) int64 % keep track wich time step is currently plotted
 
         hotkey_description (1, :) string % hotkey description text to show
         number_base_hotkeys (1, 1) int32 % number of hotkeys to control Plotter class
+
+        export_fig_config (1, 1) ExportFigConfig
+        vehicle_id_radius (1, 1) double % radius of circle around vehicle ID
     end
 
     properties (Dependent)
         nVeh (1, 1) int32 % number of vehicles
-        strategy (1, 1) string % controller strategy to print
         vehicles (1, :) Vehicle % vehicle objects
 
         hotkey_position (1, 1) double % position to place top left corner of hotkey description text
@@ -30,11 +32,7 @@ classdef (Abstract) Plotter < handle
     methods
 
         function result = get.nVeh(obj)
-            result = length(obj.veh_indices);
-        end
-
-        function result = get.strategy(obj)
-            result = HLCFactory.get_controller_name(obj.scenario.options);
+            result = length(obj.vehicle_indices);
         end
 
         function result = get.vehicles(obj)
@@ -43,35 +41,37 @@ classdef (Abstract) Plotter < handle
 
         function result = get.hotkey_position(obj)
 
-            if obj.scenario.options.scenario_type == ScenarioType.commonroad
-                result = diag(obj.scenario.options.plot_limits) + [-1.6; 0];
-            elseif obj.scenario.options.scenario_type == ScenarioType.circle && obj.scenario.options.amount <= 2
-                result = obj.scenario.options.plot_limits(:, 1) + [0; -0.25];
-            elseif obj.scenario.options.scenario_type == ScenarioType.circle && obj.scenario.options.amount > 2
-                result = diag(obj.scenario.options.plot_limits) + [-2.1; 0];
+            if obj.options.scenario_type == ScenarioType.commonroad
+                result = diag(obj.scenario.plot_limits) + [-1.6; 0];
+            elseif obj.options.scenario_type == ScenarioType.circle && obj.options.amount <= 2
+                result = obj.scenario.plot_limits(:, 1) + [0; -0.25];
+            elseif obj.options.scenario_type == ScenarioType.circle && obj.options.amount > 2
+                result = diag(obj.scenario.plot_limits) + [-2.1; 0];
             else
                 % To be defined according to the specific scenario.
-                result = diag(obj.scenario.options.plot_limits) + [-1.6; 0];
+                result = diag(obj.scenario.plot_limits) + [-1.6; 0];
             end
 
         end
 
-        function obj = Plotter(scenario, veh_indices)
+        function obj = Plotter(options, scenario, vehicle_indices)
             %PLOTTER Create a Plotter object.
             %   Initialize all class members for the first time step and create a figure.
             arguments
+                options (1, 1) Config
                 scenario (1, 1) Scenario
-                veh_indices (1, :) int32 = 1:scenario.options.amount
+                vehicle_indices (1, :) int32 = 1:options.amount
             end
 
             % Initialize variable for key press callback.
             obj.abort = false;
 
-            % General plotting options.
-            obj.resolution = [1920 1080];
-            obj.plot_options = scenario.options.options_plot_online;
+            % General plotting options
+            obj.options = options;
             obj.scenario = scenario;
-            obj.veh_indices = veh_indices;
+            obj.plot_options = options.options_plot_online;
+            obj.export_fig_config = ExportFigConfig().video();
+            obj.vehicle_indices = vehicle_indices;
             obj.time_step = 1;
             % Deactivate coupling lines for distributed plotting.
             if obj.nVeh == 1
@@ -89,33 +89,54 @@ classdef (Abstract) Plotter < handle
 
             % Create figure.
             obj.fig = figure( ...
-                'Visible', 'On', ...
-                'Color', [1 1 1], ...
-                'units', 'pixel', ...
-                'OuterPosition', [100 100 obj.resolution(1) obj.resolution(2)] ...
+                Visible = 'On', ...
+                Color = [1 1 1], ...
+                units = obj.export_fig_config.units, ...
+                OuterPosition = [100 100 obj.export_fig_config.paperwidth obj.export_fig_config.paperheight] ...
             );
 
             if ~isempty(scenario.road_raw_data) && ~isempty(scenario.road_raw_data.lanelet)
-                plot_lanelets(scenario.road_raw_data.lanelet, obj.scenario.options.scenario_type);
+                plot_lanelets(scenario.road_raw_data.lanelet);
             end
 
-            % Define a colormap
-            [obj.priority_colormap, ~] = discrete_colormap();
-            colormap(obj.priority_colormap);
+            obj.set_colormap();
 
             hold on
             box on
             axis equal
-            xlabel('\fontsize{14}{0}$x$ [m]', 'Interpreter', 'LaTex');
-            ylabel('\fontsize{14}{0}$y$ [m]', 'Interpreter', 'LaTex');
-            xlim(scenario.options.plot_limits(1, :));
-            ylim(scenario.options.plot_limits(2, :));
+            xlabel('$x$ [m]', Interpreter = 'LaTex');
+            ylabel('$y$ [m]', Interpreter = 'LaTex');
+            xlim(obj.scenario.plot_limits(1, :));
+            ylim(obj.scenario.plot_limits(2, :));
             daspect([1 1 1])
-            set(0, 'DefaultTextFontname', 'Verdana');
-            set(0, 'DefaultAxesFontName', 'Verdana');
+            set(0, 'DefaultTextFontname', obj.export_fig_config.fontname);
+            set(0, 'DefaultAxesFontName', obj.export_fig_config.fontname);
+
+            obj.fig.CurrentAxes.FontSize = obj.export_fig_config.fontsize;
+
+            %
+            t = text( ...
+                0.5, 0.5, ...
+                '20', ...
+                LineWidth = 1, ...
+                Color = 'black', ...
+                HorizontalAlignment = 'center', ...
+                FontSize = obj.export_fig_config.fontsize, ...
+                Tag = "temporary" ...
+            );
+            extent = t.Extent;
+            delete(t);
+            text_width = extent(3);
+            text_height = extent(4);
+            % compute new radius so that text fits into circle
+            obj.vehicle_id_radius = max(text_width, text_height) * 1.1/2;
 
             % Register key press callback function.
             set(obj.fig, 'WindowKeyPressFcn', @obj.keyPressCallback);
+        end
+
+        function delete(obj)
+            obj.close_figure();
         end
 
         function plot(obj, plotting_info)
@@ -125,52 +146,25 @@ classdef (Abstract) Plotter < handle
                 plotting_info (1, 1) PlottingInfo
             end
 
-            priority_list = plotting_info.priorities;
+            vehicle_to_computation_level = kahn(plotting_info.directed_coupling);
 
             nObst = plotting_info.n_obstacles;
-            nDynObst = plotting_info.n_dynamic_obstacles;
 
             %% Simulation state / scenario plot
 
-            % find all the plots with property "LineWidth 1", which are different to plot_lanelets (default "LineWidth 0.5")
-            % at every time step, delete all these plots while keep plot_lanelets
-            h = findobj('LineWidth', 1);
-            delete(h);
-
-            if obj.plot_options.is_video_mode
-                % in video mode, lanelets should be plotted at each time step
-                hold on
-                box on
-                axis equal
-
-                xlabel('\fontsize{14}{0}$x$ [m]', 'Interpreter', 'LaTex');
-                ylabel('\fontsize{14}{0}$y$ [m]', 'Interpreter', 'LaTex');
-
-                xlim(obj.scenario.options.plot_limits(1, :));
-                ylim(obj.scenario.options.plot_limits(2, :));
-                daspect([1 1 1])
-                plot_lanelets(obj.scenario.road_raw_data.lanelet, obj.scenario.options.scenario_type);
-            end
-
-            find_text_hotkey = findobj('Tag', 'hotkey');
-
-            if obj.plot_options.plot_hotkey_description
-                % Update hot key description.
-                delete(find_text_hotkey);
-                obj.plot_hotkey_description();
-            else
-                % Remove hot key description if it was painted and not to be shown anymore.
-                delete(find_text_hotkey);
-            end
+            delete(findobj(obj.fig, Tag = "temporary"));
+            delete(findobj(obj.fig, Tag = "circle"));
 
             if obj.plot_options.plot_priority
                 % Get plot's priority colorbar and set it to visible or define a new priority colorbar.
-                priority_colorbar = findobj('Tag', 'priority_colorbar');
+                priority_colorbar = findobj(obj.fig, Tag = 'priority_colorbar');
 
                 n_colors_max = size(obj.priority_colormap, 1);
 
                 if isempty(priority_colorbar)
-                    priority_colorbar = colorbar('Tag', 'priority_colorbar', 'FontName', 'Verdana', 'FontSize', 9);
+                    priority_colorbar = colorbar( ...
+                        Tag = 'priority_colorbar' ...
+                    );
                     priority_colorbar.Title.String = 'Priority';
                     priority_colorbar.TickLabels = string(1:n_colors_max);
                     priority_colorbar.TickLength = 0;
@@ -181,147 +175,183 @@ classdef (Abstract) Plotter < handle
                 % Plot labels in the middle of each priority color.
                 priority_colorbar.Ticks = 0.5:n_colors_max - 0.5;
                 % Define the range of the colorbar according to the number of colors.
-                caxis([0 n_colors_max]);
-                %         clim([0 n_colors_max]) % renamed from caxis in R2022a
+                clim([0 n_colors_max]);
             end
 
             %%
-            % Sampled reference trajectory points
-            for v = obj.veh_indices
-                line(plotting_info.ref_trajectory(v, :, 1), ...
-                    plotting_info.ref_trajectory(v, :, 2), ...
-                    'Color', obj.priority_colormap(priority_list(v), :), 'LineStyle', 'none', 'Marker', 'o', ...
-                    'MarkerFaceColor', obj.priority_colormap(priority_list(v), :), 'MarkerSize', 3, 'LineWidth', 1);
-            end
-
-            % predicted trajectory
-            for v = obj.veh_indices
-                line(plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step + 1:end, end], 1), ...
-                    plotting_info.trajectory_predictions{v}([1:obj.scenario.options.tick_per_step + 1:end, end], 2), ...
-                    'Color', obj.priority_colormap(priority_list(v), :), 'LineStyle', 'none', 'Marker', '+', ...
-                    'MarkerFaceColor', obj.priority_colormap(priority_list(v), :), 'MarkerSize', 3, 'LineWidth', 1);
-                % Matlab R2021a:
-                %'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','|','MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
-                % Matlab R2020a:
-                %'Color',priority_colormap(priority_list(v),:),'LineStyle','none','Marker','+','MarkerFaceColor',priority_colormap(priority_list(v),:),'MarkerSize', 3, 'LineWidth',1 );
-                line(plotting_info.trajectory_predictions{v}(:, 1), ...
-                    plotting_info.trajectory_predictions{v}(:, 2), ...
-                    'Color', obj.priority_colormap(priority_list(v), :), 'LineWidth', 1);
-            end
-
-            % Vehicle rectangles
-            for v = obj.veh_indices
-                veh = obj.vehicles(v);
-                pos_step = plotting_info.trajectory_predictions{v};
-                x = pos_step(plotting_info.tick_now, :);
-                vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
-                patch(vehiclePolygon(1, :) ...
-                    , vehiclePolygon(2, :) ...
-                    , obj.priority_colormap(priority_list(v), :) ...
-                    , 'LineWidth', 1 ...
+            for i_vehicle = obj.vehicle_indices
+                % Sampled reference trajectory points
+                line( ...
+                    plotting_info.ref_trajectory(i_vehicle, :, 1), ...
+                    plotting_info.ref_trajectory(i_vehicle, :, 2), ...
+                    Color = obj.priority_colormap(vehicle_to_computation_level(i_vehicle), :), ...
+                    LineStyle = 'none', ...
+                    Marker = 'o', ...
+                    MarkerFaceColor = obj.priority_colormap(vehicle_to_computation_level(i_vehicle), :), ...
+                    MarkerSize = 3, ...
+                    LineWidth = 1, ...
+                    Tag = "temporary" ...
                 );
 
-                % plot the priority
-                %         if obj.plot_options.plot_priority
-                %             text(x(1),x(2),num2str(result.priority(v,plotting_info.step)),'FontSize', 12, 'LineWidth',1,'Color','m');
-                %         end
+                % predicted trajectory
+                x = plotting_info.x0(:, i_vehicle);
+                % markers at time step beginning
+                line( ...
+                    plotting_info.trajectory_predictions(1, :, i_vehicle), ...
+                    plotting_info.trajectory_predictions(2, :, i_vehicle), ...
+                    Color = obj.priority_colormap(vehicle_to_computation_level(i_vehicle), :), ...
+                    LineStyle = 'none', ...
+                    Marker = '+', ...
+                    MarkerFaceColor = obj.priority_colormap(vehicle_to_computation_level(i_vehicle), :), ...
+                    MarkerSize = 3, ...
+                    LineWidth = 1, ...
+                    Tag = "temporary" ...
+                );
+                % interpolate line with spline
+                t_prediction_horizon = obj.options.dt_seconds * obj.options.Hp;
+                t_sample_points = 0:obj.options.dt_seconds:t_prediction_horizon;
+                dt_sampling_seconds = 50 * 1e-3;
+                t_query = 0:dt_sampling_seconds:t_prediction_horizon;
+                interpolated_trajectory_prediction = interp1( ...
+                    t_sample_points, ...
+                    [x'; squeeze(plotting_info.trajectory_predictions(:, :, i_vehicle))'], ...
+                    t_query, ...
+                    'spline' ...
+                )';
+                line( ...
+                    interpolated_trajectory_prediction(1, :), ...
+                    interpolated_trajectory_prediction(2, :), ...
+                    Color = obj.priority_colormap(vehicle_to_computation_level(i_vehicle), :), ...
+                    LineWidth = 1, ...
+                    Tag = "temporary" ...
+                );
 
-                % plot the vehicle index in the middle of each vehicle on a lighter background
+                % Vehicle rectangles
+                veh = obj.vehicles(i_vehicle);
+                vehiclePolygon = transformed_rectangle(x(1), x(2), x(3), veh.Length, veh.Width);
+                patch( ...
+                    vehiclePolygon(1, :) ...
+                    , vehiclePolygon(2, :) ...
+                    , obj.priority_colormap(vehicle_to_computation_level(i_vehicle), :) ...
+                    , LineWidth = 1 ...
+                    , Tag = "temporary" ...
+                );
+
+                % plot the vehicle ID in the middle of each vehicle on a lighter background
                 if obj.plot_options.plot_vehicle_id
-                    radius = veh.Width * 0.95/2;
-                    rectangle('Position', [x(1) - radius, x(2) - radius, 2 * radius, 2 * radius], 'Curvature', [1, 1], ...
-                        'FaceColor', [1, 1, 1, 0.75], 'LineStyle', 'none', 'LineWidth', 1, 'Tag', 'circle');
-                    text(x(1), x(2), num2str(v), 'FontSize', 10, 'LineWidth', 1, 'Color', 'black', 'HorizontalAlignment', 'center');
-                end
 
-                % plot the vehicle ID
-                %         if obj.plot_options.plot_vehicle_id
-                %             text(x(1)+0.1,x(2)+0.1,num2str(veh.ID),'FontSize', 12, 'LineWidth',1,'Color','b');
-                %         end
+                    rectangle( ...
+                        Position = [x(1) - obj.vehicle_id_radius, x(2) - obj.vehicle_id_radius, 2 * obj.vehicle_id_radius, 2 * obj.vehicle_id_radius], ...
+                        Curvature = [1, 1], ...
+                        FaceColor = [1, 1, 1, 0.75], ...
+                        LineStyle = 'none', ...
+                        LineWidth = 1, ...
+                        Tag = 'circle' ...
+                    );
+
+                    text( ...
+                        x(1), x(2), ...
+                        num2str(i_vehicle), ...
+                        LineWidth = 1, ...
+                        Color = 'black', ...
+                        HorizontalAlignment = 'center', ...
+                        FontSize = obj.export_fig_config.fontsize, ...
+                        Tag = "temporary" ...
+                    );
+                end
 
                 if obj.plot_options.plot_reachable_sets
-
-                    if isempty(obj.plot_options.vehicles_reachable_sets)
-                        [RS_x, RS_y] = boundary(plotting_info.reachable_sets{v, obj.scenario.options.Hp});
-                        line(RS_x, RS_y, 'LineWidth', 1.0, 'Color', 'k');
-                    elseif ismember(v, obj.plot_options.vehicles_reachable_sets)
-                        % specify vehicles whose reachable sets should be shown
-                        [RS_x, RS_y] = boundary(plotting_info.reachable_sets{v, obj.scenario.options.Hp});
-                        line(RS_x, RS_y, 'LineWidth', 1.0, 'Color', 'k');
-                    end
-
-                end
-
-                if obj.plot_options.plot_lanelet_crossing_areas && ~isempty(plotting_info.lanelet_crossing_areas)
-                    LCA = plotting_info.lanelet_crossing_areas{v};
-
-                    if ~isempty(LCA)
-
-                        if isempty(obj.plot_options.vehicles_lanelet_crossing_areas)
-                            LCAs_xy = [LCA{:}];
-                            line(LCAs_xy(1, :), LCAs_xy(2, :), 'LineWidth', 1, 'Color', 'k');
-                        elseif ismember(v, obj.plot_options.vehicles_lanelet_crossing_areas)
-                            % specify vehicles whose lanelet crossing areas should be shown
-                            LCAs_xy = [LCA{:}];
-                            line(LCAs_xy(1, :), LCAs_xy(2, :), 'LineWidth', 1, 'Color', 'k');
-                        end
-
-                    end
-
+                    obj.plot_reachable_sets(plotting_info, i_vehicle);
                 end
 
             end
 
             % plot scenario adjacency
             if obj.plot_options.plot_coupling
-                radius = veh.Width * 0.95/2;
-                coupling_visu = struct('FontSize', 9, 'LineWidth', 1, 'isShowLine', obj.plot_options.plot_coupling, 'isShowValue', obj.plot_options.plot_weight, 'radius', radius);
-                x0 = cellfun(@(c)c(plotting_info.tick_now, :), plotting_info.trajectory_predictions, 'UniformOutput', false);
-                x0 = cell2mat(x0);
+                coupling_visu = struct( ...
+                    LineWidth = 1 ...
+                    , isShowLine = obj.plot_options.plot_coupling ...
+                    , isShowValue = obj.plot_options.plot_weight ...
+                    , radius = obj.vehicle_id_radius ...
+                    , FontSize = obj.export_fig_config.fontsize - 2 ...
+                );
 
-                if ~isempty(plotting_info.weighted_coupling_reduced)
-                    plot_coupling_lines(plotting_info.weighted_coupling_reduced, x0, plotting_info.belonging_vector, plotting_info.coupling_info, coupling_visu)
-                else
-                    plot_coupling_lines(plotting_info.directed_coupling, x0, [], [], coupling_visu)
-                end
+                plot_coupling_lines( ...
+                    plotting_info.weighted_coupling, ...
+                    plotting_info.directed_coupling_sequential, ...
+                    plotting_info.x0', ...
+                    coupling_visu ...
+                );
 
             end
-
-            %     plot distance
-            %     text((iter.x0(v,1)+iter.x0(adj_v,1))/2,(iter.x0(v,2)+iter.x0(adj_v,2))/2,...
-            %         num2str(round(result.distance(v,adj_v,plotting_info.step),2)),'FontSize', 12, 'LineWidth',1,'Color','b');
 
             % Obstacle rectangle
             for obs = 1:nObst
                 patch(plotting_info.obstacles{obs}(1, :) ...
                     , plotting_info.obstacles{obs}(2, :) ...
                     , [0.5 0.5 0.5] ...
-                    , 'LineWidth', 1 ...
+                    , LineWidth = 1 ...
+                    , Tag = "temporary" ...
                 );
             end
 
-            % dynamic obstacles
-            for obs = 1:nDynObst
-                pos_step = plotting_info.dynamic_obstacle_fullres{obs};
-                x = pos_step(plotting_info.tick_now, :);
-                obstaclePolygon = transformed_rectangle(x(1), x(2), pi / 2, plotting_info.dynamic_obstacles_shape(1), plotting_info.dynamic_obstacles_shape(2));
-                patch(obstaclePolygon(1, :) ...
-                    , obstaclePolygon(2, :) ...
-                    , [0.5 0.5 0.5] ...
-                    , 'LineWidth', 1 ...
-                );
+            if obj.options.is_prioritized
+                priority_text = char(obj.options.priority);
+                priority_text = erase(priority_text, '_priority');
+            else
+                priority_text = 'centralized';
             end
 
-            t = title(sprintf('Scenario: \\verb!%s!, Optimizer: \\verb!%s!, Strategy: \\verb!%s!, \nStep: %i, Time: %3.1fs', ...
-                obj.scenario.options.scenario_type, ...
-                'Graph Search', ...
-                obj.strategy, ...
+            optimizer_text = lower(erase( ...
+                string(obj.options.optimizer_type), ...
+                ["Cpp", "Matlab"] ...
+            ));
+
+            title_text = sprintf( ...
+                'Optimizer: %s, Prioritization: %s, $N_{CL}=%2i$ \nTime step: %3i, Time: %4.1f s', ...
+                optimizer_text, ...
+                priority_text, ...
+                obj.options.max_num_CLs, ...
                 plotting_info.step, ...
-                (double(plotting_info.step) - 1) * obj.scenario.options.dt + (plotting_info.tick_now - 1) * obj.scenario.options.time_per_tick), 'Interpreter', 'latex', 'FontSize', 12);
+                plotting_info.time_seconds ...
+            );
+            t = title( ...
+                title_text, ...
+                Interpreter = 'latex' ...
+            );
 
-            set(t, 'HorizontalAlignment', 'center');
+            set(t, HorizontalAlignment = 'center');
 
             drawnow
+        end
+
+        function plot_reachable_sets(obj, plotting_info, vehicle_indices)
+
+            arguments
+                obj (1, 1) Plotter
+                plotting_info (1, 1) PlottingInfo
+                vehicle_indices (1, :) int32 = obj.vehicle_indices;
+            end
+
+            is_plottable = ~cellfun(@isempty, plotting_info.reachable_sets);
+            vehicle_indices = vehicle_indices(is_plottable);
+
+            for i_vehicle = vehicle_indices
+
+                if ~isempty(obj.plot_options.vehicles_reachable_sets) ...
+                        && ~ismember(i_vehicle, obj.plot_options.vehicles_reachable_sets)
+                    continue
+                end
+
+                line( ...
+                    plotting_info.reachable_sets{i_vehicle, obj.options.Hp}(1, :), ...
+                    plotting_info.reachable_sets{i_vehicle, obj.options.Hp}(2, :), ...
+                    LineWidth = 1.0, ...
+                    Color = 'k', ...
+                    Tag = "temporary" ...
+                );
+            end
+
         end
 
         function fig = get_figure(obj)
@@ -330,8 +360,32 @@ classdef (Abstract) Plotter < handle
 
         function close_figure(obj)
             %CLOSE_FIGURE Close the used plotting figure.
+            try %#ok<TRYNC>
+                close(obj.fig);
+            end
 
-            close(obj.fig);
+        end
+
+        function set_figure_visibility(obj, option)
+
+            arguments
+                obj Plotter
+                option (1, 1) logical = true
+            end
+
+            obj.fig.Visible = option;
+        end
+
+        function set_colormap(obj, optional)
+            %SET_COLORMAP Set the colormap for the plot.
+            arguments
+                obj (1, 1) Plotter
+                optional.colormap (:, 3) double = discrete_colormap()
+            end
+
+            % Define a colormap
+            obj.priority_colormap = optional.colormap;
+            colormap(obj.priority_colormap);
         end
 
     end
@@ -372,16 +426,17 @@ classdef (Abstract) Plotter < handle
                 obj.hotkey_description(7) = '{\itr}: show reachable sets';
             end
 
-            if obj.plot_options.plot_lanelet_crossing_areas
-                obj.hotkey_description(8) = '{\itl}: hide lanelet crossing areas';
-            else
-                obj.hotkey_description(8) = '{\itl}: show lanelet crossing areas';
-            end
-
             if obj.paused
                 obj.hotkey_description(11) = "{\itspace}: start simulation";
             else
                 obj.hotkey_description(11) = "{\itspace}: stop simulation";
+            end
+
+            delete(findobj(obj.fig, Tag = 'hotkey'));
+
+            if obj.plot_options.plot_hotkey_description
+                % Update hot key description.
+                obj.plot_hotkey_description();
             end
 
         end
@@ -391,8 +446,12 @@ classdef (Abstract) Plotter < handle
             %   Plot the hotkey descriptions next to the scenario plot.
 
             position = obj.hotkey_position;
-            text(position(1), position(2), obj.hotkey_description, 'FontSize', 12, ...
-                'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'Tag', 'hotkey');
+            text(position(1), position(2), obj.hotkey_description, ...
+                HorizontalAlignment = 'left', ...
+                VerticalAlignment = 'top', ...
+                FontSize = obj.export_fig_config.fontsize, ...
+                Tag = 'hotkey' ...
+            );
         end
 
         function keyPressCallback(obj, ~, eventdata)
@@ -432,7 +491,7 @@ classdef (Abstract) Plotter < handle
                         disp('Show vehicle priorities.')
                     else
                         disp('Hide vehicle priorities.')
-                        find_colorbar = findall(gcf, 'Type', 'ColorBar', 'Tag', 'priority_colorbar');
+                        find_colorbar = findall(gcf, 'Type', 'ColorBar', Tag = 'priority_colorbar');
 
                         if ~isempty(find_colorbar)
                             find_colorbar.Visible = 'off';
@@ -471,15 +530,6 @@ classdef (Abstract) Plotter < handle
                         disp('Show reachable sets.')
                     else
                         disp('Hide reachable sets.')
-                    end
-
-                case 'l'
-                    obj.plot_options.plot_lanelet_crossing_areas = ~obj.plot_options.plot_lanelet_crossing_areas;
-
-                    if obj.plot_options.plot_lanelet_crossing_areas
-                        disp('Show lanelet crossing areas.')
-                    else
-                        disp('Hide lanelet crossing areas.')
                     end
 
                 case 'h'

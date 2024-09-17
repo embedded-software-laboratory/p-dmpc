@@ -1,112 +1,81 @@
-function [result, scenario] = main(varargin)
-    % MAIN  main function for graph-based receeding horizon control
+function experiment_result = main(options, optional)
+    % MAIN  main function for graph-based receding horizon control
 
-    if verLessThan('matlab', '9.12')
-        warning("Code is developed in MATLAB 2022a, prepare for backward incompatibilities.")
+    arguments
+        options (1, 1) Config = config_gui();
+        % vehicle IDs of vehicles in the CPM Lab
+        optional.vehicle_ids (:, 1) double = 1:options.amount;
     end
 
-    % check if Config object is given as input
-    options = read_object_from_input(varargin, 'Config');
-    % check if Scenario object is given as input
-    scenario = read_object_from_input(varargin, 'Scenario');
+    if isMATLABReleaseOlderThan('R2023a')
+        warning("Code is developed in MATLAB R2023a, prepare for backward incompatibilities.")
+    end
 
-    % If scenario/options are not given, determine from UI
-    if isempty(scenario)
+    options.save_to_file();
 
-        if isempty(options)
+    % create scenario and write it to disk (with default name)
+    scenario = Scenario.create(options);
+    save(Config().scenario_file, 'scenario');
 
-            try
-                options = start_options();
-            catch ME
-                warning(ME.message);
-                return
-            end
-
-        end
-
-        plant = PlantFactory.get_experiment_interface(options.environment);
-        % create scenario
-        random_seed = RandStream('mt19937ar');
-        scenario = create_scenario(options, random_seed, plant);
+    % inform where experiment takes place
+    if options.environment == Environment.Simulation
+        disp('Running in MATLAB simulation...')
     else
-        plant = PlantFactory.get_experiment_interface(scenario.options.environment);
+        disp('Running in Lab...')
     end
 
-    % write scenario to disk if distributed (for lab or local debugging with main_distributed())
-    if scenario.options.is_prioritized == true
-        save('scenario.mat', 'scenario');
+    if options.is_prioritized
+        % In prioritized computation, vehicles communicate via ROS 2.
+        % Generate the ros2 msgs types.
+        generate_ros2_msgs();
     end
 
-    is_prioritized_parallel_in_lab = (scenario.options.is_prioritized && scenario.options.environment == Environment.CpmLab && scenario.options.compute_in_parallel);
+    plotter = PlotterOnline(options, scenario);
 
-    if is_prioritized_parallel_in_lab
-        disp('Scenario was written to disk. Select main_distributed(vehicle_id) in LCC next.')
+    if options.computation_mode == ComputationMode.sequential ...
+            || ~options.is_prioritized ...
+            || options.amount == 1
 
-        if exist("commun/cust1/matlab_msg_gen", 'dir')
+        hlc = HlcFactory.get_hlc(options, 1:options.amount, do_dry_run = options.should_do_dry_run);
+        experiment_result = hlc.run();
+        plotter.plotting_loop();
 
-            try
-                rmdir("commun/cust1/matlab_msg_gen", 's');
-            catch
-                warning("Unable to delete commun/cust1/matlab_msg_gen. Please delete manually");
-            end
+    elseif options.computation_mode == ComputationMode.parallel_threads
+        % simulate distribution locally using the Parallel Computing Toolbox
+        get_parallel_pool(options.amount);
 
+        future(1:options.amount) = parallel.FevalFuture;
+
+        for i_vehicle = 1:options.amount
+            future(i_vehicle) = parfeval( ...
+                @main_distributed, ...
+                1, ...
+                i_vehicle, ...
+                options = options ...
+            );
         end
 
-        if exist("commun/cust2/matlab_msg_gen", "dir")
+        plotter.plotting_loop();
 
-            try
-                rmdir("commun/cust2/matlab_msg_gen", 's');
-            catch
-                warning("Unable to delete commun/cust2/matlab_msg_gen. Please delete manually");
-            end
+        experiment_result = fetchOutputs(future, UniformOutput = false);
 
-        end
-
-    else
-        hlc_factory = HLCFactory();
-        hlc_factory.set_scenario(scenario);
-        dry_run = (scenario.options.environment == Environment.CpmLab);
-
-        if scenario.options.use_cpp
-            optimizer(Function.CheckMexFunction);
-        end
-
-        if scenario.options.is_prioritized == true && scenario.options.compute_in_parallel
-            %% simulate distribution locally using the Parallel Computing Toolbox
-            get_parallel_pool(scenario.options.amount);
-
-            do_plot = scenario.options.options_plot_online.is_active;
-            can_handle_parallel_plot = isa(plant, 'SimLab');
-
-            if do_plot
-
-                if can_handle_parallel_plot
-                    visualization_data_queue = plant.set_visualization_data_queue;
-                    % create central plotter - used by all workers via data queue
-                    plotter = PlotterOnline(hlc_factory.scenario);
-                    afterEach(visualization_data_queue, @plotter.data_queue_callback);
-                else
-                    warning('The currently selected environment cannot handle plotting of a parallel execution!');
-                end
-
-            end
-
-            spmd (scenario.options.amount)
-                hlc = hlc_factory.get_hlc(scenario.options.veh_ids(labindex), dry_run, plant);
-                [result, scenario] = hlc.run();
-            end
-
-            if do_plot
-                plotter.close_figure();
-            end
-
-            result = {result{:}};
-            scenario = {scenario{:}};
-        else
-            hlc = hlc_factory.get_hlc(scenario.options.veh_ids, dry_run, plant);
-            [result, scenario] = hlc.run();
-        end
-
+    elseif options.computation_mode == ComputationMode.parallel_physically
+        push_files_to_nuc();
+        % On changes to ROS messages or MPA library, remove files with `remove_cache_nuc()`
+        deploy_nuc(vehicle_ids = optional.vehicle_ids);
+        fprintf('Running experiment...\n');
+        plotter.plotting_loop();
+        fprintf('Running experiment done.\n')
+        experiment_result = collect_results_nuc( ...
+            options = options, ...
+            vehicle_ids = optional.vehicle_ids ...
+        );
     end
 
+    if numel(experiment_result) > 1
+        experiment_result = merge_experiment_results([experiment_result{:}]);
+    end
+
+    experiment_result = experiment_result.add_meta_information();
+    experiment_result.save_merged();
 end

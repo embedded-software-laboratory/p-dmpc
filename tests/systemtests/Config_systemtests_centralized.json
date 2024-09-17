@@ -1,0 +1,13 @@
+{
+    "amount": 2,
+    "path_ids": [
+        18,
+        20
+    ],
+    "T_end": 4,
+    "max_num_CLs": 2,
+    "mpa_type": "single_speed",
+    "options_plot_online": {
+        "is_active": false
+    }
+}

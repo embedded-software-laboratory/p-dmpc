@@ -11,28 +11,15 @@ classdef RandomPrioritizer < Prioritizer
             obj.is_assign_unique_priority = false; % whether to asign unique priority
         end
 
-        function [directed_coupling] = prioritize(~, ~, iter)
+        function [directed_coupling] = prioritize(~, iter, time_step, ~, ~)
             adjacency = iter.adjacency;
 
-            priority_rand_stream = RandStream("mt19937ar", "Seed", iter.k);
-            directed_coupling = adjacency;
+            priority_rand_stream = RandStream("mt19937ar", "Seed", time_step);
             nVeh = size(adjacency, 1);
-            RandPrio = randperm(priority_rand_stream, nVeh, nVeh);
+            current_priorities = randperm(priority_rand_stream, nVeh, nVeh);
 
-            for iVeh = 1:nVeh
+            directed_coupling = Prioritizer.directed_coupling_from_priorities(adjacency, current_priorities);
 
-                for jVeh = 1:nVeh
-
-                    if directed_coupling(iVeh, jVeh) && (RandPrio(iVeh) > RandPrio(jVeh))
-                        directed_coupling(iVeh, jVeh) = 0;
-                    end
-
-                end
-
-            end
-
-            [isDAG, ~] = kahn(directed_coupling);
-            assert(isDAG, 'Coupling matrix is not a DAG');
         end
 
     end

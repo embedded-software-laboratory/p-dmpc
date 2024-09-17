@@ -1,9 +1,9 @@
 # Ignore output
 results/
-profile_results
-ui/Config.json
+profile_results*
 Config.json
-
+Config/mcts.json
+derived/*
 
 # Ignore PDF file
 *.pdf
@@ -60,6 +60,7 @@ Temporary Items
 ### MATLAB ###
 # MATLAB matfile
 *.mat
+!tests/systemtests/expected_results/**/*.mat
 
 # Windows default autosave extension
 *.asv
@@ -152,6 +153,7 @@ CMakeSettings.json
 
 hlc/optimizer/graph_search_mex/CMakeFiles/
 hlc/optimizer/graph_search_mex/x64/
+hlc/optimizer/graph_search_mex/Makefile
 hlc/optimizer/graph_search_mex/optimizer.dir/
 CMakeCache.txt
 
