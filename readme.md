@@ -71,6 +71,36 @@ Please refer to the respective publication if you are using it for your work. Th
 
 <details>
 <summary>
+P. Scheffe, J. Kahle and B. Alrifaee, "Simultaneous Computation of Multiple Prioritizations in Distributed MPC", to be published shortly
+<br>
+
+<!-- icons from https://simpleicons.org/ -->
+
+<!-- [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](http://dx.doi.org/10.13140/RG.2.2.32731.03368) -->
+
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v7.0)
+
+<!-- [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/alGHLwQQpHI) -->
+
+</summary>
+<p>
+
+Checkout the [the software version 7.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v7.0).
+The results of the publication can be reproduced by running
+
+```matlab
+open graph_based_planning.prj
+eval_exploration()
+```
+
+The simulation results are produced in the [CPM Lab](cpm.embedded.rwth-aachen.de) on 20 Intel NUCs. The results can partly be reproduced on a single computer by changing `computation_mode = ComputationMode.parallel_physically` to `computation_mode = ComputationMode.parallel_threads`.
+The results are saved in the folder "results".
+
+</p>
+</details>
+
+<details>
+<summary>
 P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees," 2024 European Control Conference (ECC), Stockholm, Sweden, 2024, doi: 10.23919/ECC64448.2024.10591179.
 <br>
 
