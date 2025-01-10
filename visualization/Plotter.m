@@ -388,6 +388,14 @@ classdef (Abstract) Plotter < handle
             colormap(obj.priority_colormap);
         end
 
+        function set_export_fig_config(obj, export_fig_config)
+            arguments
+                obj (1, 1) Plotter
+                export_fig_config (1, 1) ExportFigConfig
+            end
+            obj.export_fig_config = export_fig_config;
+        end
+
     end
 
     methods (Access = protected)

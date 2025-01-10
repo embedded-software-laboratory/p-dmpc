@@ -308,6 +308,7 @@ classdef Config
                                      "time_per_tick"
                                      "is_use_dynamic_programming"
                                      "options_plot_online"
+                                     "should_do_dry_run"
                                      ];
 
             for property = all_properties

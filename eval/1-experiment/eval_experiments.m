@@ -9,6 +9,7 @@ function experiment_results = eval_experiments(optional)
         optional.optimizer (1, 1) OptimizerType = OptimizerType.MatlabOptimal
         optional.priority_strategies (1, :) PriorityStrategies = PriorityStrategies.constant_priority
         optional.max_num_CLs (1, :) double = 99;
+        optional.Hp (1, 1) double = 6;
     end
 
     arguments (Output)
@@ -37,7 +38,7 @@ function experiment_results = eval_experiments(optional)
     % High-Level Controller
     options.optimizer_type = optional.optimizer;
     options.mpa_type = MpaType.triple_speed;
-    options.should_do_dry_run = true;
+    options.Hp = optional.Hp;
 
     experiment_results = ExperimentResult.empty();
 

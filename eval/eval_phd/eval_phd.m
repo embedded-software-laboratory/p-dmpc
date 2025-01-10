@@ -1,0 +1,67 @@
+function eval_phd(optional)
+
+    arguments
+        optional.cpm_lab_experiment_result (1, 1) string = fullfile(FileNameConstructor.all_results(), 'cpm_lab.mat')
+    end
+
+    % Experiment results were gathered with script `eval_all`
+
+    % eval_prioritization( ...
+    %     computation_mode = ComputationMode.parallel_physically, ...
+    %     optimizers = OptimizerType.MatlabSampled ...
+    % );
+
+    % eval_prioritization( ...
+    %     computation_mode = ComputationMode.parallel_physically, ...
+    %     scenarios = ScenarioType.circle, ...
+    %     optimizers = OptimizerType.MatlabSampled, ...
+    %     Hp = 10 ...
+    % );
+
+    % eval_bounding( ...
+    %     computation_mode = ComputationMode.parallel_physically, ...
+    %     optimizer = OptimizerType.MatlabSampled ...
+    % );
+
+
+    eval_bounding( ...
+        computation_mode = ComputationMode.parallel_physically, ...
+        scenarios = ScenarioType.circle, ...
+        optimizers = OptimizerType.MatlabSampled, ...
+        Hp = 10 ...
+    );
+
+    %%
+    %  ██████╗██████╗ ███╗   ███╗    ██╗      █████╗ ██████╗
+    % ██╔════╝██╔══██╗████╗ ████║    ██║     ██╔══██╗██╔══██╗
+    % ██║     ██████╔╝██╔████╔██║    ██║     ███████║██████╔╝
+    % ██║     ██╔═══╝ ██║╚██╔╝██║    ██║     ██╔══██║██╔══██╗
+    % ╚██████╗██║     ██║ ╚═╝ ██║    ███████╗██║  ██║██████╔╝
+    %  ╚═════╝╚═╝     ╚═╝     ╚═╝    ╚══════╝╚═╝  ╚═╝╚═════╝
+
+    i_step_start = 21;
+    cpm_lab_experiment_result = load(optional.cpm_lab_experiment_result).experiment_result;
+    % ---
+    % time per vehicle
+    t_cpm_lab = data_time_prioritize_optimize_experiment(cpm_lab_experiment_result);
+    % time NCS
+    t_cpm_lab = max(t_cpm_lab, [], 1);
+    % remove first time steps where code is loaded JIT
+    t_cpm_lab = t_cpm_lab(i_step_start:end);
+
+    t_cpm_lab_med = median(t_cpm_lab);
+    t_cpm_lab_max = max(t_cpm_lab);
+
+    filename = 'values.txt';
+    filepath = fullfile(FileNameConstructor.all_results(), 'phd', filename);
+    fileID = fopen(filepath, 'w');
+
+    file_closer = onCleanup(@()fclose(fileID));
+
+    str_to_write = sprintf( ...
+        "CPM Lab -- max: %5.2f ms -- med: %5.2f ms\n" ...
+        , t_cpm_lab_max * 1000 ...
+        , t_cpm_lab_med * 1000 ...
+    );
+    fwrite(fileID, str_to_write);
+end

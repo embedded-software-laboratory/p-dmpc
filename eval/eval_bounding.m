@@ -1,13 +1,29 @@
-function eval_grouping(optional)
+function eval_bounding(optional)
 
     arguments
         optional.computation_mode (1, 1) ComputationMode = ComputationMode.sequential
+        optional.scenarios (1, :) ScenarioType = [ScenarioType.commonroad, ScenarioType.circle]
+        optional.optimizers (1, :) OptimizerType = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled]
+        optional.Hp (1, 1) double = 6;
+        optional.base_folder string = fullfile(FileNameConstructor.all_results(), 'phd');
     end
 
     max_num_CLs = [1, 2, 4, 6, 99];
 
-    scenarios = [ScenarioType.commonroad, ScenarioType.circle];
-    optimizers = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled];
+    legendtext = string("$\bar{N}_c = "+max_num_CLs + "$")';
+    legendtext = replace(legendtext, "99", "\infty");
+
+    scenarios = optional.scenarios;
+    optimizers = optional.optimizers;
+
+    if (optional.Hp == 6)
+        base_folder_bounding = fullfile(optional.base_folder, 'bounding');
+    else
+        base_folder_bounding = fullfile(optional.base_folder, sprintf('bounding_Hp%d', optional.Hp));
+    end
+
+    [is_base_folder, ~] = mkdir(base_folder_bounding);
+    assert(is_base_folder);
 
     for scenario = scenarios
 
@@ -17,38 +33,36 @@ function eval_grouping(optional)
                 computation_mode = optional.computation_mode, ...
                 scenario_type = scenario, ...
                 optimizer = optimizer, ...
-                max_num_CLs = max_num_CLs ...
+                max_num_CLs = max_num_CLs, ...
+                Hp = optional.Hp ...
             );
-            save('experiment_results_grouping.mat', 'experiment_results')
+            n_vehicles = [experiment_results(:, 1, 1).n_hlc];
 
-            % Plot cost
-            % Process results
+            %%
+            %    ______           __
+            %   / ____/___  _____/ /_
+            %  / /   / __ \/ ___/ __/
+            % / /___/ /_/ (__  ) /_
+            % \____/\____/____/\__/
+
             cost_percent_average = data_cost_percent(experiment_results);
 
-            % plot
-            n_vehicles = [experiment_results(:, 1, 1).n_hlc];
-            fig = figure;
-            bar(n_vehicles, cost_percent_average);
-            % legend
-            legendtext = string(max_num_CLs);
-            legendtext = arrayfun( ...
-                @(element) strcat("$N_\mathrm{CL} = ", element, "$"), ...
-                legendtext ...
+            fig = figure(visible = 'off');
+            series_plot_value( ...
+                experiment_results, ...
+                cost_percent_average, ...
+                legendtext, ...
+                ylabel = "$J_{\bar{N}_{c}} / J_{\bar{N}_{c}=1}$ [\%]" ...
             );
-            legendtext(end) = "$N_{\mathrm{CL}, \infty}$";
-            legend(legendtext)
-            % axes
-            xlabel("$N_A$")
-            ylabel( ...
-                "$J_\mathrm{NCS}(N_\mathrm{CL}) / J_\mathrm{NCS}(N_{\mathrm{CL}} = 1)$ [\%]", ...
-                Interpreter = "latex" ...
-            );
+
+            num_cls_infty_over_vehicles = zeros(length(n_vehicles), 1);
 
             for i_num_vehicles = 1:length(n_vehicles)
                 num_cls_infty = max( ...
                     [experiment_results(i_num_vehicles, end, :).max_number_of_computation_levels] ...
                 );
-                label = strcat("$N_{\mathrm{CL},\infty} = ", sprintf("%d", num_cls_infty), "$");
+                num_cls_infty_over_vehicles(i_num_vehicles) = num_cls_infty;
+                label = strcat("$N_{c,\infty} = ", sprintf("%d", num_cls_infty), "$");
 
                 y_text = 0;
 
@@ -65,35 +79,52 @@ function eval_grouping(optional)
             end
 
             set_figure_properties(fig, ExportFigConfig.presentation());
-            filename = sprintf('grouping_cost_%s_%s.pdf', scenario, optimizer);
-            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            filename = sprintf('6-bounding_cost_%s_%s.pdf', scenario, optimizer);
+            filepath = fullfile(base_folder_bounding, filename);
             export_fig(fig, filepath);
             close all;
+
+            % data export
+            n_vehicles = [experiment_results(:, 1, 1).n_hlc]';
+            cost_table = array2table([n_vehicles, cost_percent_average], ...
+                VariableNames = ["N_A"; legendtext] ...
+            );
+            filename = sprintf('6-bounding_cost_%s_%s.dat', scenario, optimizer);
+            writetable(cost_table, fullfile(base_folder_bounding, filename))
+
+            filename = sprintf('6-bounding_n_c_max_%s_%s.dat', scenario, optimizer);
+            max_nc_table = array2table( ...
+                [n_vehicles, num_cls_infty_over_vehicles], ...
+                VariableNames = ["N_A"; "N_{c,\infty}"] ...
+            );
+            writetable( ...
+                max_nc_table, ...
+                fullfile(base_folder_bounding, filename) ...
+            );
+
+            %%
+            %   _______
+            %  /_  __(_)___ ___  ___
+            %   / / / / __ `__ \/ _ \
+            %  / / / / / / / / /  __/
+            % /_/ /_/_/ /_/ /_/\___/
 
             % Plot computation time
             [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle( ...
                 experiment_results, ...
                 computation_time_function = @data_time_group_optimize_experiment ...
             );
-
-            n_vehicles = [experiment_results(:, 1, 1).n_hlc];
-            fig = figure;
-            max_bar = bar(n_vehicles, time_max_approach_vehicle' .* 1000);
-            hold on
-            med_bar = bar(n_vehicles, time_med_approach_vehicle' .* 1000);
-
-            str_med = "med ";
-            str_max = "max ";
-            % legend
-            legendtext = legendtext';
-            legendtext = [ ...
-                              strcat(repmat(str_med, length(legendtext), 1), legendtext) ...
-                              strcat(repmat(str_max, length(legendtext), 1), legendtext) ...
-                          ];
-            legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex', NumColumns = 2);
-            % axes
-            xlabel('$N_{A}$', Interpreter = 'latex');
-            ylabel('$T_{\mathrm{NCS}}$ [ms]', Interpreter = 'latex');
+            % scale to ms, transpose
+            series_time_max_ms = time_max_approach_vehicle' .* 1000;
+            series_time_med_ms = time_med_approach_vehicle' .* 1000;
+            fig = figure(visible = 'off');
+            series_plot_med_max( ...
+                experiment_results, ...
+                series_time_med_ms, ...
+                series_time_max_ms, ...
+                legendtext, ...
+                export_fig_config = ExportFigConfig.paper(paperheight = 6) ...
+            );
 
             for i_num_vehicles = 1:length(n_vehicles)
                 num_cls_infty = max( ...
@@ -115,39 +146,53 @@ function eval_grouping(optional)
 
             end
 
-            set_figure_properties(fig, ExportFigConfig.presentation());
-            rwth_colors_100 = rwth_color_order;
-            rwth_colors_50 = rwth_color_order_50;
-            colororder( ...
-                fig, ...
-                [rwth_colors_50(1:length(max_num_CLs), :); ...
-                 rwth_colors_100(1:length(max_num_CLs), :)] ...
-            );
-
-            filename = sprintf('grouping_time_%s_%s.pdf', scenario, optimizer);
-            filepath = fullfile(FileNameConstructor.all_results(), filename);
+            filename = sprintf('6-bounding_time_%s_%s.pdf', scenario, optimizer);
+            filepath = fullfile(base_folder_bounding, filename);
             export_fig(fig, filepath);
             close all;
 
-            % Plot computation levels
-            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_n_levels_approach_vehicle(experiment_results);
+            % data export
+            filename = sprintf('6-bounding_time_med_%s_%s.dat', scenario, optimizer);
+            writetable( ...
+                array2table( ...
+                [n_vehicles, series_time_med_ms], ...
+                VariableNames = ["N_A"; legendtext] ...
+            ), ...
+                fullfile(base_folder_bounding, filename) ...
+            );
 
-            n_vehicles = [experiment_results(:, 1, 1).n_hlc];
-            fig = figure;
-            max_bar = bar(n_vehicles, time_max_approach_vehicle');
-            hold on
-            med_bar = bar(n_vehicles, time_med_approach_vehicle');
+            filename = sprintf('6-bounding_time_max_%s_%s.dat', scenario, optimizer);
+            writetable( ...
+                array2table( ...
+                [n_vehicles, series_time_max_ms], ...
+                VariableNames = ["N_A"; legendtext] ...
+            ), ...
+                fullfile(base_folder_bounding, filename) ...
+            );
 
-            legend([med_bar, max_bar], legendtext, Location = 'best', Interpreter = 'latex', NumColumns = 2);
-            % axes
-            xlabel('$N_{A}$', Interpreter = 'latex');
-            ylabel('$N_{\mathrm{CL}}$', Interpreter = 'latex');
+            %%
+            %     __                   __
+            %    / /   ___ _   _____  / /____
+            %   / /   / _ \ | / / _ \/ / ___/
+            %  / /___/  __/ |/ /  __/ (__  )
+            % /_____/\___/|___/\___/_/____/
+            [~, n_levels_med_approach_vehicle, ~, n_levels_max_approach_vehicle] = data_n_levels_approach_vehicle(experiment_results);
+
+            fig = figure(visible = 'off');
+            series_plot_med_max( ...
+                experiment_results, ...
+                n_levels_med_approach_vehicle, ...
+                n_levels_max_approach_vehicle, ...
+                legendtext, ...
+                ylabel = "$N_{c}$", ...
+                export_fig_config = ExportFigConfig.paper(paperheight = 6) ...
+            );
 
             for i_num_vehicles = 1:length(n_vehicles)
                 num_cls_infty = max( ...
                     [experiment_results(i_num_vehicles, end, :).max_number_of_computation_levels] ...
                 );
-                label = strcat("$N_{\mathrm{CL},\infty} = ", sprintf("%d", num_cls_infty), "$");
+                label = strcat("$N_{c,\infty} = ", sprintf("%d", num_cls_infty), "$");
 
                 y_text = 0;
 
@@ -163,19 +208,62 @@ function eval_grouping(optional)
 
             end
 
-            set_figure_properties(fig, ExportFigConfig.presentation());
-            rwth_colors_100 = rwth_color_order;
-            rwth_colors_50 = rwth_color_order_50;
-            colororder( ...
-                fig, ...
-                [rwth_colors_50(1:length(max_num_CLs), :); ...
-                 rwth_colors_100(1:length(max_num_CLs), :)] ...
-            );
-
-            filename = sprintf('grouping_levels_%s_%s.pdf', scenario, optimizer);
+            filename = sprintf('6-bounding_n_levels_%s_%s.pdf', scenario, optimizer);
             filepath = fullfile(FileNameConstructor.all_results(), filename);
             export_fig(fig, filepath);
             close all;
+
+            % data export
+            filename = sprintf('6-bounding_n_levels_med_%s_%s.dat', scenario, optimizer);
+            writetable( ...
+                array2table( ...
+                [n_vehicles, n_levels_med_approach_vehicle'], ...
+                VariableNames = ["N_A"; legendtext] ...
+            ), ...
+                fullfile(base_folder_bounding, filename) ...
+            );
+
+            filename = sprintf('6-bounding_n_levels_max_%s_%s.dat', scenario, optimizer);
+            writetable( ...
+                array2table( ...
+                [n_vehicles, n_levels_max_approach_vehicle'], ...
+                VariableNames = ["N_A"; legendtext] ...
+            ), ...
+                fullfile(base_folder_bounding, filename) ...
+            );
+
+            %%
+            %    _____                        __          __
+            %   / ___/____  ____ _____  _____/ /_  ____  / /______
+            %   \__ \/ __ \/ __ `/ __ \/ ___/ __ \/ __ \/ __/ ___/
+            %  ___/ / / / / /_/ / /_/ (__  ) / / / /_/ / /_(__  )
+            % /____/_/ /_/\__,_/ .___/____/_/ /_/\____/\__/____/
+            %                 /_/
+
+            for experiment_result = experiment_results(:)'
+                % Plotting
+                step_size = round((experiment_result.n_steps + 1) / 6);
+                start_step = experiment_result.n_steps - step_size * 5;
+
+                folder_subpath = fullfile( ...
+                    char(scenario), ...
+                    sprintf("%02d", experiment_result.options.amount), ...
+                    sprintf("Nc-%02d", experiment_result.options.max_num_CLs) ...
+                );
+                experiment_folder = fullfile( ...
+                    base_folder_bounding, ...
+                    folder_subpath ...
+                );
+                [~, ~] = mkdir(experiment_folder);
+                plot_experiment_snapshots( ...
+                    experiment_result, ...
+                    start_step:step_size:experiment_result.n_steps, ...
+                    do_export = true, ...
+                    base_folder = experiment_folder, ...
+                    n_figure_cols = 2 ...
+                );
+            end
+
         end
 
     end

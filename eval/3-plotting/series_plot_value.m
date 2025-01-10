@@ -11,7 +11,7 @@ function series_plot_value( ...
         % (n_vehicles x n_approaches)
         value (:, :) double
         approach_names (1, :) string
-        optional.ylabel (1, 1) string = "$J_p^{(\cdot)} / J_{p_\mathrm{constant}}^{(\cdot)}$ [\%]";
+        optional.ylabel (1, 1) string = "$J_p / J_{p_\mathrm{constant}}$ [\%]";
     end
 
     % Plot cost
