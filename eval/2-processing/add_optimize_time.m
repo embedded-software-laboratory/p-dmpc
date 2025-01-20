@@ -73,13 +73,16 @@ function computation_time = add_optimize_time(experiment_result, computation_tim
 
         end
 
-        for i_level = 1:max(levels_per_vehicle)
+        for i_level = 1:max(levels_per_vehicle(:))
             computation_time_from_level = zeros(size(computation_time(:, i_step)));
+            processed_vehicles = false(n_vehicles, 1);
+
             % Loop over permutations
             for i_perm = 1:n_permutations
 
                 vehicles_on_level = find(levels_per_vehicle(:, i_perm) == i_level);
                 vehicles_on_level = reshape(vehicles_on_level, 1, []);
+                processed_vehicles = or(processed_vehicles, levels_per_vehicle(:, i_perm) == i_level);
 
                 for i_vehicle = vehicles_on_level
                     predecessors = directed_coupling_sequential(:, i_vehicle, i_perm);
@@ -92,7 +95,7 @@ function computation_time = add_optimize_time(experiment_result, computation_tim
 
             end
 
-            computation_time(:, i_step) = computation_time_from_level;
+            computation_time(processed_vehicles, i_step) = computation_time_from_level(processed_vehicles);
         end
 
     end

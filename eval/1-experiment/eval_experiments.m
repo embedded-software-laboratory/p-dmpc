@@ -16,8 +16,8 @@ function experiment_results = eval_experiments(optional)
         experiment_results (:, :, :) ExperimentResult % (n_vehicles x n_approaches x n_scenarios)
     end
 
-    assert(numel(optional.max_num_CLs) == 1 ...
-        || numel(optional.priority_strategies) == 1);
+    assert(isscalar(optional.max_num_CLs) ...
+        || isscalar(optional.priority_strategies));
 
     options = Config();
     % Scenario
