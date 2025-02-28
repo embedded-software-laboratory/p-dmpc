@@ -1,7 +1,7 @@
 function eval_prioritization(optional)
 
     arguments
-        optional.computation_mode (1, 1) ComputationMode = ComputationMode.parallel
+        optional.computation_mode (1, 1) ComputationMode = ComputationMode.parallel_physically
         optional.scenarios (1, :) ScenarioType = [ScenarioType.commonroad, ScenarioType.circle]
         optional.optimizers (1, :) OptimizerType = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled]
         optional.Hp (1, 1) double = 6;
