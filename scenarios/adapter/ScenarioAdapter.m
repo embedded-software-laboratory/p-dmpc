@@ -16,17 +16,7 @@ classdef (Abstract) ScenarioAdapter < handle
 
     methods (Static)
 
-        function scenario_adapter = get_scenario_adapter(scenario_type)
-
-            arguments
-                scenario_type (1, 1) ScenarioType
-            end
-
-            if scenario_type == ScenarioType.testbed_default
-                scenario_adapter = ReceivedScenario();
-                return
-            end
-
+        function scenario_adapter = get_scenario_adapter()
             scenario_adapter = BuiltScenario();
         end
 

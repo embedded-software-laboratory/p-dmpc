@@ -1,5 +1,5 @@
 function replace_expected_results()
-    scenarios = [ScenarioType.circle, ScenarioType.commonroad, ScenarioType.lanelet2];
+    scenarios = [ScenarioType.circle, ScenarioType.commonroad];
 
     results_dir = FileNameConstructor.all_results();
     expected_results_dir = get_expected_result_path(results_dir);

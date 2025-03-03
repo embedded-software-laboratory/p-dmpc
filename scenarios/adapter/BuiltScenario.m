@@ -31,10 +31,6 @@ classdef BuiltScenario < ScenarioAdapter
                 options.amount ...
             )
 
-            if isa(plant, "UnifiedTestbedInterface") && options.scenario_type == ScenarioType.lanelet2
-                plant.register_map(fileread(scenario_loaded.road_data_file_path));
-            end
-
             obj.scenario = scenario_loaded;
 
             % init manual vehicles

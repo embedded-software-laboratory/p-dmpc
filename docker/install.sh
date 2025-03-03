@@ -32,10 +32,6 @@ GCC_VERSION=10
 BOOST_VERSION=1_76_0
 BOOST_VERSION2=1.76.0
 
-# To have a fixed version of Lanelet2 installed on this system, it is needed to specify the commit of the Rosless-Lanelet2 version which shall be used.
-# The Rosless-Lanelet2 repository can be found here: https://github.com/embedded-software-laboratory/Rosless-Lanelet2
-LANELET2_COMMIT=0f190ed17d5060bc30eb03d7ac0d10bf06702096
-
 # To change the Matlab toolboxes to install, change the value of TOOLBOXES.
 # Make sure to replace spaces by underscores and seperate toolboxes by spaces.
 TOOLBOXES="Parallel_Computing_Toolbox ROS_Toolbox Statistics_and_Machine_Learning_Toolbox"
@@ -62,7 +58,6 @@ sudo docker buildx build --load -t $TAG \
   --build-arg CMAKE_VERSION=$CMAKE_VERSION \
   --build-arg BOOST_VERSION=$BOOST_VERSION \
   --build-arg BOOST_VERSION2=$BOOST_VERSION2 \
-  --build-arg LANELET2_COMMIT=$LANELET2_COMMIT \
   --build-arg GCC_VERSION=$GCC_VERSION \
   --build-arg TOOLBOXES="$TOOLBOXES" \
   --build-arg LICENSE_SERVER=$LICENSE_SERVER .

@@ -57,8 +57,6 @@ build:
       - hlc/optimizer/graph_search/priority_queue/priority_queue_interface_mex.mexa64
       - hlc/optimizer/graph_search_cpp/graph_search_cpp_centralized_mex.mexa64
       - hlc/optimizer/graph_search_cpp/graph_search_cpp_priority_mex.mexa64
-      - scenarios/road_network/lanelets/lanelet2/generate_lanelet2_reference_path_loop_indices_mex.mexa64
-      - scenarios/road_network/lanelets/lanelet2/load_lanelet2_map_matlab_mex.mexa64
     expire_in: 1 hour
 
 test:

@@ -55,7 +55,7 @@ classdef (Abstract) HighLevelController < handle
             options.dt_seconds = [];
 
             obj.options = options;
-            obj.scenario_adapter = ScenarioAdapter.get_scenario_adapter(options.scenario_type);
+            obj.scenario_adapter = ScenarioAdapter.get_scenario_adapter();
             obj.plant = plant;
 
             obj.k = 0;

@@ -52,7 +52,6 @@ More detailed information including troubleshooting can be found [here](./docs/S
 
 1. Execute startup.m to open the project
    - Compilation of graph_search_mex should fail
-   - Compilation of lanelet2_interface should fail
    - Compilation of priority_queue should succeed
 2. Execute main.m to run an experiment
    - Select the environment Simulation
@@ -61,7 +60,7 @@ More detailed information including troubleshooting can be found [here](./docs/S
    - Options that does not work in this setup are:
      - Environments: CPM Lab, Unified Lab API
      - Checkbox: use C++
-     - Scenario: Lanelet2, Lab Default
+     - Scenario: Lab Default
 
 More detailed information including lab experiments can be found [here](./docs/Run_Experiments.md).
 

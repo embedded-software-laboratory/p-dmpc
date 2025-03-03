@@ -105,24 +105,7 @@ RUN apt-get update \
     && cd .. && rm boost_$BOOST_VERSION.tar.bz2 && rm -rf boost_$BOOST_VERSION
 
 
-### Install Rosless-Lanelet2 and its dependencies (cf. https://github.com/embedded-software-laboratory/Rosless-Lanelet2)
-# Install Lanelet2 Dependencies
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y libeigen3-dev libgeographic-dev libpugixml-dev
-
-# Download and Build Lanelet2 (version without dependence on ROS)
-WORKDIR /home
-ARG LANELET2_COMMIT=0f190ed17d5060bc30eb03d7ac0d10bf06702096
-RUN git clone https://github.com/embedded-software-laboratory/Rosless-Lanelet2.git --single-branch && \
-    cd Rosless-Lanelet2 && \
-    git checkout $LANELET2_COMMIT && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    cmake --build . --target install && \
-    cd ../.. && \
-    rm -rf Rosless-Lanelet2
-
-# Install git-lfs
+# Install git-lfs for expected test results
 RUN apt-get update && apt-get install git-lfs
 
 ### Set working directory.

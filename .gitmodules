@@ -1,6 +1,3 @@
 [submodule "hlc/communication/unified_testbed_interface/uti_msgs"]
 	path = hlc/communication/unified_testbed_interface/uti_msgs
 	url = https://github.com/embedded-software-laboratory/uti_msgs
-[submodule "scenarios/road_network/lanelets/lanelet2/Rosless-Lanelet2"]
-	path = scenarios/road_network/lanelets/lanelet2/Rosless-Lanelet2
-	url = https://github.com/embedded-software-laboratory/Rosless-Lanelet2.git
