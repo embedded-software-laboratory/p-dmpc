@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<Info Type="StartUp" Visible="0" Icon="" File="hlc/optimizer/graph_search/priority_queue/compile_priority_queue.m" Name="compile_priority_queue">
-    <Extension Value="HEAD" Name="StartUpPrev"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<Info File="hlc/optimizer/graph_search/priority_queue/compile_priority_queue.m" GroupUUID="default" Icon="" Name="compile_priority_queue" Type="StartUp" Visible="0">
+    <Extension Name="StartUpPrev" Value="HEAD"/>
 </Info>
