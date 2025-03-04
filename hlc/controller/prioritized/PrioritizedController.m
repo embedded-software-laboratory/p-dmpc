@@ -44,7 +44,7 @@ classdef PrioritizedController < HighLevelController
             init@HighLevelController(obj);
 
             % construct optimizer
-            obj.optimizer = OptimizerInterface.get_optimizer(obj.options, obj.mpa, obj.scenario_adapter.scenario, obj.plant.vehicle_indices_controlled);
+            obj.optimizer = OptimizerInterface.get_optimizer(obj.options);
 
             % in prioritized computation, vehicles communicate via ROS 2
             timer = tic;

@@ -1,8 +1,8 @@
-# Priority-Based Trajectory Planning for Networked Vehicles Using Motion Primitives
+# Prioritized Motion Planning for Connected Vehicles
 
 [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=embedded-software-laboratory/p-dmpc&project=graph_based_planning.prj&file=main.m)
 
-- [Priority-Based Trajectory Planning for Networked Vehicles Using Motion Primitives](#priority-based-trajectory-planning-for-networked-vehicles-using-motion-primitives)
+- [Prioritized Motion Planning for Connected Vehicles](#prioritized-motion-planning-for-connected-vehicles)
 - [Setup](#setup)
   - [MATLAB R2023a](#matlab-r2023a)
   - [System Requirements for MATLAB ROS Toolbox](#system-requirements-for-matlab-ros-toolbox)
@@ -51,16 +51,13 @@ More detailed information including troubleshooting can be found [here](./docs/S
 # Experiments
 
 1. Execute startup.m to open the project
-   - Compilation of graph_search_mex should fail
    - Compilation of priority_queue should succeed
 2. Execute main.m to run an experiment
-   - Select the environment Simulation
-   - Select the control strategy pb non-coop
-   - Push the Start button to start the experiment
-   - Options that does not work in this setup are:
-     - Environments: CPM Lab, Unified Lab API
-     - Checkbox: use C++
-     - Scenario: Lab Default
+   - Select the environment "Simulation"
+   - Select the control strategy "prioritized"
+   - Push the "Start" button to start the experiment
+   - Options that do not work in this setup are:
+     - Environments: CPM Lab
 
 More detailed information including lab experiments can be found [here](./docs/Run_Experiments.md).
 

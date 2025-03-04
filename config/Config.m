@@ -56,9 +56,6 @@ classdef Config
         % whether to allow non-convex polygons; the separating axis theorem
         % works only for convex polygons.
         are_any_obstacles_non_convex;
-        % execute mex graph search functions in own process
-        mex_out_of_process_execution
-        use_cpp % whether to use the C++ optimizer
     end
 
     methods
@@ -89,23 +86,6 @@ classdef Config
 
         end
 
-        function mex_out_of_process_execution = get.mex_out_of_process_execution(obj)
-            % if prioritized controller runs sequentially with more than 1 vehicle
-            % activate out of process execution for mex function
-            if obj.amount > 1 ...
-                    && obj.is_prioritized ...
-                    && obj.computation_mode == ComputationMode.sequential
-                mex_out_of_process_execution = true;
-            else
-                mex_out_of_process_execution = false;
-            end
-
-        end
-
-        function result = get.use_cpp(obj)
-            result = (obj.optimizer_type == OptimizerType.CppOptimal | obj.optimizer_type == OptimizerType.CppSampled);
-        end
-
         % empty set methods used by jsondecode
         % dependent properties with public GetAccess are encoded to a json file
         % to automatically decode the json file set methods must be defined
@@ -117,12 +97,6 @@ classdef Config
         end
 
         function obj = set.are_any_obstacles_non_convex(obj, ~)
-        end
-
-        function obj = set.mex_out_of_process_execution(obj, ~)
-        end
-
-        function obj = set.use_cpp(obj, ~)
         end
 
     end

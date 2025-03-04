@@ -55,8 +55,6 @@ build:
   artifacts:
     paths:
       - hlc/optimizer/graph_search/priority_queue/priority_queue_interface_mex.mexa64
-      - hlc/optimizer/graph_search_cpp/graph_search_cpp_centralized_mex.mexa64
-      - hlc/optimizer/graph_search_cpp/graph_search_cpp_priority_mex.mexa64
     expire_in: 1 hour
 
 test:

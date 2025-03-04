@@ -1,41 +1,17 @@
 # Setup Details
 
-- [Features](#features)
-- [Installation](#installation)
-- [Troubleshooting](#troubleshooting)
-- [Requirements Remarks](#requirements-remarks)
-
-# Features
-
-- [C++ Functionalities](#c-functionalities)
-
-## C++ Functionalities
-
-Some functionalities such as the graph search can optionally done in C++. The written code uses CMake and the C++ Boost libraries. In order to use them the following requirements must be met.
-
-- [Install CMake 3.19+](#cmake)
-- [Install C++ Compiler](#c-compiler)
-  - Windows: Microsoft Visual Studio Compiler 2019
-  - Ubuntu: GCC and G++ Version 10.x+
-- [Install Boost 1.76](#c-boost)
-- [Install build-essential](#ubuntu-basics) for Ubuntu
-
-# Installation
-
 - [Setup Details](#setup-details)
-- [Features](#features)
-  - [C++ Functionalities](#c-functionalities)
 - [Installation](#installation)
   - [Windows Path Environment Variable](#windows-path-environment-variable)
   - [Ubuntu basics](#ubuntu-basics)
   - [Matlab](#matlab)
   - [Python](#python)
-  - [CMake](#cmake)
   - [C++ Compiler](#c-compiler)
-  - [C++ Boost](#c-boost)
 - [Troubleshooting](#troubleshooting)
   - [Matlab](#matlab-1)
 - [Requirements Remarks](#requirements-remarks)
+
+# Installation
 
 ## Windows Path Environment Variable
 
@@ -114,35 +90,6 @@ Add a path to Path Environment Variable:
   - Configure a specific Python version: `pyenv(Version="3.9")`
   - If Matlab cannot find Python, try: `pyenv(Version=FullPath/Executable)`
 
-## CMake
-
-- Windows: Install CMake via the provided binary ([Windows Download](https://cmake.org/download/))
-- Ubuntu: [Install CMake](https://askubuntu.com/questions/355565/how-do-i-install-the-latest-version-of-cmake-from-the-command-line) latest version under Ubuntu via [Kitware's PPA](https://apt.kitware.com/)
-
-  1. Obtain a copy of kitware's signing key <br>
-     `wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null`
-  2. Add kitware's repository to your sources list and update <br>
-     `sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'` <br> `sudo apt update`
-  3. Install the kitware-archive-keyring package to ensure that your keyring stays up to date as we rotate our keys <br>
-     `sudo apt install kitware-archive-keyring` <br> `sudo rm /etc/apt/trusted.gpg.d/kitware.gpg`
-  4. Note: If running sudo apt update gets the following error
-
-     > Err:7 https://apt.kitware.com/ubuntu bionic InRelease <br>
-     > The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 6AF7F09730B3F0A4 <br>
-     > Fetched 11.0 kB in 1s (7552 B/s)
-
-     Copy the public key _6AF7F09730B3F0A4_ and run the command <br>
-     `sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6AF7F09730B3F0A4`
-
-  5. Finally we can update and install the cmake package <br>
-     `sudo apt update` <br> `sudo apt install cmake`
-
-- Add CMake to system path environment variable
-  - See [Path Environment Variable](#windows-path-environment-variable)
-  - Windows: Standard installation path would look like <br>
-    `"C:\Program Files\CMake\bin\"`
-  - Ubuntu: Not necessary
-
 ## C++ Compiler
 
 - Windows: Install the [Visual Studio 2019 Community Edition](https://learn.microsoft.com/en-us/visualstudio/releases/2019/release-notes). The (free) Community Edition is sufficient. Select "Desktop development with C++" during the installation.
@@ -155,38 +102,6 @@ Add a path to Path Environment Variable:
   - Install gcc/g++: `sudo apt install gcc-10 g++-10`
   - Set new gcc/g++ versions as default: <br> `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10`
 - Setup the compiler in the Matlab command windows: `mex -setup`
-
-## C++ Boost
-
-- Boost contains mostly header-only libraries (no build required) but also some libraries that must be built. These libraries are built with Boost.Build (B2)
-- Windows: [Installation Guide](https://www.boost.org/doc/libs/1_76_0/more/getting_started/windows.html)
-  1. Download [boost_1_76_0.7z](https://www.boost.org/users/history/version_1_76_0.html)
-  2. Extract the zipped file into `"C:\Program Files\boost\boost_1_76_0"` <br>
-     (This directory is sometimes referred to as $BOOST_ROOT)
-  3. In Visual Studio: Add the directory to C/C++ _Additional Include Directories_
-  4. In the boost directory run `bootstrap.bat` to prepare Boost.Build
-  5. In the boost directory run `.\b2.exe` to build the libraries (this takes some time)
-  6. [CMake FindBoost](https://cmake.org/cmake/help/latest/module/FindBoost.html) searches for Boost in [Environment Variables that must be set](https://github.com/giotto-ai/giotto-tda/issues/115#issuecomment-571502945) <br>
-     _BOOST_ROOT_ = `"C:\Program Files\boost\boost_1_76_0"` <br>
-     _BOOST_INCLUDEDIR_ = `"C:\Program Files\boost\boost_1_76_0"` <br> _BOOST_LIBRARYDIR_ = `"C:\Program Files\boost\boost_1_76_0\stage\lib"`
-- Ubuntu: [Installation Guide](https://www.boost.org/doc/libs/1_76_0/more/getting_started/unix-variants.html) or [External Installation Guide](https://linux.how2shout.com/how-to-install-boost-c-on-ubuntu-20-04-or-22-04/)
-  1. Install dependencies: `sudo apt-get install build-essential g++ python-dev autotools-dev libicu-dev libbz2-dev libboost-all-dev`
-  2. Download [boost_1_76_0.tar.bz2](https://www.boost.org/users/history/version_1_76_0.html): `wget https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2`
-  3. Extract it: `tar -xvjf boost_1_76_0.tar.bz2` and change directory: `cd boost_1_76_0`
-  4. Prepare installation: `./bootstrap.sh --prefix=/usr/local`. If there are multiple boost versions on your system, you might want to install boost in a local folder like `install` instead of `/usr/local`.
-  5. Install libraries (header only and build required): `sudo ./b2 install`
-  6. Remove files no longer needed: <br>
-     `sudo cd ..` <br>
-     `rm boost_1_76_0.tar.bz2` <br>
-     `rm -rf boost_1_76_0`
-  7. EOL: Uninstall boost with: (https://stackoverflow.com/questions/8430332/uninstall-boost-and-install-another-version) <br>
-     `sudo apt-get -y --purge remove libboost-all-dev libboost-doc libboost-dev` <br>
-     `echo "clear boost dir"` <br>
-     `sudo rm -r /usr/local/lib/libboost*` <br>
-     `sudo rm -r /usr/local/include/boost` <br>
-     `sudo rm -r /usr/local/lib/cmake/*` <br>
-     `sudo rm -f /usr/lib/libboost_*` <br>
-     `sudo rm -r /usr/include/boost`
 
 # Troubleshooting
 
@@ -261,13 +176,11 @@ CMake Minimum Version:
 
 - Version 3.16.3+ for Matlab R2022a and earlier (see [ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html))
 - Version 3.19.7 shipped with Matlab R2022b and later (Windows command prompt: <br>`"C:\Program Files\MATLAB\'VERSION'\bin\win64\cmake\bin\cmake.exe" --version`)
-- Version 3.19 for graph search (see `.\hlc\optimizer\graph_search_mex\CMakeList.txt`)
 
 GCC Minimum Version:
 
 - Version 6.3+ (see [ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html))
 - Version 7.x+ (see [Supported Compilers](https://de.mathworks.com/support/requirements/supported-compilers-linux.html))
-- Version 10.x+ (see [C++20 Feature "Coroutines" Requirements](https://gcc.gnu.org/projects/cxx-status.html#cxx20))
 
 Boost Version:
 

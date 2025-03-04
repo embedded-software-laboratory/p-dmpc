@@ -16,13 +16,10 @@ classdef (Abstract) OptimizerInterface < handle
 
     methods (Static)
 
-        function optimizer = get_optimizer(options, mpa, scenario, vehicle_indices_controlled)
-            %GET_OPTIMIZER creates an optimizer dependent on the select Matlab/CppOptimizer
+        function optimizer = get_optimizer(options)
+            %GET_OPTIMIZER creates an optimizer dependent on the selected OptimizerType.
             arguments
                 options (1, 1) Config;
-                mpa (1, 1) MotionPrimitiveAutomaton;
-                scenario (1, 1) Scenario;
-                vehicle_indices_controlled (1, :) double;
             end
 
             switch options.optimizer_type
@@ -32,23 +29,6 @@ classdef (Abstract) OptimizerInterface < handle
                 case OptimizerType.MatlabSampled
                     optimizer = MonteCarloTreeSearch();
                     OptimizerInterface.set_constraint_checker(optimizer, options);
-
-                case OptimizerType.CppOptimal
-
-                    if options.is_prioritized
-                        optimizer = GraphSearchMexPB(options, mpa, scenario, vehicle_indices_controlled, CppOptimizer.GraphSearchPBOptimal);
-                    else
-                        optimizer = GraphSearchMexCentralized(options, mpa, scenario, CppOptimizer.CentralizedOptimalPolymorphic);
-                    end
-
-                case OptimizerType.CppSampled
-
-                    if options.is_prioritized
-                        error('CppSampled can only be used in centralized execution yet.');
-                    else
-                        optimizer = GraphSearchMexCentralized(options, mpa, scenario, CppOptimizer.CentralizedNaiveMonteCarloPolymorphicParallel);
-                    end
-
             end
 
         end

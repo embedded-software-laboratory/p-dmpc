@@ -322,8 +322,6 @@ end
 function [list] = list_optimizer_centralized
     list = {
             '1', 'MatlabOptimal';
-            '2', 'CppOptimal';
-            '3', 'CppSampled';
             };
 end
 
@@ -331,7 +329,6 @@ function [list] = list_optimizer_prioritized
     list = {
             '1', 'MatlabOptimal';
             '2', 'MatlabSampled';
-            '3', 'CppOptimal';
             };
 end
 

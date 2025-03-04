@@ -51,7 +51,5 @@
   "is_use_dynamic_programming": true,
   "tick_per_step": 20,
   "k_end": 25,
-  "are_any_obstacles_non_convex": true,
-  "mex_out_of_process_execution": true,
-  "use_cpp": false
+  "are_any_obstacles_non_convex": true
 }
