@@ -106,7 +106,7 @@ classdef CpmLab < Plant
             % create scenario adapter to get scenario
             % with Simulation only BuiltScenario can be used
             scenario_adapter = BuiltScenario();
-            scenario_adapter.init(options, obj);
+            scenario_adapter.init(options);
 
             % set initial vehicle measurements
             for i_vehicle = 1:options.amount

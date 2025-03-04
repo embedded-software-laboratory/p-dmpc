@@ -46,7 +46,7 @@ classdef Simulation < Plant
             % create scenario adapter to get scenario
             % with Simulation only BuiltScenario can be used
             scenario_adapter = BuiltScenario();
-            scenario_adapter.init(options, obj);
+            scenario_adapter.init(options);
 
             % all vehicles have the same initial speed and steering
             initial_speed = 0;

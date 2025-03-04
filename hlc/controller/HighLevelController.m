@@ -318,7 +318,7 @@ classdef (Abstract) HighLevelController < handle
             obj.options.dt_seconds = obj.plant.get_step_time();
 
             % initialize scenario adapter
-            obj.scenario_adapter.init(obj.options, obj.plant);
+            obj.scenario_adapter.init(obj.options);
 
             % initialize high level controller itself
             obj.init();

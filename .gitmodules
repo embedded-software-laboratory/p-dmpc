@@ -1,3 +1,0 @@
-[submodule "hlc/communication/unified_testbed_interface/uti_msgs"]
-	path = hlc/communication/unified_testbed_interface/uti_msgs
-	url = https://github.com/embedded-software-laboratory/uti_msgs

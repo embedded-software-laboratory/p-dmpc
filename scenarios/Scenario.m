@@ -83,9 +83,6 @@ classdef Scenario
                     scenario = Circle(options);
                 case ScenarioType.commonroad
                     scenario = Commonroad(options);
-                case ScenarioType.testbed_default
-                    scenario = Scenario(options);
-                    disp('Scenario is created later after map is retrieved via UnifiedTestbedInterface');
             end
 
         end
