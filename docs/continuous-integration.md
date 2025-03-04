@@ -144,7 +144,7 @@ Create individual Matlab Docker image (with Python, gcc, ROS):
 - Execute matlab as root
 - Activate matlab using your license or a license server( Set env variable MLM_LICENSE_FILE to use a license server)
 - Install ros toolbox, parallel computing toolbox, Statistics and Machine Learning Toolbox
-- Install python 3.9, cmake, gcc
+- Install python 3.9, gcc
 - Remove your matlab license (Navigate to matlab folder and delete license files)
 - docker commit containerID yourNewImage to build you own Matlab Image based on the modified container
 - Tag image like your gitlab registry (docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG])

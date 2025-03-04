@@ -181,7 +181,3 @@ GCC Minimum Version:
 
 - Version 6.3+ (see [ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html))
 - Version 7.x+ (see [Supported Compilers](https://de.mathworks.com/support/requirements/supported-compilers-linux.html))
-
-Boost Version:
-
-- Version 1.76

@@ -26,7 +26,7 @@ Install MATLAB R2023a with the following toolboxes:
 
 ## System Requirements for MATLAB ROS Toolbox
 
-In our priority-based trajectory planning, vehicles communicate using the MATLAB ROS toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python software, CMake software, and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).
+Vehicles communicate using the MATLAB ROS toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).
 For MATLAB R2023a
 
 - Python
