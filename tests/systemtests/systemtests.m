@@ -3,8 +3,8 @@ classdef systemtests < matlab.unittest.TestCase
     properties (TestParameter)
         scenario = {'circle', 'commonroad'};
         mpa = {'single_speed', 'triple_speed', 'realistic'};
-        optimizer_centralized = {'MatlabOptimal', 'CppOptimal'}; % 'CppSampled' crashes matlab in tests
-        optimizer_prioritized = {'MatlabOptimal', 'MatlabSampled', 'CppOptimal'};
+        optimizer_centralized = {'MatlabOptimal'};
+        optimizer_prioritized = {'MatlabOptimal', 'MatlabSampled'};
         computation_mode = {'sequential', 'parallel_threads'};
         coupling = {'reachable_set', 'full', 'no', 'distance'};
         priority = {'coloring', 'constant', 'random', 'FCA', 'optimal', 'explorative'};

@@ -60,6 +60,8 @@ classdef FileNameConstructor
 
             if options.is_prioritized
                 folder_path = fullfile(folder_path, char(options.priority));
+            else
+                folder_path = fullfile(folder_path, 'centralized');
             end
 
             if ~isfolder(folder_path)
