@@ -67,16 +67,40 @@ Please refer to the respective publication if you are using it for your work. Th
 
 <details>
 <summary>
-P. Scheffe, J. Kahle and B. Alrifaee, "Simultaneous Computation of Multiple Prioritizations in Distributed MPC", to be published shortly
+P. Scheffe, "Prioritized Motion Planning for Connected Vehicles", to be published.
 <br>
 
-<!-- icons from https://simpleicons.org/ -->
+<!-- [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)]() -->
 
-<!-- [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](http://dx.doi.org/10.13140/RG.2.2.32731.03368) -->
-
-[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v7.0)
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v8.0)
 
 <!-- [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/alGHLwQQpHI) -->
+
+</summary>
+<p>
+
+Checkout the [the software version 8.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v8.0).
+The results of the publication can be reproduced by running
+
+```matlab
+open graph_based_planning.prj
+eval_phd()
+```
+
+The simulation results are produced in the [CPM Lab](cpm.embedded.rwth-aachen.de) on 20 Intel NUCs. The results can partly be reproduced on a single computer by changing `computation_mode = ComputationMode.parallel_physically` to `computation_mode = ComputationMode.parallel_threads`.
+The results are saved in the folder "results".
+
+</p>
+</details>
+
+<details>
+<summary>
+P. Scheffe, J. Kahle and B. Alrifaee, "Simultaneous Computation of Multiple Prioritizations in Distributed MPC", arXiv preprint arXiv:2501.10781.
+<br>
+
+[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://arxiv.org/abs/2501.10781)
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v7.0)
+[![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/Mb59zQ3j3s0)
 
 </summary>
 <p>
@@ -97,10 +121,32 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees," 2024 European Control Conference (ECC), Stockholm, Sweden, 2024, doi: 10.23919/ECC64448.2024.10591179.
+P. Scheffe, J. Kahle and B. Alrifaee, "Graph Coloring to Reduce Computation Time in Prioritized Planning," arXiv preprint arXiv:2501.10812.
 <br>
 
-<!-- icons from https://simpleicons.org/ -->
+[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://arxiv.org/abs/2501.10812)
+[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v4.0)
+
+</summary>
+<p>
+
+Checkout the [the software version 7.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v7.0).
+The results of the publication can be reproduced by running
+
+```matlab
+open graph_based_planning.prj
+eval_coloring_paper()
+```
+
+The results are saved in the folder "results".
+
+</p>
+</details>
+
+<details>
+<summary>
+P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees", 2024 European Control Conference (ECC), Stockholm, Sweden, 2024, doi: 10.23919/ECC64448.2024.10591179
+<br>
 
 [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.23919/ECC64448.2024.10591179)
 [![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v5.0)
@@ -125,38 +171,12 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, J. Kahle and B. Alrifaee, "Reducing Computation Time with Priority Assignment in Distributed MPC," TechRxiv, Preprint, 2023, doi: 10.36227/techrxiv.20304015.v2.
+Scheffe, P., Pedrosa, M.V.A., Flaßkamp, K., Alrifaee, B. (2024). Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives. In: Stiller, C., Althoff, M., Burger, C., Deml, B., Eckstein, L., Flemisch, F. (eds) Cooperatively Interacting Vehicles. Springer, Cham. https://doi.org/10.1007/978-3-031-60494-2_9
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
 
-[![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://doi.org/10.36227/techrxiv.20304015.v2)
-[![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v4.0)
-
-</summary>
-<p>
-
-Checkout the [the software version 4.0](https://github.com/embedded-software-laboratory/p-dmpc/tree/v4.0).
-The results of the publication can be reproduced by running
-
-```matlab
-eval_coloring_paper()
-```
-
-This evaluation comprises 720 simulations, so it will take days until completion.
-The results are saved in the folder "results".
-
-</p>
-</details>
-
-<details>
-<summary>
-P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp, B. Alrifaee, "Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives," In: Stiller, C., Althoff, M., Burger, C., Deml, B., Eckstein, L., Flemisch, F. (eds) Cooperatively Interacting Vehicles. Springer, Cham, 2024, doi: 10.1007/978-3-031-60494-2_9.
-<br>
-
-<!-- icons from https://simpleicons.org/ -->
-
-[![Paper](https://img.shields.io/badge/Springer-Paper-00629B)](https://doi.org/10.1007/978-3-031-60494-2_9)
+[![Paper](https://img.shields.io/badge/Springer-Book-00629B)](https://doi.org/10.1007/978-3-031-60494-2_9)
 [![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v3.0)
 
 </summary>
@@ -281,15 +301,6 @@ References in Bibtex format
     pages    = {297-304},
     keywords = {Couplings;Limiting;Trajectory planning;Computational modeling;Europe;Real-time systems;Planning},
     doi      = {10.23919/ECC64448.2024.10591179}
-}
-
-
-@article{scheffe2023reducing,
-    author = {Patrick Scheffe and Julius Kahle and Bassam Alrifaee},
-    title  = {Reducing Computation Time with Priority Assignment in Distributed MPC},
-    year   = {2023},
-    month  = {2},
-    doi    = {10.36227/techrxiv.20304015.v2}
 }
 
 @inproceedings{scheffe2023scaled,
