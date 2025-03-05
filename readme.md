@@ -3,6 +3,7 @@
 [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=embedded-software-laboratory/p-dmpc&project=graph_based_planning.prj&file=main.m)
 
 - [Prioritized Motion Planning for Connected Vehicles](#prioritized-motion-planning-for-connected-vehicles)
+- [Demonstration](#demonstration)
 - [Setup](#setup)
   - [MATLAB R2023a](#matlab-r2023a)
   - [System Requirements for MATLAB ROS Toolbox](#system-requirements-for-matlab-ros-toolbox)
@@ -11,11 +12,14 @@
 - [References](#references)
 - [Acknowledgements](#acknowledgements)
 
-# Setup
+## Demonstration
+https://github.com/user-attachments/assets/9061b1c4-1f29-4200-844d-68afdf108d82
+
+## Setup
 
 The following setup instructions are intended for Ubuntu 18.04. You can find more detailed information on the setup in Ubuntu 18.04 and other OSs with the link at the end of this section.
 
-## MATLAB R2023a
+### MATLAB R2023a
 
 Install MATLAB R2023a with the following toolboxes:
 
@@ -24,7 +28,7 @@ Install MATLAB R2023a with the following toolboxes:
 - Statistics and Machine Learning Toolbox
 - ROS Toolbox
 
-## System Requirements for MATLAB ROS Toolbox
+### System Requirements for MATLAB ROS Toolbox
 
 Vehicles communicate using the MATLAB ROS toolbox. Their custom messages are compiled with the MATLAB built-in function `ros2genmsg()`, for which you must have Python and a C++ compiler for your platform ([ROS Toolbox Requirements](https://de.mathworks.com/help/ros/gs/ros-system-requirements.html)).
 For MATLAB R2023a
@@ -44,11 +48,11 @@ For MATLAB R2023a
   3. Setup the compiler in the MATLAB command window: <br>
      `mex -setup`
 
-## Setup Details
+### Setup Details
 
 More detailed information including troubleshooting can be found [here](./docs/Setup_Details.md).
 
-# Experiments
+## Experiments
 
 1. Execute startup.m to open the project
    - Compilation of priority_queue should succeed
@@ -61,7 +65,7 @@ More detailed information including troubleshooting can be found [here](./docs/S
 
 More detailed information including lab experiments can be found [here](./docs/Run_Experiments.md).
 
-# References
+## References
 
 Please refer to the respective publication if you are using it for your work. Thank you very much!
 
@@ -337,6 +341,6 @@ References in Bibtex format
 </p>
 </details>
 
-# Acknowledgements
+## Acknowledgements
 
 This research is supported by the Deutsche Forschungsgemeinschaft (German Research Foundation) within the Priority Program SPP 1835 "Cooperative Interacting Automobiles" (grant number: KO 1430/17-1).
