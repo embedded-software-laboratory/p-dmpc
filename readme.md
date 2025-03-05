@@ -121,7 +121,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, J. Kahle and B. Alrifaee, "Graph Coloring to Reduce Computation Time in Prioritized Planning," arXiv preprint arXiv:2501.10812.
+P. Scheffe, J. Kahle and B. Alrifaee, "Graph Coloring to Reduce Computation Time in Prioritized Planning", arXiv preprint arXiv:2501.10812.
 <br>
 
 [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://arxiv.org/abs/2501.10812)
@@ -145,7 +145,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees", 2024 European Control Conference (ECC), Stockholm, Sweden, 2024, doi: 10.23919/ECC64448.2024.10591179
+P. Scheffe, J. Xu and B. Alrifaee, "Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees", 2024 European Control Conference (ECC), Stockholm, Sweden, 2024, doi: 10.23919/ECC64448.2024.10591179.
 <br>
 
 [![Paper](https://img.shields.io/badge/-Paper-00629B?logo=IEEE)](https://doi.org/10.23919/ECC64448.2024.10591179)
@@ -197,7 +197,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs," 2023 IEEE Intelligent Vehicles Symposium (IV), Anchorage, AK, USA, 2023, doi: 10.1109/IV55152.2023.10186623.
+P. Scheffe and B. Alrifaee, "A Scaled Experiment Platform to Study Interactions Between Humans and CAVs", 2023 IEEE Intelligent Vehicles Symposium (IV), Anchorage, AK, USA, 2023, doi: 10.1109/IV55152.2023.10186623.
 <br>
 This paper has won the Young Research Award of ITSS Germany 2023.
 <br>
@@ -225,7 +225,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning," in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
+P. Scheffe, M. V. A. Pedrosa, K. Flaßkamp and B. Alrifaee, "Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning", in IEEE Transactions on Control Systems Technology, 2022, doi: 10.1109/TCST.2022.3214718.
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
@@ -254,7 +254,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, G. Dorndorf, and B. Alrifaee, “Increasing Feasibility with Dynamic Priority Assignment in Distributed Trajectory Planning for Road Vehicles,” in IEEE International Conference on Intelligent Transportation Systems (ITSC), 2022, pp. 3873–3879. doi: 10.1109/ITSC55140.2022.9922028.
+P. Scheffe, G. Dorndorf, and B. Alrifaee, “Increasing Feasibility with Dynamic Priority Assignment in Distributed Trajectory Planning for Road Vehicles”, in IEEE International Conference on Intelligent Transportation Systems (ITSC), 2022, pp. 3873–3879. doi: 10.1109/ITSC55140.2022.9922028.
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
