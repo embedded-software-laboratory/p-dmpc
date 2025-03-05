@@ -13,7 +13,7 @@ function generate_ros2_msgs()
             || (sum(cellfun(@(c)strcmp(c, 'veh_msgs/SolutionCost'), msgList)) == 0) ...
             || (sum(cellfun(@(c)strcmp(c, 'veh_msgs/PlottingInfo'), msgList)) == 0) ...
         )
-        % Generate custom messages. NOTE that Python, CMake, and a C++ compiler are required (see
+        % Generate custom messages. NOTE that Python and a C++ compiler are required (see
         % https://de.mathworks.com/help/ros/gs/ros-system-requirements.html
         % for more details according to your own MATLAB version).
         %

@@ -144,19 +144,6 @@ $RECYCLE.BIN/
 *.mp4
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,windows,matlab,visualstudiocode
-
-# CMake
-cmake_install.cmake
-CMakeFiles/
-CMakeSettings.json
-
-
-hlc/optimizer/graph_search_mex/CMakeFiles/
-hlc/optimizer/graph_search_mex/x64/
-hlc/optimizer/graph_search_mex/Makefile
-hlc/optimizer/graph_search_mex/optimizer.dir/
-CMakeCache.txt
-
 *sln
 *.pdb
 *.exp

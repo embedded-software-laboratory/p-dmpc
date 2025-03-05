@@ -4,6 +4,7 @@ classdef PlotterOffline < Plotter
 
     properties
         experiment_result ExperimentResult % (1, 1) ExperimentResult to plot
+        mpa MotionPrimitiveAutomaton % (1, 1) MotionPrimitiveAutomaton for plotting
     end
 
     properties (Access = private)
@@ -24,6 +25,7 @@ classdef PlotterOffline < Plotter
             scenario = Scenario.create(experiment_result.options);
             obj@Plotter(experiment_result.options, scenario, vehicle_indices);
             obj.experiment_result = experiment_result;
+            obj.mpa = MotionPrimitiveAutomaton(experiment_result.options);
             obj.delta_t_s = delta_t_s;
             obj.paused = true;
             obj.hotkey_description(obj.number_base_hotkeys) = sprintf("{\\its}: change playback speed (%0.3gs)", delta_t_s);
@@ -62,8 +64,27 @@ classdef PlotterOffline < Plotter
 
         function plot(obj)
             %PLOT  Plot the simulation state at the current time step.
+            reachable_sets = cell(obj.nVeh, obj.experiment_result.options.Hp);
 
-            plotting_info = PlottingInfo(obj.vehicle_indices, obj.experiment_result, obj.time_step);
+            if (obj.experiment_result.options.options_plot_online.plot_reachable_sets)
+
+                for i_vehicle = 1:numel(obj.vehicle_indices)
+                    vehicle_index = obj.vehicle_indices(i_vehicle);
+                    reachable_sets(i_vehicle, :) = cellfun( ...
+                        @(c) [c.Vertices', c.Vertices(1,:)'], ...
+                        obj.mpa.reachable_sets_at_pose( ...
+                        obj.experiment_result.iteration_data(obj.time_step).x0(vehicle_index, 1), ...
+                        obj.experiment_result.iteration_data(obj.time_step).x0(vehicle_index, 2), ...
+                        obj.experiment_result.iteration_data(obj.time_step).x0(vehicle_index, 3), ...
+                        obj.experiment_result.iteration_data(obj.time_step).trim_indices(vehicle_index, 1) ...
+                    ), ...
+                        UniformOutput = false ...
+                    );
+                end
+
+            end
+
+            plotting_info = PlottingInfo(obj.vehicle_indices, obj.experiment_result, obj.time_step, reachable_sets = reachable_sets);
             plot@Plotter(obj, plotting_info);
         end
 

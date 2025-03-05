@@ -36,8 +36,6 @@ classdef (Abstract) Plant < handle
                     plant.set_ros2_node(ros2_node);
                 case Environment.CpmLab
                     plant = CpmLab();
-                case Environment.UnifiedTestbedInterface
-                    plant = UnifiedTestbedInterface();
             end
 
         end
@@ -77,20 +75,6 @@ classdef (Abstract) Plant < handle
 
             % construct measurements
             obj.measurements(options.amount, 1) = PlantMeasurement();
-        end
-
-        function register_map(~)
-            % Plants may allow to set a specific map.
-            % If so, this function needs to be overwritten.
-            % By default this function is not available.
-            error('This interface does not provide the possibility to register a specific map.');
-        end
-
-        function receive_map(~)
-            % Plants may allow to retrieve a lab specific map.
-            % If so, this function needs to be overwritten.
-            % By default this function is not available.
-            error('This interface does not provide the possibility to retrieve a lab specific map.');
         end
 
         function dt_seconds = get_step_time(obj)

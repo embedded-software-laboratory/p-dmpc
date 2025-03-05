@@ -24,7 +24,7 @@ classdef DistanceCoupler < Coupler
 
                 for i_vehicle_2 = (i_vehicle_1 + 1):options.amount
                     % If the predicted lanelets of both vehicles are not adjacent, skip the distance measurement
-                    % (only checked if information of adjacent lanelets exist, i.e., in commonroad or lanelet2 scenarios)
+                    % (only checked if information of adjacent lanelets exist, i.e., in commonroad scenario)
                     if (~isempty(obj.adjacency_lanelets) ...
                             && ~obj.is_any_lanelet_adjacent(iter.current_lanelet, iter.predicted_lanelets, i_vehicle_1, i_vehicle_2))
                         continue;

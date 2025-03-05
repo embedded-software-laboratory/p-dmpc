@@ -13,7 +13,6 @@ cat nuc_control/working-nucs | xargs --max-args=1 --max-procs=20 -i \
 cat nuc_control/working-nucs | xargs --max-args=1 --max-procs=20 -i \
     sshpass -e rsync -r -u \
     --exclude 'hlc/communication/cust1/matlab_msg_gen' \
-    --exclude 'hlc/optimizer/graph_search_cpp' \
     --exclude 'results*' \
     --exclude '.git' \
     --exclude 'derived' \

@@ -18,17 +18,13 @@ classdef CentralizedController < HighLevelController
             init@HighLevelController(obj);
 
             % construct optimizer
-            obj.optimizer = OptimizerInterface.get_optimizer(obj.options, obj.mpa, obj.scenario_adapter.scenario, obj.plant.vehicle_indices_controlled);
+            obj.optimizer = OptimizerInterface.get_optimizer(obj.options);
 
         end
 
         function create_coupling_graph(obj)
 
-            obj.timing.start('coupling', obj.k);
-
-            if obj.options.use_cpp()
-                obj.iter.adjacency = obj.coupler.couple(obj.options, obj.mpa.get_max_speed_of_mpa(), obj.iter);
-            end
+            obj.timing.start('coupling', obj.k)
 
             obj.timing.stop('coupling', obj.k);
 
