@@ -5,7 +5,7 @@ function config = config_gui()
 
     % Simulation
     % scenario
-    scenario = list_scenario(ui);
+    scenario = list_scenario();
     ui.ScenarioDropDown.Items = scenario(:, 2);
     ui.ScenarioDropDown.Value = scenario(1, 2);
 
@@ -198,7 +198,7 @@ function config = config_gui()
                                                    1 ...
                                                };
 
-    scenario = list_scenario(ui); % Update scenario since the selected options may differ now
+    scenario = list_scenario(); % Update scenario since the selected options may differ now
     config.scenario_type = scenario{ ...
                                         strcmp(scenario(:, 2), scenarioSelection), ...
                                         1};
@@ -248,12 +248,10 @@ function out = get_environment_selection(ui, output_as_enum)
     % is CPM lab selected
     if nargin > 1 && output_as_enum
 
-        if isequal([1 0 0], out)
+        if isequal([1 0], out)
             out = Environment.CpmLab;
-        elseif isequal([0 1 0], out)
+        elseif isequal([0 1], out)
             out = Environment.Simulation;
-        elseif isequal([0 0 1], out)
-            out = Environment.UnifiedTestbedInterface;
         end
 
     end
@@ -262,13 +260,12 @@ end
 
 function setEnvironmentElementsVisibility(ui)
     % if lab mode is selected
-    is_lab_selection = (get_environment_selection(ui, true) == Environment.CpmLab ...
-        || get_environment_selection(ui, true) == Environment.UnifiedTestbedInterface);
+    is_lab_selection = (get_environment_selection(ui, true) == Environment.CpmLab);
 
     % sample time is automatically set in the lab
     ui.SampleTimesSpinner.Enable = ~is_lab_selection;
 
-    scenario = list_scenario(ui);
+    scenario = list_scenario();
     ui.ScenarioDropDown.Items = scenario(:, 2);
 end
 
@@ -307,21 +304,11 @@ function [list] = list_computation_mode
             };
 end
 
-function [list] = list_scenario(ui)
-    is_unified_testbed_interface_selected = get_environment_selection(ui, true) == Environment.UnifiedTestbedInterface;
-
-    if is_unified_testbed_interface_selected % Only allow lanelet2 maps here
-        list = { ...
-                    ScenarioType.lanelet2, 'Lanelet2'; ...
-                    ScenarioType.testbed_default, 'Testbed Default (UTI only)' ...
-                };
-    else
-        list = { ...
-                    ScenarioType.circle, 'Circle'; ...
-                    ScenarioType.commonroad, 'Commonroad'; ...
-                    ScenarioType.lanelet2, 'Lanelet2'; ...
-                };
-    end
+function [list] = list_scenario()
+    list = { ...
+                ScenarioType.circle, 'Circle'; ...
+                ScenarioType.commonroad, 'Commonroad'; ...
+            };
 
 end
 
@@ -335,8 +322,6 @@ end
 function [list] = list_optimizer_centralized
     list = {
             '1', 'MatlabOptimal';
-            '2', 'CppOptimal';
-            '3', 'CppSampled';
             };
 end
 
@@ -344,7 +329,6 @@ function [list] = list_optimizer_prioritized
     list = {
             '1', 'MatlabOptimal';
             '2', 'MatlabSampled';
-            '3', 'CppOptimal';
             };
 end
 

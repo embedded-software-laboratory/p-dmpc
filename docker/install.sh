@@ -15,7 +15,7 @@ if $PUSH_IMAGE; then
 fi
 
 # --------------------------------------------- IMAGE SETTINGS ----------------------------------------------------
-# To install another MATLAB release than R2022a in the container, change the value of MATLAB_RELEASE. Use only lower case.
+# To install another MATLAB release in the container, change the value of MATLAB_RELEASE. Use only lower case.
 MATLAB_RELEASE=r2023a
 
 # To change the Ubuntu version to use as OS for the container, change the value of UBUNTU_VERSION. Standard is Ubuntu 18.04 as this is the version
@@ -23,18 +23,9 @@ MATLAB_RELEASE=r2023a
 # Caution: If another Ubuntu version is used, the Dockerfile might have to be adjusted due to other available apt packages.
 UBUNTU_VERSION=18.04
 
-# To change the Python CMake or GCC version needed for ROS Toolbox, change the value of PYTHON_VERSION, CMAKE_VERSION resp. GCC_VERSION.
-# Default is Python 3.9.6, CMake 3.16.3 and GCC 6.3 which fulfill the requirements for MATLAB R2022a.
 # Check https://de.mathworks.com/help/ros/gs/ros-system-requirements.html for the requirements of the specified MATLAB version.
 PYTHON_VERSION=3.9.6
-CMAKE_VERSION=3.23.1
 GCC_VERSION=10
-BOOST_VERSION=1_76_0
-BOOST_VERSION2=1.76.0
-
-# To have a fixed version of Lanelet2 installed on this system, it is needed to specify the commit of the Rosless-Lanelet2 version which shall be used.
-# The Rosless-Lanelet2 repository can be found here: https://github.com/embedded-software-laboratory/Rosless-Lanelet2
-LANELET2_COMMIT=0f190ed17d5060bc30eb03d7ac0d10bf06702096
 
 # To change the Matlab toolboxes to install, change the value of TOOLBOXES.
 # Make sure to replace spaces by underscores and seperate toolboxes by spaces.
@@ -59,10 +50,6 @@ sudo docker buildx build --load -t $TAG \
   --build-arg MATLAB_RELEASE=$MATLAB_RELEASE \
   --build-arg UBUNTU_VERSION=$UBUNTU_VERSION \
   --build-arg PYTHON_VERSION=$PYTHON_VERSION \
-  --build-arg CMAKE_VERSION=$CMAKE_VERSION \
-  --build-arg BOOST_VERSION=$BOOST_VERSION \
-  --build-arg BOOST_VERSION2=$BOOST_VERSION2 \
-  --build-arg LANELET2_COMMIT=$LANELET2_COMMIT \
   --build-arg GCC_VERSION=$GCC_VERSION \
   --build-arg TOOLBOXES="$TOOLBOXES" \
   --build-arg LICENSE_SERVER=$LICENSE_SERVER .

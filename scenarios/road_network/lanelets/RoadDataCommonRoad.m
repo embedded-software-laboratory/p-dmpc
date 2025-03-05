@@ -2,9 +2,6 @@ classdef RoadDataCommonRoad < RoadData
     %ROADDATACOMMONROAD Loads CommonRoad Data
     %   This class implements RoadData and constructs a map given in
     %   CommonRoad format.
-    %   Note: Because of the similarity of the data RoadDataLanelet2 is a
-    %   sublcass of this class here, so if changes are done here, check
-    %   with the other class as well.
 
     %     properties (Constant)
     %         default_road_name = 'commonroad_lanelets_advanced.mat'
@@ -696,11 +693,6 @@ classdef RoadDataCommonRoad < RoadData
                         %                         plot(lanelet_boundary_extended{find_lan_share_same_boundary}{3})
                     end
 
-                    % left boundary has the same number of points as the
-                    % right boundary
-                    %                     assert(size(lanelet_boundary_extended{iL}{1},1)==size(lanelet_boundary_extended{iL}{2},1))
-                    % ASSERTION REMOVED SINCE IT DOES NOT HOLD FOR
-                    % LANELET2. PROBLEM???
                 end
 
                 %                 pause(1)

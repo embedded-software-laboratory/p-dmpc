@@ -14,7 +14,7 @@ function series_plot_med_max( ...
         % (n_vehicles x n_approaches)
         maximum_value (:, :) double
         approach_names (:, 1) string
-        optional.ylabel (1, 1) string = "$T_{\mathrm{NCS}}$ [ms]"
+        optional.ylabel (1, 1) string = "$T$ [ms]"
         optional.export_fig_config (1, 1) ExportFigConfig = ExportFigConfig.paper()
     end
 

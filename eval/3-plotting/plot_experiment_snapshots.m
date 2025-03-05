@@ -1,16 +1,21 @@
 function plot_experiment_snapshots(experiment_result, step_indices, optional)
-    % OVERVIEWPLOT  Export plot with multiple snapshots.
+    % PLOT_EXPERIMENT_SNAPSHOTS  Export plot with multiple snapshots.
     arguments
         experiment_result (1, 1) ExperimentResult;
         step_indices (1, :) double
         optional.do_export (1, 1) logical = true;
-        optional.fig (1, 1) matlab.ui.Figure = figure("Visible", "on");
+        optional.base_folder (1, 1) string = FileNameConstructor.experiment_result_folder_path( ...
+                experiment_result.options ...
+            );
+        optional.fig (1, 1) matlab.ui.Figure = figure(visible = 'off');
         optional.n_figure_cols (1, 1) double = 2;
     end
 
     experiment_result.options.options_plot_online.plot_priority = 0;
     plotter = PlotterOffline(experiment_result);
     plotter.set_figure_visibility(false);
+    plotter.set_export_fig_config(ExportFigConfig.paper);
+    scenario = Scenario.create(experiment_result.options);
 
     nFigs = numel(step_indices);
     n_figure_cols = optional.n_figure_cols;
@@ -30,6 +35,9 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
         hold on
         box on
 
+        if ~isempty(scenario.road_raw_data) && ~isempty(scenario.road_raw_data.lanelet)
+            plot_lanelets(scenario.road_raw_data.lanelet)
+        end
         plotter.plot();
 
         if step > numel(step_indices) - n_figure_cols
@@ -42,19 +50,25 @@ function plot_experiment_snapshots(experiment_result, step_indices, optional)
 
         title(['Step ' num2str(step_idx)], Interpreter = 'LaTex');
 
-        daspect([1 1 1]);
+        xlim(scenario.plot_limits(1, :));
+        ylim(scenario.plot_limits(2, :));
+        daspect([1 1 1])
     end
 
     optional.fig.Children.TileSpacing = 'compact';
-    set_figure_properties(optional.fig, ExportFigConfig.paper('paperheight', n_figure_rows * 4));
+    set_figure_properties( ...
+        optional.fig, ...
+        ExportFigConfig.paper(paperheight = n_figure_rows * 15, paperwidth = n_figure_cols * 17) ...
+    );
 
     if optional.do_export
         step_indices_str = sprintf("_%02d", step_indices);
-        file_path = FileNameConstructor.path_to_accompanying_file( ...
-            experiment_result, ...
-            strcat("snapshots", step_indices_str, ".pdf") ...
+        filename = strcat(experiment_result.file_name, "_snapshots", step_indices_str, ".png");
+        file_path = fullfile( ...
+            optional.base_folder, ...
+            filename ...
         );
-        export_fig(optional.fig, file_path);
+        export_fig(optional.fig, file_path, is_vector_graphic = false);
     end
 
     if (~optional.fig.Visible); close(optional.fig); end

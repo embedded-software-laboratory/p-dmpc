@@ -189,7 +189,6 @@ classdef (Abstract) Plotter < handle
                     Marker = 'o', ...
                     MarkerFaceColor = obj.priority_colormap(vehicle_to_computation_level(i_vehicle), :), ...
                     MarkerSize = 3, ...
-                    LineWidth = 1, ...
                     Tag = "temporary" ...
                 );
 
@@ -260,10 +259,10 @@ classdef (Abstract) Plotter < handle
                     );
                 end
 
-                if obj.plot_options.plot_reachable_sets
-                    obj.plot_reachable_sets(plotting_info, i_vehicle);
-                end
+            end
 
+            if obj.plot_options.plot_reachable_sets
+                obj.plot_reachable_sets(plotting_info);
             end
 
             % plot scenario adjacency
@@ -304,7 +303,7 @@ classdef (Abstract) Plotter < handle
 
             optimizer_text = lower(erase( ...
                 string(obj.options.optimizer_type), ...
-                ["Cpp", "Matlab"] ...
+                ["Matlab"] ...
             ));
 
             title_text = sprintf( ...
@@ -333,7 +332,7 @@ classdef (Abstract) Plotter < handle
                 vehicle_indices (1, :) int32 = obj.vehicle_indices;
             end
 
-            is_plottable = ~cellfun(@isempty, plotting_info.reachable_sets);
+            is_plottable = all(~cellfun(@isempty, plotting_info.reachable_sets()), 2);
             vehicle_indices = vehicle_indices(is_plottable);
 
             for i_vehicle = vehicle_indices
@@ -386,6 +385,16 @@ classdef (Abstract) Plotter < handle
             % Define a colormap
             obj.priority_colormap = optional.colormap;
             colormap(obj.priority_colormap);
+        end
+
+        function set_export_fig_config(obj, export_fig_config)
+
+            arguments
+                obj (1, 1) Plotter
+                export_fig_config (1, 1) ExportFigConfig
+            end
+
+            obj.export_fig_config = export_fig_config;
         end
 
     end
