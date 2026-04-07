@@ -3,17 +3,20 @@
 [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=embedded-software-laboratory/p-dmpc&project=graph_based_planning.prj&file=main.m)
 
 - [Prioritized Motion Planning for Connected Vehicles](#prioritized-motion-planning-for-connected-vehicles)
-- [Demonstration](#demonstration)
-- [Setup](#setup)
-  - [MATLAB R2023a](#matlab-r2023a)
-  - [System Requirements for MATLAB ROS Toolbox](#system-requirements-for-matlab-ros-toolbox)
-  - [Setup Details](#setup-details)
-- [Experiments](#experiments)
-- [References](#references)
-- [Acknowledgements](#acknowledgements)
+  - [Demonstration](#demonstration)
+  - [Setup](#setup)
+    - [MATLAB R2023a](#matlab-r2023a)
+    - [System Requirements for MATLAB ROS Toolbox](#system-requirements-for-matlab-ros-toolbox)
+    - [Setup Details](#setup-details)
+  - [Experiments](#experiments)
+  - [References](#references)
+  - [Acknowledgements](#acknowledgements)
 
 ## Demonstration
-https://github.com/user-attachments/assets/9061b1c4-1f29-4200-844d-68afdf108d82
+
+This is a demonstration of the software in the [Cyber-Physical Mobility Lab](https://cpm.lrt.unibw.de/).
+
+![Demo](./docs/media/10_road_web.avif)
 
 ## Setup
 
@@ -50,7 +53,7 @@ For MATLAB R2023a
 
 ### Setup Details
 
-More detailed information including troubleshooting can be found [here](./docs/Setup_Details.md).
+More detailed information including troubleshooting can be found [in ./docs/Setup_Details.md](./docs/Setup_Details.md).
 
 ## Experiments
 
@@ -63,19 +66,21 @@ More detailed information including troubleshooting can be found [here](./docs/S
    - Options that do not work in this setup are:
      - Environments: CPM Lab
 
-More detailed information including lab experiments can be found [here](./docs/Run_Experiments.md).
+More detailed information including lab experiments can be found [in ./docs/Run_Experiments.md](./docs/Run_Experiments.md).
 
 ## References
 
-Please refer to the respective publication if you are using it for your work. Thank you very much!
+Please refer to the respective publication if you are using it for your work.
+If you use the software in general, please cite the dissertation.
+Thank you very much!
 
 <details>
 <summary>
-P. Scheffe, "Prioritized Motion Planning for Connected Vehicles", to be published.
+P. Scheffe, "Prioritized Motion Planning for Connected Vehicles", RWTH Aachen University, Department of Computer Science, 2025. doi: 10.18154/RWTH-2025-07834.
+
 <br>
 
-<!-- [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)]() -->
-
+[![Paper](https://img.shields.io/badge/-Dissertation-00629B)](https://doi.org/10.18154/RWTH-2025-07834)
 [![Repository](https://img.shields.io/badge/-GitHub-181717?logo=GitHub)](https://github.com/embedded-software-laboratory/p-dmpc/tree/v8.0)
 
 <!-- [![Video](https://img.shields.io/badge/-Video-FF0000?logo=YouTube)](https://youtu.be/alGHLwQQpHI) -->
@@ -175,7 +180,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-Scheffe, P., Pedrosa, M.V.A., Flaßkamp, K., Alrifaee, B. (2024). Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives. In: Stiller, C., Althoff, M., Burger, C., Deml, B., Eckstein, L., Flemisch, F. (eds) Cooperatively Interacting Vehicles. Springer, Cham. https://doi.org/10.1007/978-3-031-60494-2_9
+Scheffe, P., Pedrosa, M.V.A., Flaßkamp, K., Alrifaee, B. (2024). Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives. In: Stiller, C., Althoff, M., Burger, C., Deml, B., Eckstein, L., Flemisch, F. (eds) Cooperatively Interacting Vehicles. Springer, Cham. doi: 10.1007/978-3-031-60494-2_9
 <br>
 
 <!-- icons from https://simpleicons.org/ -->
@@ -275,71 +280,6 @@ The code is implemented in [the CPM Lab software repository](https://github.com/
 </p>
 </details>
 
-<details>
-<summary>
-References in Bibtex format
-</summary>
-<p>
-
-```bibtex
-@incollection{scheffe2024prioritized,
-    author    = "Scheffe, Patrick and Pedrosa, Matheus V. A. and Fla{\ss}kamp, Kathrin and Alrifaee, Bassam",
-    editor    = "Stiller, Christoph and Althoff, Matthias and Burger, Christoph and Deml, Barbara and Eckstein, Lutz and Flemisch, Frank",
-    title     = "Prioritized Trajectory Planning for Networked Vehicles Using Motion Primitives",
-    bookTitle = "Cooperatively Interacting Vehicles: Methods and Effects of Automated Cooperation in Traffic",
-    year      = "2024",
-    publisher = "Springer International Publishing",
-    address   = "Cham",
-    pages     = "253--275",
-    isbn      = "978-3-031-60494-2",
-    doi       = "10.1007/978-3-031-60494-2_9",
-}
-
-@inproceedings{scheffe2024limiting,
-    author   = {Scheffe, Patrick and Xu, Jianye and Alrifaee, Bassam},
-    booktitle= {2024 European Control Conference (ECC)},
-    title    = {Limiting Computation Levels in Prioritized Trajectory Planning with Safety Guarantees},
-    year     = {2024},
-    volume   = {},
-    number   = {},
-    pages    = {297-304},
-    keywords = {Couplings;Limiting;Trajectory planning;Computational modeling;Europe;Real-time systems;Planning},
-    doi      = {10.23919/ECC64448.2024.10591179}
-}
-
-@inproceedings{scheffe2023scaled,
-    title     = {A Scaled Experiment Platform to Study Interactions Between Humans and CAVs},
-    author    = {Patrick Scheffe and Bassam Alrifaee},
-    booktitle = {IEEE Intelligent Vehicles Symposium (IV)},
-    year      = {2023}
-    pages     = {1--6},
-    doi       = {10.1109/IV55152.2023.10186623}
-}
-
-@article{scheffe2022receding,
-    author  = {Patrick Scheffe and Matheus Vitor de Andrade Pedrosa and Kathrin Flaßkamp and Bassam Alrifaee},
-    journal = {IEEE Transactions on Control Systems Technology},
-    title   = {Receding Horizon Control Using Graph Search for Multi-Agent Trajectory Planning},
-    year    = {2022},
-    volume  = {},
-    number  = {},
-    pages   = {1-14},
-    doi     = {10.1109/TCST.2022.3214718}
-}
-
-@inproceedings{scheffe2022increasing,
-    title       = {Increasing {{Feasibility}} with {{Dynamic Priority Assignment}} in {{Distributed Trajectory Planning}} for {{Road Vehicles}}},
-    booktitle   = {{{IEEE International Conference}} on {{Intelligent Transportation Systems}} ({{ITSC}})},
-    author      = {Scheffe, Patrick and Dorndorf, Georg and Alrifaee, Bassam},
-    year        = {2022},
-    pages       = {3873--3879},
-    doi         = {10.1109/ITSC55140.2022.9922028}
-}
-
-```
-
-</p>
-</details>
 
 ## Acknowledgements
 
