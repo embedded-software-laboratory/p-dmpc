@@ -6,6 +6,7 @@ function eval_prioritization(optional)
         optional.optimizers (1, :) OptimizerType = [OptimizerType.MatlabOptimal, OptimizerType.MatlabSampled]
         optional.Hp (1, 1) double = 6;
         optional.base_folder string = fullfile(FileNameConstructor.all_results(), 'phd');
+        optional.should_create_snapshots logical = false
     end
 
     priority_strategies = [
@@ -164,6 +165,136 @@ function eval_prioritization(optional)
                 fullfile(base_folder_prioritization, filename) ...
             );
 
+            % Control loop complete
+
+            [~, time_med_approach_vehicle, ~, time_max_approach_vehicle] = data_time_approach_vehicle( ...
+                experiment_results, ...
+                computation_time_function = @data_time_experiment ...
+            );
+            % Remove optimal priority, scale to ms
+            series_time_max_ms = time_max_approach_vehicle' .* 1000;
+            series_time_med_ms = time_med_approach_vehicle' .* 1000;
+
+            filename = sprintf('6-prioritization_time_loop_med_%s_%s.dat', scenario, optimizer);
+            writetable( ...
+                array2table( ...
+                [n_vehicles, series_time_med_ms], ...
+                VariableNames = ["N_A"; priority_table_headings] ...
+            ), ...
+                fullfile(base_folder_prioritization, filename) ...
+            );
+
+            filename = sprintf('6-prioritization_time_loop_max_%s_%s.dat', scenario, optimizer);
+            writetable( ...
+                array2table( ...
+                [n_vehicles, series_time_max_ms], ...
+                VariableNames = ["N_A"; priority_table_headings] ...
+            ), ...
+                fullfile(base_folder_prioritization, filename) ...
+            );
+
+            % Communication time
+            [n_vehicles_comm, n_approaches_comm, n_scenarios_comm] = size(experiment_results);
+
+            all_all_communication_time = [];
+            all_all_planning_time = [];
+
+            all_group_labels = cell(0, 1);
+            all_group_labels_plan = cell(0, 1);
+
+            for i_vehicles = 1:n_vehicles_comm
+
+                group_labels = cell(0, 1);
+                group_labels_plan = cell(0, 1);
+                all_communication_time = [];
+                all_planning_time = [];
+
+                for i_approaches = 1:n_approaches_comm
+
+                    for i_scenarios = 1:n_scenarios_comm
+
+                        experiment_result = experiment_results(i_vehicles, i_approaches, i_scenarios);
+
+                        if experiment_result.hlc_indices == -1
+                            continue;
+                        end
+
+                        communication_time = data_time_communication_experiment(experiment_result);
+
+                        all_communication_time = vertcat(all_communication_time, communication_time); %#ok<AGROW>
+                        n_values = numel(communication_time);
+
+                        if i_approaches < 5
+                            group_label = {'sequential'};
+                        else
+                            group_label = {'simultaneous'};
+                        end
+
+                        group_labels(end + 1:end + n_values, 1) = group_label;
+                        all_group_labels(end + 1:end + n_values, 1) = group_label;
+
+                        % PLANNING TIME
+
+                        if experiment_result.options.priority == PriorityStrategies.optimal_priority
+                            continue
+                        end
+
+                        all_field_names = fieldnames(experiment_result.timing(1));
+                        optimize_field_names_indices = ~cellfun(@isempty, regexp(all_field_names, '^optimize\w+'));
+                        optimize_field_names = strcat("optimize", string(0:nnz(optimize_field_names_indices) - 1)');
+
+                        % n_vehicles x n_steps x n_permutations
+                        optimize_duration = zeros([experiment_result.n_hlc, experiment_result.n_steps, numel(optimize_field_names)]);
+
+                        for i_field = 1:numel(optimize_field_names)
+                            optimize_timing = vertcat(experiment_result.timing.(optimize_field_names(i_field)));
+                            optimize_duration(:, :, i_field) = optimize_timing(2:2:end, :);
+                        end
+
+                        all_planning_time = vertcat( ...
+                            all_planning_time, ...
+                            reshape( ...
+                            optimize_duration(optimize_duration ~= 0), ...
+                            [], ...
+                            1 ...
+                        ) ...
+                        ); %#ok<AGROW>
+
+                        if any(optimize_duration(:) > 0.07)
+                            pause(0.00001);
+                        end
+
+                        n_values = numel(optimize_duration(optimize_duration ~= 0));
+                        group_labels_plan(end + 1:end + n_values, 1) = group_label;
+                        all_group_labels_plan(end + 1:end + n_values, 1) = group_label;
+                    end
+
+                end
+
+                all_all_communication_time = vertcat(all_all_communication_time, all_communication_time);
+                all_all_planning_time = vertcat(all_all_planning_time, all_planning_time);
+
+                fig = figure(visible = 'off');
+                boxplot(all_communication_time * 1000, group_labels', Orientation = 'horizontal')
+                title(sprintf("$N_A = %d$", n_vehicles(i_vehicles)), Interpreter = "latex")
+                xlim([0 100])
+                xlabel("Communication time [ms]")
+                set_figure_properties(fig, ExportFigConfig.paper(paperheight = 3));
+                filename = sprintf('6-prioritization_time_comm_%s_%s_%02d.pdf', scenario, optimizer, n_vehicles(i_vehicles));
+                export_fig(fig, fullfile(base_folder_prioritization, filename));
+                close all;
+
+                fig = figure(visible = 'off');
+                boxplot(all_planning_time * 1000, group_labels_plan', Orientation = 'horizontal')
+                title(sprintf("$N_A = %d$", n_vehicles(i_vehicles)), Interpreter = "latex")
+                xlim([0 100])
+                xlabel("Single-agent planning time [ms]")
+                set_figure_properties(fig, ExportFigConfig.paper(paperheight = 3));
+                filename = sprintf('6-prioritization_time_saplan_%s_%s_%02d.pdf', scenario, optimizer, n_vehicles(i_vehicles));
+                export_fig(fig, fullfile(base_folder_prioritization, filename));
+                close all;
+            end
+
             %%
             %     __                   __
             %    / /   ___ _   _____  / /____
@@ -236,45 +367,26 @@ function eval_prioritization(optional)
             % /____/_/ /_/\__,_/ .___/____/_/ /_/\____/\__/____/
             %                 /_/
 
-            for experiment_result = experiment_results(:)'
+            if optional.should_create_snapshots
 
-                if (experiment_result.hlc_indices == -1)
-                    continue;
-                end
+                for experiment_result = experiment_results(:)'
 
-                folder_subpath = fullfile( ...
-                    char(scenario), ...
-                    sprintf("%02d", experiment_result.options.amount), ...
-                    char(experiment_result.options.priority) ...
-                );
-                experiment_folder = fullfile( ...
-                    base_folder_prioritization, ...
-                    folder_subpath ...
-                );
-                [~, ~] = mkdir(experiment_folder);
+                    if (experiment_result.hlc_indices == -1)
+                        continue;
+                    end
 
-                % Skip if all data present
-                filebase = sprintf( ...
-                    '6-%d_%s_seed%d_%s', ...
-                    experiment_result.options.amount, ...
-                    char(experiment_result.options.scenario_type), ...
-                    mod(prod(experiment_result.options.path_ids), 61), ...
-                    char(experiment_result.options.priority) ...
-                );
+                    folder_subpath = fullfile( ...
+                        char(scenario), ...
+                        sprintf("%02d", experiment_result.options.amount), ...
+                        char(experiment_result.options.priority) ...
+                    );
+                    experiment_folder = fullfile( ...
+                        base_folder_prioritization, ...
+                        folder_subpath ...
+                    );
+                    [~, ~] = mkdir(experiment_folder);
 
-                filebase_step = sprintf('%s_k%d', filebase, experiment_result.n_steps);
-
-                if isfile(fullfile(experiment_folder, strcat(filebase_step, '_coupling_parallel.dat')))
-                    continue;
-                end
-
-                % plot snapshots
-                plotter = PlotterOffline(experiment_result);
-                plotter.set_figure_visibility(false);
-
-                for step = 1:experiment_result.n_steps
-
-                    % skip if data for current step is present
+                    % Skip if all data present
                     filebase = sprintf( ...
                         '6-%d_%s_seed%d_%s', ...
                         experiment_result.options.amount, ...
@@ -283,68 +395,91 @@ function eval_prioritization(optional)
                         char(experiment_result.options.priority) ...
                     );
 
-                    filebase_step = sprintf('%s_k%d', filebase, step);
+                    filebase_step = sprintf('%s_k%d', filebase, experiment_result.n_steps);
 
                     if isfile(fullfile(experiment_folder, strcat(filebase_step, '_coupling_parallel.dat')))
                         continue;
                     end
 
                     % plot snapshots
-                    plotter.set_time_step(step);
-                    plotter.plot();
-                    step_indices_str = sprintf("_%02d", step);
-                    filename = strcat(experiment_result.file_name, "_snapshot", step_indices_str, ".png");
-                    file_path = fullfile( ...
-                        experiment_folder, ...
-                        filename ...
-                    );
-                    export_fig(plotter.get_figure(), file_path, is_vector_graphic = false);
+                    plotter = PlotterOffline(experiment_result);
+                    plotter.set_figure_visibility(false);
 
-                    % vehicle poses
-                    poses = experiment_result.iteration_data(step).x0(:, 1:3);
-                    writetable( ...
-                        array2table(poses, VariableNames = ["x", "y", "psi"]), ...
-                        fullfile(experiment_folder, strcat(filebase_step, '_poses.dat')) ...
-                    );
+                    for step = 1:experiment_result.n_steps
 
-                    % references per vehicle
-                    references = [ ...
-                                      experiment_result.iteration_data(step).reference_trajectory_points(:, :, 1)', ...
-                                      experiment_result.iteration_data(step).reference_trajectory_points(:, :, 2)' ...
-                                  ];
+                        % skip if data for current step is present
+                        filebase = sprintf( ...
+                            '6-%d_%s_seed%d_%s', ...
+                            experiment_result.options.amount, ...
+                            char(experiment_result.options.scenario_type), ...
+                            mod(prod(experiment_result.options.path_ids), 61), ...
+                            char(experiment_result.options.priority) ...
+                        );
 
-                    variable_names = [string("x" + (1:experiment_result.options.amount)), string("y" + (1:experiment_result.options.amount))];
-                    writetable( ...
-                        array2table(references, VariableNames = variable_names), ...
-                        fullfile(experiment_folder, strcat(filebase_step, '_references.dat')) ...
-                    );
-                    % predictions per vehicle
-                    % add current position of all vehicles
-                    predictions = [poses(:, 1)', poses(:, 2)'];
-                    all_predictions = vertcat(experiment_result.control_results_info(:, step).y_predicted);
-                    predictions = [ ...
-                                       predictions;
-                                   all_predictions(1:3:end, :)', ...
-                                       all_predictions(2:3:end, :)' ...
-                                   ]; %#ok<AGROW>
+                        filebase_step = sprintf('%s_k%d', filebase, step);
 
-                    variable_names = [string("x" + (1:experiment_result.options.amount)), string("y" + (1:experiment_result.options.amount))];
-                    writetable( ...
-                        array2table(predictions, VariableNames = variable_names), ...
-                        fullfile(experiment_folder, strcat(filebase_step, '_predictions.dat')) ...
-                    );
-                    % coupling_sequential
-                    coupling_sequential = experiment_result.iteration_data(step).directed_coupling_sequential;
-                    writelines( ...
-                        matrix_to_pgf_array(coupling_sequential), ...
-                        fullfile(experiment_folder, strcat(filebase_step, '_coupling_sequential.dat')) ...
-                    );
-                    % coupling_parallel
-                    coupling_parallel = experiment_result.iteration_data(step).directed_coupling - experiment_result.iteration_data(step).directed_coupling_sequential;
-                    writelines( ...
-                        matrix_to_pgf_array(coupling_parallel), ...
-                        fullfile(experiment_folder, strcat(filebase_step, '_coupling_parallel.dat')) ...
-                    );
+                        if isfile(fullfile(experiment_folder, strcat(filebase_step, '_coupling_parallel.dat')))
+                            continue;
+                        end
+
+                        % plot snapshots
+                        plotter.set_time_step(step);
+                        plotter.plot();
+                        step_indices_str = sprintf("_%02d", step);
+                        filename = strcat(experiment_result.file_name, "_snapshot", step_indices_str, ".png");
+                        file_path = fullfile( ...
+                            experiment_folder, ...
+                            filename ...
+                        );
+                        export_fig(plotter.get_figure(), file_path, is_vector_graphic = false);
+
+                        % vehicle poses
+                        poses = experiment_result.iteration_data(step).x0(:, 1:3);
+                        writetable( ...
+                            array2table(poses, VariableNames = ["x", "y", "psi"]), ...
+                            fullfile(experiment_folder, strcat(filebase_step, '_poses.dat')) ...
+                        );
+
+                        % references per vehicle
+                        references = [ ...
+                                          experiment_result.iteration_data(step).reference_trajectory_points(:, :, 1)', ...
+                                          experiment_result.iteration_data(step).reference_trajectory_points(:, :, 2)' ...
+                                      ];
+
+                        variable_names = [string("x" + (1:experiment_result.options.amount)), string("y" + (1:experiment_result.options.amount))];
+                        writetable( ...
+                            array2table(references, VariableNames = variable_names), ...
+                            fullfile(experiment_folder, strcat(filebase_step, '_references.dat')) ...
+                        );
+                        % predictions per vehicle
+                        % add current position of all vehicles
+                        predictions = [poses(:, 1)', poses(:, 2)'];
+                        all_predictions = vertcat(experiment_result.control_results_info(:, step).y_predicted);
+                        predictions = [ ...
+                                           predictions;
+                                       all_predictions(1:3:end, :)', ...
+                                           all_predictions(2:3:end, :)' ...
+                                       ]; %#ok<AGROW>
+
+                        variable_names = [string("x" + (1:experiment_result.options.amount)), string("y" + (1:experiment_result.options.amount))];
+                        writetable( ...
+                            array2table(predictions, VariableNames = variable_names), ...
+                            fullfile(experiment_folder, strcat(filebase_step, '_predictions.dat')) ...
+                        );
+                        % coupling_sequential
+                        coupling_sequential = experiment_result.iteration_data(step).directed_coupling_sequential;
+                        writelines( ...
+                            matrix_to_pgf_array(coupling_sequential), ...
+                            fullfile(experiment_folder, strcat(filebase_step, '_coupling_sequential.dat')) ...
+                        );
+                        % coupling_parallel
+                        coupling_parallel = experiment_result.iteration_data(step).directed_coupling - experiment_result.iteration_data(step).directed_coupling_sequential;
+                        writelines( ...
+                            matrix_to_pgf_array(coupling_parallel), ...
+                            fullfile(experiment_folder, strcat(filebase_step, '_coupling_parallel.dat')) ...
+                        );
+                    end
+
                 end
 
             end
@@ -352,5 +487,3 @@ function eval_prioritization(optional)
         end
 
     end
-
-end
