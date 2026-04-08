@@ -21,7 +21,7 @@ classdef IterationData
 
         adjacency (:, :) logical % (nVeh x nVeh) matrix, entry is 1 if two vehicles drive in two adjacent lanelets and their distance are smaller enough
         weighted_coupling (:, :) double % (nVeh x nVeh) matrix, coupling weights of all coupling vehicle pair; higher value indicates stronger coupling
-        directed_coupling (:, :) logical % nVeh-by-nVeh matrix, entry if 1 if the corresponding two vehicles are coupled
+        directed_coupling (:, :) logical % nVeh-by-nVeh matrix, true if coupling from row to column
         directed_coupling_sequential (:, :) logical % nVeh-by-nVeh matrix, after graph partitioning
 
         fallbacks (:, 1) logical % n_vehicles x 1, true if fallback
