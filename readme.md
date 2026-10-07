@@ -104,7 +104,7 @@ The results are saved in the folder "results".
 
 <details>
 <summary>
-P. Scheffe, J. Kahle and B. Alrifaee, "Simultaneous Computation of Multiple Prioritizations in Distributed MPC", arXiv preprint arXiv:2501.10781.
+P. Scheffe, J. Kahle and B. Alrifaee, "Simultaneous Computation of Multiple Prioritizations in Distributed MPC", in the Journal of Artificial Intelligence Research (JAIR), doi: https://doi.org/10.1613/jair.1.20870.
 <br>
 
 [![Paper](https://img.shields.io/badge/Preprint-Paper-00629B)](https://arxiv.org/abs/2501.10781)
